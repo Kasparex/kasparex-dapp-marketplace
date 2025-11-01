@@ -2,6 +2,8 @@
 
 Super simple and fast EVM-compatible dApp marketplace for Kaspa, supporting both Layer 1 and Layer 2 solutions.
 
+**Status:** ✅ Ready for deployment
+
 ## Features
 
 - 🔌 EVM wallet connection via thirdweb
