@@ -97,6 +97,9 @@ export function Header() {
                   name: 'Kasparex dApps',
                   url: typeof window !== 'undefined' ? window.location.origin : '',
                 }}
+                auth={{
+                  options: [], // Disable all auth options - only show wallet connection
+                }}
               />
             </Suspense>
           </div>
