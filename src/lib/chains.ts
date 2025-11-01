@@ -17,7 +17,7 @@ export const kasplexChain = defineChain({
     symbol: 'KAS',
     decimals: 18,
   },
-  rpc: ['https://evmrpc.kasplex.org'], // RPC must be an array
+  rpc: ['https://evmrpc.kasplex.org'] as const,
   blockExplorers: [
     {
       name: 'Kasplex Explorer',
