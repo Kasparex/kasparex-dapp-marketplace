@@ -1,0 +1,32 @@
+import { DApp } from '@/lib/dapps';
+import { DAppCard } from './DAppCard';
+
+interface DAppGridProps {
+  dapps: DApp[];
+  onDAppClick: (dapp: DApp) => void;
+}
+
+export function DAppGrid({ dapps, onDAppClick }: DAppGridProps) {
+  if (dapps.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-zinc-500 dark:text-zinc-400">
+          No dApps found in this category.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+      {dapps.map((dapp) => (
+        <DAppCard
+          key={dapp.id}
+          dapp={dapp}
+          onClick={() => onDAppClick(dapp)}
+        />
+      ))}
+    </div>
+  );
+}
+

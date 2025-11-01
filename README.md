@@ -1,58 +1,151 @@
-![tw-banner](https://github.com/thirdweb-example/next-starter/assets/57885104/20c8ce3b-4e55-4f10-ae03-2fe4743a5ee8)
+# Kasparex dApps - Kaspa dApp Marketplace
 
-# thirdweb-next-starter
+Super simple and fast EVM-compatible dApp marketplace for Kaspa, supporting both Layer 1 and Layer 2 solutions.
 
-Starter template to build an onchain react native app with [thirdweb](https://thirdweb.com/) and [next](https://nextjs.org/).
+## Features
 
-## Installation
+- 🔌 EVM wallet connection via thirdweb
+- 🌓 Light/dark mode toggle with persistence
+- 📱 Responsive design (mobile-first)
+- 🎯 Category filtering with collapsible sidebar
+- 🎨 Modern, clean UI matching Kasparex brand
+- ⚡ Fast and lightweight
 
-Install the template using [thirdweb create](https://portal.thirdweb.com/cli/create)
+## Tech Stack
+
+- **Framework**: Next.js 15.4.6 (App Router)
+- **Wallet**: thirdweb v5
+- **Styling**: Tailwind CSS with dark mode support
+- **Language**: TypeScript
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+ 
+- npm, yarn, or pnpm
+
+### Installation
+
+1. Install dependencies:
 
 ```bash
-  npx thirdweb create app --next
+npm install
+# or
+yarn install
+# or
+pnpm install
 ```
 
-## Environment Variables
+2. Create a `.env.local` file in the root directory:
 
-To run this project, you will need to add the following environment variables to your .env file:
-
-`CLIENT_ID`
-
-To learn how to create a client ID, refer to the [client documentation](https://portal.thirdweb.com/typescript/v5/client).
-
-## Run locally
-
-Install dependencies
-
-```bash
-yarn
+```env
+NEXT_PUBLIC_TEMPLATE_CLIENT_ID=your_thirdweb_client_id_here
 ```
 
-Start development server
+To get a thirdweb client ID:
+1. Visit [thirdweb Dashboard](https://thirdweb.com/dashboard)
+2. Create a new project or use an existing one
+3. Copy your client ID from the project settings
+4. Refer to [thirdweb client documentation](https://portal.thirdweb.com/typescript/v5/client) for more details
+
+3. Add your Kaspa logo:
+   - Place your Kaspa logo PNG file in the `public` directory as `kaspa-logo.png`
+   - The logo will be displayed in the header
+
+### Run locally
+
+Start the development server:
 
 ```bash
+npm run dev
+# or
 yarn dev
+# or
+pnpm dev
 ```
 
-Create a production build
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Build for Production
+
+Create a production build:
 
 ```bash
+npm run build
+# or
 yarn build
+# or
+pnpm build
 ```
 
-Preview the production build
+Start the production server:
 
 ```bash
+npm start
+# or
 yarn start
+# or
+pnpm start
 ```
+
+## Deployment
+
+### Deploy to Vercel
+
+This project is ready to deploy on Vercel:
+
+1. Push your code to GitHub
+2. Import your repository in [Vercel](https://vercel.com)
+3. Add the `NEXT_PUBLIC_TEMPLATE_CLIENT_ID` environment variable
+4. Deploy!
+
+### Deploy to GitHub Pages
+
+1. Build the project: `npm run build`
+2. Configure GitHub Actions for deployment
+3. Set environment variables in GitHub repository settings
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── layout.tsx          # Root layout with providers
+│   ├── page.tsx            # Main marketplace page
+│   ├── globals.css         # Global styles
+│   └── client.ts           # thirdweb client configuration
+├── components/
+│   ├── Header.tsx          # Header with logo, wallet, theme toggle
+│   ├── Sidebar.tsx         # Collapsible category filters
+│   ├── DAppGrid.tsx        # Grid view of dApps
+│   ├── DAppCard.tsx        # Individual dApp card
+│   ├── DAppDetail.tsx      # Detailed dApp view
+│   ├── Footer.tsx          # Footer with links
+│   └── ThemeProvider.tsx   # Theme context provider
+└── lib/
+    ├── dapps.ts            # dApp data structure and types
+    ├── categories.ts       # Category definitions
+    └── theme.ts            # Theme utilities
+```
+
+## Adding dApps
+
+Edit `src/lib/dapps.ts` to add new dApps to the marketplace. Each dApp should follow the `DApp` interface structure.
+
+## Customization
+
+- **Categories**: Edit `src/lib/categories.ts` to modify category filters
+- **Styling**: Modify `tailwind.config.ts` and `src/app/globals.css` for custom colors and themes
+- **Metadata**: Update `src/app/layout.tsx` for SEO and page metadata
 
 ## Resources
 
-- [Documentation](https://portal.thirdweb.com/typescript/v5)
-- [Templates](https://thirdweb.com/templates)
-- [YouTube](https://www.youtube.com/c/thirdweb)
-- [Blog](https://blog.thirdweb.com)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [thirdweb Documentation](https://portal.thirdweb.com/typescript/v5)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+- [Kasparex Website](https://www.kasparex.com)
 
-## Need help?
+## License
 
-For help or feedback, please [visit our support site](https://thirdweb.com/support)
+© 2024 Kasparex.com. All rights reserved.
