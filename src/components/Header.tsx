@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { client } from '@/app/client';
@@ -23,23 +23,6 @@ const ConnectButton = dynamic(
 export function Header() {
   const { theme, toggleTheme } = useTheme();
   const [logoError, setLogoError] = useState(false);
-  const [wallets, setWallets] = useState<any[] | undefined>(undefined);
-
-  // Configure wallets on mount - only external wallets, no in-app wallet (which provides email/social login)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      import('thirdweb/wallets').then((mod) => {
-        setWallets([
-          mod.createWallet('io.metamask'),
-          mod.createWallet('com.coinbase.wallet'),
-          mod.createWallet('com.trustwallet.app'),
-          mod.createWallet('com.rabby'),
-          mod.createWallet('app.uniswap'),
-          // Add KasWare and other Kaspa wallets if available
-        ]);
-      });
-    }
-  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-zinc-950/80">
@@ -116,7 +99,6 @@ export function Header() {
                   name: 'Kasparex dApps',
                   url: typeof window !== 'undefined' ? window.location.origin : '',
                 }}
-                wallets={wallets}
               />
             </Suspense>
           </div>
