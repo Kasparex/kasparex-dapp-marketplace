@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { DApp, type DAppStatus } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 
@@ -45,11 +46,13 @@ export function DAppDetail({ dapp, onBack }: DAppDetailProps) {
       {/* Header */}
       <div className="flex items-start gap-6">
         {dapp.image ? (
-          <div className="flex-shrink-0 w-20 h-20 rounded-lg bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
-            <img
+          <div className="flex-shrink-0 relative w-20 h-20 rounded-lg bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+            <Image
               src={dapp.image}
               alt={dapp.name}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              unoptimized
             />
           </div>
         ) : (

@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { DApp, type DAppStatus } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 
@@ -26,11 +27,13 @@ export function DAppCard({ dapp, onClick }: DAppCardProps) {
     >
       <div className="flex items-start gap-4">
         {dapp.image ? (
-          <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
-            <img
+          <div className="flex-shrink-0 relative w-12 h-12 rounded-lg bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+            <Image
               src={dapp.image}
               alt={dapp.name}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              unoptimized
             />
           </div>
         ) : (

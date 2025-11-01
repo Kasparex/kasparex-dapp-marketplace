@@ -22,7 +22,6 @@ const ConnectButton = dynamic(
 export function Header() {
   const { theme, toggleTheme } = useTheme();
   const [logoError, setLogoError] = useState(false);
-  const [walletError, setWalletError] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-zinc-950/80">
@@ -91,22 +90,15 @@ export function Header() {
                 </svg>
               )}
             </button>
-            {!walletError ? (
-              <Suspense fallback={<div className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-sm">Loading...</div>}>
-                <ConnectButton
-                  client={client}
-                  appMetadata={{
-                    name: 'Kasparex dApps',
-                    url: typeof window !== 'undefined' ? window.location.origin : '',
-                  }}
-                  onError={() => setWalletError(true)}
-                />
-              </Suspense>
-            ) : (
-              <div className="px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg text-sm text-yellow-800 dark:text-yellow-300">
-                Wallet unavailable
-              </div>
-            )}
+            <Suspense fallback={<div className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-sm">Loading...</div>}>
+              <ConnectButton
+                client={client}
+                appMetadata={{
+                  name: 'Kasparex dApps',
+                  url: typeof window !== 'undefined' ? window.location.origin : '',
+                }}
+              />
+            </Suspense>
           </div>
         </div>
       </div>
