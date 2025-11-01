@@ -5,7 +5,6 @@ import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { client } from '@/app/client';
 import { useTheme } from './ThemeProvider';
-import { kasplexChain } from '@/lib/chains';
 
 // Dynamically import ConnectButton and createWallet to prevent blocking
 const ConnectButton = dynamic(
@@ -110,7 +109,6 @@ export function Header() {
             <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>
               <ConnectButton
                 client={client}
-                chain={kasplexChain}
                 connectModal={{ size: 'compact' }}
                 wallets={wallets}
                 appMetadata={{

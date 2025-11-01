@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThirdwebProvider } from "thirdweb/react";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { kasplexChain } from "@/lib/chains";
 
 const inter = Inter({ subsets: ["latin"] });
 
