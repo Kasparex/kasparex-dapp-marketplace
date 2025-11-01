@@ -1,5 +1,7 @@
+'use client';
+
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
-import { defineChain } from 'wagmi';
+import { defineChain } from 'viem';
 
 /**
  * Kasplex L2 Mainnet Chain Configuration
