@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThirdwebProvider } from "thirdweb/react";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { kasplexChain } from "@/lib/chains";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,7 +22,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className="dark">
       <body className={inter.className}>
         <ThemeProvider>
-          <ThirdwebProvider>{children}</ThirdwebProvider>
+          <ThirdwebProvider activeChain={kasplexChain}>
+            {children}
+          </ThirdwebProvider>
         </ThemeProvider>
       </body>
     </html>
