@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { client } from '@/app/client';
 import { useTheme } from './ThemeProvider';
+import { kasplexChain } from '@/lib/chains';
 
-// Dynamically import ConnectButton to prevent blocking
+// Dynamically import ConnectButton and createWallet to prevent blocking
 const ConnectButton = dynamic(
   () => import('thirdweb/react').then((mod) => mod.ConnectButton),
   {
@@ -22,6 +23,23 @@ const ConnectButton = dynamic(
 export function Header() {
   const { theme, toggleTheme } = useTheme();
   const [logoError, setLogoError] = useState(false);
+  const [wallets, setWallets] = useState<any[] | undefined>(undefined);
+
+  // Configure wallets on mount - only external wallets, no in-app wallet (which provides email/social login)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      import('thirdweb/wallets').then((mod) => {
+        setWallets([
+          mod.createWallet('io.metamask'),
+          mod.createWallet('com.coinbase.wallet'),
+          mod.createWallet('com.trustwallet.app'),
+          mod.createWallet('com.rabby'),
+          mod.createWallet('app.uniswap'),
+          // Add KasWare and other Kaspa wallets if available
+        ]);
+      });
+    }
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-zinc-950/80">
@@ -93,13 +111,12 @@ export function Header() {
             <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>
               <ConnectButton
                 client={client}
+                chain={kasplexChain}
                 appMetadata={{
                   name: 'Kasparex dApps',
                   url: typeof window !== 'undefined' ? window.location.origin : '',
                 }}
-                auth={{
-                  options: [], // Disable all auth options - only show wallet connection
-                }}
+                wallets={wallets}
               />
             </Suspense>
           </div>

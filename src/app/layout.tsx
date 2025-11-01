@@ -22,7 +22,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className="dark">
       <body className={inter.className}>
         <ThemeProvider>
-          <ThirdwebProvider activeChain={kasplexChain}>
+          <ThirdwebProvider>
             {children}
           </ThirdwebProvider>
         </ThemeProvider>
