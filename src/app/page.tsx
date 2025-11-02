@@ -18,20 +18,21 @@ export default function Home() {
     developer: 'all',
     network: 'all',
   });
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Get category counts based on current filters
+  // Get category counts based on current filters and search
   const categoryCounts = useMemo(() => {
-    return getCategoryCounts(placeholderDApps, filters);
-  }, [filters]);
+    return getCategoryCounts(placeholderDApps, filters, searchQuery);
+  }, [filters, searchQuery]);
 
-  // Filter dApps based on current filters and selected category
+  // Filter dApps based on current filters, selected category, and search query
   const filteredDApps = useMemo(() => {
     const filterState: FilterState = {
       category: selectedCategory,
       ...filters,
     };
-    return filterDApps(placeholderDApps, filterState);
-  }, [selectedCategory, filters]);
+    return filterDApps(placeholderDApps, filterState, searchQuery);
+  }, [selectedCategory, filters, searchQuery]);
 
   const handleCategoryChange = (category: Category) => {
     setSelectedCategory(category);
@@ -41,6 +42,17 @@ export default function Home() {
   const handleFilterChange = (newFilters: Omit<FilterState, 'category'>) => {
     setFilters(newFilters);
     setSelectedDApp(null); // Reset selected dApp when changing filters
+  };
+
+  const handleResetFilters = () => {
+    setSelectedCategory('all');
+    setFilters({
+      status: 'all',
+      developer: 'all',
+      network: 'all',
+    });
+    setSearchQuery('');
+    setSelectedDApp(null);
   };
 
   const handleDAppClick = (dapp: DApp) => {
@@ -64,6 +76,9 @@ export default function Home() {
             filters={filters}
             onFilterChange={handleFilterChange}
             categoryCounts={categoryCounts}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onResetFilters={handleResetFilters}
           />
         </div>
         {/* Mobile sidebar (fixed positioning handled in component) */}
@@ -74,13 +89,20 @@ export default function Home() {
             filters={filters}
             onFilterChange={handleFilterChange}
             categoryCounts={categoryCounts}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onResetFilters={handleResetFilters}
           />
         </div>
 
         {/* Main Content */}
         <div className="flex-1 p-4 sm:p-6 lg:p-8 lg:pl-6">
           {selectedDApp ? (
-            <DAppDetail dapp={selectedDApp} onBack={handleBack} />
+            <div className="flex flex-col lg:flex-row gap-6">
+              <div className="flex-1">
+                <DAppDetail dapp={selectedDApp} onBack={handleBack} />
+              </div>
+            </div>
           ) : (
             <div>
               <div className="mb-6">

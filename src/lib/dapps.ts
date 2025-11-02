@@ -189,7 +189,8 @@ export const filterDAppsByCategory = (
 
 export const filterDApps = (
   dapps: DApp[],
-  filters: FilterState
+  filters: FilterState,
+  searchQuery?: string
 ): DApp[] => {
   return dapps.filter((dapp) => {
     // Category filter
@@ -212,13 +213,37 @@ export const filterDApps = (
       return false;
     }
     
+    // Search query filter
+    if (searchQuery && searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase().trim();
+      const searchableText = [
+        dapp.name,
+        dapp.utility,
+        dapp.process,
+        dapp.benefits,
+        dapp.description,
+        dapp.developer,
+        dapp.category,
+        dapp.status,
+        dapp.network,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      
+      if (!searchableText.includes(query)) {
+        return false;
+      }
+    }
+    
     return true;
   });
 };
 
 export const getCategoryCounts = (
   dapps: DApp[],
-  filters: Omit<FilterState, 'category'>
+  filters: Omit<FilterState, 'category'>,
+  searchQuery?: string
 ): Record<Category, number> => {
   const counts: Record<Category, number> = {
     all: 0,
@@ -235,7 +260,7 @@ export const getCategoryCounts = (
     airdrops: 0,
   };
 
-  // Filter dApps by status, developer, and network (but not category)
+  // Filter dApps by status, developer, network, and search query (but not category)
   const filteredDApps = dapps.filter((dapp) => {
     if (filters.status !== 'all' && dapp.status !== filters.status) {
       return false;
@@ -246,6 +271,30 @@ export const getCategoryCounts = (
     if (filters.network !== 'all' && dapp.network !== filters.network) {
       return false;
     }
+    
+    // Search query filter
+    if (searchQuery && searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase().trim();
+      const searchableText = [
+        dapp.name,
+        dapp.utility,
+        dapp.process,
+        dapp.benefits,
+        dapp.description,
+        dapp.developer,
+        dapp.category,
+        dapp.status,
+        dapp.network,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      
+      if (!searchableText.includes(query)) {
+        return false;
+      }
+    }
+    
     return true;
   });
 

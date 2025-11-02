@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { categories, type Category } from '@/lib/categories';
 import type { FilterState, DAppStatus } from '@/lib/dapps';
+import { CategoriesIcon, StatusIcon, DeveloperIcon, NetworkIcon } from '@/components/icons/SectionIcons';
 
 interface SidebarProps {
   selectedCategory: Category;
@@ -10,6 +12,9 @@ interface SidebarProps {
   filters: Omit<FilterState, 'category'>;
   onFilterChange: (filters: Omit<FilterState, 'category'>) => void;
   categoryCounts: Record<Category, number>;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  onResetFilters: () => void;
 }
 
 const statusOptions: { value: DAppStatus | 'all'; emoji: string; label: string }[] = [
@@ -32,12 +37,12 @@ const developerOptions = [
   'Kasplex',
 ];
 
-const networkOptions = [
-  'All',
-  'KRC-20',
-  'Kasplex L2',
-  'Igra L2',
-  'Other',
+const networkOptions: { label: string; logo?: string }[] = [
+  { label: 'All' },
+  { label: 'KRC-20', logo: '/img/logos/krc20.svg' },
+  { label: 'Kasplex L2', logo: '/img/logos/kasplex.svg' },
+  { label: 'Igra L2', logo: '/img/logos/igra.svg' },
+  { label: 'Other' },
 ];
 
 export function Sidebar({
@@ -46,6 +51,9 @@ export function Sidebar({
   filters,
   onFilterChange,
   categoryCounts,
+  searchQuery,
+  onSearchChange,
+  onResetFilters,
 }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [categoriesExpanded, setCategoriesExpanded] = useState(true);
@@ -81,11 +89,13 @@ export function Sidebar({
 
   const CollapsibleSection = ({
     title,
+    icon,
     expanded,
     onToggle,
     children,
   }: {
     title: string;
+    icon?: React.ReactNode;
     expanded: boolean;
     onToggle: () => void;
     children: React.ReactNode;
@@ -95,7 +105,12 @@ export function Sidebar({
         onClick={onToggle}
         className="w-full flex items-center justify-between text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
       >
-        <span>{title}</span>
+        <div className="flex items-center gap-2">
+          {icon && (
+            <span className="text-zinc-500 dark:text-zinc-400">{icon}</span>
+          )}
+          <span>{title}</span>
+        </div>
         <ChevronIcon expanded={expanded} />
       </button>
       {expanded && <div>{children}</div>}
@@ -156,9 +171,36 @@ export function Sidebar({
         `}
       >
         <div className="p-4 lg:p-6">
+          {/* Search Box */}
+          <div className="mb-6">
+            <div className="relative">
+              <svg
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400 dark:text-zinc-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search dApps..."
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-500 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+              />
+            </div>
+          </div>
+
           {/* Categories Section */}
           <CollapsibleSection
             title="Categories"
+            icon={<CategoriesIcon />}
             expanded={categoriesExpanded}
             onToggle={() => setCategoriesExpanded(!categoriesExpanded)}
           >
@@ -209,6 +251,7 @@ export function Sidebar({
           {/* Status Filter */}
           <CollapsibleSection
             title="Status"
+            icon={<StatusIcon />}
             expanded={statusExpanded}
             onToggle={() => setStatusExpanded(!statusExpanded)}
           >
@@ -241,6 +284,7 @@ export function Sidebar({
           {/* Developer Filter */}
           <CollapsibleSection
             title="Developer"
+            icon={<DeveloperIcon />}
             expanded={developerExpanded}
             onToggle={() => setDeveloperExpanded(!developerExpanded)}
           >
@@ -272,20 +316,22 @@ export function Sidebar({
           {/* Network Filter */}
           <CollapsibleSection
             title="Network"
+            icon={<NetworkIcon />}
             expanded={networkExpanded}
             onToggle={() => setNetworkExpanded(!networkExpanded)}
           >
             <nav className="space-y-1 mb-4">
               {networkOptions.map((option) => {
-                const value = option === 'All' ? 'all' : option;
+                const value = option.label === 'All' ? 'all' : option.label;
                 const isActive = filters.network === value;
                 return (
                   <button
-                    key={option}
-                    onClick={() => handleNetworkChange(option)}
+                    key={option.label}
+                    onClick={() => handleNetworkChange(option.label)}
                     className={`
                       w-full text-left px-4 py-2 rounded-lg
                       transition-colors
+                      flex items-center gap-2
                       ${
                         isActive
                           ? 'bg-zinc-900 dark:bg-zinc-800 text-white dark:text-zinc-100 font-medium'
@@ -293,12 +339,42 @@ export function Sidebar({
                       }
                     `}
                   >
-                    {option}
+                    {option.logo ? (
+                      <>
+                        <Image
+                          src={option.logo}
+                          alt={`${option.label} logo`}
+                          width={16}
+                          height={16}
+                          className="flex-shrink-0"
+                          onError={(e) => {
+                            // Hide logo if it doesn't exist
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                        <span>{option.label}</span>
+                      </>
+                    ) : (
+                      <span>{option.label}</span>
+                    )}
                   </button>
                 );
               })}
             </nav>
           </CollapsibleSection>
+
+          {/* Reset Filters Button */}
+          <div className="mt-6 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+            <button
+              onClick={() => {
+                onResetFilters();
+                setIsOpen(false);
+              }}
+              className="w-full px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+            >
+              Reset Filters
+            </button>
+          </div>
         </div>
       </aside>
     </>
