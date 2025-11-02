@@ -211,7 +211,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
                 expanded={processExpanded}
                 onToggle={() => setProcessExpanded(!processExpanded)}
               >
-                <p>⚙️ {dapp.process}</p>
+                <p>✅ {dapp.process}</p>
               </CollapsibleSection>
 
               {/* Benefits */}
@@ -221,7 +221,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
                 expanded={benefitsExpanded}
                 onToggle={() => setBenefitsExpanded(!benefitsExpanded)}
               >
-                <p>🧠 {dapp.benefits}</p>
+                <p>✅ {dapp.benefits}</p>
               </CollapsibleSection>
 
               {/* Developer Info */}

@@ -46,11 +46,11 @@ export function DAppCard({ dapp }: DAppCardProps) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-2">
-            <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
               <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 truncate">
                 {dapp.name}
               </h3>
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+              <span className="text-xs text-zinc-500 dark:text-zinc-400 flex-shrink-0">
                 ID: {dapp.id}
               </span>
             </div>
