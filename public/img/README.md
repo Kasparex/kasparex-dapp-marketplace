@@ -15,13 +15,13 @@ public/img/
 Network logos should be placed in the `logos/` directory and referenced in the Sidebar component.
 
 ### Supported Formats
-- SVG (preferred for scalability)
-- PNG (with transparent background, minimum 32x32px)
+- PNG (with transparent background, minimum 32x32px, default format)
+- SVG (alternative format for scalability)
 
 ### Current Network Logo Paths
-- KRC-20: `/img/logos/krc20.svg`
-- Kasplex L2: `/img/logos/kasplex.svg`
-- Igra L2: `/img/logos/igra.svg`
+- KRC-20: `/img/logos/krc20.png`
+- Kasplex L2: `/img/logos/kasplex.png`
+- Igra L2: `/img/logos/igra.png`
 
 ### Adding New Network Logos
 
@@ -30,7 +30,32 @@ Network logos should be placed in the `logos/` directory and referenced in the S
 
 Example:
 ```typescript
-{ label: 'Network Name', logo: '/img/logos/network-name.svg' }
+{ label: 'Network Name', logo: '/img/logos/network-name.png' }
+```
+
+## Adding Developer Logos
+
+Developer logos should be placed in the `logos/` directory and will display next to developer names in the Developer filter section.
+
+### Supported Formats
+- PNG (with transparent background, minimum 32x32px, default format)
+- SVG (alternative format for scalability)
+
+### Current Developer Logo Paths
+- Kasparex: `/img/logos/kasparex.png`
+- KaspaCom: `/img/logos/kaspacom.png`
+- KasFyi: `/img/logos/kasfyi.png`
+- KasTools: `/img/logos/kastools.png`
+- Kasplex: `/img/logos/kasplex.png`
+
+### Adding New Developer Logos
+
+1. Place the logo file in `public/img/logos/`
+2. Update the `developerOptions` array in `src/components/Sidebar.tsx` to include the logo path
+
+Example:
+```typescript
+{ label: 'Developer Name', logo: '/img/logos/developer-name.png' }
 ```
 
 ## Icon Guidelines

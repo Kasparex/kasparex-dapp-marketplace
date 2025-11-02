@@ -28,20 +28,20 @@ const statusOptions: { value: DAppStatus | 'all'; emoji: string; label: string }
   { value: 'Suspended', emoji: '🔴', label: 'Suspended' },
 ];
 
-const developerOptions = [
-  'All',
-  'Kasparex',
-  'KaspaCom',
-  'KasFyi',
-  'KasTools',
-  'Kasplex',
+const developerOptions: { label: string; logo?: string }[] = [
+  { label: 'All' },
+  { label: 'Kasparex', logo: '/img/logos/kasparex.png' },
+  { label: 'KaspaCom', logo: '/img/logos/kaspacom.png' },
+  { label: 'KasFyi', logo: '/img/logos/kasfyi.png' },
+  { label: 'KasTools', logo: '/img/logos/kastools.png' },
+  { label: 'Kasplex', logo: '/img/logos/kasplex.png' },
 ];
 
 const networkOptions: { label: string; logo?: string }[] = [
   { label: 'All' },
-  { label: 'KRC-20', logo: '/img/logos/krc20.svg' },
-  { label: 'Kasplex L2', logo: '/img/logos/kasplex.svg' },
-  { label: 'Igra L2', logo: '/img/logos/igra.svg' },
+  { label: 'KRC-20', logo: '/img/logos/krc20.png' },
+  { label: 'Kasplex L2', logo: '/img/logos/kasplex.png' },
+  { label: 'Igra L2', logo: '/img/logos/igra.png' },
   { label: 'Other' },
 ];
 
@@ -290,15 +290,16 @@ export function Sidebar({
           >
             <nav className="space-y-1 mb-4">
               {developerOptions.map((option) => {
-                const value = option === 'All' ? 'all' : option;
+                const value = option.label === 'All' ? 'all' : option.label;
                 const isActive = filters.developer === value;
                 return (
                   <button
-                    key={option}
-                    onClick={() => handleDeveloperChange(option)}
+                    key={option.label}
+                    onClick={() => handleDeveloperChange(option.label)}
                     className={`
                       w-full text-left px-4 py-2 rounded-lg
                       transition-colors
+                      flex items-center gap-2
                       ${
                         isActive
                           ? 'bg-zinc-900 dark:bg-zinc-800 text-white dark:text-zinc-100 font-medium'
@@ -306,7 +307,24 @@ export function Sidebar({
                       }
                     `}
                   >
-                    {option}
+                    {option.logo ? (
+                      <>
+                        <Image
+                          src={option.logo}
+                          alt={`${option.label} logo`}
+                          width={16}
+                          height={16}
+                          className="flex-shrink-0"
+                          onError={(e) => {
+                            // Hide logo if it doesn't exist
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                        <span>{option.label}</span>
+                      </>
+                    ) : (
+                      <span>{option.label}</span>
+                    )}
                   </button>
                 );
               })}
