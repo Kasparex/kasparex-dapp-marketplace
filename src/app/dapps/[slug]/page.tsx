@@ -42,9 +42,7 @@ export default async function DAppPage({ params }: PageProps) {
       
       <main className="flex-1 flex flex-col lg:flex-row">
         {/* dApp-Specific Sidebar */}
-        <DAppSidebar dappName={dapp.name}>
-          {/* Custom sidebar content can be added here per dApp */}
-        </DAppSidebar>
+        <DAppSidebar dapp={dapp} />
 
         {/* Main Content */}
         <div className="flex-1 p-4 sm:p-6 lg:p-8 lg:pl-6">

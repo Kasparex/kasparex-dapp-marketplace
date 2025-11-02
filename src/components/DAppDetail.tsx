@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { DApp, type DAppStatus } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
+import { DAppWidget } from './DAppWidget';
 
 const statusColors: Record<DAppStatus, string> = {
   Mainnet: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-300 dark:border-green-700',
@@ -84,82 +85,10 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
         </div>
       </div>
 
-      {/* Description */}
-      {dapp.description && (
-        <div>
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-            Description
-          </h2>
-          <p className="text-zinc-600 dark:text-zinc-400">{dapp.description}</p>
-        </div>
-      )}
-
-      {/* Utility */}
-      <div>
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-          ✅ Utility
-        </h2>
-        <p className="text-zinc-600 dark:text-zinc-400">{dapp.utility}</p>
+      {/* dApp Widget */}
+      <div className="mt-6">
+        <DAppWidget dapp={dapp} />
       </div>
-
-      {/* Process */}
-      <div>
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-          ⚙️ Process
-        </h2>
-        <p className="text-zinc-600 dark:text-zinc-400">{dapp.process}</p>
-      </div>
-
-      {/* Benefits */}
-      <div>
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-          🧠 Benefits
-        </h2>
-        <p className="text-zinc-600 dark:text-zinc-400">{dapp.benefits}</p>
-      </div>
-
-      {/* Developer & Network Info */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-zinc-200 dark:border-zinc-800">
-        <div>
-          <h3 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1">
-            Developer
-          </h3>
-          <p className="text-zinc-900 dark:text-zinc-100">{dapp.developer}</p>
-        </div>
-        <div>
-          <h3 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1">
-            Network
-          </h3>
-          <p className="text-zinc-900 dark:text-zinc-100">{dapp.network}</p>
-        </div>
-      </div>
-
-      {/* Launch Button */}
-      {dapp.url && (
-        <div className="pt-4">
-          <a
-            href={dapp.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
-          >
-            Launch App
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-              />
-            </svg>
-          </a>
-        </div>
-      )}
     </div>
   );
 }

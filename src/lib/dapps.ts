@@ -9,6 +9,11 @@ export type DAppStatus =
   | 'Suspended'
   | 'Devnet';
 
+export interface DeveloperLink {
+  label: string;
+  url: string;
+}
+
 export interface DApp {
   id: string;
   name: string;
@@ -19,10 +24,12 @@ export interface DApp {
   process: string;
   benefits: string;
   developer: string;
+  developerLinks?: DeveloperLink[]; // Up to 3 links: website, social media profiles
   status: DAppStatus;
   network: string;
   provider: string;
   url?: string;
+  widgetUrl?: string; // URL for embedded widget/iframe of the dApp
   version?: string;
   description?: string;
 }
@@ -37,6 +44,11 @@ export const placeholderDApps: DApp[] = [
     process: 'Contract verifies payment and unlocks pages or tools.',
     benefits: 'Recurring revenue model for content creators.',
     developer: 'Kasparex',
+    developerLinks: [
+      { label: 'Website', url: 'https://www.kasparex.com' },
+      { label: 'Telegram', url: 'https://t.me/kasparex' },
+      { label: 'X (Twitter)', url: 'https://x.com/kasparex' },
+    ],
     status: 'Prototype',
     network: 'Testnet',
     provider: 'Kasparex',

@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import { DApp } from '@/lib/dapps';
 
 interface DAppSidebarProps {
-  dappName?: string;
-  children?: React.ReactNode;
+  dapp: DApp;
 }
 
-export function DAppSidebar({ dappName, children }: DAppSidebarProps) {
+export function DAppSidebar({ dapp }: DAppSidebarProps) {
   return (
     <>
       {/* Mobile Back Button */}
@@ -58,14 +58,79 @@ export function DAppSidebar({ dappName, children }: DAppSidebarProps) {
               Back to Categories
             </Link>
 
-            {/* Customizable Content Area */}
-            <div className="space-y-4">
-              {children || (
-                <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                  <p>Custom sidebar content for {dappName || 'this dApp'}.</p>
-                  <p className="mt-2 text-xs">This area can be customized per dApp in the future.</p>
+            {/* Content Area */}
+            <div className="space-y-6">
+              {/* Description */}
+              {dapp.description && (
+                <div>
+                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider mb-2">
+                    Description
+                  </h3>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                    {dapp.description}
+                  </p>
                 </div>
               )}
+
+              {/* Utility */}
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <span>✅</span>
+                  <span>Utility</span>
+                </h3>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                  {dapp.utility}
+                </p>
+              </div>
+
+              {/* Process */}
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <span>⚙️</span>
+                  <span>Process</span>
+                </h3>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                  {dapp.process}
+                </p>
+              </div>
+
+              {/* Benefits */}
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <span>🧠</span>
+                  <span>Benefits</span>
+                </h3>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                  {dapp.benefits}
+                </p>
+              </div>
+
+              {/* Developer Info */}
+              <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
+                <h3 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
+                  Developer
+                </h3>
+                <p className="text-sm text-zinc-900 dark:text-zinc-100 mb-3">
+                  {dapp.developer}
+                </p>
+                
+                {/* Developer Links */}
+                {dapp.developerLinks && dapp.developerLinks.length > 0 && (
+                  <div className="space-y-2">
+                    {dapp.developerLinks.slice(0, 3).map((link, index) => (
+                      <a
+                        key={index}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors underline underline-offset-2"
+                      >
+                        {link.label}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
