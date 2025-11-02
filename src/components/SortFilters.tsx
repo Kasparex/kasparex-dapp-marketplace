@@ -31,13 +31,8 @@ export function SortFilters({ sortBy, onSortChange }: SortFiltersProps) {
 
   return (
     <div className="relative">
-      <div>
-        <h3 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-4 hidden lg:block">
-          Sort & Filter
-        </h3>
-
-        {/* Sort Dropdown */}
-        <div className="relative">
+      {/* Sort Dropdown */}
+      <div className="relative">
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="w-full flex items-center justify-between px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
@@ -80,7 +75,6 @@ export function SortFilters({ sortBy, onSortChange }: SortFiltersProps) {
                 </>
               )}
             </div>
-          </div>
     </div>
   );
 }
