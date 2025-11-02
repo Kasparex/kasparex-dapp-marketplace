@@ -72,6 +72,13 @@ export const placeholderDApps: DApp[] = [
   },
 ];
 
+export interface FilterState {
+  category: Category;
+  status: DAppStatus | 'all';
+  developer: string | 'all';
+  network: string | 'all';
+}
+
 export const filterDAppsByCategory = (
   dapps: DApp[],
   category: Category
@@ -80,6 +87,79 @@ export const filterDAppsByCategory = (
     return dapps;
   }
   return dapps.filter((dapp) => dapp.category === category);
+};
+
+export const filterDApps = (
+  dapps: DApp[],
+  filters: FilterState
+): DApp[] => {
+  return dapps.filter((dapp) => {
+    // Category filter
+    if (filters.category !== 'all' && dapp.category !== filters.category) {
+      return false;
+    }
+    
+    // Status filter
+    if (filters.status !== 'all' && dapp.status !== filters.status) {
+      return false;
+    }
+    
+    // Developer filter
+    if (filters.developer !== 'all' && dapp.developer !== filters.developer) {
+      return false;
+    }
+    
+    // Network filter
+    if (filters.network !== 'all' && dapp.network !== filters.network) {
+      return false;
+    }
+    
+    return true;
+  });
+};
+
+export const getCategoryCounts = (
+  dapps: DApp[],
+  filters: Omit<FilterState, 'category'>
+): Record<Category, number> => {
+  const counts: Record<Category, number> = {
+    all: 0,
+    tracker: 0,
+    general: 0,
+    minting: 0,
+    defi: 0,
+    games: 0,
+    promotion: 0,
+    subscription: 0,
+    dao: 0,
+    tools: 0,
+    collabs: 0,
+    airdrops: 0,
+  };
+
+  // Filter dApps by status, developer, and network (but not category)
+  const filteredDApps = dapps.filter((dapp) => {
+    if (filters.status !== 'all' && dapp.status !== filters.status) {
+      return false;
+    }
+    if (filters.developer !== 'all' && dapp.developer !== filters.developer) {
+      return false;
+    }
+    if (filters.network !== 'all' && dapp.network !== filters.network) {
+      return false;
+    }
+    return true;
+  });
+
+  // Count by category
+  filteredDApps.forEach((dapp) => {
+    counts[dapp.category] = (counts[dapp.category] || 0) + 1;
+  });
+
+  // Count all
+  counts.all = filteredDApps.length;
+
+  return counts;
 };
 
 export const getDAppById = (dapps: DApp[], id: string): DApp | undefined => {

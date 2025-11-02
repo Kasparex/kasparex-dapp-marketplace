@@ -12,6 +12,16 @@ const statusColors: Record<DAppStatus, string> = {
   Devnet: 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-700',
 };
 
+const statusEmojis: Record<DAppStatus, string> = {
+  Concept: '⚪',
+  Prototype: '🟠',
+  Testnet: '🟡',
+  Mainnet: '🟢',
+  Devnet: '🟣',
+  'U/C': '🔵',
+  Suspended: '🔴',
+};
+
 interface DAppDetailProps {
   dapp: DApp;
   onBack: () => void;
@@ -69,10 +79,12 @@ export function DAppDetail({ dapp, onBack }: DAppDetailProps) {
             <span
               className={`
                 px-3 py-1 text-sm font-medium rounded border
+                flex items-center gap-2
                 ${statusColors[dapp.status] || statusColors.Concept}
               `}
             >
-              {dapp.status}
+              {statusEmojis[dapp.status] && <span>{statusEmojis[dapp.status]}</span>}
+              <span>{dapp.status}</span>
             </span>
           </div>
 
