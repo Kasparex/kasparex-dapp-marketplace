@@ -69,17 +69,19 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
           </div>
 
           {category && (
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 flex-wrap mb-4">
               <span className="text-xl">{category.emoji}</span>
               <span className="text-zinc-600 dark:text-zinc-400">
                 {category.name}
               </span>
-            </div>
-          )}
-
-          {dapp.version && (
-            <div className="text-sm text-zinc-500 dark:text-zinc-500 mb-4">
-              {dapp.version} • {dapp.provider} • {dapp.network}
+              {dapp.version && (
+                <>
+                  <span className="text-zinc-400 dark:text-zinc-600">•</span>
+                  <span className="text-sm text-zinc-500 dark:text-zinc-500">
+                    {dapp.version} • {dapp.provider} • {dapp.network}
+                  </span>
+                </>
+              )}
             </div>
           )}
         </div>
