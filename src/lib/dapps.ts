@@ -20,6 +20,7 @@ export interface DApp {
   slug?: string; // URL-friendly identifier, auto-generated from name if not provided
   image?: string;
   featuredImage?: string; // 16:9 featured image for sidebar display
+  createdAt?: string; // ISO date string for sorting by creation date
   category: Category;
   utility: string;
   process: string;

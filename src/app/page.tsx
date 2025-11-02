@@ -4,9 +4,11 @@ import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
+import { SortFilters, type SortOption } from '@/components/SortFilters';
 import { DAppGrid } from '@/components/DAppGrid';
 import { Footer } from '@/components/Footer';
 import { placeholderDApps, filterDApps, getCategoryCounts, type FilterState } from '@/lib/dapps';
+import { sortDApps } from '@/lib/sorting';
 import type { Category } from '@/lib/categories';
 import { categories } from '@/lib/categories';
 
@@ -33,20 +35,22 @@ function HomeContent() {
     network: 'all',
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
 
   // Get category counts based on current filters and search
   const categoryCounts = useMemo(() => {
     return getCategoryCounts(placeholderDApps, filters, searchQuery);
   }, [filters, searchQuery]);
 
-  // Filter dApps based on current filters, selected category, and search query
+  // Filter and sort dApps based on current filters, selected category, search query, and sort option
   const filteredDApps = useMemo(() => {
     const filterState: FilterState = {
       category: selectedCategory,
       ...filters,
     };
-    return filterDApps(placeholderDApps, filterState, searchQuery);
-  }, [selectedCategory, filters, searchQuery]);
+    const filtered = filterDApps(placeholderDApps, filterState, searchQuery);
+    return sortDApps(filtered, sortBy);
+  }, [selectedCategory, filters, searchQuery, sortBy]);
 
   const handleCategoryChange = (category: Category) => {
     setSelectedCategory(category);
@@ -112,6 +116,9 @@ function HomeContent() {
             <DAppGrid dapps={filteredDApps} />
           </div>
         </div>
+
+        {/* Right Sidebar - Sort Filters */}
+        <SortFilters sortBy={sortBy} onSortChange={setSortBy} />
       </main>
 
       <Footer />
