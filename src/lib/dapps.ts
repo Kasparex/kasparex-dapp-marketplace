@@ -19,6 +19,7 @@ export interface DApp {
   name: string;
   slug?: string; // URL-friendly identifier, auto-generated from name if not provided
   image?: string;
+  featuredImage?: string; // 16:9 featured image for sidebar display
   category: Category;
   utility: string;
   process: string;

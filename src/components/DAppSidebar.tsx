@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { DApp } from '@/lib/dapps';
+import { DescriptionIcon, UtilityIcon, ProcessIcon, BenefitsIcon, DeveloperIcon } from '@/components/icons/SectionIcons';
 
 interface DAppSidebarProps {
   dapp: DApp;
@@ -147,12 +149,44 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
               Back to Categories
             </Link>
 
+            {/* Featured Image */}
+            <div className="mb-6">
+              <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+                {dapp.featuredImage ? (
+                  <Image
+                    src={dapp.featuredImage}
+                    alt={dapp.name}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <svg
+                      className="w-16 h-16 text-zinc-400 dark:text-zinc-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Content Area */}
             <div className="space-y-2">
               {/* Description */}
               {dapp.description && (
                 <CollapsibleSection
                   title="Description"
+                  icon={<DescriptionIcon />}
                   expanded={descriptionExpanded}
                   onToggle={() => setDescriptionExpanded(!descriptionExpanded)}
                 >
@@ -163,7 +197,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
               {/* Utility */}
               <CollapsibleSection
                 title="Utility"
-                icon={<span>✅</span>}
+                icon={<UtilityIcon />}
                 expanded={utilityExpanded}
                 onToggle={() => setUtilityExpanded(!utilityExpanded)}
               >
@@ -173,7 +207,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
               {/* Process */}
               <CollapsibleSection
                 title="Process"
-                icon={<span>⚙️</span>}
+                icon={<ProcessIcon />}
                 expanded={processExpanded}
                 onToggle={() => setProcessExpanded(!processExpanded)}
               >
@@ -183,7 +217,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
               {/* Benefits */}
               <CollapsibleSection
                 title="Benefits"
-                icon={<span>🧠</span>}
+                icon={<BenefitsIcon />}
                 expanded={benefitsExpanded}
                 onToggle={() => setBenefitsExpanded(!benefitsExpanded)}
               >
@@ -194,6 +228,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
               <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
                 <CollapsibleSection
                   title="Developer"
+                  icon={<DeveloperIcon />}
                   expanded={developerExpanded}
                   onToggle={() => setDeveloperExpanded(!developerExpanded)}
                 >

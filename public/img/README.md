@@ -6,6 +6,7 @@ This directory contains all graphic assets for the Kasparex dApp Marketplace.
 
 ```
 public/img/
+├── dapps/      # Featured images for dApps (16:9 aspect ratio)
 ├── icons/      # SVG icon files for UI elements
 ├── logos/      # Logo files for networks, developers, and brands
 └── tokens/     # KRC-20 token logo files
@@ -84,6 +85,42 @@ Example path:
 /img/tokens/krex.png
 /img/tokens/0x1234...abcd.png
 ```
+
+## Adding dApp Featured Images
+
+Featured images should be placed in the `dapps/` directory and will be displayed in the sidebar of each dApp page.
+
+### Supported Formats
+- PNG (recommended for photos)
+- JPG/JPEG (for compressed images)
+- WebP (for optimized web images)
+
+### Image Specifications
+- **Aspect Ratio**: 16:9 (recommended)
+- **Minimum Size**: 800x450px
+- **Maximum Size**: 1920x1080px
+- **File Naming**: Use the dApp slug (e.g., `subscription-checker.png`)
+
+### Adding Featured Images
+
+1. Create or obtain a 16:9 featured image for the dApp
+2. Place the image file in `public/img/dapps/` with a filename matching the dApp slug
+3. Update the dApp data in `src/lib/dapps.ts` to include the `featuredImage` field:
+
+Example:
+```typescript
+{
+  id: '1',
+  name: 'Subscription Checker',
+  slug: 'subscription-checker',
+  featuredImage: '/img/dapps/subscription-checker.png',
+  // ... other fields
+}
+```
+
+### Default Placeholder
+
+If a dApp doesn't have a featured image, a placeholder icon will be displayed automatically in the sidebar.
 
 ## Icon Guidelines
 
