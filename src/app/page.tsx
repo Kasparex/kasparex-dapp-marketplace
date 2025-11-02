@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
 import { SortFilters, type SortOption } from '@/components/SortFilters';
@@ -140,8 +141,20 @@ function HomeContent() {
                 {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
               </p>
               </div>
-              {/* Sort Filters - Positioned absolutely in top right */}
-              <div className="flex-shrink-0">
+              {/* Action Buttons and Sort Filters - Positioned in top right */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Link
+                  href="/build-dapp"
+                  className="px-4 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg text-sm font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors whitespace-nowrap"
+                >
+                  Build dApp
+                </Link>
+                <Link
+                  href="/list-dapp"
+                  className="px-4 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg text-sm font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors whitespace-nowrap"
+                >
+                  List dApp
+                </Link>
                 <SortFilters 
                   sortBy={sortBy} 
                   onSortChange={setSortBy}

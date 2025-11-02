@@ -1,0 +1,34 @@
+import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
+
+export default function ListDAppPage() {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      
+      <main className="flex-1 p-4 sm:p-6 lg:p-8">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
+            List dApp
+          </h1>
+          <p className="text-zinc-600 dark:text-zinc-400 mb-8">
+            Submit your existing dApp to the Kasparex marketplace. This feature will be available soon with Connect Wallet integration.
+          </p>
+          
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 text-center">
+            <div className="text-6xl mb-4">🚧</div>
+            <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+              Coming Soon
+            </h2>
+            <p className="text-zinc-600 dark:text-zinc-400">
+              The List dApp feature is under development. You will be able to submit your dApp to the marketplace from this page with wallet integration.
+            </p>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  );
+}
+
