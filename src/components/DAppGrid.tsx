@@ -3,9 +3,11 @@ import { DAppCard } from './DAppCard';
 
 interface DAppGridProps {
   dapps: DApp[];
+  isFavorite?: (dappId: string) => boolean;
+  onToggleFavorite?: (dappId: string) => void;
 }
 
-export function DAppGrid({ dapps }: DAppGridProps) {
+export function DAppGrid({ dapps, isFavorite, onToggleFavorite }: DAppGridProps) {
   if (dapps.length === 0) {
     return (
       <div className="text-center py-12">
@@ -19,7 +21,12 @@ export function DAppGrid({ dapps }: DAppGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
       {dapps.map((dapp) => (
-        <DAppCard key={dapp.id} dapp={dapp} />
+        <DAppCard 
+          key={dapp.id} 
+          dapp={dapp} 
+          isFavorite={isFavorite ? isFavorite(dapp.id) : false}
+          onToggleFavorite={onToggleFavorite}
+        />
       ))}
     </div>
   );

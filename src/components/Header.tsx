@@ -76,9 +76,9 @@ export function Header() {
                 onMouseLeave={() => {
                   hoverTimeoutRef.current = setTimeout(() => {
                     setDAppsDropdownOpen(false);
-                  }, 1000);
+                  }, 500);
                 }}
-                className="inline-flex items-center gap-1 cursor-pointer"
+                className="inline-flex items-center gap-2 cursor-pointer"
               >
                 <button
                   className="text-zinc-900 dark:text-zinc-100 hover:text-[#02abb8] transition-colors"
@@ -86,7 +86,7 @@ export function Header() {
                   dApps
                 </button>
                 <svg
-                  className={`w-4 h-4 text-zinc-900 dark:text-zinc-100 transition-transform ${dAppsDropdownOpen ? 'rotate-180' : ''}`}
+                  className="w-4 h-4 text-zinc-900 dark:text-zinc-100"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -104,7 +104,7 @@ export function Header() {
                     onMouseLeave={() => {
                       hoverTimeoutRef.current = setTimeout(() => {
                         setDAppsDropdownOpen(false);
-                      }, 1000);
+                      }, 500);
                     }}
                     className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-50 overflow-hidden"
                   >

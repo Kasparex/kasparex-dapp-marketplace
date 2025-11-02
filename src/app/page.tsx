@@ -11,6 +11,7 @@ import { placeholderDApps, filterDApps, getCategoryCounts, type FilterState } fr
 import { sortDApps } from '@/lib/sorting';
 import type { Category } from '@/lib/categories';
 import { categories } from '@/lib/categories';
+import { useFavorites } from '@/hooks/useFavorites';
 
 function HomeContent() {
   const searchParams = useSearchParams();
@@ -37,6 +38,7 @@ function HomeContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [displayedCount, setDisplayedCount] = useState(50);
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
 
   // Get category counts based on current filters and search
   const categoryCounts = useMemo(() => {
@@ -49,9 +51,15 @@ function HomeContent() {
       category: selectedCategory,
       ...filters,
     };
-    const filtered = filterDApps(placeholderDApps, filterState, searchQuery);
-    return sortDApps(filtered, sortBy);
-  }, [selectedCategory, filters, searchQuery, sortBy]);
+    let filtered = filterDApps(placeholderDApps, filterState, searchQuery);
+    
+    // If sorting by favorites, filter to only show favorites
+    if (sortBy === 'favorites') {
+      filtered = filtered.filter((dapp) => favorites.has(dapp.id));
+    }
+    
+    return sortDApps(filtered, sortBy, favorites);
+  }, [selectedCategory, filters, searchQuery, sortBy, favorites]);
 
   // Reset displayed count when filters change
   useEffect(() => {
@@ -134,10 +142,18 @@ function HomeContent() {
               </div>
               {/* Sort Filters - Positioned absolutely in top right */}
               <div className="flex-shrink-0">
-                <SortFilters sortBy={sortBy} onSortChange={setSortBy} />
+                <SortFilters 
+                  sortBy={sortBy} 
+                  onSortChange={setSortBy}
+                  favoritesCount={favorites.size}
+                />
               </div>
             </div>
-            <DAppGrid dapps={displayedDApps} />
+            <DAppGrid 
+              dapps={displayedDApps}
+              isFavorite={isFavorite}
+              onToggleFavorite={toggleFavorite}
+            />
             {showLoadMore && hasMore && (
               <div className="mt-8 flex justify-center">
                 <button

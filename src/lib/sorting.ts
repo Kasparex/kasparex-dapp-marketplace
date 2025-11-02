@@ -1,7 +1,7 @@
 import { DApp } from './dapps';
 import type { SortOption } from '@/components/SortFilters';
 
-export function sortDApps(dapps: DApp[], sortBy: SortOption): DApp[] {
+export function sortDApps(dapps: DApp[], sortBy: SortOption, favorites?: Set<string>): DApp[] {
   const sorted = [...dapps];
 
   switch (sortBy) {
@@ -63,6 +63,24 @@ export function sortDApps(dapps: DApp[], sortBy: SortOption): DApp[] {
         if (networkCompare !== 0) {
           return networkCompare;
         }
+        return a.name.localeCompare(b.name);
+      });
+
+    case 'favorites':
+      // Sort favorites first, then by name
+      if (!favorites || favorites.size === 0) {
+        return sorted; // If no favorites, return as-is
+      }
+      return sorted.sort((a, b) => {
+        const aIsFavorite = favorites.has(a.id);
+        const bIsFavorite = favorites.has(b.id);
+        if (aIsFavorite && !bIsFavorite) {
+          return -1;
+        }
+        if (!aIsFavorite && bIsFavorite) {
+          return 1;
+        }
+        // If both are favorites or both are not, sort alphabetically
         return a.name.localeCompare(b.name);
       });
 
