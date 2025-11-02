@@ -16,7 +16,7 @@ export default function NotFound() {
             dApp Not Found
           </h2>
           <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-            The dApp you're looking for doesn't exist or may have been removed.
+            The dApp you&apos;re looking for doesn&apos;t exist or may have been removed.
           </p>
           <Link
             href="/"
