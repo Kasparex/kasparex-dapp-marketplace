@@ -103,22 +103,25 @@ function HomeContent() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-4 sm:p-6 lg:p-8 lg:pl-6">
+        <div className="flex-1 p-4 sm:p-6 lg:p-8 lg:pl-6 relative">
           <div>
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-                Available dApps
-              </h2>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
-              </p>
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+                  Available dApps
+                </h2>
+                <p className="text-zinc-600 dark:text-zinc-400">
+                  {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
+                </p>
+              </div>
+              {/* Sort Filters - Positioned absolutely in top right */}
+              <div className="flex-shrink-0">
+                <SortFilters sortBy={sortBy} onSortChange={setSortBy} />
+              </div>
             </div>
             <DAppGrid dapps={filteredDApps} />
           </div>
         </div>
-
-        {/* Right Sidebar - Sort Filters */}
-        <SortFilters sortBy={sortBy} onSortChange={setSortBy} />
       </main>
 
       <Footer />

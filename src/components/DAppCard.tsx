@@ -66,8 +66,9 @@ export function DAppCard({ dapp }: DAppCardProps) {
               <span className="text-sm text-zinc-500 dark:text-zinc-400">
                 {category.name}
               </span>
+              <span className="text-zinc-400 dark:text-zinc-600">•</span>
               <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                ID: {dapp.id}
+                {dapp.id}
               </span>
             </div>
           )}

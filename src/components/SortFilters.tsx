@@ -30,16 +30,14 @@ export function SortFilters({ sortBy, onSortChange }: SortFiltersProps) {
   const currentLabel = sortOptions.find((opt) => opt.value === sortBy)?.label || 'Sort by...';
 
   return (
-    <aside className="hidden lg:block w-full lg:w-64 flex-shrink-0">
-      <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
-        <div className="p-4 lg:p-6">
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-4">
-              Sort & Filter
-            </h3>
+    <div className="relative">
+      <div>
+        <h3 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-4 hidden lg:block">
+          Sort & Filter
+        </h3>
 
-            {/* Sort Dropdown */}
-            <div className="relative">
+        {/* Sort Dropdown */}
+        <div className="relative">
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="w-full flex items-center justify-between px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
@@ -61,7 +59,7 @@ export function SortFilters({ sortBy, onSortChange }: SortFiltersProps) {
                     className="fixed inset-0 z-10"
                     onClick={() => setIsOpen(false)}
                   />
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-20 overflow-hidden">
+                  <div className="absolute top-full right-0 mt-1 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-50 overflow-hidden">
                     {sortOptions.map((option) => (
                       <button
                         key={option.value}
@@ -83,9 +81,7 @@ export function SortFilters({ sortBy, onSortChange }: SortFiltersProps) {
               )}
             </div>
           </div>
-        </div>
-      </div>
-    </aside>
+    </div>
   );
 }
 
