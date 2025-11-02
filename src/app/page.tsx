@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
@@ -10,7 +10,7 @@ import { placeholderDApps, filterDApps, getCategoryCounts, type FilterState } fr
 import type { Category } from '@/lib/categories';
 import { categories } from '@/lib/categories';
 
-export default function Home() {
+function HomeContent() {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
   const validCategories = categories.map((cat) => cat.id);
@@ -67,7 +67,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <>
       <Header />
       
       <main className="flex-1 flex flex-col lg:flex-row">
@@ -115,6 +115,24 @@ export default function Home() {
       </main>
 
       <Footer />
+    </>
+  );
+}
+
+export default function Home() {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Suspense fallback={
+        <div className="flex flex-col min-h-screen">
+          <Header />
+          <main className="flex-1 flex items-center justify-center">
+            <div className="text-zinc-500 dark:text-zinc-400">Loading...</div>
+          </main>
+          <Footer />
+        </div>
+      }>
+        <HomeContent />
+      </Suspense>
     </div>
   );
 }
