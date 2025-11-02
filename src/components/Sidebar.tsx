@@ -10,8 +10,6 @@ interface SidebarProps {
   filters: Omit<FilterState, 'category'>;
   onFilterChange: (filters: Omit<FilterState, 'category'>) => void;
   categoryCounts: Record<Category, number>;
-  onApplyFilters: () => void;
-  onResetFilters: () => void;
 }
 
 const statusOptions: { value: DAppStatus | 'all'; emoji: string; label: string }[] = [
@@ -48,8 +46,6 @@ export function Sidebar({
   filters,
   onFilterChange,
   categoryCounts,
-  onApplyFilters,
-  onResetFilters,
 }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [categoriesExpanded, setCategoriesExpanded] = useState(true);
@@ -59,14 +55,17 @@ export function Sidebar({
 
   const handleStatusChange = (status: DAppStatus | 'all') => {
     onFilterChange({ ...filters, status });
+    setIsOpen(false);
   };
 
   const handleDeveloperChange = (developer: string) => {
     onFilterChange({ ...filters, developer: developer === 'All' ? 'all' : developer });
+    setIsOpen(false);
   };
 
   const handleNetworkChange = (network: string) => {
     onFilterChange({ ...filters, network: network === 'All' ? 'all' : network });
+    setIsOpen(false);
   };
 
   const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
@@ -213,33 +212,30 @@ export function Sidebar({
             expanded={statusExpanded}
             onToggle={() => setStatusExpanded(!statusExpanded)}
           >
-            <div className="space-y-2 mb-4">
-              {statusOptions.map((option) => (
-                <label
-                  key={option.value}
-                  className={`
-                    flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer
-                    transition-colors
-                    ${
-                      filters.status === option.value
-                        ? 'bg-zinc-100 dark:bg-zinc-800'
-                        : 'hover:bg-zinc-50 dark:hover:bg-zinc-900'
-                    }
-                  `}
-                >
-                  <input
-                    type="radio"
-                    name="status"
-                    value={option.value}
-                    checked={filters.status === option.value}
-                    onChange={() => handleStatusChange(option.value)}
-                    className="w-4 h-4 text-zinc-900 dark:text-zinc-100 focus:ring-zinc-500"
-                  />
-                  {option.emoji && <span className="text-lg">{option.emoji}</span>}
-                  <span className="text-sm text-zinc-700 dark:text-zinc-300">{option.label}</span>
-                </label>
-              ))}
-            </div>
+            <nav className="space-y-1 mb-4">
+              {statusOptions.map((option) => {
+                const isActive = filters.status === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    onClick={() => handleStatusChange(option.value)}
+                    className={`
+                      w-full text-left px-4 py-2 rounded-lg
+                      transition-colors
+                      flex items-center gap-2
+                      ${
+                        isActive
+                          ? 'bg-zinc-900 dark:bg-zinc-800 text-white dark:text-zinc-100 font-medium'
+                          : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900'
+                      }
+                    `}
+                  >
+                    {option.emoji && <span className="text-lg">{option.emoji}</span>}
+                    <span>{option.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
           </CollapsibleSection>
 
           {/* Developer Filter */}
@@ -248,19 +244,29 @@ export function Sidebar({
             expanded={developerExpanded}
             onToggle={() => setDeveloperExpanded(!developerExpanded)}
           >
-            <div className="mb-4">
-              <select
-                value={filters.developer === 'all' ? 'All' : filters.developer}
-                onChange={(e) => handleDeveloperChange(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-500"
-              >
-                {developerOptions.map((option) => (
-                  <option key={option} value={option}>
+            <nav className="space-y-1 mb-4">
+              {developerOptions.map((option) => {
+                const value = option === 'All' ? 'all' : option;
+                const isActive = filters.developer === value;
+                return (
+                  <button
+                    key={option}
+                    onClick={() => handleDeveloperChange(option)}
+                    className={`
+                      w-full text-left px-4 py-2 rounded-lg
+                      transition-colors
+                      ${
+                        isActive
+                          ? 'bg-zinc-900 dark:bg-zinc-800 text-white dark:text-zinc-100 font-medium'
+                          : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900'
+                      }
+                    `}
+                  >
                     {option}
-                  </option>
-                ))}
-              </select>
-            </div>
+                  </button>
+                );
+              })}
+            </nav>
           </CollapsibleSection>
 
           {/* Network Filter */}
@@ -269,42 +275,30 @@ export function Sidebar({
             expanded={networkExpanded}
             onToggle={() => setNetworkExpanded(!networkExpanded)}
           >
-            <div className="mb-4">
-              <select
-                value={filters.network === 'all' ? 'All' : filters.network}
-                onChange={(e) => handleNetworkChange(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-500"
-              >
-                {networkOptions.map((option) => (
-                  <option key={option} value={option}>
+            <nav className="space-y-1 mb-4">
+              {networkOptions.map((option) => {
+                const value = option === 'All' ? 'all' : option;
+                const isActive = filters.network === value;
+                return (
+                  <button
+                    key={option}
+                    onClick={() => handleNetworkChange(option)}
+                    className={`
+                      w-full text-left px-4 py-2 rounded-lg
+                      transition-colors
+                      ${
+                        isActive
+                          ? 'bg-zinc-900 dark:bg-zinc-800 text-white dark:text-zinc-100 font-medium'
+                          : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900'
+                      }
+                    `}
+                  >
                     {option}
-                  </option>
-                ))}
-              </select>
-            </div>
+                  </button>
+                );
+              })}
+            </nav>
           </CollapsibleSection>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col gap-2 mt-6 pt-4 border-t border-zinc-200 dark:border-zinc-800">
-            <button
-              onClick={() => {
-                onApplyFilters();
-                setIsOpen(false);
-              }}
-              className="w-full px-4 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
-            >
-              Apply Filters
-            </button>
-            <button
-              onClick={() => {
-                onResetFilters();
-                setIsOpen(false);
-              }}
-              className="w-full px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-            >
-              Reset Filters
-            </button>
-          </div>
         </div>
       </aside>
     </>

@@ -13,54 +13,34 @@ import type { DApp } from '@/lib/dapps';
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<Category>('all');
   const [selectedDApp, setSelectedDApp] = useState<DApp | null>(null);
-  const [appliedFilters, setAppliedFilters] = useState<Omit<FilterState, 'category'>>({
-    status: 'all',
-    developer: 'all',
-    network: 'all',
-  });
-  const [pendingFilters, setPendingFilters] = useState<Omit<FilterState, 'category'>>({
+  const [filters, setFilters] = useState<Omit<FilterState, 'category'>>({
     status: 'all',
     developer: 'all',
     network: 'all',
   });
 
-  // Get category counts based on applied filters
+  // Get category counts based on current filters
   const categoryCounts = useMemo(() => {
-    return getCategoryCounts(placeholderDApps, appliedFilters);
-  }, [appliedFilters]);
+    return getCategoryCounts(placeholderDApps, filters);
+  }, [filters]);
 
-  // Filter dApps based on applied filters and selected category
+  // Filter dApps based on current filters and selected category
   const filteredDApps = useMemo(() => {
-    const filters: FilterState = {
+    const filterState: FilterState = {
       category: selectedCategory,
-      ...appliedFilters,
+      ...filters,
     };
-    return filterDApps(placeholderDApps, filters);
-  }, [selectedCategory, appliedFilters]);
+    return filterDApps(placeholderDApps, filterState);
+  }, [selectedCategory, filters]);
 
   const handleCategoryChange = (category: Category) => {
     setSelectedCategory(category);
     setSelectedDApp(null); // Reset selected dApp when changing category
   };
 
-  const handleFilterChange = (filters: Omit<FilterState, 'category'>) => {
-    setPendingFilters(filters);
-  };
-
-  const handleApplyFilters = () => {
-    setAppliedFilters(pendingFilters);
-    setSelectedDApp(null); // Reset selected dApp when applying filters
-  };
-
-  const handleResetFilters = () => {
-    const resetFilters = {
-      status: 'all' as const,
-      developer: 'all' as const,
-      network: 'all' as const,
-    };
-    setPendingFilters(resetFilters);
-    setAppliedFilters(resetFilters);
-    setSelectedDApp(null); // Reset selected dApp when resetting filters
+  const handleFilterChange = (newFilters: Omit<FilterState, 'category'>) => {
+    setFilters(newFilters);
+    setSelectedDApp(null); // Reset selected dApp when changing filters
   };
 
   const handleDAppClick = (dapp: DApp) => {
@@ -81,11 +61,9 @@ export default function Home() {
           <Sidebar
             selectedCategory={selectedCategory}
             onCategoryChange={handleCategoryChange}
-            filters={pendingFilters}
+            filters={filters}
             onFilterChange={handleFilterChange}
             categoryCounts={categoryCounts}
-            onApplyFilters={handleApplyFilters}
-            onResetFilters={handleResetFilters}
           />
         </div>
         {/* Mobile sidebar (fixed positioning handled in component) */}
@@ -93,11 +71,9 @@ export default function Home() {
           <Sidebar
             selectedCategory={selectedCategory}
             onCategoryChange={handleCategoryChange}
-            filters={pendingFilters}
+            filters={filters}
             onFilterChange={handleFilterChange}
             categoryCounts={categoryCounts}
-            onApplyFilters={handleApplyFilters}
-            onResetFilters={handleResetFilters}
           />
         </div>
 
