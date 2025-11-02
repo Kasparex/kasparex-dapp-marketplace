@@ -56,18 +56,25 @@ export function Header() {
             </span>
             <span className="text-[#02abb8]">𐤊</span>
             <span className="relative">
-              <button
-                onClick={() => setDAppsDropdownOpen(!dAppsDropdownOpen)}
-                className="text-zinc-900 dark:text-zinc-100 hover:text-[#02abb8] transition-colors"
+              <div
+                onMouseEnter={() => setDAppsDropdownOpen(true)}
+                onMouseLeave={() => setDAppsDropdownOpen(false)}
+                className="inline-flex items-center gap-1 cursor-pointer"
               >
-                dApps
-              </button>
-              {dAppsDropdownOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setDAppsDropdownOpen(false)}
-                  />
+                <button
+                  className="text-zinc-900 dark:text-zinc-100 hover:text-[#02abb8] transition-colors"
+                >
+                  dApps
+                </button>
+                <svg
+                  className={`w-4 h-4 text-zinc-900 dark:text-zinc-100 transition-transform ${dAppsDropdownOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+                {dAppsDropdownOpen && (
                   <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-50 overflow-hidden">
                     {projectLinks.map((project) => (
                       <a
@@ -76,7 +83,6 @@ export function Header() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="block px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-                        onClick={() => setDAppsDropdownOpen(false)}
                       >
                         <div className="flex items-center justify-between">
                           <span>{project.name}</span>
@@ -89,8 +95,8 @@ export function Header() {
                       </a>
                     ))}
                   </div>
-                </>
-              )}
+                )}
+              </div>
             </span>
           </h1>
         </div>
