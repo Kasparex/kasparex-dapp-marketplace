@@ -7,7 +7,8 @@ This directory contains all graphic assets for the Kasparex dApp Marketplace.
 ```
 public/img/
 ├── icons/      # SVG icon files for UI elements
-└── logos/      # Logo files for networks, developers, and brands
+├── logos/      # Logo files for networks, developers, and brands
+└── tokens/     # KRC-20 token logo files
 ```
 
 ## Adding Network Logos
@@ -56,6 +57,32 @@ Developer logos should be placed in the `logos/` directory and will display next
 Example:
 ```typescript
 { label: 'Developer Name', logo: '/img/logos/developer-name.png' }
+```
+
+## Adding KRC-20 Token Logos
+
+KRC-20 token logos should be placed in the `tokens/` directory. This folder is prepared for future integration of KRC-20 tokens into the dApp marketplace.
+
+### Supported Formats
+- PNG (with transparent background, minimum 32x32px, default format)
+- SVG (alternative format for scalability)
+
+### Token Logo Structure
+
+Token logos should be named using the token's contract address or ticker symbol:
+- By contract address: `/img/tokens/{contract-address}.png`
+- By ticker symbol: `/img/tokens/{ticker-symbol}.png`
+
+### Future Integration
+
+Once KRC-20 token integration is implemented:
+1. Place token logo files in `public/img/tokens/`
+2. Reference logos in the token data structure or token display components
+
+Example path:
+```
+/img/tokens/krex.png
+/img/tokens/0x1234...abcd.png
 ```
 
 ## Icon Guidelines
