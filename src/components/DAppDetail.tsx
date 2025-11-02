@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { DApp, type DAppStatus } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { DAppWidget } from './DAppWidget';
@@ -71,17 +72,17 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
           {category && (
             <div className="flex items-center gap-2 flex-wrap mb-4">
               <span className="text-xl">{category.emoji}</span>
-              <span className="text-zinc-600 dark:text-zinc-400">
+              <Link
+                href={`/?category=${dapp.category}`}
+                className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 underline underline-offset-2 transition-colors"
+              >
                 {category.name}
+              </Link>
+              <span className="text-zinc-400 dark:text-zinc-600">•</span>
+              <span className="text-sm text-zinc-500 dark:text-zinc-500">
+                ID: {dapp.id}
+                {dapp.version && ` • ${dapp.version} • ${dapp.provider} • ${dapp.network}`}
               </span>
-              {dapp.version && (
-                <>
-                  <span className="text-zinc-400 dark:text-zinc-600">•</span>
-                  <span className="text-sm text-zinc-500 dark:text-zinc-500">
-                    {dapp.version} • {dapp.provider} • {dapp.network}
-                  </span>
-                </>
-              )}
             </div>
           )}
         </div>

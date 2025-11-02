@@ -53,9 +53,9 @@ const getLinkIcon = (label: string, url: string) => {
 
 export function DAppSidebar({ dapp }: DAppSidebarProps) {
   const [descriptionExpanded, setDescriptionExpanded] = useState(true);
-  const [utilityExpanded, setUtilityExpanded] = useState(true);
-  const [processExpanded, setProcessExpanded] = useState(true);
-  const [benefitsExpanded, setBenefitsExpanded] = useState(true);
+  const [utilityExpanded, setUtilityExpanded] = useState(false);
+  const [processExpanded, setProcessExpanded] = useState(false);
+  const [benefitsExpanded, setBenefitsExpanded] = useState(false);
   const [developerExpanded, setDeveloperExpanded] = useState(true);
 
   const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
@@ -201,7 +201,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
                 expanded={utilityExpanded}
                 onToggle={() => setUtilityExpanded(!utilityExpanded)}
               >
-                <p>{dapp.utility}</p>
+                <p>✅ {dapp.utility}</p>
               </CollapsibleSection>
 
               {/* Process */}
@@ -211,7 +211,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
                 expanded={processExpanded}
                 onToggle={() => setProcessExpanded(!processExpanded)}
               >
-                <p>{dapp.process}</p>
+                <p>⚙️ {dapp.process}</p>
               </CollapsibleSection>
 
               {/* Benefits */}
@@ -221,7 +221,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
                 expanded={benefitsExpanded}
                 onToggle={() => setBenefitsExpanded(!benefitsExpanded)}
               >
-                <p>{dapp.benefits}</p>
+                <p>🧠 {dapp.benefits}</p>
               </CollapsibleSection>
 
               {/* Developer Info */}

@@ -46,9 +46,14 @@ export function DAppCard({ dapp }: DAppCardProps) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-2">
-            <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 truncate">
-              {dapp.name}
-            </h3>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                {dapp.name}
+              </h3>
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                ID: {dapp.id}
+              </span>
+            </div>
             <span
               className={`
                 px-2 py-1 text-xs font-medium rounded border

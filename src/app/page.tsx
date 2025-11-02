@@ -1,15 +1,32 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
 import { DAppGrid } from '@/components/DAppGrid';
 import { Footer } from '@/components/Footer';
 import { placeholderDApps, filterDApps, getCategoryCounts, type FilterState } from '@/lib/dapps';
 import type { Category } from '@/lib/categories';
+import { categories } from '@/lib/categories';
 
 export default function Home() {
-  const [selectedCategory, setSelectedCategory] = useState<Category>('all');
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get('category');
+  const validCategories = categories.map((cat) => cat.id);
+  
+  const [selectedCategory, setSelectedCategory] = useState<Category>(
+    categoryParam && validCategories.includes(categoryParam as Category)
+      ? (categoryParam as Category)
+      : 'all'
+  );
+
+  // Update category when URL param changes
+  useEffect(() => {
+    if (categoryParam && validCategories.includes(categoryParam as Category)) {
+      setSelectedCategory(categoryParam as Category);
+    }
+  }, [categoryParam, validCategories]);
   const [filters, setFilters] = useState<Omit<FilterState, 'category'>>({
     status: 'all',
     developer: 'all',
