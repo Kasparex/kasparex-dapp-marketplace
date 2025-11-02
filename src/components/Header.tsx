@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useTheme } from './ThemeProvider';
@@ -24,6 +24,15 @@ export function Header() {
   const { theme, toggleTheme } = useTheme();
   const [logoError, setLogoError] = useState(false);
   const [dAppsDropdownOpen, setDAppsDropdownOpen] = useState(false);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-zinc-950/80">
@@ -57,8 +66,18 @@ export function Header() {
             <span className="text-[#02abb8]">𐤊</span>
             <span className="relative">
               <div
-                onMouseEnter={() => setDAppsDropdownOpen(true)}
-                onMouseLeave={() => setDAppsDropdownOpen(false)}
+                onMouseEnter={() => {
+                  if (hoverTimeoutRef.current) {
+                    clearTimeout(hoverTimeoutRef.current);
+                    hoverTimeoutRef.current = null;
+                  }
+                  setDAppsDropdownOpen(true);
+                }}
+                onMouseLeave={() => {
+                  hoverTimeoutRef.current = setTimeout(() => {
+                    setDAppsDropdownOpen(false);
+                  }, 1000);
+                }}
                 className="inline-flex items-center gap-1 cursor-pointer"
               >
                 <button
@@ -75,7 +94,20 @@ export function Header() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
                 {dAppsDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-50 overflow-hidden">
+                  <div
+                    onMouseEnter={() => {
+                      if (hoverTimeoutRef.current) {
+                        clearTimeout(hoverTimeoutRef.current);
+                        hoverTimeoutRef.current = null;
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      hoverTimeoutRef.current = setTimeout(() => {
+                        setDAppsDropdownOpen(false);
+                      }, 1000);
+                    }}
+                    className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-50 overflow-hidden"
+                  >
                     {projectLinks.map((project) => (
                       <a
                         key={project.subdomain}

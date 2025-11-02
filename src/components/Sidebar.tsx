@@ -76,6 +76,16 @@ export function Sidebar({
     setIsOpen(false);
   };
 
+  const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
+    <svg
+      className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+    </svg>
+  );
 
   const CollapsibleSection = ({
     title,
@@ -93,12 +103,15 @@ export function Sidebar({
     <div className="mb-4">
       <button
         onClick={onToggle}
-        className="w-full flex items-center gap-2 text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+        className="w-full flex items-center justify-between text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
       >
-        {icon && (
-          <span className="text-zinc-500 dark:text-zinc-400">{icon}</span>
-        )}
-        <span>{title}</span>
+        <div className="flex items-center gap-2">
+          {icon && (
+            <span className="text-zinc-500 dark:text-zinc-400">{icon}</span>
+          )}
+          <span>{title}</span>
+        </div>
+        <ChevronIcon expanded={expanded} />
       </button>
       {expanded && <div>{children}</div>}
     </div>
