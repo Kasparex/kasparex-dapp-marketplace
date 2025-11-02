@@ -12,6 +12,7 @@ export type DAppStatus =
 export interface DApp {
   id: string;
   name: string;
+  slug?: string; // URL-friendly identifier, auto-generated from name if not provided
   image?: string;
   category: Category;
   utility: string;

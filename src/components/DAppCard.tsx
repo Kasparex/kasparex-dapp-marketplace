@@ -1,10 +1,11 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { DApp, type DAppStatus } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
+import { generateDAppSlug } from '@/lib/utils';
 
 interface DAppCardProps {
   dapp: DApp;
-  onClick: () => void;
 }
 
 const statusColors: Record<DAppStatus, string> = {
@@ -17,13 +18,14 @@ const statusColors: Record<DAppStatus, string> = {
   Devnet: 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-700',
 };
 
-export function DAppCard({ dapp, onClick }: DAppCardProps) {
+export function DAppCard({ dapp }: DAppCardProps) {
   const category = getCategoryById(dapp.category);
+  const slug = dapp.slug || generateDAppSlug(dapp.name);
 
   return (
-    <button
-      onClick={onClick}
-      className="w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all"
+    <Link
+      href={`/dapps/${slug}`}
+      className="block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all"
     >
       <div className="flex items-start gap-4">
         {dapp.image ? (
@@ -72,7 +74,7 @@ export function DAppCard({ dapp, onClick }: DAppCardProps) {
           </p>
         </div>
       </div>
-    </button>
+    </Link>
   );
 }
 

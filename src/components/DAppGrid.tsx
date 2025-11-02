@@ -3,10 +3,9 @@ import { DAppCard } from './DAppCard';
 
 interface DAppGridProps {
   dapps: DApp[];
-  onDAppClick: (dapp: DApp) => void;
 }
 
-export function DAppGrid({ dapps, onDAppClick }: DAppGridProps) {
+export function DAppGrid({ dapps }: DAppGridProps) {
   if (dapps.length === 0) {
     return (
       <div className="text-center py-12">
@@ -20,11 +19,7 @@ export function DAppGrid({ dapps, onDAppClick }: DAppGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
       {dapps.map((dapp) => (
-        <DAppCard
-          key={dapp.id}
-          dapp={dapp}
-          onClick={() => onDAppClick(dapp)}
-        />
+        <DAppCard key={dapp.id} dapp={dapp} />
       ))}
     </div>
   );

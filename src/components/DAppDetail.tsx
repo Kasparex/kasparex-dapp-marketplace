@@ -24,34 +24,13 @@ const statusEmojis: Record<DAppStatus, string> = {
 
 interface DAppDetailProps {
   dapp: DApp;
-  onBack: () => void;
 }
 
-export function DAppDetail({ dapp, onBack }: DAppDetailProps) {
+export function DAppDetail({ dapp }: DAppDetailProps) {
   const category = getCategoryById(dapp.category);
 
   return (
     <div className="space-y-6">
-      {/* Back button */}
-      <button
-        onClick={onBack}
-        className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-      >
-        <svg
-          className="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15 19l-7-7 7-7"
-          />
-        </svg>
-        Back to dApps
-      </button>
 
       {/* Header */}
       <div className="flex items-start gap-6">
