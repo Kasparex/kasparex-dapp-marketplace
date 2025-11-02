@@ -56,7 +56,7 @@ export function Sidebar({
   onResetFilters,
 }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [categoriesExpanded, setCategoriesExpanded] = useState(true);
+  const [categoriesExpanded, setCategoriesExpanded] = useState(false);
   const [statusExpanded, setStatusExpanded] = useState(false);
   const [developerExpanded, setDeveloperExpanded] = useState(false);
   const [networkExpanded, setNetworkExpanded] = useState(false);

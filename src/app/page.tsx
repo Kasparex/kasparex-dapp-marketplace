@@ -36,6 +36,7 @@ function HomeContent() {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [displayedCount, setDisplayedCount] = useState(50);
 
   // Get category counts based on current filters and search
   const categoryCounts = useMemo(() => {
@@ -51,6 +52,23 @@ function HomeContent() {
     const filtered = filterDApps(placeholderDApps, filterState, searchQuery);
     return sortDApps(filtered, sortBy);
   }, [selectedCategory, filters, searchQuery, sortBy]);
+
+  // Reset displayed count when filters change
+  useEffect(() => {
+    setDisplayedCount(50);
+  }, [selectedCategory, filters, searchQuery, sortBy]);
+
+  // Get dApps to display (limited by displayedCount)
+  const displayedDApps = useMemo(() => {
+    return filteredDApps.slice(0, displayedCount);
+  }, [filteredDApps, displayedCount]);
+
+  const hasMore = filteredDApps.length > displayedCount;
+  const showLoadMore = filteredDApps.length >= 50;
+
+  const handleLoadMore = () => {
+    setDisplayedCount((prev) => Math.min(prev + 50, filteredDApps.length));
+  };
 
   const handleCategoryChange = (category: Category) => {
     setSelectedCategory(category);
@@ -110,16 +128,26 @@ function HomeContent() {
                 <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
                   Available dApps
                 </h2>
-                <p className="text-zinc-600 dark:text-zinc-400">
-                  {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
-                </p>
+              <p className="text-zinc-600 dark:text-zinc-400">
+                {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
+              </p>
               </div>
               {/* Sort Filters - Positioned absolutely in top right */}
               <div className="flex-shrink-0">
                 <SortFilters sortBy={sortBy} onSortChange={setSortBy} />
               </div>
             </div>
-            <DAppGrid dapps={filteredDApps} />
+            <DAppGrid dapps={displayedDApps} />
+            {showLoadMore && hasMore && (
+              <div className="mt-8 flex justify-center">
+                <button
+                  onClick={handleLoadMore}
+                  className="px-6 py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+                >
+                  Load More
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </main>
