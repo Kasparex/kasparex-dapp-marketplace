@@ -81,6 +81,33 @@ export function NetworkCompatibilityModal({
                 <span className="font-semibold">KRC-20 L1 Mainnet</span> network, which is not EVM-compatible.
               </p>
 
+              {compatibility.requiredKRC20Tokens && compatibility.requiredKRC20Tokens.length > 0 && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-3">
+                  <p className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">
+                    Required Tokens:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {compatibility.requiredKRC20Tokens.map((token) => (
+                      <span
+                        key={token}
+                        className="text-xs px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700"
+                      >
+                        {token}
+                      </span>
+                    ))}
+                  </div>
+                  {compatibility.hasRequiredKRC20Tokens ? (
+                    <p className="text-xs text-green-700 dark:text-green-300 mt-2">
+                      ✓ You have the required tokens
+                    </p>
+                  ) : (
+                    <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-2">
+                      ⚠ You need to hold at least one of these tokens
+                    </p>
+                  )}
+                </div>
+              )}
+
               {!showKRC20Info ? (
                 <button
                   onClick={() => setShowKRC20Info(true)}

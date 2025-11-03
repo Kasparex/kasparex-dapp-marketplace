@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { darkTheme, lightTheme } from '@rainbow-me/rainbowkit';
 import { config } from '@/lib/wagmi';
+import { KaspaWalletProvider } from '@/lib/kaspa/context';
 
 const queryClient = new QueryClient();
 
@@ -63,9 +64,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProviderWithTheme>
-          {children}
-        </RainbowKitProviderWithTheme>
+        <KaspaWalletProvider>
+          <RainbowKitProviderWithTheme>
+            {children}
+          </RainbowKitProviderWithTheme>
+        </KaspaWalletProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );

@@ -7,6 +7,7 @@ import { useAccount, useChainId } from 'wagmi';
 import { useTheme } from './ThemeProvider';
 import { UserMenu } from './UserMenu';
 import { getChainById } from '@/lib/wagmi';
+import { KaspaWalletButton } from './KaspaWalletButton';
 
 interface ProjectLink {
   name: string;
@@ -236,6 +237,9 @@ export function Header() {
             <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>
               <ConnectButton chainStatus="none" />
             </Suspense>
+          </div>
+          <div className="flex-shrink-0">
+            <KaspaWalletButton />
           </div>
           {isConnected && <UserMenu />}
         </div>

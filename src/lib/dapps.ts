@@ -40,6 +40,11 @@ export interface DApp {
    * If not provided, will be inferred from the network field using networkNameToChainIds.
    */
   supportedChainIds?: number[];
+  /**
+   * Optional array of supported KRC-20 token symbols for dApps that require specific tokens.
+   * If provided, the dApp requires at least one of these tokens to be held.
+   */
+  supportedKRC20Tokens?: string[];
 }
 
 // Placeholder dApps for template demonstration
