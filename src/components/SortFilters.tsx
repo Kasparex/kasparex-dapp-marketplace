@@ -9,9 +9,7 @@ export type SortOption =
   | 'alphabetical-za'
   | 'status'
   | 'network'
-  | 'favorites'
-  | 'most-visited-high'
-  | 'most-visited-low';
+  | 'favorites';
 
 interface SortFiltersProps {
   sortBy: SortOption;
@@ -29,8 +27,6 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0 }: SortFi
     { value: 'alphabetical-za', label: 'Alphabetical (Z-A)' },
     { value: 'status', label: 'By Status' },
     { value: 'network', label: 'By Network' },
-    { value: 'most-visited-high', label: 'Most Visited (High → Low)' },
-    { value: 'most-visited-low', label: 'Most Visited (Low → High)' },
     { value: 'favorites', label: 'Favorites' },
   ];
 
