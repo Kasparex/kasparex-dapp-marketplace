@@ -17,7 +17,9 @@ export function WalletStatus() {
   const { state: kaspaState } = useKaspaWallet();
   const { data: evmBalance } = useBalance({
     address: evmAddress,
-    enabled: isEVMConnected,
+    query: {
+      enabled: isEVMConnected,
+    },
   });
 
   const kaspaAddressDisplay = kaspaState.address
