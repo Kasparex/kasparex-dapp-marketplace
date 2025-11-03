@@ -96,7 +96,7 @@ export function DAppCard({ dapp, isFavorite = false, onToggleFavorite }: DAppCar
               </button>
               <button
                 onClick={handleLikeClick}
-                className={`p-1 rounded transition-colors flex items-center gap-1 ${
+                className={`p-1.5 rounded transition-colors flex items-center gap-1.5 ${
                   isLiked
                     ? 'text-red-500 hover:text-red-600'
                     : isWalletConnected
@@ -108,7 +108,7 @@ export function DAppCard({ dapp, isFavorite = false, onToggleFavorite }: DAppCar
                 disabled={!isWalletConnected}
               >
                 <svg
-                  className="w-4 h-4"
+                  className="w-5 h-5"
                   fill={isLiked ? 'currentColor' : 'none'}
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -117,7 +117,7 @@ export function DAppCard({ dapp, isFavorite = false, onToggleFavorite }: DAppCar
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
                 {likeCount > 0 && (
-                  <span className="text-xs font-medium">{likeCount}</span>
+                  <span className="text-sm font-medium">{likeCount}</span>
                 )}
               </button>
               <span

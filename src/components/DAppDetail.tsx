@@ -85,7 +85,7 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
             <div className="flex items-center gap-3">
               <button
                 onClick={handleLikeClick}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg border transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
                   isLiked
                     ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30'
                     : isWalletConnected
@@ -97,7 +97,7 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
                 aria-label={isWalletConnected ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
               >
                 <svg
-                  className="w-4 h-4"
+                  className="w-5 h-5"
                   fill={isLiked ? 'currentColor' : 'none'}
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -105,7 +105,7 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
-                <span className="text-xs font-medium">{likeCount}</span>
+                <span className="text-sm font-medium">{likeCount}</span>
               </button>
               <span
                 className={`
@@ -132,7 +132,7 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
                 {category.name}
               </button>
               <span className="text-zinc-400 dark:text-zinc-600">•</span>
-              <span className="text-sm text-zinc-500 dark:text-zinc-500">
+              <span className="text-base text-zinc-500 dark:text-zinc-500">
                 ID: {dapp.id}
                 {dapp.version && ` • ${dapp.version} • ${dapp.provider} • ${dapp.network}`}
               </span>
