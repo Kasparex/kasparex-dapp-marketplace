@@ -69,7 +69,7 @@ export function ProfileSidebar({
         </div>
         <ChevronIcon expanded={expanded} />
       </button>
-      {expanded && <div>{children}</div>}
+      {expanded && <div className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">{children}</div>}
     </div>
   );
 
