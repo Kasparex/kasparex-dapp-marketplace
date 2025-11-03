@@ -42,11 +42,11 @@ export function BuildListSidebar({ title }: BuildListSidebarProps) {
     <div className="mb-4">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+        className="w-full flex items-center justify-between text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
       >
         <div className="flex items-center gap-2">
           {icon && (
-            <span className="text-zinc-500 dark:text-zinc-400">{icon}</span>
+            <span className="text-zinc-700 dark:text-white opacity-80">{icon}</span>
           )}
           <span>{sectionTitle}</span>
         </div>
@@ -87,7 +87,7 @@ export function BuildListSidebar({ title }: BuildListSidebarProps) {
 
       {/* Desktop Sidebar */}
       <aside className="hidden lg:block w-full lg:w-1/4 lg:max-w-xs flex-shrink-0">
-        <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+        <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800">
           <div className="p-4 lg:p-6">
             {/* Back to Categories Button */}
             <Link

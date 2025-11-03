@@ -85,11 +85,11 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
     <div className="mb-4">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+        className="w-full flex items-center justify-between text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
       >
         <div className="flex items-center gap-2">
           {icon && (
-            <span className="text-zinc-500 dark:text-zinc-400">{icon}</span>
+            <span className="text-zinc-700 dark:text-white opacity-80">{icon}</span>
           )}
           <span>{title}</span>
         </div>
@@ -102,7 +102,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
   return (
     <>
       {/* Mobile Back Button */}
-      <div className="lg:hidden px-4 pt-4">
+      <div className="lg:hidden px-4 pt-4 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800">
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
@@ -126,7 +126,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
 
       {/* Desktop Sidebar */}
       <aside className="hidden lg:block w-full lg:w-1/4 lg:max-w-xs flex-shrink-0">
-        <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+        <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800">
           <div className="p-4 lg:p-6">
             {/* Back to Categories Button */}
             <Link

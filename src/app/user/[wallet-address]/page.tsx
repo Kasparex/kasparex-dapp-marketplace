@@ -96,56 +96,56 @@ export default function UserProfilePage() {
 
         {/* Main Content */}
         <div className="flex-1 p-4 sm:p-6 lg:p-8 lg:pl-6">
-          <div className="max-w-4xl">
-            {/* Profile Header */}
-            <div className="mb-8">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="text-6xl select-none" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
-                  {emoji}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-                      {profile.displayName || 'Unnamed User'}
-                    </h1>
-                    {isOwnProfile && (
-                      <button
-                        onClick={() => setIsEditMode(!isEditMode)}
-                        className="px-3 py-1 text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-                      >
-                        {isEditMode ? 'Cancel Edit' : 'Edit Profile'}
-                      </button>
-                    )}
-                  </div>
-                  <div className="text-sm text-zinc-500 dark:text-zinc-400 font-mono mb-4">
-                    {walletAddress}
-                  </div>
-                  {profile.bio && (
-                    <p className="text-zinc-700 dark:text-zinc-300 mb-4">
-                      {profile.bio}
-                    </p>
-                  )}
-                  <div className="flex items-center gap-6">
-                    <div 
-                      style={profile.hideBalance ? {
-                        userSelect: 'none',
-                        WebkitUserSelect: 'none',
-                        MozUserSelect: 'none',
-                        msUserSelect: 'none',
-                        pointerEvents: 'none',
-                      } as React.CSSProperties : {}}
-                    >
-                      <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
-                        Balance
-                      </div>
-                      <TokenBalance 
-                        address={walletAddress as `0x${string}`}
-                        hideBalance={profile.hideBalance}
-                      />
-                    </div>
-                  </div>
-                </div>
+          <div className="max-w-6xl">
+            {/* Profile Header with Title and Count */}
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+                  {profile.displayName || 'Unnamed User'}
+                </h1>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  1 profile found
+                </p>
               </div>
+              <div className="flex items-center gap-3">
+                {isOwnProfile && (
+                  <button
+                    onClick={() => setIsEditMode(!isEditMode)}
+                    className="px-4 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors font-medium"
+                  >
+                    {isEditMode ? 'Cancel Edit' : 'Edit Profile'}
+                  </button>
+                )}
+                <button className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>
+                </button>
+                <button className="px-4 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors font-medium">
+                  Newly Created
+                  <svg className="w-4 h-4 inline-block ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Tabs Navigation */}
+            <div className="flex items-center gap-1 mb-6 border-b border-zinc-200 dark:border-zinc-800">
+              <button className="px-4 py-2 text-sm font-medium text-zinc-900 dark:text-zinc-100 border-b-2 border-zinc-900 dark:border-zinc-100">
+                Overview
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
+                Activity
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
+                dApps
+              </button>
+              {isOwnProfile && (
+                <button className="px-4 py-2 text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
+                  Settings
+                </button>
+              )}
             </div>
 
             {/* Edit Mode Content */}
@@ -165,12 +165,63 @@ export default function UserProfilePage() {
               </div>
             )}
 
-            {/* Profile Stats or Additional Content */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-                  Wallet Information
-                </h3>
+            {/* Cards Grid - Profile Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              {/* Profile Card */}
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
+                <div className="flex items-start gap-4">
+                  <div className="text-5xl select-none flex-shrink-0" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
+                    {emoji}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 truncate mb-1">
+                      {profile.displayName || 'Unnamed User'}
+                    </h3>
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400 font-mono truncate mb-2">
+                      {walletAddress}
+                    </div>
+                    {profile.bio && (
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">
+                        {profile.bio}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Balance Card */}
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
+                <div className="flex items-start justify-between mb-2">
+                  <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">
+                    Balance
+                  </h3>
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400">💰</span>
+                </div>
+                <div 
+                  className="text-lg font-medium"
+                  style={profile.hideBalance ? {
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none',
+                    pointerEvents: 'none',
+                  } as React.CSSProperties : {}}
+                >
+                  <TokenBalance 
+                    address={walletAddress as `0x${string}`}
+                    hideBalance={profile.hideBalance}
+                  />
+                </div>
+              </div>
+
+              {/* Wallet Information Card */}
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
+                <div className="flex items-start justify-between mb-2">
+                  <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">
+                    Wallet
+                  </h3>
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400">🔐</span>
+                </div>
                 <div className="space-y-2 text-sm">
                   <div>
                     <span className="text-zinc-500 dark:text-zinc-400">Address:</span>
@@ -180,15 +231,18 @@ export default function UserProfilePage() {
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+            {/* Additional Cards - Profile Status */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
+                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
                   Profile Status
                 </h3>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-3 text-sm">
                   <div>
                     <span className="text-zinc-500 dark:text-zinc-400">Display Name:</span>
-                    <div className="text-zinc-900 dark:text-zinc-100 mt-1">
+                    <div className="text-zinc-900 dark:text-zinc-100 mt-1 font-medium">
                       {profile.displayName || 'Not set'}
                     </div>
                   </div>
@@ -198,6 +252,43 @@ export default function UserProfilePage() {
                       {profile.bio || 'Not set'}
                     </div>
                   </div>
+                  <div>
+                    <span className="text-zinc-500 dark:text-zinc-400">Privacy:</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`text-xs px-2 py-1 rounded ${profile.hideBalance ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300' : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'}`}>
+                        {profile.hideBalance ? 'Balance Hidden' : 'Balance Visible'}
+                      </span>
+                      {profile.preventScreenshots && (
+                        <span className="text-xs px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                          Screenshot Protection
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
+                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+                  Quick Actions
+                </h3>
+                <div className="space-y-2">
+                  {isOwnProfile && (
+                    <>
+                      <button
+                        onClick={() => setIsEditMode(!isEditMode)}
+                        className="w-full text-left px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium"
+                      >
+                        Edit Profile
+                      </button>
+                      <button className="w-full text-left px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium">
+                        View Activity
+                      </button>
+                    </>
+                  )}
+                  <button className="w-full text-left px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium">
+                    Share Profile
+                  </button>
                 </div>
               </div>
             </div>

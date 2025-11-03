@@ -56,11 +56,11 @@ export function ProfileSidebar({
     <div className="mb-4">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+        className="w-full flex items-center justify-between text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
       >
         <div className="flex items-center gap-2">
           {icon && (
-            <span className="text-zinc-500 dark:text-zinc-400">{icon}</span>
+            <span className="text-zinc-700 dark:text-white opacity-80">{icon}</span>
           )}
           <span>{title}</span>
         </div>
