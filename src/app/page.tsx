@@ -14,16 +14,18 @@ import type { Category } from '@/lib/categories';
 import { categories } from '@/lib/categories';
 import { useFavorites } from '@/hooks/useFavorites';
 
+const validCategories = categories.map((cat) => cat.id);
+
 function HomeContent() {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
-  const validCategories = categories.map((cat) => cat.id);
   
-  const [selectedCategories, setSelectedCategories] = useState<Category[]>(
-    categoryParam && validCategories.includes(categoryParam as Category)
-      ? [categoryParam as Category]
-      : []
-  );
+  const [selectedCategories, setSelectedCategories] = useState<Category[]>(() => {
+    if (categoryParam && validCategories.includes(categoryParam as Category)) {
+      return [categoryParam as Category];
+    }
+    return [];
+  });
 
   // Update category when URL param changes
   useEffect(() => {
@@ -33,7 +35,7 @@ function HomeContent() {
       // Reset categories if no param in URL
       setSelectedCategories([]);
     }
-  }, [categoryParam, validCategories]);
+  }, [categoryParam]);
   const [filters, setFilters] = useState<Omit<FilterState, 'category'>>({
     status: [],
     developer: [],
