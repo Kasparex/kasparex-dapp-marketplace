@@ -173,12 +173,12 @@ export function Header() {
               </svg>
             )}
           </button>
-          {isConnected && <UserMenu />}
           <div className="flex-shrink-0">
             <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>
               <ConnectButton />
             </Suspense>
           </div>
+          {isConnected && <UserMenu />}
         </div>
       </div>
     </header>

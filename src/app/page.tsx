@@ -19,16 +19,16 @@ function HomeContent() {
   const categoryParam = searchParams.get('category');
   const validCategories = categories.map((cat) => cat.id);
   
-  const [selectedCategory, setSelectedCategory] = useState<Category>(
+  const [selectedCategories, setSelectedCategories] = useState<Category[]>(
     categoryParam && validCategories.includes(categoryParam as Category)
-      ? (categoryParam as Category)
-      : 'all'
+      ? [categoryParam as Category]
+      : []
   );
 
   // Update category when URL param changes
   useEffect(() => {
     if (categoryParam && validCategories.includes(categoryParam as Category)) {
-      setSelectedCategory(categoryParam as Category);
+      setSelectedCategories([categoryParam as Category]);
     }
   }, [categoryParam, validCategories]);
   const [filters, setFilters] = useState<Omit<FilterState, 'category'>>({
@@ -46,10 +46,10 @@ function HomeContent() {
     return getCategoryCounts(placeholderDApps, filters, searchQuery);
   }, [filters, searchQuery]);
 
-  // Filter and sort dApps based on current filters, selected category, search query, and sort option
+  // Filter and sort dApps based on current filters, selected categories, search query, and sort option
   const filteredDApps = useMemo(() => {
     const filterState: FilterState = {
-      category: [selectedCategory],
+      category: selectedCategories,
       ...filters,
     };
     let filtered = filterDApps(placeholderDApps, filterState, searchQuery);
@@ -60,12 +60,12 @@ function HomeContent() {
     }
     
     return sortDApps(filtered, sortBy, favorites);
-  }, [selectedCategory, filters, searchQuery, sortBy, favorites]);
+  }, [selectedCategories, filters, searchQuery, sortBy, favorites]);
 
   // Reset displayed count when filters change
   useEffect(() => {
     setDisplayedCount(50);
-  }, [selectedCategory, filters, searchQuery, sortBy]);
+  }, [selectedCategories, filters, searchQuery, sortBy]);
 
   // Get dApps to display (limited by displayedCount)
   const displayedDApps = useMemo(() => {
@@ -79,8 +79,8 @@ function HomeContent() {
     setDisplayedCount((prev) => Math.min(prev + 50, filteredDApps.length));
   };
 
-  const handleCategoryChange = (category: Category) => {
-    setSelectedCategory(category);
+  const handleCategoryChange = (categories: Category[]) => {
+    setSelectedCategories(categories);
   };
 
   const handleFilterChange = (newFilters: Omit<FilterState, 'category'>) => {
@@ -88,7 +88,7 @@ function HomeContent() {
   };
 
   const handleResetFilters = () => {
-    setSelectedCategory('all');
+    setSelectedCategories([]);
     setFilters({
       status: [],
       developer: [],
@@ -105,7 +105,7 @@ function HomeContent() {
         {/* Sidebar */}
         <div className="hidden lg:block w-full lg:w-1/4 lg:max-w-xs flex-shrink-0">
           <Sidebar
-            selectedCategory={selectedCategory}
+            selectedCategories={selectedCategories}
             onCategoryChange={handleCategoryChange}
             filters={filters}
             onFilterChange={handleFilterChange}
@@ -118,7 +118,7 @@ function HomeContent() {
         {/* Mobile sidebar (fixed positioning handled in component) */}
         <div className="lg:hidden">
           <Sidebar
-            selectedCategory={selectedCategory}
+            selectedCategories={selectedCategories}
             onCategoryChange={handleCategoryChange}
             filters={filters}
             onFilterChange={handleFilterChange}

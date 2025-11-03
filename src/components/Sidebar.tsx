@@ -7,8 +7,8 @@ import type { FilterState, DAppStatus } from '@/lib/dapps';
 import { CategoriesIcon, StatusIcon, DeveloperIcon, NetworkIcon } from '@/components/icons/SectionIcons';
 
 interface SidebarProps {
-  selectedCategory: Category;
-  onCategoryChange: (category: Category) => void;
+  selectedCategories: Category[];
+  onCategoryChange: (categories: Category[]) => void;
   filters: Omit<FilterState, 'category'>;
   onFilterChange: (filters: Omit<FilterState, 'category'>) => void;
   categoryCounts: Record<Category, number>;
@@ -46,7 +46,7 @@ const networkOptions: { label: string; logo?: string }[] = [
 ];
 
 export function Sidebar({
-  selectedCategory,
+  selectedCategories,
   onCategoryChange,
   filters,
   onFilterChange,
@@ -242,48 +242,66 @@ export function Sidebar({
             expanded={categoriesExpanded}
             onToggle={() => setCategoriesExpanded(!categoriesExpanded)}
           >
-            <nav className="space-y-1 mb-4">
-              {categories.map((category) => {
-                const isActive = selectedCategory === category.id;
-                const count = categoryCounts[category.id] || 0;
-                return (
-                  <button
-                    key={category.id}
-                    onClick={() => {
-                      onCategoryChange(category.id);
-                      setIsOpen(false);
-                    }}
-                    className={`
-                      w-full text-left px-4 py-2 rounded-lg
-                      transition-colors
-                      flex items-center justify-between
-                      ${
-                        isActive
-                          ? 'bg-zinc-900 dark:bg-zinc-800 text-white dark:text-zinc-100 font-medium'
-                          : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900'
-                      }
-                    `}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{category.emoji}</span>
-                      <span>{category.name}</span>
-                    </div>
-                    <span
+            <div className="mb-4">
+              <div className="flex gap-2 mb-2">
+                <button
+                  onClick={() => {
+                    const allCategories = categories.map((cat) => cat.id);
+                    onCategoryChange(allCategories);
+                  }}
+                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                >
+                  Select All
+                </button>
+                <button
+                  onClick={() => {
+                    onCategoryChange([]);
+                  }}
+                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                >
+                  Deselect All
+                </button>
+              </div>
+              <nav className="space-y-1">
+                {categories.map((category) => {
+                  const isChecked = selectedCategories.includes(category.id);
+                  const count = categoryCounts[category.id] || 0;
+                  return (
+                    <label
+                      key={category.id}
                       className={`
-                        text-xs px-2 py-0.5 rounded
+                        flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer
+                        transition-colors
                         ${
-                          isActive
-                            ? 'bg-zinc-700 dark:bg-zinc-600 text-white'
-                            : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
+                          isChecked
+                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
+                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
                         }
                       `}
                     >
-                      {count}
-                    </span>
-                  </button>
-                );
-              })}
-            </nav>
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => {
+                          const newCategories = isChecked
+                            ? selectedCategories.filter((c) => c !== category.id)
+                            : [...selectedCategories, category.id];
+                          onCategoryChange(newCategories);
+                        }}
+                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-[#02abb8] focus:ring-[#02abb8] focus:ring-offset-0"
+                      />
+                      <div className="flex items-center gap-2 flex-1">
+                        <span className="text-lg">{category.emoji}</span>
+                        <span className="text-sm text-zinc-700 dark:text-zinc-300">{category.name}</span>
+                      </div>
+                      <span className="text-xs px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                        {count}
+                      </span>
+                    </label>
+                  );
+                })}
+              </nav>
+            </div>
           </CollapsibleSection>
 
           {/* Status Filter */}
@@ -320,8 +338,8 @@ export function Sidebar({
                         transition-colors
                         ${
                           isChecked
-                            ? 'bg-zinc-100 dark:bg-zinc-800'
-                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900'
+                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
+                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
                         }
                       `}
                     >
@@ -329,7 +347,7 @@ export function Sidebar({
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => handleStatusToggle(option.value)}
-                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:ring-zinc-500"
+                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-[#02abb8] focus:ring-[#02abb8] focus:ring-offset-0"
                       />
                       {option.emoji && <span className="text-lg">{option.emoji}</span>}
                       <span className="text-sm text-zinc-700 dark:text-zinc-300">{option.label}</span>
@@ -375,8 +393,8 @@ export function Sidebar({
                         transition-colors
                         ${
                           isChecked
-                            ? 'bg-zinc-100 dark:bg-zinc-800'
-                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900'
+                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
+                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
                         }
                       `}
                     >
@@ -384,7 +402,7 @@ export function Sidebar({
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => handleDeveloperToggle(option.label)}
-                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:ring-zinc-500"
+                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-[#02abb8] focus:ring-[#02abb8] focus:ring-offset-0"
                       />
                       {option.logo ? (
                         <>
@@ -446,8 +464,8 @@ export function Sidebar({
                         transition-colors
                         ${
                           isChecked
-                            ? 'bg-zinc-100 dark:bg-zinc-800'
-                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900'
+                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
+                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
                         }
                       `}
                     >
@@ -455,7 +473,7 @@ export function Sidebar({
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => handleNetworkToggle(option.label)}
-                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:ring-zinc-500"
+                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-[#02abb8] focus:ring-[#02abb8] focus:ring-offset-0"
                       />
                       {option.logo ? (
                         <>
