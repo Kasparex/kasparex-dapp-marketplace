@@ -1,8 +1,12 @@
+'use client';
+
 import Image from 'next/image';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { DApp, type DAppStatus } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { DAppWidget } from './DAppWidget';
+import { usePageViews } from '@/hooks/usePageViews';
+import { generateDAppSlug } from '@/lib/utils';
 
 const statusColors: Record<DAppStatus, string> = {
   Mainnet: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-300 dark:border-green-700',
