@@ -32,6 +32,13 @@ export function NetworkCompatibilityModal({
     }
   }, [isOpen]);
 
+  // Auto-close when network becomes compatible
+  useEffect(() => {
+    if (isOpen && compatibility.isCompatible && !compatibility.isKRC20Only) {
+      onClose();
+    }
+  }, [isOpen, compatibility.isCompatible, compatibility.isKRC20Only, onClose]);
+
   if (!isOpen) {
     return null;
   }
@@ -46,13 +53,6 @@ export function NetworkCompatibilityModal({
     }
     onClose();
   };
-
-  // Auto-close when network becomes compatible
-  useEffect(() => {
-    if (isOpen && compatibility.isCompatible && !compatibility.isKRC20Only) {
-      onClose();
-    }
-  }, [isOpen, compatibility.isCompatible, compatibility.isKRC20Only, onClose]);
 
   // KRC-20 only dApp - special handling
   if (compatibility.isKRC20Only) {
