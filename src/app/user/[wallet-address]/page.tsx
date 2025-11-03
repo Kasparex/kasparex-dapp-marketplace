@@ -20,7 +20,7 @@ export default function UserProfilePage() {
   const router = useRouter();
   const { address: connectedAddress, isConnected } = useAccount();
   const walletAddress = params?.['wallet-address'] as string | undefined;
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'activity' | 'dapps' | 'favorites' | 'settings'>('overview');
   const { getFavoritesForWallet } = useFavorites();
@@ -36,11 +36,18 @@ export default function UserProfilePage() {
   const isOwnProfile = isConnected && 
     connectedAddress?.toLowerCase() === walletAddress?.toLowerCase();
 
+  // Get last 5 digits of wallet address for default username
+  const getDefaultUsername = (address: string) => {
+    return address.slice(-5);
+  };
+
+  const displayName = profile.displayName || getDefaultUsername(walletAddress || '');
+
   // Redirect to edit mode if URL has ?edit=true
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     if (searchParams.get('edit') === 'true') {
-      setIsEditMode(true);
+      setShowEditModal(true);
     }
   }, []);
 
@@ -83,8 +90,7 @@ export default function UserProfilePage() {
             emoji={emoji}
             profile={profile}
             isOwnProfile={isOwnProfile}
-            isEditMode={isEditMode}
-            onToggleEdit={() => setIsEditMode(!isEditMode)}
+            onToggleEdit={() => setShowEditModal(true)}
             onProfileUpdate={updateProfile}
           />
         </div>
@@ -95,8 +101,7 @@ export default function UserProfilePage() {
             emoji={emoji}
             profile={profile}
             isOwnProfile={isOwnProfile}
-            isEditMode={isEditMode}
-            onToggleEdit={() => setIsEditMode(!isEditMode)}
+            onToggleEdit={() => setShowEditModal(true)}
             onProfileUpdate={updateProfile}
           />
         </div>
@@ -106,21 +111,26 @@ export default function UserProfilePage() {
           <div className="max-w-6xl">
             {/* Profile Header with Title and Count */}
             <div className="flex items-center justify-between mb-6">
-              <div>
-                <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-                  {profile.displayName || 'Unnamed User'}
-                </h1>
-                <p className="text-base text-zinc-500 dark:text-zinc-400">
-                  1 profile found
-                </p>
+              <div className="flex items-center gap-4">
+                <div className="flex-shrink-0">
+                  <Avatar address={walletAddress} size={64} />
+                </div>
+                <div>
+                  <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+                    {displayName}
+                  </h1>
+                  <p className="text-base text-zinc-500 dark:text-zinc-400">
+                    1 profile found
+                  </p>
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 {isOwnProfile && (
                   <button
-                    onClick={() => setIsEditMode(!isEditMode)}
+                    onClick={() => setShowEditModal(true)}
                     className="px-4 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors font-medium"
                   >
-                    {isEditMode ? 'Cancel Edit' : 'Edit Profile'}
+                    Edit Profile
                   </button>
                 )}
                 <button className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">
@@ -216,69 +226,40 @@ export default function UserProfilePage() {
               );
             })()}
 
-            {/* Edit Mode Content */}
-            {isEditMode && isOwnProfile && activeTab === 'overview' && (
-              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 mb-8">
-                <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                  Edit Profile
-                </h2>
-                <ProfileEdit
-                  profile={profile}
-                  onSave={(updates) => {
-                    updateProfile(updates);
-                    setIsEditMode(false);
-                  }}
-                  onCancel={() => setIsEditMode(false)}
-                />
+            {/* Edit Profile Modal */}
+            {showEditModal && isOwnProfile && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowEditModal(false)}>
+                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+                      Edit Profile
+                    </h2>
+                    <button
+                      onClick={() => setShowEditModal(false)}
+                      className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                      aria-label="Close modal"
+                    >
+                      <svg className="w-5 h-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <ProfileEdit
+                    profile={profile}
+                    onSave={(updates) => {
+                      updateProfile(updates);
+                      setShowEditModal(false);
+                    }}
+                    onCancel={() => setShowEditModal(false)}
+                  />
+                </div>
               </div>
             )}
 
             {/* Cards Grid - Profile Information */}
             {activeTab === 'overview' && (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-              {/* Profile Card */}
-              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0">
-                    <Avatar address={walletAddress} size={64} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 truncate mb-1">
-                      {profile.displayName || 'Unnamed User'}
-                    </h3>
-                      <div className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">
-                        Wallet Address
-                      </div>
-                      <button
-                        onClick={async () => {
-                          try {
-                            await navigator.clipboard.writeText(walletAddress);
-                            setCopied(true);
-                            setTimeout(() => setCopied(false), 2000);
-                          } catch (err) {
-                            console.error('Failed to copy address:', err);
-                          }
-                        }}
-                        className="block w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-mono text-zinc-900 dark:text-zinc-100 break-all text-left hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors relative"
-                        title="Click to copy address"
-                      >
-                        {walletAddress}
-                        {copied && (
-                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-green-600 dark:text-green-400 font-sans">
-                            Copied!
-                          </span>
-                        )}
-                      </button>
-                    {profile.bio && (
-                      <p className="text-base text-zinc-600 dark:text-zinc-400 line-clamp-2">
-                        {profile.bio}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
               {/* Balance Card */}
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
                 <div className="flex items-start justify-between mb-3">
@@ -339,7 +320,6 @@ export default function UserProfilePage() {
                   <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
                     Wallet
                   </h3>
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400">🔐</span>
                 </div>
                 <div className="space-y-2 text-base">
                   <div>
@@ -409,7 +389,7 @@ export default function UserProfilePage() {
                   {isOwnProfile && (
                     <>
                       <button
-                        onClick={() => setIsEditMode(!isEditMode)}
+                        onClick={() => setShowEditModal(true)}
                         className="w-full text-left px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium"
                       >
                         Edit Profile

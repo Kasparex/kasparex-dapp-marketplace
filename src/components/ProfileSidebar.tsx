@@ -12,7 +12,6 @@ interface ProfileSidebarProps {
   emoji: string;
   profile: ProfileData;
   isOwnProfile: boolean;
-  isEditMode?: boolean;
   onToggleEdit?: () => void;
   onProfileUpdate: (updates: Partial<ProfileData>) => void;
 }
@@ -22,7 +21,6 @@ export function ProfileSidebar({
   emoji,
   profile,
   isOwnProfile,
-  isEditMode,
   onToggleEdit,
   onProfileUpdate,
 }: ProfileSidebarProps) {
@@ -156,29 +154,18 @@ export function ProfileSidebar({
             onToggle={() => setOverviewExpanded(!overviewExpanded)}
           >
             <div className="space-y-3 mb-4">
-              <div className="flex items-center justify-center mb-4">
-                <Avatar address={walletAddress} size={64} />
-              </div>
-              <div className="text-sm">
-                <div className="text-zinc-500 dark:text-zinc-400 mb-1">Display Name</div>
-                <div className="text-zinc-900 dark:text-zinc-100 font-medium">
-                  {profile.displayName || 'Unnamed User'}
-                </div>
-              </div>
-              <div className="text-sm">
-                <div className="text-zinc-500 dark:text-zinc-400 mb-1">Wallet Address</div>
-                <div className="text-zinc-900 dark:text-zinc-100 font-mono text-xs break-all">
-                  {walletAddress}
-                </div>
-              </div>
-              {profile.bio && (
-                <div className="text-sm">
-                  <div className="text-zinc-500 dark:text-zinc-400 mb-1">Bio</div>
-                  <div className="text-zinc-900 dark:text-zinc-100">
-                    {profile.bio}
-                  </div>
-                </div>
-              )}
+              <Link
+                href="/build-dapp"
+                className="block w-full px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm text-center"
+              >
+                Build dApp
+              </Link>
+              <Link
+                href="/list-dapp"
+                className="block w-full px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm text-center"
+              >
+                List dApp
+              </Link>
             </div>
           </CollapsibleSection>
 
