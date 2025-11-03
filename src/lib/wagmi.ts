@@ -116,11 +116,11 @@ export const CHAIN_IDS = {
 /**
  * All available EVM-compatible chains for RainbowKit
  */
-export const kaspaChains: Chain[] = [
+export const kaspaChains = [
   kasplexL2Mainnet,
   kasplexL2Testnet,
   igraCaravelTestnet,
-];
+] as const;
 
 /**
  * Helper to check if a chain ID is supported
@@ -145,7 +145,7 @@ export function getChainById(chainId: number): Chain | undefined {
 export const config = getDefaultConfig({
   appName: 'Kasparex dApps',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'default-project-id',
-  chains: kaspaChains,
+  chains: [kasplexL2Mainnet, kasplexL2Testnet, igraCaravelTestnet],
   ssr: true, // Enable SSR support for Next.js
 });
 
