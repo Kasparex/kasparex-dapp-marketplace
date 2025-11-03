@@ -7,9 +7,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { detectKaspaWallets, type KaspaWalletProviderInfo } from '@/lib/kaspa/wallet';
+import { detectKaspaWallets } from '@/lib/kaspa/wallet';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import type { KaspaWalletProvider } from '@/lib/kaspa/types';
+import type { KaspaWalletProvider, KaspaWalletProviderInfo } from '@/lib/kaspa/types';
 
 interface KaspaWalletModalProps {
   isOpen: boolean;
