@@ -9,6 +9,7 @@ import { DAppWidget } from './DAppWidget';
 import { NetworkCompatibilityModal } from './NetworkCompatibilityModal';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
 import { usePageViews } from '@/hooks/usePageViews';
+import { useLikes } from '@/hooks/useLikes';
 import { generateDAppSlug } from '@/lib/utils';
 
 const statusColors: Record<DAppStatus, string> = {
@@ -42,6 +43,15 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
   const pageViews = usePageViews(slug);
   const [showCompatibilityModal, setShowCompatibilityModal] = useState(false);
   const compatibility = useNetworkCompatibility(dapp);
+  const { toggleLike, getLikeCount, hasLiked, isWalletConnected } = useLikes();
+  const likeCount = getLikeCount(dapp.id);
+  const isLiked = hasLiked(dapp.id);
+
+  const handleLikeClick = () => {
+    if (isWalletConnected) {
+      toggleLike(dapp.id);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -82,6 +92,30 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
                 </svg>
                 <span>{pageViews} views</span>
               </div>
+              <button
+                onClick={handleLikeClick}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg border transition-colors ${
+                  isLiked
+                    ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30'
+                    : isWalletConnected
+                    ? 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                    : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-300 dark:text-zinc-600 cursor-not-allowed'
+                }`}
+                disabled={!isWalletConnected}
+                title={isWalletConnected ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
+                aria-label={isWalletConnected ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill={isLiked ? 'currentColor' : 'none'}
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                <span className="text-xs font-medium">{likeCount}</span>
+              </button>
               <span
                 className={`
                   px-3 py-1 text-sm font-medium rounded border

@@ -5,6 +5,7 @@ interface DAppGridProps {
   dapps: DApp[];
   isFavorite?: (dappId: string) => boolean;
   onToggleFavorite?: (dappId: string) => void;
+  // Likes are handled internally by DAppCard using useLikes hook
 }
 
 export function DAppGrid({ dapps, isFavorite, onToggleFavorite }: DAppGridProps) {
