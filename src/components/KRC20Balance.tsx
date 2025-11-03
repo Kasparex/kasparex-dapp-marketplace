@@ -6,7 +6,8 @@
 
 'use client';
 
-import { useKRC20Balance, useKRC20Token } from '@/hooks/useKRC20Balance';
+import { useKRC20Balance } from '@/hooks/useKRC20Balance';
+import { useKRC20Token } from '@/hooks/useKRC20Token';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { formatTokenBalance } from '@/lib/krc20/api';
 import type { KRC20Balance } from '@/lib/krc20/types';

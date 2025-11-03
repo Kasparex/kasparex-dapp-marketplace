@@ -152,6 +152,6 @@ export function useNetworkCompatibility(dapp?: DApp): NetworkCompatibilityResult
       isWalletConnected,
       kaspaWalletConnected,
     };
-  }, [dapp, chainId, isConnected, kaspaState.isConnected, kaspaState.address, krc20Balances]);
+  }, [dapp, chainId, isConnected, kaspaState.isConnected, krc20Balances]);
 }
 
