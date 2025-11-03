@@ -141,7 +141,7 @@ export function Sidebar({
     <div className="mb-4">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+        className="w-full flex items-center justify-between text-sm font-semibold text-zinc-700 dark:text-white opacity-80 uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-white hover:opacity-100 transition-all"
       >
         <div className="flex items-center gap-2">
           {icon && (

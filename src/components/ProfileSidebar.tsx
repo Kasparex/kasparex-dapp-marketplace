@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import type { ProfileData } from '@/hooks/useProfile';
 import { TokenBalance } from './TokenBalance';
 
@@ -56,7 +57,7 @@ export function ProfileSidebar({
     <div className="mb-4">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+        className="w-full flex items-center justify-between text-sm font-semibold text-zinc-700 dark:text-white opacity-80 uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-white hover:opacity-100 transition-all"
       >
         <div className="flex items-center gap-2">
           {icon && (
@@ -124,6 +125,27 @@ export function ProfileSidebar({
         `}
       >
         <div className="p-4 lg:p-6">
+          {/* Back to Categories Button */}
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors mb-6 pb-4 border-b border-zinc-200 dark:border-zinc-800"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            Back to Categories
+          </Link>
+
           {/* Profile Overview Section */}
           <CollapsibleSection
             title="Overview"
@@ -220,17 +242,17 @@ export function ProfileSidebar({
               <div className="space-y-3 mb-4">
                 <label className="flex items-center justify-between cursor-pointer">
                   <span className="text-sm text-zinc-700 dark:text-zinc-300">
-                    Hide Balance
+                    Prevent Screenshots
                   </span>
                   <input
                     type="checkbox"
-                    checked={profile.hideBalance}
-                    onChange={(e) => onProfileUpdate({ hideBalance: e.target.checked })}
+                    checked={profile.preventScreenshots}
+                    onChange={(e) => onProfileUpdate({ preventScreenshots: e.target.checked })}
                     className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:ring-zinc-500"
                   />
                 </label>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  When enabled, balances will be hidden and screenshots will be discouraged
+                  When enabled, screenshots will be discouraged
                 </p>
               </div>
             </CollapsibleSection>

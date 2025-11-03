@@ -42,7 +42,7 @@ export function BuildListSidebar({ title }: BuildListSidebarProps) {
     <div className="mb-4">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+        className="w-full flex items-center justify-between text-sm font-semibold text-zinc-700 dark:text-white opacity-80 uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-white hover:opacity-100 transition-all"
       >
         <div className="flex items-center gap-2">
           {icon && (
@@ -53,7 +53,7 @@ export function BuildListSidebar({ title }: BuildListSidebarProps) {
         <ChevronIcon expanded={expanded} />
       </button>
       {expanded && (
-        <div className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+        <div className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">
           {children}
         </div>
       )}

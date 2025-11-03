@@ -100,10 +100,10 @@ export default function UserProfilePage() {
             {/* Profile Header with Title and Count */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+                <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
                   {profile.displayName || 'Unnamed User'}
                 </h1>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                <p className="text-base text-zinc-500 dark:text-zinc-400">
                   1 profile found
                 </p>
               </div>
@@ -174,14 +174,24 @@ export default function UserProfilePage() {
                     {emoji}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 truncate mb-1">
+                    <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 truncate mb-1">
                       {profile.displayName || 'Unnamed User'}
                     </h3>
-                    <div className="text-xs text-zinc-500 dark:text-zinc-400 font-mono truncate mb-2">
+                      <button
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(walletAddress);
+                        } catch (err) {
+                          console.error('Failed to copy address:', err);
+                        }
+                      }}
+                      className="text-sm text-zinc-500 dark:text-zinc-400 font-mono truncate mb-2 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors text-left"
+                      title="Click to copy address"
+                    >
                       {walletAddress}
-                    </div>
+                    </button>
                     {profile.bio && (
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">
+                      <p className="text-base text-zinc-600 dark:text-zinc-400 line-clamp-2">
                         {profile.bio}
                       </p>
                     )}
@@ -191,14 +201,33 @@ export default function UserProfilePage() {
 
               {/* Balance Card */}
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
                     Balance
                   </h3>
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400">💰</span>
+                  {isOwnProfile && (
+                    <button
+                      onClick={() => updateProfile({ hideBalance: !profile.hideBalance })}
+                      className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                      title={profile.hideBalance ? 'Show balance' : 'Hide balance'}
+                      aria-label={profile.hideBalance ? 'Show balance' : 'Hide balance'}
+                    >
+                      {profile.hideBalance ? (
+                        <svg className="w-5 h-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.29 3.29m0 0L9.88 9.88m-3.59-3.59L9.88 9.88" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      )}
+                    </button>
+                  )}
                 </div>
                 <div 
-                  className="text-lg font-medium"
+                  className="text-2xl font-bold"
                   style={profile.hideBalance ? {
                     userSelect: 'none',
                     WebkitUserSelect: 'none',
@@ -217,17 +246,28 @@ export default function UserProfilePage() {
               {/* Wallet Information Card */}
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
                 <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">
+                  <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
                     Wallet
                   </h3>
                   <span className="text-xs text-zinc-500 dark:text-zinc-400">🔐</span>
                 </div>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2 text-base">
                   <div>
-                    <span className="text-zinc-500 dark:text-zinc-400">Address:</span>
-                    <div className="text-zinc-900 dark:text-zinc-100 font-mono text-xs break-all mt-1">
+                    <span className="text-zinc-500 dark:text-zinc-400 text-sm">Address:</span>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(walletAddress);
+                          // You could add a toast notification here
+                        } catch (err) {
+                          console.error('Failed to copy address:', err);
+                        }
+                      }}
+                      className="block text-zinc-900 dark:text-zinc-100 font-mono text-sm break-all mt-1 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors text-left"
+                      title="Click to copy address"
+                    >
                       {walletAddress}
-                    </div>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -236,10 +276,10 @@ export default function UserProfilePage() {
             {/* Additional Cards - Profile Status */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
-                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+                <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
                   Profile Status
                 </h3>
-                <div className="space-y-3 text-sm">
+                <div className="space-y-3 text-base">
                   <div>
                     <span className="text-zinc-500 dark:text-zinc-400">Display Name:</span>
                     <div className="text-zinc-900 dark:text-zinc-100 mt-1 font-medium">
@@ -269,7 +309,7 @@ export default function UserProfilePage() {
               </div>
 
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
-                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+                <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
                   Quick Actions
                 </h3>
                 <div className="space-y-2">
