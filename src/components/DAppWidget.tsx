@@ -11,24 +11,17 @@ interface DAppWidgetProps {
 
 export function DAppWidget({ dapp }: DAppWidgetProps) {
   const [showModal, setShowModal] = useState(false);
-  const [hasCheckedCompatibility, setHasCheckedCompatibility] = useState(false);
   const compatibility = useNetworkCompatibility(dapp);
-
-  // Check compatibility when component mounts or when wallet/chain changes
-  useEffect(() => {
-    // Only show modal once when incompatibility is first detected
-    if (!hasCheckedCompatibility && !compatibility.isCompatible) {
-      setShowModal(true);
-      setHasCheckedCompatibility(true);
-    }
-    // Reset check flag if compatibility is restored (user switched networks)
-    if (hasCheckedCompatibility && compatibility.isCompatible) {
-      setHasCheckedCompatibility(false);
-    }
-  }, [compatibility.isCompatible, compatibility.isKRC20Only, hasCheckedCompatibility]);
 
   const handleModalClose = () => {
     setShowModal(false);
+  };
+
+  const handleInteraction = () => {
+    // Show modal only when user tries to interact with incompatible dApp
+    if (!compatibility.isCompatible) {
+      setShowModal(true);
+    }
   };
 
   if (!dapp.widgetUrl) {
@@ -57,7 +50,7 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
                     : `This dApp requires ${compatibility.requiredChainNames.join(' or ')} network.`}
                 </p>
                 <button
-                  onClick={() => setShowModal(true)}
+                  onClick={handleInteraction}
                   className="text-xs text-yellow-800 dark:text-yellow-300 hover:underline mt-1 font-medium"
                 >
                   View details →
@@ -67,7 +60,10 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
           </div>
         )}
         
-        <div className="flex flex-col items-center justify-center min-h-[400px] p-8 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+        <div 
+          className="flex flex-col items-center justify-center min-h-[400px] p-8 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 cursor-pointer"
+          onClick={handleInteraction}
+        >
         <div className="text-center max-w-md">
           <svg
             className="mx-auto h-16 w-16 text-zinc-400 dark:text-zinc-600 mb-4"
@@ -93,6 +89,12 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
               href={dapp.url}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={(e) => {
+                if (!compatibility.isCompatible) {
+                  e.preventDefault();
+                  handleInteraction();
+                }
+              }}
               className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg text-sm font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
             >
               Launch App in New Tab
@@ -125,44 +127,48 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
         onClose={handleModalClose}
       />
       
-      {/* Show warning badge if incompatible */}
-      {!compatibility.isCompatible && !showModal && (
-        <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-          <div className="flex items-start gap-2">
-            <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
-                Network Incompatibility Detected
-              </p>
-              <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-1">
-                {compatibility.isKRC20Only
-                  ? 'This dApp requires KRC-20 network (Kaspa-native wallet).'
-                  : `This dApp requires ${compatibility.requiredChainNames.join(' or ')} network.`}
-              </p>
-              <button
-                onClick={() => setShowModal(true)}
-                className="text-xs text-yellow-800 dark:text-yellow-300 hover:underline mt-1 font-medium"
-              >
-                View details →
-              </button>
+        {/* Show warning badge if incompatible */}
+        {!compatibility.isCompatible && !showModal && (
+          <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <div className="flex items-start gap-2">
+              <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+                  Network Incompatibility Detected
+                </p>
+                <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-1">
+                  {compatibility.isKRC20Only
+                    ? 'This dApp requires KRC-20 network (Kaspa-native wallet).'
+                    : `This dApp requires ${compatibility.requiredChainNames.join(' or ')} network.`}
+                </p>
+                <button
+                  onClick={handleInteraction}
+                  className="text-xs text-yellow-800 dark:text-yellow-300 hover:underline mt-1 font-medium"
+                >
+                  View details →
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="w-full">
-        <div className="relative w-full rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900" style={{ minHeight: '600px' }}>
-          <iframe
-            src={dapp.widgetUrl}
-            className="w-full h-full border-0"
-            style={{ minHeight: '600px', height: '100%' }}
-            title={`${dapp.name} Widget`}
-            allow="clipboard-read; clipboard-write"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
-          />
-        </div>
+        <div className="w-full">
+          <div 
+            className="relative w-full rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900" 
+            style={{ minHeight: '600px' }}
+            onClick={handleInteraction}
+          >
+            <iframe
+              src={dapp.widgetUrl}
+              className="w-full h-full border-0"
+              style={{ minHeight: '600px', height: '100%' }}
+              title={`${dapp.name} Widget`}
+              allow="clipboard-read; clipboard-write"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+            />
+          </div>
         
         {/* Optional: Launch in new tab link */}
         {dapp.url && (

@@ -47,14 +47,21 @@ export function NetworkCompatibilityModal({
     onClose();
   };
 
+  // Auto-close when network becomes compatible
+  useEffect(() => {
+    if (isOpen && compatibility.isCompatible && !compatibility.isKRC20Only) {
+      onClose();
+    }
+  }, [isOpen, compatibility.isCompatible, compatibility.isKRC20Only, onClose]);
+
   // KRC-20 only dApp - special handling
   if (compatibility.isKRC20Only) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-md w-full border border-zinc-200 dark:border-zinc-800">
-          <div className="p-6">
-            <div className="flex items-start justify-between mb-4">
-              <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-lg w-full border border-zinc-200 dark:border-zinc-800">
+          <div className="p-8">
+            <div className="flex items-start justify-between mb-6">
+              <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
                 KRC-20 Network Required
               </h2>
               <button
@@ -68,8 +75,8 @@ export function NetworkCompatibilityModal({
               </button>
             </div>
 
-            <div className="mb-4">
-              <p className="text-zinc-600 dark:text-zinc-400 mb-3">
+            <div className="mb-6">
+              <p className="text-base text-zinc-600 dark:text-zinc-400 mb-4">
                 <span className="font-semibold text-zinc-900 dark:text-zinc-100">{dapp.name}</span> requires the{' '}
                 <span className="font-semibold">KRC-20 L1 Mainnet</span> network, which is not EVM-compatible.
               </p>
@@ -77,19 +84,19 @@ export function NetworkCompatibilityModal({
               {!showKRC20Info ? (
                 <button
                   onClick={() => setShowKRC20Info(true)}
-                  className="text-sm text-[#02abb8] hover:underline mb-3"
+                  className="text-base text-[#02abb8] hover:underline mb-3"
                 >
                   Learn more about KRC-20 →
                 </button>
               ) : (
-                <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4 mb-3 text-sm text-zinc-700 dark:text-zinc-300">
+                <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4 mb-3 text-base text-zinc-700 dark:text-zinc-300">
                   <p className="mb-2">
                     KRC-20 tokens run on Kaspa Layer 1 and require Kaspa-native wallets (not EVM wallets like MetaMask).
                   </p>
                   <p className="mb-3">
                     You&apos;ll need to use a compatible Kaspa wallet to interact with this dApp.
                   </p>
-                  <div className="space-y-1 text-xs">
+                  <div className="space-y-1 text-sm">
                     <a
                       href={KRC20_NETWORK_INFO.documentation}
                       target="_blank"
@@ -114,7 +121,7 @@ export function NetworkCompatibilityModal({
             <div className="flex gap-3">
               <button
                 onClick={onClose}
-                className="flex-1 px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors font-medium"
+                className="flex-1 px-5 py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors font-medium text-base"
               >
                 Close
               </button>
@@ -123,7 +130,7 @@ export function NetworkCompatibilityModal({
                   href={dapp.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 px-4 py-2 bg-[#02abb8] text-white rounded-lg hover:bg-[#0299a3] transition-colors font-medium text-center"
+                  className="flex-1 px-5 py-3 bg-[#02abb8] text-white rounded-lg hover:bg-[#0299a3] transition-colors font-medium text-center text-base"
                 >
                   Open in New Tab
                 </a>
@@ -138,10 +145,10 @@ export function NetworkCompatibilityModal({
   // EVM-compatible dApp but wrong network
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-md w-full border border-zinc-200 dark:border-zinc-800">
-        <div className="p-6">
-          <div className="flex items-start justify-between mb-4">
-            <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+      <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-lg w-full border border-zinc-200 dark:border-zinc-800">
+        <div className="p-8">
+          <div className="flex items-start justify-between mb-6">
+            <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
               Network Mismatch
             </h2>
             <button
@@ -155,22 +162,22 @@ export function NetworkCompatibilityModal({
             </button>
           </div>
 
-          <div className="mb-4">
-            <p className="text-zinc-600 dark:text-zinc-400 mb-3">
+          <div className="mb-6">
+            <p className="text-base text-zinc-600 dark:text-zinc-400 mb-4">
               <span className="font-semibold text-zinc-900 dark:text-zinc-100">{dapp.name}</span> is not compatible with your current network.
             </p>
 
             {!isConnected ? (
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-3">
-                <p className="text-sm text-yellow-800 dark:text-yellow-300">
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-4">
+                <p className="text-base text-yellow-800 dark:text-yellow-300">
                   Please connect your wallet first.
                 </p>
               </div>
             ) : (
               <>
-                <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-3 mb-3">
-                  <div className="text-sm">
-                    <div className="mb-2">
+                <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4 mb-4">
+                  <div className="text-base">
+                    <div className="mb-3">
                       <span className="text-zinc-500 dark:text-zinc-400">Current Network:</span>{' '}
                       <span className="font-medium text-zinc-900 dark:text-zinc-100">
                         {compatibility.currentChainName || 'Unknown'}
@@ -187,7 +194,7 @@ export function NetworkCompatibilityModal({
                   </div>
                 </div>
 
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-3">
+                <p className="text-base text-zinc-500 dark:text-zinc-400 mb-4">
                   Please switch to one of the required networks to use this dApp.
                 </p>
               </>
@@ -197,14 +204,14 @@ export function NetworkCompatibilityModal({
           <div className="flex gap-3">
             <button
               onClick={handleDismiss}
-              className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors font-medium"
+              className="px-5 py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors font-medium text-base"
             >
               Dismiss
             </button>
             {isConnected && (
               <button
                 onClick={handleSwitchNetwork}
-                className="flex-1 px-4 py-2 bg-[#02abb8] text-white rounded-lg hover:bg-[#0299a3] transition-colors font-medium"
+                className="flex-1 px-5 py-3 bg-[#02abb8] text-white rounded-lg hover:bg-[#0299a3] transition-colors font-medium text-base"
               >
                 Switch Network
               </button>
