@@ -22,11 +22,8 @@ export function usePageViews(slug: string) {
     } catch (error) {
       console.error('Error loading page views:', error);
     }
-  }, [slug]);
 
-  const incrementView = () => {
-    if (!slug) return;
-
+    // Increment view count
     try {
       const stored = localStorage.getItem(VIEWS_STORAGE_KEY);
       const allViews: PageViews = stored ? JSON.parse(stored) : {};
@@ -38,13 +35,6 @@ export function usePageViews(slug: string) {
       setViews(allViews[slug]);
     } catch (error) {
       console.error('Error saving page view:', error);
-    }
-  };
-
-  // Increment view on mount
-  useEffect(() => {
-    if (slug) {
-      incrementView();
     }
   }, [slug]);
 

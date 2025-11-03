@@ -1,8 +1,11 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { DApp, type DAppStatus } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
+import { usePageViews } from '@/hooks/usePageViews';
 
 interface DAppCardProps {
   dapp: DApp;
