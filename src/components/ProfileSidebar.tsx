@@ -19,6 +19,8 @@ export function ProfileSidebar({
   emoji,
   profile,
   isOwnProfile,
+  isEditMode,
+  onToggleEdit,
   onProfileUpdate,
 }: ProfileSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
