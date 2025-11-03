@@ -2,10 +2,11 @@
 
 import { useState, Suspense, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { ConnectButton, ChainButton } from '@rainbow-me/rainbowkit';
-import { useAccount } from 'wagmi';
+import { ConnectButton, useChainModal } from '@rainbow-me/rainbowkit';
+import { useAccount, useChainId } from 'wagmi';
 import { useTheme } from './ThemeProvider';
 import { UserMenu } from './UserMenu';
+import { getChainById } from '@/lib/wagmi';
 
 interface ProjectLink {
   name: string;
@@ -21,6 +22,42 @@ const projectLinks: ProjectLink[] = [
   { name: 'Movies', subdomain: 'movies.kasparex.com', comingSoon: true },
   { name: 'Magazines', subdomain: 'magazines.kasparex.com', comingSoon: true },
 ];
+
+function NetworkSwitcher() {
+  const { isConnected } = useAccount();
+  const chainId = useChainId();
+  const { openChainModal } = useChainModal();
+  const chain = chainId ? getChainById(chainId) : null;
+
+  if (!isConnected) {
+    return null;
+  }
+
+  return (
+    <button
+      onClick={() => openChainModal?.()}
+      className="px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-2"
+      aria-label="Switch network"
+    >
+      <svg
+        className="w-4 h-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"
+        />
+      </svg>
+      <span className="hidden sm:inline">
+        {chain?.name || 'Switch Network'}
+      </span>
+    </button>
+  );
+}
 
 export function Header() {
   const { theme, toggleTheme } = useTheme();
@@ -173,13 +210,11 @@ export function Header() {
               </svg>
             )}
           </button>
-          {isConnected && (
-            <div className="flex-shrink-0">
-              <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>
-                <ChainButton />
-              </Suspense>
-            </div>
-          )}
+          <div className="flex-shrink-0">
+            <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>
+              <NetworkSwitcher />
+            </Suspense>
+          </div>
           <div className="flex-shrink-0">
             <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>
               <ConnectButton />

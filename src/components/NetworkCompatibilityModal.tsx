@@ -87,7 +87,7 @@ export function NetworkCompatibilityModal({
                     KRC-20 tokens run on Kaspa Layer 1 and require Kaspa-native wallets (not EVM wallets like MetaMask).
                   </p>
                   <p className="mb-3">
-                    You'll need to use a compatible Kaspa wallet to interact with this dApp.
+                    You&apos;ll need to use a compatible Kaspa wallet to interact with this dApp.
                   </p>
                   <div className="space-y-1 text-xs">
                     <a
