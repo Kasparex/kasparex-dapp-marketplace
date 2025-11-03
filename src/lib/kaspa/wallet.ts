@@ -22,14 +22,14 @@ export const KASPA_WALLET_PROVIDERS: Record<KaspaWalletProvider, Omit<KaspaWalle
   kasware: {
     id: 'kasware',
     name: 'KasWare',
-    downloadUrl: 'https://kasware.io',
-    documentationUrl: 'https://docs.kasware.io',
+    downloadUrl: 'https://chrome.google.com/webstore/detail/hklhheigdmpoolooomdihmhlpjjdbklf',
+    documentationUrl: 'https://docs.kasware.xyz/wallet/',
   },
   kastle: {
     id: 'kastle',
     name: 'Kastle',
-    downloadUrl: 'https://kastle.app',
-    documentationUrl: 'https://docs.kastle.app',
+    downloadUrl: 'https://kastle.cc',
+    documentationUrl: 'https://docs.kastle.cc/',
   },
   kaspium: {
     id: 'kaspium',
@@ -76,7 +76,7 @@ export function detectKaspaWallets(): KaspaWalletProviderInfo[] {
   const win = getWindow();
   const providers: KaspaWalletProviderInfo[] = [];
 
-  // Check KasWare
+  // Check KasWare - check for window.kasware
   if (win.kasware) {
     providers.push({
       ...KASPA_WALLET_PROVIDERS.kasware,
@@ -84,7 +84,7 @@ export function detectKaspaWallets(): KaspaWalletProviderInfo[] {
     });
   }
 
-  // Check Kastle
+  // Check Kastle - check for window.kastle
   if (win.kastle) {
     providers.push({
       ...KASPA_WALLET_PROVIDERS.kastle,
@@ -152,17 +152,133 @@ export async function connectKaspaWallet(
   provider: KaspaWalletProvider
 ): Promise<KaspaWalletState> {
   try {
-    const walletProvider = getWalletProvider(provider);
-    
-    if (!walletProvider) {
-      throw new Error(`${provider} wallet is not installed`);
+    if (typeof window === 'undefined') {
+      throw new Error('Window is not available');
     }
 
-    // Request connection
-    const address = await walletProvider.requestConnection();
-    
+    const win = getWindow();
+    let address: string | null = null;
+
+    // Handle different wallet providers with their specific APIs
+    switch (provider) {
+      case 'kasware': {
+        if (!win.kasware) {
+          throw new Error('KasWare wallet is not installed');
+        }
+        
+        // Try different KasWare API patterns
+        const kasware = win.kasware as any;
+        
+        // Pattern 1: kasware.request() or kasware.enable()
+        if (typeof kasware.request === 'function') {
+          try {
+            const result = await kasware.request({ method: 'kaspa_requestAccounts' });
+            address = Array.isArray(result) ? result[0] : result?.address || result?.accounts?.[0];
+          } catch {
+            // Try alternative pattern
+            if (typeof kasware.enable === 'function') {
+              const result = await kasware.enable();
+              address = Array.isArray(result) ? result[0] : result?.address || result?.accounts?.[0];
+            } else if (typeof kasware.getSelectedAddress === 'function') {
+              address = await kasware.getSelectedAddress();
+            } else if (typeof kasware.getAddress === 'function') {
+              address = await kasware.getAddress();
+            }
+          }
+        } else if (typeof kasware.enable === 'function') {
+          const result = await kasware.enable();
+          address = Array.isArray(result) ? result[0] : result?.address || result?.accounts?.[0];
+        } else if (typeof kasware.getSelectedAddress === 'function') {
+          address = await kasware.getSelectedAddress();
+        } else if (typeof kasware.getAddress === 'function') {
+          address = await kasware.getAddress();
+        } else if (kasware.selectedAddress) {
+          address = kasware.selectedAddress;
+        }
+        break;
+      }
+
+      case 'kastle': {
+        if (!win.kastle) {
+          throw new Error('Kastle wallet is not installed');
+        }
+        
+        // Try different Kastle API patterns
+        const kastle = win.kastle as any;
+        
+        // Pattern 1: kastle.request() or kastle.enable()
+        if (typeof kastle.request === 'function') {
+          try {
+            const result = await kastle.request({ method: 'kaspa_requestAccounts' });
+            address = Array.isArray(result) ? result[0] : result?.address || result?.accounts?.[0];
+          } catch {
+            // Try alternative pattern
+            if (typeof kastle.enable === 'function') {
+              const result = await kastle.enable();
+              address = Array.isArray(result) ? result[0] : result?.address || result?.accounts?.[0];
+            } else if (typeof kastle.getSelectedAddress === 'function') {
+              address = await kastle.getSelectedAddress();
+            } else if (typeof kastle.getAddress === 'function') {
+              address = await kastle.getAddress();
+            }
+          }
+        } else if (typeof kastle.enable === 'function') {
+          const result = await kastle.enable();
+          address = Array.isArray(result) ? result[0] : result?.address || result?.accounts?.[0];
+        } else if (typeof kastle.getSelectedAddress === 'function') {
+          address = await kastle.getSelectedAddress();
+        } else if (typeof kastle.getAddress === 'function') {
+          address = await kastle.getAddress();
+        } else if (kastle.selectedAddress) {
+          address = kastle.selectedAddress;
+        }
+        break;
+      }
+
+      case 'kaspium': {
+        if (!win.kaspium) {
+          throw new Error('Kaspium wallet is not installed');
+        }
+        const kaspium = win.kaspium as any;
+        if (typeof kaspium.request === 'function') {
+          const result = await kaspium.request({ method: 'kaspa_requestAccounts' });
+          address = Array.isArray(result) ? result[0] : result?.address || result?.accounts?.[0];
+        } else if (typeof kaspium.getAddress === 'function') {
+          address = await kaspium.getAddress();
+        }
+        break;
+      }
+
+      case 'okx': {
+        if (!win.okx?.kaspa) {
+          throw new Error('OKX Kaspa wallet is not installed');
+        }
+        const okxKaspa = win.okx.kaspa as any;
+        if (typeof okxKaspa.request === 'function') {
+          const result = await okxKaspa.request({ method: 'kaspa_requestAccounts' });
+          address = Array.isArray(result) ? result[0] : result?.address || result?.accounts?.[0];
+        }
+        break;
+      }
+
+      case 'safepal': {
+        if (!win.safepal?.kaspa) {
+          throw new Error('SafePal Kaspa wallet is not installed');
+        }
+        const safepalKaspa = win.safepal.kaspa as any;
+        if (typeof safepalKaspa.request === 'function') {
+          const result = await safepalKaspa.request({ method: 'kaspa_requestAccounts' });
+          address = Array.isArray(result) ? result[0] : result?.address || result?.accounts?.[0];
+        }
+        break;
+      }
+
+      default:
+        throw new Error(`Unsupported wallet provider: ${provider}`);
+    }
+
     if (!address) {
-      throw new Error('Failed to get address from wallet');
+      throw new Error('Failed to get address from wallet. Please ensure the wallet is unlocked and try again.');
     }
 
     // Normalize address (ensure kaspa: prefix)
