@@ -6,12 +6,14 @@ export interface ProfileData {
   displayName: string;
   bio: string;
   hideBalance: boolean;
+  preventScreenshots: boolean;
 }
 
 const DEFAULT_PROFILE: ProfileData = {
   displayName: '',
   bio: '',
   hideBalance: false,
+  preventScreenshots: false,
 };
 
 /**
