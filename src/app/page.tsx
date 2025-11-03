@@ -32,9 +32,9 @@ function HomeContent() {
     }
   }, [categoryParam, validCategories]);
   const [filters, setFilters] = useState<Omit<FilterState, 'category'>>({
-    status: 'all',
-    developer: 'all',
-    network: 'all',
+    status: [],
+    developer: [],
+    network: [],
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
@@ -49,7 +49,7 @@ function HomeContent() {
   // Filter and sort dApps based on current filters, selected category, search query, and sort option
   const filteredDApps = useMemo(() => {
     const filterState: FilterState = {
-      category: selectedCategory,
+      category: [selectedCategory],
       ...filters,
     };
     let filtered = filterDApps(placeholderDApps, filterState, searchQuery);
@@ -90,9 +90,9 @@ function HomeContent() {
   const handleResetFilters = () => {
     setSelectedCategory('all');
     setFilters({
-      status: 'all',
-      developer: 'all',
-      network: 'all',
+      status: [],
+      developer: [],
+      network: [],
     });
     setSearchQuery('');
   };

@@ -186,10 +186,10 @@ export const placeholderDApps: DApp[] = [
 ];
 
 export interface FilterState {
-  category: Category;
-  status: DAppStatus | 'all';
-  developer: string | 'all';
-  network: string | 'all';
+  category: Category[];
+  status: (DAppStatus | 'all')[];
+  developer: (string | 'all')[];
+  network: (string | 'all')[];
 }
 
 export const filterDAppsByCategory = (
@@ -208,23 +208,23 @@ export const filterDApps = (
   searchQuery?: string
 ): DApp[] => {
   return dapps.filter((dapp) => {
-    // Category filter
-    if (filters.category !== 'all' && dapp.category !== filters.category) {
+    // Category filter - empty array means all selected
+    if (filters.category.length > 0 && !filters.category.includes(dapp.category) && !filters.category.includes('all')) {
       return false;
     }
     
-    // Status filter
-    if (filters.status !== 'all' && dapp.status !== filters.status) {
+    // Status filter - empty array means all selected
+    if (filters.status.length > 0 && !filters.status.includes(dapp.status) && !filters.status.includes('all')) {
       return false;
     }
     
-    // Developer filter
-    if (filters.developer !== 'all' && dapp.developer !== filters.developer) {
+    // Developer filter - empty array means all selected
+    if (filters.developer.length > 0 && !filters.developer.includes(dapp.developer) && !filters.developer.includes('all')) {
       return false;
     }
     
-    // Network filter
-    if (filters.network !== 'all' && dapp.network !== filters.network) {
+    // Network filter - empty array means all selected
+    if (filters.network.length > 0 && !filters.network.includes(dapp.network) && !filters.network.includes('all')) {
       return false;
     }
     
@@ -277,13 +277,16 @@ export const getCategoryCounts = (
 
   // Filter dApps by status, developer, network, and search query (but not category)
   const filteredDApps = dapps.filter((dapp) => {
-    if (filters.status !== 'all' && dapp.status !== filters.status) {
+    // Status filter - empty array means all selected
+    if (filters.status.length > 0 && !filters.status.includes(dapp.status) && !filters.status.includes('all')) {
       return false;
     }
-    if (filters.developer !== 'all' && dapp.developer !== filters.developer) {
+    // Developer filter - empty array means all selected
+    if (filters.developer.length > 0 && !filters.developer.includes(dapp.developer) && !filters.developer.includes('all')) {
       return false;
     }
-    if (filters.network !== 'all' && dapp.network !== filters.network) {
+    // Network filter - empty array means all selected
+    if (filters.network.length > 0 && !filters.network.includes(dapp.network) && !filters.network.includes('all')) {
       return false;
     }
     

@@ -61,19 +61,57 @@ export function Sidebar({
   const [developerExpanded, setDeveloperExpanded] = useState(false);
   const [networkExpanded, setNetworkExpanded] = useState(false);
 
-  const handleStatusChange = (status: DAppStatus | 'all') => {
-    onFilterChange({ ...filters, status });
-    setIsOpen(false);
+  const handleStatusToggle = (status: DAppStatus | 'all') => {
+    const currentStatus = filters.status || [];
+    const newStatus = currentStatus.includes(status)
+      ? currentStatus.filter((s) => s !== status)
+      : [...currentStatus, status];
+    onFilterChange({ ...filters, status: newStatus });
   };
 
-  const handleDeveloperChange = (developer: string) => {
-    onFilterChange({ ...filters, developer: developer === 'All' ? 'all' : developer });
-    setIsOpen(false);
+  const handleStatusSelectAll = () => {
+    const allStatuses = statusOptions.map((opt) => opt.value);
+    onFilterChange({ ...filters, status: allStatuses });
   };
 
-  const handleNetworkChange = (network: string) => {
-    onFilterChange({ ...filters, network: network === 'All' ? 'all' : network });
-    setIsOpen(false);
+  const handleStatusDeselectAll = () => {
+    onFilterChange({ ...filters, status: [] });
+  };
+
+  const handleDeveloperToggle = (developer: string) => {
+    const value = developer === 'All' ? 'all' : developer;
+    const currentDeveloper = filters.developer || [];
+    const newDeveloper = currentDeveloper.includes(value)
+      ? currentDeveloper.filter((d) => d !== value)
+      : [...currentDeveloper, value];
+    onFilterChange({ ...filters, developer: newDeveloper });
+  };
+
+  const handleDeveloperSelectAll = () => {
+    const allDevelopers = developerOptions.map((opt) => (opt.label === 'All' ? 'all' : opt.label));
+    onFilterChange({ ...filters, developer: allDevelopers });
+  };
+
+  const handleDeveloperDeselectAll = () => {
+    onFilterChange({ ...filters, developer: [] });
+  };
+
+  const handleNetworkToggle = (network: string) => {
+    const value = network === 'All' ? 'all' : network;
+    const currentNetwork = filters.network || [];
+    const newNetwork = currentNetwork.includes(value)
+      ? currentNetwork.filter((n) => n !== value)
+      : [...currentNetwork, value];
+    onFilterChange({ ...filters, network: newNetwork });
+  };
+
+  const handleNetworkSelectAll = () => {
+    const allNetworks = networkOptions.map((opt) => (opt.label === 'All' ? 'all' : opt.label));
+    onFilterChange({ ...filters, network: allNetworks });
+  };
+
+  const handleNetworkDeselectAll = () => {
+    onFilterChange({ ...filters, network: [] });
   };
 
   const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
@@ -255,30 +293,51 @@ export function Sidebar({
             expanded={statusExpanded}
             onToggle={() => setStatusExpanded(!statusExpanded)}
           >
-            <nav className="space-y-1 mb-4">
-              {statusOptions.map((option) => {
-                const isActive = filters.status === option.value;
-                return (
-                  <button
-                    key={option.value}
-                    onClick={() => handleStatusChange(option.value)}
-                    className={`
-                      w-full text-left px-4 py-2 rounded-lg
-                      transition-colors
-                      flex items-center gap-2
-                      ${
-                        isActive
-                          ? 'bg-zinc-900 dark:bg-zinc-800 text-white dark:text-zinc-100 font-medium'
-                          : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900'
-                      }
-                    `}
-                  >
-                    {option.emoji && <span className="text-lg">{option.emoji}</span>}
-                    <span>{option.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
+            <div className="mb-4">
+              <div className="flex gap-2 mb-2">
+                <button
+                  onClick={handleStatusSelectAll}
+                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                >
+                  Select All
+                </button>
+                <button
+                  onClick={handleStatusDeselectAll}
+                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                >
+                  Deselect All
+                </button>
+              </div>
+              <nav className="space-y-1">
+                {statusOptions.map((option) => {
+                  const currentStatus = filters.status || [];
+                  const isChecked = currentStatus.includes(option.value);
+                  return (
+                    <label
+                      key={option.value}
+                      className={`
+                        flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer
+                        transition-colors
+                        ${
+                          isChecked
+                            ? 'bg-zinc-100 dark:bg-zinc-800'
+                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900'
+                        }
+                      `}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => handleStatusToggle(option.value)}
+                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:ring-zinc-500"
+                      />
+                      {option.emoji && <span className="text-lg">{option.emoji}</span>}
+                      <span className="text-sm text-zinc-700 dark:text-zinc-300">{option.label}</span>
+                    </label>
+                  );
+                })}
+              </nav>
+            </div>
           </CollapsibleSection>
 
           {/* Developer Filter */}
@@ -288,47 +347,68 @@ export function Sidebar({
             expanded={developerExpanded}
             onToggle={() => setDeveloperExpanded(!developerExpanded)}
           >
-            <nav className="space-y-1 mb-4">
-              {developerOptions.map((option) => {
-                const value = option.label === 'All' ? 'all' : option.label;
-                const isActive = filters.developer === value;
-                return (
-                  <button
-                    key={option.label}
-                    onClick={() => handleDeveloperChange(option.label)}
-                    className={`
-                      w-full text-left px-4 py-2 rounded-lg
-                      transition-colors
-                      flex items-center gap-2
-                      ${
-                        isActive
-                          ? 'bg-zinc-900 dark:bg-zinc-800 text-white dark:text-zinc-100 font-medium'
-                          : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900'
-                      }
-                    `}
-                  >
-                    {option.logo ? (
-                      <>
-                        <Image
-                          src={option.logo}
-                          alt={`${option.label} logo`}
-                          width={16}
-                          height={16}
-                          className="flex-shrink-0"
-                          onError={(e) => {
-                            // Hide logo if it doesn't exist
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
-                        <span>{option.label}</span>
-                      </>
-                    ) : (
-                      <span>{option.label}</span>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
+            <div className="mb-4">
+              <div className="flex gap-2 mb-2">
+                <button
+                  onClick={handleDeveloperSelectAll}
+                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                >
+                  Select All
+                </button>
+                <button
+                  onClick={handleDeveloperDeselectAll}
+                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                >
+                  Deselect All
+                </button>
+              </div>
+              <nav className="space-y-1">
+                {developerOptions.map((option) => {
+                  const value = option.label === 'All' ? 'all' : option.label;
+                  const currentDeveloper = filters.developer || [];
+                  const isChecked = currentDeveloper.includes(value);
+                  return (
+                    <label
+                      key={option.label}
+                      className={`
+                        flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer
+                        transition-colors
+                        ${
+                          isChecked
+                            ? 'bg-zinc-100 dark:bg-zinc-800'
+                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900'
+                        }
+                      `}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => handleDeveloperToggle(option.label)}
+                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:ring-zinc-500"
+                      />
+                      {option.logo ? (
+                        <>
+                          <Image
+                            src={option.logo}
+                            alt={`${option.label} logo`}
+                            width={16}
+                            height={16}
+                            className="flex-shrink-0"
+                            onError={(e) => {
+                              // Hide logo if it doesn't exist
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                          <span className="text-sm text-zinc-700 dark:text-zinc-300">{option.label}</span>
+                        </>
+                      ) : (
+                        <span className="text-sm text-zinc-700 dark:text-zinc-300">{option.label}</span>
+                      )}
+                    </label>
+                  );
+                })}
+              </nav>
+            </div>
           </CollapsibleSection>
 
           {/* Network Filter */}
@@ -338,47 +418,68 @@ export function Sidebar({
             expanded={networkExpanded}
             onToggle={() => setNetworkExpanded(!networkExpanded)}
           >
-            <nav className="space-y-1 mb-4">
-              {networkOptions.map((option) => {
-                const value = option.label === 'All' ? 'all' : option.label;
-                const isActive = filters.network === value;
-                return (
-                  <button
-                    key={option.label}
-                    onClick={() => handleNetworkChange(option.label)}
-                    className={`
-                      w-full text-left px-4 py-2 rounded-lg
-                      transition-colors
-                      flex items-center gap-2
-                      ${
-                        isActive
-                          ? 'bg-zinc-900 dark:bg-zinc-800 text-white dark:text-zinc-100 font-medium'
-                          : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900'
-                      }
-                    `}
-                  >
-                    {option.logo ? (
-                      <>
-                        <Image
-                          src={option.logo}
-                          alt={`${option.label} logo`}
-                          width={16}
-                          height={16}
-                          className="flex-shrink-0"
-                          onError={(e) => {
-                            // Hide logo if it doesn't exist
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
-                        <span>{option.label}</span>
-                      </>
-                    ) : (
-                      <span>{option.label}</span>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
+            <div className="mb-4">
+              <div className="flex gap-2 mb-2">
+                <button
+                  onClick={handleNetworkSelectAll}
+                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                >
+                  Select All
+                </button>
+                <button
+                  onClick={handleNetworkDeselectAll}
+                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                >
+                  Deselect All
+                </button>
+              </div>
+              <nav className="space-y-1">
+                {networkOptions.map((option) => {
+                  const value = option.label === 'All' ? 'all' : option.label;
+                  const currentNetwork = filters.network || [];
+                  const isChecked = currentNetwork.includes(value);
+                  return (
+                    <label
+                      key={option.label}
+                      className={`
+                        flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer
+                        transition-colors
+                        ${
+                          isChecked
+                            ? 'bg-zinc-100 dark:bg-zinc-800'
+                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900'
+                        }
+                      `}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => handleNetworkToggle(option.label)}
+                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:ring-zinc-500"
+                      />
+                      {option.logo ? (
+                        <>
+                          <Image
+                            src={option.logo}
+                            alt={`${option.label} logo`}
+                            width={16}
+                            height={16}
+                            className="flex-shrink-0"
+                            onError={(e) => {
+                              // Hide logo if it doesn't exist
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                          <span className="text-sm text-zinc-700 dark:text-zinc-300">{option.label}</span>
+                        </>
+                      ) : (
+                        <span className="text-sm text-zinc-700 dark:text-zinc-300">{option.label}</span>
+                      )}
+                    </label>
+                  );
+                })}
+              </nav>
+            </div>
           </CollapsibleSection>
 
           {/* Reset Filters Button */}
