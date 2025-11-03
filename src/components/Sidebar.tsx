@@ -141,7 +141,7 @@ export function Sidebar({
     <div className="mb-4">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+        className="w-full flex items-center justify-between text-sm font-semibold text-white uppercase tracking-wider mb-2 hover:text-zinc-300 transition-colors"
       >
         <div className="flex items-center gap-2">
           {icon && (
@@ -288,7 +288,7 @@ export function Sidebar({
                             : [...selectedCategories, category.id];
                           onCategoryChange(newCategories);
                         }}
-                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-[#02abb8] focus:ring-[#02abb8] focus:ring-offset-0"
+                        className="w-4 h-4 rounded border border-zinc-400 dark:border-zinc-600 bg-zinc-900 dark:bg-zinc-800 checked:bg-[#02abb8] checked:border-[#02abb8] focus:ring-[#02abb8] focus:ring-offset-0 cursor-pointer"
                       />
                       <div className="flex items-center gap-2 flex-1">
                         <span className="text-lg">{category.emoji}</span>
@@ -347,7 +347,7 @@ export function Sidebar({
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => handleStatusToggle(option.value)}
-                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-[#02abb8] focus:ring-[#02abb8] focus:ring-offset-0"
+                        className="w-4 h-4 rounded border border-zinc-400 dark:border-zinc-600 bg-zinc-900 dark:bg-zinc-800 checked:bg-[#02abb8] checked:border-[#02abb8] focus:ring-[#02abb8] focus:ring-offset-0 cursor-pointer"
                       />
                       {option.emoji && <span className="text-lg">{option.emoji}</span>}
                       <span className="text-sm text-zinc-700 dark:text-zinc-300">{option.label}</span>
@@ -402,7 +402,7 @@ export function Sidebar({
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => handleDeveloperToggle(option.label)}
-                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-[#02abb8] focus:ring-[#02abb8] focus:ring-offset-0"
+                        className="w-4 h-4 rounded border border-zinc-400 dark:border-zinc-600 bg-zinc-900 dark:bg-zinc-800 checked:bg-[#02abb8] checked:border-[#02abb8] focus:ring-[#02abb8] focus:ring-offset-0 cursor-pointer"
                       />
                       {option.logo ? (
                         <>
@@ -473,7 +473,7 @@ export function Sidebar({
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => handleNetworkToggle(option.label)}
-                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-[#02abb8] focus:ring-[#02abb8] focus:ring-offset-0"
+                        className="w-4 h-4 rounded border border-zinc-400 dark:border-zinc-600 bg-zinc-900 dark:bg-zinc-800 checked:bg-[#02abb8] checked:border-[#02abb8] focus:ring-[#02abb8] focus:ring-offset-0 cursor-pointer"
                       />
                       {option.logo ? (
                         <>
