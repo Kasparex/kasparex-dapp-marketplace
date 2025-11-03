@@ -1,4 +1,5 @@
 import { Category } from './categories';
+import { CHAIN_IDS } from './wagmi';
 
 export type DAppStatus = 
   | 'Mainnet'
@@ -34,6 +35,11 @@ export interface DApp {
   widgetUrl?: string; // URL for embedded widget/iframe of the dApp
   version?: string;
   description?: string;
+  /**
+   * Optional array of supported chain IDs for network compatibility checking.
+   * If not provided, will be inferred from the network field using networkNameToChainIds.
+   */
+  supportedChainIds?: number[];
 }
 
 // Placeholder dApps for template demonstration
@@ -330,4 +336,87 @@ export const getCategoryCounts = (
 export const getDAppById = (dapps: DApp[], id: string): DApp | undefined => {
   return dapps.find((dapp) => dapp.id === id);
 };
+
+/**
+ * Maps network name strings to supported chain IDs
+ * 
+ * @param network - Network name string from dApp data
+ * @returns Array of chain IDs that support this network
+ */
+export function networkNameToChainIds(network: string): number[] {
+  const networkLower = network.toLowerCase();
+  
+  if (networkLower.includes('kasplex')) {
+    // Kasplex L2 networks - both mainnet and testnet
+    return [CHAIN_IDS.KASPLEX_L2_MAINNET, CHAIN_IDS.KASPLEX_L2_TESTNET];
+  }
+  
+  if (networkLower.includes('igra')) {
+    // Igra L2 networks - currently only testnet available
+    return [CHAIN_IDS.IGRA_CARAVEL_TESTNET];
+  }
+  
+  if (networkLower.includes('krc-20') || networkLower.includes('krc20')) {
+    // KRC-20 is not EVM-compatible, returns empty array
+    return [];
+  }
+  
+  if (networkLower === 'testnet' || networkLower.includes('testnet')) {
+    // Generic testnet - includes both testnets
+    return [CHAIN_IDS.KASPLEX_L2_TESTNET, CHAIN_IDS.IGRA_CARAVEL_TESTNET];
+  }
+  
+  if (networkLower === 'mainnet' || networkLower.includes('mainnet')) {
+    // Generic mainnet - currently only Kasplex L2 Mainnet
+    return [CHAIN_IDS.KASPLEX_L2_MAINNET];
+  }
+  
+  // Default: return empty array for unknown networks
+  return [];
+}
+
+/**
+ * Gets the supported chain IDs for a dApp.
+ * If supportedChainIds is explicitly set, uses that.
+ * Otherwise, infers from the network field.
+ * 
+ * @param dapp - The dApp to get chain IDs for
+ * @returns Array of supported chain IDs
+ */
+export function getDAppChainIds(dapp: DApp): number[] {
+  if (dapp.supportedChainIds && dapp.supportedChainIds.length > 0) {
+    return dapp.supportedChainIds;
+  }
+  return networkNameToChainIds(dapp.network);
+}
+
+/**
+ * Checks if a dApp is compatible with a given chain ID
+ * 
+ * @param dapp - The dApp to check
+ * @param chainId - The chain ID to check compatibility with
+ * @returns true if the dApp supports the chain ID
+ */
+export function isDAppCompatibleWithChain(dapp: DApp, chainId: number): boolean {
+  const supportedChainIds = getDAppChainIds(dapp);
+  return supportedChainIds.includes(chainId);
+}
+
+/**
+ * Checks if a dApp only supports KRC-20 (non-EVM)
+ * 
+ * @param dapp - The dApp to check
+ * @returns true if the dApp only supports KRC-20
+ */
+export function isDAppKRC20Only(dapp: DApp): boolean {
+  const chainIds = getDAppChainIds(dapp);
+  const networkLower = dapp.network.toLowerCase();
+  
+  // If no EVM chain IDs and network mentions KRC-20
+  if (chainIds.length === 0 && (networkLower.includes('krc-20') || networkLower.includes('krc20'))) {
+    return true;
+  }
+  
+  return false;
+}
 

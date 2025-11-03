@@ -2,7 +2,7 @@
 
 import { useState, Suspense, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { ConnectButton, ChainButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { useTheme } from './ThemeProvider';
 import { UserMenu } from './UserMenu';
@@ -173,6 +173,13 @@ export function Header() {
               </svg>
             )}
           </button>
+          {isConnected && (
+            <div className="flex-shrink-0">
+              <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>
+                <ChainButton />
+              </Suspense>
+            </div>
+          )}
           <div className="flex-shrink-0">
             <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>
               <ConnectButton />
