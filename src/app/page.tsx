@@ -44,7 +44,7 @@ function HomeContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [displayedCount, setDisplayedCount] = useState(50);
-  const { favorites, toggleFavorite, isFavorite } = useFavorites();
+  const { favoritesSet, toggleFavorite, isFavorite } = useFavorites();
 
   // Get category counts based on current filters and search
   const categoryCounts = useMemo(() => {
@@ -61,11 +61,11 @@ function HomeContent() {
     
     // If sorting by favorites, filter to only show favorites
     if (sortBy === 'favorites') {
-      filtered = filtered.filter((dapp) => favorites.has(dapp.id));
+      filtered = filtered.filter((dapp) => favoritesSet.has(dapp.id));
     }
     
-    return sortDApps(filtered, sortBy, favorites);
-  }, [selectedCategories, filters, searchQuery, sortBy, favorites]);
+    return sortDApps(filtered, sortBy, favoritesSet);
+  }, [selectedCategories, filters, searchQuery, sortBy, favoritesSet]);
 
   // Reset displayed count when filters change
   useEffect(() => {
@@ -163,14 +163,12 @@ function HomeContent() {
                 <SortFilters 
                   sortBy={sortBy} 
                   onSortChange={setSortBy}
-                  favoritesCount={favorites.size}
+                  favoritesCount={favoritesSet.size}
                 />
               </div>
             </div>
             <DAppGrid 
               dapps={displayedDApps}
-              isFavorite={isFavorite}
-              onToggleFavorite={toggleFavorite}
             />
             {showLoadMore && hasMore && (
               <div className="mt-8 flex justify-center">

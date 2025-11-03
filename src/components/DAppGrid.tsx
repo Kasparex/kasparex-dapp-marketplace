@@ -3,12 +3,10 @@ import { DAppCard } from './DAppCard';
 
 interface DAppGridProps {
   dapps: DApp[];
-  isFavorite?: (dappId: string) => boolean;
-  onToggleFavorite?: (dappId: string) => void;
-  // Likes are handled internally by DAppCard using useLikes hook
+  // Favorites and likes are handled internally by DAppCard using hooks
 }
 
-export function DAppGrid({ dapps, isFavorite, onToggleFavorite }: DAppGridProps) {
+export function DAppGrid({ dapps }: DAppGridProps) {
   if (dapps.length === 0) {
     return (
       <div className="text-center py-12">
@@ -24,9 +22,7 @@ export function DAppGrid({ dapps, isFavorite, onToggleFavorite }: DAppGridProps)
       {dapps.map((dapp) => (
         <DAppCard 
           key={dapp.id} 
-          dapp={dapp} 
-          isFavorite={isFavorite ? isFavorite(dapp.id) : false}
-          onToggleFavorite={onToggleFavorite}
+          dapp={dapp}
         />
       ))}
     </div>

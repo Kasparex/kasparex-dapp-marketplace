@@ -9,8 +9,11 @@ import { ProfileSidebar } from '@/components/ProfileSidebar';
 import { TokenBalance } from '@/components/TokenBalance';
 import { ProfileEdit } from '@/components/ProfileEdit';
 import { useProfile } from '@/hooks/useProfile';
+import { useFavorites } from '@/hooks/useFavorites';
 import { isAddress } from 'viem';
 import { Avatar } from '@/components/Avatar';
+import { placeholderDApps } from '@/lib/dapps';
+import { DAppGrid } from '@/components/DAppGrid';
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -19,6 +22,8 @@ export default function UserProfilePage() {
   const walletAddress = params?.['wallet-address'] as string | undefined;
   const [isEditMode, setIsEditMode] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'activity' | 'dapps' | 'favorites' | 'settings'>('overview');
+  const { getFavoritesForWallet } = useFavorites();
 
   // Validate wallet address
   const isValidAddress = walletAddress && isAddress(walletAddress);
@@ -134,24 +139,85 @@ export default function UserProfilePage() {
 
             {/* Tabs Navigation */}
             <div className="flex items-center gap-1 mb-6 border-b border-zinc-200 dark:border-zinc-800">
-              <button className="px-4 py-2 text-sm font-medium text-zinc-900 dark:text-zinc-100 border-b-2 border-zinc-900 dark:border-zinc-100">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  activeTab === 'overview'
+                    ? 'text-zinc-900 dark:text-zinc-100 border-b-2 border-zinc-900 dark:border-zinc-100'
+                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                }`}
+              >
                 Overview
               </button>
-              <button className="px-4 py-2 text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
+              <button
+                onClick={() => setActiveTab('activity')}
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  activeTab === 'activity'
+                    ? 'text-zinc-900 dark:text-zinc-100 border-b-2 border-zinc-900 dark:border-zinc-100'
+                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                }`}
+              >
                 Activity
               </button>
-              <button className="px-4 py-2 text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
+              <button
+                onClick={() => setActiveTab('dapps')}
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  activeTab === 'dapps'
+                    ? 'text-zinc-900 dark:text-zinc-100 border-b-2 border-zinc-900 dark:border-zinc-100'
+                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                }`}
+              >
                 dApps
               </button>
+              <button
+                onClick={() => setActiveTab('favorites')}
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  activeTab === 'favorites'
+                    ? 'text-zinc-900 dark:text-zinc-100 border-b-2 border-zinc-900 dark:border-zinc-100'
+                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                }`}
+              >
+                Favorites
+              </button>
               {isOwnProfile && (
-                <button className="px-4 py-2 text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
+                <button
+                  onClick={() => setActiveTab('settings')}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    activeTab === 'settings'
+                      ? 'text-zinc-900 dark:text-zinc-100 border-b-2 border-zinc-900 dark:border-zinc-100'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                  }`}
+                >
                   Settings
                 </button>
               )}
             </div>
 
+            {/* Tab Content */}
+            {activeTab === 'favorites' && (() => {
+              const favoriteIds = getFavoritesForWallet(walletAddress);
+              const favoriteDApps = placeholderDApps.filter(dapp => favoriteIds.includes(dapp.id));
+              
+              return (
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
+                    Favorite dApps
+                  </h2>
+                  {favoriteDApps.length === 0 ? (
+                    <div className="text-center py-12 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg">
+                      <p className="text-zinc-500 dark:text-zinc-400">
+                        No favorite dApps yet. Start favoriting dApps to see them here!
+                      </p>
+                    </div>
+                  ) : (
+                    <DAppGrid dapps={favoriteDApps} />
+                  )}
+                </div>
+              );
+            })()}
+
             {/* Edit Mode Content */}
-            {isEditMode && isOwnProfile && (
+            {isEditMode && isOwnProfile && activeTab === 'overview' && (
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 mb-8">
                 <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
                   Edit Profile
@@ -168,6 +234,7 @@ export default function UserProfilePage() {
             )}
 
             {/* Cards Grid - Profile Information */}
+            {activeTab === 'overview' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
               {/* Profile Card */}
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
@@ -302,6 +369,7 @@ export default function UserProfilePage() {
             </div>
 
             {/* Additional Cards - Profile Status */}
+            {activeTab === 'overview' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
                 <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
@@ -357,6 +425,7 @@ export default function UserProfilePage() {
                 </div>
               </div>
             </div>
+            )}
           </div>
         </div>
       </main>

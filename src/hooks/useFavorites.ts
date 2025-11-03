@@ -1,20 +1,31 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useAccount } from 'wagmi';
 
 const FAVORITES_KEY = 'kasparex-dapp-favorites';
 
+interface FavoritesData {
+  [walletAddress: string]: string[]; // Array of dApp IDs
+}
+
+/**
+ * Hook to manage favorites for dApps
+ * Each wallet has its own list of favorite dApps
+ */
 export function useFavorites() {
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const { address, isConnected } = useAccount();
+  const [favorites, setFavorites] = useState<FavoritesData>({});
+  const [mounted, setMounted] = useState(false);
 
   // Load favorites from localStorage on mount
   useEffect(() => {
+    setMounted(true);
     if (typeof window !== 'undefined') {
       try {
         const stored = localStorage.getItem(FAVORITES_KEY);
         if (stored) {
-          const parsed = JSON.parse(stored);
-          setFavorites(new Set(parsed));
+          setFavorites(JSON.parse(stored));
         }
       } catch (error) {
         console.error('Error loading favorites:', error);
@@ -24,35 +35,66 @@ export function useFavorites() {
 
   // Save favorites to localStorage whenever they change
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (mounted && typeof window !== 'undefined') {
       try {
-        localStorage.setItem(FAVORITES_KEY, JSON.stringify(Array.from(favorites)));
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
       } catch (error) {
         console.error('Error saving favorites:', error);
       }
     }
-  }, [favorites]);
+  }, [favorites, mounted]);
 
   const toggleFavorite = (dappId: string) => {
+    if (!address || !isConnected) {
+      // User needs to connect wallet to favorite
+      return;
+    }
+
     setFavorites((prev) => {
-      const newFavorites = new Set(prev);
-      if (newFavorites.has(dappId)) {
-        newFavorites.delete(dappId);
-      } else {
-        newFavorites.add(dappId);
+      const newFavorites = { ...prev };
+      
+      if (!newFavorites[address]) {
+        newFavorites[address] = [];
       }
+
+      const dappIndex = newFavorites[address].indexOf(dappId);
+      
+      if (dappIndex >= 0) {
+        // Unfavorite: remove dApp from list
+        newFavorites[address].splice(dappIndex, 1);
+      } else {
+        // Favorite: add dApp to list
+        newFavorites[address].push(dappId);
+      }
+
       return newFavorites;
     });
   };
 
-  const isFavorite = (dappId: string) => {
-    return favorites.has(dappId);
+  const isFavorite = (dappId: string): boolean => {
+    if (!address || !isConnected) {
+      return false;
+    }
+    return favorites[address]?.includes(dappId) || false;
+  };
+
+  const getFavoritesForWallet = (walletAddress: string): string[] => {
+    return favorites[walletAddress] || [];
+  };
+
+  const getCurrentWalletFavorites = (): string[] => {
+    if (!address || !isConnected) {
+      return [];
+    }
+    return favorites[address] || [];
   };
 
   return {
-    favorites,
+    favorites: getCurrentWalletFavorites(),
+    favoritesSet: new Set(getCurrentWalletFavorites()),
     toggleFavorite,
     isFavorite,
+    getFavoritesForWallet,
+    isWalletConnected: isConnected,
   };
 }
-

@@ -6,11 +6,10 @@ import { DApp, type DAppStatus } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
 import { useLikes } from '@/hooks/useLikes';
+import { useFavorites } from '@/hooks/useFavorites';
 
 interface DAppCardProps {
   dapp: DApp;
-  isFavorite?: boolean;
-  onToggleFavorite?: (dappId: string) => void;
 }
 
 const statusColors: Record<DAppStatus, string> = {
@@ -23,25 +22,27 @@ const statusColors: Record<DAppStatus, string> = {
   Devnet: 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-700',
 };
 
-export function DAppCard({ dapp, isFavorite = false, onToggleFavorite }: DAppCardProps) {
+export function DAppCard({ dapp }: DAppCardProps) {
   const category = getCategoryById(dapp.category);
   const slug = dapp.slug || generateDAppSlug(dapp.name);
-  const { toggleLike, getLikeCount, hasLiked, isWalletConnected } = useLikes();
+  const { toggleLike, getLikeCount, hasLiked, isWalletConnected: isWalletConnectedForLikes } = useLikes();
+  const { toggleFavorite, isFavorite, isWalletConnected: isWalletConnectedForFavorites } = useFavorites();
   const likeCount = getLikeCount(dapp.id);
   const isLiked = hasLiked(dapp.id);
+  const isFavoriteDapp = isFavorite(dapp.id);
 
   const handleStarClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (onToggleFavorite) {
-      onToggleFavorite(dapp.id);
+    if (isWalletConnectedForFavorites) {
+      toggleFavorite(dapp.id);
     }
   };
 
   const handleLikeClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isWalletConnected) {
+    if (isWalletConnectedForLikes) {
       toggleLike(dapp.id);
     }
   };
@@ -77,16 +78,19 @@ export function DAppCard({ dapp, isFavorite = false, onToggleFavorite }: DAppCar
               <button
                 onClick={handleStarClick}
                 className={`p-1 rounded transition-colors ${
-                  isFavorite
+                  isFavoriteDapp
                     ? 'text-yellow-500 hover:text-yellow-600'
-                    : 'text-zinc-400 hover:text-yellow-500'
+                    : isWalletConnectedForFavorites
+                    ? 'text-zinc-400 hover:text-yellow-500'
+                    : 'text-zinc-300 dark:text-zinc-600 cursor-not-allowed'
                 }`}
-                title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                title={isWalletConnectedForFavorites ? (isFavoriteDapp ? 'Remove from favorites' : 'Add to favorites') : 'Connect wallet to favorite'}
+                aria-label={isWalletConnectedForFavorites ? (isFavoriteDapp ? 'Remove from favorites' : 'Add to favorites') : 'Connect wallet to favorite'}
+                disabled={!isWalletConnectedForFavorites}
               >
                 <svg
                   className="w-5 h-5"
-                  fill={isFavorite ? 'currentColor' : 'none'}
+                  fill={isFavoriteDapp ? 'currentColor' : 'none'}
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                   strokeWidth={2}
@@ -99,13 +103,13 @@ export function DAppCard({ dapp, isFavorite = false, onToggleFavorite }: DAppCar
                 className={`p-1.5 rounded transition-colors flex items-center gap-1.5 ${
                   isLiked
                     ? 'text-red-500 hover:text-red-600'
-                    : isWalletConnected
+                    : isWalletConnectedForLikes
                     ? 'text-zinc-400 hover:text-red-500'
                     : 'text-zinc-300 dark:text-zinc-600 cursor-not-allowed'
                 }`}
-                title={isWalletConnected ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
-                aria-label={isWalletConnected ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
-                disabled={!isWalletConnected}
+                title={isWalletConnectedForLikes ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
+                aria-label={isWalletConnectedForLikes ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
+                disabled={!isWalletConnectedForLikes}
               >
                 <svg
                   className="w-5 h-5"
