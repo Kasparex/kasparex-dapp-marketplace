@@ -64,7 +64,7 @@ export default function UserProfilePage() {
         WebkitUserSelect: profile.hideBalance ? 'none' : 'auto',
         MozUserSelect: profile.hideBalance ? 'none' : 'auto',
         msUserSelect: profile.hideBalance ? 'none' : 'auto',
-      }}
+      } as React.CSSProperties}
     >
       <Header />
       
@@ -133,7 +133,7 @@ export default function UserProfilePage() {
                         MozUserSelect: 'none',
                         msUserSelect: 'none',
                         pointerEvents: 'none',
-                      } : {}}
+                      } as React.CSSProperties : {}}
                     >
                       <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
                         Balance

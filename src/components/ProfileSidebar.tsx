@@ -174,7 +174,7 @@ export function ProfileSidebar({
                   MozUserSelect: 'none',
                   msUserSelect: 'none',
                   pointerEvents: 'none',
-                } : {}}
+                } as React.CSSProperties : {}}
               >
                 <div className="text-zinc-500 dark:text-zinc-400 mb-2">Native Balance</div>
                 <TokenBalance 
