@@ -29,7 +29,10 @@ interface DAppDetailProps {
 }
 
 export function DAppDetail({ dapp }: DAppDetailProps) {
+  const router = useRouter();
   const category = getCategoryById(dapp.category);
+  const slug = dapp.slug || generateDAppSlug(dapp.name);
+  const pageViews = usePageViews(slug);
 
   return (
     <div className="space-y-6">
@@ -57,27 +60,38 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
               {dapp.name}
             </h1>
-            <span
-              className={`
-                px-3 py-1 text-sm font-medium rounded border
-                flex items-center gap-2
-                ${statusColors[dapp.status] || statusColors.Concept}
-              `}
-            >
-              {statusEmojis[dapp.status] && <span>{statusEmojis[dapp.status]}</span>}
-              <span>{dapp.status}</span>
-            </span>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span>{pageViews} views</span>
+              </div>
+              <span
+                className={`
+                  px-3 py-1 text-sm font-medium rounded border
+                  flex items-center gap-2
+                  ${statusColors[dapp.status] || statusColors.Concept}
+                `}
+              >
+                {statusEmojis[dapp.status] && <span>{statusEmojis[dapp.status]}</span>}
+                <span>{dapp.status}</span>
+              </span>
+            </div>
           </div>
 
           {category && (
             <div className="flex items-center gap-2 flex-wrap mb-4">
               <span className="text-xl">{category.emoji}</span>
-              <Link
-                href={`/?category=${dapp.category}`}
-                className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+              <button
+                onClick={() => {
+                  router.push(`/?category=${dapp.category}`);
+                }}
+                className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors text-left"
               >
                 {category.name}
-              </Link>
+              </button>
               <span className="text-zinc-400 dark:text-zinc-600">•</span>
               <span className="text-sm text-zinc-500 dark:text-zinc-500">
                 ID: {dapp.id}

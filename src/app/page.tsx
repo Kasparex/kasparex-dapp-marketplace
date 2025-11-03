@@ -29,6 +29,9 @@ function HomeContent() {
   useEffect(() => {
     if (categoryParam && validCategories.includes(categoryParam as Category)) {
       setSelectedCategories([categoryParam as Category]);
+    } else if (!categoryParam) {
+      // Reset categories if no param in URL
+      setSelectedCategories([]);
     }
   }, [categoryParam, validCategories]);
   const [filters, setFilters] = useState<Omit<FilterState, 'category'>>({

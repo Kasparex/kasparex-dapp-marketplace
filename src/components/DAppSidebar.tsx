@@ -183,7 +183,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
             </div>
 
             {/* Content Area */}
-            <div className="space-y-2">
+            <div className="space-y-0">
               {/* Description */}
               {dapp.description && (
                 <CollapsibleSection
@@ -247,7 +247,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
               </CollapsibleSection>
 
               {/* Developer Info */}
-              <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
+              <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-800">
                 <CollapsibleSection
                   title="Developer"
                   icon={<DeveloperIcon />}
