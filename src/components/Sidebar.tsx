@@ -270,8 +270,8 @@ export function Sidebar({
                     <label
                       key={category.id}
                       className={`
-                        checkbox-custom flex items-center gap-2 px-4 py-2 rounded-lg
-                        transition-colors
+                        checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
+                        transition-colors pl-8
                         ${
                           isChecked
                             ? 'bg-zinc-50 dark:bg-zinc-900/50'
@@ -290,11 +290,11 @@ export function Sidebar({
                         }}
                       />
                       <div className="control__indicator"></div>
-                      <div className="flex items-center gap-2 flex-1">
-                        <span className="text-lg">{category.emoji}</span>
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="text-lg flex-shrink-0">{category.emoji}</span>
                         <span className="text-sm text-zinc-700 dark:text-zinc-300">{category.name}</span>
                       </div>
-                      <span className="text-xs px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                      <span className="text-xs px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex-shrink-0">
                         {count}
                       </span>
                     </label>
@@ -334,8 +334,8 @@ export function Sidebar({
                     <label
                       key={option.value}
                       className={`
-                        checkbox-custom flex items-center gap-2 px-4 py-2 rounded-lg
-                        transition-colors
+                        checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
+                        transition-colors pl-8
                         ${
                           isChecked
                             ? 'bg-zinc-50 dark:bg-zinc-900/50'
@@ -349,8 +349,8 @@ export function Sidebar({
                         onChange={() => handleStatusToggle(option.value)}
                       />
                       <div className="control__indicator"></div>
-                      {option.emoji && <span className="text-lg">{option.emoji}</span>}
-                      <span className="text-sm text-zinc-700 dark:text-zinc-300">{option.label}</span>
+                      {option.emoji && <span className="text-lg flex-shrink-0">{option.emoji}</span>}
+                      <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
                     </label>
                   );
                 })}
@@ -389,8 +389,8 @@ export function Sidebar({
                     <label
                       key={option.label}
                       className={`
-                        checkbox-custom flex items-center gap-2 px-4 py-2 rounded-lg
-                        transition-colors
+                        checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
+                        transition-colors pl-8
                         ${
                           isChecked
                             ? 'bg-zinc-50 dark:bg-zinc-900/50'
@@ -417,10 +417,10 @@ export function Sidebar({
                               (e.target as HTMLImageElement).style.display = 'none';
                             }}
                           />
-                          <span className="text-sm text-zinc-700 dark:text-zinc-300">{option.label}</span>
+                          <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
                         </>
                       ) : (
-                        <span className="text-sm text-zinc-700 dark:text-zinc-300">{option.label}</span>
+                        <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
                       )}
                     </label>
                   );
@@ -460,8 +460,8 @@ export function Sidebar({
                     <label
                       key={option.label}
                       className={`
-                        checkbox-custom flex items-center gap-2 px-4 py-2 rounded-lg
-                        transition-colors
+                        checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
+                        transition-colors pl-8
                         ${
                           isChecked
                             ? 'bg-zinc-50 dark:bg-zinc-900/50'
@@ -488,10 +488,10 @@ export function Sidebar({
                               (e.target as HTMLImageElement).style.display = 'none';
                             }}
                           />
-                          <span className="text-sm text-zinc-700 dark:text-zinc-300">{option.label}</span>
+                          <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
                         </>
                       ) : (
-                        <span className="text-sm text-zinc-700 dark:text-zinc-300">{option.label}</span>
+                        <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
                       )}
                     </label>
                   );

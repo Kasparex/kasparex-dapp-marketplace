@@ -52,9 +52,7 @@
 /* Custom checkbox styling */
 .checkbox-custom {
   position: relative;
-  padding-left: 30px;
   cursor: pointer;
-  display: block;
 }
 
 .checkbox-custom input[type="checkbox"] {
@@ -65,13 +63,15 @@
 
 .checkbox-custom .control__indicator {
   position: absolute;
-  top: 2px;
+  top: 50%;
   left: 0;
+  transform: translateY(-50%);
   height: 20px;
   width: 20px;
   background: rgb(212 212 212); /* zinc-300 */
   border-radius: 4px;
   transition: background 0.2s;
+  flex-shrink: 0;
 }
 
 .dark .checkbox-custom .control__indicator {
