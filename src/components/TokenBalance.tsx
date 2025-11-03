@@ -1,7 +1,7 @@
 'use client';
 
-import { useBalance, type Address } from 'wagmi';
-import { formatUnits } from 'viem';
+import { useBalance } from 'wagmi';
+import { formatUnits, type Address } from 'viem';
 
 interface TokenBalanceProps {
   address: Address | undefined;
