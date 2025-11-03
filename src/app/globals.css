@@ -48,3 +48,80 @@
 .dark * {
   scrollbar-color: rgb(63 63 70) transparent; /* zinc-700 */
 }
+
+/* Custom checkbox styling */
+.checkbox-custom {
+  position: relative;
+  padding-left: 30px;
+  cursor: pointer;
+  display: block;
+}
+
+.checkbox-custom input[type="checkbox"] {
+  position: absolute;
+  z-index: -1;
+  opacity: 0;
+}
+
+.checkbox-custom .control__indicator {
+  position: absolute;
+  top: 2px;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background: rgb(212 212 212); /* zinc-300 */
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.dark .checkbox-custom .control__indicator {
+  background: rgb(63 63 70); /* zinc-700 */
+}
+
+.checkbox-custom:hover input ~ .control__indicator,
+.checkbox-custom input:focus ~ .control__indicator {
+  background: rgb(161 161 170); /* zinc-400 */
+}
+
+.dark .checkbox-custom:hover input ~ .control__indicator,
+.dark .checkbox-custom input:focus ~ .control__indicator {
+  background: rgb(82 82 91); /* zinc-600 */
+}
+
+.checkbox-custom input:checked ~ .control__indicator {
+  background: #02abb8;
+}
+
+.checkbox-custom:hover input:not([disabled]):checked ~ .control__indicator,
+.checkbox-custom input:checked:focus ~ .control__indicator {
+  background: #02919c;
+}
+
+.checkbox-custom input:disabled ~ .control__indicator {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.checkbox-custom .control__indicator:after {
+  content: '';
+  position: absolute;
+  display: none;
+}
+
+.checkbox-custom input:checked ~ .control__indicator:after {
+  display: block;
+}
+
+.checkbox-custom .control__indicator:after {
+  left: 7px;
+  top: 4px;
+  width: 3px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox-custom input:disabled ~ .control__indicator:after {
+  border-color: rgb(113 113 122); /* zinc-500 */
+}

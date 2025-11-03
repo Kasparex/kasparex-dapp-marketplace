@@ -270,7 +270,7 @@ export function Sidebar({
                     <label
                       key={category.id}
                       className={`
-                        flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer
+                        checkbox-custom flex items-center gap-2 px-4 py-2 rounded-lg
                         transition-colors
                         ${
                           isChecked
@@ -288,8 +288,8 @@ export function Sidebar({
                             : [...selectedCategories, category.id];
                           onCategoryChange(newCategories);
                         }}
-                        className="w-4 h-4 rounded border border-zinc-400 dark:border-zinc-600 bg-zinc-900 dark:bg-zinc-800 checked:bg-[#02abb8] checked:border-[#02abb8] focus:ring-[#02abb8] focus:ring-offset-0 cursor-pointer"
                       />
+                      <div className="control__indicator"></div>
                       <div className="flex items-center gap-2 flex-1">
                         <span className="text-lg">{category.emoji}</span>
                         <span className="text-sm text-zinc-700 dark:text-zinc-300">{category.name}</span>
@@ -334,7 +334,7 @@ export function Sidebar({
                     <label
                       key={option.value}
                       className={`
-                        flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer
+                        checkbox-custom flex items-center gap-2 px-4 py-2 rounded-lg
                         transition-colors
                         ${
                           isChecked
@@ -347,8 +347,8 @@ export function Sidebar({
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => handleStatusToggle(option.value)}
-                        className="w-4 h-4 rounded border border-zinc-400 dark:border-zinc-600 bg-zinc-900 dark:bg-zinc-800 checked:bg-[#02abb8] checked:border-[#02abb8] focus:ring-[#02abb8] focus:ring-offset-0 cursor-pointer"
                       />
+                      <div className="control__indicator"></div>
                       {option.emoji && <span className="text-lg">{option.emoji}</span>}
                       <span className="text-sm text-zinc-700 dark:text-zinc-300">{option.label}</span>
                     </label>
@@ -389,7 +389,7 @@ export function Sidebar({
                     <label
                       key={option.label}
                       className={`
-                        flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer
+                        checkbox-custom flex items-center gap-2 px-4 py-2 rounded-lg
                         transition-colors
                         ${
                           isChecked
@@ -402,8 +402,8 @@ export function Sidebar({
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => handleDeveloperToggle(option.label)}
-                        className="w-4 h-4 rounded border border-zinc-400 dark:border-zinc-600 bg-zinc-900 dark:bg-zinc-800 checked:bg-[#02abb8] checked:border-[#02abb8] focus:ring-[#02abb8] focus:ring-offset-0 cursor-pointer"
                       />
+                      <div className="control__indicator"></div>
                       {option.logo ? (
                         <>
                           <Image
@@ -460,7 +460,7 @@ export function Sidebar({
                     <label
                       key={option.label}
                       className={`
-                        flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer
+                        checkbox-custom flex items-center gap-2 px-4 py-2 rounded-lg
                         transition-colors
                         ${
                           isChecked
@@ -473,8 +473,8 @@ export function Sidebar({
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => handleNetworkToggle(option.label)}
-                        className="w-4 h-4 rounded border border-zinc-400 dark:border-zinc-600 bg-zinc-900 dark:bg-zinc-800 checked:bg-[#02abb8] checked:border-[#02abb8] focus:ring-[#02abb8] focus:ring-offset-0 cursor-pointer"
                       />
+                      <div className="control__indicator"></div>
                       {option.logo ? (
                         <>
                           <Image
