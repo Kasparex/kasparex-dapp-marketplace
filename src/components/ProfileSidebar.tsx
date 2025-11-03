@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import type { ProfileData } from '@/hooks/useProfile';
 import { TokenBalance } from './TokenBalance';
+import { Avatar } from './Avatar';
+import { DescriptionIcon, TokenIcon, SettingsIcon, PrivacyIcon } from './icons/SectionIcons';
 
 interface ProfileSidebarProps {
   walletAddress: string;
@@ -149,15 +151,13 @@ export function ProfileSidebar({
           {/* Profile Overview Section */}
           <CollapsibleSection
             title="Overview"
-            icon={<span>📊</span>}
+            icon={<DescriptionIcon />}
             expanded={overviewExpanded}
             onToggle={() => setOverviewExpanded(!overviewExpanded)}
           >
             <div className="space-y-3 mb-4">
               <div className="flex items-center justify-center mb-4">
-                <div className="text-6xl select-none" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
-                  {emoji}
-                </div>
+                <Avatar address={walletAddress} size={64} />
               </div>
               <div className="text-sm">
                 <div className="text-zinc-500 dark:text-zinc-400 mb-1">Display Name</div>
@@ -185,7 +185,7 @@ export function ProfileSidebar({
           {/* Token Holdings Section */}
           <CollapsibleSection
             title="Token Holdings"
-            icon={<span>💰</span>}
+            icon={<TokenIcon />}
             expanded={tokenHoldingsExpanded}
             onToggle={() => setTokenHoldingsExpanded(!tokenHoldingsExpanded)}
           >
@@ -216,7 +216,7 @@ export function ProfileSidebar({
           {isOwnProfile && onToggleEdit && (
             <CollapsibleSection
               title="Settings"
-              icon={<span>⚙️</span>}
+              icon={<SettingsIcon />}
               expanded={settingsExpanded}
               onToggle={() => setSettingsExpanded(!settingsExpanded)}
             >
@@ -235,7 +235,7 @@ export function ProfileSidebar({
           {isOwnProfile && (
             <CollapsibleSection
               title="Privacy"
-              icon={<span>🔒</span>}
+              icon={<PrivacyIcon />}
               expanded={privacyExpanded}
               onToggle={() => setPrivacyExpanded(!privacyExpanded)}
             >

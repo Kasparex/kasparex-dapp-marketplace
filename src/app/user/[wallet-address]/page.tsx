@@ -10,6 +10,7 @@ import { TokenBalance } from '@/components/TokenBalance';
 import { ProfileEdit } from '@/components/ProfileEdit';
 import { useProfile } from '@/hooks/useProfile';
 import { isAddress } from 'viem';
+import { Avatar } from '@/components/Avatar';
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -17,6 +18,7 @@ export default function UserProfilePage() {
   const { address: connectedAddress, isConnected } = useAccount();
   const walletAddress = params?.['wallet-address'] as string | undefined;
   const [isEditMode, setIsEditMode] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Validate wallet address
   const isValidAddress = walletAddress && isAddress(walletAddress);
@@ -170,26 +172,36 @@ export default function UserProfilePage() {
               {/* Profile Card */}
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
                 <div className="flex items-start gap-4">
-                  <div className="text-5xl select-none flex-shrink-0" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
-                    {emoji}
+                  <div className="flex-shrink-0">
+                    <Avatar address={walletAddress} size={64} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 truncate mb-1">
                       {profile.displayName || 'Unnamed User'}
                     </h3>
+                      <div className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">
+                        Wallet Address
+                      </div>
                       <button
-                      onClick={async () => {
-                        try {
-                          await navigator.clipboard.writeText(walletAddress);
-                        } catch (err) {
-                          console.error('Failed to copy address:', err);
-                        }
-                      }}
-                      className="text-sm text-zinc-500 dark:text-zinc-400 font-mono truncate mb-2 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors text-left"
-                      title="Click to copy address"
-                    >
-                      {walletAddress}
-                    </button>
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(walletAddress);
+                            setCopied(true);
+                            setTimeout(() => setCopied(false), 2000);
+                          } catch (err) {
+                            console.error('Failed to copy address:', err);
+                          }
+                        }}
+                        className="block w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-mono text-zinc-900 dark:text-zinc-100 break-all text-left hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors relative"
+                        title="Click to copy address"
+                      >
+                        {walletAddress}
+                        {copied && (
+                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-green-600 dark:text-green-400 font-sans">
+                            Copied!
+                          </span>
+                        )}
+                      </button>
                     {profile.bio && (
                       <p className="text-base text-zinc-600 dark:text-zinc-400 line-clamp-2">
                         {profile.bio}
@@ -241,6 +253,16 @@ export default function UserProfilePage() {
                     hideBalance={profile.hideBalance}
                   />
                 </div>
+                {isOwnProfile && (
+                  <div className="mt-3 pt-3 border-t border-zinc-200 dark:border-zinc-800">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-zinc-700 dark:text-zinc-300">Privacy:</span>
+                      <span className={`text-xs px-2 py-1 rounded ${profile.hideBalance ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300' : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'}`}>
+                        {profile.hideBalance ? 'Balance Hidden' : 'Balance Visible'}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Wallet Information Card */}
@@ -253,20 +275,26 @@ export default function UserProfilePage() {
                 </div>
                 <div className="space-y-2 text-base">
                   <div>
-                    <span className="text-zinc-500 dark:text-zinc-400 text-sm">Address:</span>
+                    <span className="text-zinc-500 dark:text-zinc-400 text-sm mb-2 block">Address:</span>
                     <button
                       onClick={async () => {
                         try {
                           await navigator.clipboard.writeText(walletAddress);
-                          // You could add a toast notification here
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 2000);
                         } catch (err) {
                           console.error('Failed to copy address:', err);
                         }
                       }}
-                      className="block text-zinc-900 dark:text-zinc-100 font-mono text-sm break-all mt-1 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors text-left"
+                      className="block w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-mono text-zinc-900 dark:text-zinc-100 break-all text-left hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors relative"
                       title="Click to copy address"
                     >
                       {walletAddress}
+                      {copied && (
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-green-600 dark:text-green-400 font-sans">
+                          Copied!
+                        </span>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -292,19 +320,16 @@ export default function UserProfilePage() {
                       {profile.bio || 'Not set'}
                     </div>
                   </div>
-                  <div>
-                    <span className="text-zinc-500 dark:text-zinc-400">Privacy:</span>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className={`text-xs px-2 py-1 rounded ${profile.hideBalance ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300' : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'}`}>
-                        {profile.hideBalance ? 'Balance Hidden' : 'Balance Visible'}
-                      </span>
-                      {profile.preventScreenshots && (
+                  {profile.preventScreenshots && (
+                    <div>
+                      <span className="text-zinc-500 dark:text-zinc-400">Privacy:</span>
+                      <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
                           Screenshot Protection
                         </span>
-                      )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 

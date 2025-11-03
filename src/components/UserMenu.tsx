@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAccount, useDisconnect } from 'wagmi';
 import { useChainModal } from '@rainbow-me/rainbowkit';
+import { Avatar } from './Avatar';
 
 export function UserMenu() {
   const { address, isConnected } = useAccount();
@@ -64,9 +65,7 @@ export function UserMenu() {
         className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
         aria-label="User menu"
       >
-        <div className="w-6 h-6 rounded-full bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 text-xs font-medium">
-          {shortenedAddress.slice(0, 2).toUpperCase()}
-        </div>
+        <Avatar address={address} size={24} />
         <svg
           className={`w-4 h-4 text-zinc-600 dark:text-zinc-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none"
