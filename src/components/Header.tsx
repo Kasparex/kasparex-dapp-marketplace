@@ -33,10 +33,19 @@ function NetworkSwitcher() {
     return null;
   }
 
+  // Determine if it's a mainnet or testnet based on chain properties
+  const isTestnet = chain?.testnet ?? false;
+  const isMainnet = !isTestnet;
+
+  // Color classes based on network type (matching card badge colors)
+  const bgColorClass = isMainnet
+    ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-300 dark:border-green-700 hover:bg-green-200 dark:hover:bg-green-900/40'
+    : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-300 dark:border-yellow-700 hover:bg-yellow-200 dark:hover:bg-yellow-900/40';
+
   return (
     <button
       onClick={() => openChainModal?.()}
-      className="px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-2"
+      className={`px-3 py-2 rounded-lg border transition-colors text-sm font-medium flex items-center gap-2 ${bgColorClass}`}
       aria-label="Switch network"
     >
       <svg
@@ -55,6 +64,14 @@ function NetworkSwitcher() {
       <span className="hidden sm:inline">
         {chain?.name || 'Switch Network'}
       </span>
+      <svg
+        className="w-4 h-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
     </button>
   );
 }
@@ -217,7 +234,7 @@ export function Header() {
           </div>
           <div className="flex-shrink-0">
             <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>
-              <ConnectButton />
+              <ConnectButton chainStatus="none" />
             </Suspense>
           </div>
           {isConnected && <UserMenu />}

@@ -39,10 +39,10 @@ const developerOptions: { label: string; logo?: string }[] = [
 
 const networkOptions: { label: string; logo?: string }[] = [
   { label: 'All' },
-  { label: 'KRC-20', logo: '/img/logos/krc20.png' },
-  { label: 'Kasplex L2', logo: '/img/logos/kasplex.png' },
-  { label: 'Igra L2', logo: '/img/logos/igra.png' },
-  { label: 'Other' },
+  { label: 'KRC-20 L1 Mainnet', logo: '/img/logos/krc20.png' },
+  { label: 'Kasplex L2 Mainnet', logo: '/img/logos/kasplex.png' },
+  { label: 'Kasplex L2 Testnet', logo: '/img/logos/kasplex.png' },
+  { label: 'Igra Caravel Testnet', logo: '/img/logos/igra.png' },
 ];
 
 export function Sidebar({
