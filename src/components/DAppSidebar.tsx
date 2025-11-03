@@ -52,13 +52,13 @@ const getLinkIcon = (label: string, url: string) => {
 };
 
 export function DAppSidebar({ dapp }: DAppSidebarProps) {
-  const [descriptionExpanded, setDescriptionExpanded] = useState(true);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [utilityExpanded, setUtilityExpanded] = useState(false);
   const [processExpanded, setProcessExpanded] = useState(false);
   const [benefitsExpanded, setBenefitsExpanded] = useState(false);
   const [securityExpanded, setSecurityExpanded] = useState(false);
   const [roadmapExpanded, setRoadmapExpanded] = useState(false);
-  const [developerExpanded, setDeveloperExpanded] = useState(true);
+  const [developerExpanded, setDeveloperExpanded] = useState(false);
 
   const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
     <svg
@@ -97,7 +97,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
         </div>
         <ChevronIcon expanded={expanded} />
       </button>
-      {expanded && <div className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed min-h-[60px]">{children}</div>}
+      {expanded && <div className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">{children}</div>}
     </div>
   );
 
@@ -183,103 +183,101 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
             </div>
 
             {/* Content Area */}
-            <div className="space-y-0">
-              {/* Description */}
-              {dapp.description && (
-                <CollapsibleSection
-                  title="Description"
-                  icon={<DescriptionIcon />}
-                  expanded={descriptionExpanded}
-                  onToggle={() => setDescriptionExpanded(!descriptionExpanded)}
-                >
-                  <p>{dapp.description}</p>
-                </CollapsibleSection>
-              )}
-
-              {/* Utility */}
+            {/* Description */}
+            {dapp.description && (
               <CollapsibleSection
-                title="Utility"
-                icon={<UtilityIcon />}
-                expanded={utilityExpanded}
-                onToggle={() => setUtilityExpanded(!utilityExpanded)}
+                title="Description"
+                icon={<DescriptionIcon />}
+                expanded={descriptionExpanded}
+                onToggle={() => setDescriptionExpanded(!descriptionExpanded)}
               >
-                <p>✅ {dapp.utility}</p>
+                <p>{dapp.description}</p>
               </CollapsibleSection>
+            )}
 
-              {/* Process */}
+            {/* Utility */}
+            <CollapsibleSection
+              title="Utility"
+              icon={<UtilityIcon />}
+              expanded={utilityExpanded}
+              onToggle={() => setUtilityExpanded(!utilityExpanded)}
+            >
+              <p>✅ {dapp.utility}</p>
+            </CollapsibleSection>
+
+            {/* Process */}
+            <CollapsibleSection
+              title="Process"
+              icon={<ProcessIcon />}
+              expanded={processExpanded}
+              onToggle={() => setProcessExpanded(!processExpanded)}
+            >
+              <p>✅ {dapp.process}</p>
+            </CollapsibleSection>
+
+            {/* Benefits */}
+            <CollapsibleSection
+              title="Benefits"
+              icon={<BenefitsIcon />}
+              expanded={benefitsExpanded}
+              onToggle={() => setBenefitsExpanded(!benefitsExpanded)}
+            >
+              <p>✅ {dapp.benefits}</p>
+            </CollapsibleSection>
+
+            {/* Security */}
+            <CollapsibleSection
+              title="Security"
+              icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>}
+              expanded={securityExpanded}
+              onToggle={() => setSecurityExpanded(!securityExpanded)}
+            >
+              <p>Security information will be available here.</p>
+            </CollapsibleSection>
+
+            {/* Roadmap */}
+            <CollapsibleSection
+              title="Roadmap"
+              icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>}
+              expanded={roadmapExpanded}
+              onToggle={() => setRoadmapExpanded(!roadmapExpanded)}
+            >
+              <p>Roadmap information will be available here.</p>
+            </CollapsibleSection>
+
+            {/* Developer Info */}
+            <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-800">
               <CollapsibleSection
-                title="Process"
-                icon={<ProcessIcon />}
-                expanded={processExpanded}
-                onToggle={() => setProcessExpanded(!processExpanded)}
+                title="Developer"
+                icon={<DeveloperIcon />}
+                expanded={developerExpanded}
+                onToggle={() => setDeveloperExpanded(!developerExpanded)}
               >
-                <p>✅ {dapp.process}</p>
+                <div className="space-y-3">
+                  <p className="text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                    {dapp.developer}
+                  </p>
+                  
+                  {/* Developer Links as Icons */}
+                  {dapp.developerLinks && dapp.developerLinks.length > 0 && (
+                    <div className="flex items-center gap-3">
+                      {dapp.developerLinks.slice(0, 3).map((link, index) => (
+                        <a
+                          key={index}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                          title={link.label}
+                          aria-label={link.label}
+                        >
+                          {getLinkIcon(link.label, link.url)}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </CollapsibleSection>
-
-              {/* Benefits */}
-              <CollapsibleSection
-                title="Benefits"
-                icon={<BenefitsIcon />}
-                expanded={benefitsExpanded}
-                onToggle={() => setBenefitsExpanded(!benefitsExpanded)}
-              >
-                <p>✅ {dapp.benefits}</p>
-              </CollapsibleSection>
-
-              {/* Security */}
-              <CollapsibleSection
-                title="Security"
-                icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>}
-                expanded={securityExpanded}
-                onToggle={() => setSecurityExpanded(!securityExpanded)}
-              >
-                <p>Security information will be available here.</p>
-              </CollapsibleSection>
-
-              {/* Roadmap */}
-              <CollapsibleSection
-                title="Roadmap"
-                icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>}
-                expanded={roadmapExpanded}
-                onToggle={() => setRoadmapExpanded(!roadmapExpanded)}
-              >
-                <p>Roadmap information will be available here.</p>
-              </CollapsibleSection>
-
-              {/* Developer Info */}
-              <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-800">
-                <CollapsibleSection
-                  title="Developer"
-                  icon={<DeveloperIcon />}
-                  expanded={developerExpanded}
-                  onToggle={() => setDeveloperExpanded(!developerExpanded)}
-                >
-                  <div className="space-y-3">
-                    <p className="text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                      {dapp.developer}
-                    </p>
-                    
-                    {/* Developer Links as Icons */}
-                    {dapp.developerLinks && dapp.developerLinks.length > 0 && (
-                      <div className="flex items-center gap-3">
-                        {dapp.developerLinks.slice(0, 3).map((link, index) => (
-                          <a
-                            key={index}
-                            href={link.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-                            title={link.label}
-                            aria-label={link.label}
-                          >
-                            {getLinkIcon(link.label, link.url)}
-                          </a>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </CollapsibleSection>
-              </div>
             </div>
           </div>
         </div>

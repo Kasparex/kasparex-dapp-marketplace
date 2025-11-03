@@ -45,3 +45,14 @@ export function usePageViews(slug: string, shouldIncrement: boolean = true) {
   return views;
 }
 
+/**
+ * Reset all page view counts to 0
+ */
+export function resetPageViews() {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(VIEWS_STORAGE_KEY);
+  } catch (error) {
+    console.error('Error resetting page views:', error);
+  }
+}

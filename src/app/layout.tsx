@@ -4,6 +4,7 @@ import "./globals.css";
 import '@rainbow-me/rainbowkit/styles.css';
 import { Providers } from "@/components/Providers";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { VisitCountReset } from "@/components/VisitCountReset";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <Providers>
           <ThemeProvider>
+            <VisitCountReset />
             {children}
           </ThemeProvider>
         </Providers>
