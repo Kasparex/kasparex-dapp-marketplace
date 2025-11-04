@@ -121,3 +121,98 @@ export interface KaspaTransactionResponse {
   error?: string;
 }
 
+/**
+ * Kaspa Network Types
+ * Types for Kaspa network information and blockchain data
+ */
+
+/**
+ * Kaspa Block
+ */
+export interface KaspaBlock {
+  /** Block hash */
+  hash: string;
+  /** Block height */
+  height?: number;
+  /** Blue score */
+  blueScore?: number;
+  /** DAA score */
+  daaScore?: number;
+  /** Parent block hashes */
+  parents?: string[];
+  /** Block timestamp */
+  timestamp?: number;
+  /** Transaction count */
+  transactionCount?: number;
+  /** Block size in bytes */
+  size?: number;
+}
+
+/**
+ * Kaspa Network Information
+ */
+export interface KaspaNetworkInfo {
+  /** Network name */
+  networkName?: string;
+  /** Current block height */
+  blockHeight?: number;
+  /** Current blue score */
+  blueScore?: number;
+  /** Current DAA score */
+  daaScore?: number;
+  /** Network hashrate */
+  hashrate?: number;
+  /** Network difficulty */
+  difficulty?: number;
+  /** Circulating supply */
+  supply?: number;
+  /** Max supply */
+  maxSupply?: number;
+  /** Active node count */
+  nodeCount?: number;
+  /** Average block time in seconds */
+  averageBlockTime?: number;
+  /** Transactions per second */
+  tps?: number;
+  /** Total transactions */
+  totalTransactions?: number;
+}
+
+/**
+ * Kaspa Network Stats
+ */
+export interface KaspaNetworkStats {
+  /** Network information */
+  networkInfo: KaspaNetworkInfo;
+  /** Latest blocks */
+  latestBlocks?: KaspaBlock[];
+  /** Network health status */
+  health?: 'healthy' | 'degraded' | 'down';
+  /** Last updated timestamp */
+  lastUpdated?: number;
+}
+
+/**
+ * BlockDAG Node for visualization
+ */
+export interface BlockDAGNode {
+  /** Block hash */
+  hash: string;
+  /** Block height */
+  height?: number;
+  /** Blue score */
+  blueScore?: number;
+  /** DAA score */
+  daaScore?: number;
+  /** X position for visualization */
+  x?: number;
+  /** Y position for visualization */
+  y?: number;
+  /** Parent block hashes */
+  parents?: string[];
+  /** Children block hashes */
+  children?: string[];
+  /** Block timestamp */
+  timestamp?: number;
+}
+

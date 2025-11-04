@@ -6,8 +6,6 @@ import type { DApp } from '@/lib/dapps';
 import { isDAppCompatibleWithChain, isDAppKRC20Only, getDAppChainIds } from '@/lib/dapps';
 import { getChainById } from '@/lib/wagmi';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { useKRC20Balance } from './useKRC20Balance';
-
 interface NetworkCompatibilityResult {
   isCompatible: boolean;
   currentChainId: number | undefined;
@@ -32,14 +30,7 @@ export function useNetworkCompatibility(dapp?: DApp): NetworkCompatibilityResult
   const chainId = useChainId();
   const { state: kaspaState } = useKaspaWallet();
   
-  // Get Kaspa address for balance checking
-  const kaspaAddress = kaspaState.address ? kaspaState.address.replace(/^kaspa:/i, '') : undefined;
-  
-  // Fetch KRC-20 balances if Kaspa wallet is connected
-  const { data: krc20Balances } = useKRC20Balance({
-    address: kaspaAddress,
-    enabled: !!kaspaAddress && kaspaState.isConnected,
-  });
+  // KRC-20 support removed - no balance checking needed
 
   return useMemo(() => {
     const isWalletConnected = isConnected;
@@ -64,23 +55,10 @@ export function useNetworkCompatibility(dapp?: DApp): NetworkCompatibilityResult
     const requiredChainIds = getDAppChainIds(dapp);
     const requiredKRC20Tokens = dapp.supportedKRC20Tokens;
     
-    // Check if user has required KRC-20 tokens
-    let hasRequiredKRC20Tokens = true; // Default to true if no tokens required
-    if (requiredKRC20Tokens && requiredKRC20Tokens.length > 0) {
-      if (!kaspaWalletConnected || !krc20Balances) {
-        hasRequiredKRC20Tokens = false;
-      } else {
-        // Check if user has at least one of the required tokens
-        const userTokenSymbols = krc20Balances.map(b => b.symbol.toUpperCase());
-        hasRequiredKRC20Tokens = requiredKRC20Tokens.some(requiredToken =>
-          userTokenSymbols.includes(requiredToken.toUpperCase())
-        );
-      }
-    }
-    
-    // KRC-20 only dApps require Kaspa wallet and optionally specific tokens
+    // KRC-20 support removed - simplified compatibility checking
+    // KRC-20 only dApps require Kaspa wallet (token checking removed)
     if (isKRC20Only) {
-      const isCompatible = kaspaWalletConnected && hasRequiredKRC20Tokens;
+      const isCompatible = kaspaWalletConnected;
       return {
         isCompatible,
         currentChainId,
@@ -90,20 +68,19 @@ export function useNetworkCompatibility(dapp?: DApp): NetworkCompatibilityResult
         isKRC20Only: true,
         isWalletConnected,
         requiredKRC20Tokens,
-        hasRequiredKRC20Tokens,
+        hasRequiredKRC20Tokens: true, // Always true since we can't check balances
         kaspaWalletConnected,
       };
     }
 
-    // EVM dApps with KRC-20 token requirements
+    // EVM dApps with KRC-20 token requirements (simplified - no balance checking)
     if (requiredKRC20Tokens && requiredKRC20Tokens.length > 0) {
       // Need both EVM wallet (for EVM chain) AND Kaspa wallet (for KRC-20 tokens)
       const isCompatible = 
         isWalletConnected && 
         currentChainId !== undefined &&
         isDAppCompatibleWithChain(dapp, currentChainId) &&
-        kaspaWalletConnected &&
-        hasRequiredKRC20Tokens;
+        kaspaWalletConnected;
       
       return {
         isCompatible,
@@ -116,7 +93,7 @@ export function useNetworkCompatibility(dapp?: DApp): NetworkCompatibilityResult
         isKRC20Only: false,
         isWalletConnected,
         requiredKRC20Tokens,
-        hasRequiredKRC20Tokens,
+        hasRequiredKRC20Tokens: kaspaWalletConnected, // Simplified - just check if wallet connected
         kaspaWalletConnected,
       };
     }
@@ -152,6 +129,6 @@ export function useNetworkCompatibility(dapp?: DApp): NetworkCompatibilityResult
       isWalletConnected,
       kaspaWalletConnected,
     };
-  }, [dapp, chainId, isConnected, kaspaState.isConnected, krc20Balances]);
+  }, [dapp, chainId, isConnected, kaspaState.isConnected]);
 }
 

@@ -80,7 +80,7 @@ function NetworkSwitcher() {
   );
 }
 
-function KRC20TokensButton() {
+function KaspaDashboardButton() {
   const { state: kaspaState } = useKaspaWallet();
 
   if (!kaspaState.isConnected) {
@@ -89,9 +89,9 @@ function KRC20TokensButton() {
 
   return (
     <Link
-      href="/tokens"
-      className="px-3 py-2 rounded-lg border transition-colors text-sm font-medium flex items-center gap-2 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-700 hover:bg-purple-200 dark:hover:bg-purple-900/40"
-      aria-label="KRC-20 Tokens"
+      href="/dashboard"
+      className="px-3 py-2 rounded-lg border transition-colors text-sm font-medium flex items-center gap-2 bg-[#02abb8] dark:bg-[#02abb8]/20 text-white dark:text-[#02abb8] border-[#02abb8] dark:border-[#02abb8] hover:bg-[#028a94] dark:hover:bg-[#02abb8]/30"
+      aria-label="Kaspa Dashboard"
     >
       <svg
         className="w-4 h-4"
@@ -103,10 +103,10 @@ function KRC20TokensButton() {
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
-          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
         />
       </svg>
-      <span className="hidden sm:inline">KRC-20 Tokens</span>
+      <span className="hidden sm:inline">Kaspa Dashboard</span>
       <svg
         className="w-4 h-4"
         fill="none"
@@ -276,7 +276,7 @@ export function Header() {
             </Suspense>
           </div>
           <div className="flex-shrink-0">
-            <KRC20TokensButton />
+            <KaspaDashboardButton />
           </div>
           <div className="flex-shrink-0">
             <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>
