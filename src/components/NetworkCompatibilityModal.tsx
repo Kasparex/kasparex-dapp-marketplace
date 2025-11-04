@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useChainModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import type { DApp } from '@/lib/dapps';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
-import { KRC20_NETWORK_INFO } from '@/lib/wagmi';
 
 interface NetworkCompatibilityModalProps {
   dapp: DApp;
@@ -23,21 +22,13 @@ export function NetworkCompatibilityModal({
   const { openChainModal } = useChainModal();
   const { isConnected } = useAccount();
   const compatibility = useNetworkCompatibility(dapp);
-  const [showKRC20Info, setShowKRC20Info] = useState(false);
-
-  // Reset state when modal closes
-  useEffect(() => {
-    if (!isOpen) {
-      setShowKRC20Info(false);
-    }
-  }, [isOpen]);
 
   // Auto-close when network becomes compatible
   useEffect(() => {
-    if (isOpen && compatibility.isCompatible && !compatibility.isKRC20Only) {
+    if (isOpen && compatibility.isCompatible) {
       onClose();
     }
-  }, [isOpen, compatibility.isCompatible, compatibility.isKRC20Only, onClose]);
+  }, [isOpen, compatibility.isCompatible, onClose]);
 
   if (!isOpen) {
     return null;
@@ -53,121 +44,6 @@ export function NetworkCompatibilityModal({
     }
     onClose();
   };
-
-  // KRC-20 only dApp - special handling
-  if (compatibility.isKRC20Only) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-lg w-full border border-zinc-200 dark:border-zinc-800">
-          <div className="p-8">
-            <div className="flex items-start justify-between mb-6">
-              <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
-                KRC-20 Network Required
-              </h2>
-              <button
-                onClick={onClose}
-                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
-                aria-label="Close"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="mb-6">
-              <p className="text-base text-zinc-600 dark:text-zinc-400 mb-4">
-                <span className="font-semibold text-zinc-900 dark:text-zinc-100">{dapp.name}</span> requires the{' '}
-                <span className="font-semibold">KRC-20 L1 Mainnet</span> network, which is not EVM-compatible.
-              </p>
-
-              {compatibility.requiredKRC20Tokens && compatibility.requiredKRC20Tokens.length > 0 && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-3">
-                  <p className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">
-                    Required Tokens:
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {compatibility.requiredKRC20Tokens.map((token) => (
-                      <span
-                        key={token}
-                        className="text-xs px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700"
-                      >
-                        {token}
-                      </span>
-                    ))}
-                  </div>
-                  {compatibility.hasRequiredKRC20Tokens ? (
-                    <p className="text-xs text-green-700 dark:text-green-300 mt-2">
-                      ✓ You have the required tokens
-                    </p>
-                  ) : (
-                    <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-2">
-                      ⚠ You need to hold at least one of these tokens
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {!showKRC20Info ? (
-                <button
-                  onClick={() => setShowKRC20Info(true)}
-                  className="text-base text-[#02abb8] hover:underline mb-3"
-                >
-                  Learn more about KRC-20 →
-                </button>
-              ) : (
-                <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4 mb-3 text-base text-zinc-700 dark:text-zinc-300">
-                  <p className="mb-2">
-                    KRC-20 tokens run on Kaspa Layer 1 and require Kaspa-native wallets (not EVM wallets like MetaMask).
-                  </p>
-                  <p className="mb-3">
-                    You&apos;ll need to use a compatible Kaspa wallet to interact with this dApp.
-                  </p>
-                  <div className="space-y-1 text-sm">
-                    <a
-                      href={KRC20_NETWORK_INFO.documentation}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#02abb8] hover:underline block"
-                    >
-                      📚 Documentation
-                    </a>
-                    <a
-                      href={KRC20_NETWORK_INFO.indexer}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#02abb8] hover:underline block"
-                    >
-                      🔍 KRC-20 Indexer
-                    </a>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={onClose}
-                className="flex-1 px-5 py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors font-medium text-base"
-              >
-                Close
-              </button>
-              {dapp.url && (
-                <a
-                  href={dapp.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 px-5 py-3 bg-[#02abb8] text-white rounded-lg hover:bg-[#0299a3] transition-colors font-medium text-center text-base"
-                >
-                  Open in New Tab
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // EVM-compatible dApp but wrong network
   return (

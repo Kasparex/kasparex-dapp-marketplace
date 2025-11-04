@@ -7,7 +7,6 @@ import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
 import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
-import { isDAppKRC20Only } from '@/lib/dapps';
 
 interface DAppCardProps {
   dapp: DApp;
@@ -146,19 +145,6 @@ export function DAppCard({ dapp }: DAppCardProps) {
               <span className="text-xs text-zinc-500 dark:text-zinc-400">
                 {dapp.id}
               </span>
-              {(isDAppKRC20Only(dapp) || dapp.supportedKRC20Tokens) && (
-                <>
-                  <span className="text-zinc-400 dark:text-zinc-600">•</span>
-                  <span className="text-xs px-1.5 py-0.5 rounded bg-[#02abb8]/10 text-[#02abb8] border border-[#02abb8]/20">
-                    KRC-20
-                  </span>
-                  {dapp.supportedKRC20Tokens && dapp.supportedKRC20Tokens.length > 0 && (
-                    <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                      {dapp.supportedKRC20Tokens.join(', ')}
-                    </span>
-                  )}
-                </>
-              )}
             </div>
           )}
 

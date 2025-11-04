@@ -9,7 +9,7 @@ public/img/
 ├── dapps/      # Featured images for dApps (16:9 aspect ratio)
 ├── icons/      # SVG icon files for UI elements
 ├── logos/      # Logo files for networks, developers, and brands
-└── tokens/     # KRC-20 token logo files
+└── tokens/     # Token logo files (for future use)
 ```
 
 ## Adding Network Logos
@@ -21,7 +21,6 @@ Network logos should be placed in the `logos/` directory and referenced in the S
 - SVG (alternative format for scalability)
 
 ### Current Network Logo Paths
-- KRC-20: `/img/logos/krc20.png`
 - Kasplex L2: `/img/logos/kasplex.png`
 - Igra L2: `/img/logos/igra.png`
 
@@ -46,7 +45,6 @@ Developer logos should be placed in the `logos/` directory and will display next
 ### Current Developer Logo Paths
 - Kasparex: `/img/logos/kasparex.png`
 - KaspaCom: `/img/logos/kaspacom.png`
-- KasFyi: `/img/logos/kasfyi.png`
 - KasTools: `/img/logos/kastools.png`
 - Kasplex: `/img/logos/kasplex.png`
 
@@ -60,9 +58,9 @@ Example:
 { label: 'Developer Name', logo: '/img/logos/developer-name.png' }
 ```
 
-## Adding KRC-20 Token Logos
+## Adding Token Logos
 
-KRC-20 token logos should be placed in the `tokens/` directory. This folder is prepared for future integration of KRC-20 tokens into the dApp marketplace.
+Token logos can be placed in the `tokens/` directory for future use.
 
 ### Supported Formats
 - PNG (with transparent background, minimum 32x32px, default format)
@@ -76,7 +74,7 @@ Token logos should be named using the token's contract address or ticker symbol:
 
 ### Future Integration
 
-Once KRC-20 token integration is implemented:
+When token integration is implemented:
 1. Place token logo files in `public/img/tokens/`
 2. Reference logos in the token data structure or token display components
 

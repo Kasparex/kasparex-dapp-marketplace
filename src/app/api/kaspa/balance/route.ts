@@ -162,62 +162,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Method 3: Try kas.fyi API as fallback
-    const kasFyiEndpoints = [
-      `https://api.kas.fyi/v1/addresses/${addressWithoutPrefix}/balance`,
-      `https://api.kas.fyi/v1/addresses/${addressWithoutPrefix}`,
-      `https://api.kas.fyi/api/v1/addresses/${addressWithoutPrefix}/balance`,
-    ];
-
-    for (const endpoint of kasFyiEndpoints) {
-      try {
-        const kasFyiResponse = await fetch(endpoint, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-          },
-          cache: 'no-store',
-          signal: AbortSignal.timeout(10000), // 10 second timeout
-        });
-
-        if (kasFyiResponse.ok) {
-          const data = await kasFyiResponse.json();
-          
-          // Try to extract balance from various response formats
-          let balance: string | number | null = null;
-
-          if (data.balance !== undefined) {
-            balance = data.balance;
-          } else if (data.balanceInfo?.balance !== undefined) {
-            balance = data.balanceInfo.balance;
-          } else if (data.data?.balance !== undefined) {
-            balance = data.data.balance;
-          } else if (data.result?.balance !== undefined) {
-            balance = data.result.balance;
-          } else if (data.balanceInfo?.balanceInfo?.balance !== undefined) {
-            balance = data.balanceInfo.balanceInfo.balance;
-          }
-
-          if (balance !== null) {
-            const balanceNum = typeof balance === 'string' ? parseFloat(balance) : balance;
-            if (!isNaN(balanceNum) && balanceNum >= 0) {
-              return NextResponse.json({
-                success: true,
-                balance: balanceNum.toString(),
-                source: 'kas.fyi',
-              });
-            }
-          }
-        }
-      } catch (kasFyiError: any) {
-        // Continue to next endpoint
-        if (kasFyiError.name !== 'AbortError') {
-          console.debug(`kas.fyi endpoint ${endpoint} failed:`, kasFyiError.message);
-        }
-      }
-    }
-
-    // Method 4: Try alternative: kaspa-explorer or other explorers
+    // Method 3: Try alternative: kaspa-explorer or other explorers (minimal fallback)
     const explorerEndpoints = [
       `https://explorer.kaspa.org/api/address/${addressWithoutPrefix}`,
       `https://explorer.kaspa.org/api/v1/address/${addressWithoutPrefix}`,
@@ -260,7 +205,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to fetch balance from all API endpoints. The APIs may be temporarily unavailable or the endpoint format may have changed.',
+        error: 'Failed to fetch balance from Kaspa REST API. The API may be temporarily unavailable.',
         balance: null,
       },
       { status: 200 }

@@ -87,23 +87,6 @@ export const igraCaravelTestnet = defineChain({
 });
 
 /**
- * KRC-20 Network Information
- * 
- * Note: KRC-20 is NOT EVM-compatible and cannot be used with RainbowKit/Wagmi.
- * This is a reference constant for display/filtering purposes only.
- * KRC-20 requires Kaspa-native wallets (not EVM wallets like MetaMask).
- */
-export const KRC20_NETWORK_INFO = {
-  name: 'KRC-20 L1 Mainnet',
-  displayName: 'KRC-20',
-  chainId: null, // Not EVM-compatible
-  isEVMCompatible: false,
-  requiresNativeWallet: true,
-  documentation: 'https://docs.kasplex.org/',
-  indexer: 'https://kas.fyi/krc20-tokens',
-} as const;
-
-/**
  * Network Chain IDs Mapping
  */
 export const CHAIN_IDS = {

@@ -40,11 +40,6 @@ export interface DApp {
    * If not provided, will be inferred from the network field using networkNameToChainIds.
    */
   supportedChainIds?: number[];
-  /**
-   * Optional array of supported KRC-20 token symbols for dApps that require specific tokens.
-   * If provided, the dApp requires at least one of these tokens to be held.
-   */
-  supportedKRC20Tokens?: string[];
 }
 
 // Placeholder dApps for template demonstration
@@ -53,7 +48,7 @@ export const placeholderDApps: DApp[] = [
     id: '1',
     name: 'Subscription Checker',
     category: 'subscription',
-    utility: 'Let users pay monthly in KAS or KRC-20 tokens to access content.',
+    utility: 'Let users pay monthly in KAS to access content.',
     process: 'Contract verifies payment and unlocks pages or tools.',
     benefits: 'Recurring revenue model for content creators.',
     developer: 'Kasparex',
@@ -187,10 +182,10 @@ export const placeholderDApps: DApp[] = [
     utility: 'Lets users send anonymous feedback to project team.',
     process: 'Small KAS fee to send message.',
     benefits: 'Honest community feedback without fear.',
-    developer: 'KasFyi',
+    developer: 'Kasparex',
     status: 'Concept',
     network: 'Testnet',
-    provider: 'KasFyi',
+    provider: 'Kasparex',
     version: 'V 1.0',
     description: 'Enable anonymous feedback collection from community members with a small KAS fee per message to prevent spam.',
   },
@@ -361,11 +356,6 @@ export function networkNameToChainIds(network: string): number[] {
     return [CHAIN_IDS.IGRA_CARAVEL_TESTNET];
   }
   
-  if (networkLower.includes('krc-20') || networkLower.includes('krc20')) {
-    // KRC-20 is not EVM-compatible, returns empty array
-    return [];
-  }
-  
   if (networkLower === 'testnet' || networkLower.includes('testnet')) {
     // Generic testnet - includes both testnets
     return [CHAIN_IDS.KASPLEX_L2_TESTNET, CHAIN_IDS.IGRA_CARAVEL_TESTNET];
@@ -407,21 +397,4 @@ export function isDAppCompatibleWithChain(dapp: DApp, chainId: number): boolean 
   return supportedChainIds.includes(chainId);
 }
 
-/**
- * Checks if a dApp only supports KRC-20 (non-EVM)
- * 
- * @param dapp - The dApp to check
- * @returns true if the dApp only supports KRC-20
- */
-export function isDAppKRC20Only(dapp: DApp): boolean {
-  const chainIds = getDAppChainIds(dapp);
-  const networkLower = dapp.network.toLowerCase();
-  
-  // If no EVM chain IDs and network mentions KRC-20
-  if (chainIds.length === 0 && (networkLower.includes('krc-20') || networkLower.includes('krc20'))) {
-    return true;
-  }
-  
-  return false;
-}
 

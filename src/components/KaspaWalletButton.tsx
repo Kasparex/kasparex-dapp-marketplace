@@ -68,53 +68,9 @@ export function KaspaWalletButton() {
           }
         } else if (!isCancelled && !result.success) {
           console.warn('Balance API returned error:', result.error);
-          // Continue to fallback methods
         }
       } catch (error) {
         console.error('Failed to fetch balance via API route:', error);
-        // Continue to fallback methods
-      }
-
-      // Fallback: Try direct API calls (may have CORS issues)
-      if (!isCancelled) {
-        try {
-          // Try kas.fyi API directly
-          const response = await fetch(`https://api.kas.fyi/v1/addresses/${addressWithoutPrefix}`, {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json',
-            },
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            console.log('Direct kas.fyi response:', data);
-            
-            // Try to extract balance from various paths
-            let balanceValue: string | number | null = null;
-            
-            if (data.balance !== undefined) {
-              balanceValue = data.balance;
-            } else if (data.balanceInfo?.balance !== undefined) {
-              balanceValue = data.balanceInfo.balance;
-            } else if (data.data?.balance !== undefined) {
-              balanceValue = data.data.balance;
-            } else if (data.result?.balance !== undefined) {
-              balanceValue = data.result.balance;
-            }
-
-            if (!isCancelled && balanceValue !== null) {
-              const balanceNum = typeof balanceValue === 'string' ? parseFloat(balanceValue) : balanceValue;
-              if (!isNaN(balanceNum) && balanceNum >= 0) {
-                const kasBalance = (balanceNum / 100000000).toFixed(2);
-                setBalance(kasBalance);
-                return;
-              }
-            }
-          }
-        } catch (error) {
-          console.debug('Direct API call failed:', error);
-        }
       }
 
       if (!isCancelled) {

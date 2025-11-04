@@ -32,14 +32,12 @@ const developerOptions: { label: string; logo?: string }[] = [
   { label: 'All' },
   { label: 'Kasparex', logo: '/img/logos/kasparex.png' },
   { label: 'KaspaCom', logo: '/img/logos/kaspacom.png' },
-  { label: 'KasFyi', logo: '/img/logos/kasfyi.png' },
   { label: 'KasTools', logo: '/img/logos/kastools.png' },
   { label: 'Kasplex', logo: '/img/logos/kasplex.png' },
 ];
 
 const networkOptions: { label: string; logo?: string }[] = [
   { label: 'All' },
-  { label: 'KRC-20 L1 Mainnet', logo: '/img/logos/krc20.png' },
   { label: 'Kasplex L2 Mainnet', logo: '/img/logos/kasplex.png' },
   { label: 'Kasplex L2 Testnet', logo: '/img/logos/kasplex.png' },
   { label: 'Igra Caravel Testnet', logo: '/img/logos/igra.png' },

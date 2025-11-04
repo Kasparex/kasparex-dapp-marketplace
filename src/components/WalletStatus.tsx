@@ -95,7 +95,7 @@ export function WalletStatus() {
           </div>
         ) : (
           <div className="text-xs text-zinc-500 dark:text-zinc-400">
-            Connect a Kaspa wallet to use KRC-20 tokens and native L1 dApps
+            Connect a Kaspa wallet to use native Kaspa L1 dApps
           </div>
         )}
       </div>
