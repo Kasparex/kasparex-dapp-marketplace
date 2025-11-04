@@ -125,9 +125,23 @@ export function EVMWalletButton() {
               <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
                 Connected Wallet
               </div>
-              <div className="text-sm font-mono text-zinc-900 dark:text-zinc-100">
+              <div className="text-sm font-mono text-zinc-900 dark:text-zinc-100 mb-2">
                 {shortenedAddress}
               </div>
+              <button
+                onClick={handleCopyAddress}
+                className="w-full px-3 py-1.5 text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors flex items-center justify-center gap-1.5"
+              >
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                {copied ? 'Copied!' : 'Copy Address'}
+              </button>
             </div>
             
             <div className="py-1">
@@ -176,21 +190,6 @@ export function EVMWalletButton() {
                 Change Network
               </button>
               
-              <button
-                onClick={handleCopyAddress}
-                className="w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-2"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-                {copied ? 'Copied!' : 'Copy Address'}
-              </button>
-              
               <div className="border-t border-zinc-200 dark:border-zinc-800 my-1" />
               
               <button
@@ -234,9 +233,9 @@ export function EVMWalletButton() {
             <button
               onClick={openConnectModal}
               type="button"
-              className="px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors text-sm font-medium"
+              className="px-3 py-2 rounded-lg bg-[#0097b2] text-white hover:bg-[#007a91] transition-colors text-sm font-medium"
             >
-              Connect Wallet
+              Connect EVM Wallet
             </button>
           </div>
         );

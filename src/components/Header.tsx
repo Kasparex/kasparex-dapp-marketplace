@@ -237,12 +237,12 @@ export function Header() {
             </Suspense>
           </div>
           <div className="flex-shrink-0">
+            <KasWareWalletButton />
+          </div>
+          <div className="flex-shrink-0">
             <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>
               <EVMWalletButton />
             </Suspense>
-          </div>
-          <div className="flex-shrink-0">
-            <KasWareWalletButton />
           </div>
         </div>
       </div>
