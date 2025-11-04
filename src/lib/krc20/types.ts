@@ -18,6 +18,16 @@ export interface KRC20Token {
   decimals: number;
   /** Total supply of the token */
   totalSupply?: string;
+  /** Maximum supply of the token */
+  maxSupply?: string;
+  /** Minting limit per transaction */
+  limit?: string;
+  /** Amount minted so far */
+  minted?: string;
+  /** Number of token holders */
+  holders?: number;
+  /** Number of transactions */
+  transactionCount?: number;
   /** Token logo URL or path */
   logo?: string;
   /** Token description */
@@ -32,6 +42,8 @@ export interface KRC20Token {
   };
   /** Token creation date/timestamp */
   createdAt?: string;
+  /** Token last update timestamp */
+  updatedAt?: string;
   /** Token creator address */
   creator?: string;
   /** Market data (if available) */
