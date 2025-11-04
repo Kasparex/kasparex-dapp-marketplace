@@ -40,78 +40,76 @@ export function KaspaWalletButton() {
     const addressWithoutPrefix = state.address.replace(/^kaspa:/i, '');
     let isCancelled = false;
 
-    const extractBalance = (data: any): number | null => {
-      // Try multiple response formats
-      let balanceValue: string | number | null = null;
-      
-      if (data.balance !== undefined) {
-        balanceValue = data.balance;
-      } else if (data.balanceInfo?.balance !== undefined) {
-        balanceValue = data.balanceInfo.balance;
-      } else if (data.data?.balance !== undefined) {
-        balanceValue = data.data.balance;
-      } else if (data.result?.balance !== undefined) {
-        balanceValue = data.result.balance;
-      } else if (data.balanceInfo?.balanceInfo?.balance !== undefined) {
-        balanceValue = data.balanceInfo.balanceInfo.balance;
-      }
-
-      if (balanceValue !== null) {
-        const balanceNum = typeof balanceValue === 'string' ? parseFloat(balanceValue) : balanceValue;
-        if (!isNaN(balanceNum) && balanceNum >= 0) {
-          return balanceNum;
-        }
-      }
-      return null;
-    };
-
     const fetchBalance = async () => {
-      // Try kas.fyi API first (more reliable)
+      // Use Next.js API route as proxy (server-side, avoids CORS)
       try {
-        const response = await fetch(`https://api.kas.fyi/v1/addresses/${addressWithoutPrefix}`, {
+        const response = await fetch(`/api/kaspa/balance?address=${encodeURIComponent(addressWithoutPrefix)}`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
           },
+          cache: 'no-store',
         });
 
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
 
-        const data = await response.json();
-        const balanceValue = extractBalance(data);
+        const result = await response.json();
 
-        if (!isCancelled && balanceValue !== null) {
-          // Convert from smallest unit (sompis) to KAS (1 KAS = 10^8 sompis)
-          const kasBalance = (balanceValue / 100000000).toFixed(2);
-          setBalance(kasBalance);
-          return;
+        if (!isCancelled && result.success && result.balance) {
+          // Balance is already in sompis, convert to KAS (1 KAS = 10^8 sompis)
+          const balanceNum = parseFloat(result.balance);
+          if (!isNaN(balanceNum) && balanceNum >= 0) {
+            const kasBalance = (balanceNum / 100000000).toFixed(2);
+            setBalance(kasBalance);
+            console.log(`Balance fetched from ${result.source}: ${kasBalance} KAS`);
+            return;
+          }
         }
       } catch (error) {
-        console.debug('kas.fyi API failed, trying fallback:', error);
+        console.error('Failed to fetch balance via API route:', error);
       }
 
-      // Fallback: try kaspa.org explorer API
+      // Fallback: Try direct API calls (may have CORS issues)
       if (!isCancelled) {
         try {
-          const response = await fetch(`https://api.kaspa.org/addresses/${addressWithoutPrefix}/balance`, {
+          // Try kas.fyi API directly
+          const response = await fetch(`https://api.kas.fyi/v1/addresses/${addressWithoutPrefix}`, {
             method: 'GET',
             headers: {
               'Accept': 'application/json',
             },
           });
 
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          if (response.ok) {
+            const data = await response.json();
+            console.log('Direct kas.fyi response:', data);
+            
+            // Try to extract balance from various paths
+            let balanceValue: string | number | null = null;
+            
+            if (data.balance !== undefined) {
+              balanceValue = data.balance;
+            } else if (data.balanceInfo?.balance !== undefined) {
+              balanceValue = data.balanceInfo.balance;
+            } else if (data.data?.balance !== undefined) {
+              balanceValue = data.data.balance;
+            } else if (data.result?.balance !== undefined) {
+              balanceValue = data.result.balance;
+            }
 
-          const data = await response.json();
-          const balanceValue = extractBalance(data);
-
-          if (!isCancelled && balanceValue !== null) {
-            const kasBalance = (balanceValue / 100000000).toFixed(2);
-            setBalance(kasBalance);
-            return;
+            if (!isCancelled && balanceValue !== null) {
+              const balanceNum = typeof balanceValue === 'string' ? parseFloat(balanceValue) : balanceValue;
+              if (!isNaN(balanceNum) && balanceNum >= 0) {
+                const kasBalance = (balanceNum / 100000000).toFixed(2);
+                setBalance(kasBalance);
+                return;
+              }
+            }
           }
         } catch (error) {
-          console.debug('kaspa.org API also failed:', error);
+          console.debug('Direct API call failed:', error);
         }
       }
 
@@ -122,8 +120,16 @@ export function KaspaWalletButton() {
 
     fetchBalance();
 
+    // Refresh balance every 30 seconds
+    const interval = setInterval(() => {
+      if (!isCancelled) {
+        fetchBalance();
+      }
+    }, 30000);
+
     return () => {
       isCancelled = true;
+      clearInterval(interval);
     };
   }, [state.isConnected, state.address]);
 
