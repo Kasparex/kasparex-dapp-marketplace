@@ -32,35 +32,99 @@ export function KaspaWalletButton() {
 
   // Fetch Kaspa balance
   useEffect(() => {
-    if (state.isConnected && state.address) {
-      const addressWithoutPrefix = state.address.replace(/^kaspa:/i, '');
-      // Fetch balance from Kaspa explorer API
-      fetch(`https://api.kaspa.org/addresses/${addressWithoutPrefix}/balance`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.balance) {
-            // Convert from smallest unit (sompis) to KAS (1 KAS = 10^8 sompis)
-            const kasBalance = (parseFloat(data.balance) / 100000000).toFixed(2);
-            setBalance(kasBalance);
-          }
-        })
-        .catch(() => {
-          // Fallback: try alternative API
-          fetch(`https://api.kas.fyi/v1/addresses/${addressWithoutPrefix}`)
-            .then(res => res.json())
-            .then(data => {
-              if (data.balance) {
-                const kasBalance = (parseFloat(data.balance) / 100000000).toFixed(2);
-                setBalance(kasBalance);
-              }
-            })
-            .catch(() => {
-              setBalance(null);
-            });
-        });
-    } else {
+    if (!state.isConnected || !state.address) {
       setBalance(null);
+      return;
     }
+
+    const addressWithoutPrefix = state.address.replace(/^kaspa:/i, '');
+    let isCancelled = false;
+
+    const extractBalance = (data: any): number | null => {
+      // Try multiple response formats
+      let balanceValue: string | number | null = null;
+      
+      if (data.balance !== undefined) {
+        balanceValue = data.balance;
+      } else if (data.balanceInfo?.balance !== undefined) {
+        balanceValue = data.balanceInfo.balance;
+      } else if (data.data?.balance !== undefined) {
+        balanceValue = data.data.balance;
+      } else if (data.result?.balance !== undefined) {
+        balanceValue = data.result.balance;
+      } else if (data.balanceInfo?.balanceInfo?.balance !== undefined) {
+        balanceValue = data.balanceInfo.balanceInfo.balance;
+      }
+
+      if (balanceValue !== null) {
+        const balanceNum = typeof balanceValue === 'string' ? parseFloat(balanceValue) : balanceValue;
+        if (!isNaN(balanceNum) && balanceNum >= 0) {
+          return balanceNum;
+        }
+      }
+      return null;
+    };
+
+    const fetchBalance = async () => {
+      // Try kas.fyi API first (more reliable)
+      try {
+        const response = await fetch(`https://api.kas.fyi/v1/addresses/${addressWithoutPrefix}`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+        const balanceValue = extractBalance(data);
+
+        if (!isCancelled && balanceValue !== null) {
+          // Convert from smallest unit (sompis) to KAS (1 KAS = 10^8 sompis)
+          const kasBalance = (balanceValue / 100000000).toFixed(2);
+          setBalance(kasBalance);
+          return;
+        }
+      } catch (error) {
+        console.debug('kas.fyi API failed, trying fallback:', error);
+      }
+
+      // Fallback: try kaspa.org explorer API
+      if (!isCancelled) {
+        try {
+          const response = await fetch(`https://api.kaspa.org/addresses/${addressWithoutPrefix}/balance`, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+            },
+          });
+
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+          const data = await response.json();
+          const balanceValue = extractBalance(data);
+
+          if (!isCancelled && balanceValue !== null) {
+            const kasBalance = (balanceValue / 100000000).toFixed(2);
+            setBalance(kasBalance);
+            return;
+          }
+        } catch (error) {
+          console.debug('kaspa.org API also failed:', error);
+        }
+      }
+
+      if (!isCancelled) {
+        setBalance(null);
+      }
+    };
+
+    fetchBalance();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [state.isConnected, state.address]);
 
   // Close dropdown when clicking outside

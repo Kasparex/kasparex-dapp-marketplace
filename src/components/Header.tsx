@@ -80,44 +80,6 @@ function NetworkSwitcher() {
   );
 }
 
-function KaspaDashboardButton() {
-  const { state: kaspaState } = useKaspaWallet();
-
-  if (!kaspaState.isConnected) {
-    return null;
-  }
-
-  return (
-    <Link
-      href="/dashboard"
-      className="px-3 py-2 rounded-lg border transition-colors text-sm font-medium flex items-center gap-2 bg-[#02abb8] dark:bg-[#02abb8]/20 text-white dark:text-[#02abb8] border-[#02abb8] dark:border-[#02abb8] hover:bg-[#028a94] dark:hover:bg-[#02abb8]/30"
-      aria-label="Kaspa Dashboard"
-    >
-      <svg
-        className="w-4 h-4"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-        />
-      </svg>
-      <span className="hidden sm:inline">Kaspa Dashboard</span>
-      <svg
-        className="w-4 h-4"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-      </svg>
-    </Link>
-  );
-}
 
 export function Header() {
   const { theme, toggleTheme } = useTheme();
@@ -274,9 +236,6 @@ export function Header() {
             <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>
               <NetworkSwitcher />
             </Suspense>
-          </div>
-          <div className="flex-shrink-0">
-            <KaspaDashboardButton />
           </div>
           <div className="flex-shrink-0">
             <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>
