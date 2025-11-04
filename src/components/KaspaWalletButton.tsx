@@ -1,24 +1,34 @@
 /**
  * Kaspa Wallet Connect Button
  * 
- * Button component for connecting/disconnecting Kaspa wallets with modal popup
+ * Button component for connecting/disconnecting Kaspa wallets with dropdown (matching EVM wallet style)
  */
 
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { formatKaspaAddress } from '@/lib/kaspa/wallet';
 import { Avatar } from './Avatar';
 
 export function KaspaWalletButton() {
   const { state, connect, disconnect } = useKaspaWallet();
   const [isConnecting, setIsConnecting] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [balance, setBalance] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const modalRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Format address: kaspa:abcd...wxyz (first 4 and last 4 chars)
+  const formatAddressForDisplay = (address: string): string => {
+    const addressWithoutPrefix = address.replace(/^kaspa:/i, '');
+    if (addressWithoutPrefix.length <= 8) {
+      return `kaspa:${addressWithoutPrefix}`;
+    }
+    const first4 = addressWithoutPrefix.substring(0, 4);
+    const last4 = addressWithoutPrefix.substring(addressWithoutPrefix.length - 4);
+    return `kaspa:${first4}...${last4}`;
+  };
 
   // Fetch Kaspa balance
   useEffect(() => {
@@ -53,24 +63,22 @@ export function KaspaWalletButton() {
     }
   }, [state.isConnected, state.address]);
 
-  // Close modal when clicking outside
+  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        setIsModalOpen(false);
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
       }
     }
 
-    if (isModalOpen) {
+    if (isDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      document.body.style.overflow = 'hidden';
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      document.body.style.overflow = 'unset';
     };
-  }, [isModalOpen]);
+  }, [isDropdownOpen]);
 
   const handleConnect = async () => {
     setIsConnecting(true);
@@ -89,108 +97,119 @@ export function KaspaWalletButton() {
 
   const handleCopyAddress = async () => {
     if (state.address) {
-      const addressWithoutPrefix = state.address.replace(/^kaspa:/i, '');
-      await navigator.clipboard.writeText(addressWithoutPrefix);
+      // Copy full address with kaspa: prefix
+      const fullAddress = state.address.startsWith('kaspa:') 
+        ? state.address 
+        : `kaspa:${state.address}`;
+      await navigator.clipboard.writeText(fullAddress);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      setIsDropdownOpen(false);
     }
   };
 
   const handleDisconnect = async () => {
     await disconnect();
-    setIsModalOpen(false);
+    setIsDropdownOpen(false);
   };
 
-  const addressDisplay = state.address 
-    ? formatKaspaAddress(state.address)
-    : null;
-
-  const shortenedAddress = state.address 
-    ? formatKaspaAddress(state.address).display
-    : null;
-
-  // If connected, show button with previous styling
+  // If connected, show button matching EVM wallet button style
   if (state.isConnected && state.address) {
     const addressWithoutPrefix = state.address.replace(/^kaspa:/i, '');
+    const displayAddress = formatAddressForDisplay(state.address);
+    const displayBalance = balance !== null ? `${balance} KAS` : '0 KAS';
     
     return (
-      <>
+      <div className="relative" ref={dropdownRef}>
         <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors text-sm font-medium"
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium"
           aria-label="Kaspa L1 Wallet"
         >
+          {/* Balance on left */}
+          <span className="text-zinc-900 dark:text-zinc-100">{displayBalance}</span>
+          
+          {/* Avatar */}
           <Avatar address={addressWithoutPrefix} size={20} />
-          <span className="hidden sm:inline">{shortenedAddress}</span>
-          <span className="sm:hidden">Kaspa L1</span>
+          
+          {/* Address on right */}
+          <span className="text-zinc-900 dark:text-zinc-100 hidden sm:inline">{displayAddress}</span>
+          <span className="text-zinc-900 dark:text-zinc-100 sm:hidden">Kaspa L1</span>
+          
+          {/* Chevron */}
+          <svg
+            className={`w-4 h-4 text-zinc-600 dark:text-zinc-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
         </button>
 
-        {/* Modal */}
-        {isModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div
-              ref={modalRef}
-              className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-sm w-full border border-zinc-200 dark:border-zinc-800"
-            >
-              {/* Close button */}
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="absolute top-4 right-4 p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-                aria-label="Close"
-              >
-                <svg className="w-5 h-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-
-              {/* Avatar */}
-              <div className="flex justify-center pt-6 pb-4">
-                <Avatar address={addressWithoutPrefix} size={64} />
-              </div>
-
-              {/* Address */}
-              <div className="px-6 pb-2 text-center">
-                <div className="text-sm font-mono text-zinc-900 dark:text-zinc-100">
-                  {shortenedAddress}
+        {/* Dropdown menu (matching EVM wallet dropdown style) */}
+        {isDropdownOpen && (
+          <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-50 overflow-hidden">
+            {/* Avatar and Address Section */}
+            <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
+              <div className="flex items-center gap-3 mb-3">
+                <Avatar address={addressWithoutPrefix} size={40} />
+                <div className="flex-1">
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
+                    Connected Wallet
+                  </div>
+                  <div className="text-sm font-mono text-zinc-900 dark:text-zinc-100 break-all">
+                    {state.address.startsWith('kaspa:') ? state.address : `kaspa:${state.address}`}
+                  </div>
                 </div>
               </div>
-
               {/* Balance */}
-              <div className="px-6 pb-6 text-center">
-                <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                  {balance !== null ? `${balance} KAS` : 'Loading...'}
-                </div>
+              <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                {displayBalance}
               </div>
-
-              {/* Buttons */}
-              <div className="px-6 pb-6 flex gap-3">
-                <button
-                  onClick={handleCopyAddress}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium"
+            </div>
+            
+            {/* Actions */}
+            <div className="py-1">
+              <button
+                onClick={handleCopyAddress}
+                className="w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-2"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                  {copied ? 'Copied!' : 'Copy Address'}
-                </button>
-                <button
-                  onClick={handleDisconnect}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium"
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                {copied ? 'Copied!' : 'Copy Address'}
+              </button>
+              
+              <div className="border-t border-zinc-200 dark:border-zinc-800 my-1" />
+              
+              <button
+                onClick={handleDisconnect}
+                className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-2"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  Disconnect
-                </button>
-              </div>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Disconnect Wallet
+              </button>
             </div>
           </div>
         )}
-      </>
+      </div>
     );
   }
 
-  // If not connected, show connect button with previous styling
+  // If not connected, show connect button
   return (
     <div className="relative">
       <button
