@@ -24,168 +24,168 @@ export async function GET(request: NextRequest) {
 
     const addressWithoutPrefix = address.replace(/^kaspa:/i, '');
 
-    // Try kas.fyi API first
-    try {
-      const kasFyiResponse = await fetch(
-        `https://api.kas.fyi/v1/addresses/${addressWithoutPrefix}`,
-        {
+    // Try kas.fyi API - try multiple endpoint variations
+    const kasFyiEndpoints = [
+      `https://api.kas.fyi/v1/addresses/${addressWithoutPrefix}/balance`,
+      `https://api.kas.fyi/v1/addresses/${addressWithoutPrefix}`,
+      `https://api.kas.fyi/api/v1/addresses/${addressWithoutPrefix}/balance`,
+    ];
+
+    for (const endpoint of kasFyiEndpoints) {
+      try {
+        const kasFyiResponse = await fetch(endpoint, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
-            'Content-Type': 'application/json',
           },
           cache: 'no-store',
-        }
-      );
+          signal: AbortSignal.timeout(10000), // 10 second timeout
+        });
 
-      if (kasFyiResponse.ok) {
-        const data = await kasFyiResponse.json();
-        console.log('kas.fyi response:', JSON.stringify(data, null, 2));
-        
-        // Try to extract balance from various response formats
-        let balance: string | number | null = null;
+        if (kasFyiResponse.ok) {
+          const data = await kasFyiResponse.json();
+          
+          // Try to extract balance from various response formats
+          let balance: string | number | null = null;
 
-        if (data.balance !== undefined) {
-          balance = data.balance;
-        } else if (data.balanceInfo?.balance !== undefined) {
-          balance = data.balanceInfo.balance;
-        } else if (data.data?.balance !== undefined) {
-          balance = data.data.balance;
-        } else if (data.result?.balance !== undefined) {
-          balance = data.result.balance;
-        } else if (data.balanceInfo?.balanceInfo?.balance !== undefined) {
-          balance = data.balanceInfo.balanceInfo.balance;
-        } else if (typeof data === 'object') {
-          // Try to find any numeric value that looks like a balance
-          const findBalance = (obj: any): number | null => {
-            if (typeof obj === 'number' && obj > 0) return obj;
-            if (typeof obj === 'string' && /^\d+$/.test(obj)) return parseFloat(obj);
-            if (Array.isArray(obj)) {
-              for (const item of obj) {
-                const found = findBalance(item);
-                if (found !== null) return found;
-              }
+          if (data.balance !== undefined) {
+            balance = data.balance;
+          } else if (data.balanceInfo?.balance !== undefined) {
+            balance = data.balanceInfo.balance;
+          } else if (data.data?.balance !== undefined) {
+            balance = data.data.balance;
+          } else if (data.result?.balance !== undefined) {
+            balance = data.result.balance;
+          } else if (data.balanceInfo?.balanceInfo?.balance !== undefined) {
+            balance = data.balanceInfo.balanceInfo.balance;
+          }
+
+          if (balance !== null) {
+            const balanceNum = typeof balance === 'string' ? parseFloat(balance) : balance;
+            if (!isNaN(balanceNum) && balanceNum >= 0) {
+              return NextResponse.json({
+                success: true,
+                balance: balanceNum.toString(),
+                source: 'kas.fyi',
+              });
             }
-            if (obj && typeof obj === 'object') {
-              for (const key in obj) {
-                if (key.toLowerCase().includes('balance')) {
-                  const val = obj[key];
-                  if (typeof val === 'number') return val;
-                  if (typeof val === 'string' && /^\d+$/.test(val)) return parseFloat(val);
-                }
-                const found = findBalance(obj[key]);
-                if (found !== null) return found;
-              }
-            }
-            return null;
-          };
-          balance = findBalance(data);
-        }
-
-        if (balance !== null) {
-          const balanceNum = typeof balance === 'string' ? parseFloat(balance) : balance;
-          if (!isNaN(balanceNum) && balanceNum >= 0) {
-            return NextResponse.json({
-              success: true,
-              balance: balanceNum.toString(),
-              source: 'kas.fyi',
-            });
           }
         }
+      } catch (kasFyiError: any) {
+        // Continue to next endpoint
+        if (kasFyiError.name !== 'AbortError') {
+          console.debug(`kas.fyi endpoint ${endpoint} failed:`, kasFyiError.message);
+        }
       }
-    } catch (kasFyiError) {
-      console.debug('kas.fyi API failed:', kasFyiError);
     }
 
-    // Fallback: Try kaspa.org API
-    try {
-      const kaspaOrgResponse = await fetch(
-        `https://api.kaspa.org/addresses/${addressWithoutPrefix}/balance`,
-        {
+    // Fallback: Try kaspa.org API with multiple endpoint variations
+    const kaspaOrgEndpoints = [
+      `https://api.kaspa.org/addresses/${addressWithoutPrefix}/balance`,
+      `https://api.kaspa.org/api/v1/addresses/${addressWithoutPrefix}/balance`,
+      `https://api.kaspa.org/v1/addresses/${addressWithoutPrefix}/balance`,
+    ];
+
+    for (const endpoint of kaspaOrgEndpoints) {
+      try {
+        const kaspaOrgResponse = await fetch(endpoint, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
           },
           cache: 'no-store',
-        }
-      );
+          signal: AbortSignal.timeout(10000),
+        });
 
-      if (kaspaOrgResponse.ok) {
-        const data = await kaspaOrgResponse.json();
-        console.log('kaspa.org response:', JSON.stringify(data, null, 2));
-        
-        let balance: string | number | null = null;
+        if (kaspaOrgResponse.ok) {
+          const data = await kaspaOrgResponse.json();
+          
+          let balance: string | number | null = null;
 
-        if (data.balance !== undefined) {
-          balance = data.balance;
-        } else if (data.data?.balance !== undefined) {
-          balance = data.data.balance;
-        } else if (data.result?.balance !== undefined) {
-          balance = data.result.balance;
-        }
+          if (data.balance !== undefined) {
+            balance = data.balance;
+          } else if (data.data?.balance !== undefined) {
+            balance = data.data.balance;
+          } else if (data.result?.balance !== undefined) {
+            balance = data.result.balance;
+          }
 
-        if (balance !== null) {
-          const balanceNum = typeof balance === 'string' ? parseFloat(balance) : balance;
-          if (!isNaN(balanceNum) && balanceNum >= 0) {
-            return NextResponse.json({
-              success: true,
-              balance: balanceNum.toString(),
-              source: 'kaspa.org',
-            });
+          if (balance !== null) {
+            const balanceNum = typeof balance === 'string' ? parseFloat(balance) : balance;
+            if (!isNaN(balanceNum) && balanceNum >= 0) {
+              return NextResponse.json({
+                success: true,
+                balance: balanceNum.toString(),
+                source: 'kaspa.org',
+              });
+            }
           }
         }
+      } catch (kaspaOrgError: any) {
+        if (kaspaOrgError.name !== 'AbortError') {
+          console.debug(`kaspa.org endpoint ${endpoint} failed:`, kaspaOrgError.message);
+        }
       }
-    } catch (kaspaOrgError) {
-      console.debug('kaspa.org API failed:', kaspaOrgError);
     }
 
     // Try alternative: kaspa-explorer or other explorers
-    try {
-      const explorerResponse = await fetch(
-        `https://explorer.kaspa.org/api/address/${addressWithoutPrefix}`,
-        {
+    const explorerEndpoints = [
+      `https://explorer.kaspa.org/api/address/${addressWithoutPrefix}`,
+      `https://explorer.kaspa.org/api/v1/address/${addressWithoutPrefix}`,
+      `https://kaspalytics.com/api/address/${addressWithoutPrefix}`,
+    ];
+
+    for (const endpoint of explorerEndpoints) {
+      try {
+        const explorerResponse = await fetch(endpoint, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
           },
           cache: 'no-store',
-        }
-      );
+          signal: AbortSignal.timeout(10000),
+        });
 
-      if (explorerResponse.ok) {
-        const data = await explorerResponse.json();
-        console.log('explorer response:', JSON.stringify(data, null, 2));
-        
-        if (data.balance !== undefined) {
-          const balanceNum = typeof data.balance === 'string' ? parseFloat(data.balance) : data.balance;
-          if (!isNaN(balanceNum) && balanceNum >= 0) {
-            return NextResponse.json({
-              success: true,
-              balance: balanceNum.toString(),
-              source: 'explorer.kaspa.org',
-            });
+        if (explorerResponse.ok) {
+          const data = await explorerResponse.json();
+          
+          if (data.balance !== undefined) {
+            const balanceNum = typeof data.balance === 'string' ? parseFloat(data.balance) : data.balance;
+            if (!isNaN(balanceNum) && balanceNum >= 0) {
+              return NextResponse.json({
+                success: true,
+                balance: balanceNum.toString(),
+                source: new URL(endpoint).hostname,
+              });
+            }
           }
         }
+      } catch (explorerError: any) {
+        if (explorerError.name !== 'AbortError') {
+          console.debug(`Explorer endpoint ${endpoint} failed:`, explorerError.message);
+        }
       }
-    } catch (explorerError) {
-      console.debug('explorer API failed:', explorerError);
     }
 
+    // If all APIs fail, return success: false but status 200 to allow client to handle gracefully
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to fetch balance from all API endpoints',
+        error: 'Failed to fetch balance from all API endpoints. The APIs may be temporarily unavailable or the endpoint format may have changed.',
+        balance: null,
       },
-      { status: 500 }
+      { status: 200 }
     );
   } catch (error: any) {
     console.error('Error in balance API route:', error);
+    // Return 200 with error instead of 500 to prevent client-side error handling issues
     return NextResponse.json(
       {
         success: false,
         error: error.message || 'Failed to fetch balance',
+        balance: null,
       },
-      { status: 500 }
+      { status: 200 }
     );
   }
 }

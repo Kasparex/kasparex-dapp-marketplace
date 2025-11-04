@@ -66,9 +66,13 @@ export function KaspaWalletButton() {
             console.log(`Balance fetched from ${result.source}: ${kasBalance} KAS`);
             return;
           }
+        } else if (!isCancelled && !result.success) {
+          console.warn('Balance API returned error:', result.error);
+          // Continue to fallback methods
         }
       } catch (error) {
         console.error('Failed to fetch balance via API route:', error);
+        // Continue to fallback methods
       }
 
       // Fallback: Try direct API calls (may have CORS issues)
