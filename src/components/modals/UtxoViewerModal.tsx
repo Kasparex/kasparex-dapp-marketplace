@@ -58,8 +58,9 @@ export function UtxoViewerModal({ isOpen, onClose }: UtxoViewerModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl w-full max-w-2xl mx-4 border border-zinc-200 dark:border-zinc-800 max-h-[80vh] flex flex-col">
+    <>
+      <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed bottom-4 right-4 z-50 bg-white dark:bg-zinc-900 rounded-lg shadow-xl w-[calc(100vw-2rem)] sm:w-full max-w-2xl border border-zinc-200 dark:border-zinc-800 max-h-[90vh] flex flex-col">
         <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
@@ -150,7 +151,7 @@ export function UtxoViewerModal({ isOpen, onClose }: UtxoViewerModalProps) {
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
