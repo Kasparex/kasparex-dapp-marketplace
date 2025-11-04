@@ -217,56 +217,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const kasFyiEndpoints = [
-      `https://api.kas.fyi/v1/addresses/${addressWithoutPrefix}/balance`,
-      `https://api.kas.fyi/v1/addresses/${addressWithoutPrefix}`,
-    ];
-
-    for (const endpoint of kasFyiEndpoints) {
-      try {
-        const kasFyiResponse = await fetch(endpoint, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-          },
-          cache: 'no-store',
-          signal: AbortSignal.timeout(10000),
-        });
-
-        if (kasFyiResponse.ok) {
-          const data = await kasFyiResponse.json();
-          
-          let balance: string | number | null = null;
-
-          if (data.balance !== undefined) {
-            balance = data.balance;
-          } else if (data.balanceInfo?.balance !== undefined) {
-            balance = data.balanceInfo.balance;
-          } else if (data.data?.balance !== undefined) {
-            balance = data.data.balance;
-          } else if (data.result?.balance !== undefined) {
-            balance = data.result.balance;
-          }
-
-          if (balance !== null) {
-            const balanceNum = typeof balance === 'string' ? parseFloat(balance) : balance;
-            if (!isNaN(balanceNum) && balanceNum >= 0) {
-              return NextResponse.json({
-                success: true,
-                balance: balanceNum.toString(),
-                source: 'kas.fyi',
-              });
-            }
-          }
-        }
-      } catch (kasFyiError: any) {
-        if (kasFyiError.name !== 'AbortError') {
-          console.debug(`kas.fyi endpoint ${endpoint} failed:`, kasFyiError.message);
-        }
-      }
-    }
-
-    // Try alternative: kaspa-explorer or other explorers
+    // Method 4: Try alternative: kaspa-explorer or other explorers
     const explorerEndpoints = [
       `https://explorer.kaspa.org/api/address/${addressWithoutPrefix}`,
       `https://explorer.kaspa.org/api/v1/address/${addressWithoutPrefix}`,
