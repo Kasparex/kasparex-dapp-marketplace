@@ -81,17 +81,33 @@ export function KasWareWalletButton() {
       try {
         const kasware = (window as KasWareWindow).kasware;
         
-        if (!kasware || !kasware.isConnected()) {
+        if (!kasware) {
+          console.warn('KasWare wallet not available');
           if (!isCancelled && currentBalance === null) {
             setBalance('0.00');
           }
           return;
         }
 
-        // Try KasWare's getBalance() method first
+        // Check if wallet is connected (optional check - don't block if method doesn't exist)
+        const isWalletConnected = typeof kasware.isConnected === 'function' 
+          ? kasware.isConnected() 
+          : true; // Assume connected if method doesn't exist
+        
+        if (!isWalletConnected) {
+          console.warn('KasWare wallet not connected');
+          if (!isCancelled && currentBalance === null) {
+            setBalance('0.00');
+          }
+          return;
+        }
+
+        // Try KasWare's getBalance() method first - this is the primary method
         if (typeof kasware.getBalance === 'function') {
           try {
+            console.log('Calling kasware.getBalance()...');
             const balanceResult = await kasware.getBalance();
+            console.log('KasWare getBalance() result:', balanceResult);
             
             if (!isCancelled) {
               let balanceValue: string | number | null = null;
@@ -99,8 +115,16 @@ export function KasWareWalletButton() {
               // Handle different response formats
               if (typeof balanceResult === 'string' || typeof balanceResult === 'number') {
                 balanceValue = balanceResult;
-              } else if (balanceResult && typeof balanceResult === 'object' && 'balance' in balanceResult) {
-                balanceValue = balanceResult.balance;
+              } else if (balanceResult && typeof balanceResult === 'object') {
+                // Try different possible properties
+                const resultObj = balanceResult as Record<string, any>;
+                if ('balance' in resultObj) {
+                  balanceValue = resultObj.balance;
+                } else if ('amount' in resultObj) {
+                  balanceValue = resultObj.amount;
+                } else if ('value' in resultObj) {
+                  balanceValue = resultObj.value;
+                }
               }
 
               if (balanceValue !== null && balanceValue !== undefined && balanceValue !== '') {
@@ -113,14 +137,21 @@ export function KasWareWalletButton() {
                     : balanceNum.toFixed(2);
                   currentBalance = kasBalance;
                   setBalance(kasBalance);
-                  console.log(`KasWare balance from wallet: ${kasBalance} KAS`);
+                  console.log(`✓ KasWare balance from wallet: ${kasBalance} KAS`);
                   return;
+                } else {
+                  console.warn('Invalid balance number:', balanceNum);
                 }
+              } else {
+                console.warn('Balance value is null/undefined/empty:', balanceValue);
               }
             }
           } catch (walletError) {
-            console.warn('KasWare getBalance() failed, trying API fallback:', walletError);
+            console.error('KasWare getBalance() error:', walletError);
+            console.warn('Trying API fallback...');
           }
+        } else {
+          console.warn('kasware.getBalance() is not a function, using API fallback');
         }
 
         // Fallback to API if getBalance() is not available or failed
@@ -327,7 +358,8 @@ export function KasWareWalletButton() {
   if (isConnected && address) {
     const addressWithoutPrefix = address.replace(/^kaspa:/i, '');
     const displayAddress = formatAddressForDisplay(address);
-    const displayBalance = balance !== null ? `${balance} KAS` : '0 KAS';
+    // Show balance if available, otherwise show loading state
+    const displayBalance = balance !== null && balance !== undefined ? `${balance} KAS` : 'Loading...';
 
     return (
       <div className="relative" ref={dropdownRef}>
