@@ -35,15 +35,17 @@ export function KasWareWalletButton() {
   // Check if KasWare is installed
   const isKasWareInstalled = typeof window !== 'undefined' && !!(window as KasWareWindow).kasware;
 
-  // Format address for display
+  // Format address for display: kasp...henj (includes "kaspa" prefix)
   const formatAddressForDisplay = (addr: string): string => {
+    // Remove kaspa: prefix to get the address part
     const addressWithoutPrefix = addr.replace(/^kaspa:/i, '');
     if (addressWithoutPrefix.length <= 8) {
-      return addressWithoutPrefix;
+      return `kaspa:${addressWithoutPrefix}`;
     }
-    const first4 = addressWithoutPrefix.substring(0, 4);
+    // Show first 4 chars of "kaspa" + "..." + last 4 chars of address
+    // Format: kasp...henj
     const last4 = addressWithoutPrefix.substring(addressWithoutPrefix.length - 4);
-    return `${first4}...${last4}`;
+    return `kasp...${last4}`;
   };
 
   // Load saved connection state
@@ -71,12 +73,12 @@ export function KasWareWalletButton() {
       return;
     }
 
-    const addressWithoutPrefix = address.replace(/^kaspa:/i, '');
     let isCancelled = false;
 
     const fetchBalance = async () => {
       try {
-        const response = await fetch(`/api/kaspa/balance?address=${encodeURIComponent(addressWithoutPrefix)}`, {
+        // Use the full address with kaspa: prefix for the API call
+        const response = await fetch(`/api/kaspa/balance?address=${encodeURIComponent(address)}`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
@@ -90,20 +92,31 @@ export function KasWareWalletButton() {
 
         const result = await response.json();
 
-        if (!isCancelled && result.success && result.balance) {
-          const balanceNum = parseFloat(result.balance);
-          if (!isNaN(balanceNum) && balanceNum >= 0) {
-            const kasBalance = (balanceNum / 100000000).toFixed(2);
-            setBalance(kasBalance);
-            return;
+        if (!isCancelled) {
+          if (result.success && result.balance !== null && result.balance !== undefined) {
+            const balanceNum = parseFloat(result.balance);
+            if (!isNaN(balanceNum) && balanceNum >= 0) {
+              // Balance is in sompis, convert to KAS (1 KAS = 10^8 sompis)
+              const kasBalance = (balanceNum / 100000000).toFixed(2);
+              setBalance(kasBalance);
+              console.log(`KasWare balance fetched: ${kasBalance} KAS (from ${result.source})`);
+              return;
+            } else {
+              console.warn('Invalid balance number:', result.balance);
+            }
+          } else {
+            console.warn('Balance API returned error:', result.error || 'Unknown error');
           }
+          
+          // Set to 0 if balance fetch failed but don't show error
+          setBalance('0.00');
         }
       } catch (error) {
         console.error('Failed to fetch balance:', error);
-      }
-
-      if (!isCancelled) {
-        setBalance(null);
+        if (!isCancelled) {
+          // Set to 0 on error
+          setBalance('0.00');
+        }
       }
     };
 
@@ -307,7 +320,7 @@ export function KasWareWalletButton() {
                 Connected Wallet
               </div>
               <div className="text-sm font-mono text-zinc-900 dark:text-zinc-100 break-all">
-                {address.replace(/^kaspa:/i, '')}
+                {address}
               </div>
               <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mt-2">
                 {displayBalance}
