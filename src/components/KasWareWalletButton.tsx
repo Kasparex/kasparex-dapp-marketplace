@@ -74,11 +74,14 @@ export function KasWareWalletButton() {
     }
 
     let isCancelled = false;
+    let currentBalance: string | null = null;
 
     const fetchBalance = async () => {
       try {
-        // Use the full address with kaspa: prefix for the API call
-        const response = await fetch(`/api/kaspa/balance?address=${encodeURIComponent(address)}`, {
+        // Remove kaspa: prefix for API call (API expects address without prefix)
+        const addressWithoutPrefix = address.replace(/^kaspa:/i, '');
+        
+        const response = await fetch(`/api/kaspa/balance?address=${encodeURIComponent(addressWithoutPrefix)}`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
@@ -93,33 +96,38 @@ export function KasWareWalletButton() {
         const result = await response.json();
 
         if (!isCancelled) {
-          if (result.success && result.balance !== null && result.balance !== undefined) {
+          if (result.success && result.balance !== null && result.balance !== undefined && result.balance !== '') {
             const balanceNum = parseFloat(result.balance);
             if (!isNaN(balanceNum) && balanceNum >= 0) {
               // Balance is in sompis, convert to KAS (1 KAS = 10^8 sompis)
               const kasBalance = (balanceNum / 100000000).toFixed(2);
+              currentBalance = kasBalance;
               setBalance(kasBalance);
-              console.log(`KasWare balance fetched: ${kasBalance} KAS (from ${result.source})`);
+              console.log(`KasWare balance fetched: ${kasBalance} KAS (from ${result.source || 'api'})`);
               return;
             } else {
               console.warn('Invalid balance number:', result.balance);
             }
           } else {
             console.warn('Balance API returned error:', result.error || 'Unknown error');
+            console.warn('API response:', result);
           }
           
-          // Set to 0 if balance fetch failed but don't show error
-          setBalance('0.00');
+          // Only set to 0 if we don't have a previous balance
+          if (!isCancelled && currentBalance === null) {
+            setBalance('0.00');
+          }
         }
       } catch (error) {
         console.error('Failed to fetch balance:', error);
-        if (!isCancelled) {
-          // Set to 0 on error
+        if (!isCancelled && currentBalance === null) {
+          // Only set to 0 if we don't have a balance yet
           setBalance('0.00');
         }
       }
     };
 
+    // Fetch immediately
     fetchBalance();
 
     // Refresh balance every 30 seconds
@@ -319,8 +327,8 @@ export function KasWareWalletButton() {
               <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
                 Connected Wallet
               </div>
-              <div className="text-sm font-mono text-zinc-900 dark:text-zinc-100 break-all">
-                {address}
+              <div className="text-sm font-mono text-zinc-900 dark:text-zinc-100">
+                {displayAddress}
               </div>
               <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mt-2">
                 {displayBalance}

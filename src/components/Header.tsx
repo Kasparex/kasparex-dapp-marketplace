@@ -7,10 +7,8 @@ import { useAccount, useChainId } from 'wagmi';
 import { useTheme } from './ThemeProvider';
 import { UserMenu } from './UserMenu';
 import { getChainById } from '@/lib/wagmi';
-import { KaspaWalletButton } from './KaspaWalletButton';
 import { KasWareWalletButton } from './KasWareWalletButton';
 import { EVMWalletButton } from './EVMWalletButton';
-import { useKaspaWallet } from '@/lib/kaspa/context';
 import Link from 'next/link';
 
 interface ProjectLink {
@@ -242,9 +240,6 @@ export function Header() {
             <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>
               <EVMWalletButton />
             </Suspense>
-          </div>
-          <div className="flex-shrink-0">
-            <KaspaWalletButton />
           </div>
           <div className="flex-shrink-0">
             <KasWareWalletButton />
