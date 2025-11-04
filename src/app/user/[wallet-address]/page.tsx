@@ -14,11 +14,14 @@ import { isAddress } from 'viem';
 import { Avatar } from '@/components/Avatar';
 import { placeholderDApps } from '@/lib/dapps';
 import { DAppGrid } from '@/components/DAppGrid';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { formatKaspaAddress } from '@/lib/kaspa/wallet';
 
 export default function UserProfilePage() {
   const params = useParams();
   const router = useRouter();
   const { address: connectedAddress, isConnected } = useAccount();
+  const { state: kaspaState } = useKaspaWallet();
   const walletAddress = params?.['wallet-address'] as string | undefined;
   const [showEditModal, setShowEditModal] = useState(false);
   const [copied, setCopied] = useState(false);

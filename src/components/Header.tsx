@@ -235,7 +235,60 @@ export function Header() {
           </div>
           <div className="flex-shrink-0">
             <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>
-              <ConnectButton chainStatus="none" />
+              <ConnectButton.Custom>
+                {({ account, chain, openConnectModal, openAccountModal, mounted }) => {
+                  const ready = mounted;
+                  const connected = ready && account && chain;
+
+                  return (
+                    <div
+                      {...(!ready && {
+                        'aria-hidden': true,
+                        style: {
+                          opacity: 0,
+                          pointerEvents: 'none',
+                          userSelect: 'none',
+                        },
+                      })}
+                    >
+                      {(() => {
+                        if (!connected) {
+                          return (
+                            <button
+                              onClick={openConnectModal}
+                              type="button"
+                              className="px-4 py-2 rounded-lg bg-[#02abb8] hover:bg-[#0299a3] text-white transition-colors text-sm font-medium"
+                            >
+                              Kaspa L2 Wallet
+                            </button>
+                          );
+                        }
+
+                        return (
+                          <button
+                            onClick={openAccountModal}
+                            type="button"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#02abb8] hover:bg-[#0299a3] text-white transition-colors text-sm font-medium"
+                          >
+                            <span className="hidden sm:inline">
+                              {account.displayName || `${account.address.slice(0, 6)}...${account.address.slice(-4)}`}
+                            </span>
+                            <span className="sm:hidden">L2</span>
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                        );
+                      })()}
+                    </div>
+                  );
+                }}
+              </ConnectButton.Custom>
             </Suspense>
           </div>
           <div className="flex-shrink-0">

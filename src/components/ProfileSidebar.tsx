@@ -6,6 +6,8 @@ import type { ProfileData } from '@/hooks/useProfile';
 import { TokenBalance } from './TokenBalance';
 import { Avatar } from './Avatar';
 import { DescriptionIcon, TokenIcon, SettingsIcon, PrivacyIcon } from './icons/SectionIcons';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { formatKaspaAddress } from '@/lib/kaspa/wallet';
 
 interface ProfileSidebarProps {
   walletAddress: string;
@@ -24,11 +26,21 @@ export function ProfileSidebar({
   onToggleEdit,
   onProfileUpdate,
 }: ProfileSidebarProps) {
+  const { state: kaspaState } = useKaspaWallet();
   const [isOpen, setIsOpen] = useState(false);
   const [overviewExpanded, setOverviewExpanded] = useState(true);
   const [tokenHoldingsExpanded, setTokenHoldingsExpanded] = useState(false);
   const [settingsExpanded, setSettingsExpanded] = useState(false);
   const [privacyExpanded, setPrivacyExpanded] = useState(false);
+  
+  const kaspaAddressDisplay = kaspaState.address 
+    ? formatKaspaAddress(kaspaState.address)
+    : null;
+  
+  // Check if the current wallet address matches the Kaspa wallet address (without kaspa: prefix)
+  const isKaspaWallet = kaspaState.isConnected && 
+    kaspaState.address && 
+    kaspaState.address.replace(/^kaspa:/i, '').toLowerCase() === walletAddress?.toLowerCase();
 
   const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
     <svg
@@ -177,22 +189,56 @@ export function ProfileSidebar({
             onToggle={() => setTokenHoldingsExpanded(!tokenHoldingsExpanded)}
           >
             <div className="space-y-3 mb-4">
-              <div 
-                className="text-sm"
-                style={profile.hideBalance ? {
-                  userSelect: 'none',
-                  WebkitUserSelect: 'none',
-                  MozUserSelect: 'none',
-                  msUserSelect: 'none',
-                  pointerEvents: 'none',
-                } as React.CSSProperties : {}}
-              >
-                <div className="text-zinc-500 dark:text-zinc-400 mb-2">Native Balance</div>
-                <TokenBalance 
-                  address={walletAddress as `0x${string}`}
-                  hideBalance={profile.hideBalance}
-                />
-              </div>
+              {/* EVM Wallet Balance (only show if wallet address is EVM format) */}
+              {walletAddress && walletAddress.startsWith('0x') && (
+                <div 
+                  className="text-sm"
+                  style={profile.hideBalance ? {
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none',
+                    pointerEvents: 'none',
+                  } as React.CSSProperties : {}}
+                >
+                  <div className="text-zinc-500 dark:text-zinc-400 mb-2">EVM Native Balance</div>
+                  <TokenBalance 
+                    address={walletAddress as `0x${string}`}
+                    hideBalance={profile.hideBalance}
+                  />
+                </div>
+              )}
+              
+              {/* Kaspa Wallet Info */}
+              {isKaspaWallet && kaspaAddressDisplay && (
+                <div className="text-sm">
+                  <div className="text-zinc-500 dark:text-zinc-400 mb-2">Kaspa L1 Wallet</div>
+                  <div className="space-y-1">
+                    <div className="text-xs text-zinc-600 dark:text-zinc-400 font-mono break-all">
+                      {kaspaAddressDisplay.display}
+                    </div>
+                    {kaspaState.provider && (
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                        Provider: {kaspaState.provider.charAt(0).toUpperCase() + kaspaState.provider.slice(1)}
+                      </div>
+                    )}
+                    <div className="text-xs text-green-600 dark:text-green-400 font-medium">
+                      ✓ Connected
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Show Kaspa wallet info if connected but not matching this profile */}
+              {kaspaState.isConnected && !isKaspaWallet && (
+                <div className="text-sm">
+                  <div className="text-zinc-500 dark:text-zinc-400 mb-2">Kaspa L1 Wallet</div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                    Different wallet connected: {kaspaAddressDisplay?.display}
+                  </div>
+                </div>
+              )}
+              
               <div className="text-xs text-zinc-500 dark:text-zinc-400">
                 Additional tokens coming soon
               </div>
