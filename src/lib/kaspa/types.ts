@@ -74,7 +74,6 @@ export interface KaspaWalletProviderInterface {
  */
 export interface WindowWithKaspa extends Window {
   kasware?: KaspaWalletProviderInterface;
-  kastle?: KaspaWalletProviderInterface;
   kaspium?: KaspaWalletProviderInterface;
   okx?: {
     kaspa?: KaspaWalletProviderInterface;
