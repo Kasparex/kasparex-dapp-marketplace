@@ -12,36 +12,58 @@ const KASPA_TOKENS_BASE_URL = 'https://kaspa.com/tokens';
  * Fetch all KRC-20 tokens from kaspa.com/tokens marketplace
  */
 export async function fetchTokensFromMarketplace(): Promise<KRC20Token[]> {
-  try {
-    // Note: Actual API endpoint needs to be verified
-    // This is a placeholder structure based on typical marketplace patterns
-    const response = await fetch(`${KASPA_TOKENS_BASE_URL}/api/tokens`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+  // Try multiple endpoint variations
+  const endpointVariations = [
+    '/api/tokens',
+    '/api/v1/tokens',
+    '/api/krc20/tokens',
+    '/api/v1/krc20/tokens',
+    '/tokens',
+  ];
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch tokens: ${response.statusText}`);
-    }
+  for (const endpoint of endpointVariations) {
+    try {
+      const url = `${KASPA_TOKENS_BASE_URL}${endpoint}`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-store',
+      });
 
-    const data = await response.json();
-    
-    // Transform marketplace format to our KRC20Token format
-    if (Array.isArray(data)) {
-      return data.map(transformMarketplaceToken);
-    }
-    
-    if (data.tokens && Array.isArray(data.tokens)) {
-      return data.tokens.map(transformMarketplaceToken);
-    }
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`✓ kaspa.com marketplace API success from ${url}`, data);
+        
+        // Transform marketplace format to our KRC20Token format
+        let tokens: any[] = [];
+        
+        if (Array.isArray(data)) {
+          tokens = data;
+        } else if (data.tokens && Array.isArray(data.tokens)) {
+          tokens = data.tokens;
+        } else if (data.data && Array.isArray(data.data)) {
+          tokens = data.data;
+        }
 
-    return [];
-  } catch (error) {
-    console.error('Error fetching tokens from kaspa.com/tokens:', error);
-    throw error;
+        if (tokens.length > 0) {
+          return tokens.map(transformMarketplaceToken);
+        }
+      } else if (response.status !== 404) {
+        console.debug(`kaspa.com marketplace API error from ${url}: ${response.status} ${response.statusText}`);
+      }
+    } catch (error: any) {
+      // Continue to next endpoint
+      if (error.name !== 'AbortError') {
+        console.debug(`Failed to fetch from ${KASPA_TOKENS_BASE_URL}${endpoint}:`, error.message);
+      }
+    }
   }
+
+  // If all endpoints failed, throw an error
+  throw new Error('All kaspa.com marketplace endpoint variations failed');
 }
 
 /**

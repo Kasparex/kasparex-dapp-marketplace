@@ -49,6 +49,7 @@ export async function fetchTokensFromIndexer(limit: number = 100): Promise<KRC20
 
         if (response.ok) {
           const data = await response.json();
+          console.log(`✓ kas.fyi API success from ${url}`, data);
           
           // Transform kas.fyi format to our KRC20Token format
           let tokens: any[] = [];
@@ -66,10 +67,19 @@ export async function fetchTokensFromIndexer(limit: number = 100): Promise<KRC20
           if (tokens.length > 0) {
             return tokens.map(transformKasFyiToken).filter(token => token.symbol && token.symbol.length > 0);
           }
-        } else if (response.status !== 404) {
+        } else {
           const errorMsg = `${url}: ${response.status} ${response.statusText}`;
           console.warn(`kas.fyi API error: ${errorMsg}`);
-          errors.push(errorMsg);
+          if (response.status !== 404) {
+            errors.push(errorMsg);
+          }
+          // Try to get error details from response
+          try {
+            const errorData = await response.text();
+            console.debug(`kas.fyi error response:`, errorData);
+          } catch (e) {
+            // Ignore parsing errors
+          }
         }
       } catch (fetchError: any) {
         clearTimeout(timeoutId);

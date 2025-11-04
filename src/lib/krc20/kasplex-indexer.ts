@@ -74,6 +74,7 @@ export async function fetchKasplexTokens(limit: number = 20, offset: number = 0)
 
           if (response.ok) {
             const data = await response.json();
+            console.log(`✓ Kasplex API success from ${url}`, data);
             
             // Handle different response formats
             if (Array.isArray(data)) {
@@ -97,11 +98,19 @@ export async function fetchKasplexTokens(limit: number = 20, offset: number = 0)
               console.warn(`Kasplex API returned 200 but unrecognized data structure from ${url}`);
               errors.push(`${url}: Unrecognized response format`);
             }
-          } else if (response.status !== 404) {
-            // Only log non-404 errors (404 means endpoint doesn't exist, try next)
+          } else {
             const errorMsg = `${url}: ${response.status} ${response.statusText}`;
             console.warn(`Kasplex API error: ${errorMsg}`);
-            errors.push(errorMsg);
+            if (response.status !== 404) {
+              errors.push(errorMsg);
+            }
+            // Try to get error details from response
+            try {
+              const errorData = await response.text();
+              console.debug(`Kasplex error response:`, errorData);
+            } catch (e) {
+              // Ignore parsing errors
+            }
           }
         } catch (fetchError: any) {
           clearTimeout(timeoutId);
