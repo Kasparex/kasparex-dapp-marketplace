@@ -3,6 +3,7 @@
  * 
  * Service for fetching KRC-20 token data from kas.fyi indexer
  * Documentation: https://docs.kas.fyi/
+ * API Key: Get from https://developer.kas.fyi/
  */
 
 import type { KasFyiTokenData, KRC20Token } from './types';
@@ -10,18 +11,21 @@ import type { KasFyiTokenData, KRC20Token } from './types';
 const KAS_FYI_BASE_URL = 'https://kas.fyi';
 const KAS_FYI_API_BASE_URL = 'https://api.kas.fyi';
 
+// API Key - should be stored in environment variable for production
+// For now, using the provided key. In production, use: process.env.NEXT_PUBLIC_KAS_FYI_API_KEY
+const KAS_FYI_API_KEY = process.env.NEXT_PUBLIC_KAS_FYI_API_KEY || 'kdp_56c6d5e742aebabf6470561ef3ab41d1549097eca4ad0e5fe8402c20e417af29';
+
 /**
  * Fetch all KRC-20 tokens from kas.fyi indexer
  */
 export async function fetchTokensFromIndexer(limit: number = 100): Promise<KRC20Token[]> {
-  // Try different endpoint variations based on common API patterns
+  // Try different endpoint variations based on API documentation
+  // API base: https://api.kas.fyi/v1/
   const endpointVariations = [
+    { base: KAS_FYI_API_BASE_URL, path: '/v1/tokens/krc20' },
     { base: KAS_FYI_API_BASE_URL, path: '/v1/krc20/tokens' },
+    { base: KAS_FYI_API_BASE_URL, path: '/v1/tokens' },
     { base: KAS_FYI_API_BASE_URL, path: '/api/v1/krc20/tokens' },
-    { base: KAS_FYI_API_BASE_URL, path: '/krc20/tokens' },
-    { base: KAS_FYI_BASE_URL, path: '/api/krc20-tokens' },
-    { base: KAS_FYI_BASE_URL, path: '/api/v1/krc20-tokens' },
-    { base: KAS_FYI_BASE_URL, path: '/krc20-tokens' },
   ];
 
   const errors: string[] = [];
@@ -40,6 +44,7 @@ export async function fetchTokensFromIndexer(limit: number = 100): Promise<KRC20
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
+            'x-api-key': KAS_FYI_API_KEY, // API key authentication
           },
           cache: 'no-store',
           signal: controller.signal,
@@ -105,10 +110,9 @@ export async function fetchTokensFromIndexer(limit: number = 100): Promise<KRC20
  */
 export async function fetchTokenByAddress(address: string): Promise<KRC20Token | null> {
   const endpointVariations = [
+    `${KAS_FYI_API_BASE_URL}/v1/tokens/krc20/${encodeURIComponent(address)}`,
     `${KAS_FYI_API_BASE_URL}/v1/krc20/tokens/${encodeURIComponent(address)}`,
-    `${KAS_FYI_API_BASE_URL}/krc20/tokens/${encodeURIComponent(address)}`,
-    `${KAS_FYI_BASE_URL}/api/krc20-tokens/${encodeURIComponent(address)}`,
-    `${KAS_FYI_BASE_URL}/api/v1/krc20-tokens/${encodeURIComponent(address)}`,
+    `${KAS_FYI_API_BASE_URL}/v1/tokens/${encodeURIComponent(address)}`,
   ];
 
   for (const url of endpointVariations) {
@@ -122,6 +126,7 @@ export async function fetchTokenByAddress(address: string): Promise<KRC20Token |
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
+            'x-api-key': KAS_FYI_API_KEY, // API key authentication
           },
           cache: 'no-store',
           signal: controller.signal,
@@ -156,10 +161,9 @@ export async function fetchTokenByAddress(address: string): Promise<KRC20Token |
 export async function fetchTokenBySymbol(symbol: string): Promise<KRC20Token | null> {
   const normalizedSymbol = symbol.toUpperCase();
   const endpointVariations = [
+    `${KAS_FYI_API_BASE_URL}/v1/tokens/krc20/symbol/${encodeURIComponent(normalizedSymbol)}`,
     `${KAS_FYI_API_BASE_URL}/v1/krc20/tokens/symbol/${encodeURIComponent(normalizedSymbol)}`,
-    `${KAS_FYI_API_BASE_URL}/krc20/tokens/symbol/${encodeURIComponent(normalizedSymbol)}`,
-    `${KAS_FYI_BASE_URL}/api/krc20-tokens/symbol/${encodeURIComponent(normalizedSymbol)}`,
-    `${KAS_FYI_BASE_URL}/api/v1/krc20-tokens/symbol/${encodeURIComponent(normalizedSymbol)}`,
+    `${KAS_FYI_API_BASE_URL}/v1/tokens/symbol/${encodeURIComponent(normalizedSymbol)}`,
   ];
 
   for (const url of endpointVariations) {
@@ -173,6 +177,7 @@ export async function fetchTokenBySymbol(symbol: string): Promise<KRC20Token | n
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
+            'x-api-key': KAS_FYI_API_KEY, // API key authentication
           },
           cache: 'no-store',
           signal: controller.signal,
