@@ -2,12 +2,13 @@
 
 import { useState, Suspense, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { ConnectButton, useChainModal } from '@rainbow-me/rainbowkit';
+import { useChainModal } from '@rainbow-me/rainbowkit';
 import { useAccount, useChainId } from 'wagmi';
 import { useTheme } from './ThemeProvider';
 import { UserMenu } from './UserMenu';
 import { getChainById } from '@/lib/wagmi';
 import { KaspaWalletButton } from './KaspaWalletButton';
+import { EVMWalletButton } from './EVMWalletButton';
 
 interface ProjectLink {
   name: string;
@@ -235,7 +236,7 @@ export function Header() {
           </div>
           <div className="flex-shrink-0">
             <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>
-              <ConnectButton chainStatus="none" />
+              <EVMWalletButton />
             </Suspense>
           </div>
           <div className="flex-shrink-0">

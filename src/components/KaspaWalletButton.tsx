@@ -19,15 +19,15 @@ export function KaspaWalletButton() {
   const [copied, setCopied] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Format address: kaspa:abcd...wxyz (first 4 and last 4 chars)
+  // Format address: kasp...henj (first 4 and last 4 chars, no kaspa: prefix in display)
   const formatAddressForDisplay = (address: string): string => {
     const addressWithoutPrefix = address.replace(/^kaspa:/i, '');
     if (addressWithoutPrefix.length <= 8) {
-      return `kaspa:${addressWithoutPrefix}`;
+      return addressWithoutPrefix;
     }
     const first4 = addressWithoutPrefix.substring(0, 4);
     const last4 = addressWithoutPrefix.substring(addressWithoutPrefix.length - 4);
-    return `kaspa:${first4}...${last4}`;
+    return `${first4}...${last4}`;
   };
 
   // Fetch Kaspa balance
@@ -113,7 +113,7 @@ export function KaspaWalletButton() {
     setIsDropdownOpen(false);
   };
 
-  // If connected, show button matching EVM wallet button style
+  // If connected, show button matching EVM wallet button style exactly
   if (state.isConnected && state.address) {
     const addressWithoutPrefix = state.address.replace(/^kaspa:/i, '');
     const displayAddress = formatAddressForDisplay(state.address);
@@ -150,21 +150,15 @@ export function KaspaWalletButton() {
         {/* Dropdown menu (matching EVM wallet dropdown style) */}
         {isDropdownOpen && (
           <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-50 overflow-hidden">
-            {/* Avatar and Address Section */}
+            {/* Address Section (no avatar) */}
             <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
-              <div className="flex items-center gap-3 mb-3">
-                <Avatar address={addressWithoutPrefix} size={40} />
-                <div className="flex-1">
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
-                    Connected Wallet
-                  </div>
-                  <div className="text-sm font-mono text-zinc-900 dark:text-zinc-100 break-all">
-                    {state.address.startsWith('kaspa:') ? state.address : `kaspa:${state.address}`}
-                  </div>
-                </div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
+                Connected Wallet
               </div>
-              {/* Balance */}
-              <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+              <div className="text-sm font-mono text-zinc-900 dark:text-zinc-100">
+                {displayAddress}
+              </div>
+              <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mt-2">
                 {displayBalance}
               </div>
             </div>
