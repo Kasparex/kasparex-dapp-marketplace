@@ -43,94 +43,34 @@ export interface KasplexTokenDetailResponse {
 export async function fetchKasplexTokens(limit: number = 20, offset: number = 0): Promise<KasplexToken[]> {
   // Try different endpoint variations
   const endpointVariations = [
-    `/krc20/tokens`,
     `/api/krc20/tokens`,
+    `/krc20/tokens`,
     `/v1/krc20/tokens`,
     `/krc20`,
   ];
+
+  const errors: string[] = [];
 
   for (const baseUrl of KASPLEX_INDEXER_API_BASE_OPTIONS) {
     for (const endpoint of endpointVariations) {
       try {
         const url = `${baseUrl}${endpoint}?limit=${limit}&offset=${offset}`;
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-          },
-          // Add cache control to avoid stale data
-          cache: 'no-store',
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          
-          // Handle different response formats
-          if (Array.isArray(data)) {
-            return data;
-          }
-          
-          if (data.tokens && Array.isArray(data.tokens)) {
-            return data.tokens;
-          }
-          
-          if (data.data && Array.isArray(data.data)) {
-            return data.data;
-          }
-
-          if (data.result && Array.isArray(data.result)) {
-            return data.result;
-          }
-
-          // If we got a 200 but no data structure we recognize, continue to next endpoint
-          if (response.status === 200) {
-            console.warn(`Kasplex API returned 200 but unrecognized data structure from ${url}`);
-          }
-        } else if (response.status !== 404) {
-          // Only log non-404 errors (404 means endpoint doesn't exist, try next)
-          console.warn(`Kasplex API error ${response.status} from ${url}`);
-        }
-      } catch (error) {
-        // Continue to next endpoint on error
-        console.debug(`Failed to fetch from ${baseUrl}${endpoint}:`, error);
-      }
-    }
-  }
-
-  // If all endpoints failed, throw an error
-  throw new Error('Kasplex Indexer API: All endpoint variations failed. Please check the API documentation for the correct endpoint.');
-}
-
-/**
- * Fetch top KRC-20 tokens sorted by holders or transaction count
- */
-export async function fetchTopKasplexTokens(limit: number = 20): Promise<KasplexToken[]> {
-  // Try sorting variations first
-  const sortVariations = [
-    `?limit=${limit}&sort=holders&order=desc`,
-    `?limit=${limit}&sort=transactionCount&order=desc`,
-    `?limit=${limit}&order=desc`,
-    `?limit=${limit}`,
-  ];
-
-  for (const baseUrl of KASPLEX_INDEXER_API_BASE_OPTIONS) {
-    const endpointVariations = [
-      `/krc20/tokens`,
-      `/api/krc20/tokens`,
-      `/v1/krc20/tokens`,
-    ];
-
-    for (const endpoint of endpointVariations) {
-      for (const sortParams of sortVariations) {
+        
+        // Add timeout to prevent hanging requests
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
         try {
-          const url = `${baseUrl}${endpoint}${sortParams}`;
           const response = await fetch(url, {
             method: 'GET',
             headers: {
               'Accept': 'application/json',
             },
             cache: 'no-store',
+            signal: controller.signal,
           });
+
+          clearTimeout(timeoutId);
 
           if (response.ok) {
             const data = await response.json();
@@ -151,10 +91,108 @@ export async function fetchTopKasplexTokens(limit: number = 20): Promise<Kasplex
             if (data.result && Array.isArray(data.result)) {
               return data.result;
             }
+
+            // If we got a 200 but no data structure we recognize, continue to next endpoint
+            if (response.status === 200) {
+              console.warn(`Kasplex API returned 200 but unrecognized data structure from ${url}`);
+              errors.push(`${url}: Unrecognized response format`);
+            }
+          } else if (response.status !== 404) {
+            // Only log non-404 errors (404 means endpoint doesn't exist, try next)
+            const errorMsg = `${url}: ${response.status} ${response.statusText}`;
+            console.warn(`Kasplex API error: ${errorMsg}`);
+            errors.push(errorMsg);
+          }
+        } catch (fetchError: any) {
+          clearTimeout(timeoutId);
+          if (fetchError.name === 'AbortError') {
+            errors.push(`${url}: Request timeout`);
+          } else {
+            errors.push(`${url}: ${fetchError.message}`);
+          }
+          console.debug(`Failed to fetch from ${baseUrl}${endpoint}:`, fetchError);
+        }
+      } catch (error: any) {
+        // Continue to next endpoint on error
+        errors.push(`${baseUrl}${endpoint}: ${error.message}`);
+        console.debug(`Failed to fetch from ${baseUrl}${endpoint}:`, error);
+      }
+    }
+  }
+
+  // If all endpoints failed, throw an error with details
+  throw new Error(`Kasplex Indexer API: All endpoint variations failed. Attempted: ${errors.length} endpoints. Please check the API documentation for the correct endpoint.`);
+}
+
+/**
+ * Fetch top KRC-20 tokens sorted by holders or transaction count
+ */
+export async function fetchTopKasplexTokens(limit: number = 20): Promise<KasplexToken[]> {
+  // Try sorting variations first
+  const sortVariations = [
+    `?limit=${limit}&sort=holders&order=desc`,
+    `?limit=${limit}&sort=transactionCount&order=desc`,
+    `?limit=${limit}&order=desc`,
+    `?limit=${limit}`,
+  ];
+
+  for (const baseUrl of KASPLEX_INDEXER_API_BASE_OPTIONS) {
+    const endpointVariations = [
+      `/api/krc20/tokens`,
+      `/krc20/tokens`,
+      `/v1/krc20/tokens`,
+    ];
+
+    for (const endpoint of endpointVariations) {
+      for (const sortParams of sortVariations) {
+        try {
+          const url = `${baseUrl}${endpoint}${sortParams}`;
+          
+          // Add timeout to prevent hanging requests
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+          
+          try {
+            const response = await fetch(url, {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json',
+              },
+              cache: 'no-store',
+              signal: controller.signal,
+            });
+
+            clearTimeout(timeoutId);
+
+            if (response.ok) {
+              const data = await response.json();
+              
+              // Handle different response formats
+              if (Array.isArray(data)) {
+                return data;
+              }
+              
+              if (data.tokens && Array.isArray(data.tokens)) {
+                return data.tokens;
+              }
+              
+              if (data.data && Array.isArray(data.data)) {
+                return data.data;
+              }
+
+              if (data.result && Array.isArray(data.result)) {
+                return data.result;
+              }
+            }
+          } catch (fetchError: any) {
+            clearTimeout(timeoutId);
+            if (fetchError.name !== 'AbortError') {
+              console.debug(`Failed to fetch top tokens from ${url}:`, fetchError);
+            }
           }
         } catch (error) {
           // Continue to next variation
-          console.debug(`Failed to fetch top tokens from ${baseUrl}${endpoint}${sortParams}:`, error);
+          console.debug(`Failed to fetch top tokens from ${baseUrl}${endpoint}:`, error);
         }
       }
     }
