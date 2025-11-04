@@ -99,7 +99,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address 
   const modalContent = (
     <>
       <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed bottom-4 right-4 z-[100] bg-white dark:bg-zinc-900 rounded-lg shadow-xl w-[calc(100vw-2rem)] sm:w-full max-w-md border border-zinc-200 dark:border-zinc-800 max-h-[90vh] overflow-y-auto">
+      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[100] bg-white dark:bg-zinc-900 rounded-lg shadow-xl w-[calc(100vw-2rem)] sm:w-full max-w-md border border-zinc-200 dark:border-zinc-800 max-h-[90vh] overflow-y-auto">
         <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">

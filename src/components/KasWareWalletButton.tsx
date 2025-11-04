@@ -442,24 +442,6 @@ export function KasWareWalletButton() {
               <div className="text-sm font-mono text-zinc-900 dark:text-zinc-100">
                 {displayAddress}
               </div>
-              <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mt-2">
-                {displayBalance}
-              </div>
-              {krc20Tokens.length > 0 && (
-                <div className="mt-2 space-y-1">
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400">KRC-20 Tokens:</div>
-                  {krc20Tokens.slice(0, 3).map((token, idx) => (
-                    <div key={idx} className="text-xs text-zinc-700 dark:text-zinc-300">
-                      {token.tick}: {typeof token.amount === 'number' ? token.amount.toLocaleString() : token.amount}
-                    </div>
-                  ))}
-                  {krc20Tokens.length > 3 && (
-                    <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                      +{krc20Tokens.length - 3} more
-                    </div>
-                  )}
-                </div>
-              )}
               <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                 KasWare Wallet
               </div>
