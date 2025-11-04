@@ -9,29 +9,32 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Avatar } from './Avatar';
+import { getKRC20Balance } from '@/lib/kaspa/kasware';
+import type { KasWareAPI } from '@/lib/kaspa/kasware';
+import { SendTransactionModal } from './modals/SendTransactionModal';
+import { KRC20OrderModal } from './modals/KRC20OrderModal';
+import { UtxoViewerModal } from './modals/UtxoViewerModal';
 
 interface KasWareWindow {
-  kasware?: {
-    requestAccounts(): Promise<string[]>;
-    signMessage(message: string): Promise<string>;
-    getAddress(): Promise<string | null>;
-    getBalance(): Promise<string | number | { balance: string | number } | null>;
-    isConnected(): boolean;
-    disconnect(): Promise<void>;
-    on(event: 'accountsChanged', callback: (accounts: string[]) => void): void;
-    removeListener(event: 'accountsChanged', callback: (accounts: string[]) => void): void;
-  };
+  kasware?: KasWareAPI;
 }
 
 export function KasWareWalletButton() {
   const [isConnected, setIsConnected] = useState(false);
   const [address, setAddress] = useState<string | null>(null);
   const [balance, setBalance] = useState<string | null>(null);
+  const [krc20Tokens, setKrc20Tokens] = useState<Array<{ tick: string; amount: string | number; [key: string]: any }>>([]);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Modal states
+  const [isSendModalOpen, setIsSendModalOpen] = useState(false);
+  const [isUtxoModalOpen, setIsUtxoModalOpen] = useState(false);
+  const [isKRC20ModalOpen, setIsKRC20ModalOpen] = useState(false);
+  const [krc20ModalMode, setKrc20ModalMode] = useState<'create' | 'buy' | 'cancel'>('create');
 
   // Check if KasWare is installed
   const isKasWareInstalled = typeof window !== 'undefined' && !!(window as KasWareWindow).kasware;
@@ -205,6 +208,45 @@ export function KasWareWalletButton() {
         fetchBalance();
       }
     }, 30000);
+
+    return () => {
+      isCancelled = true;
+      clearInterval(interval);
+    };
+  }, [isConnected, address]);
+
+  // Fetch KRC-20 token balances when connected
+  useEffect(() => {
+    if (!isConnected || !address) {
+      setKrc20Tokens([]);
+      return;
+    }
+
+    let isCancelled = false;
+
+    const fetchKRC20Balances = async () => {
+      try {
+        const tokens = await getKRC20Balance();
+        if (!isCancelled) {
+          setKrc20Tokens(tokens || []);
+          console.log('KRC-20 tokens:', tokens);
+        }
+      } catch (error) {
+        console.warn('Failed to fetch KRC-20 balances:', error);
+        if (!isCancelled) {
+          setKrc20Tokens([]);
+        }
+      }
+    };
+
+    fetchKRC20Balances();
+
+    // Refresh every 60 seconds
+    const interval = setInterval(() => {
+      if (!isCancelled) {
+        fetchKRC20Balances();
+      }
+    }, 60000);
 
     return () => {
       isCancelled = true;
@@ -403,6 +445,21 @@ export function KasWareWalletButton() {
               <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mt-2">
                 {displayBalance}
               </div>
+              {krc20Tokens.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">KRC-20 Tokens:</div>
+                  {krc20Tokens.slice(0, 3).map((token, idx) => (
+                    <div key={idx} className="text-xs text-zinc-700 dark:text-zinc-300">
+                      {token.tick}: {typeof token.amount === 'number' ? token.amount.toLocaleString() : token.amount}
+                    </div>
+                  ))}
+                  {krc20Tokens.length > 3 && (
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                      +{krc20Tokens.length - 3} more
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                 KasWare Wallet
               </div>
@@ -410,6 +467,78 @@ export function KasWareWalletButton() {
             
             {/* Actions */}
             <div className="py-1">
+              <button
+                onClick={() => {
+                  setIsSendModalOpen(true);
+                  setIsDropdownOpen(false);
+                }}
+                className="w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+                Send KAS
+              </button>
+              
+              <button
+                onClick={() => {
+                  setIsUtxoModalOpen(true);
+                  setIsDropdownOpen(false);
+                }}
+                className="w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                View UTXOs
+              </button>
+              
+              <div className="border-t border-zinc-200 dark:border-zinc-800 my-1" />
+              
+              <button
+                onClick={() => {
+                  setKrc20ModalMode('create');
+                  setIsKRC20ModalOpen(true);
+                  setIsDropdownOpen(false);
+                }}
+                className="w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Create KRC-20 Order
+              </button>
+              
+              <button
+                onClick={() => {
+                  setKrc20ModalMode('buy');
+                  setIsKRC20ModalOpen(true);
+                  setIsDropdownOpen(false);
+                }}
+                className="w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Buy KRC-20 Token
+              </button>
+              
+              <button
+                onClick={() => {
+                  setKrc20ModalMode('cancel');
+                  setIsKRC20ModalOpen(true);
+                  setIsDropdownOpen(false);
+                }}
+                className="w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Cancel KRC-20 Order
+              </button>
+              
+              <div className="border-t border-zinc-200 dark:border-zinc-800 my-1" />
+              
               <button
                 onClick={handleCopyAddress}
                 className="w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-2"
@@ -444,6 +573,62 @@ export function KasWareWalletButton() {
             </div>
           </div>
         )}
+        
+        {/* Modals */}
+        <SendTransactionModal
+          isOpen={isSendModalOpen}
+          onClose={() => {
+            setIsSendModalOpen(false);
+            // Refresh balance after sending
+            if (isConnected && address) {
+              const fetchBalance = async () => {
+                try {
+                  const kasware = (window as KasWareWindow).kasware;
+                  if (kasware && typeof kasware.getBalance === 'function') {
+                    const balanceResult = await kasware.getBalance();
+                    if (balanceResult !== null && balanceResult !== undefined) {
+                      let balanceValue: string | number;
+                      if (typeof balanceResult === 'object' && 'balance' in balanceResult) {
+                        balanceValue = balanceResult.balance;
+                      } else if (typeof balanceResult === 'object' && 'amount' in balanceResult) {
+                        balanceValue = (balanceResult as any).amount;
+                      } else if (typeof balanceResult === 'object' && 'value' in balanceResult) {
+                        balanceValue = (balanceResult as any).value;
+                      } else {
+                        balanceValue = balanceResult;
+                      }
+                      const balanceNum = typeof balanceValue === 'string' ? parseFloat(balanceValue) : balanceValue;
+                      if (!isNaN(balanceNum) && balanceNum >= 0) {
+                        const kasBalance = balanceNum > 1000000 
+                          ? (balanceNum / 100000000).toFixed(2) 
+                          : balanceNum.toFixed(2);
+                        setBalance(kasBalance);
+                      }
+                    }
+                  }
+                } catch (err) {
+                  console.error('Error refreshing balance:', err);
+                }
+              };
+              fetchBalance();
+            }
+          }}
+          currentBalance={balance}
+          address={address}
+        />
+        
+        <UtxoViewerModal
+          isOpen={isUtxoModalOpen}
+          onClose={() => setIsUtxoModalOpen(false)}
+        />
+        
+        <KRC20OrderModal
+          isOpen={isKRC20ModalOpen}
+          onClose={() => setIsKRC20ModalOpen(false)}
+          mode={krc20ModalMode}
+          currentBalance={balance}
+          krc20Tokens={krc20Tokens}
+        />
       </div>
     );
   }
