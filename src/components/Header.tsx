@@ -242,7 +242,6 @@ export function Header() {
           <div className="flex-shrink-0">
             <KaspaWalletButton />
           </div>
-          {isConnected && <UserMenu />}
         </div>
       </div>
     </header>
