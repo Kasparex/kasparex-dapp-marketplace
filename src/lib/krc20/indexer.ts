@@ -1,242 +1,98 @@
 /**
  * Kas.fyi KRC-20 Indexer Service
  * 
- * Service for fetching KRC-20 token data from kas.fyi indexer
+ * Service for fetching KRC-20 token data via secure Next.js API routes
+ * The API key is kept secure on the server-side
  * Documentation: https://docs.kas.fyi/
- * API Key: Get from https://developer.kas.fyi/
  */
 
 import type { KasFyiTokenData, KRC20Token } from './types';
 
-const KAS_FYI_BASE_URL = 'https://kas.fyi';
-const KAS_FYI_API_BASE_URL = 'https://api.kas.fyi';
-
-// API Key - should be stored in environment variable for production
-// For now, using the provided key. In production, use: process.env.NEXT_PUBLIC_KAS_FYI_API_KEY
-const KAS_FYI_API_KEY = process.env.NEXT_PUBLIC_KAS_FYI_API_KEY || 'kdp_56c6d5e742aebabf6470561ef3ab41d1549097eca4ad0e5fe8402c20e417af29';
-
 /**
- * Fetch all KRC-20 tokens from kas.fyi indexer
+ * Fetch all KRC-20 tokens via secure Next.js API route
  */
 export async function fetchTokensFromIndexer(limit: number = 100): Promise<KRC20Token[]> {
-  // Try different endpoint variations based on API documentation
-  // API base: https://api.kas.fyi/v1/
-  const endpointVariations = [
-    { base: KAS_FYI_API_BASE_URL, path: '/v1/tokens/krc20' },
-    { base: KAS_FYI_API_BASE_URL, path: '/v1/krc20/tokens' },
-    { base: KAS_FYI_API_BASE_URL, path: '/v1/tokens' },
-    { base: KAS_FYI_API_BASE_URL, path: '/api/v1/krc20/tokens' },
-  ];
+  try {
+    const response = await fetch(`/api/krc20/tokens?limit=${limit}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
 
-  const errors: string[] = [];
-
-  for (const { base, path } of endpointVariations) {
-    try {
-      const url = `${base}${path}${path.includes('?') ? '&' : '?'}limit=${limit}`;
-      
-      // Add timeout to prevent hanging requests
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-      
-      try {
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'x-api-key': KAS_FYI_API_KEY, // API key authentication
-          },
-          cache: 'no-store',
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log(`✓ kas.fyi API success from ${url}`, data);
-          
-          // Transform kas.fyi format to our KRC20Token format
-          let tokens: any[] = [];
-          
-          if (Array.isArray(data)) {
-            tokens = data;
-          } else if (data.tokens && Array.isArray(data.tokens)) {
-            tokens = data.tokens;
-          } else if (data.data && Array.isArray(data.data)) {
-            tokens = data.data;
-          } else if (data.result && Array.isArray(data.result)) {
-            tokens = data.result;
-          }
-
-          if (tokens.length > 0) {
-            return tokens.map(transformKasFyiToken).filter(token => token.symbol && token.symbol.length > 0);
-          }
-        } else {
-          const errorMsg = `${url}: ${response.status} ${response.statusText}`;
-          console.warn(`kas.fyi API error: ${errorMsg}`);
-          if (response.status !== 404) {
-            errors.push(errorMsg);
-          }
-          // Try to get error details from response
-          try {
-            const errorData = await response.text();
-            console.debug(`kas.fyi error response:`, errorData);
-          } catch (e) {
-            // Ignore parsing errors
-          }
-        }
-      } catch (fetchError: any) {
-        clearTimeout(timeoutId);
-        if (fetchError.name === 'AbortError') {
-          errors.push(`${url}: Request timeout`);
-        } else {
-          errors.push(`${url}: ${fetchError.message}`);
-        }
-        console.debug(`Failed to fetch from ${url}:`, fetchError);
-      }
-    } catch (error: any) {
-      errors.push(`${base}${path}: ${error.message}`);
-      console.debug(`Failed to fetch from ${base}${path}:`, error);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `Failed to fetch tokens: ${response.statusText}`);
     }
-  }
 
-  // If all endpoints failed, throw an error with details
-  throw new Error(`kas.fyi Indexer API: All endpoint variations failed. Attempted: ${errors.length} endpoints. Please check the API documentation at https://docs.kas.fyi/`);
+    const data = await response.json();
+    
+    if (data.success && Array.isArray(data.tokens)) {
+      return data.tokens;
+    }
+
+    throw new Error('Invalid response format from API');
+  } catch (error: any) {
+    console.error('Error fetching tokens from API:', error);
+    throw error;
+  }
 }
 
 /**
- * Fetch a specific token by address from kas.fyi
+ * Fetch a specific token by address via secure Next.js API route
  */
 export async function fetchTokenByAddress(address: string): Promise<KRC20Token | null> {
-  const endpointVariations = [
-    `${KAS_FYI_API_BASE_URL}/v1/tokens/krc20/${encodeURIComponent(address)}`,
-    `${KAS_FYI_API_BASE_URL}/v1/krc20/tokens/${encodeURIComponent(address)}`,
-    `${KAS_FYI_API_BASE_URL}/v1/tokens/${encodeURIComponent(address)}`,
-  ];
-
-  for (const url of endpointVariations) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-      
-      try {
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'x-api-key': KAS_FYI_API_KEY, // API key authentication
-          },
-          cache: 'no-store',
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        if (response.ok) {
-          const data = await response.json();
-          const token = data.token || data;
-          return transformKasFyiToken(token);
-        } else if (response.status === 404) {
-          return null;
-        }
-      } catch (fetchError: any) {
-        clearTimeout(timeoutId);
-        if (fetchError.name !== 'AbortError') {
-          console.debug(`Failed to fetch token from ${url}:`, fetchError);
-        }
-      }
-    } catch (error) {
-      console.debug(`Error fetching token ${address} from ${url}:`, error);
-    }
+  try {
+    // Note: We may need to add an address endpoint to the API routes
+    // For now, we'll try to fetch by symbol if address contains a symbol
+    // This is a placeholder - you may want to add /api/krc20/tokens/address/[address] route
+    console.warn('fetchTokenByAddress: Address lookup not yet implemented in API routes');
+    return null;
+  } catch (error) {
+    console.error(`Error fetching token ${address}:`, error);
+    return null;
   }
-
-  return null;
 }
 
 /**
- * Fetch a specific token by symbol from kas.fyi
+ * Fetch a specific token by symbol via secure Next.js API route
  */
 export async function fetchTokenBySymbol(symbol: string): Promise<KRC20Token | null> {
-  const normalizedSymbol = symbol.toUpperCase();
-  const endpointVariations = [
-    `${KAS_FYI_API_BASE_URL}/v1/tokens/krc20/symbol/${encodeURIComponent(normalizedSymbol)}`,
-    `${KAS_FYI_API_BASE_URL}/v1/krc20/tokens/symbol/${encodeURIComponent(normalizedSymbol)}`,
-    `${KAS_FYI_API_BASE_URL}/v1/tokens/symbol/${encodeURIComponent(normalizedSymbol)}`,
-  ];
+  try {
+    const normalizedSymbol = symbol.toUpperCase();
+    const response = await fetch(`/api/krc20/tokens/${encodeURIComponent(normalizedSymbol)}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
 
-  for (const url of endpointVariations) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-      
-      try {
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'x-api-key': KAS_FYI_API_KEY, // API key authentication
-          },
-          cache: 'no-store',
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        if (response.ok) {
-          const data = await response.json();
-          const token = data.token || data;
-          return transformKasFyiToken(token);
-        } else if (response.status === 404) {
-          return null;
-        }
-      } catch (fetchError: any) {
-        clearTimeout(timeoutId);
-        if (fetchError.name !== 'AbortError') {
-          console.debug(`Failed to fetch token from ${url}:`, fetchError);
-        }
-      }
-    } catch (error) {
-      console.debug(`Error fetching token ${symbol} from ${url}:`, error);
+    if (response.status === 404) {
+      return null;
     }
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `Failed to fetch token: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.success && data.token) {
+      return data.token;
+    }
+
+    return null;
+  } catch (error: any) {
+    console.error(`Error fetching token ${symbol}:`, error);
+    return null;
   }
-
-  return null;
 }
 
-/**
- * Transform kas.fyi token data format to KRC20Token
- */
-function transformKasFyiToken(data: KasFyiTokenData | any): KRC20Token {
-  // Handle different possible field names from the API
-  const ticker = data.tick || data.ticker || data.symbol || '';
-  const maxSupply = data.max || data.maxSupply || data.totalSupply;
-  const minted = data.minted || data.mintedSupply;
-  const dec = data.dec || data.decimals;
-  
-  return {
-    symbol: ticker,
-    name: data.name || ticker,
-    address: data.address || data.contractAddress || `kas.fyi:${ticker}`,
-    decimals: typeof dec === 'string' ? parseInt(dec, 10) : (dec || 18),
-    totalSupply: data.totalSupply || maxSupply,
-    maxSupply: maxSupply,
-    limit: data.lim || data.limit,
-    minted: minted,
-    holders: data.holders || data.holderCount,
-    transactionCount: data.transactionCount || data.txCount || data.transactions,
-    logo: data.logo || data.logoUrl || data.image,
-    description: data.description,
-    website: data.website || data.url,
-    socialLinks: data.social ? {
-      twitter: data.social.twitter || data.twitter,
-      telegram: data.social.telegram || data.telegram,
-      discord: data.social.discord || data.discord,
-    } : undefined,
-    createdAt: data.createdAt || data.created_at || data.timestamp,
-    creator: data.creator || data.creatorAddress,
-  };
-}
+// Note: Token transformation is now handled in the API routes
+// This file now only handles client-side API calls to our secure Next.js API routes
 

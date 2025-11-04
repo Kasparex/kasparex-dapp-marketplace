@@ -1,4 +1,43 @@
-# Setting Up WalletConnect Project ID
+# Setting Up Environment Variables
+
+This guide will walk you through setting up environment variables for the Kasparex dApps marketplace.
+
+## Required Environment Variables
+
+1. **KAS_FYI_API_KEY** - API key for kas.fyi (Kaspa Developer Platform)
+2. **NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID** - WalletConnect Project ID (optional but recommended)
+
+---
+
+## Setting Up Kas.fyi API Key
+
+### Step 1: Get Your API Key
+
+1. **Visit Kaspa Developer Platform**
+   - Go to [https://developer.kas.fyi/](https://developer.kas.fyi/)
+   - Or visit [https://docs.kas.fyi/](https://docs.kas.fyi/)
+
+2. **Sign In or Create Account**
+   - Sign in with your account
+   - If you don't have an account, create one
+
+3. **Get Your API Key**
+   - Navigate to API keys section
+   - Copy your API key (starts with `kdp_`)
+
+### Step 2: Add to .env.local
+
+Add this line to your `.env.local` file:
+
+```env
+KAS_FYI_API_KEY=kdp_your_api_key_here
+```
+
+**Important**: This key is used **server-side only** and is never exposed to the client.
+
+---
+
+## Setting Up WalletConnect Project ID
 
 This guide will walk you through getting and setting up your WalletConnect Project ID.
 
@@ -30,16 +69,21 @@ This guide will walk you through getting and setting up your WalletConnect Proje
    - In the root directory of your project (same level as `package.json`)
    - Create a new file named: `.env.local`
 
-2. **Add your Project ID**
+2. **Add your environment variables**
    - Open `.env.local` in a text editor
-   - Add this line (replace `YOUR_PROJECT_ID_HERE` with the ID you copied):
+   - Add these lines (replace with your actual values):
    
    ```env
+   # Kas.fyi API Key (server-side only)
+   KAS_FYI_API_KEY=kdp_your_api_key_here
+   
+   # WalletConnect Project ID (optional but recommended)
    NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=YOUR_PROJECT_ID_HERE
    ```
 
    **Example:**
    ```env
+   KAS_FYI_API_KEY=kdp_56c6d5e742aebabf6470561ef3ab41d1549097eca4ad0e5fe8402c20e417af29
    NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
    ```
 
@@ -76,21 +120,40 @@ When deploying to **Vercel**, **Netlify**, or other platforms:
 
 1. Go to your project settings on the platform
 2. Find **Environment Variables** or **Env Vars** section
-3. Add a new variable:
-   - **Name**: `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`
-   - **Value**: Your WalletConnect Project ID
+3. Add these variables:
+
+### Required Variables:
+
+**KAS_FYI_API_KEY** (Server-side only)
+- **Name**: `KAS_FYI_API_KEY`
+- **Value**: Your kas.fyi API key (starts with `kdp_`)
+- **Environment**: Production, Preview, Development (all environments)
+- **Important**: Do NOT use `NEXT_PUBLIC_` prefix - this keeps the key server-side only
+
+**NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID** (Optional but recommended)
+- **Name**: `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`
+- **Value**: Your WalletConnect Project ID
+- **Environment**: Production, Preview, Development (all environments)
+
 4. Redeploy your application
 
 ### Vercel Example:
 1. Go to your project in Vercel dashboard
 2. Click **Settings** → **Environment Variables**
-3. Click **Add New**
-4. Enter:
+3. Click **Add New** for each variable:
+   
+   **For KAS_FYI_API_KEY:**
+   - **Key**: `KAS_FYI_API_KEY`
+   - **Value**: `kdp_your_api_key_here`
+   - **Environment**: Production, Preview, Development
+   - Click **Save**
+   
+   **For WalletConnect (optional):**
    - **Key**: `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`
    - **Value**: `your-project-id-here`
-   - **Environment**: Production, Preview, Development (or select as needed)
-5. Click **Save**
-6. Redeploy
+   - **Environment**: Production, Preview, Development
+   - Click **Save**
+4. Go to **Deployments** tab and **Redeploy** your application
 
 ## Troubleshooting
 
@@ -124,9 +187,15 @@ kasparex-connect-wallet/
 └── ...
 ```
 
-## Security Note
+## Security Notes
 
-✅ **Good**: The `.env.local` file is already in `.gitignore`, so it won't be committed to your repository. This keeps your Project ID private.
+✅ **Good**: The `.env.local` file is already in `.gitignore`, so it won't be committed to your repository.
+
+✅ **API Key Security**: The `KAS_FYI_API_KEY` is stored server-side only (no `NEXT_PUBLIC_` prefix), so it's never exposed to the browser. All API calls go through secure Next.js API routes.
+
+✅ **WalletConnect Project ID**: The `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` is safe to expose to the client (it's a public identifier).
 
 ❌ **Never** commit environment variables with sensitive data to your repository!
+
+❌ **Never** use `NEXT_PUBLIC_` prefix for API keys or secrets - they will be exposed to the browser!
 
