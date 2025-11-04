@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { getUtxoEntries } from '@/lib/kaspa/kasware';
 import { sompisToKas } from '@/lib/kaspa/api';
 
@@ -55,12 +56,18 @@ export function UtxoViewerModal({ isOpen, onClose }: UtxoViewerModalProps) {
     return sum + (isNaN(amount) ? 0 : amount);
   }, 0);
 
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
+
+  const modalContent = (
     <>
-      <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed bottom-4 right-4 z-50 bg-white dark:bg-zinc-900 rounded-lg shadow-xl w-[calc(100vw-2rem)] sm:w-full max-w-2xl border border-zinc-200 dark:border-zinc-800 max-h-[90vh] flex flex-col">
+      <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed bottom-4 right-4 z-[100] bg-white dark:bg-zinc-900 rounded-lg shadow-xl w-[calc(100vw-2rem)] sm:w-full max-w-2xl border border-zinc-200 dark:border-zinc-800 max-h-[90vh] flex flex-col">
         <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
@@ -153,5 +160,7 @@ export function UtxoViewerModal({ isOpen, onClose }: UtxoViewerModalProps) {
       </div>
     </>
   );
+
+  return createPortal(modalContent, document.body);
 }
 

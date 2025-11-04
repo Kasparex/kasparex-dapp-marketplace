@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { createKRC20Order, buyKRC20Token, cancelKRC20Order } from '@/lib/kaspa/kasware';
 import { kasToSompis } from '@/lib/kaspa/api';
 
@@ -147,12 +148,18 @@ export function KRC20OrderModal({ isOpen, onClose, mode, currentBalance, krc20To
     }
   };
 
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
+
+  const modalContent = (
     <>
-      <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed bottom-4 right-4 z-50 bg-white dark:bg-zinc-900 rounded-lg shadow-xl w-[calc(100vw-2rem)] sm:w-full max-w-md border border-zinc-200 dark:border-zinc-800 max-h-[90vh] overflow-y-auto">
+      <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed bottom-4 right-4 z-[100] bg-white dark:bg-zinc-900 rounded-lg shadow-xl w-[calc(100vw-2rem)] sm:w-full max-w-md border border-zinc-200 dark:border-zinc-800 max-h-[90vh] overflow-y-auto">
         <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
@@ -374,5 +381,7 @@ export function KRC20OrderModal({ isOpen, onClose, mode, currentBalance, krc20To
       </div>
     </>
   );
+
+  return createPortal(modalContent, document.body);
 }
 
