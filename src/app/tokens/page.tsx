@@ -17,6 +17,12 @@ export default function TokensPage() {
         setIsLoading(true);
         setError(null);
         const kasplexTokens = await fetchTopKasplexTokens(20);
+        
+        if (kasplexTokens.length === 0) {
+          setError('No KRC-20 tokens found. The Kasplex Indexer API may be unavailable or the endpoint may have changed.');
+          return;
+        }
+        
         const convertedTokens = kasplexTokens.map(token => convertKasplexTokenToKRC20(token));
         setTokens(convertedTokens);
       } catch (err) {
@@ -82,7 +88,20 @@ export default function TokensPage() {
 
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
-              <p className="text-red-800 dark:text-red-300">{error}</p>
+              <p className="text-red-800 dark:text-red-300 font-medium mb-2">{error}</p>
+              <p className="text-sm text-red-700 dark:text-red-400">
+                Please check the browser console for more details. If the issue persists, the Kasplex Indexer API endpoint may have changed. 
+                Refer to the{' '}
+                <a 
+                  href="https://docs-kasplex.gitbook.io/krc20/tools-and-reference/kasplex-indexer-api/krc-20" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="underline hover:text-red-900 dark:hover:text-red-300"
+                >
+                  Kasplex Indexer API documentation
+                </a>
+                {' '}for the correct endpoint.
+              </p>
             </div>
           )}
 
