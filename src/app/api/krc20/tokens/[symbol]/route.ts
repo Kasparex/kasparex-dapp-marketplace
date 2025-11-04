@@ -56,10 +56,11 @@ function transformKasFyiToken(data: any): KRC20Token {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { symbol: string } }
+  { params }: { params: Promise<{ symbol: string }> }
 ) {
   try {
-    const symbol = params.symbol.toUpperCase();
+    const { symbol: symbolParam } = await params;
+    const symbol = symbolParam.toUpperCase();
     const endpointVariations = [
       `${KAS_FYI_API_BASE_URL}/v1/tokens/krc20/symbol/${encodeURIComponent(symbol)}`,
       `${KAS_FYI_API_BASE_URL}/v1/krc20/tokens/symbol/${encodeURIComponent(symbol)}`,
@@ -124,7 +125,8 @@ export async function GET(
       { status: 404 }
     );
   } catch (error: any) {
-    console.error(`Error fetching token ${params.symbol}:`, error);
+    const { symbol: symbolParam } = await params;
+    console.error(`Error fetching token ${symbolParam}:`, error);
     
     return NextResponse.json(
       {
