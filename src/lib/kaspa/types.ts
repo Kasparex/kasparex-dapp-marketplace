@@ -1,7 +1,7 @@
 /**
  * Native Kaspa Wallet Type Definitions
  * 
- * Types for native Kaspa wallet connections (KasWare, Kastle, etc.)
+ * Types for native Kaspa wallet connections (KasWare, etc.)
  */
 
 /**
@@ -9,7 +9,6 @@
  */
 export type KaspaWalletProvider = 
   | 'kasware'
-  | 'kastle'
   | 'kaspium'
   | 'okx'
   | 'safepal'

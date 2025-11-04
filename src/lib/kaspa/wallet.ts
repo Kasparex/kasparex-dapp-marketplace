@@ -25,12 +25,6 @@ export const KASPA_WALLET_PROVIDERS: Record<KaspaWalletProvider, Omit<KaspaWalle
     downloadUrl: 'https://chrome.google.com/webstore/detail/hklhheigdmpoolooomdihmhlpjjdbklf',
     documentationUrl: 'https://docs.kasware.xyz/wallet/',
   },
-  kastle: {
-    id: 'kastle',
-    name: 'Kastle',
-    downloadUrl: 'https://kastle.cc',
-    documentationUrl: 'https://docs.kastle.cc/',
-  },
   kaspium: {
     id: 'kaspium',
     name: 'Kaspium',
@@ -84,14 +78,6 @@ export function detectKaspaWallets(): KaspaWalletProviderInfo[] {
     });
   }
 
-  // Check Kastle - check for window.kastle (SDK detection will happen during connection)
-  if (win.kastle) {
-    providers.push({
-      ...KASPA_WALLET_PROVIDERS.kastle,
-      isInstalled: true,
-    });
-  }
-
   // Check Kaspium
   if (win.kaspium) {
     providers.push({
@@ -132,8 +118,6 @@ export function getWalletProvider(provider: KaspaWalletProvider): KaspaWalletPro
   switch (provider) {
     case 'kasware':
       return win.kasware || null;
-    case 'kastle':
-      return win.kastle || null;
     case 'kaspium':
       return win.kaspium || null;
     case 'okx':
@@ -179,67 +163,6 @@ export async function connectKaspaWallet(
           }
         } else {
           throw new Error('KasWare wallet API not available. Please update your KasWare extension.');
-        }
-        break;
-      }
-
-      case 'kastle': {
-        // Kastle uses SDK: @forbole/kastle-sdk
-        // Documentation: https://docs.kastle.cc/kastle-wallet-documentation/how-to-integrate/kastle-sdk
-        try {
-          const sdk = await import('@forbole/kastle-sdk');
-          
-          // Check if Kastle is installed
-          const isInstalled = await sdk.isWalletInstalled();
-          if (!isInstalled) {
-            throw new Error('Kastle wallet is not installed');
-          }
-          
-          // Connect to Kastle - connect() returns boolean
-          const connected = await sdk.connect();
-          if (!connected) {
-            throw new Error('Failed to connect to Kastle wallet. User may have rejected the connection.');
-          }
-          
-          // After connection, try to get the address
-          // The SDK might expose address through window.kastle after connection
-          if (win.kastle) {
-            const kastle = win.kastle as any;
-            // Try getAccounts first (Kastle API pattern)
-            if (typeof kastle.getAccounts === 'function') {
-              const accounts = await kastle.getAccounts();
-              address = Array.isArray(accounts) && accounts.length > 0 ? accounts[0] : null;
-            } 
-            // Try getSelectedAddress
-            else if (typeof kastle.getSelectedAddress === 'function') {
-              address = await kastle.getSelectedAddress();
-            }
-            // Try selectedAddress property
-            else if (kastle.selectedAddress) {
-              address = kastle.selectedAddress;
-            }
-          }
-          
-          // If still no address, try to get public key and derive address
-          // (This is a fallback - actual address retrieval may vary)
-          if (!address) {
-            try {
-              // Note: Getting public key doesn't give us the address directly
-              // but we'll try window.kastle methods as fallback
-              if (win.kastle) {
-                const kastle = win.kastle as any;
-                // Try any address-related methods
-                if (typeof kastle.getAddress === 'function') {
-                  address = await kastle.getAddress();
-                }
-              }
-            } catch {
-              // Ignore - we'll throw error below if no address found
-            }
-          }
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          throw new Error(`Failed to connect to Kastle: ${errorMessage}`);
         }
         break;
       }
