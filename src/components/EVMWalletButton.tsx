@@ -20,6 +20,7 @@ export function EVMWalletButton() {
   const { openChainModal } = useChainModal();
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { data: balance } = useBalance({
@@ -73,6 +74,15 @@ export function EVMWalletButton() {
     const handleChangeNetwork = () => {
       openChainModal?.();
       setIsDropdownOpen(false);
+    };
+
+    const handleCopyAddress = async () => {
+      if (address) {
+        await navigator.clipboard.writeText(address);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+        setIsDropdownOpen(false);
+      }
     };
 
     const handleDisconnect = () => {
@@ -164,6 +174,21 @@ export function EVMWalletButton() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                 </svg>
                 Change Network
+              </button>
+              
+              <button
+                onClick={handleCopyAddress}
+                className="w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-2"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                {copied ? 'Copied!' : 'Copy Address'}
               </button>
               
               <div className="border-t border-zinc-200 dark:border-zinc-800 my-1" />

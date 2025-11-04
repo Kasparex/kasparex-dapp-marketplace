@@ -15,6 +15,7 @@ interface KasWareWindow {
     requestAccounts(): Promise<string[]>;
     signMessage(message: string): Promise<string>;
     getAddress(): Promise<string | null>;
+    getBalance(): Promise<string | number | { balance: string | number } | null>;
     isConnected(): boolean;
     disconnect(): Promise<void>;
     on(event: 'accountsChanged', callback: (accounts: string[]) => void): void;
@@ -78,9 +79,52 @@ export function KasWareWalletButton() {
 
     const fetchBalance = async () => {
       try {
-        // Remove kaspa: prefix for API call (API expects address without prefix)
-        const addressWithoutPrefix = address.replace(/^kaspa:/i, '');
+        const kasware = (window as KasWareWindow).kasware;
         
+        if (!kasware || !kasware.isConnected()) {
+          if (!isCancelled && currentBalance === null) {
+            setBalance('0.00');
+          }
+          return;
+        }
+
+        // Try KasWare's getBalance() method first
+        if (typeof kasware.getBalance === 'function') {
+          try {
+            const balanceResult = await kasware.getBalance();
+            
+            if (!isCancelled) {
+              let balanceValue: string | number | null = null;
+              
+              // Handle different response formats
+              if (typeof balanceResult === 'string' || typeof balanceResult === 'number') {
+                balanceValue = balanceResult;
+              } else if (balanceResult && typeof balanceResult === 'object' && 'balance' in balanceResult) {
+                balanceValue = balanceResult.balance;
+              }
+
+              if (balanceValue !== null && balanceValue !== undefined && balanceValue !== '') {
+                const balanceNum = typeof balanceValue === 'string' ? parseFloat(balanceValue) : balanceValue;
+                if (!isNaN(balanceNum) && balanceNum >= 0) {
+                  // Balance might be in sompis or KAS - check if it's a large number (sompis)
+                  // If > 1 million, likely in sompis, otherwise assume KAS
+                  const kasBalance = balanceNum > 1000000 
+                    ? (balanceNum / 100000000).toFixed(2) 
+                    : balanceNum.toFixed(2);
+                  currentBalance = kasBalance;
+                  setBalance(kasBalance);
+                  console.log(`KasWare balance from wallet: ${kasBalance} KAS`);
+                  return;
+                }
+              }
+            }
+          } catch (walletError) {
+            console.warn('KasWare getBalance() failed, trying API fallback:', walletError);
+          }
+        }
+
+        // Fallback to API if getBalance() is not available or failed
+        const addressWithoutPrefix = address.replace(/^kaspa:/i, '');
         const response = await fetch(`/api/kaspa/balance?address=${encodeURIComponent(addressWithoutPrefix)}`, {
           method: 'GET',
           headers: {
@@ -103,14 +147,9 @@ export function KasWareWalletButton() {
               const kasBalance = (balanceNum / 100000000).toFixed(2);
               currentBalance = kasBalance;
               setBalance(kasBalance);
-              console.log(`KasWare balance fetched: ${kasBalance} KAS (from ${result.source || 'api'})`);
+              console.log(`KasWare balance from API: ${kasBalance} KAS (from ${result.source || 'api'})`);
               return;
-            } else {
-              console.warn('Invalid balance number:', result.balance);
             }
-          } else {
-            console.warn('Balance API returned error:', result.error || 'Unknown error');
-            console.warn('API response:', result);
           }
           
           // Only set to 0 if we don't have a previous balance
@@ -121,7 +160,6 @@ export function KasWareWalletButton() {
       } catch (error) {
         console.error('Failed to fetch balance:', error);
         if (!isCancelled && currentBalance === null) {
-          // Only set to 0 if we don't have a balance yet
           setBalance('0.00');
         }
       }
