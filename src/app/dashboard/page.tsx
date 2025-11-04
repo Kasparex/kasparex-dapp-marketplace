@@ -117,10 +117,15 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Error State */}
-          {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
-              <p className="text-red-800 dark:text-red-300 font-medium mb-2">{error}</p>
+          {/* Error State - Only show if we have no data at all */}
+          {error && (!networkStats || !networkStats.networkInfo.blockHeight) && (
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
+              <p className="text-yellow-800 dark:text-yellow-300 font-medium mb-2">
+                ⚠️ Unable to fetch full network data. Some information may be limited.
+              </p>
+              <p className="text-sm text-yellow-700 dark:text-yellow-400 mb-3">
+                This could be due to API rate limits or temporary network issues. The dashboard will continue to attempt fetching data.
+              </p>
               <button
                 onClick={loadData}
                 className="px-4 py-2 bg-[#02abb8] text-white rounded-lg hover:bg-[#028a94] transition-colors text-sm font-medium"

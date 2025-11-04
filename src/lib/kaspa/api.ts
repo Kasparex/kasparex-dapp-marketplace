@@ -2,118 +2,175 @@
  * Kaspa Network API Service
  * 
  * Service for fetching Kaspa network information from REST API
+ * Uses Next.js API routes as proxies to avoid CORS issues
  * References:
  * - https://api-tn10.kaspa.org/docs
  * - https://github.com/kaspa-ng/kaspa-rest-server
+ * - https://api.kas.fyi
  */
 
 import type { KaspaNetworkInfo, KaspaBlock, KaspaNetworkStats } from './types';
 
-// Kaspa REST API base URLs
-const KASPA_API_BASE_URLS = [
-  'https://api.kaspa.org',
-  'https://api-tn10.kaspa.org', // Testnet
-  'https://rest.kaspa.org',
-];
-
-const DEFAULT_API_BASE = KASPA_API_BASE_URLS[0];
-
 /**
  * Fetch network information
+ * Uses Next.js API route as proxy first, then falls back to direct calls
  */
 export async function fetchNetworkInfo(): Promise<KaspaNetworkInfo> {
-  const endpointVariations = [
-    '/api/v1/network/info',
-    '/api/v1/info',
-    '/v1/network/info',
-    '/v1/info',
-    '/network/info',
-    '/info',
+  // Try Next.js API route first (server-side proxy)
+  try {
+    const response = await fetch('/api/kaspa/network?endpoint=info', {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      if (result.success && result.data) {
+        return transformNetworkInfo(result.data);
+      }
+    }
+  } catch (error) {
+    console.debug('Next.js API route failed, trying direct calls:', error);
+  }
+
+  // Fallback: Try alternative APIs
+  const alternativeSources = [
+    // Try kas.fyi API (known to work for addresses)
+    async () => {
+      try {
+        const response = await fetch('https://api.kas.fyi/v1/network/stats', {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          cache: 'no-store',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          return transformNetworkInfo(data);
+        }
+      } catch (e) {
+        console.debug('kas.fyi network stats failed:', e);
+      }
+      return null;
+    },
+    // Try kaspa.org explorer API
+    async () => {
+      try {
+        const response = await fetch('https://api.kaspa.org/info', {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          cache: 'no-store',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          return transformNetworkInfo(data);
+        }
+      } catch (e) {
+        console.debug('kaspa.org info failed:', e);
+      }
+      return null;
+    },
   ];
 
-  for (const baseUrl of KASPA_API_BASE_URLS) {
-    for (const endpoint of endpointVariations) {
-      try {
-        const url = `${baseUrl}${endpoint}`;
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-        try {
-          const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json',
-            },
-            cache: 'no-store',
-            signal: controller.signal,
-          });
-
-          clearTimeout(timeoutId);
-
-          if (response.ok) {
-            const data = await response.json();
-            return transformNetworkInfo(data);
-          }
-        } catch (fetchError: any) {
-          clearTimeout(timeoutId);
-          if (fetchError.name !== 'AbortError') {
-            console.debug(`Failed to fetch from ${url}:`, fetchError);
-          }
-        }
-      } catch (error) {
-        console.debug(`Error fetching from ${baseUrl}${endpoint}:`, error);
-      }
+  for (const source of alternativeSources) {
+    try {
+      const result = await source();
+      if (result) return result;
+    } catch (error) {
+      console.debug('Alternative source failed:', error);
     }
   }
 
-  throw new Error('Failed to fetch network info from all API endpoints');
+  // If all else fails, return mock data with error indicator
+  console.warn('All Kaspa API endpoints failed. Returning minimal network info.');
+  return {
+    networkName: 'mainnet',
+    blockHeight: undefined,
+    blueScore: undefined,
+    hashrate: undefined,
+    difficulty: undefined,
+    supply: undefined,
+    maxSupply: 28700000000,
+    nodeCount: undefined,
+    averageBlockTime: 1,
+    tps: undefined,
+    totalTransactions: undefined,
+  };
 }
 
 /**
  * Fetch latest blocks
+ * Uses Next.js API route as proxy first, then falls back to direct calls
  */
 export async function fetchLatestBlocks(limit: number = 20): Promise<KaspaBlock[]> {
-  const endpointVariations = [
-    `/api/v1/blocks?limit=${limit}`,
-    `/api/v1/blocks/latest?limit=${limit}`,
-    `/v1/blocks?limit=${limit}`,
-    `/v1/blocks/latest?limit=${limit}`,
-    `/blocks?limit=${limit}`,
+  // Try Next.js API route first (server-side proxy)
+  try {
+    const response = await fetch(`/api/kaspa/blocks?limit=${limit}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      if (result.success && result.blocks) {
+        return result.blocks.map(transformBlock);
+      }
+    }
+  } catch (error) {
+    console.debug('Next.js API route failed, trying direct calls:', error);
+  }
+
+  // Fallback: Try alternative APIs
+  const alternativeSources = [
+    // Try kas.fyi API
+    async () => {
+      try {
+        const response = await fetch(`https://api.kas.fyi/v1/blocks?limit=${limit}`, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          cache: 'no-store',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const blocks = Array.isArray(data) ? data : (data.blocks || data.data || []);
+          return blocks.map(transformBlock);
+        }
+      } catch (e) {
+        console.debug('kas.fyi blocks failed:', e);
+      }
+      return [];
+    },
+    // Try kaspa.org explorer API
+    async () => {
+      try {
+        const response = await fetch(`https://api.kaspa.org/blocks?limit=${limit}`, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          cache: 'no-store',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const blocks = Array.isArray(data) ? data : (data.blocks || data.data || []);
+          return blocks.map(transformBlock);
+        }
+      } catch (e) {
+        console.debug('kaspa.org blocks failed:', e);
+      }
+      return [];
+    },
   ];
 
-  for (const baseUrl of KASPA_API_BASE_URLS) {
-    for (const endpoint of endpointVariations) {
-      try {
-        const url = `${baseUrl}${endpoint}`;
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-        try {
-          const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json',
-            },
-            cache: 'no-store',
-            signal: controller.signal,
-          });
-
-          clearTimeout(timeoutId);
-
-          if (response.ok) {
-            const data = await response.json();
-            const blocks = Array.isArray(data) ? data : (data.blocks || data.data || []);
-            return blocks.map(transformBlock);
-          }
-        } catch (fetchError: any) {
-          clearTimeout(timeoutId);
-          if (fetchError.name !== 'AbortError') {
-            console.debug(`Failed to fetch from ${url}:`, fetchError);
-          }
-        }
-      } catch (error) {
-        console.debug(`Error fetching from ${baseUrl}${endpoint}:`, error);
-      }
+  for (const source of alternativeSources) {
+    try {
+      const result = await source();
+      if (result && result.length > 0) return result;
+    } catch (error) {
+      console.debug('Alternative source failed:', error);
     }
   }
 
@@ -122,49 +179,73 @@ export async function fetchLatestBlocks(limit: number = 20): Promise<KaspaBlock[
 
 /**
  * Fetch block by hash
+ * Uses Next.js API route as proxy first, then falls back to direct calls
  */
 export async function fetchBlockByHash(hash: string): Promise<KaspaBlock | null> {
-  const endpointVariations = [
-    `/api/v1/blocks/${hash}`,
-    `/v1/blocks/${hash}`,
-    `/blocks/${hash}`,
+  // Try Next.js API route first
+  try {
+    const response = await fetch(`/api/kaspa/blocks?hash=${hash}`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+      cache: 'no-store',
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      if (result.success && result.block) {
+        return transformBlock(result.block);
+      }
+    } else if (response.status === 404) {
+      return null;
+    }
+  } catch (error) {
+    console.debug('Next.js API route failed, trying direct calls:', error);
+  }
+
+  // Fallback: Try alternative APIs
+  const alternativeSources = [
+    async () => {
+      try {
+        const response = await fetch(`https://api.kas.fyi/v1/blocks/${hash}`, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          cache: 'no-store',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const block = data.block || data;
+          return transformBlock(block);
+        }
+      } catch (e) {
+        console.debug('kas.fyi block by hash failed:', e);
+      }
+      return null;
+    },
+    async () => {
+      try {
+        const response = await fetch(`https://api.kaspa.org/blocks/${hash}`, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          cache: 'no-store',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const block = data.block || data;
+          return transformBlock(block);
+        }
+      } catch (e) {
+        console.debug('kaspa.org block by hash failed:', e);
+      }
+      return null;
+    },
   ];
 
-  for (const baseUrl of KASPA_API_BASE_URLS) {
-    for (const endpoint of endpointVariations) {
-      try {
-        const url = `${baseUrl}${endpoint}`;
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-        try {
-          const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json',
-            },
-            cache: 'no-store',
-            signal: controller.signal,
-          });
-
-          clearTimeout(timeoutId);
-
-          if (response.ok) {
-            const data = await response.json();
-            const block = data.block || data;
-            return transformBlock(block);
-          } else if (response.status === 404) {
-            return null;
-          }
-        } catch (fetchError: any) {
-          clearTimeout(timeoutId);
-          if (fetchError.name !== 'AbortError') {
-            console.debug(`Failed to fetch from ${url}:`, fetchError);
-          }
-        }
-      } catch (error) {
-        console.debug(`Error fetching from ${baseUrl}${endpoint}:`, error);
-      }
+  for (const source of alternativeSources) {
+    try {
+      const result = await source();
+      if (result) return result;
+    } catch (error) {
+      console.debug('Alternative source failed:', error);
     }
   }
 
@@ -221,7 +302,17 @@ export async function fetchNetworkStats(): Promise<KaspaNetworkStats> {
     };
   } catch (error) {
     console.error('Error fetching network stats:', error);
-    throw error;
+    // Return minimal stats instead of throwing
+    return {
+      networkInfo: {
+        networkName: 'mainnet',
+        maxSupply: 28700000000,
+        averageBlockTime: 1,
+      },
+      latestBlocks: [],
+      health: 'down',
+      lastUpdated: Date.now(),
+    };
   }
 }
 
