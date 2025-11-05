@@ -57,6 +57,28 @@ export function SimplePaymentWidget() {
     console.error('Error accessing CONTRACT_ADDRESSES', e);
   }
 
+  // Hardcode testnet address as fallback if env var is missing
+  // This is a temporary workaround for testing
+  if (!contractAddress && chainId === 167012) {
+    contractAddress = '0x3F19cC54231fB10b1935FA3f04Bec64b8AFeAd85'; // Testnet SimplePayment address
+    console.warn('Using hardcoded testnet contract address');
+  }
+
+  if (!subscriptionManagerAddress && chainId === 167012) {
+    subscriptionManagerAddress = '0x0F405c342e9596621430C5f888D673d40111a0ac'; // Testnet SubscriptionManager address
+  }
+
+  // Debug logging
+  console.log('SimplePaymentWidget Debug:', {
+    chainId,
+    contractAddress,
+    subscriptionManagerAddress,
+    hasContractAddress: !!contractAddress,
+    recipientAddress: !!recipientAddress,
+    amount,
+    amountBigInt: amountBigInt.toString(),
+  });
+
   // Check subscription access (only if we have addresses)
   const { data: hasAccess, isLoading: isLoadingAccess } = useReadContract({
     address: subscriptionManagerAddress as `0x${string}`,
