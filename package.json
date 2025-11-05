@@ -7,9 +7,16 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "hardhat:compile": "hardhat compile",
+    "hardhat:test": "hardhat test",
+    "hardhat:deploy": "hardhat run scripts/deploy.js",
+    "hardhat:deploy:testnet": "hardhat run scripts/deploy.js --network kasplexL2Testnet",
+    "hardhat:deploy:mainnet": "hardhat run scripts/deploy.js --network kasplexL2Mainnet",
+    "hardhat:configure": "hardhat run scripts/configure-treasury.js"
   },
   "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0",
     "@rainbow-me/rainbowkit": "^2.2.9",
     "@tanstack/react-query": "^5.81.5",
     "next": "15.4.6",
@@ -19,15 +26,23 @@
     "wagmi": "^2.19.2"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.1.3",
+    "@typechain/ethers-v6": "^0.4.3",
+    "@typechain/hardhat": "^8.0.3",
     "@types/node": "^20",
     "@types/react": "19.1.10",
     "@types/react-dom": "19.1.7",
     "autoprefixer": "^10.0.1",
+    "dotenv": "^17.2.3",
     "eslint": "^8",
     "eslint-config-next": "15.4.6",
+    "ethers": "^6.15.0",
+    "hardhat": "^2.26.5",
     "postcss": "^8",
     "prettier": "^3.6.2",
     "tailwindcss": "^3.3.0",
+    "typechain": "^8.3.2",
     "typescript": "^5"
   },
   "pnpm": {

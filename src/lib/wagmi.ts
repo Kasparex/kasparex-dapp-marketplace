@@ -52,7 +52,7 @@ export const kasplexL2Testnet = defineChain({
   blockExplorers: {
     default: {
       name: 'Kasplex Testnet Explorer',
-      url: 'https://frontend.kasplextest.xyz',
+      url: 'https://explorer.testnet.kasplextest.xyz',
     },
   },
   testnet: true,
