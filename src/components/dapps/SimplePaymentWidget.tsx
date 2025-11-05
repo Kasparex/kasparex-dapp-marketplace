@@ -201,7 +201,7 @@ export function SimplePaymentWidget() {
       // Use ABI (fallback ensures it's always available)
       const abiToUse = SIMPLE_PAYMENT_ABI || SIMPLE_PAYMENT_ABI_FALLBACK;
       
-      if (!abiToUse || (Array.isArray(abiToUse) && abiToUse.length === 0)) {
+      if (!abiToUse) {
         console.error('ABI is still not available');
         setError('Contract ABI not loaded. Please refresh the page.');
         return;
