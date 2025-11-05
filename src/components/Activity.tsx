@@ -31,11 +31,13 @@ export function Activity({ walletAddress }: ActivityProps) {
   const [loading, setLoading] = useState(true);
   const [copiedHash, setCopiedHash] = useState<string | null>(null);
 
-  // Get contract addresses with fallback
-  const getSimplePaymentAddress = () => {
+  // Get contract addresses with fallback (same pattern as SimplePaymentWidget)
+  const getSimplePaymentAddress = (): string => {
     let address = '';
+    
+    // Try using getContractAddress function
     try {
-      if (typeof getContractAddress === 'function') {
+      if (CONTRACT_ADDRESSES && typeof getContractAddress === 'function') {
         address = getContractAddress(chainId, 'SimplePayment') || '';
       }
     } catch (e) {
@@ -43,11 +45,17 @@ export function Activity({ walletAddress }: ActivityProps) {
     }
     
     // Fallback to direct CONTRACT_ADDRESSES access
-    if (!address && CONTRACT_ADDRESSES) {
-      if (chainId === 202555 && CONTRACT_ADDRESSES.kasplexL2Mainnet) {
-        address = CONTRACT_ADDRESSES.kasplexL2Mainnet.SimplePayment || '';
-      } else if (chainId === 167012 && CONTRACT_ADDRESSES.kasplexL2Testnet) {
-        address = CONTRACT_ADDRESSES.kasplexL2Testnet.SimplePayment || '';
+    if (!address) {
+      try {
+        if (CONTRACT_ADDRESSES) {
+          if (chainId === 202555 && CONTRACT_ADDRESSES.kasplexL2Mainnet) {
+            address = CONTRACT_ADDRESSES.kasplexL2Mainnet.SimplePayment || '';
+          } else if (chainId === 167012 && CONTRACT_ADDRESSES.kasplexL2Testnet) {
+            address = CONTRACT_ADDRESSES.kasplexL2Testnet.SimplePayment || '';
+          }
+        }
+      } catch (e) {
+        console.error('Error accessing CONTRACT_ADDRESSES', e);
       }
     }
     
