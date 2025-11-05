@@ -266,6 +266,18 @@ export function SimplePaymentWidget() {
             </div>
           )}
 
+          {/* Debug Info (development only) */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="p-3 bg-gray-100 dark:bg-gray-900 rounded-lg text-xs space-y-1">
+              <p>Debug: contractAddress = {contractAddress || 'EMPTY'}</p>
+              <p>Debug: chainId = {chainId}</p>
+              <p>Debug: recipientAddress = {recipientAddress ? 'SET' : 'EMPTY'}</p>
+              <p>Debug: amount = {amount || 'EMPTY'}</p>
+              <p>Debug: amountBigInt = {amountBigInt.toString()}</p>
+              <p>Debug: Button disabled = {String(isLoading || !recipientAddress || !amount || amountBigInt === 0n || !contractAddress)}</p>
+            </div>
+          )}
+
           {/* Send Button */}
           <button
             onClick={handleSendPayment}
