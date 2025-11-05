@@ -27,29 +27,34 @@ export function SimplePaymentWidget() {
   let subscriptionManagerAddress = '';
   
   try {
-    if (typeof getContractAddress === 'function') {
+    // Ensure CONTRACT_ADDRESSES exists
+    if (CONTRACT_ADDRESSES && typeof getContractAddress === 'function') {
       contractAddress = getContractAddress(chainId, 'SimplePayment') || '';
       subscriptionManagerAddress = getContractAddress(chainId, 'SubscriptionManager') || '';
     }
   } catch (e) {
-    console.warn('getContractAddress not available, using fallback');
+    console.warn('getContractAddress not available, using fallback', e);
   }
   
   // Fallback to direct CONTRACT_ADDRESSES access
-  if (!contractAddress) {
-    contractAddress = chainId === 202555 
-      ? CONTRACT_ADDRESSES.kasplexL2Mainnet.SimplePayment 
-      : chainId === 167012 
-      ? CONTRACT_ADDRESSES.kasplexL2Testnet.SimplePayment 
-      : '';
-  }
-  
-  if (!subscriptionManagerAddress) {
-    subscriptionManagerAddress = chainId === 202555 
-      ? CONTRACT_ADDRESSES.kasplexL2Mainnet.SubscriptionManager 
-      : chainId === 167012 
-      ? CONTRACT_ADDRESSES.kasplexL2Testnet.SubscriptionManager 
-      : '';
+  try {
+    if (!contractAddress && CONTRACT_ADDRESSES) {
+      if (chainId === 202555 && CONTRACT_ADDRESSES.kasplexL2Mainnet) {
+        contractAddress = CONTRACT_ADDRESSES.kasplexL2Mainnet.SimplePayment || '';
+      } else if (chainId === 167012 && CONTRACT_ADDRESSES.kasplexL2Testnet) {
+        contractAddress = CONTRACT_ADDRESSES.kasplexL2Testnet.SimplePayment || '';
+      }
+    }
+    
+    if (!subscriptionManagerAddress && CONTRACT_ADDRESSES) {
+      if (chainId === 202555 && CONTRACT_ADDRESSES.kasplexL2Mainnet) {
+        subscriptionManagerAddress = CONTRACT_ADDRESSES.kasplexL2Mainnet.SubscriptionManager || '';
+      } else if (chainId === 167012 && CONTRACT_ADDRESSES.kasplexL2Testnet) {
+        subscriptionManagerAddress = CONTRACT_ADDRESSES.kasplexL2Testnet.SubscriptionManager || '';
+      }
+    }
+  } catch (e) {
+    console.error('Error accessing CONTRACT_ADDRESSES', e);
   }
 
   // Check subscription access
