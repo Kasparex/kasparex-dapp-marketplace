@@ -75,7 +75,7 @@ export function SimplePaymentWidget() {
     functionName: 'hasAccess',
     args: [address || '0x0', contractAddress || '0x0'],
     query: {
-      enabled: isConnected && !!address && !!subscriptionManagerAddress && !!contractAddress && subscriptionManagerAddress.length > 0 && contractAddress.length > 0,
+      enabled: isConnected && !!address && !!subscriptionManagerAddress && !!contractAddress && typeof subscriptionManagerAddress === 'string' && typeof contractAddress === 'string' && subscriptionManagerAddress.length > 0 && contractAddress.length > 0,
     },
   });
 
@@ -145,8 +145,25 @@ export function SimplePaymentWidget() {
       return;
     }
 
-    if (!contractAddress) {
+    if (!contractAddress || contractAddress.length === 0) {
       setError('Contract not deployed on this network');
+      return;
+    }
+
+    // Validate recipient address format
+    if (!recipientAddress || recipientAddress.length === 0) {
+      setError('Please enter a valid recipient address');
+      return;
+    }
+
+    // Ensure addresses are valid hex strings
+    if (!recipientAddress.startsWith('0x') || recipientAddress.length !== 42) {
+      setError('Invalid recipient address format. Must be a valid Ethereum address (0x followed by 40 hex characters)');
+      return;
+    }
+
+    if (!contractAddress.startsWith('0x') || contractAddress.length !== 42) {
+      setError('Invalid contract address format');
       return;
     }
 
@@ -159,7 +176,14 @@ export function SimplePaymentWidget() {
         value: amountBigInt,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send payment');
+      console.error('Write contract error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to send payment';
+      // Handle common errors
+      if (errorMessage.includes('length')) {
+        setError('Address validation error. Please check the recipient address format.');
+      } else {
+        setError(errorMessage);
+      }
     }
   };
 
