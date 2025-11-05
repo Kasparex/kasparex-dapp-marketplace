@@ -17,6 +17,8 @@ interface ActivityItem {
   recipient?: string;
   status: 'pending' | 'success' | 'failed';
   blockNumber?: bigint;
+  network?: 'testnet' | 'mainnet';
+  chainId?: number;
 }
 
 interface ActivityProps {
@@ -89,9 +91,30 @@ export function Activity({ walletAddress }: ActivityProps) {
         setLoading(true);
         const activitiesList: ActivityItem[] = [];
 
-        // Get recent blocks (last 100 blocks)
+        // Get all transactions from deployment block (or block 0 if not available)
+        // For testnet, we'll use a reasonable starting point, for mainnet we'll fetch from deployment
         const currentBlock = await publicClient.getBlockNumber();
-        const fromBlock = currentBlock > 100n ? currentBlock - 100n : 0n;
+        // Fetch from a much wider range - last 10,000 blocks (approximately 1-2 days depending on block time)
+        // For production, you might want to fetch from deployment block or use an indexing service
+        const fromBlock = currentBlock > 10000n ? currentBlock - 10000n : 0n;
+        
+        // Also load persisted transactions from localStorage
+        const storageKey = `activity_${walletAddress.toLowerCase()}_${chainId}`;
+        const persistedActivities = localStorage.getItem(storageKey);
+        let existingActivities: ActivityItem[] = [];
+        if (persistedActivities) {
+          try {
+            existingActivities = JSON.parse(persistedActivities);
+            // Filter out activities older than 90 days to prevent localStorage from getting too large
+            const ninetyDaysAgo = Date.now() / 1000 - (90 * 24 * 60 * 60);
+            existingActivities = existingActivities.filter(activity => activity.timestamp > ninetyDaysAgo);
+          } catch (e) {
+            console.error('Error parsing persisted activities:', e);
+          }
+        }
+        
+        // Create a map of existing activities by hash to avoid duplicates
+        const existingHashes = new Set(existingActivities.map(a => a.hash.toLowerCase()));
 
         // Fetch events from SimplePayment contract
         if (simplePaymentAddress && simplePaymentAddress.startsWith('0x') && simplePaymentAddress.length === 42) {
@@ -133,56 +156,77 @@ export function Activity({ walletAddress }: ActivityProps) {
                 } catch (decodeError) {
                   console.error('Error decoding event log:', decodeError);
                   // Fallback: use basic info
-                  activitiesList.push({
-                    hash: log.transactionHash,
-                    timestamp: Number(block.timestamp),
-                    type: 'payment',
-                    dAppName: 'Simple Payment',
-                    dAppSlug: 'simple-payment',
-                    status: tx && tx.blockNumber ? 'success' : 'pending',
-                    blockNumber: log.blockNumber,
-                  });
+                  const txHash = log.transactionHash.toLowerCase();
+                  if (!existingHashes.has(txHash)) {
+                    activitiesList.push({
+                      hash: log.transactionHash,
+                      timestamp: Number(block.timestamp),
+                      type: 'payment',
+                      dAppName: 'Simple Payment',
+                      dAppSlug: 'simple-payment',
+                      status: tx && tx.blockNumber ? 'success' : 'pending',
+                      blockNumber: log.blockNumber,
+                      network: chainId === 167012 ? 'testnet' : chainId === 202555 ? 'mainnet' : undefined,
+                      chainId: chainId,
+                    });
+                  }
                   continue;
                 }
                 
                 const args = decodedLog.args as any;
                 
-                activitiesList.push({
-                  hash: log.transactionHash,
-                  timestamp: Number(block.timestamp),
-                  type: 'payment',
-                  dAppName: 'Simple Payment',
-                  dAppSlug: 'simple-payment',
-                  amount: formatEther(args.amount || 0n),
-                  recipient: args.to || args._to,
-                  status: tx && tx.blockNumber ? 'success' : 'pending',
-                  blockNumber: log.blockNumber,
-                });
-              } catch (err) {
-                console.error('Error processing payment event:', err);
-                // Still add the transaction with basic info
-                try {
-                  const block = await publicClient.getBlock({ blockNumber: log.blockNumber });
+                // Only add if not already in persisted activities
+                const txHash = log.transactionHash.toLowerCase();
+                if (!existingHashes.has(txHash)) {
                   activitiesList.push({
                     hash: log.transactionHash,
                     timestamp: Number(block.timestamp),
                     type: 'payment',
                     dAppName: 'Simple Payment',
                     dAppSlug: 'simple-payment',
-                    status: 'success',
+                    amount: formatEther(args.amount || 0n),
+                    recipient: args.to || args._to,
+                    status: tx && tx.blockNumber ? 'success' : 'pending',
                     blockNumber: log.blockNumber,
+                    network: chainId === 167012 ? 'testnet' : chainId === 202555 ? 'mainnet' : undefined,
+                    chainId: chainId,
                   });
+                }
+              } catch (err) {
+                console.error('Error processing payment event:', err);
+                // Still add the transaction with basic info
+                try {
+                  const block = await publicClient.getBlock({ blockNumber: log.blockNumber });
+                  const txHash = log.transactionHash.toLowerCase();
+                  if (!existingHashes.has(txHash)) {
+                    activitiesList.push({
+                      hash: log.transactionHash,
+                      timestamp: Number(block.timestamp),
+                      type: 'payment',
+                      dAppName: 'Simple Payment',
+                      dAppSlug: 'simple-payment',
+                      status: 'success',
+                      blockNumber: log.blockNumber,
+                      network: chainId === 167012 ? 'testnet' : chainId === 202555 ? 'mainnet' : undefined,
+                      chainId: chainId,
+                    });
+                  }
                 } catch (blockError) {
                   // Last resort: use current time
-                  activitiesList.push({
-                    hash: log.transactionHash,
-                    timestamp: Date.now() / 1000,
-                    type: 'payment',
-                    dAppName: 'Simple Payment',
-                    dAppSlug: 'simple-payment',
-                    status: 'success',
-                    blockNumber: log.blockNumber,
-                  });
+                  const txHash = log.transactionHash.toLowerCase();
+                  if (!existingHashes.has(txHash)) {
+                    activitiesList.push({
+                      hash: log.transactionHash,
+                      timestamp: Date.now() / 1000,
+                      type: 'payment',
+                      dAppName: 'Simple Payment',
+                      dAppSlug: 'simple-payment',
+                      status: 'success',
+                      blockNumber: log.blockNumber,
+                      network: chainId === 167012 ? 'testnet' : chainId === 202555 ? 'mainnet' : undefined,
+                      chainId: chainId,
+                    });
+                  }
                 }
               }
             }
@@ -191,10 +235,30 @@ export function Activity({ walletAddress }: ActivityProps) {
           }
         }
 
-        // Sort by timestamp (newest first)
-        activitiesList.sort((a, b) => b.timestamp - a.timestamp);
+        // Merge with existing persisted activities
+        const allActivities = [...existingActivities, ...activitiesList];
+        
+        // Remove duplicates by hash (keep newest)
+        const uniqueActivities = new Map<string, ActivityItem>();
+        for (const activity of allActivities) {
+          const hash = activity.hash.toLowerCase();
+          const existing = uniqueActivities.get(hash);
+          if (!existing || activity.timestamp > existing.timestamp) {
+            uniqueActivities.set(hash, activity);
+          }
+        }
+        
+        // Convert back to array and sort by timestamp (newest first)
+        const sortedActivities = Array.from(uniqueActivities.values()).sort((a, b) => b.timestamp - a.timestamp);
+        
+        // Persist to localStorage
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(sortedActivities));
+        } catch (e) {
+          console.warn('Failed to persist activities to localStorage:', e);
+        }
 
-        setActivities(activitiesList);
+        setActivities(sortedActivities);
       } catch (error) {
         console.error('Error fetching activities:', error);
         // Set empty array on error to show "no activity" message
