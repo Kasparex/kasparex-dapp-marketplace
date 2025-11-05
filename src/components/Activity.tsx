@@ -76,6 +76,14 @@ export function Activity({ walletAddress }: ActivityProps) {
       return;
     }
 
+    // Validate wallet address format
+    if (!walletAddress.startsWith('0x') || walletAddress.length !== 42) {
+      console.error('Invalid wallet address format:', walletAddress);
+      setLoading(false);
+      setActivities([]);
+      return;
+    }
+
     const fetchTransactions = async () => {
       try {
         setLoading(true);
@@ -86,7 +94,7 @@ export function Activity({ walletAddress }: ActivityProps) {
         const fromBlock = currentBlock > 100n ? currentBlock - 100n : 0n;
 
         // Fetch events from SimplePayment contract
-        if (simplePaymentAddress) {
+        if (simplePaymentAddress && simplePaymentAddress.startsWith('0x') && simplePaymentAddress.length === 42) {
           try {
             const paymentEvents = await publicClient.getLogs({
               address: simplePaymentAddress as `0x${string}`,
@@ -102,7 +110,7 @@ export function Activity({ walletAddress }: ActivityProps) {
                 ],
               } as any,
               args: {
-                from: walletAddress as `0x${string}`,
+                from: walletAddress.toLowerCase() as `0x${string}`,
               } as any,
               fromBlock,
               toBlock: 'latest',
@@ -189,16 +197,23 @@ export function Activity({ walletAddress }: ActivityProps) {
         setActivities(activitiesList);
       } catch (error) {
         console.error('Error fetching activities:', error);
+        // Set empty array on error to show "no activity" message
+        setActivities([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTransactions();
+    // Only fetch if we have all required data
+    if (publicClient && walletAddress && simplePaymentAddress) {
+      fetchTransactions();
 
-    // Poll for new transactions every 30 seconds
-    const interval = setInterval(fetchTransactions, 30000);
-    return () => clearInterval(interval);
+      // Poll for new transactions every 30 seconds
+      const interval = setInterval(fetchTransactions, 30000);
+      return () => clearInterval(interval);
+    } else {
+      setLoading(false);
+    }
   }, [publicClient, walletAddress, simplePaymentAddress]);
 
   const copyToClipboard = async (hash: string) => {
