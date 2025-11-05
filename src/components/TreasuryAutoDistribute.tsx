@@ -34,6 +34,13 @@ export function TreasuryAutoDistribute({ autoDistribute = false, onDistribute }:
     },
   });
 
+  // Convert balance to bigint safely
+  const balanceBigInt: bigint = balance && typeof balance === 'bigint' 
+    ? balance 
+    : balance 
+    ? BigInt(String(balance)) 
+    : 0n;
+
   // Write contract for distribution
   const { 
     writeContract, 
@@ -69,7 +76,6 @@ export function TreasuryAutoDistribute({ autoDistribute = false, onDistribute }:
   };
 
   // Auto-distribute if enabled and balance > 0
-  const balanceBigInt = balance && typeof balance === 'bigint' ? balance : (balance ? BigInt(balance.toString()) : 0n);
   const shouldAutoDistribute = autoDistribute && balanceBigInt > 0n && !isDistributing && !isPendingWrite && !isConfirming;
 
   if (shouldAutoDistribute) {
