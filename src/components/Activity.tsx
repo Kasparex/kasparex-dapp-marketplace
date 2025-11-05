@@ -71,18 +71,62 @@ export function Activity({ walletAddress }: ActivityProps) {
   
   const simplePaymentAddress = getSimplePaymentAddress();
 
-  // Fetch transactions for the wallet
+  // Load persisted activities from all networks on mount (runs first, before blockchain fetch)
+  useEffect(() => {
+    if (!walletAddress || !walletAddress.startsWith('0x') || walletAddress.length !== 42) {
+      return;
+    }
+    
+    const allPersistedActivities: ActivityItem[] = [];
+    
+    // Load from both testnet and mainnet
+    const testnetKey = `activity_${walletAddress.toLowerCase()}_167012`;
+    const mainnetKey = `activity_${walletAddress.toLowerCase()}_202555`;
+    
+    [testnetKey, mainnetKey].forEach(key => {
+      const persisted = localStorage.getItem(key);
+      if (persisted) {
+        try {
+          const parsed = JSON.parse(persisted);
+          allPersistedActivities.push(...parsed);
+        } catch (e) {
+          console.error('Error parsing persisted activities:', e);
+        }
+      }
+    });
+    
+    if (allPersistedActivities.length > 0) {
+      // Filter out activities older than 90 days
+      const ninetyDaysAgo = Date.now() / 1000 - (90 * 24 * 60 * 60);
+      const filtered = allPersistedActivities.filter(activity => activity.timestamp > ninetyDaysAgo);
+      
+      // Remove duplicates by hash (keep newest)
+      const uniqueActivities = new Map<string, ActivityItem>();
+      for (const activity of filtered) {
+        const hash = activity.hash.toLowerCase();
+        const existing = uniqueActivities.get(hash);
+        if (!existing || activity.timestamp > existing.timestamp) {
+          uniqueActivities.set(hash, activity);
+        }
+      }
+      
+      // Sort by timestamp (newest first)
+      const sorted = Array.from(uniqueActivities.values()).sort((a, b) => b.timestamp - a.timestamp);
+      
+      setActivities(sorted);
+      setLoading(false);
+    }
+  }, [walletAddress]);
+
+  // Fetch transactions for the wallet from blockchain
   useEffect(() => {
     if (!publicClient || !walletAddress) {
-      setLoading(false);
       return;
     }
 
     // Validate wallet address format
     if (!walletAddress.startsWith('0x') || walletAddress.length !== 42) {
       console.error('Invalid wallet address format:', walletAddress);
-      setLoading(false);
-      setActivities([]);
       return;
     }
 
@@ -318,25 +362,6 @@ export function Activity({ walletAddress }: ActivityProps) {
     );
   }
 
-  // Load persisted activities on initial render (even if not connected)
-  useEffect(() => {
-    const storageKey = `activity_${walletAddress.toLowerCase()}_${chainId}`;
-    const persistedActivities = localStorage.getItem(storageKey);
-    if (persistedActivities) {
-      try {
-        const parsed = JSON.parse(persistedActivities);
-        // Filter out activities older than 90 days
-        const ninetyDaysAgo = Date.now() / 1000 - (90 * 24 * 60 * 60);
-        const filtered = parsed.filter((activity: ActivityItem) => activity.timestamp > ninetyDaysAgo);
-        if (filtered.length > 0) {
-          setActivities(filtered);
-          setLoading(false);
-        }
-      } catch (e) {
-        console.error('Error loading persisted activities:', e);
-      }
-    }
-  }, [walletAddress, chainId]);
 
   if (!isConnected || !publicClient) {
     // Still show persisted activities even if not connected
