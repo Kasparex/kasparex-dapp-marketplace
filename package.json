@@ -13,7 +13,10 @@
     "hardhat:deploy": "hardhat run scripts/deploy.js",
     "hardhat:deploy:testnet": "hardhat run scripts/deploy.js --network kasplexL2Testnet",
     "hardhat:deploy:mainnet": "hardhat run scripts/deploy.js --network kasplexL2Mainnet",
-    "hardhat:configure": "hardhat run scripts/configure-treasury.js"
+    "hardhat:configure": "hardhat run scripts/configure-treasury.js",
+    "hardhat:verify": "hardhat run scripts/verify-contracts.js",
+    "hardhat:verify:testnet": "hardhat run scripts/verify-contracts.js --network kasplexL2Testnet",
+    "hardhat:verify:mainnet": "hardhat run scripts/verify-contracts.js --network kasplexL2Mainnet"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.4.0",
