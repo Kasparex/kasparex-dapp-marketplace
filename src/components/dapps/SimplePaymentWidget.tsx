@@ -168,9 +168,16 @@ export function SimplePaymentWidget() {
     }
 
     try {
-      // Ensure ABI is valid
-      if (!SIMPLE_PAYMENT_ABI || !Array.isArray(SIMPLE_PAYMENT_ABI)) {
+      // Ensure ABI is valid - check if it exists and has content
+      if (!SIMPLE_PAYMENT_ABI) {
+        console.error('SIMPLE_PAYMENT_ABI is undefined');
         setError('Contract ABI not available');
+        return;
+      }
+      
+      if (!Array.isArray(SIMPLE_PAYMENT_ABI) || SIMPLE_PAYMENT_ABI.length === 0) {
+        console.error('SIMPLE_PAYMENT_ABI is not a valid array or is empty', SIMPLE_PAYMENT_ABI);
+        setError('Contract ABI is not properly formatted');
         return;
       }
 
