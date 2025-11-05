@@ -132,6 +132,11 @@ export function DAppCard({ dapp }: DAppCardProps) {
               >
                 {dapp.status}
               </span>
+              {dapp.status === 'Testnet' && (
+                <span className="px-2 py-1 text-xs font-medium rounded bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-700">
+                  Testnet Only
+                </span>
+              )}
             </div>
           </div>
 
