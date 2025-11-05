@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAccount, usePublicClient, useChainId } from 'wagmi';
 import { formatEther, decodeEventLog } from 'viem';
-import { getContractAddress } from '@/lib/contracts/addresses';
+import { getContractAddress, CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 import { SIMPLE_PAYMENT_ABI } from '@/lib/contracts/abis';
 import Link from 'next/link';
 
@@ -31,8 +31,35 @@ export function Activity({ walletAddress }: ActivityProps) {
   const [loading, setLoading] = useState(true);
   const [copiedHash, setCopiedHash] = useState<string | null>(null);
 
-  // Get contract addresses
-  const simplePaymentAddress = getContractAddress(chainId, 'SimplePayment');
+  // Get contract addresses with fallback
+  const getSimplePaymentAddress = () => {
+    let address = '';
+    try {
+      if (typeof getContractAddress === 'function') {
+        address = getContractAddress(chainId, 'SimplePayment') || '';
+      }
+    } catch (e) {
+      console.warn('getContractAddress not available, using fallback', e);
+    }
+    
+    // Fallback to direct CONTRACT_ADDRESSES access
+    if (!address && CONTRACT_ADDRESSES) {
+      if (chainId === 202555 && CONTRACT_ADDRESSES.kasplexL2Mainnet) {
+        address = CONTRACT_ADDRESSES.kasplexL2Mainnet.SimplePayment || '';
+      } else if (chainId === 167012 && CONTRACT_ADDRESSES.kasplexL2Testnet) {
+        address = CONTRACT_ADDRESSES.kasplexL2Testnet.SimplePayment || '';
+      }
+    }
+    
+    // Hardcode testnet address as final fallback
+    if (!address && chainId === 167012) {
+      address = '0x3F19cC54231fB10b1935FA3f04Bec64b8AFeAd85';
+    }
+    
+    return address;
+  };
+  
+  const simplePaymentAddress = getSimplePaymentAddress();
 
   // Fetch transactions for the wallet
   useEffect(() => {
