@@ -168,18 +168,13 @@ export function SimplePaymentWidget() {
     }
 
     try {
-      // Ensure ABI is valid - check if it exists and has content
-      if (!SIMPLE_PAYMENT_ABI) {
-        console.error('SIMPLE_PAYMENT_ABI is undefined');
-        setError('Contract ABI not available');
-        return;
-      }
-      
-      if (!Array.isArray(SIMPLE_PAYMENT_ABI) || SIMPLE_PAYMENT_ABI.length === 0) {
-        console.error('SIMPLE_PAYMENT_ABI is not a valid array or is empty', SIMPLE_PAYMENT_ABI);
-        setError('Contract ABI is not properly formatted');
-        return;
-      }
+      // Debug: Log ABI status
+      console.log('ABI check:', {
+        hasABI: !!SIMPLE_PAYMENT_ABI,
+        isArray: Array.isArray(SIMPLE_PAYMENT_ABI),
+        length: SIMPLE_PAYMENT_ABI?.length,
+        type: typeof SIMPLE_PAYMENT_ABI,
+      });
 
       // Validate addresses one more time
       const validContractAddress = contractAddress?.startsWith('0x') && contractAddress.length === 42 
@@ -194,9 +189,16 @@ export function SimplePaymentWidget() {
         return;
       }
 
+      // ABI should be available - if not, log but try anyway
+      if (!SIMPLE_PAYMENT_ABI) {
+        console.error('SIMPLE_PAYMENT_ABI is undefined - this should not happen');
+        setError('Contract ABI not loaded. Please refresh the page.');
+        return;
+      }
+
       await writeContract({
         address: validContractAddress,
-        abi: SIMPLE_PAYMENT_ABI,
+        abi: SIMPLE_PAYMENT_ABI as typeof SIMPLE_PAYMENT_ABI,
         functionName: 'sendPayment',
         args: [validRecipientAddress],
         value: amountBigInt,
