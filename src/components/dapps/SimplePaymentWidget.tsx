@@ -68,17 +68,6 @@ export function SimplePaymentWidget() {
     subscriptionManagerAddress = '0x0F405c342e9596621430C5f888D673d40111a0ac'; // Testnet SubscriptionManager address
   }
 
-  // Debug logging
-  console.log('SimplePaymentWidget Debug:', {
-    chainId,
-    contractAddress,
-    subscriptionManagerAddress,
-    hasContractAddress: !!contractAddress,
-    recipientAddress: !!recipientAddress,
-    amount,
-    amountBigInt: amountBigInt.toString(),
-  });
-
   // Check subscription access (only if we have addresses)
   const { data: hasAccess, isLoading: isLoadingAccess } = useReadContract({
     address: subscriptionManagerAddress as `0x${string}`,
@@ -109,6 +98,17 @@ export function SimplePaymentWidget() {
   const amountBigInt = amount ? parseKAS(amount) : 0n;
   const feeAmount = amountBigInt > 0n ? calculateFee(amountBigInt, feePercentageNum) : 0n;
   const paymentAmount = amountBigInt > 0n ? calculatePaymentAmount(amountBigInt, feePercentageNum) : 0n;
+
+  // Debug logging (after amountBigInt is declared)
+  console.log('SimplePaymentWidget Debug:', {
+    chainId,
+    contractAddress,
+    subscriptionManagerAddress,
+    hasContractAddress: !!contractAddress,
+    recipientAddress: !!recipientAddress,
+    amount,
+    amountBigInt: amountBigInt.toString(),
+  });
 
   // Write contract for sending payment
   const { 
