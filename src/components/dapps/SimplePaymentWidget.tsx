@@ -100,12 +100,13 @@ export function SimplePaymentWidget() {
   const userHasAccess = hasAccess === true || hasAccess === undefined;
 
   // Read fee percentage from contract
+  const abiForRead = SIMPLE_PAYMENT_ABI || SIMPLE_PAYMENT_ABI_FALLBACK;
   const { data: feePercentage, isLoading: isLoadingFee } = useReadContract({
     address: contractAddress as `0x${string}`,
-    abi: SIMPLE_PAYMENT_ABI,
+    abi: abiForRead,
     functionName: 'feePercentage',
     query: {
-      enabled: !!contractAddress && isConnected,
+      enabled: !!contractAddress && isConnected && !!abiForRead,
     },
   });
 
