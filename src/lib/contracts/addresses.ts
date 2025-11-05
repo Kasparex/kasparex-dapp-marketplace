@@ -34,16 +34,16 @@ export const CONTRACT_ADDRESSES = {
  * @param contractName Name of the contract
  * @returns Contract address or empty string if not found
  */
-export function getContractAddress(
+export const getContractAddress = (
   chainId: number,
   contractName: keyof typeof CONTRACT_ADDRESSES.kasplexL2Mainnet
-): string {
+): string => {
   if (chainId === 202555) {
-    return CONTRACT_ADDRESSES.kasplexL2Mainnet[contractName];
+    return CONTRACT_ADDRESSES.kasplexL2Mainnet[contractName] || "";
   } else if (chainId === 167012) {
-    return CONTRACT_ADDRESSES.kasplexL2Testnet[contractName];
+    return CONTRACT_ADDRESSES.kasplexL2Testnet[contractName] || "";
   }
   return "";
-}
+};
 
 
