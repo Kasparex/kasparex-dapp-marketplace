@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { DApp } from '@/lib/dapps';
 import { NetworkCompatibilityModal } from './NetworkCompatibilityModal';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
+import { SimplePaymentWidget } from './dapps/SimplePaymentWidget';
 
 interface DAppWidgetProps {
   dapp: DApp;
@@ -23,6 +24,20 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
       setShowModal(true);
     }
   };
+
+  // Render SimplePayment widget if it's the Simple Payment dApp
+  if (dapp.slug === 'simple-payment' || dapp.id === '11') {
+    return (
+      <>
+        <NetworkCompatibilityModal
+          dapp={dapp}
+          isOpen={showModal}
+          onClose={handleModalClose}
+        />
+        <SimplePaymentWidget />
+      </>
+    );
+  }
 
   if (!dapp.widgetUrl) {
     return (
