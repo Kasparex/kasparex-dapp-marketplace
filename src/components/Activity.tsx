@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccount, usePublicClient, useChainId } from 'wagmi';
-import { formatEther } from 'viem';
+import { formatEther, decodeEventLog } from 'viem';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { SIMPLE_PAYMENT_ABI } from '@/lib/contracts/abis';
-import { placeholderDApps } from '@/lib/dapps';
 import Link from 'next/link';
 
 interface ActivityItem {
@@ -80,12 +79,28 @@ export function Activity({ walletAddress }: ActivityProps) {
                 const block = await publicClient.getBlock({ blockNumber: log.blockNumber });
                 const tx = await publicClient.getTransaction({ hash: log.transactionHash });
                 
-                // Decode event args
-                const decodedLog = publicClient.decodeEventLog({
-                  abi: SIMPLE_PAYMENT_ABI,
-                  data: log.data,
-                  topics: log.topics,
-                });
+                // Decode event args using viem's decodeEventLog
+                let decodedLog;
+                try {
+                  decodedLog = decodeEventLog({
+                    abi: SIMPLE_PAYMENT_ABI,
+                    data: log.data,
+                    topics: log.topics,
+                  });
+                } catch (decodeError) {
+                  console.error('Error decoding event log:', decodeError);
+                  // Fallback: use basic info
+                  activitiesList.push({
+                    hash: log.transactionHash,
+                    timestamp: Number(block.timestamp),
+                    type: 'payment',
+                    dAppName: 'Simple Payment',
+                    dAppSlug: 'simple-payment',
+                    status: tx && tx.blockNumber ? 'success' : 'pending',
+                    blockNumber: log.blockNumber,
+                  });
+                  continue;
+                }
                 
                 const args = decodedLog.args as any;
                 
@@ -103,15 +118,29 @@ export function Activity({ walletAddress }: ActivityProps) {
               } catch (err) {
                 console.error('Error processing payment event:', err);
                 // Still add the transaction with basic info
-                activitiesList.push({
-                  hash: log.transactionHash,
-                  timestamp: Date.now() / 1000,
-                  type: 'payment',
-                  dAppName: 'Simple Payment',
-                  dAppSlug: 'simple-payment',
-                  status: 'success',
-                  blockNumber: log.blockNumber,
-                });
+                try {
+                  const block = await publicClient.getBlock({ blockNumber: log.blockNumber });
+                  activitiesList.push({
+                    hash: log.transactionHash,
+                    timestamp: Number(block.timestamp),
+                    type: 'payment',
+                    dAppName: 'Simple Payment',
+                    dAppSlug: 'simple-payment',
+                    status: 'success',
+                    blockNumber: log.blockNumber,
+                  });
+                } catch (blockError) {
+                  // Last resort: use current time
+                  activitiesList.push({
+                    hash: log.transactionHash,
+                    timestamp: Date.now() / 1000,
+                    type: 'payment',
+                    dAppName: 'Simple Payment',
+                    dAppSlug: 'simple-payment',
+                    status: 'success',
+                    blockNumber: log.blockNumber,
+                  });
+                }
               }
             }
           } catch (error) {
