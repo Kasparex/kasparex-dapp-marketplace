@@ -189,6 +189,28 @@ export const placeholderDApps: DApp[] = [
     version: 'V 1.0',
     description: 'Enable anonymous feedback collection from community members with a small KAS fee per message to prevent spam.',
   },
+  {
+    id: '11',
+    name: 'Simple Payment',
+    slug: 'simple-payment',
+    category: 'payment',
+    utility: 'Send KAS payments with automatic fee collection to support the Kasparex ecosystem.',
+    process: 'Enter recipient address and amount. A small fee (1%) is automatically deducted and sent to the treasury.',
+    benefits: 'Simple, secure payments with transparent fee structure. Supports platform development.',
+    developer: 'Kasparex',
+    developerLinks: [
+      { label: 'Website', url: 'https://www.kasparex.com' },
+      { label: 'Telegram', url: 'https://t.me/kasparex' },
+      { label: 'X (Twitter)', url: 'https://x.com/kasparex' },
+    ],
+    status: 'Testnet',
+    network: 'Kasplex L2 Testnet',
+    provider: 'Kasparex',
+    version: '1.0.0',
+    description: 'Simple Payment is the first dApp on Kasparex, demonstrating our fee collection and revenue distribution system. Send KAS payments with a transparent 1% fee that supports platform development.',
+    createdAt: '2025-11-05T16:21:29.306Z',
+    supportedChainIds: [167012], // Kasplex L2 Testnet
+  },
 ];
 
 export interface FilterState {
@@ -332,6 +354,13 @@ export const getCategoryCounts = (
 
   return counts;
 };
+
+/**
+ * Get all dApps (for marketplace listing)
+ */
+export function getAllDApps(): DApp[] {
+  return placeholderDApps;
+}
 
 export const getDAppById = (dapps: DApp[], id: string): DApp | undefined => {
   return dapps.find((dapp) => dapp.id === id);

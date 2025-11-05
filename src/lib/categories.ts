@@ -10,7 +10,8 @@ export type Category =
   | 'dao'
   | 'tools'
   | 'collabs'
-  | 'airdrops';
+  | 'airdrops'
+  | 'payment';
 
 export interface CategoryInfo {
   id: Category;
@@ -31,6 +32,7 @@ export const categories: CategoryInfo[] = [
   { id: 'tools', name: 'Tools', emoji: '🛠️' },
   { id: 'collabs', name: 'Collabs', emoji: '🤝' },
   { id: 'airdrops', name: 'Airdrops', emoji: '🪂' },
+  { id: 'payment', name: 'Payment', emoji: '💳' },
 ];
 
 export const getCategoryById = (id: Category): CategoryInfo | undefined => {
