@@ -290,10 +290,11 @@ export function Activity({ walletAddress }: ActivityProps) {
     }
   };
 
-  const getExplorerUrl = (hash: string) => {
-    if (chainId === 167012) {
+  const getExplorerUrl = (hash: string, activityChainId?: number) => {
+    const txChainId = activityChainId || chainId;
+    if (txChainId === 167012) {
       return `https://explorer.testnet.kasplextest.xyz/tx/${hash}`;
-    } else if (chainId === 202555) {
+    } else if (txChainId === 202555) {
       return `https://explorer.kasplex.org/tx/${hash}`;
     }
     return `#`;
@@ -304,11 +305,64 @@ export function Activity({ walletAddress }: ActivityProps) {
     return date.toLocaleString();
   };
 
-  if (!isConnected || connectedAddress?.toLowerCase() !== walletAddress.toLowerCase()) {
+  // Validate wallet address format
+  const isValidWalletAddress = walletAddress && walletAddress.startsWith('0x') && walletAddress.length === 42;
+
+  if (!isValidWalletAddress) {
     return (
       <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
         <p className="text-gray-600 dark:text-gray-400 text-center">
-          Connect your wallet to view activity
+          Invalid wallet address
+        </p>
+      </div>
+    );
+  }
+
+  // Load persisted activities on initial render (even if not connected)
+  useEffect(() => {
+    const storageKey = `activity_${walletAddress.toLowerCase()}_${chainId}`;
+    const persistedActivities = localStorage.getItem(storageKey);
+    if (persistedActivities) {
+      try {
+        const parsed = JSON.parse(persistedActivities);
+        // Filter out activities older than 90 days
+        const ninetyDaysAgo = Date.now() / 1000 - (90 * 24 * 60 * 60);
+        const filtered = parsed.filter((activity: ActivityItem) => activity.timestamp > ninetyDaysAgo);
+        if (filtered.length > 0) {
+          setActivities(filtered);
+          setLoading(false);
+        }
+      } catch (e) {
+        console.error('Error loading persisted activities:', e);
+      }
+    }
+  }, [walletAddress, chainId]);
+
+  if (!isConnected || !publicClient) {
+    // Still show persisted activities even if not connected
+    if (activities.length > 0) {
+      return (
+        <div className="w-full">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Activity
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              View your transaction history and dApp interactions
+            </p>
+            <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-2">
+              ⚠️ Showing cached transactions. Connect wallet to fetch latest.
+            </p>
+          </div>
+          {/* Render activities below */}
+        </div>
+      );
+    }
+    
+    return (
+      <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+        <p className="text-gray-600 dark:text-gray-400 text-center">
+          {!isConnected ? 'Please connect your wallet to view activity' : 'Loading blockchain connection...'}
         </p>
       </div>
     );
@@ -368,6 +422,17 @@ export function Activity({ walletAddress }: ActivityProps) {
                     >
                       {activity.status === 'success' ? '✓ Success' : activity.status === 'pending' ? '⏳ Pending' : '✗ Failed'}
                     </span>
+                    {activity.network && (
+                      <span
+                        className={`px-2 py-1 text-xs font-semibold rounded ${
+                          activity.network === 'testnet'
+                            ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300'
+                            : 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300'
+                        }`}
+                      >
+                        {activity.network === 'testnet' ? '🧪 Testnet' : '🌐 Mainnet'}
+                      </span>
+                    )}
                   </div>
 
                   {activity.dAppName && (
@@ -408,7 +473,7 @@ export function Activity({ walletAddress }: ActivityProps) {
                       {copiedHash === activity.hash ? '✓ Copied' : '📋 Copy'}
                     </button>
                     <a
-                      href={getExplorerUrl(activity.hash)}
+                      href={getExplorerUrl(activity.hash, activity.chainId)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded transition-colors"
