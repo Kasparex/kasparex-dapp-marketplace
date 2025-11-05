@@ -15,9 +15,22 @@ export function SubscriptionStatus({ dAppContract }: { dAppContract?: string }) 
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   
-  const subscriptionManagerAddress = getContractAddress(chainId, 'SubscriptionManager') || 
-    (chainId === 202555 ? CONTRACT_ADDRESSES.kasplexL2Mainnet.SubscriptionManager : 
-     chainId === 167012 ? CONTRACT_ADDRESSES.kasplexL2Testnet.SubscriptionManager : '');
+  let subscriptionManagerAddress = '';
+  try {
+    if (typeof getContractAddress === 'function') {
+      subscriptionManagerAddress = getContractAddress(chainId, 'SubscriptionManager') || '';
+    }
+  } catch (e) {
+    console.warn('getContractAddress not available, using fallback');
+  }
+  
+  if (!subscriptionManagerAddress) {
+    subscriptionManagerAddress = chainId === 202555 
+      ? CONTRACT_ADDRESSES.kasplexL2Mainnet.SubscriptionManager 
+      : chainId === 167012 
+      ? CONTRACT_ADDRESSES.kasplexL2Testnet.SubscriptionManager 
+      : '';
+  }
 
   const { data: subscriptionStatus, isLoading } = useReadContract({
     address: subscriptionManagerAddress as `0x${string}`,

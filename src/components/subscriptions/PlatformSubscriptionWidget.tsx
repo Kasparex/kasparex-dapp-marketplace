@@ -16,9 +16,22 @@ export function PlatformSubscriptionWidget() {
   const chainId = useChainId();
   const [error, setError] = useState<string | null>(null);
 
-  const contractAddress = getContractAddress(chainId, 'PlatformSubscription') || 
-    (chainId === 202555 ? CONTRACT_ADDRESSES.kasplexL2Mainnet.PlatformSubscription : 
-     chainId === 167012 ? CONTRACT_ADDRESSES.kasplexL2Testnet.PlatformSubscription : '');
+  let contractAddress = '';
+  try {
+    if (typeof getContractAddress === 'function') {
+      contractAddress = getContractAddress(chainId, 'PlatformSubscription') || '';
+    }
+  } catch (e) {
+    console.warn('getContractAddress not available, using fallback');
+  }
+  
+  if (!contractAddress) {
+    contractAddress = chainId === 202555 
+      ? CONTRACT_ADDRESSES.kasplexL2Mainnet.PlatformSubscription 
+      : chainId === 167012 
+      ? CONTRACT_ADDRESSES.kasplexL2Testnet.PlatformSubscription 
+      : '';
+  }
 
   // Read monthly price
   const { data: monthlyPrice, isLoading: isLoadingPrice } = useReadContract({
