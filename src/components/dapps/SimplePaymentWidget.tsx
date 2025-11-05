@@ -3,10 +3,26 @@
 import { useState } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, useChainId } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
-import { SIMPLE_PAYMENT_ABI, SUBSCRIPTION_MANAGER_ABI } from '@/lib/contracts/abis';
+import { SIMPLE_PAYMENT_ABI as SIMPLE_PAYMENT_ABI_IMPORT, SUBSCRIPTION_MANAGER_ABI } from '@/lib/contracts/abis';
 import { calculateFee, calculatePaymentAmount, formatKAS, parseKAS } from '@/lib/revenue/feeCalculator';
 import { CONTRACT_ADDRESSES, getContractAddress } from '@/lib/contracts/addresses';
 import { SubscriptionStatus } from '@/components/subscriptions/SubscriptionStatus';
+
+// Define ABI directly as fallback to prevent bundling issues
+const SIMPLE_PAYMENT_ABI_FALLBACK = [
+  "function sendPayment(address _recipient) external payable",
+  "function setFeeCollector(address _feeCollector) external",
+  "function setFeePercentage(uint256 _feePercentage) external",
+  "function calculateFee(uint256 _amount) external view returns (uint256)",
+  "function getPaymentAmount(uint256 _amount) external view returns (uint256)",
+  "function feeCollector() external view returns (address)",
+  "function feePercentage() external view returns (uint256)",
+  "event PaymentSent(address indexed from, address indexed to, uint256 amount, uint256 fee, uint256 timestamp)",
+  "event FeeCollected(uint256 amount, uint256 timestamp)",
+] as const;
+
+// Use imported ABI if available, otherwise use fallback
+const SIMPLE_PAYMENT_ABI = SIMPLE_PAYMENT_ABI_IMPORT || SIMPLE_PAYMENT_ABI_FALLBACK;
 
 /**
  * SimplePaymentWidget
@@ -168,14 +184,6 @@ export function SimplePaymentWidget() {
     }
 
     try {
-      // Debug: Log ABI status
-      console.log('ABI check:', {
-        hasABI: !!SIMPLE_PAYMENT_ABI,
-        isArray: Array.isArray(SIMPLE_PAYMENT_ABI),
-        length: SIMPLE_PAYMENT_ABI?.length,
-        type: typeof SIMPLE_PAYMENT_ABI,
-      });
-
       // Validate addresses one more time
       const validContractAddress = contractAddress?.startsWith('0x') && contractAddress.length === 42 
         ? contractAddress as `0x${string}` 
@@ -189,16 +197,18 @@ export function SimplePaymentWidget() {
         return;
       }
 
-      // ABI should be available - if not, log but try anyway
-      if (!SIMPLE_PAYMENT_ABI) {
-        console.error('SIMPLE_PAYMENT_ABI is undefined - this should not happen');
+      // Use ABI (fallback ensures it's always available)
+      const abiToUse = SIMPLE_PAYMENT_ABI || SIMPLE_PAYMENT_ABI_FALLBACK;
+      
+      if (!abiToUse || (Array.isArray(abiToUse) && abiToUse.length === 0)) {
+        console.error('ABI is still not available');
         setError('Contract ABI not loaded. Please refresh the page.');
         return;
       }
 
       await writeContract({
         address: validContractAddress,
-        abi: SIMPLE_PAYMENT_ABI as typeof SIMPLE_PAYMENT_ABI,
+        abi: abiToUse,
         functionName: 'sendPayment',
         args: [validRecipientAddress],
         value: amountBigInt,
