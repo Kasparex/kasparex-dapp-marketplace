@@ -301,6 +301,7 @@ export const getCategoryCounts = (
     tools: 0,
     collabs: 0,
     airdrops: 0,
+    payment: 0,
   };
 
   // Filter dApps by status, developer, network, and search query (but not category)
