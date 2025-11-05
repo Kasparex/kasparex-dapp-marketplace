@@ -14,6 +14,7 @@ import { isAddress } from 'viem';
 import { Avatar } from '@/components/Avatar';
 import { placeholderDApps } from '@/lib/dapps';
 import { DAppGrid } from '@/components/DAppGrid';
+import { Activity } from '@/components/Activity';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { formatKaspaAddress } from '@/lib/kaspa/wallet';
 
@@ -207,6 +208,10 @@ export default function UserProfilePage() {
             </div>
 
             {/* Tab Content */}
+            {activeTab === 'activity' && (
+              <Activity walletAddress={walletAddress} />
+            )}
+
             {activeTab === 'favorites' && (() => {
               const favoriteIds = getFavoritesForWallet(walletAddress);
               const favoriteDApps = placeholderDApps.filter(dapp => favoriteIds.includes(dapp.id));

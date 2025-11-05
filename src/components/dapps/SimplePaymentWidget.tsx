@@ -7,6 +7,7 @@ import { SIMPLE_PAYMENT_ABI as SIMPLE_PAYMENT_ABI_IMPORT, SUBSCRIPTION_MANAGER_A
 import { calculateFee, calculatePaymentAmount, formatKAS, parseKAS } from '@/lib/revenue/feeCalculator';
 import { CONTRACT_ADDRESSES, getContractAddress } from '@/lib/contracts/addresses';
 import { SubscriptionStatus } from '@/components/subscriptions/SubscriptionStatus';
+import { TreasuryAutoDistribute } from '@/components/TreasuryAutoDistribute';
 
 // Define ABI in proper JSON format as fallback to prevent bundling issues
 const SIMPLE_PAYMENT_ABI_FALLBACK = [
