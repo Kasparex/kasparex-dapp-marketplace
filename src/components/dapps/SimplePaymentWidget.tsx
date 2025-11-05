@@ -168,19 +168,42 @@ export function SimplePaymentWidget() {
     }
 
     try {
+      // Ensure ABI is valid
+      if (!SIMPLE_PAYMENT_ABI || !Array.isArray(SIMPLE_PAYMENT_ABI)) {
+        setError('Contract ABI not available');
+        return;
+      }
+
+      // Validate addresses one more time
+      const validContractAddress = contractAddress?.startsWith('0x') && contractAddress.length === 42 
+        ? contractAddress as `0x${string}` 
+        : null;
+      const validRecipientAddress = recipientAddress?.startsWith('0x') && recipientAddress.length === 42 
+        ? recipientAddress as `0x${string}` 
+        : null;
+
+      if (!validContractAddress || !validRecipientAddress) {
+        setError('Invalid address format');
+        return;
+      }
+
       await writeContract({
-        address: contractAddress as `0x${string}`,
+        address: validContractAddress,
         abi: SIMPLE_PAYMENT_ABI,
         functionName: 'sendPayment',
-        args: [recipientAddress as `0x${string}`],
+        args: [validRecipientAddress],
         value: amountBigInt,
       });
     } catch (err) {
       console.error('Write contract error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to send payment';
       // Handle common errors
-      if (errorMessage.includes('length')) {
+      if (errorMessage.includes('length') || errorMessage.includes('undefined')) {
         setError('Address validation error. Please check the recipient address format.');
+      } else if (errorMessage.includes('insufficient funds')) {
+        setError('Insufficient balance. Make sure you have enough KAS for the payment and gas fees.');
+      } else if (errorMessage.includes('user rejected')) {
+        setError('Transaction rejected by user');
       } else {
         setError(errorMessage);
       }
