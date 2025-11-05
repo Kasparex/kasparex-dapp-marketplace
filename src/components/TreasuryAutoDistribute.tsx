@@ -69,7 +69,8 @@ export function TreasuryAutoDistribute({ autoDistribute = false, onDistribute }:
   };
 
   // Auto-distribute if enabled and balance > 0
-  const shouldAutoDistribute = autoDistribute && balance && balance > 0n && !isDistributing && !isPendingWrite && !isConfirming;
+  const balanceBigInt = balance && typeof balance === 'bigint' ? balance : (balance ? BigInt(balance.toString()) : 0n);
+  const shouldAutoDistribute = autoDistribute && balanceBigInt > 0n && !isDistributing && !isPendingWrite && !isConfirming;
 
   if (shouldAutoDistribute) {
     handleDistribute();
@@ -83,7 +84,7 @@ export function TreasuryAutoDistribute({ autoDistribute = false, onDistribute }:
 
   const isLoading = isPendingWrite || isConfirming;
   const displayError = writeError?.message || txError?.message;
-  const balanceString = balance ? formatEther(balance) : '0';
+  const balanceString = balanceBigInt > 0n ? formatEther(balanceBigInt) : '0';
 
   if (!isConnected || !treasuryAddress) {
     return null;
@@ -105,7 +106,7 @@ export function TreasuryAutoDistribute({ autoDistribute = false, onDistribute }:
             </p>
           )}
         </div>
-        {balance && balance > 0n && (
+        {balanceBigInt > 0n && (
           <button
             onClick={handleDistribute}
             disabled={isLoading}
