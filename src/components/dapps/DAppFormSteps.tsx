@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { DApp, DAppStatus } from '@/lib/dapps';
 import { Category, categories } from '@/lib/categories';
 
