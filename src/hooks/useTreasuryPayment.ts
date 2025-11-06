@@ -238,6 +238,7 @@ export function useTreasuryPayment({
         address: treasuryAddress as Address,
         abi: TREASURY_ABI,
         functionName: 'collectFee',
+        args: [],
         value: amountInWei,
       });
     } catch (err: any) {
