@@ -2,29 +2,24 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi';
+import { useAccount } from 'wagmi';
 import { DApp } from '@/lib/dapps';
-import { ContractDAppData } from '@/lib/dapps/contractData';
-import { DAPP_REGISTRY_ABI } from '@/lib/contracts/abis';
-import { CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
-import { useTreasuryPayment } from '@/hooks/useTreasuryPayment';
 
 interface EditDAppModalProps {
   dapp: DApp;
   contractAddress?: string;
-  contractData?: ContractDAppData | null;
+  contractData?: any;
   onClose: () => void;
 }
 
 export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: EditDAppModalProps) {
   const { address: connectedAddress, isConnected } = useAccount();
-  const chainId = useChainId();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
   // Form state
-  const [name, setName] = useState(dapp.name);
+  const [name, setName] = useState(dapp.name || '');
   const [version, setVersion] = useState(dapp.version || '');
   const [description, setDescription] = useState(dapp.description || '');
   const [utility, setUtility] = useState(dapp.utility || '');
@@ -36,219 +31,31 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
   const [security, setSecurity] = useState(dapp.security || '');
   const [roadmap, setRoadmap] = useState(dapp.roadmap || '');
 
-  // Get DAppRegistry address
-  const dAppRegistryAddress = 
-    chainId === 202555 
-      ? (CONTRACT_ADDRESSES?.kasplexL2Mainnet?.DAppRegistry || '')
-      : chainId === 167012
-      ? (CONTRACT_ADDRESSES?.kasplexL2Testnet?.DAppRegistry || '')
-      : '';
-
-  // Use Treasury payment hook
-  const {
-    pay: payTreasuryFee,
-    isPaying: isFeePending,
-    isConfirming: isFeeConfirming,
-    isSuccess: isFeeSuccess,
-    txHash: feeTxHash,
-    error: treasuryError,
-    treasuryAddress,
-    isTreasuryAvailable,
-  } = useTreasuryPayment({
-    amount: '10',
-    onSuccess: (txHash) => {
-      console.log('Treasury fee paid successfully:', txHash);
-    },
-    onError: (error) => {
-      console.error('Treasury payment error:', error);
-      setError(error.message);
-      setIsSubmitting(false);
-    },
-  });
-
-  // Write contract for DAppRegistry update
-  const { writeContract: writeRegistryContract, data: updateTxHash, isPending: isUpdatePending } = useWriteContract();
-  const { isLoading: isUpdateConfirming, isSuccess: isUpdateSuccess } = useWaitForTransactionReceipt({
-    hash: updateTxHash,
-  });
-
-  // Check if on-chain data changed
-  const onChainDataChanged = 
-    name !== (contractData?.name || dapp.name) ||
-    version !== (contractData?.version || dapp.version || '');
-
-  // Handle fee payment success
-  useEffect(() => {
-    if (isFeeSuccess && feeTxHash) {
-      // Small delay to ensure state is updated
-      setTimeout(() => {
-        const resolvedContractAddr = contractAddress || dapp.contractAddress || '';
-        // Always try to update on-chain if data changed and we have valid addresses
-        // If it fails (e.g., already registered), handleUpdateContract will handle it gracefully
-        if (onChainDataChanged && dAppRegistryAddress && resolvedContractAddr && 
-            dAppRegistryAddress.length === 42 && resolvedContractAddr.length === 42) {
-          // Fee paid, now update DAppRegistry
-          handleUpdateContract();
-        } else {
-          // Fee paid, no contract update needed, just save frontend data
-          handleSaveFrontendData();
-        }
-      }, 100);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isFeeSuccess, feeTxHash]);
-
-  // Handle contract update success
-  useEffect(() => {
-    if (isUpdateSuccess) {
-      handleSaveFrontendData();
-    }
-  }, [isUpdateSuccess]);
-
-  const handleUpdateContract = async () => {
-    // Validate contract addresses
-    if (!dAppRegistryAddress || dAppRegistryAddress.trim() === '') {
-      setError('DAppRegistry address not available');
-      setIsSubmitting(false);
+  const handleSave = () => {
+    if (!isConnected || !connectedAddress) {
+      setError('Please connect your wallet');
       return;
     }
 
-    // Use contractAddress prop or fallback to dapp.contractAddress
-    const resolvedContractAddress = contractAddress || dapp.contractAddress || '';
-    
-    if (!resolvedContractAddress || resolvedContractAddress.trim() === '') {
-      setError('Contract address not available');
-      setIsSubmitting(false);
-      return;
-    }
-
-    // Validate all required fields
-    if (!name || typeof name !== 'string' || name.trim() === '') {
-      setError('Name is required');
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (!version || typeof version !== 'string' || version.trim() === '') {
-      setError('Version is required');
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (!dapp.category || typeof dapp.category !== 'string') {
-      setError('Category is required');
-      setIsSubmitting(false);
-      return;
-    }
+    setError(null);
+    setIsSubmitting(true);
 
     try {
-      // Validate DAppRegistry address format first
-      if (!dAppRegistryAddress || typeof dAppRegistryAddress !== 'string' || !dAppRegistryAddress.startsWith('0x') || dAppRegistryAddress.length !== 42) {
-        setError('Invalid DAppRegistry address format');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Validate contract address format
-      const contractAddr = resolvedContractAddress.trim();
-      if (!contractAddr || typeof contractAddr !== 'string' || !contractAddr.startsWith('0x') || contractAddr.length !== 42) {
-        setError('Invalid contract address format');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Get category from current dApp - ensure it's a string and not empty
-      const category = String(dapp.category || '').trim();
-      if (!category || category.length === 0) {
-        setError('Category is required');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Ensure all string args are valid and not empty
-      const nameStr = String(name || '').trim();
-      if (!nameStr || nameStr.length === 0) {
-        setError('Name cannot be empty');
-        setIsSubmitting(false);
-        return;
-      }
-
-      const versionStr = String(version || '').trim();
-      if (!versionStr || versionStr.length === 0) {
-        setError('Version cannot be empty');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Validate all args are strings (not undefined/null)
-      if (typeof nameStr !== 'string' || typeof versionStr !== 'string' || typeof category !== 'string') {
-        setError('Invalid data types for contract call');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Prepare args array - ensure all values are properly formatted
-      const args: [string, string, string, `0x${string}`] = [
-        nameStr,
-        versionStr,
-        category,
-        contractAddr as `0x${string}`
-      ];
-
-      // Validate args array
-      if (!args || args.length !== 4) {
-        setError('Invalid arguments for contract call');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Check each arg is valid
-      for (let i = 0; i < args.length; i++) {
-        if (args[i] === undefined || args[i] === null) {
-          setError(`Argument ${i} is invalid`);
-          setIsSubmitting(false);
-          return;
-        }
-      }
-      
-      // Call registerDApp - Note: This will fail if contract is already registered
-      // For existing dApps, we'll skip on-chain update and just save frontend data
-      await writeRegistryContract({
-        address: dAppRegistryAddress as `0x${string}`,
-        abi: DAPP_REGISTRY_ABI,
-        functionName: 'registerDApp',
-        args: args,
-      });
-    } catch (err: any) {
-      console.error('Error updating contract:', err);
-      // If contract is already registered, that's okay - we'll just save frontend data
-      if (err?.message?.includes('already registered') || err?.message?.includes('Contract already registered')) {
-        console.log('Contract already registered, skipping on-chain update');
-        // Continue to save frontend data
-        handleSaveFrontendData();
-        return;
-      }
-      const errorMessage = err?.message || err?.toString() || 'Failed to update contract';
-      setError(errorMessage);
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSaveFrontendData = () => {
-    try {
-      // Save frontend metadata to localStorage
+      // Save all metadata to localStorage
       const frontendData = {
-        description,
-        utility,
-        process,
-        benefits,
-        security,
-        roadmap,
+        name: name.trim() || dapp.name,
+        version: version.trim() || dapp.version || '',
+        description: description.trim(),
+        utility: utility.trim(),
+        process: process.trim(),
+        benefits: benefits.trim(),
+        security: security.trim(),
+        roadmap: roadmap.trim(),
         developerLinks: [
-          website && { label: 'Website', url: website },
-          twitter && { label: 'Twitter', url: twitter },
-          telegram && { label: 'Telegram', url: telegram },
-        ].filter(Boolean),
+          website.trim() && { label: 'Website', url: website.trim() },
+          twitter.trim() && { label: 'Twitter', url: twitter.trim() },
+          telegram.trim() && { label: 'Telegram', url: telegram.trim() },
+        ].filter(Boolean) as { label: string; url: string }[],
       };
 
       const key = `dapp_${dapp.id}_metadata`;
@@ -260,31 +67,8 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
         window.location.reload(); // Reload to show updated data
       }, 1500);
     } catch (err) {
-      console.error('Error saving frontend data:', err);
-      setError('Failed to save frontend data');
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!isConnected || !connectedAddress) {
-      setError('Please connect your wallet');
-      return;
-    }
-
-    if (!isTreasuryAvailable) {
-      setError('Treasury address not available for this network');
-      return;
-    }
-
-    setError(null);
-    setIsSubmitting(true);
-
-    try {
-      // Pay 10 KAS fee to Treasury using the hook
-      await payTreasuryFee();
-    } catch (err: any) {
-      console.error('Error paying fee:', err);
-      setError(err.message || 'Failed to pay fee');
+      console.error('Error saving data:', err);
+      setError('Failed to save changes');
       setIsSubmitting(false);
     }
   };
@@ -300,11 +84,11 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
     return () => window.removeEventListener('keydown', handleEscape);
   }, [onClose, isSubmitting]);
 
-  const isLoading = isSubmitting || isFeePending || isFeeConfirming || isUpdatePending || isUpdateConfirming;
+  const isLoading = isSubmitting;
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
       onClick={!isLoading ? onClose : undefined}
     >
       <div
@@ -330,9 +114,9 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
 
         {/* Content */}
         <div className="p-4 sm:p-6 space-y-4">
-          {(error || treasuryError) && (
+          {error && (
             <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
-              {error || treasuryError}
+              {error}
             </div>
           )}
 
@@ -342,12 +126,8 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
             </div>
           )}
 
-          {/* On-chain fields */}
-          <div className="space-y-4 border-b border-zinc-200 dark:border-zinc-800 pb-4">
-            <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
-              On-Chain Data (Requires Contract Update)
-            </h3>
-            
+          {/* Form Fields */}
+          <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
                 Name
@@ -374,13 +154,6 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
                 disabled={isLoading}
               />
             </div>
-          </div>
-
-          {/* Frontend-only fields */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
-              Frontend Metadata
-            </h3>
 
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
@@ -505,12 +278,6 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
               />
             </div>
           </div>
-
-          {/* Fee Info */}
-          <div className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg text-sm text-zinc-600 dark:text-zinc-400">
-            <p className="font-medium mb-1">Edit Fee: 10 KAS</p>
-            <p>This fee will be sent to the Treasury contract to support platform development.</p>
-          </div>
         </div>
 
         {/* Footer */}
@@ -523,11 +290,11 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
             Cancel
           </button>
           <button
-            onClick={handleSubmit}
+            onClick={handleSave}
             disabled={isLoading || !isConnected}
-            className="px-4 py-2 text-sm font-medium text-white bg-zinc-900 dark:bg-zinc-100 text-zinc-100 dark:text-zinc-900 rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium text-white bg-[#02abb8] rounded-lg hover:bg-[#0299a3] transition-colors disabled:opacity-50"
           >
-            {isLoading ? 'Processing...' : 'Save Changes (10 KAS)'}
+            {isLoading ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </div>
@@ -540,4 +307,3 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
 
   return createPortal(modalContent, document.body);
 }
-
