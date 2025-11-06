@@ -80,13 +80,17 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
   // Handle fee payment success
   useEffect(() => {
     if (isFeeSuccess && feeTxHash) {
-      if (onChainDataChanged && dAppRegistryAddress) {
-        // Fee paid, now update DAppRegistry
-        handleUpdateContract();
-      } else if (!onChainDataChanged) {
-        // Fee paid, no contract update needed, just save frontend data
-        handleSaveFrontendData();
-      }
+      // Small delay to ensure state is updated
+      setTimeout(() => {
+        const resolvedContractAddr = contractAddress || dapp.contractAddress || '';
+        if (onChainDataChanged && dAppRegistryAddress && resolvedContractAddr) {
+          // Fee paid, now update DAppRegistry
+          handleUpdateContract();
+        } else if (!onChainDataChanged) {
+          // Fee paid, no contract update needed, just save frontend data
+          handleSaveFrontendData();
+        }
+      }, 100);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFeeSuccess, feeTxHash]);
@@ -99,14 +103,61 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
   }, [isUpdateSuccess]);
 
   const handleUpdateContract = async () => {
-    if (!dAppRegistryAddress || !contractAddress) {
-      setError('Contract addresses not available');
+    // Validate contract addresses
+    if (!dAppRegistryAddress || dAppRegistryAddress.trim() === '') {
+      setError('DAppRegistry address not available');
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Use contractAddress prop or fallback to dapp.contractAddress
+    const resolvedContractAddress = contractAddress || dapp.contractAddress || '';
+    
+    if (!resolvedContractAddress || resolvedContractAddress.trim() === '') {
+      setError('Contract address not available');
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Validate all required fields
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      setError('Name is required');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!version || typeof version !== 'string' || version.trim() === '') {
+      setError('Version is required');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!dapp.category || typeof dapp.category !== 'string') {
+      setError('Category is required');
+      setIsSubmitting(false);
       return;
     }
 
     try {
-      // Get category from current dApp
-      const category = dapp.category;
+      // Get category from current dApp - ensure it's a string
+      const category = String(dapp.category || '').trim();
+      const nameStr = String(name || '').trim();
+      const versionStr = String(version || '').trim();
+      
+      // Validate contract address format
+      const contractAddr = resolvedContractAddress.trim();
+      if (!contractAddr.startsWith('0x') || contractAddr.length !== 42) {
+        setError('Invalid contract address format');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Validate DAppRegistry address format
+      if (!dAppRegistryAddress.startsWith('0x') || dAppRegistryAddress.length !== 42) {
+        setError('Invalid DAppRegistry address format');
+        setIsSubmitting(false);
+        return;
+      }
       
       // Call registerDApp with new version (or updateDApp if exists)
       // Note: DAppRegistry may need an updateDApp function, for now we'll use registerDApp
@@ -114,11 +165,13 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
         address: dAppRegistryAddress as `0x${string}`,
         abi: DAPP_REGISTRY_ABI,
         functionName: 'registerDApp',
-        args: [name, version, category, contractAddress as `0x${string}`],
+        args: [nameStr, versionStr, category, contractAddr as `0x${string}`],
       });
     } catch (err: any) {
       console.error('Error updating contract:', err);
-      setError(err.message || 'Failed to update contract');
+      const errorMessage = err?.message || err?.toString() || 'Failed to update contract';
+      setError(errorMessage);
+      setIsSubmitting(false);
     }
   };
 
