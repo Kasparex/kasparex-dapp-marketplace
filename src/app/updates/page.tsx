@@ -11,6 +11,9 @@ import type { TimelineEntry, Category } from '@/lib/updates';
 export default function UpdatesPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const editorRef = useRef<UpdatesEditorHandle>(null);
+  
+  // Check if editing is enabled (only for admins)
+  const isEditingEnabled = process.env.NEXT_PUBLIC_ENABLE_TIMELINE_EDITING === 'true';
 
   const handleEdit = (entry: TimelineEntry, category: Category) => {
     editorRef.current?.openEditForm(entry, category);
@@ -70,7 +73,11 @@ export default function UpdatesPage() {
             />
           </div>
 
-          <UpdatesTimeline onEdit={handleEdit} refreshKey={refreshKey} />
+          <UpdatesTimeline 
+            onEdit={isEditingEnabled ? handleEdit : undefined} 
+            refreshKey={refreshKey}
+            showEditButton={isEditingEnabled}
+          />
         </div>
       </main>
 

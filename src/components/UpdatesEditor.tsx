@@ -158,6 +158,13 @@ export const UpdatesEditor = forwardRef<UpdatesEditorHandle, UpdatesEditorProps>
   const priorities: EntryPriority[] = ['high', 'medium', 'low'];
   const categories: Category[] = ['updates', 'tasks', 'ideas', 'bugFixes'];
 
+  // Check if editing is enabled (only show for admins)
+  const isEditingEnabled = process.env.NEXT_PUBLIC_ENABLE_TIMELINE_EDITING === 'true';
+
+  if (!isEditingEnabled) {
+    return null; // Hide editor completely for regular users
+  }
+
   return (
     <>
       {/* Add Entry Buttons */}

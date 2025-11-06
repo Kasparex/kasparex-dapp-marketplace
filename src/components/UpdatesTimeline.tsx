@@ -7,9 +7,10 @@ import { getCategoryLabel, sortEntriesByDate, formatDate, getRelativeTime } from
 interface UpdatesTimelineProps {
   onEdit?: (entry: TimelineEntry, category: Category) => void;
   refreshKey?: number;
+  showEditButton?: boolean;
 }
 
-export function UpdatesTimeline({ onEdit, refreshKey }: UpdatesTimelineProps) {
+export function UpdatesTimeline({ onEdit, refreshKey, showEditButton = false }: UpdatesTimelineProps) {
   const [activeTab, setActiveTab] = useState<Category>('updates');
   const [data, setData] = useState<UpdatesData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -179,7 +180,7 @@ export function UpdatesTimeline({ onEdit, refreshKey }: UpdatesTimelineProps) {
                       </h3>
                       <p className="text-zinc-600 dark:text-zinc-400 mb-3">{entry.description}</p>
                     </div>
-                    {onEdit && (
+                    {onEdit && showEditButton && (
                       <button
                         onClick={() => onEdit(entry, activeTab)}
                         className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors flex-shrink-0"
