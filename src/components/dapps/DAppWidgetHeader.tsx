@@ -32,8 +32,17 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
   const { address: connectedAddress, isConnected } = useAccount();
   const chainId = useChainId();
   const { openChainModal } = useChainModal();
-  const category = getCategoryById(dapp.category);
-  const compatibility = useNetworkCompatibility(dapp);
+  // Fetch contract data with periodic polling for version updates
+  const { data: contractData } = useDAppFromContract(
+    resolvedContractAddress && resolvedContractAddress.startsWith('0x') ? resolvedContractAddress : undefined,
+    chainId
+  );
+
+  // Merge contract data and localStorage metadata with frontend data
+  const mergedDApp = mergeDAppData(contractData, dapp);
+
+  const category = getCategoryById(mergedDApp.category);
+  const compatibility = useNetworkCompatibility(mergedDApp);
   const isEmbeddedPage = isEmbedded();
   const { toggleFavorite, isFavorite } = useFavorites();
   const { toggleLike, hasLiked, getLikeCount } = useLikes();
