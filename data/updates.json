@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762473542-bae2f8a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Reorder widget buttons, update developer name display, fix favorites sorting, add likes sorting (by Kasparex)",
+      "date": "2025-11-07T00:58:36+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762467261-ebb2707",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update timeline: 2025-11-06T22:14:10.615Z (by Kasparex)",
