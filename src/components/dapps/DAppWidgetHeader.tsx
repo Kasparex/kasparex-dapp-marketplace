@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAccount, useChainId } from 'wagmi';
 import { DApp } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
@@ -41,8 +40,12 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
     chainId
   );
 
-  // Get deployer info
-  const deployerAddress = contractData?.deployerAddress || dapp.deployerAddress || dapp.developer || '';
+  // Get deployer info - prioritize wallet addresses over display names
+  // Only use dapp.developer if it's a wallet address (starts with 0x)
+  const deployerAddress = contractData?.deployerAddress || 
+    dapp.deployerAddress || 
+    (dapp.developer && dapp.developer.startsWith('0x') ? dapp.developer : '') || 
+    '';
   const { profile: deployerProfile } = useDeployerProfile(
     deployerAddress || undefined
   );
@@ -63,39 +66,48 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
     <>
       <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
         <div className="flex items-start justify-between gap-4">
-          {/* Left side: Category, Version, Deployer */}
+          {/* Left side: Category, Version, Deployer with labels */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
-              {/* Category Tag */}
+              {/* Category */}
               {category && (
-                <button
-                  onClick={() => router.push(`/?category=${dapp.category}`)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-medium rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
-                >
-                  <span>{category.emoji}</span>
-                  <span>{category.name}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-zinc-500 dark:text-zinc-400">Category:</span>
+                  <a
+                    href={`/?category=${dapp.category}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-medium rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                  >
+                    <span>{category.emoji}</span>
+                    <span>{category.name}</span>
+                  </a>
+                </div>
               )}
 
               {/* Version */}
-              <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                {category?.name || 'dApp'} v{version}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-zinc-500 dark:text-zinc-400">Version:</span>
+                <span className="text-sm text-zinc-500 dark:text-zinc-400">
+                  v{version}
+                </span>
+              </div>
 
               {/* Deployer Info */}
               {deployerAddress && (
                 <div className="flex items-center gap-2">
-                  <Avatar address={deployerAddress} size={20} />
-                  <a
-                    href={deployerUrl}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      router.push(deployerUrl);
-                    }}
-                    className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-                  >
-                    {deployerName}
-                  </a>
+                  <span className="text-sm text-zinc-500 dark:text-zinc-400">Developer:</span>
+                  <div className="flex items-center gap-2">
+                    <Avatar address={deployerAddress} size={20} />
+                    <a
+                      href={deployerUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                    >
+                      {deployerName}
+                    </a>
+                  </div>
                 </div>
               )}
             </div>

@@ -37,12 +37,30 @@ export function formatDeployerName(deployerAddress: string | undefined, profile:
 }
 
 /**
+ * Check if a string is a valid wallet address (Ethereum format)
+ */
+function isValidWalletAddress(address: string | undefined): boolean {
+  if (!address) return false;
+  // Ethereum address format: 0x followed by 40 hex characters
+  return /^0x[a-fA-F0-9]{40}$/.test(address);
+}
+
+/**
  * Generate link to deployer profile
+ * Always uses wallet address format, never display names
  */
 export function getDeployerProfileUrl(deployerAddress: string | undefined): string {
   if (!deployerAddress) {
     return '#';
   }
+  
+  // Only use if it's a valid wallet address
+  // This ensures we never use display names in URLs
+  if (!isValidWalletAddress(deployerAddress)) {
+    console.warn('Invalid wallet address for deployer URL:', deployerAddress);
+    return '#';
+  }
+  
   return `/user/${deployerAddress}`;
 }
 
