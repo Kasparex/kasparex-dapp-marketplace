@@ -181,7 +181,58 @@ export function useTreasuryPayment({
     setError(null);
 
     try {
-      const amountInWei = parseEther(amount);
+      // Validate amount
+      if (!amount || typeof amount !== 'string' || amount.trim() === '') {
+        const err = 'Invalid amount';
+        setError(err);
+        if (onError) {
+          onError(new Error(err));
+        }
+        return;
+      }
+
+      // Validate treasury address
+      if (!treasuryAddress || typeof treasuryAddress !== 'string' || treasuryAddress.trim() === '') {
+        const err = 'Treasury address is invalid';
+        setError(err);
+        if (onError) {
+          onError(new Error(err));
+        }
+        return;
+      }
+
+      // Validate address format
+      if (!treasuryAddress.startsWith('0x') || treasuryAddress.length !== 42) {
+        const err = 'Treasury address format is invalid';
+        setError(err);
+        if (onError) {
+          onError(new Error(err));
+        }
+        return;
+      }
+
+      // Parse amount to wei
+      let amountInWei: bigint;
+      try {
+        amountInWei = parseEther(amount.trim());
+      } catch (parseErr: any) {
+        const err = `Invalid amount format: ${parseErr?.message || 'Cannot parse amount'}`;
+        setError(err);
+        if (onError) {
+          onError(new Error(err));
+        }
+        return;
+      }
+      
+      // Validate ABI
+      if (!TREASURY_ABI || !Array.isArray(TREASURY_ABI)) {
+        const err = 'Treasury ABI is not available';
+        setError(err);
+        if (onError) {
+          onError(new Error(err));
+        }
+        return;
+      }
       
       await writeContract({
         address: treasuryAddress as Address,
@@ -190,11 +241,11 @@ export function useTreasuryPayment({
         value: amountInWei,
       });
     } catch (err: any) {
-      const errorMessage = err.message || 'Failed to pay fee';
+      const errorMessage = err?.message || err?.toString() || 'Failed to pay fee';
       console.error('Error paying fee:', err);
       setError(errorMessage);
       if (onError) {
-        onError(err);
+        onError(err instanceof Error ? err : new Error(errorMessage));
       }
     }
   };
