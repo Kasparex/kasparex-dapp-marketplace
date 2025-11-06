@@ -13,6 +13,7 @@ import { sortDApps } from '@/lib/sorting';
 import type { Category } from '@/lib/categories';
 import { categories } from '@/lib/categories';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useLikes } from '@/hooks/useLikes';
 
 const validCategories = categories.map((cat) => cat.id);
 
@@ -45,6 +46,7 @@ function HomeContent() {
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [displayedCount, setDisplayedCount] = useState(50);
   const { favoritesSet, toggleFavorite, isFavorite } = useFavorites();
+  const { likes } = useLikes();
 
   // Get category counts based on current filters and search
   const categoryCounts = useMemo(() => {
@@ -64,8 +66,8 @@ function HomeContent() {
       filtered = filtered.filter((dapp) => favoritesSet.has(dapp.id));
     }
     
-    return sortDApps(filtered, sortBy, favoritesSet);
-  }, [selectedCategories, filters, searchQuery, sortBy, favoritesSet]);
+    return sortDApps(filtered, sortBy, favoritesSet, likes);
+  }, [selectedCategories, filters, searchQuery, sortBy, favoritesSet, likes]);
 
   // Reset displayed count when filters change
   useEffect(() => {

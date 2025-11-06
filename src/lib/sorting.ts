@@ -1,7 +1,14 @@
 import { DApp } from './dapps';
 import type { SortOption } from '@/components/SortFilters';
 
-export function sortDApps(dapps: DApp[], sortBy: SortOption, favorites?: Set<string>): DApp[] {
+export interface LikesData {
+  [dappId: string]: {
+    count: number;
+    wallets: string[];
+  };
+}
+
+export function sortDApps(dapps: DApp[], sortBy: SortOption, favorites?: Set<string>, likes?: LikesData): DApp[] {
   const sorted = [...dapps];
 
   switch (sortBy) {
@@ -81,6 +88,30 @@ export function sortDApps(dapps: DApp[], sortBy: SortOption, favorites?: Set<str
           return 1;
         }
         // If both are favorites or both are not, sort alphabetically
+        return a.name.localeCompare(b.name);
+      });
+
+    case 'likes-high':
+      // Sort by like count descending (highest first)
+      return sorted.sort((a, b) => {
+        const aLikes = likes?.[a.id]?.count || 0;
+        const bLikes = likes?.[b.id]?.count || 0;
+        if (aLikes !== bLikes) {
+          return bLikes - aLikes; // Descending order
+        }
+        // If same likes, sort alphabetically
+        return a.name.localeCompare(b.name);
+      });
+
+    case 'likes-low':
+      // Sort by like count ascending (lowest first)
+      return sorted.sort((a, b) => {
+        const aLikes = likes?.[a.id]?.count || 0;
+        const bLikes = likes?.[b.id]?.count || 0;
+        if (aLikes !== bLikes) {
+          return aLikes - bLikes; // Ascending order
+        }
+        // If same likes, sort alphabetically
         return a.name.localeCompare(b.name);
       });
 

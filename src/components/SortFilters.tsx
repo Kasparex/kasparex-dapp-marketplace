@@ -28,6 +28,8 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0 }: SortFi
     { value: 'status', label: 'By Status' },
     { value: 'network', label: 'By Network' },
     { value: 'favorites', label: 'Favorites' },
+    { value: 'likes-high', label: 'Most Likes (High)' },
+    { value: 'likes-low', label: 'Most Likes (Low)' },
   ];
 
   const currentLabel = sortOptions.find((opt) => opt.value === sortBy)?.label || 'Sort by...';
@@ -38,14 +40,17 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0 }: SortFi
     <div className="relative flex items-center gap-2">
       {/* Favorites Star Button */}
       <button
-        onClick={() => onSortChange('favorites')}
+        onClick={() => {
+          // Toggle favorites: if already active, switch to 'newest', otherwise set to 'favorites'
+          onSortChange(isFavoritesActive ? 'newest' : 'favorites');
+        }}
         className={`flex items-center justify-center p-2 rounded-lg border transition-colors ${
           isFavoritesActive
             ? 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700 text-yellow-600 dark:text-yellow-400'
             : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
         }`}
-        title="Show Favorites"
-        aria-label="Show Favorites"
+        title={isFavoritesActive ? 'Show All' : 'Show Favorites'}
+        aria-label={isFavoritesActive ? 'Show All' : 'Show Favorites'}
       >
         <svg
           className="w-5 h-5"
