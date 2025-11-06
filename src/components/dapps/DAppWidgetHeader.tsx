@@ -70,12 +70,12 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
   const compatibility = useNetworkCompatibility(mergedDApp);
 
   // Periodic polling for version updates (every 30 seconds)
-  const [pollingVersion, setPollingVersion] = useState(contractData?.version || dapp.version || 'N/A');
+  const [pollingVersion, setPollingVersion] = useState(mergedDApp.version || 'N/A');
   useEffect(() => {
-    if (contractData?.version) {
-      setPollingVersion(contractData.version);
+    if (mergedDApp.version) {
+      setPollingVersion(mergedDApp.version);
     }
-  }, [contractData?.version]);
+  }, [mergedDApp.version]);
 
   useEffect(() => {
     if (!resolvedContractAddress || !resolvedContractAddress.startsWith('0x')) {
