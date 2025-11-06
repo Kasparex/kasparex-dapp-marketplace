@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi';
-import { parseEther } from 'viem';
 import { DApp } from '@/lib/dapps';
 import { ContractDAppData } from '@/lib/dapps/contractData';
-import { DAPP_REGISTRY_ABI, TREASURY_ABI } from '@/lib/contracts/abis';
-import { getContractAddress, CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
+import { DAPP_REGISTRY_ABI } from '@/lib/contracts/abis';
+import { getContractAddress } from '@/lib/contracts/addresses';
+import { useTreasuryPayment } from '@/hooks/useTreasuryPayment';
 
 interface EditDAppModalProps {
   dapp: DApp;
@@ -36,38 +36,36 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
   const [security, setSecurity] = useState(dapp.security || '');
   const [roadmap, setRoadmap] = useState(dapp.roadmap || '');
 
-  // Get contract addresses
-  let treasuryAddress = '';
+  // Get DAppRegistry address
   let dAppRegistryAddress = '';
   try {
     if (typeof getContractAddress === 'function') {
-      treasuryAddress = getContractAddress(chainId, 'Treasury') || '';
       dAppRegistryAddress = getContractAddress(chainId, 'DAppRegistry') || '';
     }
   } catch (e) {
-    console.warn('getContractAddress not available, using fallback');
+    console.warn('getContractAddress not available');
   }
 
-  if (!treasuryAddress && CONTRACT_ADDRESSES) {
-    treasuryAddress = chainId === 202555 
-      ? CONTRACT_ADDRESSES.kasplexL2Mainnet.Treasury 
-      : chainId === 167012 
-      ? CONTRACT_ADDRESSES.kasplexL2Testnet.Treasury 
-      : '';
-  }
-
-  if (!dAppRegistryAddress && CONTRACT_ADDRESSES) {
-    dAppRegistryAddress = chainId === 202555 
-      ? CONTRACT_ADDRESSES.kasplexL2Mainnet.DAppRegistry 
-      : chainId === 167012 
-      ? CONTRACT_ADDRESSES.kasplexL2Testnet.DAppRegistry 
-      : '';
-  }
-
-  // Write contract for fee payment
-  const { writeContract: writeTreasuryContract, data: feeTxHash, isPending: isFeePending } = useWriteContract();
-  const { isLoading: isFeeConfirming, isSuccess: isFeeSuccess } = useWaitForTransactionReceipt({
-    hash: feeTxHash,
+  // Use Treasury payment hook
+  const {
+    pay: payTreasuryFee,
+    isPaying: isFeePending,
+    isConfirming: isFeeConfirming,
+    isSuccess: isFeeSuccess,
+    txHash: feeTxHash,
+    error: treasuryError,
+    treasuryAddress,
+    isTreasuryAvailable,
+  } = useTreasuryPayment({
+    amount: '10',
+    onSuccess: (txHash) => {
+      console.log('Treasury fee paid successfully:', txHash);
+    },
+    onError: (error) => {
+      console.error('Treasury payment error:', error);
+      setError(error.message);
+      setIsSubmitting(false);
+    },
   });
 
   // Write contract for DAppRegistry update
@@ -81,16 +79,19 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
     name !== (contractData?.name || dapp.name) ||
     version !== (contractData?.version || dapp.version || '');
 
-  // Handle fee payment
+  // Handle fee payment success
   useEffect(() => {
-    if (isFeeSuccess && onChainDataChanged && dAppRegistryAddress) {
-      // Fee paid, now update DAppRegistry
-      handleUpdateContract();
-    } else if (isFeeSuccess && !onChainDataChanged) {
-      // Fee paid, no contract update needed, just save frontend data
-      handleSaveFrontendData();
+    if (isFeeSuccess && feeTxHash) {
+      if (onChainDataChanged && dAppRegistryAddress) {
+        // Fee paid, now update DAppRegistry
+        handleUpdateContract();
+      } else if (!onChainDataChanged) {
+        // Fee paid, no contract update needed, just save frontend data
+        handleSaveFrontendData();
+      }
     }
-  }, [isFeeSuccess]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFeeSuccess, feeTxHash]);
 
   // Handle contract update success
   useEffect(() => {
@@ -160,8 +161,8 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
       return;
     }
 
-    if (!treasuryAddress) {
-      setError('Treasury address not available');
+    if (!isTreasuryAvailable) {
+      setError('Treasury address not available for this network');
       return;
     }
 
@@ -169,15 +170,8 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
     setIsSubmitting(true);
 
     try {
-      // Always pay 10 KAS fee to Treasury
-      const feeAmount = parseEther('10');
-      
-      await writeTreasuryContract({
-        address: treasuryAddress as `0x${string}`,
-        abi: TREASURY_ABI,
-        functionName: 'collectFee',
-        value: feeAmount,
-      });
+      // Pay 10 KAS fee to Treasury using the hook
+      await payTreasuryFee();
     } catch (err: any) {
       console.error('Error paying fee:', err);
       setError(err.message || 'Failed to pay fee');
@@ -226,9 +220,9 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
 
         {/* Content */}
         <div className="p-4 sm:p-6 space-y-4">
-          {error && (
+          {(error || treasuryError) && (
             <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
-              {error}
+              {error || treasuryError}
             </div>
           )}
 
