@@ -1,7 +1,7 @@
 'use client';
 
-import { DApp, Category, DAppStatus } from '@/lib/dapps';
-import { categories } from '@/lib/categories';
+import { DApp, DAppStatus } from '@/lib/dapps';
+import { Category, categories } from '@/lib/categories';
 
 interface FormStepProps {
   formData: Partial<DApp>;

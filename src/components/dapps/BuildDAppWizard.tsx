@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
-import { DApp, Category, DAppStatus } from '@/lib/dapps';
-import { categories } from '@/lib/categories';
+import { DApp, DAppStatus } from '@/lib/dapps';
+import { Category, categories } from '@/lib/categories';
 import { validateDAppData } from '@/lib/dapps/management';
 import { generateDAppSlug } from '@/lib/utils';
 import { BasicInfoStep } from './DAppFormSteps';
