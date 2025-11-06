@@ -19,7 +19,6 @@ interface DAppWidgetHeaderProps {
 }
 
 export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProps) {
-  const router = useRouter();
   const { address: connectedAddress } = useAccount();
   const chainId = useChainId();
   const category = getCategoryById(dapp.category);
