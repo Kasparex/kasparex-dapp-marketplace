@@ -118,7 +118,7 @@ export function ContractStep({ formData, onUpdate }: ContractStepProps) {
           className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] font-mono text-sm"
         />
         <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-          Enter the address of your deployed smart contract. Leave empty if you don't have a contract yet.
+          Enter the address of your deployed smart contract. Leave empty if you don&apos;t have a contract yet.
         </p>
       </div>
 

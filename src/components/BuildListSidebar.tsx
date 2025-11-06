@@ -196,9 +196,9 @@ export function BuildListSidebar({ title }: BuildListSidebarProps) {
                         </a>
                       </li>
                       <li>
-                        <a href="/" className="text-[#02abb8] hover:underline">
+                        <Link href="/" className="text-[#02abb8] hover:underline">
                           Browse Marketplace →
-                        </a>
+                        </Link>
                       </li>
                     </ul>
                   </div>

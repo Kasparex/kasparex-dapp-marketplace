@@ -57,7 +57,7 @@ export function MyDAppsList({ dApps, isLoading, isEmpty }: MyDAppsListProps) {
           No dApps Yet
         </h3>
         <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-          You haven't created or listed any dApps yet.
+          You haven&apos;t created or listed any dApps yet.
         </p>
         <Link
           href="/build-dapp"
