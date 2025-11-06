@@ -37,10 +37,10 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
   const { toggleFavorite, isFavorite } = useFavorites();
   const { toggleLike, hasLiked, getLikeCount } = useLikes();
   
-  // Determine network status
-  const isMainnet = chainId === 202555;
-  const isTestnet = chainId === 167012;
-  const networkStatus = isMainnet ? 'mainnet' : isTestnet ? 'testnet' : 'unknown';
+  // Get chain info for network button
+  const chain = chainId ? getChainById(chainId) : null;
+  const isTestnet = chain?.testnet ?? false;
+  const isMainnet = !isTestnet;
   
   // Get contract address if not provided
   let resolvedContractAddress = contractAddress || dapp.contractAddress || '';
