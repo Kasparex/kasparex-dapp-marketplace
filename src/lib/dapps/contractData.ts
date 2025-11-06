@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useReadContract, usePublicClient } from 'wagmi';
 import { DAPP_REGISTRY_ABI } from '@/lib/contracts/abis';
 import { getContractAddress, CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
@@ -41,26 +42,44 @@ export function useDAppFromContract(contractAddress: string | undefined, chainId
   }
 
   // First, get dAppId from contract address
-  const { data: dAppId, isLoading: isLoadingId } = useReadContract({
+  const { data: dAppId, isLoading: isLoadingId, refetch: refetchDAppId } = useReadContract({
     address: dAppRegistryAddress as `0x${string}`,
     abi: DAPP_REGISTRY_ABI,
     functionName: 'getDAppIdByContract',
     args: contractAddress ? [contractAddress as `0x${string}`] : undefined,
     query: {
       enabled: !!dAppRegistryAddress && !!contractAddress && !!chainId && contractAddress.startsWith('0x'),
+      refetchInterval: 30000, // Poll every 30 seconds for version updates
     },
   });
 
   // Then, get dApp data using dAppId
-  const { data: dAppData, isLoading: isLoadingData } = useReadContract({
+  const { data: dAppData, isLoading: isLoadingData, refetch: refetchDAppData } = useReadContract({
     address: dAppRegistryAddress as `0x${string}`,
     abi: DAPP_REGISTRY_ABI,
     functionName: 'getDApp',
     args: dAppId ? [dAppId as bigint] : undefined,
     query: {
       enabled: !!dAppRegistryAddress && !!dAppId && !!chainId,
+      refetchInterval: 30000, // Poll every 30 seconds for version updates
     },
   });
+
+  // Periodic polling effect - refetch every 30 seconds
+  useEffect(() => {
+    if (!dAppRegistryAddress || !contractAddress || !chainId || !contractAddress.startsWith('0x')) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      refetchDAppId();
+      if (dAppId) {
+        refetchDAppData();
+      }
+    }, 30000); // Poll every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [dAppRegistryAddress, contractAddress, chainId, dAppId, refetchDAppId, refetchDAppData]);
 
   // Parse the tuple response
   let parsedData: ContractDAppData | null = null;

@@ -33,3 +33,13 @@ export function getDAppBySlug(
   });
 }
 
+/**
+ * Check if the current page is embedded in an iframe
+ */
+export function isEmbedded(): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  return window.parent !== window;
+}
+

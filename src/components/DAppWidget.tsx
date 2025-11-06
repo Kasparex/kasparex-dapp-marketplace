@@ -13,7 +13,43 @@ interface DAppWidgetProps {
 
 export function DAppWidget({ dapp }: DAppWidgetProps) {
   const [showModal, setShowModal] = useState(false);
+  const [widgetTheme, setWidgetTheme] = useState<'light' | 'dark'>('dark');
+  const { isConnected } = useAccount();
+  const chainId = useChainId();
   const compatibility = useNetworkCompatibility(dapp);
+
+  // Load widget theme from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem(`dapp-widget-theme-${dapp.id}`) as 'light' | 'dark' | null;
+      if (savedTheme) {
+        setWidgetTheme(savedTheme);
+      }
+    }
+  }, [dapp.id]);
+
+  // Listen for theme changes (both storage events and custom events)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === `dapp-widget-theme-${dapp.id}`) {
+        setWidgetTheme((e.newValue as 'light' | 'dark') || 'dark');
+      }
+    };
+
+    const handleCustomThemeChange = (e: CustomEvent) => {
+      if (e.detail.dappId === dapp.id) {
+        setWidgetTheme(e.detail.theme);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('dapp-widget-theme-change', handleCustomThemeChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('dapp-widget-theme-change', handleCustomThemeChange as EventListener);
+    };
+  }, [dapp.id]);
 
   const handleModalClose = () => {
     setShowModal(false);
@@ -26,6 +62,21 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
     }
   };
 
+  // Get contract address
+  let contractAddress = dapp.contractAddress || '';
+  if (!contractAddress && dapp.slug === 'simple-payment') {
+    try {
+      contractAddress = getContractAddress(chainId, 'SimplePayment') || '';
+    } catch (e) {
+      console.warn('Could not get SimplePayment contract address');
+    }
+  }
+
+  // Widget theme classes - apply to container
+  const widgetThemeClass = widgetTheme === 'light' 
+    ? 'bg-white' 
+    : 'bg-zinc-900';
+
   // Render SimplePayment widget if it's the Simple Payment dApp
   if (dapp.slug === 'simple-payment' || dapp.id === '11') {
     return (
@@ -35,9 +86,10 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
           isOpen={showModal}
           onClose={handleModalClose}
         />
-        <div className="w-full bg-white dark:bg-zinc-900 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800">
-          <DAppWidgetHeader dapp={dapp} />
+        <div className={`w-full rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800 ${widgetThemeClass}`}>
+          <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} />
           <SimplePaymentWidget />
+          <DAppWidgetFooter contractAddress={contractAddress} />
         </div>
       </>
     );
@@ -52,8 +104,8 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
           onClose={handleModalClose}
         />
         
-        <div className="w-full bg-white dark:bg-zinc-900 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800">
-          <DAppWidgetHeader dapp={dapp} />
+        <div className={`w-full rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800 ${widgetThemeClass}`}>
+          <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} />
           <div 
             className="flex flex-col items-center justify-center min-h-[400px] p-8 cursor-pointer"
             onClick={handleInteraction}
@@ -78,6 +130,11 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
               <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
                 The interactive widget for {dapp.name} will be available here once it&apos;s deployed.
               </p>
+              {!isConnected && (
+                <p className="text-sm text-zinc-500 dark:text-zinc-500 mb-4">
+                  Connect your EVM wallet to use this dApp when it&apos;s ready.
+                </p>
+              )}
               {dapp.url && (
                 <a
                   href={dapp.url}
@@ -109,6 +166,7 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
               )}
             </div>
           </div>
+          <DAppWidgetFooter contractAddress={contractAddress} />
         </div>
       </>
     );
@@ -122,8 +180,8 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
         onClose={handleModalClose}
       />
       
-      <div className="w-full bg-white dark:bg-zinc-900 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800">
-        <DAppWidgetHeader dapp={dapp} />
+      <div className={`w-full rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800 ${widgetThemeClass}`}>
+        <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} />
         <div 
           className="relative w-full overflow-hidden" 
           style={{ minHeight: '600px' }}
@@ -165,6 +223,7 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
             </a>
           </div>
         )}
+        <DAppWidgetFooter contractAddress={contractAddress} />
       </div>
     </>
   );
