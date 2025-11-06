@@ -196,6 +196,26 @@ export function Header() {
 
         {/* Right side: Wallet Connect and Theme Toggle - no padding, flush to right */}
         <div className="flex items-center gap-2 sm:gap-3 pr-2 sm:pr-4 lg:pr-6">
+          <Link
+            href="/updates"
+            className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
+            aria-label="View updates timeline"
+            title="Development Timeline"
+          >
+            <svg
+              className="h-5 w-5 text-zinc-600 dark:text-zinc-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </Link>
           <button
             onClick={toggleTheme}
             className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
