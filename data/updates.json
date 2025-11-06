@@ -31,5 +31,15 @@
   ],
   "tasks": [],
   "ideas": [],
-  "bugFixes": []
+  "bugFixes": [
+    {
+      "id": "1762467037654-327ys1vhl",
+      "title": "Test",
+      "description": "test",
+      "date": "2025-11-06T00:00:00.000Z",
+      "type": "other",
+      "status": "in-progress",
+      "priority": "medium"
+    }
+  ]
 }
