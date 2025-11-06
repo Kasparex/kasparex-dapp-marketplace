@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762466600-349970a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update timeline: 2025-11-06T22:03:10.792Z (by Kasparex)",
+      "date": "2025-11-06T23:03:10+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762465740-116faa9",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update timeline: 2025-11-06T21:48:46.814Z (by Kasparex) krex",
