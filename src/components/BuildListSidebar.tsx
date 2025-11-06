@@ -115,61 +115,173 @@ export function BuildListSidebar({ title }: BuildListSidebarProps) {
               {title}
             </h2>
 
-            {/* Collapsible Sections */}
-            <CollapsibleSection
-              title="Overview"
-              icon={<DescriptionIcon />}
-              expanded={overviewExpanded}
-              onToggle={() => setOverviewExpanded(!overviewExpanded)}
-            >
-              <p className="text-zinc-500 dark:text-zinc-400 italic">
-                Overview section content will be available here.
-              </p>
-            </CollapsibleSection>
+            {/* Contextual Content Based on Page */}
+            {title === 'Build dApp' ? (
+              <>
+                <CollapsibleSection
+                  title="Overview"
+                  icon={<DescriptionIcon />}
+                  expanded={overviewExpanded}
+                  onToggle={() => setOverviewExpanded(!overviewExpanded)}
+                >
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
+                    Create and deploy your dApp on the Kasparex marketplace. Follow the step-by-step wizard to build your dApp from scratch.
+                  </p>
+                  <ul className="text-sm text-zinc-600 dark:text-zinc-400 space-y-2 list-disc list-inside">
+                    <li>Fill in basic information</li>
+                    <li>Add media and links</li>
+                    <li>Link or deploy smart contract</li>
+                    <li>Configure subscriptions (optional)</li>
+                    <li>Review and submit</li>
+                  </ul>
+                </CollapsibleSection>
 
-            <CollapsibleSection
-              title="Requirements"
-              icon={<UtilityIcon />}
-              expanded={requirementsExpanded}
-              onToggle={() => setRequirementsExpanded(!requirementsExpanded)}
-            >
-              <p className="text-zinc-500 dark:text-zinc-400 italic">
-                Requirements section content will be available here.
-              </p>
-            </CollapsibleSection>
+                <CollapsibleSection
+                  title="Requirements"
+                  icon={<UtilityIcon />}
+                  expanded={requirementsExpanded}
+                  onToggle={() => setRequirementsExpanded(!requirementsExpanded)}
+                >
+                  <ul className="text-sm text-zinc-600 dark:text-zinc-400 space-y-2 list-disc list-inside">
+                    <li>Connected wallet (EVM compatible)</li>
+                    <li>dApp name and description</li>
+                    <li>Category selection</li>
+                    <li>Utility and process description</li>
+                    <li>Smart contract address (optional)</li>
+                  </ul>
+                </CollapsibleSection>
 
-            <CollapsibleSection
-              title="Steps"
-              icon={<ProcessIcon />}
-              expanded={stepsExpanded}
-              onToggle={() => setStepsExpanded(!stepsExpanded)}
-            >
-              <p className="text-zinc-500 dark:text-zinc-400 italic">
-                Steps section content will be available here.
-              </p>
-            </CollapsibleSection>
+                <CollapsibleSection
+                  title="Benefits"
+                  icon={<BenefitsIcon />}
+                  expanded={guidelinesExpanded}
+                  onToggle={() => setGuidelinesExpanded(!guidelinesExpanded)}
+                >
+                  <ul className="text-sm text-zinc-600 dark:text-zinc-400 space-y-2">
+                    <li className="flex items-start gap-2">
+                      <span>💰</span>
+                      <span>Earn revenue from usage and subscriptions</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span>📈</span>
+                      <span>Get visibility in the marketplace</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span>🔗</span>
+                      <span>On-chain verification via DAppRegistry</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span>🔔</span>
+                      <span>Configure subscription models</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span>📊</span>
+                      <span>Track analytics and performance</span>
+                    </li>
+                  </ul>
+                </CollapsibleSection>
 
-            <CollapsibleSection
-              title="Guidelines"
-              icon={<BenefitsIcon />}
-              expanded={guidelinesExpanded}
-              onToggle={() => setGuidelinesExpanded(!guidelinesExpanded)}
-            >
-              <p className="text-zinc-500 dark:text-zinc-400 italic">
-                Guidelines section content will be available here.
-              </p>
-            </CollapsibleSection>
+                <CollapsibleSection
+                  title="Resources"
+                  icon={<DeveloperIcon />}
+                  expanded={resourcesExpanded}
+                  onToggle={() => setResourcesExpanded(!resourcesExpanded)}
+                >
+                  <div className="text-sm text-zinc-600 dark:text-zinc-400 space-y-2">
+                    <p className="font-medium mb-2">Helpful Links:</p>
+                    <ul className="space-y-1">
+                      <li>
+                        <a href="/list-dapp" className="text-[#02abb8] hover:underline">
+                          View My dApps →
+                        </a>
+                      </li>
+                      <li>
+                        <a href="/" className="text-[#02abb8] hover:underline">
+                          Browse Marketplace →
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                </CollapsibleSection>
+              </>
+            ) : (
+              <>
+                <CollapsibleSection
+                  title="Overview"
+                  icon={<DescriptionIcon />}
+                  expanded={overviewExpanded}
+                  onToggle={() => setOverviewExpanded(!overviewExpanded)}
+                >
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
+                    Manage all your dApps in one place. View analytics, configure subscriptions, track revenue, and edit your listings.
+                  </p>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span>📱</span>
+                      <span>View and manage all your dApps</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>💰</span>
+                      <span>Track revenue and earnings</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>🔔</span>
+                      <span>Configure subscription plans</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>📊</span>
+                      <span>View analytics and insights</span>
+                    </div>
+                  </div>
+                </CollapsibleSection>
 
-            <CollapsibleSection
-              title="Resources"
-              icon={<DeveloperIcon />}
-              expanded={resourcesExpanded}
-              onToggle={() => setResourcesExpanded(!resourcesExpanded)}
-            >
-              <p className="text-zinc-500 dark:text-zinc-400 italic">
-                Resources section content will be available here.
-              </p>
-            </CollapsibleSection>
+                <CollapsibleSection
+                  title="Quick Actions"
+                  icon={<UtilityIcon />}
+                  expanded={requirementsExpanded}
+                  onToggle={() => setRequirementsExpanded(!requirementsExpanded)}
+                >
+                  <div className="text-sm text-zinc-600 dark:text-zinc-400 space-y-2">
+                    <Link href="/build-dapp" className="block text-[#02abb8] hover:underline">
+                      ➕ Build New dApp
+                    </Link>
+                    <Link href="/" className="block text-[#02abb8] hover:underline">
+                      🔍 Browse Marketplace
+                    </Link>
+                  </div>
+                </CollapsibleSection>
+
+                <CollapsibleSection
+                  title="Revenue Tips"
+                  icon={<BenefitsIcon />}
+                  expanded={guidelinesExpanded}
+                  onToggle={() => setGuidelinesExpanded(!guidelinesExpanded)}
+                >
+                  <ul className="text-sm text-zinc-600 dark:text-zinc-400 space-y-2 list-disc list-inside">
+                    <li>Register contracts on DAppRegistry for on-chain verification</li>
+                    <li>Configure subscription plans to enable recurring revenue</li>
+                    <li>Revenue is automatically distributed via Treasury contract</li>
+                    <li>Track your earnings in the Revenue dashboard</li>
+                    <li>Update pricing anytime to optimize revenue</li>
+                  </ul>
+                </CollapsibleSection>
+
+                <CollapsibleSection
+                  title="Best Practices"
+                  icon={<ProcessIcon />}
+                  expanded={stepsExpanded}
+                  onToggle={() => setStepsExpanded(!stepsExpanded)}
+                >
+                  <ul className="text-sm text-zinc-600 dark:text-zinc-400 space-y-2 list-disc list-inside">
+                    <li>Keep dApp information up to date</li>
+                    <li>Add high-quality images and descriptions</li>
+                    <li>Set competitive subscription pricing</li>
+                    <li>Monitor analytics regularly</li>
+                    <li>Engage with users and gather feedback</li>
+                  </ul>
+                </CollapsibleSection>
+              </>
+            )}
           </div>
         </div>
       </aside>
