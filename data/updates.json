@@ -15,7 +15,16 @@
       "type": "deployment"
     }
   ],
-  "tasks": [],
+  "tasks": [
+    {
+      "id": "1762465710402-7towe7jnf",
+      "title": "Hello World!",
+      "description": "Hello World!",
+      "date": "2025-11-06T00:00:00.000Z",
+      "type": "other",
+      "status": "in-progress"
+    }
+  ],
   "ideas": [],
   "bugFixes": []
 }
