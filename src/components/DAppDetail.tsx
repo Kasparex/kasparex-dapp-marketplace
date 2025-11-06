@@ -68,109 +68,65 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
         onClose={() => setShowCompatibilityModal(false)}
       />
 
-      {/* Header */}
-      <div className="flex items-start gap-6">
-        {dapp.image ? (
-          <div className="flex-shrink-0 relative w-20 h-20 rounded-lg bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
-            <Image
-              src={dapp.image}
-              alt={dapp.name}
-              fill
-              className="object-cover"
-              unoptimized
-            />
-          </div>
-        ) : (
-          <div className="flex-shrink-0 w-20 h-20 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-            <span className="text-4xl">{category?.emoji || '⚡'}</span>
-          </div>
-        )}
-
-        <div className="flex-1">
-          <div className="flex items-start justify-between gap-4 mb-2">
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-              {dapp.name}
-            </h1>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleFavoriteClick}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
-                  isFavoriteDapp
-                    ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-900/30'
-                    : isWalletConnectedForFavorites
-                    ? 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-                    : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-300 dark:text-zinc-600 cursor-not-allowed'
-                }`}
-                disabled={!isWalletConnectedForFavorites}
-                title={isWalletConnectedForFavorites ? (isFavoriteDapp ? 'Remove from favorites' : 'Add to favorites') : 'Connect wallet to favorite'}
-                aria-label={isWalletConnectedForFavorites ? (isFavoriteDapp ? 'Remove from favorites' : 'Add to favorites') : 'Connect wallet to favorite'}
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill={isFavoriteDapp ? 'currentColor' : 'none'}
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                </svg>
-              </button>
-              <button
-                onClick={handleLikeClick}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
-                  isLiked
-                    ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30'
-                    : isWalletConnectedForLikes
-                    ? 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-                    : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-300 dark:text-zinc-600 cursor-not-allowed'
-                }`}
-                disabled={!isWalletConnectedForLikes}
-                title={isWalletConnectedForLikes ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
-                aria-label={isWalletConnectedForLikes ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill={isLiked ? 'currentColor' : 'none'}
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-                <span className="text-sm font-medium">{likeCount}</span>
-              </button>
-              <span
-                className={`
-                  px-3 py-1 text-sm font-medium rounded border
-                  flex items-center gap-2
-                  ${statusColors[dapp.status] || statusColors.Concept}
-                `}
-              >
-                {statusEmojis[dapp.status] && <span>{statusEmojis[dapp.status]}</span>}
-                <span>{dapp.status}</span>
-              </span>
-            </div>
-          </div>
-
-          {category && (
-            <div className="flex items-center gap-2 flex-wrap mb-4">
-              <span className="text-xl">{category.emoji}</span>
-              <button
-                onClick={() => {
-                  router.push(`/?category=${dapp.category}`);
-                }}
-                className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors text-left"
-              >
-                {category.name}
-              </button>
-              <span className="text-zinc-400 dark:text-zinc-600">•</span>
-              <span className="text-base text-zinc-500 dark:text-zinc-500">
-                ID: {dapp.id}
-                {dapp.version && ` • ${dapp.version} • ${dapp.provider} • ${dapp.network}`}
-              </span>
-            </div>
-          )}
-        </div>
+      {/* Action Buttons */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleFavoriteClick}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
+            isFavoriteDapp
+              ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-900/30'
+              : isWalletConnectedForFavorites
+              ? 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+              : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-300 dark:text-zinc-600 cursor-not-allowed'
+          }`}
+          disabled={!isWalletConnectedForFavorites}
+          title={isWalletConnectedForFavorites ? (isFavoriteDapp ? 'Remove from favorites' : 'Add to favorites') : 'Connect wallet to favorite'}
+          aria-label={isWalletConnectedForFavorites ? (isFavoriteDapp ? 'Remove from favorites' : 'Add to favorites') : 'Connect wallet to favorite'}
+        >
+          <svg
+            className="w-5 h-5"
+            fill={isFavoriteDapp ? 'currentColor' : 'none'}
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+          </svg>
+        </button>
+        <button
+          onClick={handleLikeClick}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
+            isLiked
+              ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30'
+              : isWalletConnectedForLikes
+              ? 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+              : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-300 dark:text-zinc-600 cursor-not-allowed'
+          }`}
+          disabled={!isWalletConnectedForLikes}
+          title={isWalletConnectedForLikes ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
+          aria-label={isWalletConnectedForLikes ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
+        >
+          <svg
+            className="w-5 h-5"
+            fill={isLiked ? 'currentColor' : 'none'}
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
+          <span className="text-sm font-medium">{likeCount}</span>
+        </button>
+        <span
+          className={`
+            px-3 py-1 text-sm font-medium rounded border
+            flex items-center gap-2
+            ${statusColors[dapp.status] || statusColors.Concept}
+          `}
+        >
+          {statusEmojis[dapp.status] && <span>{statusEmojis[dapp.status]}</span>}
+          <span>{dapp.status}</span>
+        </span>
       </div>
 
       {/* dApp Widget */}

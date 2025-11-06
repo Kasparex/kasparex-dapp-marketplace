@@ -3,8 +3,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useAccount, useChainId } from 'wagmi';
 import { DApp } from '@/lib/dapps';
 import { DescriptionIcon, UtilityIcon, ProcessIcon, BenefitsIcon, DeveloperIcon } from '@/components/icons/SectionIcons';
+import { isDeployer } from '@/lib/dapps/deployer';
+import { useDAppFromContract } from '@/lib/dapps/contractData';
+import { EditDAppModal } from './dapps/EditDAppModal';
+import { getContractAddress } from '@/lib/contracts/addresses';
 
 interface DAppSidebarProps {
   dapp: DApp;
@@ -52,6 +57,8 @@ const getLinkIcon = (label: string, url: string) => {
 };
 
 export function DAppSidebar({ dapp }: DAppSidebarProps) {
+  const { address: connectedAddress } = useAccount();
+  const chainId = useChainId();
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [utilityExpanded, setUtilityExpanded] = useState(false);
   const [processExpanded, setProcessExpanded] = useState(false);
@@ -59,6 +66,26 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
   const [securityExpanded, setSecurityExpanded] = useState(false);
   const [roadmapExpanded, setRoadmapExpanded] = useState(false);
   const [developerExpanded, setDeveloperExpanded] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  // Get contract address
+  let contractAddress = dapp.contractAddress || '';
+  if (!contractAddress && dapp.slug === 'simple-payment') {
+    try {
+      contractAddress = getContractAddress(chainId, 'SimplePayment') || '';
+    } catch (e) {
+      console.warn('Could not get SimplePayment contract address');
+    }
+  }
+
+  // Fetch contract data to get deployer address
+  const { data: contractData } = useDAppFromContract(
+    contractAddress && contractAddress.startsWith('0x') ? contractAddress : undefined,
+    chainId
+  );
+
+  const deployerAddress = contractData?.deployerAddress || dapp.deployerAddress || dapp.developer || '';
+  const isDeployerUser = isDeployer(connectedAddress, deployerAddress);
 
   const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
     <svg
@@ -130,26 +157,41 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
       <aside className="hidden lg:block w-full lg:w-1/4 lg:max-w-xs flex-shrink-0">
         <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800">
           <div className="p-4 lg:p-6">
-            {/* Back to Categories Button */}
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors mb-6 pb-4 border-b border-zinc-200 dark:border-zinc-800"
-            >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+            {/* Back to Categories Button and Edit Button */}
+            <div className="mb-6 pb-4 border-b border-zinc-200 dark:border-zinc-800 space-y-3">
+              <Link
+                href="/"
+                className="flex items-center gap-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-              Back to Categories
-            </Link>
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+                Back to Categories
+              </Link>
+              
+              {/* Edit Button (Deployers only) */}
+              {isDeployerUser && (
+                <button
+                  onClick={() => setShowEditModal(true)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-zinc-900 dark:bg-zinc-100 text-zinc-100 dark:text-zinc-900 rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Edit dApp
+                </button>
+              )}
+            </div>
 
             {/* Featured Image */}
             <div className="mb-6">
@@ -286,6 +328,16 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
           </div>
         </div>
       </aside>
+
+      {/* Edit Modal */}
+      {showEditModal && (
+        <EditDAppModal
+          dapp={dapp}
+          contractAddress={contractAddress}
+          contractData={contractData}
+          onClose={() => setShowEditModal(false)}
+        />
+      )}
     </>
   );
 }

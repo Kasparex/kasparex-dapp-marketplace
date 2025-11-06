@@ -37,6 +37,8 @@ export interface DApp {
   description?: string;
   security?: string;
   roadmap?: string;
+  contractAddress?: string; // Smart contract address for the dApp
+  deployerAddress?: string; // Address of the deployer/developer
   /**
    * Optional array of supported chain IDs for network compatibility checking.
    * If not provided, will be inferred from the network field using networkNameToChainIds.
@@ -214,6 +216,8 @@ export const placeholderDApps: DApp[] = [
     roadmap: 'Q4 2025: Testnet launch and initial testing\nQ1 2026: Mainnet deployment\nQ2 2026: Enhanced features including batch payments and payment scheduling\nQ3 2026: Integration with Token Builder for automatic utility attachment',
     createdAt: '2025-11-05T16:21:29.306Z',
     supportedChainIds: [167012], // Kasplex L2 Testnet
+    // Contract address will be fetched from environment variables via getContractAddress
+    // deployerAddress will be fetched from DAppRegistry contract
   },
 ];
 
