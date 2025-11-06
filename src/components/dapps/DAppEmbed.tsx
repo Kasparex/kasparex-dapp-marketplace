@@ -12,10 +12,10 @@ interface DAppEmbedProps {
 export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
   const [widthType, setWidthType] = useState<'px' | '%' | 'vw'>('%');
   const [width, setWidth] = useState(100);
-  const [heightType, setHeightType] = useState<'px' | 'vh' | '%' | 'auto'>('%');
-  const [height, setHeight] = useState(100);
+  const [heightType, setHeightType] = useState<'px' | 'vh' | '%' | 'auto'>('auto');
+  const [height, setHeight] = useState(0);
   const [hideHeader, setHideHeader] = useState(false);
-  const [customStyle, setCustomStyle] = useState('max-width: 100%;');
+  const [customStyle, setCustomStyle] = useState('max-width: 100%; width: 100%;');
   const [copied, setCopied] = useState(false);
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
@@ -27,14 +27,17 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
   
   const embedUrl = `${baseUrl}/dapps/${slug}/embed${hideHeader ? '?hideHeader=true' : ''}`;
   
-  // Build responsive embed code
-  const responsiveStyle = `width: ${widthValue}; height: ${heightValue}; border: 0; ${customStyle}`;
+  // Build responsive embed code with improved defaults
+  const responsiveStyle = heightType === 'auto' 
+    ? `width: ${widthValue}; height: auto; min-height: 600px; border: 0; ${customStyle}`
+    : `width: ${widthValue}; height: ${heightValue}; border: 0; ${customStyle}`;
   
   const embedCode = `<iframe
   src="${embedUrl}"
   style="${responsiveStyle}"
   frameborder="0"
   allowtransparency="true"
+  loading="lazy"
 ></iframe>`;
 
   const handleCopy = async () => {
@@ -109,7 +112,7 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
                 </select>
               </div>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                Use % for responsive width relative to container, vw for viewport width
+                Use % for responsive width relative to container (recommended: 100%), vw for viewport width
               </p>
             </div>
 
@@ -132,14 +135,14 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
                   onChange={(e) => setHeightType(e.target.value as 'px' | 'vh' | '%' | 'auto')}
                   className="px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
                 >
-                  <option value="%">%</option>
                   <option value="auto">auto</option>
+                  <option value="%">%</option>
                   <option value="px">px</option>
                   <option value="vh">vh</option>
                 </select>
               </div>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                Use &quot;%&quot; for container height (recommended), &quot;auto&quot; for automatic adjustment, or &quot;vh&quot; for viewport height
+                Use &quot;auto&quot; for automatic height adjustment (recommended - adapts to content), &quot;%&quot; for container height, or &quot;vh&quot; for viewport height
               </p>
             </div>
 
@@ -163,12 +166,12 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
               <textarea
                 value={customStyle}
                 onChange={(e) => setCustomStyle(e.target.value)}
-                placeholder="border: 1px solid #ccc; border-radius: 8px; max-width: 100%;"
+                placeholder="max-width: 100%; width: 100%; border-radius: 8px;"
                 className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-mono text-sm"
                 rows={3}
               />
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                Add additional CSS styles. Recommended: max-width: 100% for mobile responsiveness
+                Add additional CSS styles. Default includes max-width: 100% and width: 100% for full-width responsiveness
               </p>
             </div>
           </div>

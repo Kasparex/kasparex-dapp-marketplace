@@ -187,6 +187,7 @@ export function SimplePaymentWidget() {
   const [recipientAddress, setRecipientAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
 
   // Get contract addresses for current chain
   // Fallback to direct access if getContractAddress is not available
@@ -502,23 +503,41 @@ export function SimplePaymentWidget() {
             </div>
           )}
 
-          {/* Debug Info - Always show to help diagnose */}
-          <div className="p-3 bg-zinc-100 dark:bg-zinc-900 rounded-lg text-xs space-y-1 mb-4">
-            <p className="font-semibold">Debug Info:</p>
-            <p>Contract Address: {contractAddress || '❌ EMPTY - This is why button is disabled!'}</p>
-            <p>Chain ID: {chainId} (Expected: 167012 for Testnet)</p>
-            <p>Recipient: {recipientAddress ? '✅ SET' : '❌ EMPTY'}</p>
-            <p>Amount: {amount || '❌ EMPTY'}</p>
-            <p>Amount (BigInt): {amountBigInt.toString()}</p>
-            <p>Has Access: {hasAccess === undefined ? 'Checking...' : String(hasAccess)}</p>
-            <p className="font-semibold mt-2">Button Disabled Because:</p>
-            <ul className="list-disc list-inside ml-2">
-              {isLoading && <li>Transaction in progress</li>}
-              {!recipientAddress && <li>No recipient address</li>}
-              {!amount && <li>No amount entered</li>}
-              {amountBigInt === 0n && <li>Amount parsing failed (amountBigInt = 0)</li>}
-              {!contractAddress && <li className="text-red-600 dark:text-red-400 font-bold">❌ NO CONTRACT ADDRESS - Check environment variables!</li>}
-            </ul>
+          {/* Debug Info - Collapsible */}
+          <div className="mb-4">
+            <button
+              onClick={() => setShowDebugInfo(!showDebugInfo)}
+              className="w-full flex items-center justify-between p-3 bg-zinc-100 dark:bg-zinc-900 rounded-lg text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
+            >
+              <span>Debug Info</span>
+              <svg
+                className={`w-4 h-4 transition-transform ${showDebugInfo ? 'rotate-180' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {showDebugInfo && (
+              <div className="mt-2 p-3 bg-zinc-50 dark:bg-zinc-950 rounded-lg text-xs space-y-1 border border-zinc-200 dark:border-zinc-800">
+                <p className="font-semibold">Debug Info:</p>
+                <p>Contract Address: {contractAddress || '❌ EMPTY - This is why button is disabled!'}</p>
+                <p>Chain ID: {chainId} (Expected: 167012 for Testnet)</p>
+                <p>Recipient: {recipientAddress ? '✅ SET' : '❌ EMPTY'}</p>
+                <p>Amount: {amount || '❌ EMPTY'}</p>
+                <p>Amount (BigInt): {amountBigInt.toString()}</p>
+                <p>Has Access: {hasAccess === undefined ? 'Checking...' : String(hasAccess)}</p>
+                <p className="font-semibold mt-2">Button Disabled Because:</p>
+                <ul className="list-disc list-inside ml-2">
+                  {isLoading && <li>Transaction in progress</li>}
+                  {!recipientAddress && <li>No recipient address</li>}
+                  {!amount && <li>No amount entered</li>}
+                  {amountBigInt === 0n && <li>Amount parsing failed (amountBigInt = 0)</li>}
+                  {!contractAddress && <li className="text-red-600 dark:text-red-400 font-bold">❌ NO CONTRACT ADDRESS - Check environment variables!</li>}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Send Button */}
@@ -526,7 +545,8 @@ export function SimplePaymentWidget() {
             <button
               onClick={handleSendPayment}
               disabled={isLoading || !recipientAddress || !amount || amountBigInt === 0n || !contractAddress}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2 text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              style={{ backgroundColor: '#0097b2' }}
             >
             {isLoading ? (
               <span className="flex items-center justify-center">
