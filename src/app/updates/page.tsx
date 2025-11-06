@@ -34,22 +34,32 @@ export default function UpdatesPage() {
       
       <main className="flex-1 p-4 sm:p-6 lg:p-8">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-                Development Timeline
-              </h1>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                Track website developments, tasks, ideas, and bug fixes. Deployments are automatically tracked via GitHub Actions when you push to main.
-              </p>
-            </div>
-            <Link
-              href="/"
-              className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg transition-colors whitespace-nowrap"
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 mb-4 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              ← Back to Categories
-            </Link>
-          </div>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            Back to Categories
+          </Link>
+          
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+            Development Timeline
+          </h1>
+          <p className="text-zinc-600 dark:text-zinc-400 mb-8">
+            Track website developments, tasks, ideas, and bug fixes. Deployments are automatically tracked via GitHub Actions when you push to main.
+          </p>
           
           <div className="mb-8">
             <UpdatesEditor
