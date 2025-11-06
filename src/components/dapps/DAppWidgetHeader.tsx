@@ -105,6 +105,11 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
   
   const displayAddress = formatAddressForDisplay(deployerAddress);
   
+  // Developer dropdown state
+  const [showDeveloperDropdown, setShowDeveloperDropdown] = useState(false);
+  const developerDropdownRef = useRef<HTMLDivElement>(null);
+  const [copiedAddress, setCopiedAddress] = useState(false);
+  
   // Copy address handler
   const handleCopyAddress = async () => {
     if (deployerAddress) {
@@ -148,9 +153,6 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
   const [showGuideAndInfoModal, setShowGuideAndInfoModal] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
-  const [showDeveloperDropdown, setShowDeveloperDropdown] = useState(false);
-  const developerDropdownRef = useRef<HTMLDivElement>(null);
-  const [copiedAddress, setCopiedAddress] = useState(false);
 
   // Category link - open in new tab when embedded
   const categoryLinkProps = isEmbeddedPage
