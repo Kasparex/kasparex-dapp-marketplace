@@ -50,10 +50,16 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
           isOpen={showModal}
           onClose={handleModalClose}
         />
-        <div className="w-full bg-white dark:bg-zinc-900 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800">
-          <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} />
-          <SimplePaymentWidget />
-          <DAppWidgetFooter contractAddress={contractAddress} />
+        <div className={`w-full bg-white dark:bg-zinc-900 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800 ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
+          <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
+            <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} />
+          </div>
+          <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
+            <SimplePaymentWidget />
+          </div>
+          <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
+            <DAppWidgetFooter contractAddress={contractAddress} />
+          </div>
         </div>
       </>
     );
@@ -144,13 +150,15 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
         onClose={handleModalClose}
       />
       
-        <div className="w-full bg-white dark:bg-zinc-900 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800">
-        <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} />
-        <div 
-          className="relative w-full overflow-hidden" 
-          style={{ minHeight: '600px' }}
-          onClick={handleInteraction}
-        >
+        <div className={`w-full bg-white dark:bg-zinc-900 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800 ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
+          <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
+            <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} />
+          </div>
+          <div 
+            className={`relative w-full overflow-hidden ${!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}`}
+            style={{ minHeight: '600px' }}
+            onClick={handleInteraction}
+          >
           <iframe
             src={dapp.widgetUrl}
             className="w-full h-full border-0"
@@ -187,7 +195,9 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
             </a>
           </div>
         )}
-        <DAppWidgetFooter contractAddress={contractAddress} />
+        <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
+          <DAppWidgetFooter contractAddress={contractAddress} />
+        </div>
       </div>
     </>
   );

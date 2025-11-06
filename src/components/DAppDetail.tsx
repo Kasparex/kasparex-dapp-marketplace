@@ -8,8 +8,6 @@ import { getCategoryById } from '@/lib/categories';
 import { DAppWidget } from './DAppWidget';
 import { NetworkCompatibilityModal } from './NetworkCompatibilityModal';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
-import { useLikes } from '@/hooks/useLikes';
-import { useFavorites } from '@/hooks/useFavorites';
 import { generateDAppSlug } from '@/lib/utils';
 
 const statusColors: Record<DAppStatus, string> = {
@@ -42,23 +40,6 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
   const slug = dapp.slug || generateDAppSlug(dapp.name);
   const [showCompatibilityModal, setShowCompatibilityModal] = useState(false);
   const compatibility = useNetworkCompatibility(dapp);
-  const { toggleLike, getLikeCount, hasLiked, isWalletConnected: isWalletConnectedForLikes } = useLikes();
-  const { toggleFavorite, isFavorite, isWalletConnected: isWalletConnectedForFavorites } = useFavorites();
-  const likeCount = getLikeCount(dapp.id);
-  const isLiked = hasLiked(dapp.id);
-  const isFavoriteDapp = isFavorite(dapp.id);
-
-  const handleLikeClick = () => {
-    if (isWalletConnectedForLikes) {
-      toggleLike(dapp.id);
-    }
-  };
-
-  const handleFavoriteClick = () => {
-    if (isWalletConnectedForFavorites) {
-      toggleFavorite(dapp.id);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -68,55 +49,8 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
         onClose={() => setShowCompatibilityModal(false)}
       />
 
-      {/* Action Buttons */}
+      {/* Status Badge */}
       <div className="flex items-center gap-3">
-        <button
-          onClick={handleFavoriteClick}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
-            isFavoriteDapp
-              ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-900/30'
-              : isWalletConnectedForFavorites
-              ? 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-              : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-300 dark:text-zinc-600 cursor-not-allowed'
-          }`}
-          disabled={!isWalletConnectedForFavorites}
-          title={isWalletConnectedForFavorites ? (isFavoriteDapp ? 'Remove from favorites' : 'Add to favorites') : 'Connect wallet to favorite'}
-          aria-label={isWalletConnectedForFavorites ? (isFavoriteDapp ? 'Remove from favorites' : 'Add to favorites') : 'Connect wallet to favorite'}
-        >
-          <svg
-            className="w-5 h-5"
-            fill={isFavoriteDapp ? 'currentColor' : 'none'}
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-          </svg>
-        </button>
-        <button
-          onClick={handleLikeClick}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
-            isLiked
-              ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30'
-              : isWalletConnectedForLikes
-              ? 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-              : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-300 dark:text-zinc-600 cursor-not-allowed'
-          }`}
-          disabled={!isWalletConnectedForLikes}
-          title={isWalletConnectedForLikes ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
-          aria-label={isWalletConnectedForLikes ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
-        >
-          <svg
-            className="w-5 h-5"
-            fill={isLiked ? 'currentColor' : 'none'}
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
-          <span className="text-sm font-medium">{likeCount}</span>
-        </button>
         <span
           className={`
             px-3 py-1 text-sm font-medium rounded border

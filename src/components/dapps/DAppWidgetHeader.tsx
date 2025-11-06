@@ -6,6 +6,7 @@ import { useAccount, useChainId } from 'wagmi';
 import { useChainModal } from '@rainbow-me/rainbowkit';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { DApp } from '@/lib/dapps';
+import { getChainById } from '@/lib/wagmi';
 import { getCategoryById } from '@/lib/categories';
 import { isDeployer, useDeployerProfile, formatDeployerName, getDeployerProfileUrl } from '@/lib/dapps/deployer';
 import { Avatar } from '@/components/Avatar';
@@ -162,58 +163,6 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
             )}
           </div>
 
-          {/* Top Right Buttons: Star, Heart, Network Indicator */}
-          <div className="flex items-center gap-2 absolute top-0 right-0">
-            {/* Star Button (Favorites) */}
-            <button
-              onClick={() => toggleFavorite(dapp.id)}
-              className={`p-2 rounded-lg transition-colors ${
-                isFavorite(dapp.id)
-                  ? 'text-yellow-500 hover:text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
-                  : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-              }`}
-              title={isFavorite(dapp.id) ? 'Remove from favorites' : 'Add to favorites'}
-              aria-label={isFavorite(dapp.id) ? 'Remove from favorites' : 'Add to favorites'}
-            >
-              <svg className="w-5 h-5" fill={isFavorite(dapp.id) ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-              </svg>
-            </button>
-
-            {/* Heart Button (Like) */}
-            <button
-              onClick={() => toggleLike(dapp.id)}
-              className={`p-2 rounded-lg transition-colors relative ${
-                hasLiked(dapp.id)
-                  ? 'text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-900/20'
-                  : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-              }`}
-              title={hasLiked(dapp.id) ? 'Unlike' : 'Like'}
-              aria-label={hasLiked(dapp.id) ? 'Unlike' : 'Like'}
-            >
-              <svg className="w-5 h-5" fill={hasLiked(dapp.id) ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-              {getLikeCount(dapp.id) > 0 && (
-                <span className="absolute -top-1 -right-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                  {getLikeCount(dapp.id)}
-                </span>
-              )}
-            </button>
-
-            {/* Network Indicator */}
-            {isConnected && (
-              <div className={`px-2.5 py-1.5 rounded-lg text-xs font-medium ${
-                networkStatus === 'mainnet'
-                  ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
-                  : networkStatus === 'testnet'
-                  ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
-                  : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
-              }`}>
-                {networkStatus === 'mainnet' ? '🟢 Mainnet' : networkStatus === 'testnet' ? '🟡 Testnet' : '⚪ Unknown'}
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Info Bar */}
@@ -260,6 +209,43 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
 
           {/* Icon Buttons */}
           <div className="flex items-center gap-1 ml-auto">
+            {/* Star Button (Favorites) */}
+            <button
+              onClick={() => toggleFavorite(dapp.id)}
+              className={`p-2 rounded-lg transition-colors ${
+                isFavorite(dapp.id)
+                  ? 'text-yellow-500 hover:text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
+                  : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+              }`}
+              title={isFavorite(dapp.id) ? 'Remove from favorites' : 'Add to favorites'}
+              aria-label={isFavorite(dapp.id) ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              <svg className="w-5 h-5" fill={isFavorite(dapp.id) ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+              </svg>
+            </button>
+
+            {/* Heart Button (Like) */}
+            <button
+              onClick={() => toggleLike(dapp.id)}
+              className={`p-2 rounded-lg transition-colors relative ${
+                hasLiked(dapp.id)
+                  ? 'text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-900/20'
+                  : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+              }`}
+              title={hasLiked(dapp.id) ? 'Unlike' : 'Like'}
+              aria-label={hasLiked(dapp.id) ? 'Unlike' : 'Like'}
+            >
+              <svg className="w-5 h-5" fill={hasLiked(dapp.id) ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              {getLikeCount(dapp.id) > 0 && (
+                <span className="absolute -top-1 -right-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                  {getLikeCount(dapp.id)}
+                </span>
+              )}
+            </button>
+
             {/* Info Icon */}
             {(dapp.description || dapp.utility) && (
               <button
@@ -353,35 +339,52 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
             </ConnectButton.Custom>
           )}
 
-          {/* Network Info */}
+          {/* Interactive Network Switcher Button */}
           {isConnected && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">Network:</span>
-              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                {compatibility.currentChainName || 'Unknown'}
-              </span>
-              {!compatibility.isCompatible && (
-                <>
-                  <span className="text-zinc-400 dark:text-zinc-600">•</span>
-                  <button
-                    onClick={() => openChainModal?.()}
-                    className="text-sm text-[#02abb8] hover:text-[#0299a3] transition-colors font-medium"
-                  >
-                    Switch Network
-                  </button>
-                </>
-              )}
-            </div>
+            <button
+              onClick={() => openChainModal?.()}
+              className={`px-3 py-2 rounded-lg border transition-colors text-sm font-medium flex items-center gap-2 ${
+                isMainnet
+                  ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-300 dark:border-green-700 hover:bg-green-200 dark:hover:bg-green-900/40'
+                  : isTestnet
+                  ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-300 dark:border-yellow-700 hover:bg-yellow-200 dark:hover:bg-yellow-900/40'
+                  : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+              }`}
+              aria-label="Switch network"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"
+                />
+              </svg>
+              <span>{chain?.name || 'Switch Network'}</span>
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
           )}
 
-          {/* Network Status Badge */}
+          {/* Network Compatibility Status */}
           {isConnected && (
             <div className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
               compatibility.isCompatible
                 ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
                 : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
             }`}>
-              {compatibility.isCompatible ? '✓ Compatible' : '⚠ Mismatch'}
+              {compatibility.isCompatible ? '✓ Compatible' : '⚠ Not compatible'}
             </div>
           )}
         </div>
