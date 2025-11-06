@@ -393,25 +393,17 @@ export function SimplePaymentWidget() {
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Simple Payment
-        </h2>
-        <p className="text-gray-600 dark:text-gray-400">
-          Send KAS payments with automatic fee collection
-        </p>
-      </div>
+    <div className="px-6 py-4 space-y-4">
 
       {!isConnected ? (
         <div className="text-center py-8">
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-zinc-600 dark:text-zinc-400 mb-4">
             Please connect your wallet to use this dApp
           </p>
         </div>
       ) : isLoadingAccess ? (
         <div className="text-center py-8">
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-zinc-600 dark:text-zinc-400 mb-4">
             Checking subscription status...
           </p>
         </div>
@@ -431,7 +423,7 @@ export function SimplePaymentWidget() {
         <div className="space-y-4">
           {/* Recipient Address Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
               Recipient Address
             </label>
             <input
@@ -439,14 +431,14 @@ export function SimplePaymentWidget() {
               value={recipientAddress}
               onChange={(e) => setRecipientAddress(e.target.value)}
               placeholder="0x..."
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={isLoading}
             />
           </div>
 
           {/* Amount Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
               Amount (KAS)
             </label>
             <input
@@ -460,32 +452,32 @@ export function SimplePaymentWidget() {
                 }
               }}
               placeholder="0.0"
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={isLoading}
             />
           </div>
 
           {/* Fee Breakdown */}
           {amount && amountBigInt > 0n && (
-            <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
                 Payment Breakdown
               </h3>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Total Amount:</span>
-                  <span className="font-medium text-gray-900 dark:text-white">
+                  <span className="text-zinc-600 dark:text-zinc-400">Total Amount:</span>
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
                     {formatKAS(amountBigInt)} KAS
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Fee ({feePercentageNum / 100}%):</span>
+                  <span className="text-zinc-600 dark:text-zinc-400">Fee ({feePercentageNum / 100}%):</span>
                   <span className="font-medium text-red-600 dark:text-red-400">
                     -{formatKAS(feeAmount)} KAS
                   </span>
                 </div>
-                <div className="flex justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
-                  <span className="font-semibold text-gray-900 dark:text-white">Recipient Receives:</span>
+                <div className="flex justify-between pt-2 border-t border-zinc-200 dark:border-zinc-800">
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">Recipient Receives:</span>
                   <span className="font-semibold text-green-600 dark:text-green-400">
                     {formatKAS(paymentAmount)} KAS
                   </span>
@@ -497,21 +489,21 @@ export function SimplePaymentWidget() {
           {/* Error Message */}
           {displayError && (
             <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-sm text-red-600 dark:text-red-400">{displayError}</p>
+              <p className="text-sm text-red-700 dark:text-red-400">{displayError}</p>
             </div>
           )}
 
           {/* Success Message */}
           {isConfirmed && (
             <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-              <p className="text-sm text-green-600 dark:text-green-400">
+              <p className="text-sm text-green-700 dark:text-green-400">
                 Payment sent successfully! Transaction hash: {hash?.slice(0, 10)}...
               </p>
             </div>
           )}
 
           {/* Debug Info - Always show to help diagnose */}
-          <div className="p-3 bg-gray-100 dark:bg-gray-900 rounded-lg text-xs space-y-1 mb-4">
+          <div className="p-3 bg-zinc-100 dark:bg-zinc-900 rounded-lg text-xs space-y-1 mb-4">
             <p className="font-semibold">Debug Info:</p>
             <p>Contract Address: {contractAddress || '❌ EMPTY - This is why button is disabled!'}</p>
             <p>Chain ID: {chainId} (Expected: 167012 for Testnet)</p>
@@ -530,11 +522,12 @@ export function SimplePaymentWidget() {
           </div>
 
           {/* Send Button */}
-          <button
-            onClick={handleSendPayment}
-            disabled={isLoading || !recipientAddress || !amount || amountBigInt === 0n || !contractAddress}
-            className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors duration-200"
-          >
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={handleSendPayment}
+              disabled={isLoading || !recipientAddress || !amount || amountBigInt === 0n || !contractAddress}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            >
             {isLoading ? (
               <span className="flex items-center justify-center">
                 <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -544,14 +537,15 @@ export function SimplePaymentWidget() {
                 {isPendingWrite ? 'Confirming...' : 'Processing...'}
               </span>
             ) : (
-              'Send Payment'
+              'Send'
             )}
           </button>
+          </div>
 
           {/* Contract Info */}
           {contractAddress && (
-            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
                 Contract: {contractAddress.slice(0, 6)}...{contractAddress.slice(-4)}
               </p>
             </div>

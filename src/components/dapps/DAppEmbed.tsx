@@ -10,7 +10,9 @@ interface DAppEmbedProps {
 }
 
 export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
+  const [widthType, setWidthType] = useState<'px' | '%' | 'vw'>('px');
   const [width, setWidth] = useState(800);
+  const [heightType, setHeightType] = useState<'px' | 'vh'>('px');
   const [height, setHeight] = useState(600);
   const [hideHeader, setHideHeader] = useState(false);
   const [customStyle, setCustomStyle] = useState('');
@@ -18,15 +20,21 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const slug = dapp.slug || dapp.id;
-  const embedUrl = `${baseUrl}/dapps/${slug}/embed?width=${width}&height=${height}${hideHeader ? '&hideHeader=true' : ''}`;
+  
+  // Build responsive width/height strings
+  const widthValue = widthType === 'px' ? `${width}px` : widthType === '%' ? `${width}%` : `${width}vw`;
+  const heightValue = heightType === 'px' ? `${height}px` : `${height}vh`;
+  
+  const embedUrl = `${baseUrl}/dapps/${slug}/embed${hideHeader ? '?hideHeader=true' : ''}`;
+  
+  // Build responsive embed code
+  const responsiveStyle = `width: ${widthValue}; height: ${heightValue}; border: 0; ${customStyle}`;
   
   const embedCode = `<iframe
   src="${embedUrl}"
-  width="${width}"
-  height="${height}"
+  style="${responsiveStyle}"
   frameborder="0"
   allowtransparency="true"
-  ${customStyle ? `style="${customStyle}"` : ''}
 ></iframe>`;
 
   const handleCopy = async () => {
@@ -81,30 +89,57 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Width (px)
+                Width
               </label>
-              <input
-                type="number"
-                value={width}
-                onChange={(e) => setWidth(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
-                min="300"
-                max="2000"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  value={width}
+                  onChange={(e) => setWidth(Number(e.target.value))}
+                  className="flex-1 px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                  min={widthType === 'px' ? 300 : widthType === '%' ? 10 : 10}
+                  max={widthType === 'px' ? 2000 : widthType === '%' ? 100 : 100}
+                />
+                <select
+                  value={widthType}
+                  onChange={(e) => setWidthType(e.target.value as 'px' | '%' | 'vw')}
+                  className="px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                >
+                  <option value="px">px</option>
+                  <option value="%">%</option>
+                  <option value="vw">vw</option>
+                </select>
+              </div>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                Use % for responsive width relative to container, vw for viewport width
+              </p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Height (px)
+                Height
               </label>
-              <input
-                type="number"
-                value={height}
-                onChange={(e) => setHeight(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
-                min="300"
-                max="2000"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  value={height}
+                  onChange={(e) => setHeight(Number(e.target.value))}
+                  className="flex-1 px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                  min={heightType === 'px' ? 300 : 10}
+                  max={heightType === 'px' ? 2000 : 100}
+                />
+                <select
+                  value={heightType}
+                  onChange={(e) => setHeightType(e.target.value as 'px' | 'vh')}
+                  className="px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                >
+                  <option value="px">px</option>
+                  <option value="vh">vh</option>
+                </select>
+              </div>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                Use vh for responsive height relative to viewport
+              </p>
             </div>
 
             <div className="flex items-center gap-2">
@@ -122,15 +157,18 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
 
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Custom Style (CSS)
+                Custom Style (CSS) - Optional
               </label>
               <textarea
                 value={customStyle}
                 onChange={(e) => setCustomStyle(e.target.value)}
-                placeholder="border: 1px solid #ccc; border-radius: 8px;"
+                placeholder="border: 1px solid #ccc; border-radius: 8px; max-width: 100%;"
                 className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-mono text-sm"
-                rows={2}
+                rows={3}
               />
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                Add additional CSS styles. Recommended: max-width: 100% for mobile responsiveness
+              </p>
             </div>
           </div>
 
