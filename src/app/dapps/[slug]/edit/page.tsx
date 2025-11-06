@@ -82,7 +82,7 @@ export default function DAppEditPage() {
               Unauthorized
             </h1>
             <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-              You don't have permission to edit this dApp. Only the deployer can edit it.
+              You don&apos;t have permission to edit this dApp. Only the deployer can edit it.
             </p>
             <button
               onClick={() => router.push(`/dapps/${slug}`)}

@@ -6,6 +6,7 @@ import { NetworkCompatibilityModal } from './NetworkCompatibilityModal';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
 import { SimplePaymentWidget } from './dapps/SimplePaymentWidget';
 import { DAppWidgetHeader } from './dapps/DAppWidgetHeader';
+import { DAppWidgetFooter } from './dapps/DAppWidgetFooter';
 
 interface DAppWidgetProps {
   dapp: DApp;
