@@ -85,6 +85,8 @@ export function Header() {
   const { isConnected } = useAccount();
   const [logoError, setLogoError] = useState(false);
   const [dAppsDropdownOpen, setDAppsDropdownOpen] = useState(false);
+  const [hasNewUpdates, setHasNewUpdates] = useState(false);
+  const [updateCount, setUpdateCount] = useState(0);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -93,6 +95,32 @@ export function Header() {
         clearTimeout(hoverTimeoutRef.current);
       }
     };
+  }, []);
+
+  // Check for new updates
+  useEffect(() => {
+    const checkUpdates = async () => {
+      try {
+        const response = await fetch('/api/updates');
+        const result = await response.json();
+        if (result.success && result.data) {
+          const totalUpdates = (result.data.updates || []).length;
+          const lastViewedCount = parseInt(
+            localStorage.getItem('lastViewedUpdateCount') || '0',
+            10
+          );
+          setUpdateCount(totalUpdates);
+          setHasNewUpdates(totalUpdates > lastViewedCount);
+        }
+      } catch (error) {
+        console.error('Error checking updates:', error);
+      }
+    };
+
+    checkUpdates();
+    // Check every 60 seconds
+    const interval = setInterval(checkUpdates, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -198,7 +226,12 @@ export function Header() {
         <div className="flex items-center gap-2 sm:gap-3 pr-2 sm:pr-4 lg:pr-6">
           <Link
             href="/updates"
-            className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
+            onClick={() => {
+              // Mark updates as viewed
+              localStorage.setItem('lastViewedUpdateCount', updateCount.toString());
+              setHasNewUpdates(false);
+            }}
+            className="relative p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
             aria-label="View updates timeline"
             title="Development Timeline"
           >
@@ -215,6 +248,9 @@ export function Header() {
                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
+            {hasNewUpdates && (
+              <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full border-2 border-white dark:border-zinc-950"></span>
+            )}
           </Link>
           <button
             onClick={toggleTheme}
