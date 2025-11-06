@@ -12,6 +12,7 @@ import { getChainById } from '@/lib/wagmi';
 import { DAppInfoModal } from './dapps/DAppInfoModal';
 import { DAppGuideAndInfoModal } from './dapps/DAppGuideAndInfoModal';
 import { DAppEmbed } from './dapps/DAppEmbed';
+import { mergeDAppData } from '@/lib/dapps/contractData';
 
 interface DAppCardProps {
   dapp: DApp;
@@ -28,13 +29,16 @@ const statusColors: Record<DAppStatus, string> = {
 };
 
 export function DAppCard({ dapp }: DAppCardProps) {
-  const category = getCategoryById(dapp.category);
-  const slug = dapp.slug || generateDAppSlug(dapp.name);
+  // Merge localStorage metadata with frontend data
+  const mergedDApp = mergeDAppData(null, dapp);
+  
+  const category = getCategoryById(mergedDApp.category);
+  const slug = mergedDApp.slug || generateDAppSlug(mergedDApp.name);
   const { toggleLike, getLikeCount, hasLiked, isWalletConnected: isWalletConnectedForLikes } = useLikes();
   const { toggleFavorite, isFavorite, isWalletConnected: isWalletConnectedForFavorites } = useFavorites();
-  const likeCount = getLikeCount(dapp.id);
-  const isLiked = hasLiked(dapp.id);
-  const isFavoriteDapp = isFavorite(dapp.id);
+  const likeCount = getLikeCount(mergedDApp.id);
+  const isLiked = hasLiked(mergedDApp.id);
+  const isFavoriteDapp = isFavorite(mergedDApp.id);
 
   // Modal states
   const [showInfoModal, setShowInfoModal] = useState(false);
@@ -43,7 +47,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
   const [showNetworkTooltip, setShowNetworkTooltip] = useState(false);
 
   // Get network information
-  const supportedChainIds = getDAppChainIds(dapp);
+  const supportedChainIds = getDAppChainIds(mergedDApp);
   const supportedNetworks = supportedChainIds
     .map(id => getChainById(id))
     .filter(Boolean)
@@ -63,9 +67,9 @@ export function DAppCard({ dapp }: DAppCardProps) {
       <div className="flex items-start gap-4">
         {dapp.image ? (
           <div className="flex-shrink-0 relative w-12 h-12 rounded-lg bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
-            <Image
-              src={dapp.image}
-              alt={dapp.name}
+              <Image
+                src={mergedDApp.image || dapp.image || ''}
+                alt={mergedDApp.name}
               fill
               className="object-cover"
               unoptimized
@@ -80,19 +84,19 @@ export function DAppCard({ dapp }: DAppCardProps) {
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-2">
             <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 truncate flex-1 min-w-0">
-              {dapp.name}
+              {mergedDApp.name}
             </h3>
             <div className="flex items-center gap-2 flex-shrink-0">
               <div className="relative">
                 <span
                   className={`
                     px-2 py-1 text-xs font-medium rounded border cursor-help
-                    ${statusColors[dapp.status] || statusColors.Concept}
+                    ${statusColors[mergedDApp.status] || statusColors.Concept}
                   `}
                   onMouseEnter={() => setShowNetworkTooltip(true)}
                   onMouseLeave={() => setShowNetworkTooltip(false)}
                 >
-                  {dapp.status}
+                  {mergedDApp.status}
                 </span>
                 {showNetworkTooltip && supportedNetworks.length > 0 && (
                   <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-[100] p-3 pointer-events-none">
@@ -123,13 +127,13 @@ export function DAppCard({ dapp }: DAppCardProps) {
               </span>
               <span className="text-zinc-400 dark:text-zinc-600">•</span>
               <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                {dapp.id}
+                {mergedDApp.id}
               </span>
             </div>
           )}
 
           <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">
-            {dapp.utility}
+            {mergedDApp.utility || mergedDApp.description || mergedDApp.process || ''}
           </p>
         </div>
       </div>
@@ -141,7 +145,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
           <button
             onClick={(e) => handleIconClick(e, () => {
               if (isWalletConnectedForFavorites) {
-                toggleFavorite(dapp.id);
+                toggleFavorite(mergedDApp.id);
               }
             })}
             className={`p-1.5 rounded-lg transition-colors ${
@@ -164,7 +168,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
           <button
             onClick={(e) => handleIconClick(e, () => {
               if (isWalletConnectedForLikes) {
-                toggleLike(dapp.id);
+                toggleLike(mergedDApp.id);
               }
             })}
             className={`p-1.5 rounded-lg transition-colors relative ${
@@ -189,7 +193,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
           </button>
 
           {/* Info Icon */}
-          {(dapp.description || dapp.utility) && (
+          {(mergedDApp.description || mergedDApp.utility) && (
             <button
               onClick={(e) => handleIconClick(e, () => setShowInfoModal(true))}
               className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
@@ -231,21 +235,21 @@ export function DAppCard({ dapp }: DAppCardProps) {
       {/* Modals */}
       {showInfoModal && (
         <DAppInfoModal
-          dapp={dapp}
-          contractAddress={dapp.contractAddress}
+          dapp={mergedDApp}
+          contractAddress={mergedDApp.contractAddress}
           onClose={() => setShowInfoModal(false)}
         />
       )}
       {showGuideAndInfoModal && (
         <DAppGuideAndInfoModal
-          dapp={dapp}
+          dapp={mergedDApp}
           isOpen={showGuideAndInfoModal}
           onClose={() => setShowGuideAndInfoModal(false)}
         />
       )}
       {showEmbedModal && (
         <DAppEmbed
-          dapp={dapp}
+          dapp={mergedDApp}
           onClose={() => setShowEmbedModal(false)}
         />
       )}

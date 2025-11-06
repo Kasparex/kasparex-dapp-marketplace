@@ -25,6 +25,7 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
   const [utility, setUtility] = useState(dapp.utility || '');
   const [process, setProcess] = useState(dapp.process || '');
   const [benefits, setBenefits] = useState(dapp.benefits || '');
+  const [url, setUrl] = useState(dapp.url || '');
   const [website, setWebsite] = useState(dapp.developerLinks?.find(l => l.label.toLowerCase().includes('website'))?.url || '');
   const [twitter, setTwitter] = useState(dapp.developerLinks?.find(l => l.label.toLowerCase().includes('twitter') || l.label.toLowerCase().includes('x'))?.url || '');
   const [telegram, setTelegram] = useState(dapp.developerLinks?.find(l => l.label.toLowerCase().includes('telegram'))?.url || '');
@@ -49,6 +50,7 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
         utility: utility.trim(),
         process: process.trim(),
         benefits: benefits.trim(),
+        url: url.trim(),
         security: security.trim(),
         roadmap: roadmap.trim(),
         developerLinks: [
