@@ -105,6 +105,16 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
   
   const displayAddress = formatAddressForDisplay(deployerAddress);
   
+  // Copy address handler
+  const handleCopyAddress = async () => {
+    if (deployerAddress) {
+      await navigator.clipboard.writeText(deployerAddress);
+      setCopiedAddress(true);
+      setTimeout(() => setCopiedAddress(false), 2000);
+      setShowDeveloperDropdown(false);
+    }
+  };
+  
   // Close developer dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -121,16 +131,6 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showDeveloperDropdown]);
-  
-  // Copy address handler
-  const handleCopyAddress = async () => {
-    if (deployerAddress) {
-      await navigator.clipboard.writeText(deployerAddress);
-      setCopiedAddress(true);
-      setTimeout(() => setCopiedAddress(false), 2000);
-      setShowDeveloperDropdown(false);
-    }
-  };
 
   // Version from contract or frontend
   const version = contractData?.version || dapp.version || 'N/A';
