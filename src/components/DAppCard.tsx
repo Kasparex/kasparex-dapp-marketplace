@@ -3,19 +3,15 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useAccount } from 'wagmi';
 import { DApp, type DAppStatus, getDAppChainIds } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
 import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
 import { getChainById } from '@/lib/wagmi';
-import { isDeployer } from '@/lib/dapps/deployer';
 import { DAppInfoModal } from './dapps/DAppInfoModal';
 import { DAppGuideAndInfoModal } from './dapps/DAppGuideAndInfoModal';
 import { DAppEmbed } from './dapps/DAppEmbed';
-import { DAppThemeSwitcherModal } from './dapps/DAppThemeSwitcherModal';
-import { EditDAppModal } from './dapps/EditDAppModal';
 
 interface DAppCardProps {
   dapp: DApp;
@@ -34,7 +30,6 @@ const statusColors: Record<DAppStatus, string> = {
 export function DAppCard({ dapp }: DAppCardProps) {
   const category = getCategoryById(dapp.category);
   const slug = dapp.slug || generateDAppSlug(dapp.name);
-  const { address: connectedAddress } = useAccount();
   const { toggleLike, getLikeCount, hasLiked, isWalletConnected: isWalletConnectedForLikes } = useLikes();
   const { toggleFavorite, isFavorite, isWalletConnected: isWalletConnectedForFavorites } = useFavorites();
   const likeCount = getLikeCount(dapp.id);
@@ -45,8 +40,6 @@ export function DAppCard({ dapp }: DAppCardProps) {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showGuideAndInfoModal, setShowGuideAndInfoModal] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
-  const [showThemeModal, setShowThemeModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showNetworkTooltip, setShowNetworkTooltip] = useState(false);
 
   // Get network information
@@ -55,13 +48,6 @@ export function DAppCard({ dapp }: DAppCardProps) {
     .map(id => getChainById(id))
     .filter(Boolean)
     .map(chain => chain!.name);
-
-  // Check if user is deployer
-  const DEFAULT_DEPLOYER = '0x658420Fd88dbd610249a88384f9B1aD387F797c7';
-  const deployerAddress = dapp.deployerAddress || 
-    (dapp.developer && dapp.developer.startsWith('0x') ? dapp.developer : '') || 
-    DEFAULT_DEPLOYER;
-  const isDeployerUser = isDeployer(connectedAddress, deployerAddress);
 
   const handleIconClick = (e: React.MouseEvent, action: () => void) => {
     e.preventDefault();
@@ -126,11 +112,6 @@ export function DAppCard({ dapp }: DAppCardProps) {
                   </div>
                 )}
               </div>
-              {dapp.status === 'Testnet' && (
-                <span className="px-2 py-1 text-xs font-medium rounded bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-700">
-                  Testnet Only
-                </span>
-              )}
             </div>
           </div>
 
@@ -244,30 +225,6 @@ export function DAppCard({ dapp }: DAppCardProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
           </button>
-
-          {/* Theme Switcher Icon */}
-          <button
-            onClick={(e) => handleIconClick(e, () => setShowThemeModal(true))}
-            className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-            title="Page Theme"
-            aria-label="Change page theme"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-            </svg>
-          </button>
-
-          {/* Edit Button (Deployers only) */}
-          {isDeployerUser && (
-            <button
-              onClick={(e) => handleIconClick(e, () => setShowEditModal(true))}
-              className="px-2 py-1 text-xs font-medium text-white bg-zinc-900 dark:bg-zinc-100 text-zinc-100 dark:text-zinc-900 rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
-              title="Edit dApp"
-              aria-label="Edit dApp"
-            >
-              Edit
-            </button>
-          )}
         </div>
       </div>
 
@@ -290,20 +247,6 @@ export function DAppCard({ dapp }: DAppCardProps) {
         <DAppEmbed
           dapp={dapp}
           onClose={() => setShowEmbedModal(false)}
-        />
-      )}
-      {showThemeModal && (
-        <DAppThemeSwitcherModal
-          dapp={dapp}
-          isOpen={showThemeModal}
-          onClose={() => setShowThemeModal(false)}
-        />
-      )}
-      {showEditModal && (
-        <EditDAppModal
-          dapp={dapp}
-          contractAddress={dapp.contractAddress}
-          onClose={() => setShowEditModal(false)}
         />
       )}
     </Link>
