@@ -18,6 +18,8 @@ import { useDAppFromContract } from '@/lib/dapps/contractData';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
 import { isEmbedded } from '@/lib/utils';
+import { useFavorites } from '@/hooks/useFavorites';
+import { useLikes } from '@/hooks/useLikes';
 
 interface DAppWidgetHeaderProps {
   dapp: DApp;
@@ -31,6 +33,13 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
   const category = getCategoryById(dapp.category);
   const compatibility = useNetworkCompatibility(dapp);
   const isEmbeddedPage = isEmbedded();
+  const { toggleFavorite, isFavorite } = useFavorites();
+  const { toggleLike, hasLiked, getLikeCount } = useLikes();
+  
+  // Determine network status
+  const isMainnet = chainId === 202555;
+  const isTestnet = chainId === 167012;
+  const networkStatus = isMainnet ? 'mainnet' : isTestnet ? 'testnet' : 'unknown';
   
   // Get contract address if not provided
   let resolvedContractAddress = contractAddress || dapp.contractAddress || '';
@@ -112,7 +121,7 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
     <>
       <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         {/* Title Section with Emoji Box */}
-        <div className="flex items-start gap-4 mb-4">
+        <div className="flex items-start gap-4 mb-4 relative">
           {/* Emoji Box - same as DAppCard */}
           {dapp.image ? (
             <div className="flex-shrink-0 relative w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
@@ -133,12 +142,76 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
           {/* Title and Description */}
           <div className="flex-1 min-w-0">
             <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-              {contractData?.name || dapp.name}
+              {isEmbeddedPage ? (
+                <a
+                  href={`/dapps/${dapp.slug || dapp.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-[#02abb8] transition-colors"
+                >
+                  {contractData?.name || dapp.name}
+                </a>
+              ) : (
+                contractData?.name || dapp.name
+              )}
             </h1>
             {truncatedDescription && (
               <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">
                 {truncatedDescription}
               </p>
+            )}
+          </div>
+
+          {/* Top Right Buttons: Star, Heart, Network Indicator */}
+          <div className="flex items-center gap-2 absolute top-0 right-0">
+            {/* Star Button (Favorites) */}
+            <button
+              onClick={() => toggleFavorite(dapp.id)}
+              className={`p-2 rounded-lg transition-colors ${
+                isFavorite(dapp.id)
+                  ? 'text-yellow-500 hover:text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
+                  : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+              }`}
+              title={isFavorite(dapp.id) ? 'Remove from favorites' : 'Add to favorites'}
+              aria-label={isFavorite(dapp.id) ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              <svg className="w-5 h-5" fill={isFavorite(dapp.id) ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+              </svg>
+            </button>
+
+            {/* Heart Button (Like) */}
+            <button
+              onClick={() => toggleLike(dapp.id)}
+              className={`p-2 rounded-lg transition-colors relative ${
+                hasLiked(dapp.id)
+                  ? 'text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-900/20'
+                  : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+              }`}
+              title={hasLiked(dapp.id) ? 'Unlike' : 'Like'}
+              aria-label={hasLiked(dapp.id) ? 'Unlike' : 'Like'}
+            >
+              <svg className="w-5 h-5" fill={hasLiked(dapp.id) ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              {getLikeCount(dapp.id) > 0 && (
+                <span className="absolute -top-1 -right-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                  {getLikeCount(dapp.id)}
+                </span>
+              )}
+            </button>
+
+            {/* Network Indicator */}
+            {isConnected && (
+              <div className={`px-2.5 py-1.5 rounded-lg text-xs font-medium ${
+                networkStatus === 'mainnet'
+                  ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+                  : networkStatus === 'testnet'
+                  ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
+                  : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
+              }`}>
+                {networkStatus === 'mainnet' ? '🟢 Mainnet' : networkStatus === 'testnet' ? '🟡 Testnet' : '⚪ Unknown'}
+              </div>
             )}
           </div>
         </div>
@@ -326,6 +399,7 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
       {showInfoModal && (
         <DAppInfoModal
           dapp={dapp}
+          contractAddress={resolvedContractAddress}
           onClose={() => setShowInfoModal(false)}
         />
       )}

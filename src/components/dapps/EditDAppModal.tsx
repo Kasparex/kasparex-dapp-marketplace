@@ -27,6 +27,9 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
   const [name, setName] = useState(dapp.name);
   const [version, setVersion] = useState(dapp.version || '');
   const [description, setDescription] = useState(dapp.description || '');
+  const [utility, setUtility] = useState(dapp.utility || '');
+  const [process, setProcess] = useState(dapp.process || '');
+  const [benefits, setBenefits] = useState(dapp.benefits || '');
   const [website, setWebsite] = useState(dapp.developerLinks?.find(l => l.label.toLowerCase().includes('website'))?.url || '');
   const [twitter, setTwitter] = useState(dapp.developerLinks?.find(l => l.label.toLowerCase().includes('twitter') || l.label.toLowerCase().includes('x'))?.url || '');
   const [telegram, setTelegram] = useState(dapp.developerLinks?.find(l => l.label.toLowerCase().includes('telegram'))?.url || '');
@@ -125,6 +128,9 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
       // Save frontend metadata to localStorage
       const frontendData = {
         description,
+        utility,
+        process,
+        benefits,
         security,
         roadmap,
         developerLinks: [
@@ -280,6 +286,48 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
+                className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                disabled={isLoading}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                Utility
+              </label>
+              <textarea
+                value={utility}
+                onChange={(e) => setUtility(e.target.value)}
+                rows={4}
+                placeholder="What is the utility of this dApp?"
+                className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                disabled={isLoading}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                Process (How It Works)
+              </label>
+              <textarea
+                value={process}
+                onChange={(e) => setProcess(e.target.value)}
+                rows={4}
+                placeholder="How does this dApp work?"
+                className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                disabled={isLoading}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                Benefits
+              </label>
+              <textarea
+                value={benefits}
+                onChange={(e) => setBenefits(e.target.value)}
+                rows={4}
+                placeholder="What are the benefits of using this dApp?"
                 className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
                 disabled={isLoading}
               />

@@ -10,12 +10,12 @@ interface DAppEmbedProps {
 }
 
 export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
-  const [widthType, setWidthType] = useState<'px' | '%' | 'vw'>('px');
-  const [width, setWidth] = useState(800);
-  const [heightType, setHeightType] = useState<'px' | 'vh'>('px');
-  const [height, setHeight] = useState(600);
+  const [widthType, setWidthType] = useState<'px' | '%' | 'vw'>('%');
+  const [width, setWidth] = useState(100);
+  const [heightType, setHeightType] = useState<'px' | 'vh' | '%' | 'auto'>('%');
+  const [height, setHeight] = useState(100);
   const [hideHeader, setHideHeader] = useState(false);
-  const [customStyle, setCustomStyle] = useState('');
+  const [customStyle, setCustomStyle] = useState('max-width: 100%;');
   const [copied, setCopied] = useState(false);
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
@@ -23,7 +23,7 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
   
   // Build responsive width/height strings
   const widthValue = widthType === 'px' ? `${width}px` : widthType === '%' ? `${width}%` : `${width}vw`;
-  const heightValue = heightType === 'px' ? `${height}px` : `${height}vh`;
+  const heightValue = heightType === 'auto' ? 'auto' : heightType === 'px' ? `${height}px` : heightType === 'vh' ? `${height}vh` : `${height}%`;
   
   const embedUrl = `${baseUrl}/dapps/${slug}/embed${hideHeader ? '?hideHeader=true' : ''}`;
   
@@ -123,20 +123,23 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
                   value={height}
                   onChange={(e) => setHeight(Number(e.target.value))}
                   className="flex-1 px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
-                  min={heightType === 'px' ? 300 : 10}
-                  max={heightType === 'px' ? 2000 : 100}
+                  min={heightType === 'px' ? 300 : heightType === '%' || heightType === 'vh' ? 10 : 0}
+                  max={heightType === 'px' ? 2000 : heightType === '%' || heightType === 'vh' ? 100 : 0}
+                  disabled={heightType === 'auto'}
                 />
                 <select
                   value={heightType}
-                  onChange={(e) => setHeightType(e.target.value as 'px' | 'vh')}
+                  onChange={(e) => setHeightType(e.target.value as 'px' | 'vh' | '%' | 'auto')}
                   className="px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
                 >
+                  <option value="%">%</option>
+                  <option value="auto">auto</option>
                   <option value="px">px</option>
                   <option value="vh">vh</option>
                 </select>
               </div>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                Use vh for responsive height relative to viewport
+                Use "%" for container height (recommended), "auto" for automatic adjustment, or "vh" for viewport height
               </p>
             </div>
 
