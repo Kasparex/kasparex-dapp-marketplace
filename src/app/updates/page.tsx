@@ -37,7 +37,7 @@ export default function UpdatesPage() {
             Development Timeline
           </h1>
           <p className="text-zinc-600 dark:text-zinc-400 mb-8">
-            Track website developments, tasks, ideas, and bug fixes. Updates automatically refresh every 30 seconds.
+            Track website developments, tasks, ideas, and bug fixes. Deployments are automatically tracked via Vercel webhooks.
           </p>
           
           <div className="mb-8">

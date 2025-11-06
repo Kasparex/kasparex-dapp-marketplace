@@ -212,8 +212,11 @@ export function Header() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                d="M12 4v16m0-16l-4 4m4-4l4 4m-4 12l-4-4m4 4l4-4"
               />
+              <circle cx="12" cy="4" r="2" fill="currentColor" />
+              <circle cx="12" cy="12" r="2" fill="currentColor" />
+              <circle cx="12" cy="20" r="2" fill="currentColor" />
             </svg>
           </Link>
           <button

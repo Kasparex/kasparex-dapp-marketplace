@@ -34,9 +34,6 @@ export function UpdatesTimeline({ onEdit }: UpdatesTimelineProps) {
 
   useEffect(() => {
     fetchData();
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
   }, []);
 
   const categories: Category[] = ['updates', 'tasks', 'ideas', 'bugFixes'];
