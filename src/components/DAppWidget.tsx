@@ -144,7 +144,7 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
         onClose={handleModalClose}
       />
       
-      <div className={`w-full rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800 ${widgetThemeClass}`}>
+        <div className="w-full bg-white dark:bg-zinc-900 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800">
         <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} />
         <div 
           className="relative w-full overflow-hidden" 
