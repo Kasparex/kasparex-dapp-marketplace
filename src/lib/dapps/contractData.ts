@@ -143,37 +143,75 @@ export function useDAppIdByContract(contractAddress: string | undefined, chainId
 }
 
 /**
- * Merge contract data with frontend placeholder data
+ * Load saved metadata from localStorage
  */
-export function mergeDAppData(contractData: ContractDAppData | null, frontendData: DApp): DApp {
-  if (!contractData) {
-    return frontendData;
+export function loadDAppMetadata(dappId: string): Partial<DApp> | null {
+  if (typeof window === 'undefined') {
+    return null;
   }
 
-  // Map contract category to frontend category type
-  const categoryMap: Record<string, string> = {
-    'payment': 'payment',
-    'subscription': 'subscription',
-    'dao': 'dao',
-    'tools': 'tools',
-    'general': 'general',
-    'minting': 'minting',
-    'defi': 'defi',
-    'games': 'games',
-    'promotion': 'promotion',
-    'collabs': 'collabs',
-    'airdrops': 'airdrops',
-    'tracker': 'tracker',
-  };
+  try {
+    const key = `dapp_${dappId}_metadata`;
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (err) {
+    console.error('Error loading dApp metadata from localStorage:', err);
+  }
 
-  const mappedCategory = categoryMap[contractData.category.toLowerCase()] || frontendData.category;
+  return null;
+}
 
-  return {
-    ...frontendData,
-    name: contractData.name || frontendData.name,
-    version: contractData.version || frontendData.version,
-    category: mappedCategory as any,
-    // Keep frontend data for fields not in contract
-  };
+/**
+ * Merge contract data with frontend placeholder data and localStorage metadata
+ */
+export function mergeDAppData(contractData: ContractDAppData | null, frontendData: DApp): DApp {
+  // Load saved metadata from localStorage
+  const savedMetadata = loadDAppMetadata(frontendData.id);
+
+  // Start with frontend data
+  let merged: DApp = { ...frontendData };
+
+  // Apply contract data if available
+  if (contractData) {
+    // Map contract category to frontend category type
+    const categoryMap: Record<string, string> = {
+      'payment': 'payment',
+      'subscription': 'subscription',
+      'dao': 'dao',
+      'tools': 'tools',
+      'general': 'general',
+      'minting': 'minting',
+      'defi': 'defi',
+      'games': 'games',
+      'promotion': 'promotion',
+      'collabs': 'collabs',
+      'airdrops': 'airdrops',
+      'tracker': 'tracker',
+    };
+
+    const mappedCategory = categoryMap[contractData.category.toLowerCase()] || frontendData.category;
+
+    merged = {
+      ...merged,
+      name: contractData.name || merged.name,
+      version: contractData.version || merged.version,
+      category: mappedCategory as any,
+    };
+  }
+
+  // Apply saved metadata from localStorage (overrides contract and frontend data)
+  if (savedMetadata) {
+    merged = {
+      ...merged,
+      ...savedMetadata,
+      // Preserve id and slug
+      id: merged.id,
+      slug: merged.slug || merged.id,
+    };
+  }
+
+  return merged;
 }
 

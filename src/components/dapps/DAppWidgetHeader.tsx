@@ -16,7 +16,7 @@ import { DAppInfoModal } from './DAppInfoModal';
 import { DAppEmbed } from './DAppEmbed';
 import { DAppGuideAndInfoModal } from './DAppGuideAndInfoModal';
 import { DAppThemeSwitcherModal } from './DAppThemeSwitcherModal';
-import { useDAppFromContract } from '@/lib/dapps/contractData';
+import { useDAppFromContract, mergeDAppData } from '@/lib/dapps/contractData';
 import { CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
 import { isEmbedded } from '@/lib/utils';
@@ -143,12 +143,12 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
     };
   }, [showDeveloperDropdown]);
 
-  // Version from contract or frontend
-  const version = contractData?.version || dapp.version || 'N/A';
-  const displayVersion = contractData?.version || pollingVersion || dapp.version || 'N/A';
+  // Version from merged data
+  const version = mergedDApp.version || 'N/A';
+  const displayVersion = pollingVersion || mergedDApp.version || 'N/A';
 
-  // Short description - priority: description > utility > process
-  const shortDescription = dapp.description || dapp.utility || dapp.process || '';
+  // Short description - priority: description > utility > process (from merged data)
+  const shortDescription = mergedDApp.description || mergedDApp.utility || mergedDApp.process || '';
   const truncatedDescription = shortDescription.length > 150 
     ? `${shortDescription.substring(0, 150)}...` 
     : shortDescription;
@@ -175,7 +175,7 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
             <div className="flex-shrink-0 relative w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
               <Image
                 src={dapp.image}
-                alt={dapp.name}
+                alt={mergedDApp.name}
                 fill
                 className="object-cover"
                 unoptimized
@@ -197,10 +197,10 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
                   rel="noopener noreferrer"
                   className="hover:text-[#02abb8] transition-colors"
                 >
-                  {contractData?.name || dapp.name}
+                  {mergedDApp.name}
                 </a>
               ) : (
-                contractData?.name || dapp.name
+                mergedDApp.name
               )}
             </h1>
             {truncatedDescription && (
@@ -311,10 +311,10 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
                     </Link>
                     
                     {/* Social Media Links */}
-                    {dapp.developerLinks && dapp.developerLinks.length > 0 && (
+                    {mergedDApp.developerLinks && mergedDApp.developerLinks.length > 0 && (
                       <>
                         <div className="border-t border-zinc-200 dark:border-zinc-800 my-1" />
-                        {dapp.developerLinks.map((link, index) => (
+                        {mergedDApp.developerLinks.map((link, index) => (
                           <a
                             key={index}
                             href={link.url}
@@ -393,7 +393,7 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
               </button>
 
               {/* Info Icon */}
-              {(dapp.description || dapp.utility) && (
+              {(mergedDApp.description || mergedDApp.utility) && (
                 <button
                   onClick={() => setShowInfoModal(true)}
                   className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
