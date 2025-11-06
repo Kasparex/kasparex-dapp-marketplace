@@ -6,7 +6,7 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId 
 import { DApp } from '@/lib/dapps';
 import { ContractDAppData } from '@/lib/dapps/contractData';
 import { DAPP_REGISTRY_ABI } from '@/lib/contracts/abis';
-import { getContractAddress } from '@/lib/contracts/addresses';
+import { CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 import { useTreasuryPayment } from '@/hooks/useTreasuryPayment';
 
 interface EditDAppModalProps {
@@ -37,14 +37,12 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
   const [roadmap, setRoadmap] = useState(dapp.roadmap || '');
 
   // Get DAppRegistry address
-  let dAppRegistryAddress = '';
-  try {
-    if (typeof getContractAddress === 'function') {
-      dAppRegistryAddress = getContractAddress(chainId, 'DAppRegistry') || '';
-    }
-  } catch (e) {
-    console.warn('getContractAddress not available');
-  }
+  const dAppRegistryAddress = 
+    chainId === 202555 
+      ? (CONTRACT_ADDRESSES?.kasplexL2Mainnet?.DAppRegistry || '')
+      : chainId === 167012
+      ? (CONTRACT_ADDRESSES?.kasplexL2Testnet?.DAppRegistry || '')
+      : '';
 
   // Use Treasury payment hook
   const {

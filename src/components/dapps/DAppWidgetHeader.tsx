@@ -17,7 +17,7 @@ import { DAppEmbed } from './DAppEmbed';
 import { DAppGuideAndInfoModal } from './DAppGuideAndInfoModal';
 import { DAppThemeSwitcherModal } from './DAppThemeSwitcherModal';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
-import { getContractAddress } from '@/lib/contracts/addresses';
+import { CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
 import { isEmbedded } from '@/lib/utils';
 import { useFavorites } from '@/hooks/useFavorites';
@@ -47,7 +47,13 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
   let resolvedContractAddress = contractAddress || dapp.contractAddress || '';
   if (!resolvedContractAddress && dapp.slug === 'simple-payment') {
     try {
-      resolvedContractAddress = getContractAddress(chainId, 'SimplePayment') || '';
+      if (CONTRACT_ADDRESSES) {
+        resolvedContractAddress = chainId === 202555
+          ? (CONTRACT_ADDRESSES.kasplexL2Mainnet?.SimplePayment || '')
+          : chainId === 167012
+          ? (CONTRACT_ADDRESSES.kasplexL2Testnet?.SimplePayment || '')
+          : '';
+      }
     } catch (e) {
       console.warn('Could not get SimplePayment contract address');
     }

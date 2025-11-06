@@ -11,7 +11,7 @@ import { getDAppBySlug } from '@/lib/utils';
 import { canEditDApp } from '@/lib/dapps/management';
 import { EditDAppModal } from '@/components/dapps/EditDAppModal';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
-import { getContractAddress } from '@/lib/contracts/addresses';
+import { CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 import { useChainId } from 'wagmi';
 
 export default function DAppEditPage() {
@@ -34,7 +34,13 @@ export default function DAppEditPage() {
   let contractAddress = dapp.contractAddress || '';
   if (!contractAddress && dapp.slug === 'simple-payment') {
     try {
-      contractAddress = getContractAddress(chainId, 'SimplePayment') || '';
+      if (CONTRACT_ADDRESSES) {
+        contractAddress = chainId === 202555
+          ? (CONTRACT_ADDRESSES.kasplexL2Mainnet?.SimplePayment || '')
+          : chainId === 167012
+          ? (CONTRACT_ADDRESSES.kasplexL2Testnet?.SimplePayment || '')
+          : '';
+      }
     } catch (e) {
       console.warn('Could not get SimplePayment contract address');
     }

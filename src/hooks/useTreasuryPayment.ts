@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAccount, useChainId, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther, type Address } from 'viem';
 import { TREASURY_ABI } from '@/lib/contracts/abis';
-import { getContractAddress, CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
+import { CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 
 /**
  * Hardcoded Treasury addresses as fallback
@@ -19,19 +19,19 @@ const HARDCODED_TREASURY_ADDRESSES = {
  * Get Treasury address for the current chain
  */
 export function getTreasuryAddress(chainId: number): string {
-  // Try getContractAddress first
-  const address = getContractAddress(chainId, 'Treasury');
-  if (address && address.trim() !== '') {
-    return address;
-  }
-
-  // Try CONTRACT_ADDRESSES
+  // Try CONTRACT_ADDRESSES first
   if (CONTRACT_ADDRESSES) {
-    if (chainId === 202555 && CONTRACT_ADDRESSES.kasplexL2Mainnet.Treasury) {
-      return CONTRACT_ADDRESSES.kasplexL2Mainnet.Treasury;
+    if (chainId === 202555) {
+      const address = CONTRACT_ADDRESSES.kasplexL2Mainnet?.Treasury;
+      if (address && address.trim() !== '') {
+        return address;
+      }
     }
-    if (chainId === 167012 && CONTRACT_ADDRESSES.kasplexL2Testnet.Treasury) {
-      return CONTRACT_ADDRESSES.kasplexL2Testnet.Treasury;
+    if (chainId === 167012) {
+      const address = CONTRACT_ADDRESSES.kasplexL2Testnet?.Treasury;
+      if (address && address.trim() !== '') {
+        return address;
+      }
     }
   }
 
