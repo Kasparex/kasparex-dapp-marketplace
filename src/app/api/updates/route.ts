@@ -9,7 +9,15 @@ const updatesFilePath = path.join(process.cwd(), 'data', 'updates.json');
 async function readUpdatesFile(): Promise<UpdatesData> {
   try {
     const fileContents = await fs.readFile(updatesFilePath, 'utf8');
-    return JSON.parse(fileContents);
+    const data = JSON.parse(fileContents);
+    
+    // Ensure all categories exist and are arrays
+    return {
+      updates: Array.isArray(data.updates) ? data.updates : [],
+      tasks: Array.isArray(data.tasks) ? data.tasks : [],
+      ideas: Array.isArray(data.ideas) ? data.ideas : [],
+      bugFixes: Array.isArray(data.bugFixes) ? data.bugFixes : [],
+    };
   } catch (error) {
     // If file doesn't exist or is invalid, return empty structure
     return {
@@ -129,6 +137,28 @@ export async function POST(request: NextRequest) {
       priority: entry.priority,
     };
 
+    // Check for duplicate entry by ID across all categories to prevent duplicates
+    const allCategories: Category[] = ['updates', 'tasks', 'ideas', 'bugFixes'];
+    const isDuplicate = allCategories.some((cat) =>
+      data[cat].some((e) => e.id === newEntry.id)
+    );
+
+    if (isDuplicate) {
+      return NextResponse.json(
+        { success: false, error: 'Entry with this ID already exists' },
+        { status: 400 }
+      );
+    }
+
+    // Ensure the entry is only added to the specified category
+    // Remove it from any other categories if it somehow exists there
+    allCategories.forEach((cat) => {
+      if (cat !== category) {
+        data[cat] = data[cat].filter((e) => e.id !== newEntry.id);
+      }
+    });
+
+    // Only add to the specified category
     data[category as Category].push(newEntry);
 
     // Try to update via GitHub API (for Vercel)
