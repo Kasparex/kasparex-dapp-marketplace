@@ -11,9 +11,8 @@ import { isDeployer, useDeployerProfile, formatDeployerName, getDeployerProfileU
 import { Avatar } from '@/components/Avatar';
 import { EditDAppModal } from './EditDAppModal';
 import { DAppInfoModal } from './DAppInfoModal';
-import { DAppAdditionalInfoModal } from './DAppAdditionalInfoModal';
 import { DAppEmbed } from './DAppEmbed';
-import { DAppGuideModal } from './DAppGuideModal';
+import { DAppGuideAndInfoModal } from './DAppGuideAndInfoModal';
 import { DAppThemeSwitcherModal } from './DAppThemeSwitcherModal';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
 import { getContractAddress } from '@/lib/contracts/addresses';
@@ -74,11 +73,12 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
     return () => clearInterval(interval);
   }, [resolvedContractAddress, chainId]);
 
-  // Get deployer info
+  // Get deployer info - use default if none available
+  const DEFAULT_DEPLOYER = '0x658420Fd88dbd610249a88384f9B1aD387F797c7';
   const deployerAddress = contractData?.deployerAddress || 
     dapp.deployerAddress || 
     (dapp.developer && dapp.developer.startsWith('0x') ? dapp.developer : '') || 
-    '';
+    DEFAULT_DEPLOYER;
   const { profile: deployerProfile } = useDeployerProfile(
     deployerAddress || undefined
   );
@@ -99,9 +99,8 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
   // Modal states
   const [showEditModal, setShowEditModal] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
-  const [showAdditionalInfoModal, setShowAdditionalInfoModal] = useState(false);
+  const [showGuideAndInfoModal, setShowGuideAndInfoModal] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
-  const [showGuideModal, setShowGuideModal] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
 
   // Category link - open in new tab when embedded
@@ -111,7 +110,7 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
 
   return (
     <>
-      <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-200 dark:border-zinc-800">
+      <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         {/* Title Section with Emoji Box */}
         <div className="flex items-start gap-4 mb-4">
           {/* Emoji Box - same as DAppCard */}
@@ -202,26 +201,12 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
               </button>
             )}
 
-            {/* Additional Info Icon */}
-            {(dapp.security || dapp.roadmap) && (
-              <button
-                onClick={() => setShowAdditionalInfoModal(true)}
-                className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-                title="Additional Information"
-                aria-label="View additional information"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </button>
-            )}
-
-            {/* Guide Icon */}
+            {/* Guide & Info Icon - Merged */}
             <button
-              onClick={() => setShowGuideModal(true)}
+              onClick={() => setShowGuideAndInfoModal(true)}
               className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-              title="How to Use"
-              aria-label="View guide"
+              title="How to Use & Additional Information"
+              aria-label="View guide and additional information"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -244,8 +229,8 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
             <button
               onClick={() => setShowThemeModal(true)}
               className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-              title="Widget Theme"
-              aria-label="Change widget theme"
+              title="Page Theme"
+              aria-label="Change page theme"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
@@ -344,23 +329,17 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
           onClose={() => setShowInfoModal(false)}
         />
       )}
-      {showAdditionalInfoModal && (
-        <DAppAdditionalInfoModal
-          dapp={dapp}
-          onClose={() => setShowAdditionalInfoModal(false)}
-        />
-      )}
       {showEmbedModal && (
         <DAppEmbed
           dapp={dapp}
           onClose={() => setShowEmbedModal(false)}
         />
       )}
-      {showGuideModal && (
-        <DAppGuideModal
+      {showGuideAndInfoModal && (
+        <DAppGuideAndInfoModal
           dapp={dapp}
-          isOpen={showGuideModal}
-          onClose={() => setShowGuideModal(false)}
+          isOpen={showGuideAndInfoModal}
+          onClose={() => setShowGuideAndInfoModal(false)}
         />
       )}
       {showThemeModal && (

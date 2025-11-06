@@ -13,7 +13,7 @@ export function DAppWidgetFooter({ contractAddress }: DAppWidgetFooterProps) {
   
   if (!contractAddress || !contractAddress.startsWith('0x')) {
     return (
-      <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800">
+      <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         <div className="flex items-center justify-center">
           <div className="text-sm text-zinc-600 dark:text-zinc-400">
             Powered by{' '}

@@ -60,31 +60,29 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-zinc-200 dark:border-zinc-800"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-zinc-200 dark:border-zinc-800">
-          <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-            Embed {dapp.name}
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-            aria-label="Close modal"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+        <div className="p-8">
+          <div className="flex items-start justify-between mb-6">
+            <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
+              Embed {dapp.name}
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+              aria-label="Close"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
 
-        {/* Content */}
-        <div className="p-4 sm:p-6 space-y-4">
           {/* Customization Options */}
           <div className="space-y-4">
             <div>
@@ -191,6 +189,15 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
               className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-mono text-sm"
               rows={8}
             />
+          </div>
+
+          <div className="flex justify-end mt-6">
+            <button
+              onClick={onClose}
+              className="px-5 py-3 bg-[#02abb8] text-white rounded-lg hover:bg-[#0299a3] transition-colors font-medium text-base"
+            >
+              Close
+            </button>
           </div>
         </div>
       </div>

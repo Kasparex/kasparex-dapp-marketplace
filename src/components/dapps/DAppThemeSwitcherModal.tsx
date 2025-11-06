@@ -3,31 +3,26 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { DApp } from '@/lib/dapps';
+import { useTheme } from '@/components/ThemeProvider';
 
 interface DAppThemeSwitcherModalProps {
   dapp: DApp;
   isOpen: boolean;
   onClose: () => void;
-  onThemeChange?: (theme: 'light' | 'dark') => void;
 }
 
 export function DAppThemeSwitcherModal({ 
   dapp, 
   isOpen, 
-  onClose,
-  onThemeChange 
+  onClose
 }: DAppThemeSwitcherModalProps) {
-  const [selectedTheme, setSelectedTheme] = useState<'light' | 'dark'>('dark');
+  const { theme, toggleTheme } = useTheme();
+  const [selectedTheme, setSelectedTheme] = useState<'light' | 'dark'>(theme);
 
-  // Load saved theme preference
+  // Sync with global theme
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem(`dapp-widget-theme-${dapp.id}`) as 'light' | 'dark' | null;
-      if (savedTheme) {
-        setSelectedTheme(savedTheme);
-      }
-    }
-  }, [dapp.id]);
+    setSelectedTheme(theme);
+  }, [theme]);
 
   // Close on Escape key
   useEffect(() => {
@@ -42,17 +37,11 @@ export function DAppThemeSwitcherModal({
     return () => window.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
-  const handleThemeSelect = (theme: 'light' | 'dark') => {
-    setSelectedTheme(theme);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(`dapp-widget-theme-${dapp.id}`, theme);
-      // Dispatch custom event for immediate update in same tab
-      window.dispatchEvent(new CustomEvent('dapp-widget-theme-change', {
-        detail: { dappId: dapp.id, theme }
-      }));
-    }
-    if (onThemeChange) {
-      onThemeChange(theme);
+  const handleThemeSelect = (newTheme: 'light' | 'dark') => {
+    setSelectedTheme(newTheme);
+    // Use global theme toggle to change entire page theme
+    if (newTheme !== theme) {
+      toggleTheme();
     }
   };
 
@@ -72,7 +61,7 @@ export function DAppThemeSwitcherModal({
         <div className="p-8">
           <div className="flex items-start justify-between mb-6">
             <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
-              Widget Theme
+              Page Theme
             </h2>
             <button
               onClick={onClose}
@@ -87,7 +76,7 @@ export function DAppThemeSwitcherModal({
 
           <div className="mb-6">
             <p className="text-base text-zinc-600 dark:text-zinc-400 mb-4">
-              Choose a theme for the {dapp.name} widget. This only affects the widget appearance, not the entire page.
+              Choose a theme for the entire page. This will change the appearance of all components.
             </p>
 
             <div className="space-y-3">
@@ -156,7 +145,7 @@ export function DAppThemeSwitcherModal({
               onClick={onClose}
               className="px-5 py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors font-medium text-base"
             >
-              Close
+              Dismiss
             </button>
           </div>
         </div>
