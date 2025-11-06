@@ -214,6 +214,23 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
 
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                dApp URL
+              </label>
+              <input
+                type="url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://example.com"
+                className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                disabled={isLoading}
+              />
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                The main URL for this dApp (if it has its own website)
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
                 Website
               </label>
               <input
