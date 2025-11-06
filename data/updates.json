@@ -1,7 +1,14 @@
 {
-  "updates": [],
+  "updates": [
+    {
+      "id": "deploy-1762463619-74dc57e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Change header icon from timeline back to clock (by Kasparex)",
+      "date": "2025-11-06T22:13:14+01:00",
+      "type": "deployment"
+    }
+  ],
   "tasks": [],
   "ideas": [],
   "bugFixes": []
 }
-
