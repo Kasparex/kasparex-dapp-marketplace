@@ -224,16 +224,6 @@ export function useTreasuryPayment({
         return;
       }
       
-      // Validate ABI
-      if (!TREASURY_ABI || !Array.isArray(TREASURY_ABI)) {
-        const err = 'Treasury ABI is not available';
-        setError(err);
-        if (onError) {
-          onError(new Error(err));
-        }
-        return;
-      }
-      
       await writeContract({
         address: treasuryAddress as Address,
         abi: TREASURY_ABI,
