@@ -139,7 +139,7 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
                 </select>
               </div>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                Use "%" for container height (recommended), "auto" for automatic adjustment, or "vh" for viewport height
+                Use &quot;%&quot; for container height (recommended), &quot;auto&quot; for automatic adjustment, or &quot;vh&quot; for viewport height
               </p>
             </div>
 
