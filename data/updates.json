@@ -37,7 +37,16 @@
     }
   ],
   "tasks": [],
-  "ideas": [],
+  "ideas": [
+    {
+      "id": "1762467250434-wia5j4kjx",
+      "title": "Test idea",
+      "description": "test idea",
+      "date": "2025-11-06T00:00:00.000Z",
+      "type": "other",
+      "priority": "high"
+    }
+  ],
   "bugFixes": [
     {
       "id": "1762467037654-327ys1vhl",
