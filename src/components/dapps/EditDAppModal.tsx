@@ -83,10 +83,13 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
       // Small delay to ensure state is updated
       setTimeout(() => {
         const resolvedContractAddr = contractAddress || dapp.contractAddress || '';
-        if (onChainDataChanged && dAppRegistryAddress && resolvedContractAddr) {
+        // Always try to update on-chain if data changed and we have valid addresses
+        // If it fails (e.g., already registered), handleUpdateContract will handle it gracefully
+        if (onChainDataChanged && dAppRegistryAddress && resolvedContractAddr && 
+            dAppRegistryAddress.length === 42 && resolvedContractAddr.length === 42) {
           // Fee paid, now update DAppRegistry
           handleUpdateContract();
-        } else if (!onChainDataChanged) {
+        } else {
           // Fee paid, no contract update needed, just save frontend data
           handleSaveFrontendData();
         }
@@ -139,11 +142,13 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
     }
 
     try {
-      // Get category from current dApp - ensure it's a string
-      const category = String(dapp.category || '').trim();
-      const nameStr = String(name || '').trim();
-      const versionStr = String(version || '').trim();
-      
+      // Validate DAppRegistry address format first
+      if (!dAppRegistryAddress || typeof dAppRegistryAddress !== 'string' || !dAppRegistryAddress.startsWith('0x') || dAppRegistryAddress.length !== 42) {
+        setError('Invalid DAppRegistry address format');
+        setIsSubmitting(false);
+        return;
+      }
+
       // Validate contract address format
       const contractAddr = resolvedContractAddress.trim();
       if (!contractAddr || typeof contractAddr !== 'string' || !contractAddr.startsWith('0x') || contractAddr.length !== 42) {
@@ -152,23 +157,77 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
         return;
       }
 
-      // Validate DAppRegistry address format
-      if (!dAppRegistryAddress || typeof dAppRegistryAddress !== 'string' || !dAppRegistryAddress.startsWith('0x') || dAppRegistryAddress.length !== 42) {
-        setError('Invalid DAppRegistry address format');
+      // Get category from current dApp - ensure it's a string and not empty
+      const category = String(dapp.category || '').trim();
+      if (!category || category.length === 0) {
+        setError('Category is required');
         setIsSubmitting(false);
         return;
       }
+
+      // Ensure all string args are valid and not empty
+      const nameStr = String(name || '').trim();
+      if (!nameStr || nameStr.length === 0) {
+        setError('Name cannot be empty');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const versionStr = String(version || '').trim();
+      if (!versionStr || versionStr.length === 0) {
+        setError('Version cannot be empty');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Validate all args are strings (not undefined/null)
+      if (typeof nameStr !== 'string' || typeof versionStr !== 'string' || typeof category !== 'string') {
+        setError('Invalid data types for contract call');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Prepare args array - ensure all values are properly formatted
+      const args: [string, string, string, `0x${string}`] = [
+        nameStr,
+        versionStr,
+        category,
+        contractAddr as `0x${string}`
+      ];
+
+      // Validate args array
+      if (!args || args.length !== 4) {
+        setError('Invalid arguments for contract call');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Check each arg is valid
+      for (let i = 0; i < args.length; i++) {
+        if (args[i] === undefined || args[i] === null) {
+          setError(`Argument ${i} is invalid`);
+          setIsSubmitting(false);
+          return;
+        }
+      }
       
-      // Call registerDApp with new version (or updateDApp if exists)
-      // Note: DAppRegistry may need an updateDApp function, for now we'll use registerDApp
+      // Call registerDApp - Note: This will fail if contract is already registered
+      // For existing dApps, we'll skip on-chain update and just save frontend data
       await writeRegistryContract({
         address: dAppRegistryAddress as `0x${string}`,
         abi: DAPP_REGISTRY_ABI,
         functionName: 'registerDApp',
-        args: [nameStr, versionStr, category, contractAddr as `0x${string}`],
+        args: args,
       });
     } catch (err: any) {
       console.error('Error updating contract:', err);
+      // If contract is already registered, that's okay - we'll just save frontend data
+      if (err?.message?.includes('already registered') || err?.message?.includes('Contract already registered')) {
+        console.log('Contract already registered, skipping on-chain update');
+        // Continue to save frontend data
+        handleSaveFrontendData();
+        return;
+      }
       const errorMessage = err?.message || err?.toString() || 'Failed to update contract';
       setError(errorMessage);
       setIsSubmitting(false);
