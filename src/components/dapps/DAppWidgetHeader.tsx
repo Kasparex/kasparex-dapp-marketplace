@@ -32,17 +32,6 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
   const { address: connectedAddress, isConnected } = useAccount();
   const chainId = useChainId();
   const { openChainModal } = useChainModal();
-  // Fetch contract data with periodic polling for version updates
-  const { data: contractData } = useDAppFromContract(
-    resolvedContractAddress && resolvedContractAddress.startsWith('0x') ? resolvedContractAddress : undefined,
-    chainId
-  );
-
-  // Merge contract data and localStorage metadata with frontend data
-  const mergedDApp = mergeDAppData(contractData, dapp);
-
-  const category = getCategoryById(mergedDApp.category);
-  const compatibility = useNetworkCompatibility(mergedDApp);
   const isEmbeddedPage = isEmbedded();
   const { toggleFavorite, isFavorite } = useFavorites();
   const { toggleLike, hasLiked, getLikeCount } = useLikes();
@@ -73,6 +62,12 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
     resolvedContractAddress && resolvedContractAddress.startsWith('0x') ? resolvedContractAddress : undefined,
     chainId
   );
+
+  // Merge contract data and localStorage metadata with frontend data
+  const mergedDApp = mergeDAppData(contractData, dapp);
+
+  const category = getCategoryById(mergedDApp.category);
+  const compatibility = useNetworkCompatibility(mergedDApp);
 
   // Periodic polling for version updates (every 30 seconds)
   const [pollingVersion, setPollingVersion] = useState(contractData?.version || dapp.version || 'N/A');
@@ -226,7 +221,7 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
           {/* Category Button */}
           {category && (
             <a
-              href={`/?category=${dapp.category}`}
+              href={`/?category=${mergedDApp.category}`}
               {...categoryLinkProps}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
             >
