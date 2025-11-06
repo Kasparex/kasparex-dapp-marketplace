@@ -60,9 +60,7 @@ export default function UpdatesPage() {
             />
           </div>
 
-          <div key={refreshKey}>
-            <UpdatesTimeline onEdit={handleEdit} />
-          </div>
+          <UpdatesTimeline onEdit={handleEdit} refreshKey={refreshKey} />
         </div>
       </main>
 

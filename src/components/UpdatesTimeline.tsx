@@ -6,9 +6,10 @@ import { getCategoryLabel, sortEntriesByDate, formatDate, getRelativeTime } from
 
 interface UpdatesTimelineProps {
   onEdit?: (entry: TimelineEntry, category: Category) => void;
+  refreshKey?: number;
 }
 
-export function UpdatesTimeline({ onEdit }: UpdatesTimelineProps) {
+export function UpdatesTimeline({ onEdit, refreshKey }: UpdatesTimelineProps) {
   const [activeTab, setActiveTab] = useState<Category>('updates');
   const [data, setData] = useState<UpdatesData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -17,7 +18,8 @@ export function UpdatesTimeline({ onEdit }: UpdatesTimelineProps) {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/updates');
+      // Add cache-busting parameter to ensure fresh data
+      const response = await fetch(`/api/updates?t=${Date.now()}`);
       const result = await response.json();
       if (result.success) {
         setData(result.data);
@@ -34,7 +36,7 @@ export function UpdatesTimeline({ onEdit }: UpdatesTimelineProps) {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [refreshKey]);
 
   const categories: Category[] = ['updates', 'tasks', 'ideas', 'bugFixes'];
 
