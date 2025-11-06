@@ -359,43 +359,6 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
           <div className="flex items-center gap-1 flex-1">
             {/* Left-aligned icons */}
             <div className="flex items-center gap-1">
-              {/* Star Button (Favorites) */}
-              <button
-                onClick={() => toggleFavorite(dapp.id)}
-                className={`p-2 rounded-lg transition-colors ${
-                  isFavorite(dapp.id)
-                    ? 'text-yellow-500 hover:text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
-                    : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                }`}
-                title={isFavorite(dapp.id) ? 'Remove from favorites' : 'Add to favorites'}
-                aria-label={isFavorite(dapp.id) ? 'Remove from favorites' : 'Add to favorites'}
-              >
-                <svg className="w-5 h-5" fill={isFavorite(dapp.id) ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                </svg>
-              </button>
-
-              {/* Heart Button (Like) */}
-              <button
-                onClick={() => toggleLike(dapp.id)}
-                className={`p-2 rounded-lg transition-colors relative ${
-                  hasLiked(dapp.id)
-                    ? 'text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-900/20'
-                    : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                }`}
-                title={hasLiked(dapp.id) ? 'Unlike' : 'Like'}
-                aria-label={hasLiked(dapp.id) ? 'Unlike' : 'Like'}
-              >
-                <svg className="w-5 h-5" fill={hasLiked(dapp.id) ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-                {getLikeCount(dapp.id) > 0 && (
-                  <span className="absolute -top-1 -right-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                    {getLikeCount(dapp.id)}
-                  </span>
-                )}
-              </button>
-
               {/* Info Icon */}
               {(mergedDApp.description || mergedDApp.utility) && (
                 <button
@@ -447,17 +410,55 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
               </button>
             </div>
 
-            {/* Right-aligned Edit Button (Deployers only) */}
-            {isDeployerUser && (
-              <div className="ml-auto">
+            {/* Right-aligned icons */}
+            <div className="flex items-center gap-1 ml-auto">
+              {/* Star Button (Favorites) */}
+              <button
+                onClick={() => toggleFavorite(mergedDApp.id)}
+                className={`p-2 rounded-lg transition-colors ${
+                  isFavorite(mergedDApp.id)
+                    ? 'text-yellow-500 hover:text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
+                    : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                }`}
+                title={isFavorite(mergedDApp.id) ? 'Remove from favorites' : 'Add to favorites'}
+                aria-label={isFavorite(mergedDApp.id) ? 'Remove from favorites' : 'Add to favorites'}
+              >
+                <svg className="w-5 h-5" fill={isFavorite(mergedDApp.id) ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+              </button>
+
+              {/* Heart Button (Like) */}
+              <button
+                onClick={() => toggleLike(mergedDApp.id)}
+                className={`p-2 rounded-lg transition-colors relative ${
+                  hasLiked(mergedDApp.id)
+                    ? 'text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-900/20'
+                    : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                }`}
+                title={hasLiked(mergedDApp.id) ? 'Unlike' : 'Like'}
+                aria-label={hasLiked(mergedDApp.id) ? 'Unlike' : 'Like'}
+              >
+                <svg className="w-5 h-5" fill={hasLiked(mergedDApp.id) ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                {getLikeCount(mergedDApp.id) > 0 && (
+                  <span className="absolute -top-1 -right-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                    {getLikeCount(mergedDApp.id)}
+                  </span>
+                )}
+              </button>
+
+              {/* Edit Button (Deployers only) */}
+              {isDeployerUser && (
                 <button
                   onClick={() => setShowEditModal(true)}
                   className="px-3 py-1.5 text-sm font-medium text-white bg-zinc-900 dark:bg-zinc-100 text-zinc-100 dark:text-zinc-900 rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
                 >
                   Edit
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 

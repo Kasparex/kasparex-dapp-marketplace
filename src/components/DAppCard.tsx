@@ -140,6 +140,48 @@ export function DAppCard({ dapp }: DAppCardProps) {
 
       {/* Icon Links Section at Bottom */}
       <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-2">
+        {/* Left-aligned icons */}
+        <div className="flex items-center gap-1 flex-wrap">
+          {/* Info Icon */}
+          {(mergedDApp.description || mergedDApp.utility) && (
+            <button
+              onClick={(e) => handleIconClick(e, () => setShowInfoModal(true))}
+              className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+              title="Description"
+              aria-label="View description"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+          )}
+
+          {/* Guide & Info Icon */}
+          <button
+            onClick={(e) => handleIconClick(e, () => setShowGuideAndInfoModal(true))}
+            className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+            title="How to Use & Additional Information"
+            aria-label="View guide and additional information"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </button>
+
+          {/* Embed Icon */}
+          <button
+            onClick={(e) => handleIconClick(e, () => setShowEmbedModal(true))}
+            className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+            title="Embed"
+            aria-label="Get embed code"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Right-aligned icons */}
         <div className="flex items-center gap-1 flex-wrap">
           {/* Star Button (Favorites) */}
           <button
@@ -190,44 +232,6 @@ export function DAppCard({ dapp }: DAppCardProps) {
                 {likeCount}
               </span>
             )}
-          </button>
-
-          {/* Info Icon */}
-          {(mergedDApp.description || mergedDApp.utility) && (
-            <button
-              onClick={(e) => handleIconClick(e, () => setShowInfoModal(true))}
-              className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-              title="Description"
-              aria-label="View description"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </button>
-          )}
-
-          {/* Guide & Info Icon */}
-          <button
-            onClick={(e) => handleIconClick(e, () => setShowGuideAndInfoModal(true))}
-            className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-            title="How to Use & Additional Information"
-            aria-label="View guide and additional information"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          </button>
-
-          {/* Embed Icon */}
-          <button
-            onClick={(e) => handleIconClick(e, () => setShowEmbedModal(true))}
-            className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-            title="Embed"
-            aria-label="Get embed code"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
           </button>
         </div>
       </div>
