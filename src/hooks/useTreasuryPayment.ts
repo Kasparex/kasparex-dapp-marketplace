@@ -202,7 +202,7 @@ export function useTreasuryPayment({
       }
 
       // Validate address format
-      if (!treasuryAddress.startsWith('0x') || treasuryAddress.length !== 42) {
+      if (!treasuryAddress || typeof treasuryAddress !== 'string' || !treasuryAddress.startsWith('0x') || treasuryAddress.length !== 42) {
         const err = 'Treasury address format is invalid';
         setError(err);
         if (onError) {

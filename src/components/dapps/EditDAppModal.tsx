@@ -146,14 +146,14 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
       
       // Validate contract address format
       const contractAddr = resolvedContractAddress.trim();
-      if (!contractAddr.startsWith('0x') || contractAddr.length !== 42) {
+      if (!contractAddr || typeof contractAddr !== 'string' || !contractAddr.startsWith('0x') || contractAddr.length !== 42) {
         setError('Invalid contract address format');
         setIsSubmitting(false);
         return;
       }
 
       // Validate DAppRegistry address format
-      if (!dAppRegistryAddress.startsWith('0x') || dAppRegistryAddress.length !== 42) {
+      if (!dAppRegistryAddress || typeof dAppRegistryAddress !== 'string' || !dAppRegistryAddress.startsWith('0x') || dAppRegistryAddress.length !== 42) {
         setError('Invalid DAppRegistry address format');
         setIsSubmitting(false);
         return;
