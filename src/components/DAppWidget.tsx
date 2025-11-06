@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useAccount, useChainId } from 'wagmi';
 import { DApp } from '@/lib/dapps';
 import { NetworkCompatibilityModal } from './NetworkCompatibilityModal';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
 import { SimplePaymentWidget } from './dapps/SimplePaymentWidget';
 import { DAppWidgetHeader } from './dapps/DAppWidgetHeader';
 import { DAppWidgetFooter } from './dapps/DAppWidgetFooter';
+import { getContractAddress } from '@/lib/contracts/addresses';
 
 interface DAppWidgetProps {
   dapp: DApp;
