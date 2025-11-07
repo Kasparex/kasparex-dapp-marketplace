@@ -125,8 +125,8 @@ export function useTreasuryPayment({
   const errorCalledRef = useRef<string | null>(null);
 
   // Get Treasury address for current chain
-  const treasuryAddress = getTreasuryAddress(chainId);
-  const isTreasuryAvailable = treasuryAddress !== '';
+  const treasuryAddress = chainId ? getTreasuryAddress(chainId) : '';
+  const isTreasuryAvailable = treasuryAddress !== '' && treasuryAddress !== undefined && treasuryAddress !== null;
 
   // Write contract for fee payment
   const { writeContract, data: txHash, isPending: isPaying, error: writeError } = useWriteContract();
@@ -191,8 +191,8 @@ export function useTreasuryPayment({
         return;
       }
 
-      // Validate treasury address
-      if (!treasuryAddress || typeof treasuryAddress !== 'string' || treasuryAddress.trim() === '') {
+      // Validate treasury address exists and is a string
+      if (!treasuryAddress || typeof treasuryAddress !== 'string') {
         const err = 'Treasury address is invalid';
         setError(err);
         if (onError) {
@@ -201,8 +201,19 @@ export function useTreasuryPayment({
         return;
       }
 
+      // Validate treasury address is not empty
+      const trimmedAddress = treasuryAddress.trim();
+      if (trimmedAddress === '') {
+        const err = 'Treasury address is empty';
+        setError(err);
+        if (onError) {
+          onError(new Error(err));
+        }
+        return;
+      }
+
       // Validate address format
-      if (!treasuryAddress || typeof treasuryAddress !== 'string' || !treasuryAddress.startsWith('0x') || treasuryAddress.length !== 42) {
+      if (!trimmedAddress.startsWith('0x') || trimmedAddress.length !== 42) {
         const err = 'Treasury address format is invalid';
         setError(err);
         if (onError) {
@@ -225,7 +236,7 @@ export function useTreasuryPayment({
       }
       
       await writeContract({
-        address: treasuryAddress as Address,
+        address: trimmedAddress as Address,
         abi: TREASURY_ABI,
         functionName: 'collectFee',
         args: [],
