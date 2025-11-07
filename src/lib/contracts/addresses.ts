@@ -27,7 +27,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     DAppSubscription: "",
     SubscriptionManager: "",
     AuthorizationRegistry: "",
-    DAOVoting: "",
+    DAOVoting: "0x97004140704097e122CB7B9808330c80464ab69d",
   },
   kasplexL2Testnet: {
     Treasury: "0x305B4ee627aD8b12bFCF6427453964771aA30622",
@@ -38,7 +38,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     DAppSubscription: "0x0530c962A17fB4602418087689e762e5989f1D43",
     SubscriptionManager: "0x0F405c342e9596621430C5f888D673d40111a0ac",
     AuthorizationRegistry: "0x90A9aa9eB4C91b9c7A6eb72248bDe6a9FB6f79ef",
-    DAOVoting: "",
+    DAOVoting: "0xf5b2a43A626116690675676C00f4b2c4c86020D3",
   },
   igraCaravelTestnet: {
     Treasury: "",
@@ -49,7 +49,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     DAppSubscription: "",
     SubscriptionManager: "",
     AuthorizationRegistry: "",
-    DAOVoting: "",
+    DAOVoting: "0x97004140704097e122CB7B9808330c80464ab69d",
   },
 };
 
@@ -100,7 +100,7 @@ export const CONTRACT_ADDRESSES = {
     DAppSubscription: getEnvVar('NEXT_PUBLIC_DAPP_SUBSCRIPTION_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.DAppSubscription,
     SubscriptionManager: getEnvVar('NEXT_PUBLIC_SUBSCRIPTION_MANAGER_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.SubscriptionManager,
     AuthorizationRegistry: getEnvVar('NEXT_PUBLIC_AUTHORIZATION_REGISTRY_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.AuthorizationRegistry,
-    DAOVoting: getEnvVar('NEXT_PUBLIC_DAO_VOTING_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.DAOVoting,
+    DAOVoting: getEnvVar('NEXT_PUBLIC_DAO_VOTING_ADDRESS') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Mainnet.DAOVoting || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.DAOVoting,
   },
   // Kasplex L2 Testnet (Chain ID: 167012)
   kasplexL2Testnet: {
@@ -112,7 +112,7 @@ export const CONTRACT_ADDRESSES = {
     DAppSubscription: getEnvVar('NEXT_PUBLIC_DAPP_SUBSCRIPTION_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.DAppSubscription,
     SubscriptionManager: getEnvVar('NEXT_PUBLIC_SUBSCRIPTION_MANAGER_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.SubscriptionManager,
     AuthorizationRegistry: getEnvVar('NEXT_PUBLIC_AUTHORIZATION_REGISTRY_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.AuthorizationRegistry || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.AuthorizationRegistry,
-    DAOVoting: getEnvVar('NEXT_PUBLIC_DAO_VOTING_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.DAOVoting,
+    DAOVoting: getEnvVar('NEXT_PUBLIC_DAO_VOTING_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.DAOVoting || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.DAOVoting,
   },
   // Igra Caravel Testnet (Chain ID: 19416)
   igraCaravelTestnet: {
@@ -124,7 +124,7 @@ export const CONTRACT_ADDRESSES = {
     DAppSubscription: getEnvVar('NEXT_PUBLIC_DAPP_SUBSCRIPTION_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.DAppSubscription,
     SubscriptionManager: getEnvVar('NEXT_PUBLIC_SUBSCRIPTION_MANAGER_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.SubscriptionManager,
     AuthorizationRegistry: getEnvVar('NEXT_PUBLIC_AUTHORIZATION_REGISTRY_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.AuthorizationRegistry,
-    DAOVoting: getEnvVar('NEXT_PUBLIC_DAO_VOTING_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.DAOVoting,
+    DAOVoting: getEnvVar('NEXT_PUBLIC_DAO_VOTING_ADDRESS_IGRA_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.igraCaravelTestnet.DAOVoting || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.DAOVoting,
   },
 };
 
