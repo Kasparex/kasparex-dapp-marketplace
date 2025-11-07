@@ -202,11 +202,14 @@ export function AuthorizationManager() {
         )}
 
         {/* Status Messages */}
-        {assignError && (
-          <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
-            <strong>Error:</strong> {getErrorMessage(assignError, 'Failed to assign developer. Please check the console for details.')}
-          </div>
-        )}
+        {(() => {
+          const errorMsg = assignError ? getErrorMessage(assignError, 'Failed to assign developer. Please check the console for details.') : null;
+          return errorMsg ? (
+            <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
+              <strong>Error:</strong> {errorMsg}
+            </div>
+          ) : null;
+        })()}
         {isAssigning && (
           <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg text-sm text-blue-700 dark:text-blue-300">
             ⏳ Transaction pending... Please confirm in your wallet.
@@ -222,11 +225,14 @@ export function AuthorizationManager() {
             ✓ Developer assigned successfully! Transaction confirmed.
           </div>
         )}
-        {revokeError && (
-          <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
-            Error: {getErrorMessage(revokeError, 'Failed to revoke developer. Please check the console for details.')}
-          </div>
-        )}
+        {(() => {
+          const errorMsg = revokeError ? getErrorMessage(revokeError, 'Failed to revoke developer. Please check the console for details.') : null;
+          return errorMsg ? (
+            <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
+              Error: {errorMsg}
+            </div>
+          ) : null;
+        })()}
         {isRevoked && (
           <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-sm text-green-700 dark:text-green-300">
             ✓ Developer revoked successfully!

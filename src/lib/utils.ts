@@ -57,17 +57,11 @@ export function getErrorMessage(error: unknown, fallback: string = 'An error occ
     return error;
   }
 
-  // If it's a function, we can't use 'in' operator - return fallback or string representation
-  if (typeof error === 'function') {
-    try {
-      const stringified = error.toString();
-      // If it's a meaningful function string (not just [object Function]), use it
-      if (stringified && !stringified.startsWith('function') && stringified !== '[object Function]') {
-        return stringified;
-      }
-    } catch {
-      // Ignore errors
-    }
+  // CRITICAL: Check for functions FIRST - functions are objects in JS but can't use 'in' operator
+  // Use multiple checks to be absolutely sure
+  if (typeof error === 'function' || 
+      (typeof error === 'object' && error !== null && typeof (error as any).call === 'function')) {
+    // It's a function - can't safely check properties, return fallback
     return fallback;
   }
 
@@ -76,26 +70,50 @@ export function getErrorMessage(error: unknown, fallback: string = 'An error occ
     return error.message || fallback;
   }
 
-  // If it's an object (but not a function), try to extract message
+  // If it's an object (and we've confirmed it's not a function), try to extract message
   if (typeof error === 'object' && error !== null) {
-    // Safely check for message property using hasOwnProperty or direct access
     const errorObj = error as Record<string, unknown>;
     
-    // Use hasOwnProperty to safely check without 'in' operator issues
-    if (Object.prototype.hasOwnProperty.call(errorObj, 'message') && typeof errorObj.message === 'string') {
-      return errorObj.message;
+    // NEVER use 'in' operator - it fails on functions
+    // Instead, try direct property access with try-catch
+    try {
+      const message = errorObj.message;
+      if (typeof message === 'string' && message) {
+        return message;
+      }
+    } catch {
+      // Property access failed, continue to next attempt
+    }
+
+    // Try accessing other common error properties
+    try {
+      const shortMessage = errorObj.shortMessage;
+      if (typeof shortMessage === 'string' && shortMessage) {
+        return shortMessage;
+      }
+    } catch {
+      // Ignore
+    }
+
+    try {
+      const details = errorObj.details;
+      if (typeof details === 'string' && details) {
+        return details;
+      }
+    } catch {
+      // Ignore
     }
 
     // Try to stringify if it's a plain object
-    if (error.constructor === Object) {
-      try {
+    try {
+      if (error.constructor === Object) {
         const stringified = JSON.stringify(error);
         if (stringified !== '{}') {
           return stringified;
         }
-      } catch {
-        // Ignore JSON stringify errors
       }
+    } catch {
+      // Ignore JSON stringify errors
     }
   }
 
