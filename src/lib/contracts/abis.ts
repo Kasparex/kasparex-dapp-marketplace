@@ -220,6 +220,11 @@ export const DAPP_SUBSCRIPTION_ABI = [
   "function createSubscriptionPlan(address _dAppContract, uint256 _monthlyPrice, uint256 _quarterlyPrice, uint256 _yearlyPrice) external",
   "function updateSubscriptionPlan(address _dAppContract, uint256 _monthlyPrice, uint256 _quarterlyPrice, uint256 _yearlyPrice) external",
   "function getSubscriptionPlan(address _dAppContract) external view returns ((address, address, uint256, uint256, uint256, bool, uint256))",
+  "function setKasparexFeePercentage(uint256 _newPercentage) external",
+  "function kasparexFeePercentage() external view returns (uint256)",
+  "function setTreasury(address _treasury) external",
+  "function setAuthorizationRegistry(address _authorizationRegistry) external",
+  "function setDAppRegistry(address _dAppRegistry) external",
   "event SubscriptionPurchased(address indexed user, address indexed dAppContract, uint8 frequency, uint256 amount, uint256 expiryTimestamp, uint256 timestamp)",
   "event SubscriptionPlanCreated(address indexed dAppContract, address indexed developer, uint256 monthlyPrice, uint256 quarterlyPrice, uint256 yearlyPrice, uint256 timestamp)",
 ] as const;
@@ -232,6 +237,19 @@ export const SUBSCRIPTION_MANAGER_ABI = [
   "function getPlatformExpiry(address _user) external view returns (uint256)",
   "function getDAppExpiry(address _user, address _dAppContract) external view returns (uint256)",
   "function getSubscriptionStatus(address _user, address _dAppContract) external view returns (bool, uint256, bool, uint256, bool)",
+] as const;
+
+export const AUTHORIZATION_REGISTRY_ABI = [
+  "function assignDeveloper(uint256 _dAppId, address _developer) external",
+  "function revokeDeveloper(uint256 _dAppId, address _developer) external",
+  "function isDeveloper(uint256 _dAppId, address _developer) external view returns (bool)",
+  "function getDAppDevelopers(uint256 _dAppId) external view returns (address[])",
+  "function getDeveloperDApps(address _developer) external view returns (uint256[])",
+  "function batchAssignDevelopers(uint256 _dAppId, address[] calldata _developers) external",
+  "function batchRevokeDevelopers(uint256 _dAppId, address[] calldata _developers) external",
+  "function dAppDevelopers(uint256, address) external view returns (bool)",
+  "event DeveloperAssigned(uint256 indexed dAppId, address indexed developer, address indexed assignedBy, uint256 timestamp)",
+  "event DeveloperRevoked(uint256 indexed dAppId, address indexed developer, address indexed revokedBy, uint256 timestamp)",
 ] as const;
 
 

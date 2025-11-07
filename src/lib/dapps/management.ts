@@ -5,6 +5,8 @@ import { isDeployer } from '@/lib/dapps/deployer';
 
 /**
  * Get all dApps created/listed by a specific deployer address
+ * Note: This now also includes dApps where the user is assigned as developer via AuthorizationRegistry
+ * Use getAssignedDApps() to get only assigned dApps
  */
 export function getDAppsByDeployer(dapps: DApp[], deployerAddress: string): DApp[] {
   if (!deployerAddress) {
@@ -27,13 +29,36 @@ export function getDAppsByDeployer(dapps: DApp[], deployerAddress: string): DApp
 }
 
 /**
- * Check if a user can edit a specific dApp
+ * Get dApps where user is assigned as developer (via AuthorizationRegistry)
+ * This should be used in combination with getDAppsByDeployer for complete list
  */
-export function canEditDApp(userAddress: string | undefined, dapp: DApp): boolean {
+export function getAssignedDApps(dapps: DApp[], assignedDAppIds: number[]): DApp[] {
+  if (assignedDAppIds.length === 0) {
+    return [];
+  }
+
+  return dapps.filter((dapp) => {
+    const dAppId = parseInt(dapp.id, 10);
+    return !isNaN(dAppId) && assignedDAppIds.includes(dAppId);
+  });
+}
+
+/**
+ * Check if a user can edit a specific dApp
+ * This checks both deployer address and on-chain authorization
+ * Note: For on-chain check, use useDAppAuthorization hook in components
+ */
+export function canEditDApp(userAddress: string | undefined, dapp: DApp, isAssignedDeveloper: boolean = false): boolean {
   if (!userAddress) {
     return false;
   }
 
+  // Check if user is assigned developer via AuthorizationRegistry
+  if (isAssignedDeveloper) {
+    return true;
+  }
+
+  // Check if user is the deployer
   const deployerAddress = dapp.deployerAddress || 
     (dapp.developer && dapp.developer.startsWith('0x') ? dapp.developer : '') || 
     '';

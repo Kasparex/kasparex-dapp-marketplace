@@ -17,7 +17,8 @@ import { DAppGrid } from '@/components/DAppGrid';
 import { Activity } from '@/components/Activity';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { formatKaspaAddress } from '@/lib/kaspa/wallet';
-import { getDAppsByDeployer, canEditDApp } from '@/lib/dapps/management';
+import { getDAppsByDeployer, canEditDApp, getAssignedDApps } from '@/lib/dapps/management';
+import { useMyAssignedDApps } from '@/hooks/useDAppAuthorization';
 import { generateDAppSlug } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -29,8 +30,12 @@ export default function UserProfilePage() {
   const walletAddress = params?.['wallet-address'] as string | undefined;
   const [showEditModal, setShowEditModal] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'activity' | 'dapps' | 'favorites' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'activity' | 'dapps' | 'assigned' | 'favorites' | 'settings'>('overview');
   const { getFavoritesForWallet } = useFavorites();
+  
+  // Get assigned dApps (only if viewing own profile)
+  const isOwnProfileForHooks = isConnected && connectedAddress?.toLowerCase() === walletAddress?.toLowerCase();
+  const { dAppIds: assignedDAppIds, isLoading: isLoadingAssigned } = useMyAssignedDApps();
 
   // Validate wallet address
   const isValidAddress = walletAddress && isAddress(walletAddress);
@@ -230,6 +235,18 @@ export default function UserProfilePage() {
               >
                 dApps
               </button>
+              {isOwnProfile && (
+                <button
+                  onClick={() => setActiveTab('assigned')}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    activeTab === 'assigned'
+                      ? 'text-zinc-900 dark:text-zinc-100 border-b-2 border-zinc-900 dark:border-zinc-100'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                  }`}
+                >
+                  Assigned dApps
+                </button>
+              )}
               <button
                 onClick={() => setActiveTab('favorites')}
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
@@ -320,6 +337,106 @@ export default function UserProfilePage() {
                           >
                             <div className="flex items-start justify-between mb-3">
                               <div className="flex-1 min-w-0">
+                                <Link
+                                  href={`/dapps/${slug}`}
+                                  className="block"
+                                >
+                                  <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 truncate mb-1 hover:text-[#02abb8] transition-colors">
+                                    {dapp.name}
+                                  </h3>
+                                </Link>
+                                <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+                                  <span>{category}</span>
+                                  <span>•</span>
+                                  <span>v{dapp.version || 'N/A'}</span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2 mb-4">
+                              {dapp.utility || dapp.description}
+                            </p>
+                            
+                            <div className="flex items-center gap-2">
+                              <Link
+                                href={`/dapps/${slug}`}
+                                className="flex-1 px-3 py-2 text-sm font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-center"
+                              >
+                                View
+                              </Link>
+                              {canEdit && (
+                                <Link
+                                  href={`/dapps/${slug}/edit`}
+                                  className="flex-1 px-3 py-2 text-sm font-medium bg-[#02abb8] text-white rounded-lg hover:bg-[#0299a3] transition-colors text-center"
+                                >
+                                  Edit
+                                </Link>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {activeTab === 'assigned' && isOwnProfile && (() => {
+              const assignedDApps = getAssignedDApps(placeholderDApps, assignedDAppIds);
+              
+              return (
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                      Assigned dApps
+                    </h2>
+                  </div>
+                  {isLoadingAssigned ? (
+                    <div className="text-center py-12 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg">
+                      <p className="text-zinc-500 dark:text-zinc-400">Loading assigned dApps...</p>
+                    </div>
+                  ) : assignedDApps.length === 0 ? (
+                    <div className="text-center py-12 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg">
+                      <svg
+                        className="mx-auto h-16 w-16 text-zinc-400 dark:text-zinc-600 mb-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      <p className="text-zinc-500 dark:text-zinc-400 mb-4">
+                        You haven't been assigned as a developer for any dApps yet.
+                      </p>
+                      <p className="text-sm text-zinc-400 dark:text-zinc-500">
+                        Contact an admin to be assigned as a developer for a dApp.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {assignedDApps.map((dapp) => {
+                        const slug = dapp.slug || generateDAppSlug(dapp.name);
+                        const category = dapp.category;
+                        const canEdit = canEditDApp(connectedAddress, dapp, true); // Pass true for assigned developer
+                        
+                        return (
+                          <div
+                            key={dapp.id}
+                            className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all"
+                          >
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-xs px-2 py-0.5 bg-[#02abb8]/10 text-[#02abb8] rounded-full font-medium">
+                                    Assigned
+                                  </span>
+                                </div>
                                 <Link
                                   href={`/dapps/${slug}`}
                                   className="block"

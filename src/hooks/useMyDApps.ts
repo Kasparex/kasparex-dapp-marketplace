@@ -5,7 +5,8 @@ import { useAccount } from 'wagmi';
 import { useReadContract } from 'wagmi';
 import { DApp } from '@/lib/dapps';
 import { placeholderDApps } from '@/lib/dapps';
-import { getDAppsByDeployer } from '@/lib/dapps/management';
+import { getDAppsByDeployer, getAssignedDApps } from '@/lib/dapps/management';
+import { useMyAssignedDApps } from '@/hooks/useDAppAuthorization';
 import { DAPP_REGISTRY_ABI } from '@/lib/contracts/abis';
 import { getContractAddress, CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 import { useChainId } from 'wagmi';
@@ -53,6 +54,9 @@ export function useMyDApps() {
     },
   });
 
+  // Get assigned dApp IDs from AuthorizationRegistry
+  const { dAppIds: assignedDAppIds, isLoading: isLoadingAssigned } = useMyAssignedDApps();
+
   // Get dApps from frontend data (placeholderDApps + localStorage)
   const frontendDApps = useMemo(() => {
     if (!isConnected || !address) {
@@ -61,6 +65,14 @@ export function useMyDApps() {
     return getDAppsByDeployer(placeholderDApps, address);
   }, [isConnected, address]);
 
+  // Get assigned dApps
+  const assignedDApps = useMemo(() => {
+    if (!isConnected || assignedDAppIds.length === 0) {
+      return [];
+    }
+    return getAssignedDApps(placeholderDApps, assignedDAppIds);
+  }, [isConnected, assignedDAppIds]);
+
   // For now, we'll combine frontend dApps with contract data
   // In the future, we can fetch all registered dApps from the contract
   const myDApps: MyDApp[] = useMemo(() => {
@@ -68,18 +80,30 @@ export function useMyDApps() {
       return [];
     }
 
-    // Start with frontend dApps
+    // Start with frontend dApps (deployed by user)
     const dApps: MyDApp[] = frontendDApps.map((dapp) => ({
       ...dapp,
       isRegistered: !!dapp.contractAddress,
     }));
 
+    // Add assigned dApps (assigned via AuthorizationRegistry)
+    // Filter out duplicates
+    const existingIds = new Set(dApps.map(d => d.id));
+    assignedDApps.forEach((dapp) => {
+      if (!existingIds.has(dapp.id)) {
+        dApps.push({
+          ...dapp,
+          isRegistered: !!dapp.contractAddress,
+        });
+      }
+    });
+
     return dApps;
-  }, [frontendDApps, isConnected, address]);
+  }, [frontendDApps, assignedDApps, isConnected, address]);
 
   return {
     dApps: myDApps,
-    isLoading: isLoadingCount,
+    isLoading: isLoadingCount || isLoadingAssigned,
     totalCount: dAppCount ? Number(dAppCount) : myDApps.length,
     isEmpty: myDApps.length === 0,
   };

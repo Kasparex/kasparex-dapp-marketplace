@@ -52,6 +52,13 @@ async function main() {
   const dAppRegistryAddress = await dAppRegistry.getAddress();
   console.log("DAppRegistry deployed to:", dAppRegistryAddress);
 
+  console.log("\n=== Deploying AuthorizationRegistry ===");
+  const AuthorizationRegistry = await ethers.getContractFactory("AuthorizationRegistry");
+  const authorizationRegistry = await AuthorizationRegistry.deploy();
+  await authorizationRegistry.waitForDeployment();
+  const authorizationRegistryAddress = await authorizationRegistry.getAddress();
+  console.log("AuthorizationRegistry deployed to:", authorizationRegistryAddress);
+
   console.log("\n=== Deploying SimplePayment ===");
   const SimplePayment = await ethers.getContractFactory("SimplePayment");
   const simplePayment = await SimplePayment.deploy(feeCollectorAddress, FEE_PERCENTAGE);
@@ -87,6 +94,8 @@ async function main() {
   const DAppSubscription = await ethers.getContractFactory("DAppSubscription");
   const dAppSubscription = await DAppSubscription.deploy(
     treasuryAddress,
+    authorizationRegistryAddress,
+    dAppRegistryAddress,
     KASPAREX_FEE_PERCENTAGE
   );
   await dAppSubscription.waitForDeployment();
@@ -114,6 +123,7 @@ async function main() {
       Treasury: treasuryAddress,
       FeeCollector: feeCollectorAddress,
       DAppRegistry: dAppRegistryAddress,
+      AuthorizationRegistry: authorizationRegistryAddress,
       SimplePayment: simplePaymentAddress,
       PlatformSubscription: platformSubscriptionAddress,
       DAppSubscription: dAppSubscriptionAddress,

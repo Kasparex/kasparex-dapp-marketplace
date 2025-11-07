@@ -9,6 +9,7 @@ import { UserMenu } from './UserMenu';
 import { getChainById } from '@/lib/wagmi';
 import { KasWareWalletButton } from './KasWareWalletButton';
 import { EVMWalletButton } from './EVMWalletButton';
+import { useAdmin } from '@/hooks/useAdmin';
 import Link from 'next/link';
 
 interface ProjectLink {
@@ -25,6 +26,38 @@ const projectLinks: ProjectLink[] = [
   { name: 'Movies', subdomain: 'movies.kasparex.com', comingSoon: true },
   { name: 'Magazines', subdomain: 'magazines.kasparex.com', comingSoon: true },
 ];
+
+function AdminLink() {
+  const { isAdmin } = useAdmin();
+  
+  if (!isAdmin) {
+    return null;
+  }
+
+  return (
+    <Link
+      href="/admin"
+      className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0 relative"
+      aria-label="Admin Dashboard"
+      title="Admin Dashboard"
+    >
+      <svg
+        className="h-5 w-5 text-[#02abb8]"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+        />
+      </svg>
+      <span className="absolute top-0 right-0 h-2 w-2 bg-[#02abb8] rounded-full"></span>
+    </Link>
+  );
+}
 
 function NetworkSwitcher() {
   const { isConnected } = useAccount();
@@ -224,6 +257,7 @@ export function Header() {
 
         {/* Right side: Wallet Connect and Theme Toggle - no padding, flush to right */}
         <div className="flex items-center gap-2 sm:gap-3 pr-2 sm:pr-4 lg:pr-6">
+          <AdminLink />
           <Link
             href="/updates"
             onClick={() => {

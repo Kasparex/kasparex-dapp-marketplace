@@ -28,6 +28,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     PlatformSubscription: "",
     DAppSubscription: "",
     SubscriptionManager: "",
+    AuthorizationRegistry: "",
   },
   kasplexL2Testnet: {
     Treasury: "0x658420fd88dbd610249a88384f9b1ad387f797c7",
@@ -37,6 +38,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     PlatformSubscription: "",
     DAppSubscription: "",
     SubscriptionManager: "",
+    AuthorizationRegistry: "",
   },
 };
 
@@ -49,6 +51,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     PlatformSubscription: "",
     DAppSubscription: "",
     SubscriptionManager: "",
+    AuthorizationRegistry: "",
   },
   kasplexL2Testnet: {
     Treasury: "",
@@ -58,6 +61,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     PlatformSubscription: "",
     DAppSubscription: "",
     SubscriptionManager: "",
+    AuthorizationRegistry: "",
   },
 };
 
@@ -71,6 +75,7 @@ export const CONTRACT_ADDRESSES = {
     PlatformSubscription: getEnvVar('NEXT_PUBLIC_PLATFORM_SUBSCRIPTION_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.PlatformSubscription,
     DAppSubscription: getEnvVar('NEXT_PUBLIC_DAPP_SUBSCRIPTION_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.DAppSubscription,
     SubscriptionManager: getEnvVar('NEXT_PUBLIC_SUBSCRIPTION_MANAGER_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.SubscriptionManager,
+    AuthorizationRegistry: getEnvVar('NEXT_PUBLIC_AUTHORIZATION_REGISTRY_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.AuthorizationRegistry,
   },
   // Kasplex L2 Testnet (Chain ID: 167012)
   kasplexL2Testnet: {
@@ -81,6 +86,7 @@ export const CONTRACT_ADDRESSES = {
     PlatformSubscription: getEnvVar('NEXT_PUBLIC_PLATFORM_SUBSCRIPTION_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.PlatformSubscription,
     DAppSubscription: getEnvVar('NEXT_PUBLIC_DAPP_SUBSCRIPTION_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.DAppSubscription,
     SubscriptionManager: getEnvVar('NEXT_PUBLIC_SUBSCRIPTION_MANAGER_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.SubscriptionManager,
+    AuthorizationRegistry: getEnvVar('NEXT_PUBLIC_AUTHORIZATION_REGISTRY_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.AuthorizationRegistry,
   },
 };
 

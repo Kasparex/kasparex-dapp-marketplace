@@ -5,6 +5,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./Treasury.sol";
+import "./AuthorizationRegistry.sol";
+import "./DAppRegistry.sol";
 
 /**
  * @title DAppSubscription
@@ -17,6 +19,12 @@ contract DAppSubscription is Ownable, AccessControl, ReentrancyGuard {
 
     // Treasury contract for fee collection
     Treasury public treasury;
+
+    // AuthorizationRegistry contract for checking developer assignments
+    AuthorizationRegistry public authorizationRegistry;
+
+    // DAppRegistry contract for getting dApp IDs
+    DAppRegistry public dAppRegistry;
 
     // Kasparex fee percentage (basis points, e.g., 1500 = 15%)
     uint256 public kasparexFeePercentage;
@@ -98,16 +106,24 @@ contract DAppSubscription is Ownable, AccessControl, ReentrancyGuard {
     /**
      * @dev Constructor sets initial values
      * @param _treasury Address of the Treasury contract
+     * @param _authorizationRegistry Address of the AuthorizationRegistry contract
+     * @param _dAppRegistry Address of the DAppRegistry contract
      * @param _kasparexFeePercentage Kasparex fee percentage in basis points (default: 1500 = 15%)
      */
     constructor(
         address _treasury,
+        address _authorizationRegistry,
+        address _dAppRegistry,
         uint256 _kasparexFeePercentage
     ) Ownable(msg.sender) {
         require(_treasury != address(0), "DAppSubscription: Invalid treasury address");
+        require(_authorizationRegistry != address(0), "DAppSubscription: Invalid authorization registry address");
+        require(_dAppRegistry != address(0), "DAppSubscription: Invalid dApp registry address");
         require(_kasparexFeePercentage <= 10000, "DAppSubscription: Fee cannot exceed 100%");
 
         treasury = Treasury(_treasury);
+        authorizationRegistry = AuthorizationRegistry(_authorizationRegistry);
+        dAppRegistry = DAppRegistry(_dAppRegistry);
         kasparexFeePercentage = _kasparexFeePercentage;
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -127,10 +143,19 @@ contract DAppSubscription is Ownable, AccessControl, ReentrancyGuard {
         uint256 _yearlyPrice
     ) external {
         require(_dAppContract != address(0), "DAppSubscription: Invalid dApp contract");
-        require(
-            hasRole(DEVELOPER_ROLE, msg.sender) || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
-            "DAppSubscription: Not authorized"
-        );
+        
+        // Check if user is authorized: admin, has DEVELOPER_ROLE, or is assigned developer via AuthorizationRegistry
+        bool isAuthorized = hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || hasRole(DEVELOPER_ROLE, msg.sender);
+        
+        // If not authorized via roles, check AuthorizationRegistry
+        if (!isAuthorized) {
+            uint256 dAppId = dAppRegistry.getDAppIdByContract(_dAppContract);
+            if (dAppId > 0) {
+                isAuthorized = authorizationRegistry.isDeveloper(dAppId, msg.sender);
+            }
+        }
+        
+        require(isAuthorized, "DAppSubscription: Not authorized");
         require(_monthlyPrice > 0, "DAppSubscription: Monthly price must be greater than 0");
         require(_quarterlyPrice > 0, "DAppSubscription: Quarterly price must be greater than 0");
         require(_yearlyPrice > 0, "DAppSubscription: Yearly price must be greater than 0");
@@ -170,10 +195,19 @@ contract DAppSubscription is Ownable, AccessControl, ReentrancyGuard {
     ) external {
         SubscriptionPlan storage plan = subscriptionPlans[_dAppContract];
         require(plan.dAppContract != address(0), "DAppSubscription: Plan does not exist");
-        require(
-            plan.developer == msg.sender || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
-            "DAppSubscription: Not authorized"
-        );
+        
+        // Check if user is authorized: original developer, admin, or assigned developer via AuthorizationRegistry
+        bool isAuthorized = plan.developer == msg.sender || hasRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        
+        // If not authorized, check AuthorizationRegistry
+        if (!isAuthorized) {
+            uint256 dAppId = dAppRegistry.getDAppIdByContract(_dAppContract);
+            if (dAppId > 0) {
+                isAuthorized = authorizationRegistry.isDeveloper(dAppId, msg.sender);
+            }
+        }
+        
+        require(isAuthorized, "DAppSubscription: Not authorized");
         require(_monthlyPrice > 0, "DAppSubscription: Monthly price must be greater than 0");
         require(_quarterlyPrice > 0, "DAppSubscription: Quarterly price must be greater than 0");
         require(_yearlyPrice > 0, "DAppSubscription: Yearly price must be greater than 0");
@@ -357,15 +391,42 @@ contract DAppSubscription is Ownable, AccessControl, ReentrancyGuard {
     }
 
     /**
+     * @dev Update AuthorizationRegistry contract address (only owner)
+     * @param _authorizationRegistry New AuthorizationRegistry contract address
+     */
+    function setAuthorizationRegistry(address _authorizationRegistry) external onlyOwner {
+        require(_authorizationRegistry != address(0), "DAppSubscription: Invalid authorization registry address");
+        authorizationRegistry = AuthorizationRegistry(_authorizationRegistry);
+    }
+
+    /**
+     * @dev Update DAppRegistry contract address (only owner)
+     * @param _dAppRegistry New DAppRegistry contract address
+     */
+    function setDAppRegistry(address _dAppRegistry) external onlyOwner {
+        require(_dAppRegistry != address(0), "DAppSubscription: Invalid dApp registry address");
+        dAppRegistry = DAppRegistry(_dAppRegistry);
+    }
+
+    /**
      * @dev Deactivate a subscription plan (developer or admin only)
      * @param _dAppContract dApp contract address
      */
     function deactivatePlan(address _dAppContract) external {
         SubscriptionPlan storage plan = subscriptionPlans[_dAppContract];
-        require(
-            plan.developer == msg.sender || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
-            "DAppSubscription: Not authorized"
-        );
+        
+        // Check if user is authorized: original developer, admin, or assigned developer via AuthorizationRegistry
+        bool isAuthorized = plan.developer == msg.sender || hasRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        
+        // If not authorized, check AuthorizationRegistry
+        if (!isAuthorized) {
+            uint256 dAppId = dAppRegistry.getDAppIdByContract(_dAppContract);
+            if (dAppId > 0) {
+                isAuthorized = authorizationRegistry.isDeveloper(dAppId, msg.sender);
+            }
+        }
+        
+        require(isAuthorized, "DAppSubscription: Not authorized");
         plan.isActive = false;
     }
 
