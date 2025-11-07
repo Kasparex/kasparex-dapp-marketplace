@@ -2,7 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useAccount, useChainId } from 'wagmi';
 import { DApp } from '@/lib/dapps';
+import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
+import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
+import { getChainById } from '@/lib/wagmi';
 
 interface DAppEmbedProps {
   dapp: DApp;
@@ -10,6 +14,9 @@ interface DAppEmbedProps {
 }
 
 export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
+  const { address: connectedAddress, isConnected } = useAccount();
+  const chainId = useChainId();
+  const chain = chainId ? getChainById(chainId) : null;
   const [widthType, setWidthType] = useState<'px' | '%' | 'vw'>('%');
   const [width, setWidth] = useState(100);
   const [heightType, setHeightType] = useState<'px' | 'vh' | '%' | 'auto'>('auto');
@@ -17,6 +24,7 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
   const [hideHeader, setHideHeader] = useState(false);
   const [customStyle, setCustomStyle] = useState('max-width: 100%; width: 100%;');
   const [copied, setCopied] = useState(false);
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const slug = dapp.slug || dapp.id;
@@ -196,6 +204,135 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
               rows={8}
             />
           </div>
+
+          {/* Debug Info Toggle */}
+          <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
+            <ToggleSwitch
+              checked={showDebugInfo}
+              onChange={setShowDebugInfo}
+              label="Show Debug Info"
+              description="Display technical details about the embed"
+            />
+          </div>
+
+          {/* Debug & Status Info Section */}
+          {showDebugInfo && (
+            <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+              <CollapsibleSection
+                title="Debug & Status Info"
+                isOpen={true}
+                onToggle={() => {}}
+                icon={<span className="text-lg">🔍</span>}
+              >
+                <div className="space-y-4">
+                  {/* Embed Information */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+                      Embed Information
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
+                        <span className="text-xs text-zinc-600 dark:text-zinc-400">Base URL:</span>
+                        <p className="text-xs font-mono text-zinc-900 dark:text-zinc-100 break-all mt-1">
+                          {baseUrl}
+                        </p>
+                      </div>
+                      <div className="p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
+                        <span className="text-xs text-zinc-600 dark:text-zinc-400">dApp Slug:</span>
+                        <p className="text-xs text-zinc-900 dark:text-zinc-100 mt-1">
+                          {slug}
+                        </p>
+                      </div>
+                      <div className="p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
+                        <span className="text-xs text-zinc-600 dark:text-zinc-400">Embed URL:</span>
+                        <p className="text-xs font-mono text-zinc-900 dark:text-zinc-100 break-all mt-1">
+                          {embedUrl}
+                        </p>
+                      </div>
+                      <div className="p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
+                        <span className="text-xs text-zinc-600 dark:text-zinc-400">Embed Dimensions:</span>
+                        <p className="text-xs text-zinc-900 dark:text-zinc-100 mt-1">
+                          Width: {widthValue}, Height: {heightValue}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
+                        <span className="text-sm text-zinc-700 dark:text-zinc-300">Hide Header:</span>
+                        <span className={`text-sm font-medium ${hideHeader ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-600 dark:text-zinc-400'}`}>
+                          {hideHeader ? '✓ Yes' : '✗ No'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Current Status */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+                      Current Status
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
+                        <span className="text-sm text-zinc-700 dark:text-zinc-300">Wallet Connected:</span>
+                        <span className={`text-sm font-medium ${isConnected ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                          {isConnected ? '✓ Yes' : '✗ No'}
+                        </span>
+                      </div>
+                      {isConnected && connectedAddress && (
+                        <div className="p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
+                          <span className="text-xs text-zinc-600 dark:text-zinc-400">Connected Address:</span>
+                          <p className="text-xs font-mono text-zinc-900 dark:text-zinc-100 break-all mt-1">
+                            {connectedAddress}
+                          </p>
+                        </div>
+                      )}
+                      {chain && (
+                        <div className="p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
+                          <span className="text-xs text-zinc-600 dark:text-zinc-400">Current Network:</span>
+                          <p className="text-xs font-medium text-zinc-900 dark:text-zinc-100 mt-1">
+                            {chain.name}
+                          </p>
+                        </div>
+                      )}
+                      <div className="p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
+                        <span className="text-xs text-zinc-600 dark:text-zinc-400">Network Chain ID:</span>
+                        <p className="text-xs font-mono text-zinc-900 dark:text-zinc-100 mt-1">
+                          {chainId || 'Not detected'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* dApp Information */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+                      dApp Information
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
+                        <span className="text-xs text-zinc-600 dark:text-zinc-400">dApp Name:</span>
+                        <p className="text-xs text-zinc-900 dark:text-zinc-100 mt-1">
+                          {dapp.name}
+                        </p>
+                      </div>
+                      <div className="p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
+                        <span className="text-xs text-zinc-600 dark:text-zinc-400">dApp ID:</span>
+                        <p className="text-xs font-mono text-zinc-900 dark:text-zinc-100 mt-1">
+                          {dapp.id}
+                        </p>
+                      </div>
+                      {dapp.widgetUrl && (
+                        <div className="p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
+                          <span className="text-xs text-zinc-600 dark:text-zinc-400">Widget URL:</span>
+                          <p className="text-xs text-zinc-900 dark:text-zinc-100 break-all mt-1">
+                            {dapp.widgetUrl}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CollapsibleSection>
+            </div>
+          )}
 
           <div className="flex justify-end mt-6">
             <button

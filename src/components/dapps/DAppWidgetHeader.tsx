@@ -22,6 +22,8 @@ import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
 import { isEmbedded } from '@/lib/utils';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useLikes } from '@/hooks/useLikes';
+import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
+import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 
 interface DAppWidgetHeaderProps {
   dapp: DApp;
@@ -35,6 +37,7 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
   const isEmbeddedPage = isEmbedded();
   const { toggleFavorite, isFavorite } = useFavorites();
   const { toggleLike, hasLiked, getLikeCount } = useLikes();
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
   
   // Get chain info for network button
   const chain = chainId ? getChainById(chainId) : null;
@@ -578,8 +581,146 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
               {compatibility.isCompatible ? '✓ Compatible' : '⚠ Not compatible'}
             </div>
           )}
+
+          {/* Debug Info Toggle */}
+          <div className="flex items-center gap-2 px-3 py-1.5">
+            <ToggleSwitch
+              checked={showDebugInfo}
+              onChange={setShowDebugInfo}
+              label="Debug Info"
+              description="Show technical details and status"
+            />
+          </div>
         </div>
       </div>
+
+      {/* Debug & Status Info Section */}
+      {showDebugInfo && (
+        <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+          <CollapsibleSection
+            title="Debug & Status Info"
+            isOpen={true}
+            onToggle={() => {}}
+            icon={<span className="text-lg">🔍</span>}
+          >
+            <div className="space-y-4">
+              {/* Current Status */}
+              <div>
+                <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+                  Current Status
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-2 bg-white dark:bg-zinc-800 rounded">
+                    <span className="text-sm text-zinc-700 dark:text-zinc-300">Wallet Connected:</span>
+                    <span className={`text-sm font-medium ${isConnected ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {isConnected ? '✓ Yes' : '✗ No'}
+                    </span>
+                  </div>
+                  {isConnected && connectedAddress && (
+                    <div className="p-2 bg-white dark:bg-zinc-800 rounded">
+                      <span className="text-xs text-zinc-600 dark:text-zinc-400">Connected Address:</span>
+                      <p className="text-xs font-mono text-zinc-900 dark:text-zinc-100 break-all mt-1">
+                        {connectedAddress}
+                      </p>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between p-2 bg-white dark:bg-zinc-800 rounded">
+                    <span className="text-sm text-zinc-700 dark:text-zinc-300">Network Compatibility:</span>
+                    <span className={`text-sm font-medium ${compatibility.isCompatible ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {compatibility.isCompatible ? '✓ Compatible' : '✗ Not Compatible'}
+                    </span>
+                  </div>
+                  {chain && (
+                    <div className="p-2 bg-white dark:bg-zinc-800 rounded">
+                      <span className="text-xs text-zinc-600 dark:text-zinc-400">Current Network:</span>
+                      <p className="text-xs font-medium text-zinc-900 dark:text-zinc-100 mt-1">
+                        {chain.name} {isTestnet ? '(Testnet)' : '(Mainnet)'}
+                      </p>
+                    </div>
+                  )}
+                  <div className="p-2 bg-white dark:bg-zinc-800 rounded">
+                    <span className="text-xs text-zinc-600 dark:text-zinc-400">Network Chain ID:</span>
+                    <p className="text-xs font-mono text-zinc-900 dark:text-zinc-100 mt-1">
+                      {chainId || 'Not detected'}
+                    </p>
+                  </div>
+                  {compatibility.requiredChainNames.length > 0 && (
+                    <div className="p-2 bg-white dark:bg-zinc-800 rounded">
+                      <span className="text-xs text-zinc-600 dark:text-zinc-400">Required Networks:</span>
+                      <p className="text-xs text-zinc-900 dark:text-zinc-100 mt-1">
+                        {compatibility.requiredChainNames.join(', ')}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* dApp Information */}
+              <div>
+                <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+                  dApp Information
+                </h4>
+                <div className="space-y-2">
+                  <div className="p-2 bg-white dark:bg-zinc-800 rounded">
+                    <span className="text-xs text-zinc-600 dark:text-zinc-400">dApp ID:</span>
+                    <p className="text-xs font-mono text-zinc-900 dark:text-zinc-100 mt-1">
+                      {mergedDApp.id}
+                    </p>
+                  </div>
+                  <div className="p-2 bg-white dark:bg-zinc-800 rounded">
+                    <span className="text-xs text-zinc-600 dark:text-zinc-400">dApp Slug:</span>
+                    <p className="text-xs text-zinc-900 dark:text-zinc-100 mt-1">
+                      {mergedDApp.slug || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="p-2 bg-white dark:bg-zinc-800 rounded">
+                    <span className="text-xs text-zinc-600 dark:text-zinc-400">Version:</span>
+                    <p className="text-xs text-zinc-900 dark:text-zinc-100 mt-1">
+                      {pollingVersion || 'N/A'}
+                    </p>
+                  </div>
+                  {resolvedContractAddress && (
+                    <div className="p-2 bg-white dark:bg-zinc-800 rounded">
+                      <span className="text-xs text-zinc-600 dark:text-zinc-400">Contract Address:</span>
+                      <p className="text-xs font-mono text-zinc-900 dark:text-zinc-100 break-all mt-1">
+                        {resolvedContractAddress}
+                      </p>
+                    </div>
+                  )}
+                  {deployerAddress && (
+                    <div className="p-2 bg-white dark:bg-zinc-800 rounded">
+                      <span className="text-xs text-zinc-600 dark:text-zinc-400">Deployer Address:</span>
+                      <p className="text-xs font-mono text-zinc-900 dark:text-zinc-100 break-all mt-1">
+                        {deployerAddress}
+                      </p>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between p-2 bg-white dark:bg-zinc-800 rounded">
+                    <span className="text-sm text-zinc-700 dark:text-zinc-300">Is Deployer:</span>
+                    <span className={`text-sm font-medium ${isDeployerUser ? 'text-green-600 dark:text-green-400' : 'text-zinc-600 dark:text-zinc-400'}`}>
+                      {isDeployerUser ? '✓ Yes' : '✗ No'}
+                    </span>
+                  </div>
+                  {mergedDApp.widgetUrl && (
+                    <div className="p-2 bg-white dark:bg-zinc-800 rounded">
+                      <span className="text-xs text-zinc-600 dark:text-zinc-400">Widget URL:</span>
+                      <p className="text-xs text-zinc-900 dark:text-zinc-100 break-all mt-1">
+                        {mergedDApp.widgetUrl}
+                      </p>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between p-2 bg-white dark:bg-zinc-800 rounded">
+                    <span className="text-sm text-zinc-700 dark:text-zinc-300">Is Embedded:</span>
+                    <span className={`text-sm font-medium ${isEmbeddedPage ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-600 dark:text-zinc-400'}`}>
+                      {isEmbeddedPage ? '✓ Yes' : '✗ No'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CollapsibleSection>
+        </div>
+      )}
 
       {/* Modals */}
       {showEditModal && (
