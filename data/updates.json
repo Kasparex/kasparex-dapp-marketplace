@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762529002-c71c3f1",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add authorization system: admin dashboard, developer assignments, and fee management (by Kasparex)",
+      "date": "2025-11-07T16:22:47+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762476797-c54541a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix undefined length error in Treasury payment hook - add proper validation for treasuryAddress (by Kasparex)",
