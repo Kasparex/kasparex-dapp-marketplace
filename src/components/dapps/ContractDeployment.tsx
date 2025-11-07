@@ -46,6 +46,9 @@ export function ContractStep({ formData, onUpdate }: ContractStepProps) {
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
   });
+  
+  // Safely convert error to string immediately
+  const safeError = useSafeError(error);
 
   const handleRegister = async () => {
     if (!isConnected || !address) {
@@ -133,14 +136,11 @@ export function ContractStep({ formData, onUpdate }: ContractStepProps) {
             Register your dApp on-chain to enable on-chain verification and integration with the marketplace.
           </p>
           
-          {(() => {
-            const safeError = useSafeError(error);
-            return safeError ? (
-              <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
-                {safeError}
-              </div>
-            ) : null;
-          })()}
+          {safeError && (
+            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
+              {safeError}
+            </div>
+          )}
 
           {isSuccess && (
             <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-sm text-green-600 dark:text-green-400">
