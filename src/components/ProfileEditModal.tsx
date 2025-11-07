@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { useAccount } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
 import type { ProfileData } from '@/hooks/useProfile';
 import { useTreasuryPayment } from '@/hooks/useTreasuryPayment';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
@@ -25,6 +25,7 @@ export function ProfileEditModal({
   onSave,
 }: ProfileEditModalProps) {
   const { address: connectedAddress, isConnected } = useAccount();
+  const chainId = useChainId();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
@@ -33,6 +34,7 @@ export function ProfileEditModal({
   const [profileInfoOpen, setProfileInfoOpen] = useState(true);
   const [imagesOpen, setImagesOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [debugOpen, setDebugOpen] = useState(false);
 
   // Form state
   const [displayName, setDisplayName] = useState(profile.displayName || '');
@@ -515,6 +517,173 @@ export function ProfileEditModal({
                 description="Discourage screenshots of your profile (client-side only)"
                 disabled={isLoading}
               />
+            </div>
+          </CollapsibleSection>
+
+          {/* Debug Info Section */}
+          <CollapsibleSection
+            title="Debug & Status Info"
+            isOpen={debugOpen}
+            onToggle={() => setDebugOpen(!debugOpen)}
+            icon={<span className="text-lg">🔍</span>}
+          >
+            <div className="space-y-4">
+              {/* Current Status */}
+              <div>
+                <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+                  Current Status
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
+                    <span className="text-sm text-zinc-700 dark:text-zinc-300">Wallet Connected:</span>
+                    <span className={`text-sm font-medium ${isConnected ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {isConnected ? '✓ Yes' : '✗ No'}
+                    </span>
+                  </div>
+                  {isConnected && connectedAddress && (
+                    <div className="p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
+                      <span className="text-xs text-zinc-600 dark:text-zinc-400">Connected Address:</span>
+                      <p className="text-xs font-mono text-zinc-900 dark:text-zinc-100 break-all mt-1">
+                        {connectedAddress}
+                      </p>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
+                    <span className="text-sm text-zinc-700 dark:text-zinc-300">Profile Owner Match:</span>
+                    <span className={`text-sm font-medium ${
+                      connectedAddress && connectedAddress.toLowerCase() === walletAddress.toLowerCase()
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-red-600 dark:text-red-400'
+                    }`}>
+                      {connectedAddress && connectedAddress.toLowerCase() === walletAddress.toLowerCase()
+                        ? '✓ Match'
+                        : '✗ No Match'}
+                    </span>
+                  </div>
+                  <div className="p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
+                    <span className="text-xs text-zinc-600 dark:text-zinc-400">Profile Wallet Address:</span>
+                    <p className="text-xs font-mono text-zinc-900 dark:text-zinc-100 break-all mt-1">
+                      {walletAddress}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
+                    <span className="text-sm text-zinc-700 dark:text-zinc-300">Treasury Available:</span>
+                    <span className={`text-sm font-medium ${isTreasuryAvailable ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {isTreasuryAvailable ? '✓ Available' : '✗ Not Available'}
+                    </span>
+                  </div>
+                  {treasuryAddress && (
+                    <div className="p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
+                      <span className="text-xs text-zinc-600 dark:text-zinc-400">Treasury Address:</span>
+                      <p className="text-xs font-mono text-zinc-900 dark:text-zinc-100 break-all mt-1">
+                        {treasuryAddress}
+                      </p>
+                    </div>
+                  )}
+                  <div className="p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
+                    <span className="text-xs text-zinc-600 dark:text-zinc-400">Network Chain ID:</span>
+                    <p className="text-xs font-mono text-zinc-900 dark:text-zinc-100 mt-1">
+                      {chainId || 'Not detected'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Steps to Success */}
+              <div>
+                <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+                  Steps to Complete Transaction
+                </h4>
+                <ol className="space-y-2 text-sm text-zinc-700 dark:text-zinc-300">
+                  <li className={`flex items-start gap-2 ${isConnected ? 'text-green-600 dark:text-green-400' : ''}`}>
+                    <span className="font-semibold">1.</span>
+                    <span>
+                      {isConnected ? '✓ ' : ''}Connect your EVM wallet (MetaMask, RainbowKit, etc.)
+                      {!isConnected && (
+                        <span className="block text-xs text-zinc-500 dark:text-zinc-400 mt-1 ml-4">
+                          Click the wallet connect button in the header
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                  <li className={`flex items-start gap-2 ${
+                    connectedAddress && connectedAddress.toLowerCase() === walletAddress.toLowerCase()
+                      ? 'text-green-600 dark:text-green-400'
+                      : ''
+                  }`}>
+                    <span className="font-semibold">2.</span>
+                    <span>
+                      {connectedAddress && connectedAddress.toLowerCase() === walletAddress.toLowerCase() ? '✓ ' : ''}
+                      Ensure you are editing your own profile
+                      {connectedAddress && connectedAddress.toLowerCase() !== walletAddress.toLowerCase() && (
+                        <span className="block text-xs text-zinc-500 dark:text-zinc-400 mt-1 ml-4">
+                          Your connected wallet address must match the profile address: {walletAddress}
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                  <li className={`flex items-start gap-2 ${isTreasuryAvailable ? 'text-green-600 dark:text-green-400' : ''}`}>
+                    <span className="font-semibold">3.</span>
+                    <span>
+                      {isTreasuryAvailable ? '✓ ' : ''}Ensure Treasury is available on your network
+                      {!isTreasuryAvailable && (
+                        <span className="block text-xs text-zinc-500 dark:text-zinc-400 mt-1 ml-4">
+                          Switch to Kasplex L2 Testnet (167012) or Mainnet (202555)
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-semibold">4.</span>
+                    <span>Fill in the form fields (all fields are optional)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-semibold">5.</span>
+                    <span>Click "Save & Pay 10 KAS" button</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-semibold">6.</span>
+                    <span>Approve the transaction in your wallet</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-semibold">7.</span>
+                    <span>Wait for transaction confirmation</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-semibold">8.</span>
+                    <span>Page will reload automatically after successful save</span>
+                  </li>
+                </ol>
+              </div>
+
+              {/* Troubleshooting */}
+              <div>
+                <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+                  Troubleshooting
+                </h4>
+                <div className="space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
+                  <p>
+                    <strong className="text-zinc-900 dark:text-zinc-100">Button still disabled?</strong>
+                    <br />
+                    Check the yellow info box above for specific requirements. All conditions (wallet connected, profile owner match, treasury available) must be met.
+                  </p>
+                  <p>
+                    <strong className="text-zinc-900 dark:text-zinc-100">Wrong wallet address?</strong>
+                    <br />
+                    You can only edit your own profile. Make sure the connected wallet address matches the profile address shown above.
+                  </p>
+                  <p>
+                    <strong className="text-zinc-900 dark:text-zinc-100">Treasury not available?</strong>
+                    <br />
+                    Make sure you're connected to Kasplex L2 Testnet or Mainnet. Treasury contract must be deployed on your current network.
+                  </p>
+                  <p>
+                    <strong className="text-zinc-900 dark:text-zinc-100">Transaction failed?</strong>
+                    <br />
+                    Ensure you have at least 10 KAS in your wallet for the payment. Check your wallet balance and network connection.
+                  </p>
+                </div>
+              </div>
             </div>
           </CollapsibleSection>
         </div>
