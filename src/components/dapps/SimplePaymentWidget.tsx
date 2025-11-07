@@ -518,7 +518,7 @@ export function SimplePaymentWidget() {
                 <p>Recipient: {recipientAddress ? '✅ SET' : '❌ EMPTY'}</p>
                 <p>Amount: {amount || '❌ EMPTY'}</p>
                 <p>Amount (BigInt): {amountBigInt.toString()}</p>
-                <p>Has Access: {hasAccess === undefined ? 'Checking...' : String(hasAccess)}</p>
+                <p>Has Access: {userHasAccess ? 'Yes' : 'No'} (subscription check disabled)</p>
                 <p className="font-semibold mt-2">Button Disabled Because:</p>
                 <ul className="list-disc list-inside ml-2">
                   {isLoading && <li>Transaction in progress</li>}
