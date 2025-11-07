@@ -43,14 +43,14 @@ contract AuthorizationRegistry is AccessControl {
     }
 
     /**
-     * @dev Assign a developer role to a wallet for a specific dApp
+     * @dev Internal function to assign a developer role to a wallet for a specific dApp
      * @param _dAppId ID of the dApp
      * @param _developer Address of the developer to assign
      */
-    function assignDeveloper(
+    function _assignDeveloper(
         uint256 _dAppId,
         address _developer
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    ) internal {
         require(_dAppId > 0, "AuthorizationRegistry: Invalid dApp ID");
         require(_developer != address(0), "AuthorizationRegistry: Invalid developer address");
         require(
@@ -89,14 +89,26 @@ contract AuthorizationRegistry is AccessControl {
     }
 
     /**
-     * @dev Revoke developer role from a wallet for a specific dApp
+     * @dev Assign a developer role to a wallet for a specific dApp
      * @param _dAppId ID of the dApp
-     * @param _developer Address of the developer to revoke
+     * @param _developer Address of the developer to assign
      */
-    function revokeDeveloper(
+    function assignDeveloper(
         uint256 _dAppId,
         address _developer
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _assignDeveloper(_dAppId, _developer);
+    }
+
+    /**
+     * @dev Internal function to revoke developer role from a wallet for a specific dApp
+     * @param _dAppId ID of the dApp
+     * @param _developer Address of the developer to revoke
+     */
+    function _revokeDeveloper(
+        uint256 _dAppId,
+        address _developer
+    ) internal {
         require(_dAppId > 0, "AuthorizationRegistry: Invalid dApp ID");
         require(_developer != address(0), "AuthorizationRegistry: Invalid developer address");
         require(
@@ -128,6 +140,18 @@ contract AuthorizationRegistry is AccessControl {
         }
 
         emit DeveloperRevoked(_dAppId, _developer, msg.sender, block.timestamp);
+    }
+
+    /**
+     * @dev Revoke developer role from a wallet for a specific dApp
+     * @param _dAppId ID of the dApp
+     * @param _developer Address of the developer to revoke
+     */
+    function revokeDeveloper(
+        uint256 _dAppId,
+        address _developer
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _revokeDeveloper(_dAppId, _developer);
     }
 
     /**
@@ -177,7 +201,7 @@ contract AuthorizationRegistry is AccessControl {
         require(_dAppId > 0, "AuthorizationRegistry: Invalid dApp ID");
         for (uint256 i = 0; i < _developers.length; i++) {
             if (_developers[i] != address(0) && !dAppDevelopers[_dAppId][_developers[i]]) {
-                assignDeveloper(_dAppId, _developers[i]);
+                _assignDeveloper(_dAppId, _developers[i]);
             }
         }
     }
@@ -194,7 +218,7 @@ contract AuthorizationRegistry is AccessControl {
         require(_dAppId > 0, "AuthorizationRegistry: Invalid dApp ID");
         for (uint256 i = 0; i < _developers.length; i++) {
             if (_developers[i] != address(0) && dAppDevelopers[_dAppId][_developers[i]]) {
-                revokeDeveloper(_dAppId, _developers[i]);
+                _revokeDeveloper(_dAppId, _developers[i]);
             }
         }
     }

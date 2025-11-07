@@ -38,7 +38,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     PlatformSubscription: "0xaC941a612b30Fe15F84a961a1FaCF2Ea5c2ef21E",
     DAppSubscription: "0x0530c962A17fB4602418087689e762e5989f1D43",
     SubscriptionManager: "0x0F405c342e9596621430C5f888D673d40111a0ac",
-    AuthorizationRegistry: "", // ⚠️ NOT YET DEPLOYED - Run: npx hardhat run scripts/deploy-authorization-registry.js --network kasplexL2Testnet
+    AuthorizationRegistry: "0x90A9aa9eB4C91b9c7A6eb72248bDe6a9FB6f79ef",
   },
 };
 
