@@ -260,7 +260,7 @@ export function useTreasuryPayment({
     isConfirming,
     isSuccess,
     txHash,
-    error: currentError ? new Error(currentError) : null,
+    error: currentError, // currentError is already a string from getErrorMessage
     treasuryAddress,
     isTreasuryAvailable,
   };
