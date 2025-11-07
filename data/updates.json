@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762532636-c36fb9a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Convert all hooks to const arrow functions for consistent module resolution (by Kasparex)",
+      "date": "2025-11-07T17:23:36+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762532073-bdff265",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix client-side exceptions: use dynamic imports for components with wagmi hooks (by Kasparex)",
