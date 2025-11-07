@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762476797-c54541a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix undefined length error in Treasury payment hook - add proper validation for treasuryAddress (by Kasparex)",
+      "date": "2025-11-07T01:52:54+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762475817-dc116af",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add featured image and logo upload modals with Treasury payment (10 KAS each) (by Kasparex)",
