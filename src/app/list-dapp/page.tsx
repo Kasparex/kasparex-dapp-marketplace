@@ -1,9 +1,15 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { BuildListSidebar } from '@/components/BuildListSidebar';
-import { ListDAppDashboard } from '@/components/dapps/ListDAppDashboard';
+
+// Dynamically import ListDAppDashboard with no SSR to prevent build-time evaluation
+const ListDAppDashboard = dynamic(
+  () => import('@/components/dapps/ListDAppDashboard').then(mod => ({ default: mod.ListDAppDashboard })),
+  { ssr: false }
+);
 
 // Force dynamic rendering to avoid SSR issues with wagmi hooks
 export const dynamic = 'force-dynamic';
