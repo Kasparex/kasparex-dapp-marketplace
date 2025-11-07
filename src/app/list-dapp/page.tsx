@@ -1,12 +1,12 @@
 'use client';
 
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { BuildListSidebar } from '@/components/BuildListSidebar';
 
 // Dynamically import ListDAppDashboard with no SSR to prevent build-time evaluation
-const ListDAppDashboard = dynamic(
+const ListDAppDashboard = dynamicImport(
   () => import('@/components/dapps/ListDAppDashboard').then(mod => ({ default: mod.ListDAppDashboard })),
   { ssr: false }
 );
