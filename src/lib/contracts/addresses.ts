@@ -6,13 +6,11 @@
  */
 
 // Helper to safely get env var (handles both server and client side)
+// Next.js automatically exposes NEXT_PUBLIC_* vars to both server and client via process.env
 const getEnvVar = (key: string): string => {
-  if (typeof window === 'undefined') {
-    // Server side
-    return process.env[key] || '';
-  }
-  // Client side - Next.js exposes env vars via window
-  return process.env[key] || '';
+  // In Next.js, NEXT_PUBLIC_* vars are available in process.env on both server and client
+  // They are inlined at build time, so we can safely access process.env
+  return (process.env[key] || '') as string;
 };
 
 /**
@@ -86,7 +84,7 @@ export const CONTRACT_ADDRESSES = {
     PlatformSubscription: getEnvVar('NEXT_PUBLIC_PLATFORM_SUBSCRIPTION_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.PlatformSubscription,
     DAppSubscription: getEnvVar('NEXT_PUBLIC_DAPP_SUBSCRIPTION_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.DAppSubscription,
     SubscriptionManager: getEnvVar('NEXT_PUBLIC_SUBSCRIPTION_MANAGER_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.SubscriptionManager,
-    AuthorizationRegistry: getEnvVar('NEXT_PUBLIC_AUTHORIZATION_REGISTRY_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.AuthorizationRegistry,
+    AuthorizationRegistry: getEnvVar('NEXT_PUBLIC_AUTHORIZATION_REGISTRY_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.AuthorizationRegistry || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.AuthorizationRegistry,
   },
 };
 
