@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762547263-ab0b87b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix 'in' operator error: Wrap writeContract and enhance error safety (by Kasparex)",
+      "date": "2025-11-07T21:27:12+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762546493-32246f0",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Improve error extraction: Extract wagmi error messages before checking for function signatures - Try shortMessage, details, and cause properties first - Only show function-type error as last resort - This should show actual error messages instead of generic fallback (by Kasparex)",
