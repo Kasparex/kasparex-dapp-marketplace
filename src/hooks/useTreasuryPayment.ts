@@ -253,13 +253,14 @@ export function useTreasuryPayment({
     }
   };
 
+  // Return error as string to prevent 'in' operator issues
   return {
     pay,
     isPaying,
     isConfirming,
     isSuccess,
     txHash,
-    error: currentError,
+    error: currentError ? new Error(currentError) : null,
     treasuryAddress,
     isTreasuryAvailable,
   };

@@ -6,7 +6,9 @@ import { useAccount, useChainId } from 'wagmi';
 import { DApp } from '@/lib/dapps';
 import { useTreasuryPayment } from '@/hooks/useTreasuryPayment';
 import { isDeployer } from '@/lib/dapps/deployer';
+import { isAdminAddress } from '@/lib/admin';
 import { getCategoryById } from '@/lib/categories';
+import { getErrorMessage } from '@/lib/utils';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { ProgressBar, type ProgressStage } from '@/components/ui/ProgressBar';
 import { FormCompletionIndicator } from '@/components/ui/FormCompletionIndicator';
@@ -55,10 +57,12 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
   const [logoError, setLogoError] = useState(false);
 
   // Get deployer address from contract data
+  // Admin address is the default deployer for all dApps
   const deployerAddress = contractData?.deployerAddress || contractAddress;
-  const isDeployerUser = deployerAddress && connectedAddress
+  const isAdmin = connectedAddress ? isAdminAddress(connectedAddress) : false;
+  const isDeployerUser = isAdmin || (deployerAddress && connectedAddress
     ? isDeployer(connectedAddress, deployerAddress)
-    : false;
+    : false);
 
   const category = getCategoryById(dapp.category);
 
@@ -301,7 +305,7 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
   };
 
   const isLoading = isPaying || isConfirming;
-  const displayError = error || paymentError;
+  const displayError = error || (paymentError ? getErrorMessage(paymentError, 'An error occurred') : null);
 
   const buttonDisabledReasons = getButtonDisabledReasons();
   const isSaveButtonDisabled = isLoading || !isConnected || !isDeployerUser || !isTreasuryAvailable;

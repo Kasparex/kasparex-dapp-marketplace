@@ -5,6 +5,7 @@ import { useChainId } from 'wagmi';
 import { getContractAddress } from './addresses';
 import { AUTHORIZATION_REGISTRY_ABI } from './abis';
 import { Address, isAddress } from 'viem';
+import { getErrorMessage } from '@/lib/utils';
 
 /**
  * Get AuthorizationRegistry contract address for current chain
@@ -64,13 +65,16 @@ export const useAssignDeveloper = () => {
     }
   };
 
+  // Safely convert error to string to prevent 'in' operator issues
+  const safeError = error ? getErrorMessage(error, 'Transaction failed') : undefined;
+  
   return {
     assignDeveloper,
     hash,
     isPending,
     isConfirming,
     isConfirmed,
-    error,
+    error: safeError ? new Error(safeError) : undefined,
   };
 };
 
@@ -102,13 +106,16 @@ export const useRevokeDeveloper = () => {
     });
   };
 
+  // Safely convert error to string to prevent 'in' operator issues
+  const safeError = error ? getErrorMessage(error, 'Transaction failed') : undefined;
+  
   return {
     revokeDeveloper,
     hash,
     isPending,
     isConfirming,
     isConfirmed,
-    error,
+    error: safeError ? new Error(safeError) : undefined,
   };
 };
 
