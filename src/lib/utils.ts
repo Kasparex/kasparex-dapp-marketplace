@@ -76,40 +76,51 @@ export function getErrorMessage(error: unknown, fallback: string = 'An error occ
     }
   }
   
-  // Additional check: try to detect function-like objects WITHOUT using 'in' operator
-  // Some error objects might have functions as properties, which can cause issues
-  try {
-    if (typeof error === 'object' && error !== null) {
-      // Check if it has a call property (function-like)
-      const callProp = (error as any).call;
-      if (typeof callProp === 'function') {
-        return fallback;
-      }
-      
-      // Check if toString returns function signature (wagmi ABI function)
-      const toStringResult = String(error);
-      if (toStringResult.includes('function') && toStringResult.includes('external')) {
-        // This is likely an ABI function that was returned as an error
-        return `${fallback} (contract function error)`;
-      }
-    }
-  } catch {
-    // If accessing properties fails, it's likely a function or problematic object
-    return fallback;
-  }
-
-  // If it's an Error object, return its message
+  // If it's an Error object, return its message FIRST (before checking for functions)
   if (error instanceof Error) {
+    // Try to get the actual error message from wagmi errors
+    const wagmiError = error as any;
+    try {
+      // Wagmi errors often have shortMessage which is more user-friendly
+      if (wagmiError.shortMessage && typeof wagmiError.shortMessage === 'string') {
+        return wagmiError.shortMessage;
+      }
+      // Try details property
+      if (wagmiError.details && typeof wagmiError.details === 'string') {
+        return wagmiError.details;
+      }
+      // Try cause (nested error)
+      if (wagmiError.cause) {
+        const causeMsg = getErrorMessage(wagmiError.cause, '');
+        if (causeMsg && causeMsg !== 'An error occurred') {
+          return causeMsg;
+        }
+      }
+    } catch {
+      // If accessing properties fails, fall through to error.message
+    }
     return error.message || fallback;
   }
 
   // If it's an object (and we've confirmed it's not a function), try to extract message
+  // IMPORTANT: Extract error messages BEFORE checking for function signatures
   if (typeof error === 'object' && error !== null) {
     const errorObj = error as Record<string, unknown>;
     
     // NEVER use 'in' operator - it fails on functions
     // Instead, try direct property access with try-catch
     try {
+      // Try shortMessage first (wagmi's user-friendly error message)
+      const shortMessage = errorObj.shortMessage;
+      if (typeof shortMessage === 'string' && shortMessage) {
+        return shortMessage;
+      }
+    } catch {
+      // Property access failed, continue to next attempt
+    }
+
+    try {
+      // Try standard message property
       const message = errorObj.message;
       if (typeof message === 'string' && message) {
         return message;
@@ -118,23 +129,50 @@ export function getErrorMessage(error: unknown, fallback: string = 'An error occ
       // Property access failed, continue to next attempt
     }
 
-    // Try accessing other common error properties
     try {
-      const shortMessage = errorObj.shortMessage;
-      if (typeof shortMessage === 'string' && shortMessage) {
-        return shortMessage;
-      }
-    } catch {
-      // Ignore
-    }
-
-    try {
+      // Try details property
       const details = errorObj.details;
       if (typeof details === 'string' && details) {
         return details;
       }
     } catch {
       // Ignore
+    }
+
+    try {
+      // Try cause (nested error) - recursively extract
+      const cause = errorObj.cause;
+      if (cause) {
+        const causeMsg = getErrorMessage(cause, '');
+        if (causeMsg && causeMsg !== 'An error occurred') {
+          return causeMsg;
+        }
+      }
+    } catch {
+      // Ignore
+    }
+
+    // Now check if it's a function-like object (AFTER trying to extract messages)
+    try {
+      // Check if it has a call property (function-like)
+      const callProp = (error as any).call;
+      if (typeof callProp === 'function') {
+        // It's function-like, but we already tried to extract messages above
+        // Return a more helpful message
+        return `${fallback} (function-type error)`;
+      }
+      
+      // Check if toString returns function signature (wagmi ABI function)
+      const toStringResult = String(error);
+      if (toStringResult.includes('function') && toStringResult.includes('external')) {
+        // This is likely an ABI function that was returned as an error
+        // But we should have extracted the real error message above
+        // If we get here, the error object itself is the function
+        return `${fallback} (contract function error)`;
+      }
+    } catch {
+      // If accessing properties fails, it's likely a function or problematic object
+      // But we already tried to extract messages, so return fallback
     }
 
     // Try to stringify if it's a plain object
