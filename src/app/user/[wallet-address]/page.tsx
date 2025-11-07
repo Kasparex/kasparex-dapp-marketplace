@@ -311,8 +311,8 @@ export default function UserProfilePage() {
                       </svg>
                       <p className="text-zinc-500 dark:text-zinc-400 mb-4">
                         {isOwnProfile 
-                          ? "You haven't created or listed any dApps yet."
-                          : "This user hasn't created or listed any dApps yet."}
+                          ? "You haven&apos;t created or listed any dApps yet."
+                          : "This user hasn&apos;t created or listed any dApps yet."}
                       </p>
                       {isOwnProfile && (
                         <Link
@@ -412,7 +412,7 @@ export default function UserProfilePage() {
                         />
                       </svg>
                       <p className="text-zinc-500 dark:text-zinc-400 mb-4">
-                        You haven't been assigned as a developer for any dApps yet.
+                        You haven&apos;t been assigned as a developer for any dApps yet.
                       </p>
                       <p className="text-sm text-zinc-400 dark:text-zinc-500">
                         Contact an admin to be assigned as a developer for a dApp.
