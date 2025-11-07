@@ -66,7 +66,8 @@ export const useAssignDeveloper = () => {
   };
 
   // Safely convert error to string to prevent 'in' operator issues
-  const safeError = error ? getErrorMessage(error, 'Transaction failed') : undefined;
+  // Return as string | null to prevent React from trying to serialize Error objects
+  const safeError = error ? getErrorMessage(error, 'Transaction failed') : null;
   
   return {
     assignDeveloper,
@@ -74,7 +75,7 @@ export const useAssignDeveloper = () => {
     isPending,
     isConfirming,
     isConfirmed,
-    error: safeError ? new Error(safeError) : undefined,
+    error: safeError, // Return as string, not Error object
   };
 };
 
@@ -107,7 +108,8 @@ export const useRevokeDeveloper = () => {
   };
 
   // Safely convert error to string to prevent 'in' operator issues
-  const safeError = error ? getErrorMessage(error, 'Transaction failed') : undefined;
+  // Return as string | null to prevent React from trying to serialize Error objects
+  const safeError = error ? getErrorMessage(error, 'Transaction failed') : null;
   
   return {
     revokeDeveloper,
@@ -115,7 +117,7 @@ export const useRevokeDeveloper = () => {
     isPending,
     isConfirming,
     isConfirmed,
-    error: safeError ? new Error(safeError) : undefined,
+    error: safeError, // Return as string, not Error object
   };
 };
 

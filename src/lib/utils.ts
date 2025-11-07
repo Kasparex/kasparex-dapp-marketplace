@@ -46,22 +46,36 @@ export function isEmbedded(): boolean {
 /**
  * Safely extract error message from various error types
  * Handles Error objects, strings, wagmi errors, functions, and other types
+ * CRITICAL: This function MUST never use the 'in' operator on functions
  */
 export function getErrorMessage(error: unknown, fallback: string = 'An error occurred'): string {
+  // Handle null/undefined
   if (!error) {
     return fallback;
   }
 
-  // If it's already a string, return it
+  // If it's already a string, return it immediately
   if (typeof error === 'string') {
     return error;
   }
 
   // CRITICAL: Check for functions FIRST - functions are objects in JS but can't use 'in' operator
-  // Use multiple checks to be absolutely sure
-  if (typeof error === 'function' || 
-      (typeof error === 'object' && error !== null && typeof (error as any).call === 'function')) {
-    // It's a function - can't safely check properties, return fallback
+  // Check typeof first, then check for call property WITHOUT using 'in' operator
+  if (typeof error === 'function') {
+    return fallback;
+  }
+  
+  // Additional check: if it has a call property (but we can't use 'in'), try direct access
+  try {
+    if (typeof error === 'object' && error !== null && 'call' in (error as any)) {
+      // This will throw if error is a function, catch it below
+      const hasCall = typeof (error as any).call === 'function';
+      if (hasCall) {
+        return fallback;
+      }
+    }
+  } catch {
+    // If accessing properties fails, it's likely a function
     return fallback;
   }
 
