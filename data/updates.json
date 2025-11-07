@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762534777-40278a6",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Improve Assign Developer functionality: add error handling, status messages, and contract address validation (by Kasparex)",
+      "date": "2025-11-07T17:59:14+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762533282-4a9137b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix webpack config: exclude src/lib/contracts from ignore-loader to prevent hooks from being ignored (by Kasparex)",
