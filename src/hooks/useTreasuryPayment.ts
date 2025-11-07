@@ -258,19 +258,34 @@ export function useTreasuryPayment({
         return;
       }
       
-      await writeContract({
-        address: trimmedAddress as Address,
-        abi: TREASURY_ABI,
-        functionName: 'collectFee',
-        args: [],
-        value: amountInWei,
+      // Wrap writeContract in a promise to catch errors immediately
+      // Note: writeContract doesn't throw synchronously, but we wrap it to handle any edge cases
+      await new Promise<void>((resolve, reject) => {
+        try {
+          writeContract({
+            address: trimmedAddress as Address,
+            abi: TREASURY_ABI,
+            functionName: 'collectFee',
+            args: [],
+            value: amountInWei,
+          });
+          // If writeContract doesn't throw synchronously, resolve after a short delay
+          // This allows the wallet modal to open
+          setTimeout(() => resolve(), 100);
+        } catch (err) {
+          // Convert error to string immediately to prevent 'in' operator issues
+          const errorMsg = getErrorMessage(err, 'Failed to pay fee');
+          console.error('Error in writeContract:', errorMsg);
+          reject(new Error(errorMsg));
+        }
       });
     } catch (err: any) {
-      const errorMessage = err?.message || err?.toString() || 'Failed to pay fee';
-      console.error('Error paying fee:', err);
+      // Ensure error is always a string
+      const errorMessage = getErrorMessage(err, 'Failed to pay fee');
+      console.error('Error paying fee:', errorMessage);
       setError(errorMessage);
       if (onError) {
-        onError(err instanceof Error ? err : new Error(errorMessage));
+        onError(new Error(errorMessage));
       }
     }
   };

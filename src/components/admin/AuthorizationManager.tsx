@@ -62,9 +62,12 @@ export function AuthorizationManager() {
     
     try {
       console.log('Assigning developer:', { dAppId, developerAddress });
-      assignDeveloper(dAppId, developerAddress);
+      await assignDeveloper(dAppId, developerAddress);
     } catch (error) {
-      console.error('Error assigning developer:', error);
+      // Error is already converted to string in the hook
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error('Error assigning developer:', errorMsg);
+      // The error will be displayed via safeAssignError from the hook
     }
   };
 

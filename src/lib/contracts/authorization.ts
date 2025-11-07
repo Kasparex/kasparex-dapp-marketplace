@@ -45,7 +45,7 @@ export const useAssignDeveloper = () => {
     }
   }, [rawError]);
 
-  const assignDeveloper = (dAppId: number, developerAddress: string) => {
+  const assignDeveloper = async (dAppId: number, developerAddress: string) => {
     if (!contractAddress) {
       const errorMsg = `AuthorizationRegistry contract not deployed on chain ${chainId}. Please set NEXT_PUBLIC_AUTHORIZATION_REGISTRY_ADDRESS environment variable or deploy the contract.`;
       console.error(errorMsg);
@@ -65,15 +65,30 @@ export const useAssignDeveloper = () => {
     });
 
     try {
-      writeContract({
-        address: contractAddress,
-        abi: AUTHORIZATION_REGISTRY_ABI,
-        functionName: 'assignDeveloper',
-        args: [BigInt(dAppId), developerAddress as Address],
+      // Wrap writeContract in a promise to catch errors immediately
+      await new Promise<void>((resolve, reject) => {
+        try {
+          writeContract({
+            address: contractAddress,
+            abi: AUTHORIZATION_REGISTRY_ABI,
+            functionName: 'assignDeveloper',
+            args: [BigInt(dAppId), developerAddress as Address],
+          });
+          // If writeContract doesn't throw synchronously, resolve after a short delay
+          // This allows the wallet modal to open
+          setTimeout(() => resolve(), 100);
+        } catch (err) {
+          // Convert error to string immediately to prevent 'in' operator issues
+          const errorMsg = getErrorMessage(err, 'Failed to assign developer');
+          console.error('Error in writeContract:', errorMsg);
+          reject(new Error(errorMsg));
+        }
       });
     } catch (err) {
-      console.error('Error in writeContract:', err);
-      throw err;
+      // Ensure error is always a string
+      const errorMsg = getErrorMessage(err, 'Failed to assign developer');
+      console.error('Error assigning developer:', errorMsg);
+      throw new Error(errorMsg);
     }
   };
 
@@ -110,7 +125,7 @@ export const useRevokeDeveloper = () => {
     }
   }, [rawError]);
 
-  const revokeDeveloper = (dAppId: number, developerAddress: string) => {
+  const revokeDeveloper = async (dAppId: number, developerAddress: string) => {
     if (!contractAddress) {
       throw new Error('AuthorizationRegistry contract not deployed on this chain');
     }
@@ -118,12 +133,31 @@ export const useRevokeDeveloper = () => {
       throw new Error('Invalid developer address');
     }
 
-    writeContract({
-      address: contractAddress,
-      abi: AUTHORIZATION_REGISTRY_ABI,
-      functionName: 'revokeDeveloper',
-      args: [BigInt(dAppId), developerAddress as Address],
-    });
+    try {
+      // Wrap writeContract in a promise to catch errors immediately
+      await new Promise<void>((resolve, reject) => {
+        try {
+          writeContract({
+            address: contractAddress,
+            abi: AUTHORIZATION_REGISTRY_ABI,
+            functionName: 'revokeDeveloper',
+            args: [BigInt(dAppId), developerAddress as Address],
+          });
+          // If writeContract doesn't throw synchronously, resolve after a short delay
+          setTimeout(() => resolve(), 100);
+        } catch (err) {
+          // Convert error to string immediately to prevent 'in' operator issues
+          const errorMsg = getErrorMessage(err, 'Failed to revoke developer');
+          console.error('Error in writeContract:', errorMsg);
+          reject(new Error(errorMsg));
+        }
+      });
+    } catch (err) {
+      // Ensure error is always a string
+      const errorMsg = getErrorMessage(err, 'Failed to revoke developer');
+      console.error('Error revoking developer:', errorMsg);
+      throw new Error(errorMsg);
+    }
   };
 
   return {
