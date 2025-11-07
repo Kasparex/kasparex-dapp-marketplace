@@ -5,6 +5,7 @@ import { useAccount, useChainId, useWriteContract, useWaitForTransactionReceipt 
 import { parseEther, type Address } from 'viem';
 import { TREASURY_ABI } from '@/lib/contracts/abis';
 import { CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
+import { getErrorMessage } from '@/lib/utils';
 
 /**
  * Hardcoded Treasury addresses as fallback
@@ -151,7 +152,7 @@ export function useTreasuryPayment({
   }, [isSuccess, txHash, onSuccess]);
 
   // Handle error callback
-  const currentError = error || writeError?.message || txError?.message || null;
+  const currentError = error || getErrorMessage(writeError) || getErrorMessage(txError) || null;
   useEffect(() => {
     if (currentError && onError && errorCalledRef.current !== currentError) {
       errorCalledRef.current = currentError;

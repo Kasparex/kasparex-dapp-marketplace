@@ -5,6 +5,7 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadCont
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { TREASURY_ABI } from '@/lib/contracts/abis';
 import { formatEther } from 'viem';
+import { getErrorMessage } from '@/lib/utils';
 
 interface TreasuryAutoDistributeProps {
   autoDistribute?: boolean;
@@ -89,7 +90,7 @@ export function TreasuryAutoDistribute({ autoDistribute = false, onDistribute }:
   }
 
   const isLoading = isPendingWrite || isConfirming;
-  const displayError = writeError?.message || txError?.message;
+  const displayError = getErrorMessage(writeError) || getErrorMessage(txError);
   const balanceString = balanceBigInt > 0n ? formatEther(balanceBigInt) : '0';
 
   if (!isConnected || !treasuryAddress) {

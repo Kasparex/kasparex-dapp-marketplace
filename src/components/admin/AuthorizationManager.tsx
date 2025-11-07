@@ -5,6 +5,7 @@ import { useAssignDeveloper, useRevokeDeveloper, useDAppDevelopers, getAuthoriza
 import { getAllDApps, DApp } from '@/lib/dapps';
 import { isAddress } from 'viem';
 import { useAccount, useChainId } from 'wagmi';
+import { getErrorMessage } from '@/lib/utils';
 
 export function AuthorizationManager() {
   const [selectedDApp, setSelectedDApp] = useState<DApp | null>(null);
@@ -203,7 +204,7 @@ export function AuthorizationManager() {
         {/* Status Messages */}
         {assignError && (
           <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
-            <strong>Error:</strong> {assignError.message || 'Failed to assign developer. Please check the console for details.'}
+            <strong>Error:</strong> {getErrorMessage(assignError, 'Failed to assign developer. Please check the console for details.')}
           </div>
         )}
         {isAssigning && (
@@ -223,7 +224,7 @@ export function AuthorizationManager() {
         )}
         {revokeError && (
           <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
-            Error: {revokeError.message}
+            Error: {getErrorMessage(revokeError, 'Failed to revoke developer. Please check the console for details.')}
           </div>
         )}
         {isRevoked && (

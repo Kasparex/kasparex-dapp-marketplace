@@ -7,6 +7,7 @@ import { DAPP_REGISTRY_ABI } from '@/lib/contracts/abis';
 import { getContractAddress, CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 import { useChainId } from 'wagmi';
 import { parseEther } from 'viem';
+import { getErrorMessage } from '@/lib/utils';
 
 interface ContractStepProps {
   formData: Partial<DApp>;
@@ -133,7 +134,7 @@ export function ContractStep({ formData, onUpdate }: ContractStepProps) {
           
           {error && (
             <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
-              {error.message || 'Failed to register dApp'}
+              {getErrorMessage(error, 'Failed to register dApp')}
             </div>
           )}
 

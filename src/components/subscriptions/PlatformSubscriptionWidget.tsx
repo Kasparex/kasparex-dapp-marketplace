@@ -5,6 +5,7 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadCont
 import { parseKAS, formatKAS } from '@/lib/revenue/feeCalculator';
 import { CONTRACT_ADDRESSES, getContractAddress } from '@/lib/contracts/addresses';
 import { PLATFORM_SUBSCRIPTION_ABI } from '@/lib/contracts/abis';
+import { getErrorMessage } from '@/lib/utils';
 
 /**
  * PlatformSubscriptionWidget Component
@@ -102,7 +103,7 @@ export function PlatformSubscriptionWidget() {
   };
 
   const isLoading = isPendingWrite || isConfirming;
-  const displayError = error || writeError?.message || txError?.message;
+  const displayError = error || getErrorMessage(writeError) || getErrorMessage(txError);
   const priceString = monthlyPrice ? formatKAS(monthlyPrice as bigint) : '0';
 
   if (!isConnected) {

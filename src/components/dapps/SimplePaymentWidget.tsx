@@ -8,6 +8,7 @@ import { calculateFee, calculatePaymentAmount, formatKAS, parseKAS } from '@/lib
 import { CONTRACT_ADDRESSES, getContractAddress } from '@/lib/contracts/addresses';
 import { SubscriptionStatus } from '@/components/subscriptions/SubscriptionStatus';
 import { TreasuryAutoDistribute } from '@/components/TreasuryAutoDistribute';
+import { getErrorMessage } from '@/lib/utils';
 
 // Define ABI in proper JSON format as fallback to prevent bundling issues
 const SIMPLE_PAYMENT_ABI_FALLBACK = [
@@ -383,7 +384,7 @@ export function SimplePaymentWidget() {
   };
 
   const isLoading = isPendingWrite || isConfirming;
-  const displayError = error || writeError?.message || txError?.message;
+  const displayError = error || getErrorMessage(writeError) || getErrorMessage(txError);
 
   // Reset form on success
   if (isConfirmed && !isLoading) {

@@ -8,6 +8,7 @@ import { DAPP_SUBSCRIPTION_ABI } from '@/lib/contracts/abis';
 import { getContractAddress, CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 import { useChainId } from 'wagmi';
 import { parseEther } from 'viem';
+import { getErrorMessage } from '@/lib/utils';
 
 export function SubscriptionManager() {
   const { dApps } = useMyDApps();
@@ -197,7 +198,7 @@ export function SubscriptionManager() {
 
           {error && (
             <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
-              {error.message || 'Failed to create/update subscription plan'}
+              {getErrorMessage(error, 'Failed to create/update subscription plan')}
             </div>
           )}
 
