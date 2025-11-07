@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762533282-4a9137b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix webpack config: exclude src/lib/contracts from ignore-loader to prevent hooks from being ignored (by Kasparex)",
+      "date": "2025-11-07T17:34:17+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762532636-c36fb9a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Convert all hooks to const arrow functions for consistent module resolution (by Kasparex)",
