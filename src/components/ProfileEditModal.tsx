@@ -226,6 +226,9 @@ export function ProfileEditModal({
     return reasons;
   };
 
+  const isLoading = isPaying || isConfirming;
+  const displayError = error || paymentError;
+
   const buttonDisabledReasons = getButtonDisabledReasons();
   const isSaveButtonDisabled = isLoading || !isConnected || !isTreasuryAvailable || 
     (connectedAddress && connectedAddress.toLowerCase() !== walletAddress.toLowerCase());
@@ -240,9 +243,6 @@ export function ProfileEditModal({
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, [onClose, isPaying, isConfirming]);
-
-  const isLoading = isPaying || isConfirming;
-  const displayError = error || paymentError;
 
   const progressStages = [
     { id: 'ready' as ProgressStage, label: 'Ready', progress: 0 },
