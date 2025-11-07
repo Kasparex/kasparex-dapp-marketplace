@@ -6,6 +6,7 @@ import { DApp } from '@/lib/dapps';
 import { NetworkCompatibilityModal } from './NetworkCompatibilityModal';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
 import { SimplePaymentWidget } from './dapps/SimplePaymentWidget';
+import { DAOVotingWidget } from './dapps/DAOVotingWidget';
 import { DAppWidgetHeader } from './dapps/DAppWidgetHeader';
 import { DAppWidgetFooter } from './dapps/DAppWidgetFooter';
 import { getContractAddress } from '@/lib/contracts/addresses';
@@ -40,6 +41,13 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
       console.warn('Could not get SimplePayment contract address');
     }
   }
+  if (!contractAddress && dapp.slug === 'dao-voting') {
+    try {
+      contractAddress = getContractAddress(chainId, 'DAOVoting') || '';
+    } catch (e) {
+      console.warn('Could not get DAOVoting contract address');
+    }
+  }
 
   // Render SimplePayment widget if it's the Simple Payment dApp
   if (dapp.slug === 'simple-payment' || dapp.id === '11') {
@@ -56,6 +64,30 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
           </div>
           <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
             <SimplePaymentWidget />
+          </div>
+          <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
+            <DAppWidgetFooter contractAddress={contractAddress} />
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Render DAOVoting widget if it's the DAO Voting dApp
+  if (dapp.slug === 'dao-voting') {
+    return (
+      <>
+        <NetworkCompatibilityModal
+          dapp={dapp}
+          isOpen={showModal}
+          onClose={handleModalClose}
+        />
+        <div className={`w-full bg-white dark:bg-zinc-900 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800 ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
+          <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
+            <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} />
+          </div>
+          <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
+            <DAOVotingWidget />
           </div>
           <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
             <DAppWidgetFooter contractAddress={contractAddress} />

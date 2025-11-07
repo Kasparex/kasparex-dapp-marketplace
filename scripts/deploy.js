@@ -25,6 +25,11 @@ async function main() {
   const GRACE_PERIOD = 7 * 24 * 60 * 60; // 7 days in seconds
   const KASPAREX_FEE_PERCENTAGE = 1500; // 15% (1500 basis points)
 
+  // DAO Voting configuration
+  const SUBMISSION_FEE = ethers.parseEther("10"); // 10 KAS to submit proposal
+  const VOTE_FEE = ethers.parseEther("1"); // 1 KAS per vote
+  const FLAG_THRESHOLD = 50; // Auto-flag when 50 yes votes reached
+
   console.log("\n=== Deploying Treasury ===");
   const Treasury = await ethers.getContractFactory("Treasury");
   const treasury = await Treasury.deploy(
@@ -112,6 +117,29 @@ async function main() {
   const subscriptionManagerAddress = await subscriptionManager.getAddress();
   console.log("SubscriptionManager deployed to:", subscriptionManagerAddress);
 
+  console.log("\n=== Deploying DAOVoting ===");
+  const DAOVoting = await ethers.getContractFactory("DAOVoting");
+  const daoVoting = await DAOVoting.deploy(
+    feeCollectorAddress,
+    SUBMISSION_FEE,
+    VOTE_FEE,
+    FLAG_THRESHOLD
+  );
+  await daoVoting.waitForDeployment();
+  const daoVotingAddress = await daoVoting.getAddress();
+  console.log("DAOVoting deployed to:", daoVotingAddress);
+
+  // Register DAOVoting in DAppRegistry
+  console.log("\n=== Registering DAOVoting in DAppRegistry ===");
+  const registerDAOVotingTx = await dAppRegistry.registerDApp(
+    "DAO Voting",
+    "1.0.0",
+    "dao",
+    daoVotingAddress
+  );
+  await registerDAOVotingTx.wait();
+  console.log("DAOVoting registered in DAppRegistry");
+
   // Save deployment addresses
   const network = await ethers.provider.getNetwork();
   const deploymentInfo = {
@@ -128,6 +156,7 @@ async function main() {
       PlatformSubscription: platformSubscriptionAddress,
       DAppSubscription: dAppSubscriptionAddress,
       SubscriptionManager: subscriptionManagerAddress,
+      DAOVoting: daoVotingAddress,
     },
     configuration: {
       treasuryPercentage: TREASURY_PERCENTAGE,
@@ -140,6 +169,9 @@ async function main() {
       subscriptionPeriod: SUBSCRIPTION_PERIOD.toString(),
       gracePeriod: GRACE_PERIOD.toString(),
       kasparexFeePercentage: KASPAREX_FEE_PERCENTAGE,
+      submissionFee: SUBMISSION_FEE.toString(),
+      voteFee: VOTE_FEE.toString(),
+      flagThreshold: FLAG_THRESHOLD,
     },
   };
 

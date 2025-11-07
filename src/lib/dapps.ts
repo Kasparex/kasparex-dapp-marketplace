@@ -219,6 +219,32 @@ export const placeholderDApps: DApp[] = [
     // Contract address will be fetched from environment variables via getContractAddress
     // deployerAddress will be fetched from DAppRegistry contract
   },
+  {
+    id: '12',
+    name: 'DAO Voting',
+    slug: 'dao-voting',
+    category: 'dao',
+    utility: 'Submit and vote on future dApp ideas for marketplace integration',
+    process: 'Submit proposals with 10 KAS fee, vote with 1 KAS fee per vote. High-vote proposals are flagged for review.',
+    benefits: 'Community-driven dApp discovery and prioritization. Transparent on-chain voting with fee collection.',
+    developer: 'Kasparex',
+    developerLinks: [
+      { label: 'Website', url: 'https://www.kasparex.com' },
+      { label: 'Telegram', url: 'https://t.me/kasparex' },
+      { label: 'X (Twitter)', url: 'https://x.com/kasparex' },
+    ],
+    status: 'Testnet',
+    network: 'Kasplex L2',
+    provider: 'Kasparex',
+    version: '1.0.0',
+    description: 'DAO Voting enables community members to submit dApp ideas and vote on them. All proposals and votes are stored on-chain. Proposals that reach the vote threshold are automatically flagged for marketplace review.',
+    security: 'Built with OpenZeppelin contracts for security. All smart contracts use ReentrancyGuard to prevent reentrancy attacks. Fee collection is automated and transparent.',
+    roadmap: 'Q4 2025: Testnet launch and initial testing\nQ1 2026: Mainnet deployment\nQ2 2026: Enhanced features including proposal categories and advanced filtering\nQ3 2026: Integration with marketplace for automatic listing of approved proposals',
+    createdAt: new Date().toISOString(),
+    supportedChainIds: [167012, 202555, 19416], // Kasplex L2 Testnet, Mainnet, and Igra Caravel Testnet
+    // Contract address will be fetched from environment variables via getContractAddress
+    // deployerAddress will be fetched from DAppRegistry contract
+  },
 ];
 
 export interface FilterState {
