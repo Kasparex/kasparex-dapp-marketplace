@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAssignDeveloper, useRevokeDeveloper, useDAppDevelopers, getAuthorizationRegistryAddress } from '@/lib/contracts/authorization';
 import { getAllDApps, DApp } from '@/lib/dapps';
 import { isAddress } from 'viem';
 import { useAccount, useChainId } from 'wagmi';
+import { useSafeError } from '@/hooks/useSafeError';
 
 export function AuthorizationManager() {
   const [selectedDApp, setSelectedDApp] = useState<DApp | null>(null);
@@ -26,6 +27,10 @@ export function AuthorizationManager() {
   
   const { assignDeveloper, isPending: isAssigning, isConfirmed: isAssigned, error: assignError, hash: assignHash } = useAssignDeveloper();
   const { revokeDeveloper, isPending: isRevoking, isConfirmed: isRevoked, error: revokeError } = useRevokeDeveloper();
+  
+  // Safely convert errors to strings immediately to prevent React serialization issues
+  const safeAssignError = useSafeError(assignError);
+  const safeRevokeError = useSafeError(revokeError);
   const { developers, isLoading: isLoadingDevelopers } = useDAppDevelopers(dAppId || undefined);
 
   // Reset form after successful assignment/revocation
@@ -201,9 +206,9 @@ export function AuthorizationManager() {
         )}
 
         {/* Status Messages */}
-        {assignError && (
+        {safeAssignError && (
           <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
-            <strong>Error:</strong> {assignError}
+            <strong>Error:</strong> {safeAssignError}
           </div>
         )}
         {isAssigning && (
@@ -221,9 +226,9 @@ export function AuthorizationManager() {
             ✓ Developer assigned successfully! Transaction confirmed.
           </div>
         )}
-        {revokeError && (
+        {safeRevokeError && (
           <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
-            Error: {revokeError}
+            Error: {safeRevokeError}
           </div>
         )}
         {isRevoked && (

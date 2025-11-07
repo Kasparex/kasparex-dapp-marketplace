@@ -6,6 +6,7 @@ import { useAccount, useChainId } from 'wagmi';
 import type { ProfileData } from '@/hooks/useProfile';
 import { useTreasuryPayment } from '@/hooks/useTreasuryPayment';
 import { getErrorMessage } from '@/lib/utils';
+import { useSafeError } from '@/hooks/useSafeError';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { ProgressBar, type ProgressStage } from '@/components/ui/ProgressBar';
 import { FormCompletionIndicator } from '@/components/ui/FormCompletionIndicator';
@@ -228,7 +229,9 @@ export function ProfileEditModal({
   };
 
   const isLoading = isPaying || isConfirming;
-  const displayError = error || (paymentError ? getErrorMessage(paymentError, 'An error occurred') : null);
+  // Safely convert errors to strings immediately
+  const safePaymentError = useSafeError(paymentError);
+  const displayError = error || safePaymentError;
 
   const buttonDisabledReasons = getButtonDisabledReasons();
   const isSaveButtonDisabled = isLoading || !isConnected || !isTreasuryAvailable || 

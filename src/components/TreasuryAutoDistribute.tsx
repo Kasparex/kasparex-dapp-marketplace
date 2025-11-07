@@ -6,6 +6,7 @@ import { getContractAddress } from '@/lib/contracts/addresses';
 import { TREASURY_ABI } from '@/lib/contracts/abis';
 import { formatEther } from 'viem';
 import { getErrorMessage } from '@/lib/utils';
+import { useSafeError } from '@/hooks/useSafeError';
 
 interface TreasuryAutoDistributeProps {
   autoDistribute?: boolean;
@@ -90,7 +91,10 @@ export function TreasuryAutoDistribute({ autoDistribute = false, onDistribute }:
   }
 
   const isLoading = isPendingWrite || isConfirming;
-  const displayError = getErrorMessage(writeError) || getErrorMessage(txError);
+  // Safely convert errors to strings immediately
+  const safeWriteError = useSafeError(writeError);
+  const safeTxError = useSafeError(txError);
+  const displayError = safeWriteError || safeTxError;
   const balanceString = balanceBigInt > 0n ? formatEther(balanceBigInt) : '0';
 
   if (!isConnected || !treasuryAddress) {

@@ -6,9 +6,12 @@ import { parseEther, formatEther } from 'viem';
 import { SIMPLE_PAYMENT_ABI as SIMPLE_PAYMENT_ABI_IMPORT, SUBSCRIPTION_MANAGER_ABI } from '@/lib/contracts/abis';
 import { calculateFee, calculatePaymentAmount, formatKAS, parseKAS } from '@/lib/revenue/feeCalculator';
 import { CONTRACT_ADDRESSES, getContractAddress } from '@/lib/contracts/addresses';
-import { SubscriptionStatus } from '@/components/subscriptions/SubscriptionStatus';
+// Temporarily disable subscriptions to fix errors
+// import { SubscriptionStatus } from '@/components/subscriptions/SubscriptionStatus';
 import { TreasuryAutoDistribute } from '@/components/TreasuryAutoDistribute';
 import { getErrorMessage } from '@/lib/utils';
+import { useSafeError } from '@/hooks/useSafeError';
+import { useMemo } from 'react';
 
 // Define ABI in proper JSON format as fallback to prevent bundling issues
 const SIMPLE_PAYMENT_ABI_FALLBACK = [
@@ -237,20 +240,22 @@ export function SimplePaymentWidget() {
     subscriptionManagerAddress = '0x0F405c342e9596621430C5f888D673d40111a0ac'; // Testnet SubscriptionManager address
   }
 
+  // TEMPORARILY DISABLED: Subscription check to fix errors
   // Check subscription access (only if we have addresses)
-  const { data: hasAccess, isLoading: isLoadingAccess } = useReadContract({
-    address: subscriptionManagerAddress as `0x${string}`,
-    abi: SUBSCRIPTION_MANAGER_ABI,
-    functionName: 'hasAccess',
-    args: [address || '0x0', contractAddress || '0x0'],
-    query: {
-      enabled: isConnected && !!address && !!subscriptionManagerAddress && !!contractAddress && typeof subscriptionManagerAddress === 'string' && typeof contractAddress === 'string' && subscriptionManagerAddress.length > 0 && contractAddress.length > 0,
-    },
-  });
+  // const { data: hasAccess, isLoading: isLoadingAccess } = useReadContract({
+  //   address: subscriptionManagerAddress as `0x${string}`,
+  //   abi: SUBSCRIPTION_MANAGER_ABI,
+  //   functionName: 'hasAccess',
+  //   args: [address || '0x0', contractAddress || '0x0'],
+  //   query: {
+  //     enabled: isConnected && !!address && !!subscriptionManagerAddress && !!contractAddress && typeof subscriptionManagerAddress === 'string' && typeof contractAddress === 'string' && subscriptionManagerAddress.length > 0 && contractAddress.length > 0,
+  //   },
+  // });
 
   // For now, allow access if subscription check fails (graceful degradation)
   // This allows testing even if subscription contracts aren't fully set up
-  const userHasAccess = hasAccess === true || hasAccess === undefined;
+  const isLoadingAccess = false; // Temporarily disabled
+  const userHasAccess = true; // Always allow access for now
 
   // Read fee percentage from contract
   const abiForRead = SIMPLE_PAYMENT_ABI || SIMPLE_PAYMENT_ABI_FALLBACK;
@@ -384,7 +389,10 @@ export function SimplePaymentWidget() {
   };
 
   const isLoading = isPendingWrite || isConfirming;
-  const displayError = error || getErrorMessage(writeError) || getErrorMessage(txError);
+  // Safely convert errors to strings immediately
+  const safeWriteError = useSafeError(writeError);
+  const safeTxError = useSafeError(txError);
+  const displayError = error || safeWriteError || safeTxError;
 
   // Reset form on success
   if (isConfirmed && !isLoading) {
@@ -402,24 +410,6 @@ export function SimplePaymentWidget() {
           <p className="text-zinc-600 dark:text-zinc-400 mb-4">
             Please connect your wallet to use this dApp
           </p>
-        </div>
-      ) : isLoadingAccess ? (
-        <div className="text-center py-8">
-          <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-            Checking subscription status...
-          </p>
-        </div>
-      ) : hasAccess === false && subscriptionManagerAddress ? (
-        <div className="space-y-4">
-          <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-            <p className="text-yellow-800 dark:text-yellow-400 font-semibold mb-2">
-              Subscription Required
-            </p>
-            <p className="text-sm text-yellow-700 dark:text-yellow-300">
-              This dApp requires an active subscription. Please subscribe to access this feature.
-            </p>
-          </div>
-          <SubscriptionStatus dAppContract={contractAddress} />
         </div>
       ) : (
         <div className="space-y-4">

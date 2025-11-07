@@ -9,6 +9,7 @@ import { isDeployer } from '@/lib/dapps/deployer';
 import { isAdminAddress } from '@/lib/admin';
 import { getCategoryById } from '@/lib/categories';
 import { getErrorMessage } from '@/lib/utils';
+import { useSafeError } from '@/hooks/useSafeError';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { ProgressBar, type ProgressStage } from '@/components/ui/ProgressBar';
 import { FormCompletionIndicator } from '@/components/ui/FormCompletionIndicator';
@@ -305,7 +306,9 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
   };
 
   const isLoading = isPaying || isConfirming;
-  const displayError = error || (paymentError ? getErrorMessage(paymentError, 'An error occurred') : null);
+  // Safely convert errors to strings immediately
+  const safePaymentError = useSafeError(paymentError);
+  const displayError = error || safePaymentError;
 
   const buttonDisabledReasons = getButtonDisabledReasons();
   const isSaveButtonDisabled = isLoading || !isConnected || !isDeployerUser || !isTreasuryAvailable;
