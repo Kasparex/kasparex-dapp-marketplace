@@ -9,7 +9,9 @@ import { DescriptionIcon, UtilityIcon, ProcessIcon, BenefitsIcon, DeveloperIcon 
 import { isDeployer } from '@/lib/dapps/deployer';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
 import { EditDAppModal } from './dapps/EditDAppModal';
+import { FeaturedImageUploadModal } from './dapps/FeaturedImageUploadModal';
 import { getContractAddress } from '@/lib/contracts/addresses';
+import { mergeDAppData } from '@/lib/dapps/contractData';
 
 interface DAppSidebarProps {
   dapp: DApp;
@@ -67,6 +69,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
   const [roadmapExpanded, setRoadmapExpanded] = useState(false);
   const [developerExpanded, setDeveloperExpanded] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showFeaturedImageModal, setShowFeaturedImageModal] = useState(false);
 
   // Get contract address
   let contractAddress = dapp.contractAddress || '';
@@ -86,6 +89,9 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
 
   const deployerAddress = contractData?.deployerAddress || dapp.deployerAddress || dapp.developer || '';
   const isDeployerUser = isDeployer(connectedAddress, deployerAddress);
+  
+  // Merge localStorage data
+  const mergedDApp = mergeDAppData(contractData, dapp);
 
   const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
     <svg
@@ -195,11 +201,21 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
 
             {/* Featured Image */}
             <div className="mb-6">
-              <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
-                {dapp.featuredImage ? (
+              <div 
+                className={`relative w-full aspect-video rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 ${
+                  isDeployerUser ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''
+                }`}
+                onClick={() => {
+                  if (isDeployerUser) {
+                    setShowFeaturedImageModal(true);
+                  }
+                }}
+                title={isDeployerUser ? 'Click to upload/change featured image' : undefined}
+              >
+                {mergedDApp.featuredImage ? (
                   <Image
-                    src={dapp.featuredImage}
-                    alt={dapp.name}
+                    src={mergedDApp.featuredImage}
+                    alt={mergedDApp.name}
                     fill
                     className="object-cover"
                     unoptimized
@@ -219,6 +235,11 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
                         d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                       />
                     </svg>
+                  </div>
+                )}
+                {isDeployerUser && (
+                  <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                    {mergedDApp.featuredImage ? 'Edit' : 'Upload'}
                   </div>
                 )}
               </div>
@@ -329,13 +350,25 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
         </div>
       </aside>
 
-      {/* Edit Modal */}
+      {/* Modals */}
       {showEditModal && (
         <EditDAppModal
-          dapp={dapp}
+          dapp={mergedDApp}
           contractAddress={contractAddress}
           contractData={contractData}
           onClose={() => setShowEditModal(false)}
+        />
+      )}
+      {showFeaturedImageModal && (
+        <FeaturedImageUploadModal
+          dapp={mergedDApp}
+          contractAddress={contractAddress}
+          deployerAddress={deployerAddress}
+          onClose={() => setShowFeaturedImageModal(false)}
+          onSuccess={() => {
+            // Reload to show updated image
+            window.location.reload();
+          }}
         />
       )}
     </>

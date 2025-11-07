@@ -164,11 +164,55 @@ export function loadDAppMetadata(dappId: string): Partial<DApp> | null {
 }
 
 /**
+ * Load saved featured image from localStorage
+ */
+export function loadDAppFeaturedImage(dappId: string): string | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    const key = `dapp_${dappId}_featuredImage`;
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      return stored;
+    }
+  } catch (err) {
+    console.error('Error loading dApp featured image from localStorage:', err);
+  }
+
+  return null;
+}
+
+/**
+ * Load saved logo from localStorage
+ */
+export function loadDAppLogo(dappId: string): string | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    const key = `dapp_${dappId}_logo`;
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      return stored;
+    }
+  } catch (err) {
+    console.error('Error loading dApp logo from localStorage:', err);
+  }
+
+  return null;
+}
+
+/**
  * Merge contract data with frontend placeholder data and localStorage metadata
  */
 export function mergeDAppData(contractData: ContractDAppData | null, frontendData: DApp): DApp {
   // Load saved metadata from localStorage
   const savedMetadata = loadDAppMetadata(frontendData.id);
+  const savedFeaturedImage = loadDAppFeaturedImage(frontendData.id);
+  const savedLogo = loadDAppLogo(frontendData.id);
 
   // Start with frontend data
   let merged: DApp = { ...frontendData };
@@ -210,6 +254,14 @@ export function mergeDAppData(contractData: ContractDAppData | null, frontendDat
       id: merged.id,
       slug: merged.slug || merged.id,
     };
+  }
+
+  // Apply saved images from localStorage (highest priority)
+  if (savedFeaturedImage) {
+    merged.featuredImage = savedFeaturedImage;
+  }
+  if (savedLogo) {
+    merged.image = savedLogo;
   }
 
   return merged;

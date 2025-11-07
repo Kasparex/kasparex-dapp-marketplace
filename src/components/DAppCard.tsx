@@ -62,9 +62,22 @@ export function DAppCard({ dapp }: DAppCardProps) {
   return (
     <Link
       href={`/dapps/${slug}`}
-      className="block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all"
+      className="block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all relative overflow-hidden"
     >
-      <div className="flex items-start gap-4">
+      {/* Featured Image Background */}
+      {mergedDApp.featuredImage && (
+        <div className="absolute inset-0 z-0">
+          <div 
+            className="absolute inset-0 bg-cover bg-center opacity-30 dark:opacity-20 transition-opacity hover:opacity-40 dark:hover:opacity-30"
+            style={{
+              backgroundImage: `url(${mergedDApp.featuredImage})`,
+              filter: 'brightness(0.5)',
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/60 via-zinc-900/40 to-zinc-900/60 dark:from-zinc-900/80 dark:via-zinc-900/60 dark:to-zinc-900/80" />
+        </div>
+      )}
+      <div className="flex items-start gap-4 relative z-10">
         {dapp.image ? (
           <div className="flex-shrink-0 relative w-12 h-12 rounded-lg bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
               <Image
@@ -139,7 +152,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
       </div>
 
       {/* Icon Links Section at Bottom */}
-      <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-2">
+      <div className="mt-4 pt-4 border-t border-zinc-200/50 dark:border-zinc-800/50 flex items-center justify-between gap-2 relative z-10">
         {/* Left-aligned icons */}
         <div className="flex items-center gap-1 flex-wrap">
           {/* Info Icon */}
