@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762530504-d278a5b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix useDeveloperDApps export for build-time resolution (by Kasparex)",
+      "date": "2025-11-07T16:48:02+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762529851-91235e5",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: Remove conditional hook calls to comply with Rules of Hooks (by Kasparex)",
