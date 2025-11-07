@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762529614-e61f7be",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix: Make pages dynamic and add SSR guards for wagmi hooks (by Kasparex)",
+      "date": "2025-11-07T16:33:08+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762529377-b23976f",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: Escape apostrophes in user profile page (by Kasparex)",
