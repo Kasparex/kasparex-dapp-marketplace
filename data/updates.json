@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762542276-6051167",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix all error handling and deployer authorization issues - Add default admin address (0x658420Fd88dbd610249a88384f9B1aD387F797c7) as hardcoded fallback - Make admin address act as default deployer for all dApps - Fix error handling in authorization hooks to convert errors to Error objects - Fix error handling in EditDAppModal and ProfileEditModal to use getErrorMessage - Fix error handling in useTreasuryPayment to return Error objects - This fixes: 'in' operator errors, deployer status showing 'Not Authorized', and generic error messages (by Kasparex)",
+      "date": "2025-11-07T20:04:02+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762539565-34edd2d",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix 'in' operator error: Remove all 'in' operator usage and convert errors to strings before React render - Completely remove 'in' operator from getErrorMessage (use direct property access with try-catch instead) - Add additional function detection to catch edge cases - Convert error objects to strings before React conditional rendering to prevent serialization issues - This should fix the 'Cannot use in operator to search for name in function' error (by Kasparex)",
