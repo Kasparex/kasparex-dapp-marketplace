@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762545937-2e1fb35",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix 'in' operator error: Convert wagmi errors to strings immediately using useMemo (by Kasparex)",
+      "date": "2025-11-07T21:05:13+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762545092-ddc2544",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix build error: Remove hasAccess reference in debug info (by Kasparex)",
