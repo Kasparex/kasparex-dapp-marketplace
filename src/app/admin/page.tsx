@@ -1,12 +1,18 @@
 'use client';
 
+import dynamicImport from 'next/dynamic';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useAccount } from 'wagmi';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+
+// Dynamically import AdminDashboard with no SSR to prevent build-time evaluation
+const AdminDashboard = dynamicImport(
+  () => import('@/components/admin/AdminDashboard').then(mod => ({ default: mod.AdminDashboard })),
+  { ssr: false }
+);
 
 // Force dynamic rendering to avoid SSR issues with wagmi hooks
 export const dynamic = 'force-dynamic';

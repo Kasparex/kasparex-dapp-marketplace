@@ -1,5 +1,6 @@
 'use client';
 
+import dynamicImport from 'next/dynamic';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
@@ -7,7 +8,6 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ProfileSidebar } from '@/components/ProfileSidebar';
 import { TokenBalance } from '@/components/TokenBalance';
-import { ProfileEditModal } from '@/components/ProfileEditModal';
 import { useProfile } from '@/hooks/useProfile';
 import { useFavorites } from '@/hooks/useFavorites';
 import { isAddress } from 'viem';
@@ -21,6 +21,12 @@ import { getDAppsByDeployer, canEditDApp, getAssignedDApps } from '@/lib/dapps/m
 import { useMyAssignedDApps } from '@/hooks/useDAppAuthorization';
 import { generateDAppSlug } from '@/lib/utils';
 import Link from 'next/link';
+
+// Dynamically import ProfileEditModal with no SSR to prevent build-time evaluation
+const ProfileEditModal = dynamicImport(
+  () => import('@/components/ProfileEditModal').then(mod => ({ default: mod.ProfileEditModal })),
+  { ssr: false }
+);
 
 // Force dynamic rendering to avoid SSR issues with wagmi hooks
 export const dynamic = 'force-dynamic';

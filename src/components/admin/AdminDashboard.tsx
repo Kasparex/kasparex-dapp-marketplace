@@ -1,8 +1,18 @@
 'use client';
 
+import dynamicImport from 'next/dynamic';
 import { useState } from 'react';
-import { AuthorizationManager } from './AuthorizationManager';
-import { FeeManagement } from './FeeManagement';
+
+// Dynamically import components with wagmi hooks to prevent SSR issues
+const AuthorizationManager = dynamicImport(
+  () => import('./AuthorizationManager').then(mod => ({ default: mod.AuthorizationManager })),
+  { ssr: false }
+);
+
+const FeeManagement = dynamicImport(
+  () => import('./FeeManagement').then(mod => ({ default: mod.FeeManagement })),
+  { ssr: false }
+);
 
 type AdminTab = 'overview' | 'authorization' | 'fees';
 
