@@ -11,6 +11,14 @@ function EmbedContent() {
   const searchParams = useSearchParams();
   const slug = (params?.slug as string) || '';
   const hideHeader = searchParams.get('hideHeader') === 'true';
+  const hideFooter = searchParams.get('hideFooter') === 'true';
+  const hideIcons = searchParams.get('hideIcons') === 'true';
+  const hideStar = searchParams.get('hideStar') === 'true';
+  const hideHeart = searchParams.get('hideHeart') === 'true';
+  const hideInfo = searchParams.get('hideInfo') === 'true';
+  const hideEmbed = searchParams.get('hideEmbed') === 'true';
+  const hideTheme = searchParams.get('hideTheme') === 'true';
+  const accentColor = searchParams.get('accentColor') || '#02abb8';
   
   const dapp = getDAppBySlug(placeholderDApps, slug);
 
@@ -30,7 +38,18 @@ function EmbedContent() {
         </div>
       )}
       <div className={hideHeader ? '' : 'p-4'}>
-        <DAppWidget dapp={dapp} />
+        <DAppWidget 
+          dapp={dapp} 
+          hideHeader={hideHeader}
+          hideFooter={hideFooter}
+          hideIcons={hideIcons}
+          hideStar={hideStar}
+          hideHeart={hideHeart}
+          hideInfo={hideInfo}
+          hideEmbed={hideEmbed}
+          hideTheme={hideTheme}
+          accentColor={accentColor}
+        />
       </div>
     </div>
   );

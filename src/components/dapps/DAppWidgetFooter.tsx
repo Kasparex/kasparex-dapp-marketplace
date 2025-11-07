@@ -44,15 +44,19 @@ export function DAppWidgetFooter({ contractAddress }: DAppWidgetFooterProps) {
           <Link
             href="/"
             className="text-[#02abb8] hover:text-[#0299a3] transition-colors font-medium"
+            title="The Largest dApp Marketplace on Kaspa. Explore, Build, and Earn Today."
           >
-            Kasparex
+            Kasparex dApps
           </Link>
-          {' '}dApps – The Largest dApp Marketplace on Kaspa | Built with ❤️ by{' '}
+          {' '}| Built with ❤️ by{' '}
           <Link
             href="https://bio.kasparex.com"
             target="_blank"
             rel="noopener noreferrer"
             className="text-[#02abb8] hover:text-[#0299a3] transition-colors font-medium"
+            title="Symbol of intelligence, resilience, and purpose. Fair-launched, community-owned KRC-20 and L2 token on the Kaspa network.
+
+Est. 2024 🔥"
           >
             Krex
           </Link>

@@ -13,9 +13,29 @@ import { getContractAddress } from '@/lib/contracts/addresses';
 
 interface DAppWidgetProps {
   dapp: DApp;
+  hideHeader?: boolean;
+  hideFooter?: boolean;
+  hideIcons?: boolean;
+  hideStar?: boolean;
+  hideHeart?: boolean;
+  hideInfo?: boolean;
+  hideEmbed?: boolean;
+  hideTheme?: boolean;
+  accentColor?: string;
 }
 
-export function DAppWidget({ dapp }: DAppWidgetProps) {
+export function DAppWidget({ 
+  dapp,
+  hideHeader = false,
+  hideFooter = false,
+  hideIcons = false,
+  hideStar = false,
+  hideHeart = false,
+  hideInfo = false,
+  hideEmbed = false,
+  hideTheme = false,
+  accentColor = '#02abb8',
+}: DAppWidgetProps) {
   const [showModal, setShowModal] = useState(false);
   const { isConnected } = useAccount();
   const chainId = useChainId();
@@ -59,15 +79,29 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
           onClose={handleModalClose}
         />
         <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
-          <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
-            <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} />
-          </div>
+          {!hideHeader && (
+            <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
+              <DAppWidgetHeader 
+                dapp={dapp} 
+                contractAddress={contractAddress}
+                hideIcons={hideIcons}
+                hideStar={hideStar}
+                hideHeart={hideHeart}
+                hideInfo={hideInfo}
+                hideEmbed={hideEmbed}
+                hideTheme={hideTheme}
+                accentColor={accentColor}
+              />
+            </div>
+          )}
           <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
             <SimplePaymentWidget />
           </div>
-          <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-            <DAppWidgetFooter contractAddress={contractAddress} />
-          </div>
+          {!hideFooter && (
+            <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
+              <DAppWidgetFooter contractAddress={contractAddress} />
+            </div>
+          )}
         </div>
       </>
     );
@@ -83,15 +117,29 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
           onClose={handleModalClose}
         />
         <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
-          <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
-            <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} />
-          </div>
+          {!hideHeader && (
+            <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
+              <DAppWidgetHeader 
+                dapp={dapp} 
+                contractAddress={contractAddress}
+                hideIcons={hideIcons}
+                hideStar={hideStar}
+                hideHeart={hideHeart}
+                hideInfo={hideInfo}
+                hideEmbed={hideEmbed}
+                hideTheme={hideTheme}
+                accentColor={accentColor}
+              />
+            </div>
+          )}
           <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
             <DAOVotingWidget />
           </div>
-          <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-            <DAppWidgetFooter contractAddress={contractAddress} />
-          </div>
+          {!hideFooter && (
+            <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
+              <DAppWidgetFooter contractAddress={contractAddress} />
+            </div>
+          )}
         </div>
       </>
     );
@@ -107,7 +155,19 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
         />
         
         <div className="w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
-          <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} />
+          {!hideHeader && (
+            <DAppWidgetHeader 
+              dapp={dapp} 
+              contractAddress={contractAddress}
+              hideIcons={hideIcons}
+              hideStar={hideStar}
+              hideHeart={hideHeart}
+              hideInfo={hideInfo}
+              hideEmbed={hideEmbed}
+              hideTheme={hideTheme}
+              accentColor={accentColor}
+            />
+          )}
           <div 
             className="flex flex-col items-center justify-center min-h-[400px] p-8 cursor-pointer"
             onClick={handleInteraction}
@@ -168,7 +228,9 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
               )}
             </div>
           </div>
-          <DAppWidgetFooter contractAddress={contractAddress} />
+          {!hideFooter && (
+            <DAppWidgetFooter contractAddress={contractAddress} />
+          )}
         </div>
       </>
     );
@@ -183,9 +245,21 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
       />
       
         <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
-          <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
-            <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} />
-          </div>
+          {!hideHeader && (
+            <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
+              <DAppWidgetHeader 
+                dapp={dapp} 
+                contractAddress={contractAddress}
+                hideIcons={hideIcons}
+                hideStar={hideStar}
+                hideHeart={hideHeart}
+                hideInfo={hideInfo}
+                hideEmbed={hideEmbed}
+                hideTheme={hideTheme}
+                accentColor={accentColor}
+              />
+            </div>
+          )}
           <div 
             className={`relative w-full overflow-hidden ${!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}`}
             style={{ minHeight: '600px' }}
@@ -227,9 +301,11 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
             </a>
           </div>
         )}
-        <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-          <DAppWidgetFooter contractAddress={contractAddress} />
-        </div>
+        {!hideFooter && (
+          <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
+            <DAppWidgetFooter contractAddress={contractAddress} />
+          </div>
+        )}
       </div>
     </>
   );

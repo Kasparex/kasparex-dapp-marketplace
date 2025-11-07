@@ -410,7 +410,7 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
                       </div>
                       <div className="flex items-center justify-between p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
                         <span className="text-sm text-zinc-700 dark:text-zinc-300">Hide Header:</span>
-                        <span className={`text-sm font-medium ${hideHeader ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-600 dark:text-zinc-400'}`}>
+                        <span className={`text-sm font-medium ${hideHeader ? 'text-[#0097b2] dark:text-[#0097b2]' : 'text-zinc-600 dark:text-zinc-400'}`}>
                           {hideHeader ? '✓ Yes' : '✗ No'}
                         </span>
                       </div>
