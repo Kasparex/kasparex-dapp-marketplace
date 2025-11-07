@@ -23,7 +23,7 @@ export function getAuthorizationRegistryAddress(chainId: number): Address | null
 /**
  * Hook to assign a developer to a dApp
  */
-export function useAssignDeveloper() {
+export const useAssignDeveloper = () => {
   const chainId = useChainId();
   const contractAddress = getAuthorizationRegistryAddress(chainId);
   
@@ -56,12 +56,12 @@ export function useAssignDeveloper() {
     isConfirmed,
     error,
   };
-}
+};
 
 /**
  * Hook to revoke a developer from a dApp
  */
-export function useRevokeDeveloper() {
+export const useRevokeDeveloper = () => {
   const chainId = useChainId();
   const contractAddress = getAuthorizationRegistryAddress(chainId);
   
@@ -94,12 +94,12 @@ export function useRevokeDeveloper() {
     isConfirmed,
     error,
   };
-}
+};
 
 /**
  * Hook to check if an address is a developer for a dApp
  */
-export function useIsDeveloper(dAppId: number | undefined, developerAddress: string | undefined) {
+export const useIsDeveloper = (dAppId: number | undefined, developerAddress: string | undefined) => {
   const chainId = useChainId();
   const contractAddress = getAuthorizationRegistryAddress(chainId);
 
@@ -123,12 +123,12 @@ export function useIsDeveloper(dAppId: number | undefined, developerAddress: str
     isLoading: !isClient ? true : isLoading,
     error,
   };
-}
+};
 
 /**
  * Hook to get all developers for a dApp
  */
-export function useDAppDevelopers(dAppId: number | undefined) {
+export const useDAppDevelopers = (dAppId: number | undefined) => {
   const chainId = useChainId();
   const contractAddress = getAuthorizationRegistryAddress(chainId);
 
@@ -150,7 +150,7 @@ export function useDAppDevelopers(dAppId: number | undefined) {
     isLoading: !isClient ? true : isLoading,
     error,
   };
-}
+};
 
 /**
  * Hook to get all dApp IDs where an address is a developer

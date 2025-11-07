@@ -100,7 +100,7 @@ export function useUpdateDistributionAddresses() {
 /**
  * Hook to get Treasury distribution percentages
  */
-export function useTreasuryPercentages() {
+export const useTreasuryPercentages = () => {
   const chainId = useChainId();
   const contractAddress = getTreasuryAddress(chainId);
 
@@ -131,7 +131,7 @@ export function useTreasuryPercentages() {
     builderPercentage: builderPercentage ? Number(builderPercentage) / 100 : undefined,
     isLoading: isLoadingTreasury || isLoadingDeveloper || isLoadingBuilder,
   };
-}
+};
 
 /**
  * Hook to get Treasury distribution addresses
