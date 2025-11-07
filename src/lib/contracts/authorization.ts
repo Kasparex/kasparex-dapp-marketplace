@@ -103,6 +103,9 @@ export function useIsDeveloper(dAppId: number | undefined, developerAddress: str
   const chainId = useChainId();
   const contractAddress = getAuthorizationRegistryAddress(chainId);
 
+  // Guard against SSR
+  const isClient = typeof window !== 'undefined';
+
   const { data, isLoading, error } = useReadContract({
     address: contractAddress || undefined,
     abi: AUTHORIZATION_REGISTRY_ABI,
@@ -111,13 +114,13 @@ export function useIsDeveloper(dAppId: number | undefined, developerAddress: str
       ? [BigInt(dAppId), developerAddress as Address]
       : undefined,
     query: {
-      enabled: !!contractAddress && dAppId !== undefined && !!developerAddress && isAddress(developerAddress),
+      enabled: isClient && !!contractAddress && dAppId !== undefined && !!developerAddress && isAddress(developerAddress),
     },
   });
 
   return {
     isDeveloper: data as boolean | undefined,
-    isLoading,
+    isLoading: !isClient ? true : isLoading,
     error,
   };
 }
@@ -129,19 +132,22 @@ export function useDAppDevelopers(dAppId: number | undefined) {
   const chainId = useChainId();
   const contractAddress = getAuthorizationRegistryAddress(chainId);
 
+  // Guard against SSR
+  const isClient = typeof window !== 'undefined';
+
   const { data, isLoading, error } = useReadContract({
     address: contractAddress || undefined,
     abi: AUTHORIZATION_REGISTRY_ABI,
     functionName: 'getDAppDevelopers',
     args: dAppId !== undefined ? [BigInt(dAppId)] : undefined,
     query: {
-      enabled: !!contractAddress && dAppId !== undefined,
+      enabled: isClient && !!contractAddress && dAppId !== undefined,
     },
   });
 
   return {
     developers: data as Address[] | undefined,
-    isLoading,
+    isLoading: !isClient ? true : isLoading,
     error,
   };
 }
@@ -153,7 +159,7 @@ export function useDeveloperDApps(developerAddress: string | undefined) {
   const chainId = useChainId();
   const contractAddress = getAuthorizationRegistryAddress(chainId);
 
-  // Guard against SSR
+  // Guard against SSR - check if we're on client side
   const isClient = typeof window !== 'undefined';
 
   const { data, isLoading, error } = useReadContract({
@@ -162,6 +168,7 @@ export function useDeveloperDApps(developerAddress: string | undefined) {
     functionName: 'getDeveloperDApps',
     args: developerAddress && isAddress(developerAddress) ? [developerAddress as Address] : undefined,
     query: {
+      // Only enable query on client side and when all conditions are met
       enabled: isClient && !!contractAddress && !!developerAddress && isAddress(developerAddress),
     },
   });
