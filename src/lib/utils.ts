@@ -65,12 +65,12 @@ export function getErrorMessage(error: unknown, fallback: string = 'An error occ
     return fallback;
   }
   
-  // Additional check: if it has a call property (but we can't use 'in'), try direct access
+  // Additional check: try to detect function-like objects WITHOUT using 'in' operator
   try {
-    if (typeof error === 'object' && error !== null && 'call' in (error as any)) {
-      // This will throw if error is a function, catch it below
-      const hasCall = typeof (error as any).call === 'function';
-      if (hasCall) {
+    if (typeof error === 'object' && error !== null) {
+      // Try direct property access - if it throws, it's likely a function
+      const callProp = (error as any).call;
+      if (typeof callProp === 'function') {
         return fallback;
       }
     }
