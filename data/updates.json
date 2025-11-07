@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762530664-c2e4b85",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Remove duplicate export list causing TypeScript error (by Kasparex)",
+      "date": "2025-11-07T16:50:33+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762530504-d278a5b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix useDeveloperDApps export for build-time resolution (by Kasparex)",
