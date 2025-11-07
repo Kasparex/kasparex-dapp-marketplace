@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762539001-8b23bc3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix error handling: Add safe error message utility and apply to all contract interactions - Create getErrorMessage utility that safely handles Error objects, strings, functions, and wagmi errors - Fix 'Cannot use in operator' error by checking for functions before using 'in' operator - Update AuthorizationManager, SimplePaymentWidget, PlatformSubscriptionWidget, TreasuryAutoDistribute, ContractDeployment, SubscriptionManager, and useTreasuryPayment to use safe error handler - Prevents errors when wagmi returns function-type errors or other non-standard error types (by Kasparex)",
+      "date": "2025-11-07T19:09:41+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762538256-3b8b055",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix AuthorizationRegistry address fallback chain - Add hardcoded fallback address to the fallback chain - Improve getEnvVar function documentation - Now works with or without environment variable (by Kasparex)",
