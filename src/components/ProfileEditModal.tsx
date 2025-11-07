@@ -27,6 +27,7 @@ export function ProfileEditModal({
   const { address: connectedAddress, isConnected } = useAccount();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
 
   // Section states
   const [profileInfoOpen, setProfileInfoOpen] = useState(true);
@@ -44,6 +45,31 @@ export function ProfileEditModal({
   const [featuredImageUrl, setFeaturedImageUrl] = useState(profile.featuredImage || '');
   const [profilePictureError, setProfilePictureError] = useState(false);
   const [featuredImageError, setFeaturedImageError] = useState(false);
+
+  // Load draft on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const draftKey = `profile_${walletAddress.toLowerCase()}_draft`;
+        const draft = localStorage.getItem(draftKey);
+        if (draft) {
+          try {
+            const draftData = JSON.parse(draft);
+            if (draftData.displayName !== undefined) setDisplayName(draftData.displayName);
+            if (draftData.bio !== undefined) setBio(draftData.bio);
+            if (draftData.hideBalance !== undefined) setHideBalance(draftData.hideBalance);
+            if (draftData.preventScreenshots !== undefined) setPreventScreenshots(draftData.preventScreenshots);
+            if (draftData.profilePictureUrl !== undefined) setProfilePictureUrl(draftData.profilePictureUrl);
+            if (draftData.featuredImageUrl !== undefined) setFeaturedImageUrl(draftData.featuredImageUrl);
+          } catch (err) {
+            console.error('Error loading draft:', err);
+          }
+        }
+      } catch (err) {
+        console.error('Error loading draft:', err);
+      }
+    }
+  }, [walletAddress]);
 
   // Treasury payment hook
   const {
@@ -72,6 +98,9 @@ export function ProfileEditModal({
         const currentProfile = JSON.parse(localStorage.getItem(key) || '{}');
         const newProfile = { ...currentProfile, ...updates };
         localStorage.setItem(key, JSON.stringify(newProfile));
+
+        // Clear draft after successful save
+        localStorage.removeItem(`profile_${walletAddress.toLowerCase()}_draft`);
 
         if (onSave) {
           onSave(updates);
@@ -161,6 +190,44 @@ export function ProfileEditModal({
     setFeaturedImageError(false);
   };
 
+  // Save draft to localStorage
+  const handleSaveDraft = () => {
+    try {
+      const draftData = {
+        displayName,
+        bio,
+        hideBalance,
+        preventScreenshots,
+        profilePictureUrl,
+        featuredImageUrl,
+        savedAt: new Date().toISOString(),
+      };
+
+      const draftKey = `profile_${walletAddress.toLowerCase()}_draft`;
+      localStorage.setItem(draftKey, JSON.stringify(draftData));
+      setDraftSaved(true);
+      setTimeout(() => setDraftSaved(false), 3000);
+    } catch (err) {
+      console.error('Error saving draft:', err);
+      setError('Failed to save draft');
+    }
+  };
+
+  // Get button disabled reasons
+  const getButtonDisabledReasons = () => {
+    const reasons: string[] = [];
+    if (!isConnected) reasons.push('Connect your wallet');
+    if (connectedAddress && connectedAddress.toLowerCase() !== walletAddress.toLowerCase()) {
+      reasons.push('You can only edit your own profile');
+    }
+    if (!isTreasuryAvailable) reasons.push('Treasury not available on this network');
+    return reasons;
+  };
+
+  const buttonDisabledReasons = getButtonDisabledReasons();
+  const isSaveButtonDisabled = isLoading || !isConnected || !isTreasuryAvailable || 
+    (connectedAddress && connectedAddress.toLowerCase() !== walletAddress.toLowerCase());
+
   // Close on Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -236,6 +303,32 @@ export function ProfileEditModal({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               Profile updated successfully!
+            </div>
+          )}
+
+          {draftSaved && (
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg text-blue-600 dark:text-blue-400 text-sm flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Draft saved! Your changes will be restored when you reopen this editor.
+            </div>
+          )}
+
+          {/* Button disabled reasons */}
+          {isSaveButtonDisabled && buttonDisabledReasons.length > 0 && (
+            <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+              <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-2">
+                To save & pay, you need:
+              </p>
+              <ul className="text-sm text-yellow-700 dark:text-yellow-400 space-y-1 list-disc list-inside">
+                {buttonDisabledReasons.map((reason, index) => (
+                  <li key={index}>{reason}</li>
+                ))}
+              </ul>
+              <p className="text-xs text-yellow-600 dark:text-yellow-500 mt-2">
+                💡 Tip: You can save a draft without payment to continue later.
+              </p>
             </div>
           )}
 
@@ -428,31 +521,45 @@ export function ProfileEditModal({
 
         {/* Footer */}
         <div className="sticky bottom-0 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <button
-              onClick={onClose}
+              onClick={handleSaveDraft}
               disabled={isLoading}
-              className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2 min-h-[44px]"
+              title="Save your progress without payment. Draft will be restored when you reopen the editor."
             >
-              Cancel
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+              </svg>
+              Save Draft
             </button>
-            <button
-              onClick={handleSave}
-              disabled={isLoading || !isConnected || !isTreasuryAvailable}
-              className="px-4 py-2 text-sm font-medium text-white bg-[#02abb8] rounded-lg hover:bg-[#0299a3] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-h-[44px]"
-            >
-              {isLoading ? (
-                <>
-                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  {isConfirming ? 'Confirming...' : 'Processing...'}
-                </>
-              ) : (
-                'Save & Pay 10 KAS'
-              )}
-            </button>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <button
+                onClick={onClose}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors disabled:opacity-50 min-h-[44px]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={isSaveButtonDisabled}
+                className="px-4 py-2 text-sm font-medium text-white bg-[#02abb8] rounded-lg hover:bg-[#0299a3] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-h-[44px]"
+                title={isSaveButtonDisabled ? buttonDisabledReasons.join('. ') : 'Save changes and pay 10 KAS'}
+              >
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    {isConfirming ? 'Confirming...' : 'Processing...'}
+                  </>
+                ) : (
+                  'Save & Pay 10 KAS'
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
