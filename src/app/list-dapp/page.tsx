@@ -5,6 +5,9 @@ import { Footer } from '@/components/Footer';
 import { BuildListSidebar } from '@/components/BuildListSidebar';
 import { ListDAppDashboard } from '@/components/dapps/ListDAppDashboard';
 
+// Force dynamic rendering to avoid SSR issues with wagmi hooks
+export const dynamic = 'force-dynamic';
+
 export default function ListDAppPage() {
   return (
     <div className="flex flex-col min-h-screen">

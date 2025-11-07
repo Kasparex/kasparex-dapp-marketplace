@@ -22,6 +22,9 @@ import { useMyAssignedDApps } from '@/hooks/useDAppAuthorization';
 import { generateDAppSlug } from '@/lib/utils';
 import Link from 'next/link';
 
+// Force dynamic rendering to avoid SSR issues with wagmi hooks
+export const dynamic = 'force-dynamic';
+
 export default function UserProfilePage() {
   const params = useParams();
   const router = useRouter();

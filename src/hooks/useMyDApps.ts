@@ -55,7 +55,11 @@ export function useMyDApps() {
   });
 
   // Get assigned dApp IDs from AuthorizationRegistry
-  const { dAppIds: assignedDAppIds, isLoading: isLoadingAssigned } = useMyAssignedDApps();
+  // Guard against SSR - only call hook on client side
+  const isClient = typeof window !== 'undefined';
+  const { dAppIds: assignedDAppIds = [], isLoading: isLoadingAssigned = false } = isClient 
+    ? useMyAssignedDApps() 
+    : { dAppIds: [], isLoading: false };
 
   // Get dApps from frontend data (placeholderDApps + localStorage)
   const frontendDApps = useMemo(() => {

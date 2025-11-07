@@ -153,19 +153,22 @@ export function useDeveloperDApps(developerAddress: string | undefined) {
   const chainId = useChainId();
   const contractAddress = getAuthorizationRegistryAddress(chainId);
 
+  // Guard against SSR
+  const isClient = typeof window !== 'undefined';
+
   const { data, isLoading, error } = useReadContract({
     address: contractAddress || undefined,
     abi: AUTHORIZATION_REGISTRY_ABI,
     functionName: 'getDeveloperDApps',
     args: developerAddress && isAddress(developerAddress) ? [developerAddress as Address] : undefined,
     query: {
-      enabled: !!contractAddress && !!developerAddress && isAddress(developerAddress),
+      enabled: isClient && !!contractAddress && !!developerAddress && isAddress(developerAddress),
     },
   });
 
   return {
     dAppIds: data as bigint[] | undefined,
-    isLoading,
+    isLoading: !isClient ? true : isLoading,
     error,
   };
 }

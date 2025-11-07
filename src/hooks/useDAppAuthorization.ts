@@ -32,11 +32,18 @@ export function useDAppAuthorization(dAppId: number | string | undefined) {
  */
 export function useMyAssignedDApps() {
   const { address } = useAccount();
-  const { dAppIds, isLoading } = useDeveloperDApps(address || undefined);
+  
+  // Guard against SSR
+  const isClient = typeof window !== 'undefined';
+  
+  // Only call wagmi hook on client side
+  const { dAppIds, isLoading } = isClient 
+    ? useDeveloperDApps(address || undefined)
+    : { dAppIds: undefined, isLoading: true };
 
   return {
     dAppIds: dAppIds?.map(id => Number(id)) || [],
-    isLoading,
+    isLoading: !isClient ? true : isLoading,
   };
 }
 
