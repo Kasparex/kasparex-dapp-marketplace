@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762536036-1a570a5",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Deploy AuthorizationRegistry contract and update addresses - Fixed contract compilation errors by refactoring assignDeveloper and revokeDeveloper to use internal functions - Deployed AuthorizationRegistry to kasplexL2Testnet: 0x90A9aa9eB4C91b9c7A6eb72248bDe6a9FB6f79ef - Updated addresses.ts with deployed contract address (by Kasparex)",
+      "date": "2025-11-07T18:20:13+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762535121-15b5f9c",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add deployment checker script and update contract addresses from deployment file (by Kasparex)",
