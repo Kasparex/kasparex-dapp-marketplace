@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762532073-bdff265",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix client-side exceptions: use dynamic imports for components with wagmi hooks (by Kasparex)",
+      "date": "2025-11-07T17:14:11+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762531298-2e2f4fa",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix naming conflict: rename dynamic import to dynamicImport (by Kasparex)",
