@@ -216,7 +216,7 @@ export function AuthorizationManager() {
             📝 Transaction submitted: <code className="text-xs">{assignHash}</code>
           </div>
         )}
-        {isConfirmed && (
+        {isAssigned && (
           <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-sm text-green-700 dark:text-green-300">
             ✓ Developer assigned successfully! Transaction confirmed.
           </div>
