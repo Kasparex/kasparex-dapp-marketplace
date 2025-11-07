@@ -7,6 +7,8 @@ export interface ProfileData {
   bio: string;
   hideBalance: boolean;
   preventScreenshots: boolean;
+  profilePicture?: string;
+  featuredImage?: string;
 }
 
 const DEFAULT_PROFILE: ProfileData = {
@@ -14,6 +16,8 @@ const DEFAULT_PROFILE: ProfileData = {
   bio: '',
   hideBalance: false,
   preventScreenshots: false,
+  profilePicture: undefined,
+  featuredImage: undefined,
 };
 
 /**

@@ -16,7 +16,6 @@ import { DAppInfoModal } from './DAppInfoModal';
 import { DAppEmbed } from './DAppEmbed';
 import { DAppGuideAndInfoModal } from './DAppGuideAndInfoModal';
 import { DAppThemeSwitcherModal } from './DAppThemeSwitcherModal';
-import { LogoUploadModal } from './LogoUploadModal';
 import { useDAppFromContract, mergeDAppData } from '@/lib/dapps/contractData';
 import { CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
@@ -164,7 +163,6 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
   const [showGuideAndInfoModal, setShowGuideAndInfoModal] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
-  const [showLogoModal, setShowLogoModal] = useState(false);
 
   // Category link - open in new tab when embedded
   const categoryLinkProps = isEmbeddedPage
@@ -184,7 +182,7 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
               }`}
               onClick={() => {
                 if (isDeployerUser) {
-                  setShowLogoModal(true);
+                  setShowEditModal(true);
                 }
               }}
               title={isDeployerUser ? 'Click to upload/change logo' : undefined}
@@ -211,7 +209,7 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
               }`}
               onClick={() => {
                 if (isDeployerUser) {
-                  setShowLogoModal(true);
+                  setShowEditModal(true);
                 }
               }}
               title={isDeployerUser ? 'Click to upload logo' : undefined}
@@ -619,16 +617,12 @@ export function DAppWidgetHeader({ dapp, contractAddress }: DAppWidgetHeaderProp
           onClose={() => setShowThemeModal(false)}
         />
       )}
-      {showLogoModal && (
-        <LogoUploadModal
+      {showEditModal && (
+        <EditDAppModal
           dapp={mergedDApp}
           contractAddress={resolvedContractAddress}
-          deployerAddress={deployerAddress}
-          onClose={() => setShowLogoModal(false)}
-          onSuccess={() => {
-            // Reload to show updated logo
-            window.location.reload();
-          }}
+          contractData={contractData}
+          onClose={() => setShowEditModal(false)}
         />
       )}
     </>

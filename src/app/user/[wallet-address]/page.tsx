@@ -7,7 +7,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ProfileSidebar } from '@/components/ProfileSidebar';
 import { TokenBalance } from '@/components/TokenBalance';
-import { ProfileEdit } from '@/components/ProfileEdit';
+import { ProfileEditModal } from '@/components/ProfileEditModal';
 import { useProfile } from '@/hooks/useProfile';
 import { useFavorites } from '@/hooks/useFavorites';
 import { isAddress } from 'viem';
@@ -120,7 +120,51 @@ export default function UserProfilePage() {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
                 <div className="flex-shrink-0">
-                  <Avatar address={walletAddress} size={64} />
+                  {profile.profilePicture ? (
+                    <div className="relative">
+                      <img
+                        src={profile.profilePicture}
+                        alt={displayName}
+                        className="w-16 h-16 rounded-full object-cover border-2 border-zinc-200 dark:border-zinc-800"
+                        onError={(e) => {
+                          // Fallback to Avatar if image fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const avatar = document.createElement('canvas');
+                          avatar.className = 'w-16 h-16 rounded-full';
+                          avatar.style.width = '64px';
+                          avatar.style.height = '64px';
+                          target.parentElement?.appendChild(avatar);
+                        }}
+                      />
+                      {isOwnProfile && (
+                        <button
+                          onClick={() => setShowEditModal(true)}
+                          className="absolute bottom-0 right-0 p-1.5 bg-[#02abb8] text-white rounded-full hover:bg-[#0299a3] transition-colors shadow-lg"
+                          title="Edit profile picture"
+                        >
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <Avatar address={walletAddress} size={64} />
+                      {isOwnProfile && (
+                        <button
+                          onClick={() => setShowEditModal(true)}
+                          className="absolute bottom-0 right-0 p-1.5 bg-[#02abb8] text-white rounded-full hover:bg-[#0299a3] transition-colors shadow-lg"
+                          title="Edit profile picture"
+                        >
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
@@ -345,31 +389,27 @@ export default function UserProfilePage() {
 
             {/* Edit Profile Modal */}
             {showEditModal && isOwnProfile && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowEditModal(false)}>
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-                      Edit Profile
-                    </h2>
-                    <button
-                      onClick={() => setShowEditModal(false)}
-                      className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-                      aria-label="Close modal"
-                    >
-                      <svg className="w-5 h-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                  <ProfileEdit
-                    profile={profile}
-                    onSave={(updates) => {
-                      updateProfile(updates);
-                      setShowEditModal(false);
-                    }}
-                    onCancel={() => setShowEditModal(false)}
-                  />
-                </div>
+              <ProfileEditModal
+                profile={profile}
+                walletAddress={walletAddress}
+                onClose={() => setShowEditModal(false)}
+                onSave={(updates) => {
+                  updateProfile(updates);
+                }}
+              />
+            )}
+
+            {/* Featured Image */}
+            {activeTab === 'overview' && profile.featuredImage && (
+              <div className="mb-6 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800">
+                <img
+                  src={profile.featuredImage}
+                  alt="Featured"
+                  className="w-full h-64 object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
               </div>
             )}
 

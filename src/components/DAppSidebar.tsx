@@ -9,7 +9,6 @@ import { DescriptionIcon, UtilityIcon, ProcessIcon, BenefitsIcon, DeveloperIcon 
 import { isDeployer } from '@/lib/dapps/deployer';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
 import { EditDAppModal } from './dapps/EditDAppModal';
-import { FeaturedImageUploadModal } from './dapps/FeaturedImageUploadModal';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 
@@ -69,7 +68,6 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
   const [roadmapExpanded, setRoadmapExpanded] = useState(false);
   const [developerExpanded, setDeveloperExpanded] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showFeaturedImageModal, setShowFeaturedImageModal] = useState(false);
 
   // Get contract address
   let contractAddress = dapp.contractAddress || '';
@@ -207,7 +205,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
                 }`}
                 onClick={() => {
                   if (isDeployerUser) {
-                    setShowFeaturedImageModal(true);
+                    setShowEditModal(true);
                   }
                 }}
                 title={isDeployerUser ? 'Click to upload/change featured image' : undefined}
@@ -357,18 +355,6 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
           contractAddress={contractAddress}
           contractData={contractData}
           onClose={() => setShowEditModal(false)}
-        />
-      )}
-      {showFeaturedImageModal && (
-        <FeaturedImageUploadModal
-          dapp={mergedDApp}
-          contractAddress={contractAddress}
-          deployerAddress={deployerAddress}
-          onClose={() => setShowFeaturedImageModal(false)}
-          onSuccess={() => {
-            // Reload to show updated image
-            window.location.reload();
-          }}
         />
       )}
     </>
