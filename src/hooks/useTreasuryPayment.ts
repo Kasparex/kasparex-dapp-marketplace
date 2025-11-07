@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAccount, useChainId, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther, type Address } from 'viem';
 import { TREASURY_ABI } from '@/lib/contracts/abis';
@@ -130,10 +130,31 @@ export function useTreasuryPayment({
   const isTreasuryAvailable = treasuryAddress !== '' && treasuryAddress !== undefined && treasuryAddress !== null;
 
   // Write contract for fee payment
-  const { writeContract, data: txHash, isPending: isPaying, error: writeError } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess, error: txError } = useWaitForTransactionReceipt({
+  // CRITICAL: Convert errors to strings IMMEDIATELY using useMemo to prevent React serialization issues
+  const { writeContract, data: txHash, isPending: isPaying, error: rawWriteError } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess, error: rawTxError } = useWaitForTransactionReceipt({
     hash: txHash,
   });
+  
+  // Convert errors to strings immediately to prevent 'in' operator errors
+  // This must happen before errors are used anywhere in React
+  const writeError = useMemo(() => {
+    if (!rawWriteError) return null;
+    try {
+      return getErrorMessage(rawWriteError, 'Transaction failed');
+    } catch {
+      return 'Transaction failed';
+    }
+  }, [rawWriteError]);
+  
+  const txError = useMemo(() => {
+    if (!rawTxError) return null;
+    try {
+      return getErrorMessage(rawTxError, 'Transaction confirmation failed');
+    } catch {
+      return 'Transaction confirmation failed';
+    }
+  }, [rawTxError]);
 
   // Reset refs when txHash changes (new transaction)
   useEffect(() => {
@@ -152,7 +173,8 @@ export function useTreasuryPayment({
   }, [isSuccess, txHash, onSuccess]);
 
   // Handle error callback
-  const currentError = error || getErrorMessage(writeError) || getErrorMessage(txError) || null;
+  // writeError and txError are already strings from useMemo above
+  const currentError = error || writeError || txError || null;
   useEffect(() => {
     if (currentError && onError && errorCalledRef.current !== currentError) {
       errorCalledRef.current = currentError;

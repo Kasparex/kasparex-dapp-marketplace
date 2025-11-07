@@ -47,6 +47,10 @@ export function isEmbedded(): boolean {
  * Safely extract error message from various error types
  * Handles Error objects, strings, wagmi errors, functions, and other types
  * CRITICAL: This function MUST never use the 'in' operator on functions
+ * 
+ * The error message "Cannot use 'in' operator to search for 'name' in function..."
+ * occurs when React tries to serialize an error that is actually a function.
+ * This function prevents that by converting functions to fallback messages immediately.
  */
 export function getErrorMessage(error: unknown, fallback: string = 'An error occurred'): string {
   // Handle null/undefined
@@ -60,22 +64,37 @@ export function getErrorMessage(error: unknown, fallback: string = 'An error occ
   }
 
   // CRITICAL: Check for functions FIRST - functions are objects in JS but can't use 'in' operator
-  // Check typeof first, then check for call property WITHOUT using 'in' operator
+  // This is the root cause of "Cannot use 'in' operator to search for 'name' in function..."
+  // React's error serialization tries to check properties using 'in', which fails on functions
   if (typeof error === 'function') {
-    return fallback;
+    // Try to get function name for better error message
+    try {
+      const funcName = (error as any).name || String(error).match(/function\s+(\w+)/)?.[1] || 'function';
+      return `${fallback} (${funcName})`;
+    } catch {
+      return fallback;
+    }
   }
   
   // Additional check: try to detect function-like objects WITHOUT using 'in' operator
+  // Some error objects might have functions as properties, which can cause issues
   try {
     if (typeof error === 'object' && error !== null) {
-      // Try direct property access - if it throws, it's likely a function
+      // Check if it has a call property (function-like)
       const callProp = (error as any).call;
       if (typeof callProp === 'function') {
         return fallback;
       }
+      
+      // Check if toString returns function signature (wagmi ABI function)
+      const toStringResult = String(error);
+      if (toStringResult.includes('function') && toStringResult.includes('external')) {
+        // This is likely an ABI function that was returned as an error
+        return `${fallback} (contract function error)`;
+      }
     }
   } catch {
-    // If accessing properties fails, it's likely a function
+    // If accessing properties fails, it's likely a function or problematic object
     return fallback;
   }
 
@@ -131,9 +150,13 @@ export function getErrorMessage(error: unknown, fallback: string = 'An error occ
     }
   }
 
-  // Last resort: try toString()
+  // Last resort: try toString() but check if it's a function signature
   try {
     const stringified = String(error);
+    // If it looks like a function signature, don't return it as-is
+    if (stringified.includes('function') && stringified.includes('external')) {
+      return `${fallback} (contract function)`;
+    }
     if (stringified !== '[object Object]' && stringified !== 'null' && stringified !== 'undefined') {
       return stringified;
     }

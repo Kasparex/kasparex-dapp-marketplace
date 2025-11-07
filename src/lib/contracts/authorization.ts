@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi';
 import { useChainId } from 'wagmi';
 import { getContractAddress } from './addresses';
@@ -28,10 +29,21 @@ export const useAssignDeveloper = () => {
   const chainId = useChainId();
   const contractAddress = getAuthorizationRegistryAddress(chainId);
   
-  const { writeContract, data: hash, isPending, error } = useWriteContract();
+  // CRITICAL: Convert errors to strings IMMEDIATELY using useMemo to prevent React serialization issues
+  const { writeContract, data: hash, isPending, error: rawError } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash,
   });
+  
+  // Convert error to string immediately to prevent 'in' operator errors
+  const error = useMemo(() => {
+    if (!rawError) return null;
+    try {
+      return getErrorMessage(rawError, 'Transaction failed');
+    } catch {
+      return 'Transaction failed';
+    }
+  }, [rawError]);
 
   const assignDeveloper = (dAppId: number, developerAddress: string) => {
     if (!contractAddress) {
@@ -65,17 +77,13 @@ export const useAssignDeveloper = () => {
     }
   };
 
-  // Safely convert error to string to prevent 'in' operator issues
-  // Return as string | null to prevent React from trying to serialize Error objects
-  const safeError = error ? getErrorMessage(error, 'Transaction failed') : null;
-  
   return {
     assignDeveloper,
     hash,
     isPending,
     isConfirming,
     isConfirmed,
-    error: safeError, // Return as string, not Error object
+    error, // Already converted to string | null in useMemo above
   };
 };
 
@@ -86,10 +94,21 @@ export const useRevokeDeveloper = () => {
   const chainId = useChainId();
   const contractAddress = getAuthorizationRegistryAddress(chainId);
   
-  const { writeContract, data: hash, isPending, error } = useWriteContract();
+  // CRITICAL: Convert errors to strings IMMEDIATELY using useMemo to prevent React serialization issues
+  const { writeContract, data: hash, isPending, error: rawError } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash,
   });
+  
+  // Convert error to string immediately to prevent 'in' operator errors
+  const error = useMemo(() => {
+    if (!rawError) return null;
+    try {
+      return getErrorMessage(rawError, 'Transaction failed');
+    } catch {
+      return 'Transaction failed';
+    }
+  }, [rawError]);
 
   const revokeDeveloper = (dAppId: number, developerAddress: string) => {
     if (!contractAddress) {
@@ -107,17 +126,13 @@ export const useRevokeDeveloper = () => {
     });
   };
 
-  // Safely convert error to string to prevent 'in' operator issues
-  // Return as string | null to prevent React from trying to serialize Error objects
-  const safeError = error ? getErrorMessage(error, 'Transaction failed') : null;
-  
   return {
     revokeDeveloper,
     hash,
     isPending,
     isConfirming,
     isConfirmed,
-    error: safeError, // Return as string, not Error object
+    error, // Already converted to string | null in useMemo above
   };
 };
 
