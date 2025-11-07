@@ -300,6 +300,9 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
     return reasons;
   };
 
+  const isLoading = isPaying || isConfirming;
+  const displayError = error || paymentError;
+
   const buttonDisabledReasons = getButtonDisabledReasons();
   const isSaveButtonDisabled = isLoading || !isConnected || !isDeployerUser || !isTreasuryAvailable;
 
@@ -313,9 +316,6 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, [onClose, isPaying, isConfirming]);
-
-  const isLoading = isPaying || isConfirming;
-  const displayError = error || paymentError;
 
   const progressStages = [
     { id: 'ready' as ProgressStage, label: 'Ready', progress: 0 },
