@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAssignDeveloper, useRevokeDeveloper, useDAppDevelopers } from '@/lib/contracts/authorization';
+import { useAssignDeveloper, useRevokeDeveloper, useDAppDevelopers, getAuthorizationRegistryAddress } from '@/lib/contracts/authorization';
 import { getAllDApps, DApp } from '@/lib/dapps';
 import { isAddress } from 'viem';
-import { useAccount } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
 
 export function AuthorizationManager() {
   const [selectedDApp, setSelectedDApp] = useState<DApp | null>(null);
@@ -21,7 +21,10 @@ export function AuthorizationManager() {
       )
     : allDApps;
 
-  const { assignDeveloper, isPending: isAssigning, isConfirmed: isAssigned, error: assignError } = useAssignDeveloper();
+  const chainId = useChainId();
+  const contractAddress = getAuthorizationRegistryAddress(chainId);
+  
+  const { assignDeveloper, isPending: isAssigning, isConfirmed: isAssigned, error: assignError, hash: assignHash } = useAssignDeveloper();
   const { revokeDeveloper, isPending: isRevoking, isConfirmed: isRevoked, error: revokeError } = useRevokeDeveloper();
   const { developers, isLoading: isLoadingDevelopers } = useDAppDevelopers(dAppId || undefined);
 
@@ -46,11 +49,18 @@ export function AuthorizationManager() {
     }
   };
 
-  const handleAssign = () => {
+  const handleAssign = async () => {
     if (!dAppId || !developerAddress || !isAddress(developerAddress)) {
+      console.error('Invalid input:', { dAppId, developerAddress });
       return;
     }
-    assignDeveloper(dAppId, developerAddress);
+    
+    try {
+      console.log('Assigning developer:', { dAppId, developerAddress });
+      assignDeveloper(dAppId, developerAddress);
+    } catch (error) {
+      console.error('Error assigning developer:', error);
+    }
   };
 
   const handleRevoke = (devAddress: string) => {
@@ -165,19 +175,27 @@ export function AuthorizationManager() {
           </div>
         )}
 
+        {/* Contract Address Warning */}
+        {!contractAddress && (
+          <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg text-sm text-yellow-700 dark:text-yellow-300">
+            ⚠️ <strong>AuthorizationRegistry contract not deployed</strong> on this network (Chain ID: {chainId}). 
+            Please deploy the contract or set the <code>NEXT_PUBLIC_AUTHORIZATION_REGISTRY_ADDRESS</code> environment variable.
+          </div>
+        )}
+
         {/* Assign Button */}
         {selectedDApp && dAppId && (
           <div className="flex gap-3">
             <button
               onClick={handleAssign}
-              disabled={!isValidAddress || isAssigning || isRevoking}
+              disabled={!isValidAddress || isAssigning || isRevoking || !contractAddress}
               className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                isValidAddress && !isAssigning && !isRevoking
+                isValidAddress && !isAssigning && !isRevoking && contractAddress
                   ? 'bg-[#02abb8] text-white hover:bg-[#0299a6]'
                   : 'bg-zinc-300 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
               }`}
             >
-              {isAssigning ? 'Assigning...' : 'Assign Developer'}
+              {isAssigning ? 'Assigning...' : !contractAddress ? 'Contract Not Deployed' : 'Assign Developer'}
             </button>
           </div>
         )}
@@ -185,12 +203,22 @@ export function AuthorizationManager() {
         {/* Status Messages */}
         {assignError && (
           <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
-            Error: {assignError.message}
+            <strong>Error:</strong> {assignError.message || 'Failed to assign developer. Please check the console for details.'}
           </div>
         )}
-        {isAssigned && (
+        {isAssigning && (
+          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg text-sm text-blue-700 dark:text-blue-300">
+            ⏳ Transaction pending... Please confirm in your wallet.
+          </div>
+        )}
+        {assignHash && (
+          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg text-sm text-blue-700 dark:text-blue-300">
+            📝 Transaction submitted: <code className="text-xs">{assignHash}</code>
+          </div>
+        )}
+        {isConfirmed && (
           <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-sm text-green-700 dark:text-green-300">
-            ✓ Developer assigned successfully!
+            ✓ Developer assigned successfully! Transaction confirmed.
           </div>
         )}
         {revokeError && (

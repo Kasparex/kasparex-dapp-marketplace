@@ -34,18 +34,34 @@ export const useAssignDeveloper = () => {
 
   const assignDeveloper = (dAppId: number, developerAddress: string) => {
     if (!contractAddress) {
-      throw new Error('AuthorizationRegistry contract not deployed on this chain');
+      const errorMsg = `AuthorizationRegistry contract not deployed on chain ${chainId}. Please set NEXT_PUBLIC_AUTHORIZATION_REGISTRY_ADDRESS environment variable or deploy the contract.`;
+      console.error(errorMsg);
+      throw new Error(errorMsg);
     }
     if (!isAddress(developerAddress)) {
-      throw new Error('Invalid developer address');
+      const errorMsg = `Invalid developer address: ${developerAddress}`;
+      console.error(errorMsg);
+      throw new Error(errorMsg);
     }
 
-    writeContract({
-      address: contractAddress,
-      abi: AUTHORIZATION_REGISTRY_ABI,
-      functionName: 'assignDeveloper',
-      args: [BigInt(dAppId), developerAddress as Address],
+    console.log('Calling assignDeveloper:', {
+      contractAddress,
+      dAppId,
+      developerAddress,
+      chainId,
     });
+
+    try {
+      writeContract({
+        address: contractAddress,
+        abi: AUTHORIZATION_REGISTRY_ABI,
+        functionName: 'assignDeveloper',
+        args: [BigInt(dAppId), developerAddress as Address],
+      });
+    } catch (err) {
+      console.error('Error in writeContract:', err);
+      throw err;
+    }
   };
 
   return {
