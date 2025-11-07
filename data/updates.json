@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762529851-91235e5",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix: Remove conditional hook calls to comply with Rules of Hooks (by Kasparex)",
+      "date": "2025-11-07T16:37:09+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762529614-e61f7be",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: Make pages dynamic and add SSR guards for wagmi hooks (by Kasparex)",
