@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762543081-7def124",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Remove 'in' operator from getErrorMessage - Use direct property access instead (by Kasparex)",
+      "date": "2025-11-07T20:17:42+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762542615-f40890e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: useTreasuryPayment error type mismatch - Change error return type from Error to string to match interface - currentError is already a string from getErrorMessage (by Kasparex)",
