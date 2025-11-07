@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762529377-b23976f",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix: Escape apostrophes in user profile page (by Kasparex)",
+      "date": "2025-11-07T16:29:16+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762529002-c71c3f1",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add authorization system: admin dashboard, developer assignments, and fee management (by Kasparex)",
