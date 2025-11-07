@@ -58,7 +58,7 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
           isOpen={showModal}
           onClose={handleModalClose}
         />
-        <div className={`w-full bg-white dark:bg-zinc-900 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800 ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
+        <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
           <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
             <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} />
           </div>
@@ -82,7 +82,7 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
           isOpen={showModal}
           onClose={handleModalClose}
         />
-        <div className={`w-full bg-white dark:bg-zinc-900 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800 ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
+        <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
           <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
             <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} />
           </div>
@@ -106,7 +106,7 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
           onClose={handleModalClose}
         />
         
-        <div className="w-full bg-white dark:bg-zinc-900 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800">
+        <div className="w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
           <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} />
           <div 
             className="flex flex-col items-center justify-center min-h-[400px] p-8 cursor-pointer"
@@ -182,7 +182,7 @@ export function DAppWidget({ dapp }: DAppWidgetProps) {
         onClose={handleModalClose}
       />
       
-        <div className={`w-full bg-white dark:bg-zinc-900 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800 ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
+        <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
           <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
             <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} />
           </div>
