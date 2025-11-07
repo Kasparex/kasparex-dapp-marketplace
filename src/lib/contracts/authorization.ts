@@ -180,13 +180,3 @@ export function useDeveloperDApps(developerAddress: string | undefined) {
   };
 }
 
-// Explicit export list for build-time resolution
-export {
-  getAuthorizationRegistryAddress,
-  useAssignDeveloper,
-  useRevokeDeveloper,
-  useIsDeveloper,
-  useDAppDevelopers,
-  useDeveloperDApps,
-};
-
