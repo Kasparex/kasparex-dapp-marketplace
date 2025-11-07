@@ -19,13 +19,17 @@ const nextConfig = {
     config.module.rules = config.module.rules || [];
     
     // Ignore .sol and .ts files in scripts, contracts, and test directories
+    // BUT NOT src/lib/contracts (which contains our React hooks)
     config.module.rules.push({
       test: /\.(sol|ts)$/,
       include: [
         /scripts/,
-        /contracts/,
+        /^contracts\//,  // Only match contracts/ at root, not src/lib/contracts
         /test/,
         /hardhat\.config/,
+      ],
+      exclude: [
+        /src\/lib\/contracts/,  // Explicitly exclude our hooks directory
       ],
       use: 'ignore-loader',
     });
