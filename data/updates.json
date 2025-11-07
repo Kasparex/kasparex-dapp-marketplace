@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762538256-3b8b055",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix AuthorizationRegistry address fallback chain - Add hardcoded fallback address to the fallback chain - Improve getEnvVar function documentation - Now works with or without environment variable (by Kasparex)",
+      "date": "2025-11-07T18:57:17+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762536538-fcd6991",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: use isAssigned instead of isConfirmed (by Kasparex)",
