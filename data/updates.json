@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762475817-dc116af",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add featured image and logo upload modals with Treasury payment (10 KAS each) (by Kasparex)",
+      "date": "2025-11-07T01:36:29+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762473705-0e3278e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: Add likes-high and likes-low to SortOption type (by Kasparex)",
