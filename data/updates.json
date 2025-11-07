@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762531111-26c43d4",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Use dynamic import for ListDAppDashboard to prevent build-time evaluation (by Kasparex)",
+      "date": "2025-11-07T16:58:12+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762530877-d556474",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Change useDeveloperDApps to const export for better build-time resolution (by Kasparex)",
