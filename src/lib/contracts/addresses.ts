@@ -31,14 +31,14 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     AuthorizationRegistry: "",
   },
   kasplexL2Testnet: {
-    Treasury: "0x658420fd88dbd610249a88384f9b1ad387f797c7",
-    FeeCollector: "0xdcf47355548345c7173737a6f3e9e1b3bda2f447",
-    DAppRegistry: "",
-    SimplePayment: "",
-    PlatformSubscription: "",
-    DAppSubscription: "",
-    SubscriptionManager: "",
-    AuthorizationRegistry: "",
+    Treasury: "0x305B4ee627aD8b12bFCF6427453964771aA30622",
+    FeeCollector: "0x002C7eeC68975d41f3f0F7bC8D900Aa45A131aE2",
+    DAppRegistry: "0x1c2c21fFe7AE1fCb031eCabE69BCdeb9a10c04Dd",
+    SimplePayment: "0x3F19cC54231fB10b1935FA3f04Bec64b8AFeAd85",
+    PlatformSubscription: "0xaC941a612b30Fe15F84a961a1FaCF2Ea5c2ef21E",
+    DAppSubscription: "0x0530c962A17fB4602418087689e762e5989f1D43",
+    SubscriptionManager: "0x0F405c342e9596621430C5f888D673d40111a0ac",
+    AuthorizationRegistry: "", // ⚠️ NOT YET DEPLOYED - Run: npx hardhat run scripts/deploy-authorization-registry.js --network kasplexL2Testnet
   },
 };
 
