@@ -639,7 +639,7 @@ export function ProfileEditModal({
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="font-semibold">5.</span>
-                    <span>Click "Save & Pay 10 KAS" button</span>
+                    <span>Click &quot;Save &amp; Pay 10 KAS&quot; button</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="font-semibold">6.</span>
@@ -675,7 +675,7 @@ export function ProfileEditModal({
                   <p>
                     <strong className="text-zinc-900 dark:text-zinc-100">Treasury not available?</strong>
                     <br />
-                    Make sure you're connected to Kasplex L2 Testnet or Mainnet. Treasury contract must be deployed on your current network.
+                    Make sure you&apos;re connected to Kasplex L2 Testnet or Mainnet. Treasury contract must be deployed on your current network.
                   </p>
                   <p>
                     <strong className="text-zinc-900 dark:text-zinc-100">Transaction failed?</strong>
