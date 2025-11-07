@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762531298-2e2f4fa",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix naming conflict: rename dynamic import to dynamicImport (by Kasparex)",
+      "date": "2025-11-07T17:01:20+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762531111-26c43d4",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Use dynamic import for ListDAppDashboard to prevent build-time evaluation (by Kasparex)",
