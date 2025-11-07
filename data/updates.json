@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762544858-59bf411",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix hook usage: Move useSafeError outside IIFEs - Hooks cannot be called inside IIFEs - Move useSafeError to component level in SubscriptionManager and ContractDeployment (by Kasparex)",
+      "date": "2025-11-07T20:47:16+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762543081-7def124",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Remove 'in' operator from getErrorMessage - Use direct property access instead (by Kasparex)",
