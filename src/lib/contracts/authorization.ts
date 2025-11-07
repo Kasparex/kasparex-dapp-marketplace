@@ -155,7 +155,7 @@ export function useDAppDevelopers(dAppId: number | undefined) {
 /**
  * Hook to get all dApp IDs where an address is a developer
  */
-export function useDeveloperDApps(developerAddress: string | undefined) {
+export const useDeveloperDApps = (developerAddress: string | undefined) => {
   const chainId = useChainId();
   const contractAddress = getAuthorizationRegistryAddress(chainId);
 
@@ -178,5 +178,5 @@ export function useDeveloperDApps(developerAddress: string | undefined) {
     isLoading: !isClient ? true : isLoading,
     error,
   };
-}
+};
 
