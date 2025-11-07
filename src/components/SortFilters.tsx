@@ -9,7 +9,9 @@ export type SortOption =
   | 'alphabetical-za'
   | 'status'
   | 'network'
-  | 'favorites';
+  | 'favorites'
+  | 'likes-high'
+  | 'likes-low';
 
 interface SortFiltersProps {
   sortBy: SortOption;
