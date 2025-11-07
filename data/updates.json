@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762546493-32246f0",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Improve error extraction: Extract wagmi error messages before checking for function signatures - Try shortMessage, details, and cause properties first - Only show function-type error as last resort - This should show actual error messages instead of generic fallback (by Kasparex)",
+      "date": "2025-11-07T21:14:29+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762545937-2e1fb35",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix 'in' operator error: Convert wagmi errors to strings immediately using useMemo (by Kasparex)",
