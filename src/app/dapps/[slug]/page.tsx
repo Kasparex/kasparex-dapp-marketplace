@@ -4,6 +4,7 @@ import { Footer } from '@/components/Footer';
 import { DAppSidebar } from '@/components/DAppSidebar';
 import { DAppDetail } from '@/components/DAppDetail';
 import { DAppFooter } from '@/components/dapps/DAppFooter';
+import { RelatedDApps } from '@/components/dapps/RelatedDApps';
 import { placeholderDApps } from '@/lib/dapps';
 import { getDAppBySlug } from '@/lib/utils';
 import { getContractAddress } from '@/lib/contracts/addresses';
@@ -57,6 +58,7 @@ export default async function DAppPage({ params }: PageProps) {
         {/* Main Content */}
         <div className="flex-1 p-4 sm:p-6 lg:p-8 lg:pl-6">
           <DAppDetail dapp={dapp} />
+          <RelatedDApps currentDApp={dapp} />
           <DAppFooter contractAddress={contractAddress} />
         </div>
       </main>
