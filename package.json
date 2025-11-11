@@ -15,6 +15,8 @@
     "hardhat:deploy:mainnet": "hardhat run scripts/deploy.js --network kasplexL2Mainnet",
     "hardhat:deploy:ecosystem:testnet": "hardhat run scripts/deploy-ecosystem.js --network kasplexL2Testnet",
     "hardhat:deploy:ecosystem:mainnet": "hardhat run scripts/deploy-ecosystem.js --network kasplexL2Mainnet",
+    "hardhat:deploy:dapp:testnet": "hardhat run scripts/deploy-dapp-with-token.js --network kasplexL2Testnet",
+    "hardhat:deploy:dapp:mainnet": "hardhat run scripts/deploy-dapp-with-token.js --network kasplexL2Mainnet",
     "hardhat:test:ecosystem": "hardhat run scripts/test-ecosystem.js --network kasplexL2Testnet",
     "hardhat:configure": "hardhat run scripts/configure-treasury.js",
     "hardhat:verify": "hardhat run scripts/verify-contracts.js",
