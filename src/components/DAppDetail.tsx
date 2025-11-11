@@ -61,8 +61,8 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
         <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
           <RewardsDisplay
             gridTokenAddress={gridTokenAddress}
-            dAppTokenAddress={contractData?.tokenAddress}
-            ticker={contractData?.ticker}
+            dAppTokenAddress={contractData?.tokenAddress || undefined}
+            ticker={contractData?.ticker || undefined}
           />
         </div>
       )}
