@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762883281-3cfb349",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: Add missing contract properties to igraCaravelTestnet (by Kasparex)",
+      "date": "2025-11-11T18:47:42+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762883005-d456b84",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: Add type assertion for useWatchContractEvent logs (by Kasparex)",
