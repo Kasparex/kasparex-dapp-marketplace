@@ -35,13 +35,13 @@ async function main() {
   const rewardVaultAddress = process.env.REWARD_VAULT_ADDRESS || '0x59e49E4f60397CC1C2F0eB3d7ebcF9C9c8AACCAD';
   
   // Get dApp configuration
-  const dAppName = process.env.DAPP_NAME || 'My New dApp';
+  const dAppName = process.env.DAPP_NAME || 'KAS Tipping System';
   const dAppVersion = process.env.DAPP_VERSION || '1.0.0';
-  const dAppCategory = process.env.DAPP_CATEGORY || 'general';
+  const dAppCategory = process.env.DAPP_CATEGORY || 'social';
   
   // Get token configuration
   const tokenName = process.env.TOKEN_NAME || `${dAppName} Token`;
-  const tokenSymbol = process.env.TOKEN_SYMBOL || (dAppName.substring(0, 5).toUpperCase() + 'T');
+  const tokenSymbol = process.env.TOKEN_SYMBOL || 'KAST';
   const tokenMaxSupply = process.env.TOKEN_MAX_SUPPLY || '1000000'; // 1M tokens
   
   console.log('📋 Configuration:');
@@ -100,21 +100,34 @@ async function main() {
     const tokenAddress = await dAppToken.getAddress();
     console.log('   ✅ DAppToken deployed to:', tokenAddress);
 
-    // Step 2: Deploy a simple dApp contract (or use existing)
-    // For now, we'll deploy a SimplePayment contract as the dApp
-    // You can replace this with your custom dApp contract
-    console.log('\n2️⃣  Deploying dApp Contract...');
-    const FeeCollector = await hre.ethers.getContractFactory('FeeCollector');
-    const feeCollector = await FeeCollector.deploy(treasuryAddress);
-    await feeCollector.waitForDeployment();
-    const feeCollectorAddress = await feeCollector.getAddress();
-    console.log('   ✅ FeeCollector deployed to:', feeCollectorAddress);
-
-    const SimplePayment = await hre.ethers.getContractFactory('SimplePayment');
-    const simplePayment = await SimplePayment.deploy(feeCollectorAddress, 500); // 5% fee
-    await simplePayment.waitForDeployment();
-    const dAppContractAddress = await simplePayment.getAddress();
-    console.log('   ✅ SimplePayment (dApp) deployed to:', dAppContractAddress);
+    // Step 2: Deploy KASTip dApp contract
+    console.log('\n2️⃣  Deploying KASTip Contract...');
+    
+    // Get ecosystem contract addresses
+    const proofOfUtilityAddress = process.env.PROOF_OF_UTILITY_ADDRESS || '';
+    const affiliateManagerAddress = process.env.AFFILIATE_MANAGER_ADDRESS || '';
+    const feeHandlerAddress = process.env.FEE_HANDLER_ADDRESS || '';
+    
+    if (!proofOfUtilityAddress || !affiliateManagerAddress || !feeHandlerAddress) {
+      console.error('\n❌ ERROR: Missing ecosystem contract addresses\n');
+      console.log('Required environment variables:');
+      console.log('   PROOF_OF_UTILITY_ADDRESS');
+      console.log('   AFFILIATE_MANAGER_ADDRESS');
+      console.log('   FEE_HANDLER_ADDRESS\n');
+      console.log('💡 Find these in ECOSYSTEM_DEPLOYMENT_SUCCESS.md or src/lib/contracts/addresses.ts\n');
+      process.exit(1);
+    }
+    
+    const KASTip = await hre.ethers.getContractFactory('KASTip');
+    const kasTip = await KASTip.deploy(
+      proofOfUtilityAddress,
+      affiliateManagerAddress,
+      feeHandlerAddress,
+      dAppRegistryAddress
+    );
+    await kasTip.waitForDeployment();
+    const dAppContractAddress = await kasTip.getAddress();
+    console.log('   ✅ KASTip deployed to:', dAppContractAddress);
 
     // Step 3: Register dApp in DAppRegistry
     console.log('\n3️⃣  Registering dApp in DAppRegistry...');
@@ -133,6 +146,12 @@ async function main() {
     // Get the dApp ID
     const dAppId = await dAppRegistry.getDAppCount();
     console.log('   📝 dApp ID:', dAppId.toString());
+
+    // Step 3.5: Set dApp ID in KASTip contract
+    console.log('\n3️⃣.5 Setting dApp ID in KASTip...');
+    const setDAppIdTx = await kasTip.setDAppId(dAppId);
+    await setDAppIdTx.wait();
+    console.log('   ✅ dApp ID set in KASTip contract');
 
     // Step 4: Link token to dApp in DAppRegistry
     console.log('\n4️⃣  Linking token to dApp...');
@@ -163,10 +182,12 @@ async function main() {
       contracts: {
         dAppContract: dAppContractAddress,
         token: tokenAddress,
-        feeCollector: feeCollectorAddress,
         dAppRegistry: dAppRegistryAddress,
         rewardVault: rewardVaultAddress,
         treasury: treasuryAddress,
+        proofOfUtility: proofOfUtilityAddress,
+        affiliateManager: affiliateManagerAddress,
+        feeHandler: feeHandlerAddress,
       },
       allocation: {
         rewardVault: rewardVaultAddress,

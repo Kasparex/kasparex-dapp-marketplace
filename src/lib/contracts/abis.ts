@@ -593,4 +593,19 @@ export const DAO_VOTING_ABI = [
   },
 ] as const;
 
+export const KAS_TIP_ABI = [
+  "function tip(address _recipient, address _referral) external payable",
+  "function getTopTippers(uint256 _limit) external view returns (address[])",
+  "function getUserRank(address _user) external view returns (uint256)",
+  "function getTotalTipsCount() external view returns (uint256)",
+  "function getRecipientTips(address _recipient) external view returns ((address, address, uint256, uint256, address, uint256)[])",
+  "function getSenderTips(address _sender) external view returns ((address, address, uint256, uint256, address, uint256)[])",
+  "function tippers(address) external view returns (address user, uint256 totalTipped, uint256 tipCount, uint256 lastTipTime)",
+  "function calculateFee(uint256 _amount) external view returns (uint256)",
+  "function getStats() external view returns (uint256 totalTips, uint256 totalTipped, uint256 totalFees, uint256 topTippersCount)",
+  "function feePercentage() external view returns (uint256)",
+  "function dAppId() external view returns (uint256)",
+  "event TipSent(address indexed from, address indexed to, uint256 amount, uint256 fee, address indexed referral, uint256 timestamp)",
+  "event LeaderboardUpdated(address indexed user, uint256 totalTipped, uint256 rank)",
+] as const;
 
