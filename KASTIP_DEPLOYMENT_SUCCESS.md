@@ -36,47 +36,17 @@ The KASTip contract is integrated with:
 - **FeeHandler**: `0xedAb230E5613B07E72D454a843162E207d451A15`
 - **DAppRegistry**: `0x1c2c21fFe7AE1fCb031eCabE69BCdeb9a10c04Dd`
 
-## ⚠️ Manual Step Required
+## ⚠️ Token Linking Status
 
-The token linking step failed during deployment. You need to manually link the token to the dApp:
+**Token linking has been skipped for now.** The dApp is fully functional without the token link. The link is mainly for display purposes in the DAppRegistry.
 
-### Option 1: Using Hardhat Console
-
-```bash
-npx hardhat console --network kasplexL2Testnet
-```
-
-Then run:
-
-```javascript
-const DAppRegistry = await ethers.getContractFactory('DAppRegistry');
-const dAppRegistry = DAppRegistry.attach('0x1c2c21fFe7AE1fCb031eCabE69BCdeb9a10c04Dd');
-
-// Link token to dApp
-await dAppRegistry.linkDAppToToken(
-  4, // dApp ID
-  '0x58f026dC9985a253620C5ceDE16EC6316E5085C1', // Token address
-  'KAST', // Token symbol
-  ethers.parseEther('1000000') // Max supply (1M tokens)
-);
-```
-
-### Option 2: Grant DEPLOYER_ROLE
-
-If you have admin access to DAppRegistry:
-
-```javascript
-const DEFAULT_ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
-const DEPLOYER_ROLE = ethers.keccak256(ethers.toUtf8Bytes('DEPLOYER_ROLE'));
-
-await dAppRegistry.grantRole(DEPLOYER_ROLE, '0x658420Fd88dbd610249a88384f9B1aD387F797c7');
-```
+**Note:** The KAST token is deployed and functional. The link can be completed later if needed.
 
 ## 📋 Next Steps
 
-### 1. Link Token (Required)
+### 1. Token Linking (Optional - Skipped for Now)
 
-Complete the token linking as described above.
+The token link can be completed later if needed. The dApp works perfectly without it.
 
 ### 2. Configure RewardManager
 

@@ -33,10 +33,16 @@ async function main() {
 
     // Check if deployer has permission
     console.log('🔍 Checking permissions...');
-    const dAppData = await dAppRegistry.getDApp(dAppId);
-    console.log('   dApp Deployer:', dAppData[4]);
-    console.log('   Current Account:', deployer.address);
-    console.log('   Match:', dAppData[4].toLowerCase() === deployer.address.toLowerCase(), '\n');
+    try {
+      const dAppData = await dAppRegistry.getDApp(dAppId);
+      // getDApp returns a tuple: (name, version, category, contractAddress, deployer, isActive, createdAt, tokenAddress, ticker, totalSupply, ipfsCID)
+      const deployerAddress = dAppData[4];
+      console.log('   dApp Deployer:', deployerAddress);
+      console.log('   Current Account:', deployer.address);
+      console.log('   Match:', deployerAddress.toLowerCase() === deployer.address.toLowerCase(), '\n');
+    } catch (error) {
+      console.log('   ⚠️  Could not check permissions (continuing anyway):', error.message, '\n');
+    }
 
     // Try to link token
     console.log('🔗 Linking token to dApp...');
@@ -53,10 +59,15 @@ async function main() {
 
     // Verify
     console.log('✅ Verification:');
-    const updatedDAppData = await dAppRegistry.getDApp(dAppId);
-    console.log('   Token Address:', updatedDAppData[7]);
-    console.log('   Token Symbol:', updatedDAppData[8]);
-    console.log('   Total Supply:', updatedDAppData[9].toString());
+    try {
+      const updatedDAppData = await dAppRegistry.getDApp(dAppId);
+      // getDApp returns a tuple: (name, version, category, contractAddress, deployer, isActive, createdAt, tokenAddress, ticker, totalSupply, ipfsCID)
+      console.log('   Token Address:', updatedDAppData[7]);
+      console.log('   Token Symbol:', updatedDAppData[8]);
+      console.log('   Total Supply:', updatedDAppData[9].toString());
+    } catch (error) {
+      console.log('   ⚠️  Could not verify (but transaction succeeded):', error.message);
+    }
 
   } catch (error) {
     console.error('\n❌ Failed to link token:', error.message);
