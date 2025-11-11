@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762881028-29891c4",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix useMemo dependency warning in IconDisplay (by Kasparex)",
+      "date": "2025-11-11T18:10:08+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762880793-e6acee6",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: Add fallback for icon.config.size (by Kasparex)",
