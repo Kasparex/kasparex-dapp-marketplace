@@ -8,7 +8,7 @@
 import { IconDisplay, type IconDisplayProps } from '@/components/IconDisplay';
 import { getCategoryIcon } from '@/lib/icons/generator';
 
-export interface DAppIconProps extends Omit<IconDisplayProps, 'type'> {
+export interface DAppIconProps extends Omit<IconDisplayProps, 'type' | 'identifier' | 'name'> {
   dAppName: string;
   category?: string;
   size?: number;
