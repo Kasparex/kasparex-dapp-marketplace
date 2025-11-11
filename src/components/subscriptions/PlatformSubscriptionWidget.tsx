@@ -99,7 +99,7 @@ export function PlatformSubscriptionWidget() {
         value: monthlyPrice as bigint,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to subscribe');
+      setError(getErrorMessage(err, 'Failed to subscribe'));
     }
   };
 

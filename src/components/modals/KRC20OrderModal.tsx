@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { createKRC20Order, buyKRC20Token, cancelKRC20Order } from '@/lib/kaspa/kasware';
 import { kasToSompis } from '@/lib/kaspa/api';
+import { getErrorMessage } from '@/lib/utils';
 
 interface KRC20OrderModalProps {
   isOpen: boolean;
@@ -64,7 +65,7 @@ export function KRC20OrderModal({ isOpen, onClose, mode, currentBalance, krc20To
       });
       setTxHash(hash);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create order';
+      const errorMessage = getErrorMessage(err, 'Failed to create order');
       setError(errorMessage);
       console.error('Create order error:', err);
     } finally {
@@ -88,7 +89,7 @@ export function KRC20OrderModal({ isOpen, onClose, mode, currentBalance, krc20To
       });
       setTxHash(hash);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to buy token';
+      const errorMessage = getErrorMessage(err, 'Failed to buy token');
       setError(errorMessage);
       console.error('Buy token error:', err);
     } finally {
@@ -117,7 +118,7 @@ export function KRC20OrderModal({ isOpen, onClose, mode, currentBalance, krc20To
       });
       setTxHash(hash);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to cancel order';
+      const errorMessage = getErrorMessage(err, 'Failed to cancel order');
       setError(errorMessage);
       console.error('Cancel order error:', err);
     } finally {

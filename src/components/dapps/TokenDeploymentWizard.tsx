@@ -10,6 +10,7 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagm
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { validateTokenConfig, tokensToWei, calculateTokenAllocation, type TokenDeploymentConfig } from '@/lib/contracts/tokenDeployment';
 import { DAPP_TOKEN_ABI } from '@/lib/contracts/abis';
+import { getErrorMessage } from '@/lib/utils';
 
 export interface TokenDeploymentWizardProps {
   dAppId: string;
@@ -97,7 +98,7 @@ export function TokenDeploymentWizard({
 
     } catch (error) {
       console.error('Deployment failed:', error);
-      setErrors({ general: error instanceof Error ? error.message : 'Deployment failed' });
+      setErrors({ general: getErrorMessage(error, 'Deployment failed') });
     } finally {
       setIsDeploying(false);
     }

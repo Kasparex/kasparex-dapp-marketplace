@@ -374,7 +374,7 @@ export function SimplePaymentWidget() {
       });
     } catch (err) {
       console.error('Write contract error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to send payment';
+      const errorMessage = getErrorMessage(err, 'Failed to send payment');
       // Handle common errors
       if (errorMessage.includes('length') || errorMessage.includes('undefined')) {
         setError('Address validation error. Please check the recipient address format.');

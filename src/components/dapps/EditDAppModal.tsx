@@ -129,7 +129,7 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
       }
     },
     onError: (err) => {
-      setError(err.message || 'Payment failed');
+      setError(getErrorMessage(err, 'Payment failed'));
     },
   });
 

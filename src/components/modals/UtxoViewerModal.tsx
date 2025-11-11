@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { getUtxoEntries } from '@/lib/kaspa/kasware';
 import { sompisToKas } from '@/lib/kaspa/api';
+import { getErrorMessage } from '@/lib/utils';
 
 interface UtxoViewerModalProps {
   isOpen: boolean;
@@ -32,7 +33,7 @@ export function UtxoViewerModal({ isOpen, onClose }: UtxoViewerModalProps) {
       const entries = await getUtxoEntries();
       setUtxos(entries || []);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch UTXOs';
+      const errorMessage = getErrorMessage(err, 'Failed to fetch UTXOs');
       setError(errorMessage);
       console.error('Fetch UTXOs error:', err);
     } finally {

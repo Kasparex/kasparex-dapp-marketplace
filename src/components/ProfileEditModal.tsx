@@ -121,7 +121,7 @@ export function ProfileEditModal({
       }
     },
     onError: (err) => {
-      setError(err.message || 'Payment failed');
+      setError(getErrorMessage(err, 'Payment failed'));
     },
   });
 

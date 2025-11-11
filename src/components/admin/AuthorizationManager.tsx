@@ -6,6 +6,7 @@ import { getAllDApps, DApp } from '@/lib/dapps';
 import { isAddress } from 'viem';
 import { useAccount, useChainId } from 'wagmi';
 import { useSafeError } from '@/hooks/useSafeError';
+import { getErrorMessage } from '@/lib/utils';
 
 export function AuthorizationManager() {
   const [selectedDApp, setSelectedDApp] = useState<DApp | null>(null);
@@ -65,7 +66,7 @@ export function AuthorizationManager() {
       await assignDeveloper(dAppId, developerAddress);
     } catch (error) {
       // Error is already converted to string in the hook
-      const errorMsg = error instanceof Error ? error.message : String(error);
+      const errorMsg = getErrorMessage(error, 'Failed to assign developer');
       console.error('Error assigning developer:', errorMsg);
       // The error will be displayed via safeAssignError from the hook
     }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { sendKaspa } from '@/lib/kaspa/kasware';
 import { kasToSompis } from '@/lib/kaspa/api';
+import { getErrorMessage } from '@/lib/utils';
 
 interface SendTransactionModalProps {
   isOpen: boolean;
@@ -71,7 +72,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address 
         setPriorityFee('');
       }, 2000);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to send transaction';
+      const errorMessage = getErrorMessage(err, 'Failed to send transaction');
       setError(errorMessage);
       console.error('Send transaction error:', err);
     } finally {

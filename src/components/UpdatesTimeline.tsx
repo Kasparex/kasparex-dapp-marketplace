@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import type { UpdatesData, TimelineEntry, Category } from '@/lib/updates';
 import { getCategoryLabel, sortEntriesByDate, formatDate, getRelativeTime } from '@/lib/updates';
+import { getErrorMessage } from '@/lib/utils';
 
 interface UpdatesTimelineProps {
   onEdit?: (entry: TimelineEntry, category: Category) => void;
@@ -29,7 +30,7 @@ export function UpdatesTimeline({ onEdit, refreshKey, showEditButton = false }: 
         setError(result.error || 'Failed to load updates');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to load updates');
+      setError(getErrorMessage(err, 'Failed to load updates'));
     } finally {
       setLoading(false);
     }

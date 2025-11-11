@@ -14,6 +14,7 @@ import type { KasWareAPI } from '@/lib/kaspa/kasware';
 import { SendTransactionModal } from './modals/SendTransactionModal';
 import { KRC20OrderModal } from './modals/KRC20OrderModal';
 import { UtxoViewerModal } from './modals/UtxoViewerModal';
+import { getErrorMessage } from '@/lib/utils';
 
 interface KasWareWindow {
   kasware?: KasWareAPI;
@@ -357,7 +358,7 @@ export function KasWareWalletButton() {
         address: normalizedAddress,
       }));
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to connect to KasWare wallet';
+      const errorMessage = getErrorMessage(err, 'Failed to connect to KasWare wallet');
       setError(errorMessage);
       console.error('KasWare connection error:', err);
     } finally {
