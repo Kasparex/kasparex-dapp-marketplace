@@ -39,7 +39,7 @@ export function useGRIDToken(gridTokenAddress: string | null | undefined): UseGR
       enabled: isConnected && !!address && !!gridTokenAddress,
       refetchInterval: 30000, // Auto-refresh every 30 seconds
     },
-  });
+  }) as { data: bigint | undefined; isLoading: boolean; error: Error | null; refetch: () => void };
 
   // Get total supply
   const { data: totalSupply, isLoading: isLoadingSupply } = useReadContract({
@@ -50,7 +50,7 @@ export function useGRIDToken(gridTokenAddress: string | null | undefined): UseGR
       enabled: !!gridTokenAddress,
       refetchInterval: 60000,
     },
-  });
+  }) as { data: bigint | undefined; isLoading: boolean };
 
   // Get total burned
   const { data: totalBurned, isLoading: isLoadingBurned } = useReadContract({
@@ -61,7 +61,7 @@ export function useGRIDToken(gridTokenAddress: string | null | undefined): UseGR
       enabled: !!gridTokenAddress,
       refetchInterval: 60000,
     },
-  });
+  }) as { data: bigint | undefined; isLoading: boolean };
 
   // Get circulating supply
   const { data: circulatingSupply, isLoading: isLoadingCirculating } = useReadContract({
@@ -72,7 +72,7 @@ export function useGRIDToken(gridTokenAddress: string | null | undefined): UseGR
       enabled: !!gridTokenAddress,
       refetchInterval: 60000,
     },
-  });
+  }) as { data: bigint | undefined; isLoading: boolean };
 
   // Get burn percentage
   const { data: burnPercentageBP } = useReadContract({
@@ -83,7 +83,7 @@ export function useGRIDToken(gridTokenAddress: string | null | undefined): UseGR
       enabled: !!gridTokenAddress,
       refetchInterval: 60000,
     },
-  });
+  }) as { data: bigint | undefined };
 
   // Burn function
   const { writeContract, data: burnHash, isPending: isBurning } = useWriteContract();
