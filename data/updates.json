@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762903781-b4b1ded",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix: Change KASTip category from 'social' to 'payment' to match valid Category type (by Kasparex)",
+      "date": "2025-11-12T00:29:20+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762903566-2329819",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add GRID token reward system: configure all dApps, transfer tokens, and create management scripts (by Kasparex)",
