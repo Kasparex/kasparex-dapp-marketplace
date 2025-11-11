@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762879100-4a16efa",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Deploy ecosystem contracts and integrate frontend - Added ecosystem contracts (GRIDToken, RewardManager, ProofOfUtility, FeeHandler, etc.) - Integrated frontend components (TokenDisplay, RewardsDisplay, ProofOfUtility, AffiliateWidget) - Updated contract addresses for Kasplex L2 Testnet - Optimized performance (reduced polling intervals, removed redundant polling) - Added Vercel deployment configuration - Created test pages for ecosystem and IPFS integration - Switched from Fleek to Pinata for IPFS storage (by Kasparex)",
+      "date": "2025-11-11T17:37:51+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762562103-9e96b54",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Merge branch 'main' of https://github.com/Kasparex/kasparex-dapp-marketplace (by Kasparex)",
