@@ -87,7 +87,7 @@ export function IconDisplay({
       ...baseStyle,
       backgroundColor: icon.colors.backgroundColor,
     };
-  }, [icon]);
+  }, [icon, size]);
 
   return (
     <div
