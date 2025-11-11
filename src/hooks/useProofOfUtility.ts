@@ -46,7 +46,7 @@ export function useProofOfUtility(
       enabled: !!address && !!proofOfUtilityAddress,
       refetchInterval: 30000, // Auto-refresh every 30 seconds
     },
-  });
+  }) as { data: unknown; isLoading: boolean; error: Error | null; refetch: () => void };
 
   // Watch for new events
   useWatchContractEvent({
@@ -90,7 +90,7 @@ export function useProofOfUtility(
       enabled: !!address && !!proofOfUtilityAddress,
       refetchInterval: 30000,
     },
-  });
+  }) as { data: bigint | undefined };
 
   return {
     events,

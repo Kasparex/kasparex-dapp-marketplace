@@ -66,7 +66,7 @@ export function useAffiliate(
       enabled: !!referralCode && !!dAppContract && !!affiliateManagerAddress,
       refetchInterval: 30000, // Auto-refresh every 30 seconds
     },
-  });
+  }) as { data: bigint | undefined; isLoading: boolean; error: Error | null; refetch: () => void };
 
   // Get affiliate's referrals
   const { data: referrals, isLoading: isLoadingReferrals } = useReadContract({
@@ -78,7 +78,7 @@ export function useAffiliate(
       enabled: !!referralCode && !!affiliateManagerAddress,
       refetchInterval: 30000,
     },
-  });
+  }) as { data: unknown; isLoading: boolean };
 
   const parsedReferrals: Referral[] = referrals && Array.isArray(referrals)
     ? referrals.map((ref: any) => ({
