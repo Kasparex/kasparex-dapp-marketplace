@@ -368,10 +368,10 @@ export function KASTipWidget({
             )}
           </div>
 
-          {rewardManagerAddress && dAppTokenAddress && (
+          {dAppTokenAddress && (
             <div className="bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-4">
               <RewardsDisplay
-                rewardManagerAddress={rewardManagerAddress}
+                gridTokenAddress={undefined} // Will be fetched from contract addresses
                 dAppTokenAddress={dAppTokenAddress}
                 ticker={ticker || undefined}
               />

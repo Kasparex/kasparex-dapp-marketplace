@@ -245,6 +245,32 @@ export const placeholderDApps: DApp[] = [
     // Contract address will be fetched from environment variables via getContractAddress
     // deployerAddress will be fetched from DAppRegistry contract
   },
+  {
+    id: '13',
+    name: 'KAS Tipping System',
+    slug: 'kas-tipping-system',
+    category: 'social',
+    utility: 'Tip KAS to anyone and earn rewards for your activity. Track top tippers on the leaderboard.',
+    process: 'Enter recipient address and tip amount. Optionally add a referral address. Each tip records a usage event and can earn GRID or KAST token rewards.',
+    benefits: 'Support creators, earn rewards, compete on leaderboard. Full ecosystem integration with Proof-of-Utility, affiliate system, and token rewards.',
+    developer: 'Kasparex',
+    developerLinks: [
+      { label: 'Website', url: 'https://www.kasparex.com' },
+      { label: 'Telegram', url: 'https://t.me/kasparex' },
+      { label: 'X (Twitter)', url: 'https://x.com/kasparex' },
+    ],
+    status: 'Testnet',
+    network: 'Kasplex L2 Testnet',
+    provider: 'Kasparex',
+    version: '1.0.0',
+    description: 'KAS Tipping System is a fully-featured dApp that demonstrates all ecosystem integrations: tipping, leaderboard, Proof-of-Utility tracking, affiliate referrals, and token rewards. Tip KAS to anyone and earn GRID or KAST tokens for your activity.',
+    security: 'Built with OpenZeppelin contracts for security. All smart contracts use ReentrancyGuard to prevent reentrancy attacks. Fee collection is automated via FeeHandler (60/40 split). Full integration with ecosystem contracts.',
+    roadmap: 'Q1 2025: Testnet launch and ecosystem testing\nQ2 2025: Mainnet deployment\nQ3 2025: Enhanced leaderboard features and analytics\nQ4 2025: Integration with social platforms',
+    createdAt: new Date().toISOString(),
+    supportedChainIds: [167012], // Kasplex L2 Testnet
+    contractAddress: '0x962d06f6c11A95CBc02D5f965135368492d37Fd3', // KASTip contract address
+    deployerAddress: '0x658420Fd88dbd610249a88384f9B1aD387F797c7', // Deployer address
+  },
 ];
 
 export interface FilterState {

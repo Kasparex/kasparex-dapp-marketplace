@@ -7,6 +7,7 @@ import { NetworkCompatibilityModal } from './NetworkCompatibilityModal';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
 import { SimplePaymentWidget } from './dapps/SimplePaymentWidget';
 import { DAOVotingWidget } from './dapps/DAOVotingWidget';
+import { KASTipWidget } from './dapps/KASTipWidget';
 import { DAppWidgetHeader } from './dapps/DAppWidgetHeader';
 import { DAppWidgetFooter } from './dapps/DAppWidgetFooter';
 import { getContractAddress } from '@/lib/contracts/addresses';
@@ -67,6 +68,9 @@ export function DAppWidget({
     } catch (e) {
       console.warn('Could not get DAOVoting contract address');
     }
+  }
+  if (!contractAddress && (dapp.slug === 'kas-tipping-system' || dapp.id === '13')) {
+    contractAddress = dapp.contractAddress || '0x962d06f6c11A95CBc02D5f965135368492d37Fd3';
   }
 
   // Render SimplePayment widget if it's the Simple Payment dApp
@@ -134,6 +138,58 @@ export function DAppWidget({
           )}
           <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
             <DAOVotingWidget />
+          </div>
+          {!hideFooter && (
+            <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
+              <DAppWidgetFooter contractAddress={contractAddress} />
+            </div>
+          )}
+        </div>
+      </>
+    );
+  }
+
+  // Render KASTip widget if it's the KAS Tipping System dApp
+  if (dapp.slug === 'kas-tipping-system' || dapp.id === '13') {
+    // Get ecosystem contract addresses
+    const proofOfUtilityAddress = getContractAddress(chainId, 'ProofOfUtility') || undefined;
+    const affiliateManagerAddress = getContractAddress(chainId, 'AffiliateManager') || undefined;
+    const rewardManagerAddress = getContractAddress(chainId, 'RewardManager') || undefined;
+    const dAppTokenAddress = '0x58f026dC9985a253620C5ceDE16EC6316E5085C1'; // KAST token
+    const ticker = 'KAST';
+
+    return (
+      <>
+        <NetworkCompatibilityModal
+          dapp={dapp}
+          isOpen={showModal}
+          onClose={handleModalClose}
+        />
+        <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
+          {!hideHeader && (
+            <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
+              <DAppWidgetHeader 
+                dapp={dapp} 
+                contractAddress={contractAddress}
+                hideIcons={hideIcons}
+                hideStar={hideStar}
+                hideHeart={hideHeart}
+                hideInfo={hideInfo}
+                hideEmbed={hideEmbed}
+                hideTheme={hideTheme}
+                accentColor={accentColor}
+              />
+            </div>
+          )}
+          <div className={`p-6 ${!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}`}>
+            <KASTipWidget
+              contractAddress={contractAddress}
+              proofOfUtilityAddress={proofOfUtilityAddress}
+              affiliateManagerAddress={affiliateManagerAddress}
+              rewardManagerAddress={rewardManagerAddress}
+              dAppTokenAddress={dAppTokenAddress}
+              ticker={ticker}
+            />
           </div>
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>

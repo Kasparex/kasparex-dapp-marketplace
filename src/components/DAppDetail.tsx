@@ -23,7 +23,13 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
   const chainId = useChainId();
   
   // Get contract data to check for token
-  const contractAddress = dapp.contractAddress || getContractAddress(chainId, 'DAppRegistry') || '';
+  let contractAddress = dapp.contractAddress || '';
+  if (!contractAddress && dapp.slug === 'kas-tipping-system') {
+    contractAddress = '0x962d06f6c11A95CBc02D5f965135368492d37Fd3'; // KASTip contract
+  }
+  if (!contractAddress) {
+    contractAddress = getContractAddress(chainId, 'DAppRegistry') || '';
+  }
   const { data: contractData } = useDAppFromContract(
     contractAddress?.startsWith('0x') ? contractAddress : undefined,
     chainId
@@ -57,12 +63,12 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
       )}
 
       {/* Rewards Display */}
-      {(gridTokenAddress || contractData?.tokenAddress) && (
+      {(gridTokenAddress || contractData?.tokenAddress || (dapp.slug === 'kas-tipping-system' && '0x58f026dC9985a253620C5ceDE16EC6316E5085C1')) && (
         <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
           <RewardsDisplay
             gridTokenAddress={gridTokenAddress}
-            dAppTokenAddress={contractData?.tokenAddress || undefined}
-            ticker={contractData?.ticker || undefined}
+            dAppTokenAddress={dapp.slug === 'kas-tipping-system' ? '0x58f026dC9985a253620C5ceDE16EC6316E5085C1' : (contractData?.tokenAddress || undefined)}
+            ticker={dapp.slug === 'kas-tipping-system' ? 'KAST' : (contractData?.ticker || undefined)}
           />
         </div>
       )}
@@ -77,12 +83,21 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
       )}
 
       {/* Affiliate Widget */}
-      <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
-        <AffiliateWidget
-          dAppId={dapp.id}
-          dAppName={dapp.name}
-        />
-      </div>
+      {dapp.slug === 'kas-tipping-system' ? (
+        <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
+          <AffiliateWidget
+            affiliateManagerAddress={getContractAddress(chainId, 'AffiliateManager') || undefined}
+            dAppContractAddress={contractAddress}
+          />
+        </div>
+      ) : (
+        <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
+          <AffiliateWidget
+            dAppId={dapp.id}
+            dAppName={dapp.name}
+          />
+        </div>
+      )}
     </div>
   );
 }
