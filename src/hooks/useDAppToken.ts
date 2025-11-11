@@ -5,6 +5,7 @@
 
 'use client';
 
+import { useMemo } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { DAPP_TOKEN_ABI } from '@/lib/contracts/abis';
 
