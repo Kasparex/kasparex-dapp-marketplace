@@ -36,7 +36,7 @@ export function RewardsDisplay({
       enabled: isConnected && !!address && !!gridTokenAddress,
       refetchInterval: 30000, // Auto-refresh every 30 seconds
     },
-  });
+  }) as { data: bigint | undefined; refetch: () => void };
 
   // Get dApp token balance
   const { data: dAppTokenBalance, refetch: refetchDAppToken } = useReadContract({
@@ -48,7 +48,7 @@ export function RewardsDisplay({
       enabled: isConnected && !!address && !!dAppTokenAddress,
       refetchInterval: 30000,
     },
-  });
+  }) as { data: bigint | undefined; refetch: () => void };
 
   const formattedGridBalance = useMemo(() => {
     if (!gridBalance) return '0';
@@ -63,8 +63,8 @@ export function RewardsDisplay({
   }, [dAppTokenBalance]);
 
   const hasRewards = useMemo(() => {
-    return (gridBalance && Number(gridBalance) > 0) || 
-           (dAppTokenBalance && Number(dAppTokenBalance) > 0);
+    return (gridBalance !== undefined && gridBalance !== null && Number(gridBalance) > 0) || 
+           (dAppTokenBalance !== undefined && dAppTokenBalance !== null && Number(dAppTokenBalance) > 0);
   }, [gridBalance, dAppTokenBalance]);
 
   if (!isConnected || !address) {

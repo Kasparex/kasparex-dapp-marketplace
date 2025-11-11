@@ -41,7 +41,7 @@ export function ProofOfUtility({
       enabled: !!address && !!proofOfUtilityAddress,
       refetchInterval: 30000, // Auto-refresh every 30 seconds
     },
-  });
+  }) as { data: unknown; isLoading: boolean };
 
   // Get total event count
   const { data: eventCount } = useReadContract({
@@ -53,7 +53,7 @@ export function ProofOfUtility({
       enabled: !!address && !!proofOfUtilityAddress,
       refetchInterval: 30000,
     },
-  });
+  }) as { data: bigint | undefined };
 
   const recentEvents = useMemo(() => {
     if (!events || !Array.isArray(events)) return [];

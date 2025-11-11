@@ -46,7 +46,7 @@ export function TokenDisplay({
     query: {
       enabled: !!tokenAddress,
     },
-  });
+  }) as { data: bigint | undefined };
 
   const allocationBreakdown = useMemo(() => {
     return {
@@ -131,7 +131,7 @@ export function TokenDisplay({
           <span className="text-zinc-600 dark:text-zinc-400">Total Supply</span>
           <span className="font-medium text-zinc-900 dark:text-zinc-100">{formattedTotalSupply} {ticker}</span>
         </div>
-        {remainingSupply && (
+        {remainingSupply !== undefined && remainingSupply !== null && (
           <div className="flex justify-between">
             <span className="text-zinc-600 dark:text-zinc-400">Remaining</span>
             <span className="font-medium text-zinc-900 dark:text-zinc-100">{formattedRemaining} {ticker}</span>
