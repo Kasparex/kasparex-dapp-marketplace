@@ -7,7 +7,7 @@
 
 import { IconDisplay, type IconDisplayProps } from '@/components/IconDisplay';
 
-export interface TokenIconProps extends Omit<IconDisplayProps, 'type'> {
+export interface TokenIconProps extends Omit<IconDisplayProps, 'type' | 'identifier' | 'ticker'> {
   ticker: string;
   size?: number;
   className?: string;
