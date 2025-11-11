@@ -63,7 +63,7 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
       )}
 
       {/* Rewards Display */}
-      {(gridTokenAddress || contractData?.tokenAddress || (dapp.slug === 'kas-tipping-system' && '0x58f026dC9985a253620C5ceDE16EC6316E5085C1')) && (
+      {(gridTokenAddress || contractData?.tokenAddress || dapp.slug === 'kas-tipping-system') && (
         <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
           <RewardsDisplay
             gridTokenAddress={gridTokenAddress}

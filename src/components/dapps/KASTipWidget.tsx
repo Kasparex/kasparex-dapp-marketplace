@@ -10,6 +10,7 @@ import { UserIcon } from '@/components/users/UserIcon';
 import { ProofOfUtility } from '@/components/dapps/ProofOfUtility';
 import { AffiliateWidget } from '@/components/dapps/AffiliateWidget';
 import { RewardsDisplay } from '@/components/dapps/RewardsDisplay';
+import { getContractAddress } from '@/lib/contracts/addresses';
 
 export interface KASTipWidgetProps {
   contractAddress: string;
@@ -371,7 +372,7 @@ export function KASTipWidget({
           {dAppTokenAddress && (
             <div className="bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-4">
               <RewardsDisplay
-                gridTokenAddress={undefined} // Will be fetched from contract addresses
+                gridTokenAddress={getContractAddress(chainId, 'GRIDToken') || undefined}
                 dAppTokenAddress={dAppTokenAddress}
                 ticker={ticker || undefined}
               />
