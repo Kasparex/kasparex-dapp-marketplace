@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762880793-e6acee6",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: Add fallback for icon.config.size (by Kasparex)",
+      "date": "2025-11-11T18:06:07+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762880607-7ca6d69",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: Convert null to undefined for RewardsDisplay props (by Kasparex)",
