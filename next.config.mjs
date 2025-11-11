@@ -25,7 +25,7 @@ const nextConfig = {
   },
   
   // Exclude Hardhat files from webpack compilation
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, webpack }) => {
     // Exclude Hardhat and contract-related files from client bundle
     if (!isServer) {
       config.resolve.fallback = {
@@ -43,6 +43,14 @@ const nextConfig = {
         'idb': false,
         'indexeddb': false,
       };
+      
+      // Provide a mock for indexedDB global during SSR
+      config.plugins = config.plugins || [];
+      config.plugins.push(
+        new webpack.DefinePlugin({
+          'typeof indexedDB': JSON.stringify('undefined'),
+        })
+      );
     }
     
     // Ignore Hardhat-related files

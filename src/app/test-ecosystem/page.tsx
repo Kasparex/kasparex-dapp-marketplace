@@ -5,6 +5,9 @@
 
 'use client';
 
+// Force dynamic rendering to avoid SSR issues with client-only APIs
+export const dynamic = 'force-dynamic';
+
 import { useAccount, useChainId } from 'wagmi';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { TokenDisplay } from '@/components/dapps/TokenDisplay';
