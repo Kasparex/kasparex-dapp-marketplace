@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762879910-44fe2f6",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix Vercel build: Use pnpm instead of npm to match lockfile (by Kasparex)",
+      "date": "2025-11-11T17:51:26+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762879595-822f280",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix Vercel deployment: Improve Suspense fallback and add env var documentation (by Kasparex)",
