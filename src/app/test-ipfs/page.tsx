@@ -191,7 +191,7 @@ export default function TestIPFSPage() {
                 {uploadError.message}
               </p>
               <p className="text-xs text-red-500 dark:text-red-500 mt-2">
-                Check your API keys in .env.local and make sure they're correct.
+                Check your API keys in .env.local and make sure they&apos;re correct.
               </p>
             </div>
           )}
