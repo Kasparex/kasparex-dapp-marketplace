@@ -37,7 +37,7 @@ export function useDAppToken(tokenAddress: string | null | undefined): UseDAppTo
       enabled: isConnected && !!address && !!tokenAddress,
       refetchInterval: 30000, // Auto-refresh every 30 seconds
     },
-  });
+  }) as { data: bigint | undefined; isLoading: boolean; error: Error | null; refetch: () => void };
 
   // Get total supply
   const { data: totalSupply, isLoading: isLoadingSupply } = useReadContract({
@@ -48,7 +48,7 @@ export function useDAppToken(tokenAddress: string | null | undefined): UseDAppTo
       enabled: !!tokenAddress,
       refetchInterval: 60000, // Refresh every minute
     },
-  });
+  }) as { data: bigint | undefined; isLoading: boolean };
 
   // Get remaining supply
   const { data: remainingSupply, isLoading: isLoadingRemaining } = useReadContract({
@@ -59,7 +59,7 @@ export function useDAppToken(tokenAddress: string | null | undefined): UseDAppTo
       enabled: !!tokenAddress,
       refetchInterval: 60000,
     },
-  });
+  }) as { data: bigint | undefined; isLoading: boolean };
 
   // Transfer function
   const { writeContract, data: transferHash, isPending: isTransferring } = useWriteContract();
