@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762894578-53da7f8",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix error handling: Use getErrorMessage everywhere to prevent 'in' operator errors (by Kasparex)",
+      "date": "2025-11-11T21:55:43+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762883506-8d25e7f",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix build errors: Wrap useSearchParams in Suspense and handle indexedDB for SSR (by Kasparex)",
