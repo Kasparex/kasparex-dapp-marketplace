@@ -7,7 +7,7 @@
 
 import { IconDisplay, type IconDisplayProps } from '@/components/IconDisplay';
 
-export interface UserIconProps extends Omit<IconDisplayProps, 'type'> {
+export interface UserIconProps extends Omit<IconDisplayProps, 'type' | 'identifier' | 'address'> {
   address: string;
   size?: number;
   className?: string;

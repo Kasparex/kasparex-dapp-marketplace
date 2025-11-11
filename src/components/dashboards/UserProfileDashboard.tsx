@@ -40,7 +40,7 @@ export function UserProfileDashboard({
     query: {
       enabled: isConnected && !!address && !!profileRegistryAddress,
     },
-  });
+  }) as { data: string | undefined };
 
   // Get profile data
   const { data: profileData } = useReadContract({
@@ -51,7 +51,7 @@ export function UserProfileDashboard({
     query: {
       enabled: isConnected && !!address && !!profileRegistryAddress,
     },
-  });
+  }) as { data: [string, string] | undefined };
 
   const { writeContract, data: updateHash, isPending } = useWriteContract();
   const { isLoading: isConfirming } = useWaitForTransactionReceipt({
