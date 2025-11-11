@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762881507-f78fa70",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix all TypeScript errors: Add type assertions for useReadContract data in all components (by Kasparex)",
+      "date": "2025-11-11T18:18:10+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762881218-df7c48e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: Add type guard for balance in TokenDisplay (by Kasparex)",
