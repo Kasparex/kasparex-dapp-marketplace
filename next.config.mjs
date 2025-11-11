@@ -36,6 +36,15 @@ const nextConfig = {
       };
     }
     
+    // Handle indexedDB for SSR - provide a mock during server-side rendering
+    if (isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        'idb': false,
+        'indexeddb': false,
+      };
+    }
+    
     // Ignore Hardhat-related files
     config.module = config.module || {};
     config.module.rules = config.module.rules || [];
