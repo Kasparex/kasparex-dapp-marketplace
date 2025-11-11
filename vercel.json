@@ -3,10 +3,6 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "regions": ["iad1"],
-  "env": {
-    "NEXT_PUBLIC_PINATA_API_KEY": "@pinata_api_key",
-    "NEXT_PUBLIC_PINATA_API_SECRET": "@pinata_api_secret"
-  }
+  "regions": ["iad1"]
 }
 
