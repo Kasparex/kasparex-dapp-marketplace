@@ -8,14 +8,18 @@
 // Force dynamic rendering to avoid SSR issues with client-only APIs
 export const dynamic = 'force-dynamic';
 
+import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { useAccount, useChainId } from 'wagmi';
 import { getContractAddress } from '@/lib/contracts/addresses';
-import { TokenDisplay } from '@/components/dapps/TokenDisplay';
-import { RewardsDisplay } from '@/components/dapps/RewardsDisplay';
-import { ProofOfUtility } from '@/components/dapps/ProofOfUtility';
-import { AffiliateWidget } from '@/components/dapps/AffiliateWidget';
 
-export default function TestEcosystemPage() {
+// Dynamically import components that might use indexedDB to avoid SSR issues
+const TokenDisplay = dynamic(() => import('@/components/dapps/TokenDisplay').then(mod => ({ default: mod.TokenDisplay })), { ssr: false });
+const RewardsDisplay = dynamic(() => import('@/components/dapps/RewardsDisplay').then(mod => ({ default: mod.RewardsDisplay })), { ssr: false });
+const ProofOfUtility = dynamic(() => import('@/components/dapps/ProofOfUtility').then(mod => ({ default: mod.ProofOfUtility })), { ssr: false });
+const AffiliateWidget = dynamic(() => import('@/components/dapps/AffiliateWidget').then(mod => ({ default: mod.AffiliateWidget })), { ssr: false });
+
+function TestEcosystemContent() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
 
@@ -170,6 +174,22 @@ export default function TestEcosystemPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function TestEcosystemPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center text-zinc-600 dark:text-zinc-400">
+            Loading ecosystem test page...
+          </div>
+        </div>
+      </div>
+    }>
+      <TestEcosystemContent />
+    </Suspense>
   );
 }
 
