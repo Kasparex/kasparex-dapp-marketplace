@@ -249,7 +249,7 @@ export const placeholderDApps: DApp[] = [
     id: '13',
     name: 'KAS Tipping System',
     slug: 'kas-tipping-system',
-    category: 'social',
+    category: 'payment',
     utility: 'Tip KAS to anyone and earn rewards for your activity. Track top tippers on the leaderboard.',
     process: 'Enter recipient address and tip amount. Optionally add a referral address. Each tip records a usage event and can earn GRID or KAST token rewards.',
     benefits: 'Support creators, earn rewards, compete on leaderboard. Full ecosystem integration with Proof-of-Utility, affiliate system, and token rewards.',
