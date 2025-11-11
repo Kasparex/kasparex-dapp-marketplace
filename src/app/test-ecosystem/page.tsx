@@ -9,15 +9,15 @@
 export const dynamic = 'force-dynamic';
 
 import { Suspense } from 'react';
-import dynamic from 'next/dynamic';
+import nextDynamic from 'next/dynamic';
 import { useAccount, useChainId } from 'wagmi';
 import { getContractAddress } from '@/lib/contracts/addresses';
 
 // Dynamically import components that might use indexedDB to avoid SSR issues
-const TokenDisplay = dynamic(() => import('@/components/dapps/TokenDisplay').then(mod => ({ default: mod.TokenDisplay })), { ssr: false });
-const RewardsDisplay = dynamic(() => import('@/components/dapps/RewardsDisplay').then(mod => ({ default: mod.RewardsDisplay })), { ssr: false });
-const ProofOfUtility = dynamic(() => import('@/components/dapps/ProofOfUtility').then(mod => ({ default: mod.ProofOfUtility })), { ssr: false });
-const AffiliateWidget = dynamic(() => import('@/components/dapps/AffiliateWidget').then(mod => ({ default: mod.AffiliateWidget })), { ssr: false });
+const TokenDisplay = nextDynamic(() => import('@/components/dapps/TokenDisplay').then(mod => ({ default: mod.TokenDisplay })), { ssr: false });
+const RewardsDisplay = nextDynamic(() => import('@/components/dapps/RewardsDisplay').then(mod => ({ default: mod.RewardsDisplay })), { ssr: false });
+const ProofOfUtility = nextDynamic(() => import('@/components/dapps/ProofOfUtility').then(mod => ({ default: mod.ProofOfUtility })), { ssr: false });
+const AffiliateWidget = nextDynamic(() => import('@/components/dapps/AffiliateWidget').then(mod => ({ default: mod.AffiliateWidget })), { ssr: false });
 
 function TestEcosystemContent() {
   const { address, isConnected } = useAccount();
