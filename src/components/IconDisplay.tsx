@@ -60,15 +60,18 @@ export function IconDisplay({
   }, [type, identifier, name, category, ticker, address, size, showLetter, gradient]);
 
   const style = useMemo(() => {
+    const iconSize = icon.config.size || size || 48;
+    const borderRadius = icon.config.borderRadius || 8;
+    
     const baseStyle: React.CSSProperties = {
-      width: `${icon.config.size}px`,
-      height: `${icon.config.size}px`,
-      borderRadius: `${icon.config.borderRadius}px`,
+      width: `${iconSize}px`,
+      height: `${iconSize}px`,
+      borderRadius: `${borderRadius}px`,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       fontWeight: 'bold',
-      fontSize: `${Math.floor(icon.config.size * 0.4)}px`,
+      fontSize: `${Math.floor(iconSize * 0.4)}px`,
       color: icon.colors.textColor,
       flexShrink: 0,
     };
