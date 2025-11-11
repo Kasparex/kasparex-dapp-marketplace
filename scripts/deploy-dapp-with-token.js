@@ -143,8 +143,8 @@ async function main() {
     await registerTx.wait();
     console.log('   ✅ dApp registered in DAppRegistry');
     
-    // Get the dApp ID
-    const dAppId = await dAppRegistry.getDAppCount();
+    // Get the dApp ID (dAppCount is a public variable, not a function)
+    const dAppId = await dAppRegistry.dAppCount();
     console.log('   📝 dApp ID:', dAppId.toString());
 
     // Step 3.5: Set dApp ID in KASTip contract
@@ -155,14 +155,25 @@ async function main() {
 
     // Step 4: Link token to dApp in DAppRegistry
     console.log('\n4️⃣  Linking token to dApp...');
-    const linkTokenTx = await dAppRegistry.linkDAppToToken(
-      dAppId, // dApp IDs are 1-indexed
-      tokenAddress,
-      tokenSymbol,
-      maxSupplyWei
-    );
-    await linkTokenTx.wait();
-    console.log('   ✅ Token linked to dApp');
+    try {
+      // Check if deployer has admin role (if not, we'll need to grant it or use deployer account)
+      const linkTokenTx = await dAppRegistry.linkDAppToToken(
+        dAppId, // dApp IDs are 1-indexed
+        tokenAddress,
+        tokenSymbol,
+        maxSupplyWei
+      );
+      await linkTokenTx.wait();
+      console.log('   ✅ Token linked to dApp');
+    } catch (error) {
+      console.error('   ⚠️  Failed to link token:', error.message);
+      console.log('   💡 You may need to link the token manually using the deployer account');
+      console.log('   💡 Or grant DEPLOYER_ROLE to the deployer account in DAppRegistry');
+      console.log('   📝 Token address:', tokenAddress);
+      console.log('   📝 dApp ID:', dAppId.toString());
+      console.log('   📝 Token Symbol:', tokenSymbol);
+      console.log('   📝 Max Supply:', maxSupplyWei.toString());
+    }
 
     // Step 5: Save deployment info
     const deploymentInfo = {
