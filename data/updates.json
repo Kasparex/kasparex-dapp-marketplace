@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762904601-6f205f3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix: Use dynamic imports with ssr:false for test-ecosystem components to prevent indexedDB SSR errors (by Kasparex)",
+      "date": "2025-11-12T00:42:53+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762904253-6060052",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: Add dynamic rendering to test-ecosystem page and improve webpack indexedDB handling (by Kasparex)",
