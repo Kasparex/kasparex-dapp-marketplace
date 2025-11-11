@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762880283-9963de2",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: DAppIcon should not require identifier prop (by Kasparex)",
+      "date": "2025-11-11T17:57:46+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762880116-efddf8f",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix ESLint errors: Escape apostrophes and fix React Hooks rules violations (by Kasparex)",
