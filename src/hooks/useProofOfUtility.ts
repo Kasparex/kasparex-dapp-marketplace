@@ -55,8 +55,9 @@ export function useProofOfUtility(
     eventName: 'UsageEventRecorded',
     onLogs(logs) {
       // Filter logs for this user
-      const userLogs = logs.filter(
-        (log) => log.args.user?.toLowerCase() === address?.toLowerCase()
+      // Type assertion: logs from useWatchContractEvent with typed ABI have args
+      const userLogs = (logs as Array<{ args?: { user?: string } }>).filter(
+        (log) => log.args?.user?.toLowerCase() === address?.toLowerCase()
       );
       
       if (userLogs.length > 0) {
