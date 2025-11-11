@@ -28,6 +28,16 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     SubscriptionManager: "",
     AuthorizationRegistry: "",
     DAOVoting: "0x97004140704097e122CB7B9808330c80464ab69d",
+    GRIDToken: "",
+    RewardVault: "",
+    RewardManager: "",
+    ProofOfUtility: "",
+    FeeHandler: "",
+    AffiliateManager: "",
+    LoyaltyPoints: "",
+    ProfileRegistry: "",
+    UserProfileDashboard: "",
+    AdminDashboard: "",
   },
   kasplexL2Testnet: {
     Treasury: "0x305B4ee627aD8b12bFCF6427453964771aA30622",
@@ -39,6 +49,16 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     SubscriptionManager: "0x0F405c342e9596621430C5f888D673d40111a0ac",
     AuthorizationRegistry: "0x90A9aa9eB4C91b9c7A6eb72248bDe6a9FB6f79ef",
     DAOVoting: "0xf5b2a43A626116690675676C00f4b2c4c86020D3",
+    GRIDToken: "0x6c4B153eE2Fe3EfcD9CbF5D4A55e058d40Ec86a2",
+    RewardVault: "0x59e49E4f60397CC1C2F0eB3d7ebcF9C9c8AACCAD",
+    RewardManager: "0x2044FEb08a4Cb14Ff736b00f947E017044da50E6",
+    ProofOfUtility: "0x1aB97D324Ea68FF7c51A91689564377e433A77f6",
+    FeeHandler: "0xedAb230E5613B07E72D454a843162E207d451A15",
+    AffiliateManager: "0x374fa97A64A43c4fC0AD57dBf6EAE7Ee12924B04",
+    LoyaltyPoints: "0x0Bd1DF89A6747e8570992448337647447a9Ad909",
+    ProfileRegistry: "0x6fa56cC4a1Fc468867a91b94615d6E83D34f044B",
+    UserProfileDashboard: "0x7335913B5dBF5934D98Cd9814A2Af7691541ae43",
+    AdminDashboard: "0x96c6Bab5EB4633eE33D07070E8d59C5bf3aD6502",
   },
   igraCaravelTestnet: {
     Treasury: "",
@@ -64,6 +84,16 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     SubscriptionManager: "",
     AuthorizationRegistry: "",
     DAOVoting: "",
+    GRIDToken: "",
+    RewardVault: "",
+    RewardManager: "",
+    ProofOfUtility: "",
+    FeeHandler: "",
+    AffiliateManager: "",
+    LoyaltyPoints: "",
+    ProfileRegistry: "",
+    UserProfileDashboard: "",
+    AdminDashboard: "",
   },
   kasplexL2Testnet: {
     Treasury: "",
@@ -75,6 +105,16 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     SubscriptionManager: "",
     AuthorizationRegistry: "",
     DAOVoting: "",
+    GRIDToken: "",
+    RewardVault: "",
+    RewardManager: "",
+    ProofOfUtility: "",
+    FeeHandler: "",
+    AffiliateManager: "",
+    LoyaltyPoints: "",
+    ProfileRegistry: "",
+    UserProfileDashboard: "",
+    AdminDashboard: "",
   },
   igraCaravelTestnet: {
     Treasury: "",
@@ -101,6 +141,16 @@ export const CONTRACT_ADDRESSES = {
     SubscriptionManager: getEnvVar('NEXT_PUBLIC_SUBSCRIPTION_MANAGER_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.SubscriptionManager,
     AuthorizationRegistry: getEnvVar('NEXT_PUBLIC_AUTHORIZATION_REGISTRY_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.AuthorizationRegistry,
     DAOVoting: getEnvVar('NEXT_PUBLIC_DAO_VOTING_ADDRESS') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Mainnet.DAOVoting || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.DAOVoting,
+    GRIDToken: getEnvVar('NEXT_PUBLIC_GRID_TOKEN_ADDRESS') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Mainnet.GRIDToken || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.GRIDToken,
+    RewardVault: getEnvVar('NEXT_PUBLIC_REWARD_VAULT_ADDRESS') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Mainnet.RewardVault || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.RewardVault,
+    RewardManager: getEnvVar('NEXT_PUBLIC_REWARD_MANAGER_ADDRESS') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Mainnet.RewardManager || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.RewardManager,
+    ProofOfUtility: getEnvVar('NEXT_PUBLIC_PROOF_OF_UTILITY_ADDRESS') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Mainnet.ProofOfUtility || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.ProofOfUtility,
+    FeeHandler: getEnvVar('NEXT_PUBLIC_FEE_HANDLER_ADDRESS') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Mainnet.FeeHandler || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.FeeHandler,
+    AffiliateManager: getEnvVar('NEXT_PUBLIC_AFFILIATE_MANAGER_ADDRESS') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Mainnet.AffiliateManager || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.AffiliateManager,
+    LoyaltyPoints: getEnvVar('NEXT_PUBLIC_LOYALTY_POINTS_ADDRESS') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Mainnet.LoyaltyPoints || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.LoyaltyPoints,
+    ProfileRegistry: getEnvVar('NEXT_PUBLIC_PROFILE_REGISTRY_ADDRESS') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Mainnet.ProfileRegistry || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.ProfileRegistry,
+    UserProfileDashboard: getEnvVar('NEXT_PUBLIC_USER_PROFILE_DASHBOARD_ADDRESS') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Mainnet.UserProfileDashboard || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.UserProfileDashboard,
+    AdminDashboard: getEnvVar('NEXT_PUBLIC_ADMIN_DASHBOARD_ADDRESS') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Mainnet.AdminDashboard || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.AdminDashboard,
   },
   // Kasplex L2 Testnet (Chain ID: 167012)
   kasplexL2Testnet: {
@@ -113,6 +163,16 @@ export const CONTRACT_ADDRESSES = {
     SubscriptionManager: getEnvVar('NEXT_PUBLIC_SUBSCRIPTION_MANAGER_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.SubscriptionManager,
     AuthorizationRegistry: getEnvVar('NEXT_PUBLIC_AUTHORIZATION_REGISTRY_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.AuthorizationRegistry || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.AuthorizationRegistry,
     DAOVoting: getEnvVar('NEXT_PUBLIC_DAO_VOTING_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.DAOVoting || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.DAOVoting,
+    GRIDToken: getEnvVar('NEXT_PUBLIC_GRID_TOKEN_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.GRIDToken || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.GRIDToken,
+    RewardVault: getEnvVar('NEXT_PUBLIC_REWARD_VAULT_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.RewardVault || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.RewardVault,
+    RewardManager: getEnvVar('NEXT_PUBLIC_REWARD_MANAGER_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.RewardManager || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.RewardManager,
+    ProofOfUtility: getEnvVar('NEXT_PUBLIC_PROOF_OF_UTILITY_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.ProofOfUtility || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.ProofOfUtility,
+    FeeHandler: getEnvVar('NEXT_PUBLIC_FEE_HANDLER_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.FeeHandler || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.FeeHandler,
+    AffiliateManager: getEnvVar('NEXT_PUBLIC_AFFILIATE_MANAGER_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.AffiliateManager || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.AffiliateManager,
+    LoyaltyPoints: getEnvVar('NEXT_PUBLIC_LOYALTY_POINTS_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.LoyaltyPoints || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.LoyaltyPoints,
+    ProfileRegistry: getEnvVar('NEXT_PUBLIC_PROFILE_REGISTRY_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.ProfileRegistry || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.ProfileRegistry,
+    UserProfileDashboard: getEnvVar('NEXT_PUBLIC_USER_PROFILE_DASHBOARD_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.UserProfileDashboard || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.UserProfileDashboard,
+    AdminDashboard: getEnvVar('NEXT_PUBLIC_ADMIN_DASHBOARD_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.AdminDashboard || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.AdminDashboard,
   },
   // Igra Caravel Testnet (Chain ID: 19416)
   igraCaravelTestnet: {
@@ -134,9 +194,27 @@ export const CONTRACT_ADDRESSES = {
  * @param contractName Name of the contract
  * @returns Contract address or empty string if not found
  */
+// vProgs network addresses (placeholder)
+const VPROGS_ADDRESSES = {
+  vProgsTestnet: {
+    DAppRegistry: "",
+    FeeHandler: "",
+    RewardManager: "",
+    GRIDToken: "",
+    // Add other contracts as needed
+  },
+  vProgsMainnet: {
+    DAppRegistry: "",
+    FeeHandler: "",
+    RewardManager: "",
+    GRIDToken: "",
+    // Add other contracts as needed
+  },
+};
+
 export const getContractAddress = (
   chainId: number,
-  contractName: keyof typeof CONTRACT_ADDRESSES.kasplexL2Mainnet
+  contractName: keyof typeof CONTRACT_ADDRESSES.kasplexL2Testnet
 ): string => {
   if (chainId === 202555) {
     return CONTRACT_ADDRESSES.kasplexL2Mainnet[contractName] || "";
@@ -144,6 +222,12 @@ export const getContractAddress = (
     return CONTRACT_ADDRESSES.kasplexL2Testnet[contractName] || "";
   } else if (chainId === 19416) {
     return CONTRACT_ADDRESSES.igraCaravelTestnet[contractName] || "";
+  } else if (chainId === 999999) {
+    // vProgs Testnet
+    return VPROGS_ADDRESSES.vProgsTestnet[contractName as keyof typeof VPROGS_ADDRESSES.vProgsTestnet] || "";
+  } else if (chainId === 999998) {
+    // vProgs Mainnet
+    return VPROGS_ADDRESSES.vProgsMainnet[contractName as keyof typeof VPROGS_ADDRESSES.vProgsMainnet] || "";
   }
   return "";
 };

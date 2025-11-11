@@ -30,13 +30,137 @@ export const FEE_COLLECTOR_ABI = [
 
 export const DAPP_REGISTRY_ABI = [
   "function registerDApp(string memory _name, string memory _version, string memory _category, address _contractAddress) external returns (uint256)",
-  "function linkDAppToToken(uint256 _dAppId, address _tokenAddress) external",
+  "function linkDAppToToken(uint256 _dAppId, address _tokenAddress, string memory _ticker, uint256 _totalSupply) external",
   "function updateDAppStatus(uint256 _dAppId, bool _isActive) external",
-  "function getDApp(uint256 _dAppId) external view returns ((string, string, string, address, address, bool, uint256, address))",
+  "function updateDAppMetadata(uint256 _dAppId, string memory _ipfsCID) external",
+  "function getDApp(uint256 _dAppId) external view returns ((string, string, string, address, address, bool, uint256, address, string, uint256, string))",
+  "function getDAppToken(uint256 _dAppId) external view returns (address)",
   "function getTokenDApps(address _tokenAddress) external view returns (uint256[] memory)",
   "function getDAppIdByContract(address _contractAddress) external view returns (uint256)",
   "function dAppCount() external view returns (uint256)",
   "event DAppRegistered(uint256 indexed dAppId, string name, string version, address indexed deployer, address indexed contractAddress, uint256 timestamp)",
+  "event DAppLinkedToToken(uint256 indexed dAppId, address indexed tokenAddress, string ticker, uint256 totalSupply, uint256 timestamp)",
+  "event DAppMetadataUpdated(uint256 indexed dAppId, string ipfsCID, uint256 timestamp)",
+] as const;
+
+export const DAPP_TOKEN_ABI = [
+  "function balanceOf(address account) external view returns (uint256)",
+  "function totalSupply() external view returns (uint256)",
+  "function getRemainingSupply() external view returns (uint256)",
+  "function MAX_SUPPLY() external view returns (uint256)",
+  "function mint(address to, uint256 amount) external",
+  "function burn(uint256 amount) external",
+  "function transfer(address to, uint256 amount) external returns (bool)",
+  "function approve(address spender, uint256 amount) external returns (bool)",
+  "function allowance(address owner, address spender) external view returns (uint256)",
+] as const;
+
+export const GRID_TOKEN_ABI = [
+  "function balanceOf(address account) external view returns (uint256)",
+  "function totalSupply() external view returns (uint256)",
+  "function totalBurned() external view returns (uint256)",
+  "function circulatingSupply() external view returns (uint256)",
+  "function burnPercentage() external view returns (uint256)",
+  "function burn(uint256 amount) external",
+  "function burnFrom(address from, uint256 amount) external",
+  "function transfer(address to, uint256 amount) external returns (bool)",
+] as const;
+
+export const PROOF_OF_UTILITY_ABI = [
+  "function recordUsage(address user, address dAppContract, uint256 dAppId, string memory actionType) external",
+  "function recordUsageBatch(address[] memory users, address[] memory dAppContracts, uint256[] memory dAppIds, string[] memory actionTypes) external",
+  "function getUserEvents(address user) external view returns ((address, address, uint256, string, uint256)[])",
+  "function getDAppEvents(address dAppContract) external view returns ((address, address, uint256, string, uint256)[])",
+  "function getUserEventCount(address user) external view returns (uint256)",
+  "function totalEvents() external view returns (uint256)",
+  "event UsageEventRecorded(address indexed user, address indexed dAppContract, uint256 indexed dAppId, string actionType, uint256 timestamp)",
+] as const;
+
+export const ACCESS_CONTROL_ABI = [
+  "function hasAccess(address user) external view returns (bool)",
+  "function checkAndCacheAccess(address user) external returns (bool)",
+  "function recordTokenAcquisition(address user) external",
+  "function accessToken() external view returns (address)",
+  "function minBalance() external view returns (uint256)",
+  "function minHoldingTime() external view returns (uint256)",
+] as const;
+
+export const FEE_HANDLER_ABI = [
+  "function collectFee(address _projectTreasury) external payable",
+  "function collectFeesBatch(address[] memory _projectTreasuries) external payable",
+  "function getProjectFees(address _projectTreasury) external view returns (uint256)",
+  "function totalFeesCollected() external view returns (uint256)",
+  "function kasparexTreasury() external view returns (address)",
+  "function projectTreasury() external view returns (address)",
+  "event FeeReceived(address indexed from, address indexed projectTreasury, uint256 totalAmount, uint256 kasparexAmount, uint256 projectAmount, uint256 timestamp)",
+] as const;
+
+export const REWARD_MANAGER_ABI = [
+  "function distributeReward(address user, address dAppContract, uint256 actionValue) external",
+  "function distributeRewardsBatch(address[] memory users, address[] memory dAppContracts, uint256[] memory actionValues) external",
+  "function setRewardRate(address dAppContract, uint256 rate) external",
+  "function setRewardType(address dAppContract, bool useGRID) external",
+  "function setDAppToken(address dAppContract, address tokenContract) external",
+  "function rewardRates(address) external view returns (uint256)",
+  "function useGRID(address) external view returns (bool)",
+  "event RewardDistributed(address indexed user, address indexed dAppContract, address indexed token, uint256 amount, string rewardType)",
+] as const;
+
+export const AFFILIATE_MANAGER_ABI = [
+  "function recordReferral(address affiliate, address user, address dAppContract) external",
+  "function distributeReferralReward(address affiliate, address dAppContract, uint256 actionValue) external",
+  "function getReferralCount(address affiliate, address dAppContract) external view returns (uint256)",
+  "function getUserReferrals(address user) external view returns ((address, address, address, uint256, bool)[])",
+  "function getAffiliateReferrals(address affiliate) external view returns ((address, address, address, uint256, bool)[])",
+  "function referralRewardRate() external view returns (uint256)",
+  "event ReferralRecorded(address indexed affiliate, address indexed user, address indexed dAppContract, uint256 timestamp)",
+  "event ReferralRewarded(address indexed affiliate, address indexed dAppContract, uint256 amount, uint256 timestamp)",
+] as const;
+
+export const LOYALTY_POINTS_ABI = [
+  "function awardPoints(address user, string memory actionType) external",
+  "function awardPointsBatch(address[] memory users, string[] memory actionTypes) external",
+  "function getUserLoyalty(address user) external view returns ((uint256, uint256, uint256, uint256))",
+  "function getTotalPoints(address user) external view returns (uint256)",
+  "function getStreak(address user) external view returns (uint256)",
+  "function actionPoints(string) external view returns (uint256)",
+  "event PointsAwarded(address indexed user, string actionType, uint256 points, uint256 totalPoints, uint256 timestamp)",
+] as const;
+
+export const REWARD_VAULT_ABI = [
+  "function deposit(address token, uint256 amount) external",
+  "function withdraw(address token, address to, uint256 amount) external",
+  "function getBalance(address token) external view returns (uint256)",
+  "function rewardManager() external view returns (address)",
+] as const;
+
+export const USER_PROFILE_DASHBOARD_ABI = [
+  "function updateProfile(string memory ipfsCID) external",
+  "function setPreferences(bytes memory preferences) external",
+  "function linkSocial(string memory platform, string memory handle) external",
+  "function setIconColor(string memory colorHex) external",
+  "function getProfileCID(address user) external view returns (string memory)",
+] as const;
+
+export const ADMIN_DASHBOARD_ABI = [
+  "function proposeOperation(bytes32 operationHash) external returns (bytes32)",
+  "function approveOperation(bytes32 operationId) external",
+  "function approveDApp(uint256 dAppId) external",
+  "function setFeeRates(uint256 newKasparexPercentage, uint256 newProjectPercentage) external",
+  "function setMultiSigThreshold(uint256 newThreshold) external",
+  "function getPendingOperations() external view returns (bytes32[] memory)",
+  "function getOperation(bytes32 operationId) external view returns (bytes32, address, uint256, bool)",
+  "function multiSigThreshold() external view returns (uint256)",
+] as const;
+
+export const PROFILE_REGISTRY_ABI = [
+  "function setProfileCID(address user, string memory ipfsCID) external",
+  "function setDisplayName(address user, string memory displayName) external",
+  "function setVerified(address user, bool verified) external",
+  "function setPreferences(address user, bytes memory preferences) external",
+  "function getProfile(address user) external view returns ((string, string, bool, bytes, uint256))",
+  "function getProfileCID(address user) external view returns (string memory)",
+  "function verifiedAddresses(address) external view returns (bool)",
 ] as const;
 
 export const SIMPLE_PAYMENT_ABI = [

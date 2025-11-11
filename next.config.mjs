@@ -2,6 +2,28 @@
 const nextConfig = {
   serverExternalPackages: ["pino-pretty"],
   
+  // IPFS Gateway domains for images
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'gateway.pinata.cloud',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ipfs.io',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cloudflare-ipfs.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ipfs.fleek.co',
+      },
+    ],
+  },
+  
   // Exclude Hardhat files from webpack compilation
   webpack: (config, { isServer }) => {
     // Exclude Hardhat and contract-related files from client bundle

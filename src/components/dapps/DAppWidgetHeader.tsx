@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
 import { useAccount, useChainId } from 'wagmi';
+import { DAppIcon } from './DAppIcon';
 import { useChainModal } from '@rainbow-me/rainbowkit';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { DApp } from '@/lib/dapps';
@@ -97,22 +97,7 @@ export function DAppWidgetHeader({
     }
   }, [mergedDApp.version]);
 
-  useEffect(() => {
-    if (!resolvedContractAddress || !resolvedContractAddress.startsWith('0x')) {
-      return;
-    }
-
-    const interval = setInterval(() => {
-      // Trigger a refetch by updating a dependency
-      // The useDAppFromContract hook will handle the actual refetch
-      setPollingVersion((prev) => {
-        // This will cause a re-render and potentially trigger refetch
-        return prev;
-      });
-    }, 30000); // Poll every 30 seconds
-
-    return () => clearInterval(interval);
-  }, [resolvedContractAddress, chainId]);
+  // Removed redundant polling - useDAppFromContract already has refetchInterval
 
   // Get deployer info - use default if none available
   const DEFAULT_DEPLOYER = '0x658420Fd88dbd610249a88384f9B1aD387F797c7';
@@ -192,58 +177,14 @@ export function DAppWidgetHeader({
   return (
     <>
       <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-        {/* Title Section with Emoji Box */}
+        {/* Title Section with Icon */}
         <div className="flex items-start gap-4 mb-4 relative">
-          {/* Emoji Box / Logo - same as DAppCard */}
-          {mergedDApp.image ? (
-            <div 
-              className={`flex-shrink-0 relative w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-zinc-100 dark:bg-zinc-800 overflow-hidden ${
-                isDeployerUser ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''
-              }`}
-              onClick={() => {
-                if (isDeployerUser) {
-                  setShowEditModal(true);
-                }
-              }}
-              title={isDeployerUser ? 'Click to upload/change logo' : undefined}
-            >
-              <Image
-                src={mergedDApp.image}
-                alt={mergedDApp.name}
-                fill
-                className="object-cover"
-                unoptimized
-              />
-              {isDeployerUser && (
-                <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white opacity-0 hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                  </svg>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div 
-              className={`flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center relative ${
-                isDeployerUser ? 'cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors' : ''
-              }`}
-              onClick={() => {
-                if (isDeployerUser) {
-                  setShowEditModal(true);
-                }
-              }}
-              title={isDeployerUser ? 'Click to upload logo' : undefined}
-            >
-              <span className="text-2xl sm:text-3xl">{category?.emoji || '⚡'}</span>
-              {isDeployerUser && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <svg className="w-3 h-3 text-zinc-600 dark:text-zinc-400 opacity-0 hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                </div>
-              )}
-            </div>
-          )}
+          <DAppIcon
+            dAppName={mergedDApp.name}
+            category={mergedDApp.category}
+            size={64}
+            className="flex-shrink-0"
+          />
 
           {/* Title and Description */}
           <div className="flex-1 min-w-0">

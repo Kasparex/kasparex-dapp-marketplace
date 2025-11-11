@@ -15,6 +15,9 @@ export interface ContractDAppData {
   isActive: boolean;
   registeredAt: bigint;
   tokenAddress: string | null;
+  ticker: string | null;
+  totalSupply: bigint | null;
+  ipfsCID: string | null;
 }
 
 /**
@@ -49,7 +52,7 @@ export function useDAppFromContract(contractAddress: string | undefined, chainId
     args: contractAddress ? [contractAddress as `0x${string}`] : undefined,
     query: {
       enabled: !!dAppRegistryAddress && !!contractAddress && !!chainId && contractAddress.startsWith('0x'),
-      refetchInterval: 30000, // Poll every 30 seconds for version updates
+      refetchInterval: 60000, // Poll every 60 seconds (reduced from 30s for better performance)
     },
   });
 
@@ -61,7 +64,7 @@ export function useDAppFromContract(contractAddress: string | undefined, chainId
     args: dAppId ? [dAppId as bigint] : undefined,
     query: {
       enabled: !!dAppRegistryAddress && !!dAppId && !!chainId,
-      refetchInterval: 30000, // Poll every 30 seconds for version updates
+      refetchInterval: 60000, // Poll every 60 seconds (reduced from 30s for better performance)
     },
   });
 
@@ -76,14 +79,30 @@ export function useDAppFromContract(contractAddress: string | undefined, chainId
       if (dAppId) {
         refetchDAppData();
       }
-    }, 30000); // Poll every 30 seconds
+    }, 60000); // Poll every 60 seconds (reduced from 30s for better performance)
 
     return () => clearInterval(interval);
   }, [dAppRegistryAddress, contractAddress, chainId, dAppId, refetchDAppId, refetchDAppData]);
 
   // Parse the tuple response
+  // getDApp returns: (string name, string version, string category, address contractAddress, 
+  // address deployer, bool isActive, uint256 createdAt, address tokenAddress, 
+  // string ticker, uint256 totalSupply, string ipfsCID)
   let parsedData: ContractDAppData | null = null;
-  if (dAppData && Array.isArray(dAppData) && dAppData.length >= 8) {
+  if (dAppData && Array.isArray(dAppData) && dAppData.length >= 11) {
+    const tokenAddress = dAppData[7] && (dAppData[7] as string) !== '0x0000000000000000000000000000000000000000' 
+      ? (dAppData[7] as string) 
+      : null;
+    const ticker = dAppData[8] && (dAppData[8] as string).trim() !== '' 
+      ? (dAppData[8] as string) 
+      : null;
+    const totalSupply = dAppData[9] && dAppData[9] !== BigInt(0)
+      ? (dAppData[9] as bigint)
+      : null;
+    const ipfsCID = dAppData[10] && (dAppData[10] as string).trim() !== ''
+      ? (dAppData[10] as string)
+      : null;
+
     parsedData = {
       name: dAppData[0] as string,
       version: dAppData[1] as string,
@@ -92,9 +111,10 @@ export function useDAppFromContract(contractAddress: string | undefined, chainId
       deployerAddress: dAppData[4] as string,
       isActive: dAppData[5] as boolean,
       registeredAt: dAppData[6] as bigint,
-      tokenAddress: dAppData[7] && (dAppData[7] as string) !== '0x0000000000000000000000000000000000000000' 
-        ? (dAppData[7] as string) 
-        : null,
+      tokenAddress,
+      ticker,
+      totalSupply,
+      ipfsCID,
     };
   }
 
@@ -165,6 +185,7 @@ export function loadDAppMetadata(dappId: string): Partial<DApp> | null {
 
 /**
  * Load saved featured image from localStorage
+ * @deprecated Use icon system instead. This is kept for backward compatibility.
  */
 export function loadDAppFeaturedImage(dappId: string): string | null {
   if (typeof window === 'undefined') {
@@ -175,6 +196,11 @@ export function loadDAppFeaturedImage(dappId: string): string | null {
     const key = `dapp_${dappId}_featuredImage`;
     const stored = localStorage.getItem(key);
     if (stored) {
+      // Check if it's an IPFS CID
+      const { isIPFSCID, getIPFSImageUrl } = require('./ipfs');
+      if (isIPFSCID(stored)) {
+        return getIPFSImageUrl(stored);
+      }
       return stored;
     }
   } catch (err) {
@@ -186,6 +212,7 @@ export function loadDAppFeaturedImage(dappId: string): string | null {
 
 /**
  * Load saved logo from localStorage
+ * @deprecated Use icon system instead. This is kept for backward compatibility.
  */
 export function loadDAppLogo(dappId: string): string | null {
   if (typeof window === 'undefined') {
@@ -196,6 +223,11 @@ export function loadDAppLogo(dappId: string): string | null {
     const key = `dapp_${dappId}_logo`;
     const stored = localStorage.getItem(key);
     if (stored) {
+      // Check if it's an IPFS CID
+      const { isIPFSCID, getIPFSImageUrl } = require('./ipfs');
+      if (isIPFSCID(stored)) {
+        return getIPFSImageUrl(stored);
+      }
       return stored;
     }
   } catch (err) {

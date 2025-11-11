@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { DApp, type DAppStatus, getDAppChainIds } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
@@ -13,6 +12,7 @@ import { DAppInfoModal } from './dapps/DAppInfoModal';
 import { DAppGuideAndInfoModal } from './dapps/DAppGuideAndInfoModal';
 import { DAppEmbed } from './dapps/DAppEmbed';
 import { mergeDAppData } from '@/lib/dapps/contractData';
+import { DAppIcon } from './dapps/DAppIcon';
 
 interface DAppCardProps {
   dapp: DApp;
@@ -64,35 +64,13 @@ export function DAppCard({ dapp }: DAppCardProps) {
       href={`/dapps/${slug}`}
       className="block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all relative overflow-hidden"
     >
-      {/* Featured Image Background */}
-      {mergedDApp.featuredImage && (
-        <div className="absolute inset-0 z-0">
-          <div 
-            className="absolute inset-0 bg-cover bg-center opacity-30 dark:opacity-20 transition-opacity hover:opacity-40 dark:hover:opacity-30"
-            style={{
-              backgroundImage: `url(${mergedDApp.featuredImage})`,
-              filter: 'brightness(0.5)',
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/60 via-zinc-900/40 to-zinc-900/60 dark:from-zinc-900/80 dark:via-zinc-900/60 dark:to-zinc-900/80" />
-        </div>
-      )}
       <div className="flex items-start gap-4 relative z-10">
-        {dapp.image ? (
-          <div className="flex-shrink-0 relative w-12 h-12 rounded-lg bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
-              <Image
-                src={mergedDApp.image || dapp.image || ''}
-                alt={mergedDApp.name}
-              fill
-              className="object-cover"
-              unoptimized
-            />
-          </div>
-        ) : (
-          <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-            <span className="text-2xl">{category?.emoji || '⚡'}</span>
-          </div>
-        )}
+        <DAppIcon
+          dAppName={mergedDApp.name}
+          category={mergedDApp.category}
+          size={48}
+          className="flex-shrink-0"
+        />
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-2">

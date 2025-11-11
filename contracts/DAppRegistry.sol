@@ -21,7 +21,10 @@ contract DAppRegistry is AccessControl {
         address contractAddress;
         bool isActive;
         uint256 createdAt;
-        address linkedToken; // For future Token Builder integration
+        address tokenAddress; // Token contract address
+        string ticker; // Token ticker/symbol
+        uint256 totalSupply; // Token total supply
+        string ipfsCID; // IPFS CID for metadata
     }
 
     // Mapping from dApp ID to dApp info
@@ -48,6 +51,13 @@ contract DAppRegistry is AccessControl {
     event DAppLinkedToToken(
         uint256 indexed dAppId,
         address indexed tokenAddress,
+        string ticker,
+        uint256 totalSupply,
+        uint256 timestamp
+    );
+    event DAppMetadataUpdated(
+        uint256 indexed dAppId,
+        string ipfsCID,
         uint256 timestamp
     );
     event DAppStatusUpdated(uint256 indexed dAppId, bool isActive);
@@ -95,7 +105,10 @@ contract DAppRegistry is AccessControl {
             contractAddress: _contractAddress,
             isActive: true,
             createdAt: block.timestamp,
-            linkedToken: address(0)
+            tokenAddress: address(0),
+            ticker: "",
+            totalSupply: 0,
+            ipfsCID: ""
         });
 
         contractToDAppId[_contractAddress] = dAppId;
@@ -113,11 +126,18 @@ contract DAppRegistry is AccessControl {
     }
 
     /**
-     * @dev Link a dApp to a token (for Token Builder)
+     * @dev Link a dApp to a token
      * @param _dAppId ID of the dApp
      * @param _tokenAddress Address of the token
+     * @param _ticker Token ticker/symbol
+     * @param _totalSupply Token total supply
      */
-    function linkDAppToToken(uint256 _dAppId, address _tokenAddress) external {
+    function linkDAppToToken(
+        uint256 _dAppId,
+        address _tokenAddress,
+        string memory _ticker,
+        uint256 _totalSupply
+    ) external {
         require(_dAppId > 0 && _dAppId <= dAppCount, "DAppRegistry: Invalid dApp ID");
         require(_tokenAddress != address(0), "DAppRegistry: Invalid token address");
         require(dApps[_dAppId].isActive, "DAppRegistry: dApp is not active");
@@ -129,7 +149,9 @@ contract DAppRegistry is AccessControl {
             "DAppRegistry: Not authorized"
         );
 
-        dApps[_dAppId].linkedToken = _tokenAddress;
+        dApps[_dAppId].tokenAddress = _tokenAddress;
+        dApps[_dAppId].ticker = _ticker;
+        dApps[_dAppId].totalSupply = _totalSupply;
         
         // Add to token's dApp list if not already present
         uint256[] storage tokenDApps = tokenToDApps[_tokenAddress];
@@ -144,8 +166,25 @@ contract DAppRegistry is AccessControl {
             tokenDApps.push(_dAppId);
         }
 
-        emit DAppLinkedToToken(_dAppId, _tokenAddress, block.timestamp);
+        emit DAppLinkedToToken(_dAppId, _tokenAddress, _ticker, _totalSupply, block.timestamp);
         emit TokenDAppsUpdated(_tokenAddress, tokenToDApps[_tokenAddress]);
+    }
+    
+    /**
+     * @dev Update dApp IPFS metadata CID
+     * @param _dAppId ID of the dApp
+     * @param _ipfsCID IPFS CID for metadata
+     */
+    function updateDAppMetadata(uint256 _dAppId, string memory _ipfsCID) external {
+        require(_dAppId > 0 && _dAppId <= dAppCount, "DAppRegistry: Invalid dApp ID");
+        require(
+            dApps[_dAppId].deployer == msg.sender ||
+                hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+            "DAppRegistry: Not authorized"
+        );
+        
+        dApps[_dAppId].ipfsCID = _ipfsCID;
+        emit DAppMetadataUpdated(_dAppId, _ipfsCID, block.timestamp);
     }
 
     /**
@@ -172,6 +211,16 @@ contract DAppRegistry is AccessControl {
     function getDApp(uint256 _dAppId) external view returns (DApp memory) {
         require(_dAppId > 0 && _dAppId <= dAppCount, "DAppRegistry: Invalid dApp ID");
         return dApps[_dAppId];
+    }
+    
+    /**
+     * @dev Get dApp token address
+     * @param _dAppId ID of the dApp
+     * @return Token address (address(0) if not linked)
+     */
+    function getDAppToken(uint256 _dAppId) external view returns (address) {
+        require(_dAppId > 0 && _dAppId <= dAppCount, "DAppRegistry: Invalid dApp ID");
+        return dApps[_dAppId].tokenAddress;
     }
 
     /**

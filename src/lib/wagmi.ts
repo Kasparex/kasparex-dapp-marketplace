@@ -87,12 +87,64 @@ export const igraCaravelTestnet = defineChain({
 });
 
 /**
+ * vProgs Network Chain Configuration (Placeholder)
+ * Will be updated when vProgs launches
+ */
+export const vProgsTestnet = defineChain({
+  id: 999999,
+  name: 'Kaspa vProgs Testnet',
+  network: 'kaspa-vprogs-testnet',
+  nativeCurrency: {
+    name: 'Kaspa',
+    symbol: 'KAS',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://vprogs-testnet.kaspa.org'], // Placeholder
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'vProgs Explorer',
+      url: 'https://explorer.vprogs.kaspa.org', // Placeholder
+    },
+  },
+  testnet: true,
+});
+
+export const vProgsMainnet = defineChain({
+  id: 999998,
+  name: 'Kaspa vProgs Mainnet',
+  network: 'kaspa-vprogs',
+  nativeCurrency: {
+    name: 'Kaspa',
+    symbol: 'KAS',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://vprogs.kaspa.org'], // Placeholder
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'vProgs Explorer',
+      url: 'https://explorer.vprogs.kaspa.org', // Placeholder
+    },
+  },
+  testnet: false,
+});
+
+/**
  * Network Chain IDs Mapping
  */
 export const CHAIN_IDS = {
   KASPLEX_L2_MAINNET: 202555,
   KASPLEX_L2_TESTNET: 167012,
   IGRA_CARAVEL_TESTNET: 19416,
+  VPROGS_TESTNET: 999999,
+  VPROGS_MAINNET: 999998,
   // Igra L2 Mainnet - not available yet
 } as const;
 
@@ -103,6 +155,22 @@ export const kaspaChains = [
   kasplexL2Mainnet,
   kasplexL2Testnet,
   igraCaravelTestnet,
+] as const;
+
+/**
+ * vProgs chains (for future use)
+ */
+export const vProgsChains = [
+  vProgsTestnet,
+  vProgsMainnet,
+] as const;
+
+/**
+ * All available chains (EVM + vProgs)
+ */
+export const allChains = [
+  ...kaspaChains,
+  ...vProgsChains,
 ] as const;
 
 /**
