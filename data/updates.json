@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762903566-2329819",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add GRID token reward system: configure all dApps, transfer tokens, and create management scripts (by Kasparex)",
+      "date": "2025-11-12T00:25:38+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762894765-4a7193e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add automatic dApp+token deployment script and documentation (by Kasparex)",
