@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762883005-d456b84",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: Add type assertion for useWatchContractEvent logs (by Kasparex)",
+      "date": "2025-11-11T18:43:06+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762882748-a760285",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript errors: Add type assertions for useReadContract data in useProofOfUtility and useAffiliate hooks (by Kasparex)",
