@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762881921-d5e0342",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript errors: UserIcon interface and UserProfileDashboard type assertions (by Kasparex)",
+      "date": "2025-11-11T18:24:59+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762881717-b5cc149",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: Add type assertion for pendingOperations in AdminDashboard (by Kasparex)",
