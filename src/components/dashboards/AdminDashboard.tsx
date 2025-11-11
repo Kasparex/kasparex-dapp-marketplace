@@ -36,7 +36,7 @@ export function AdminDashboard({
       enabled: isAdmin && !!adminDashboardAddress,
       refetchInterval: 30000,
     },
-  });
+  }) as { data: string[] | undefined };
 
   const { writeContract, data: operationHash, isPending } = useWriteContract();
   const { isLoading: isConfirming } = useWaitForTransactionReceipt({
@@ -117,7 +117,7 @@ export function AdminDashboard({
           </div>
         </div>
 
-        {pendingOperations && Array.isArray(pendingOperations) && pendingOperations.length > 0 && (
+        {pendingOperations !== undefined && Array.isArray(pendingOperations) && pendingOperations.length > 0 && (
           <div>
             <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
               Pending Operations ({pendingOperations.length})
