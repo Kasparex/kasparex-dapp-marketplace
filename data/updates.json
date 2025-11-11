@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762881717-b5cc149",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: Add type assertion for pendingOperations in AdminDashboard (by Kasparex)",
+      "date": "2025-11-11T18:21:29+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762881507-f78fa70",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix all TypeScript errors: Add type assertions for useReadContract data in all components (by Kasparex)",
