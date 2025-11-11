@@ -36,7 +36,7 @@ export function TokenDisplay({
     query: {
       enabled: isConnected && !!address,
     },
-  });
+  }) as { data: bigint | undefined };
 
   // Get remaining supply
   const { data: remainingSupply } = useReadContract({
@@ -89,7 +89,7 @@ export function TokenDisplay({
         </div>
       </div>
 
-      {isConnected && balance && (
+      {isConnected && balance !== undefined && balance !== null && (
         <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Your Balance</p>
           <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
