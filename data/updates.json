@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762904253-6060052",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix: Add dynamic rendering to test-ecosystem page and improve webpack indexedDB handling (by Kasparex)",
+      "date": "2025-11-12T00:37:12+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762903781-b4b1ded",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: Change KASTip category from 'social' to 'payment' to match valid Category type (by Kasparex)",
