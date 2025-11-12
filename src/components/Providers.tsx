@@ -10,22 +10,8 @@ import { KaspaWalletProvider } from '@/lib/kaspa/context';
 import { getErrorMessage } from '@/lib/utils';
 
 // CRITICAL: Global error handler to intercept React Query's error serialization
-// This runs BEFORE React Query tries to serialize errors for DevTools/cache
-if (typeof window !== 'undefined') {
-  // Intercept React Query's internal error handling by patching MutationCache
-  const originalSetError = MutationCache.prototype.setError;
-  MutationCache.prototype.setError = function(error: any, ...args: any[]) {
-    // Convert function-type errors BEFORE React Query tries to serialize them
-    if (typeof error === 'function') {
-      const errorStr = getErrorMessage(error, 'An error occurred');
-      error = new Error(errorStr);
-    } else if (error && !(error instanceof Error)) {
-      const errorStr = getErrorMessage(error, 'An error occurred');
-      error = new Error(errorStr);
-    }
-    return originalSetError.call(this, error, ...args);
-  };
-}
+// We intercept errors at the mutation creation level using onMutate with Proxy
+// This ensures errors are converted BEFORE React Query tries to serialize them
 
 // CRITICAL: Transform errors BEFORE React Query tries to serialize them
 // We intercept errors at the mutation execution level using a Proxy
