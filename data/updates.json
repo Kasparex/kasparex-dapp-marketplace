@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762988462-7709c8e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error - Remove MutationCache.prototype.setError patch (method doesn't exist) - Keep Proxy-based error interception in onMutate (by Kasparex)",
+      "date": "2025-11-13T00:00:39+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762988214-3ba4e88",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: CRITICAL FIX: Intercept React Query error serialization at MutationCache level - Patch MutationCache.setError to convert function-type errors BEFORE serialization - Wrap mutation functions in onMutate to catch errors early - Add global error handler to prevent 'in' operator errors (by Kasparex)",
