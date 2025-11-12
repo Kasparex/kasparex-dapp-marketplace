@@ -48,7 +48,7 @@ export function useWriteContractSafe(): UseWriteContractReturn {
         throw new Error(errorStr);
       }
     };
-  }, [wagmiResult.writeContract]);
+  }, [wagmiResult]);
   
   // Convert error to a safe Error object immediately
   // This ensures the error is serializable by React Query

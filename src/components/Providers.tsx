@@ -9,38 +9,41 @@ import { config } from '@/lib/wagmi';
 import { KaspaWalletProvider } from '@/lib/kaspa/context';
 import { getErrorMessage } from '@/lib/utils';
 
-// CRITICAL: Configure QueryClient to convert errors to strings before React Query serializes them
-// This prevents "Cannot use 'in' operator" errors when React Query tries to cache function-type errors
+// CRITICAL: Configure QueryClient to handle errors safely
+// This prevents "Cannot use 'in' operator" errors when React Query tries to serialize function-type errors
+// Note: onError is only available for mutations, not queries
 const queryClient = new QueryClient({
   defaultOptions: {
     mutations: {
       onError: (error) => {
         // Convert error to string immediately to prevent React Query from trying to serialize function-type errors
         try {
+          // CRITICAL: Check if error is a function before trying to serialize
+          if (typeof error === 'function') {
+            const errorStr = getErrorMessage(error, 'An error occurred');
+            console.error('Mutation error (function-type):', errorStr);
+            return;
+          }
           const errorStr = getErrorMessage(error, 'An error occurred');
-          // Store the stringified error instead of the raw error
-          // This prevents React Query from trying to serialize function objects
           console.error('Mutation error:', errorStr);
         } catch (err) {
-          // Even error conversion failed - log a safe message
           console.error('Error occurred (conversion failed)');
         }
       },
     },
     queries: {
-      onError: (error) => {
-        // Convert error to string immediately for queries as well
-        try {
-          const errorStr = getErrorMessage(error, 'An error occurred');
-          console.error('Query error:', errorStr);
-        } catch (err) {
-          console.error('Error occurred (conversion failed)');
-        }
-      },
       // Prevent React Query from storing function-type errors in cache
       retry: (failureCount, error) => {
-        // If error is a function, don't retry (it will cause serialization issues)
+        // CRITICAL: If error is a function, don't retry (it will cause serialization issues)
+        // This prevents React Query from trying to serialize function-type errors
         if (typeof error === 'function') {
+          // Log the function-type error for debugging
+          try {
+            const errorStr = getErrorMessage(error, 'Query failed');
+            console.error('Query error (function-type):', errorStr);
+          } catch (err) {
+            console.error('Query error (function-type, conversion failed)');
+          }
           return false;
         }
         return failureCount < 3;
