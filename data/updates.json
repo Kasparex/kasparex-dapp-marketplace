@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762987148-d6d382a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript type narrowing error in useWriteContractSafe - Extract error to local variable to fix type narrowing issue (by Kasparex)",
+      "date": "2025-11-12T23:38:44+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762987003-bbdee29",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: Use correct wagmi type UseWriteContractReturnType (by Kasparex)",
