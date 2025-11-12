@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo, useEffect } from 'react';
-import { useWriteContract as useWagmiWriteContract, UseWriteContractReturnType } from 'wagmi';
+import { useWriteContract as useWagmiWriteContract } from 'wagmi';
+import type { UseWriteContractReturnType } from 'wagmi';
 import { getErrorMessage } from '@/lib/utils';
 
 /**
@@ -52,8 +53,9 @@ export function useWriteContractSafe(): UseWriteContractReturnType {
   
   // Convert error to a safe Error object immediately
   // This ensures the error is serializable by React Query
-  const safeError = useMemo(() => {
-    const error = wagmiResult.error;
+  const safeError = useMemo((): Error | undefined => {
+    // Extract error with explicit type to avoid TypeScript narrowing issues
+    const error: unknown = wagmiResult.error;
     if (!error) {
       return undefined;
     }
@@ -78,10 +80,11 @@ export function useWriteContractSafe(): UseWriteContractReturnType {
     }
   }, [wagmiResult.error]);
   
+  // Return with type assertion to ensure compatibility
   return {
     ...wagmiResult,
     writeContract: safeWriteContract,
     error: safeError,
-  };
+  } as UseWriteContractReturnType;
 }
 
