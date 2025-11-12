@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762904860-5756c2e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix: Rename dynamic import to nextDynamic to avoid naming conflict with export const dynamic (by Kasparex)",
+      "date": "2025-11-12T00:47:10+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762904601-6f205f3",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: Use dynamic imports with ssr:false for test-ecosystem components to prevent indexedDB SSR errors (by Kasparex)",
