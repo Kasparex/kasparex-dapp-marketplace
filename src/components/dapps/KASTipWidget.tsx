@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, useChainId } from 'wagmi';
+import { useAccount, useWaitForTransactionReceipt, useReadContract, useChainId } from 'wagmi';
 import { parseEther, formatEther, isAddress } from 'viem';
 import { KAS_TIP_ABI } from '@/lib/contracts/abis';
 import { getErrorMessage } from '@/lib/utils';
 import { useSafeError } from '@/hooks/useSafeError';
+import { useWriteContractSafe } from '@/hooks/useWriteContractSafe';
 import { UserIcon } from '@/components/users/UserIcon';
 import { ProofOfUtility } from '@/components/dapps/ProofOfUtility';
 import { AffiliateWidget } from '@/components/dapps/AffiliateWidget';
@@ -125,8 +126,8 @@ export function KASTipWidget({
   }, [topTippers]);
 
   // Write contract for tipping
-  // CRITICAL: Convert errors to strings immediately to prevent 'in' operator errors
-  const { writeContract, data: hash, isPending: isPendingWrite, error: rawWriteError } = useWriteContract();
+  // CRITICAL: Use safe wrapper that converts errors before React Query caches them
+  const { writeContract, data: hash, isPending: isPendingWrite, error: rawWriteError } = useWriteContractSafe();
   const { isLoading: isConfirming, isSuccess, error: rawTxError } = useWaitForTransactionReceipt({ hash });
 
   // Immediately convert errors to strings using useSafeError to prevent React serialization issues
@@ -201,19 +202,25 @@ export function KASTipWidget({
       const amountWei = parseEther(amount);
       const referralAddress = referral && isAddress(referral) ? referral : '0x0000000000000000000000000000000000000000';
 
-      // Wrap writeContract call to catch any synchronous errors immediately
-      // Note: writeContract from wagmi typically doesn't throw synchronously,
-      // but we wrap it defensively to catch any edge cases
+      // CRITICAL: Wrap writeContract call and convert any errors IMMEDIATELY
+      // This must happen before the error reaches React Query's cache
+      // We use a try-catch wrapper around writeContract to intercept errors at the source
       try {
-        writeContract({
+        // Call writeContract - if it throws synchronously, catch it immediately
+        const result = writeContract({
           address: contractAddress as `0x${string}`,
           abi: KAS_TIP_ABI,
           functionName: 'tip',
           args: [recipient as `0x${string}`, referralAddress as `0x${string}`],
           value: amountWei,
         });
+        
+        // If writeContract returns a promise that rejects, we need to catch it
+        // However, wagmi's writeContract doesn't return a promise, so errors come via the error state
+        // The error will be handled by useSafeError hook above
       } catch (syncErr) {
         // Convert error immediately to prevent 'in' operator issues
+        // This catches any synchronous errors before they can be stored anywhere
         const errorMessage = getErrorMessage(syncErr, 'Failed to send tip');
         setError(errorMessage);
         return;

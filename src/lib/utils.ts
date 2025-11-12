@@ -223,15 +223,21 @@ export function getErrorMessage(error: unknown, fallback: string = 'An error occ
     }
 
     // Try to stringify if it's a plain object
+    // CRITICAL: Check for function BEFORE trying JSON.stringify
+    // JSON.stringify will fail on functions and cause issues
     try {
-      if (error.constructor === Object) {
-        const stringified = JSON.stringify(error);
-        if (stringified !== '{}') {
-          return stringified;
+      // Double-check it's not a function before stringifying
+      if (typeof error === 'object' && error !== null && typeof error !== 'function') {
+        // Check if it's a plain object (not an Error instance, Array, etc.)
+        if (error.constructor === Object) {
+          const stringified = JSON.stringify(error);
+          if (stringified !== '{}') {
+            return stringified;
+          }
         }
       }
     } catch {
-      // Ignore JSON stringify errors
+      // Ignore JSON stringify errors - might be circular reference or function
     }
   }
 

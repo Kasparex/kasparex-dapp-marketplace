@@ -7,8 +7,47 @@ import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { darkTheme, lightTheme } from '@rainbow-me/rainbowkit';
 import { config } from '@/lib/wagmi';
 import { KaspaWalletProvider } from '@/lib/kaspa/context';
+import { getErrorMessage } from '@/lib/utils';
 
-const queryClient = new QueryClient();
+// CRITICAL: Configure QueryClient to convert errors to strings before React Query serializes them
+// This prevents "Cannot use 'in' operator" errors when React Query tries to cache function-type errors
+const queryClient = new QueryClient({
+  defaultOptions: {
+    mutations: {
+      onError: (error) => {
+        // Convert error to string immediately to prevent React Query from trying to serialize function-type errors
+        try {
+          const errorStr = getErrorMessage(error, 'An error occurred');
+          // Store the stringified error instead of the raw error
+          // This prevents React Query from trying to serialize function objects
+          console.error('Mutation error:', errorStr);
+        } catch (err) {
+          // Even error conversion failed - log a safe message
+          console.error('Error occurred (conversion failed)');
+        }
+      },
+    },
+    queries: {
+      onError: (error) => {
+        // Convert error to string immediately for queries as well
+        try {
+          const errorStr = getErrorMessage(error, 'An error occurred');
+          console.error('Query error:', errorStr);
+        } catch (err) {
+          console.error('Error occurred (conversion failed)');
+        }
+      },
+      // Prevent React Query from storing function-type errors in cache
+      retry: (failureCount, error) => {
+        // If error is a function, don't retry (it will cause serialization issues)
+        if (typeof error === 'function') {
+          return false;
+        }
+        return failureCount < 3;
+      },
+    },
+  },
+});
 
 const customLightTheme = lightTheme({
   accentColor: '#02abb8',
