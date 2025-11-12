@@ -10,103 +10,169 @@ import { KaspaWalletProvider } from '@/lib/kaspa/context';
 import { getErrorMessage } from '@/lib/utils';
 
 // CRITICAL: Global error handler to intercept React Query's error serialization
-// We intercept errors at the mutation creation level using onMutate with Proxy
-// This ensures errors are converted BEFORE React Query tries to serialize them
+// We need to patch React Query's internal error handling to convert function-type errors
+// BEFORE React Query tries to serialize them using the 'in' operator
 
-// CRITICAL: Transform errors BEFORE React Query tries to serialize them
-// We intercept errors at the mutation execution level using a Proxy
-// This ensures errors are converted BEFORE React Query tries to serialize them
-const mutationCache = new MutationCache({
-  onMutate: async (variables, mutation) => {
-    // Wrap the mutation function to intercept errors BEFORE they reach React Query
-    const originalMutationFn = mutation.options.mutationFn;
-    if (originalMutationFn && typeof originalMutationFn === 'function') {
-      // Wrap the mutation function to catch and transform errors
-      mutation.options.mutationFn = async (...args: any[]) => {
+// Patch MutationCache to intercept errors at the lowest level possible
+// We create a custom MutationCache that wraps the original and intercepts all error operations
+class SafeMutationCache extends MutationCache {
+  constructor() {
+    super({
+      onMutate: async (variables, mutation) => {
+        // Wrap mutation function to catch errors before they're stored
+        const originalMutationFn = mutation.options.mutationFn;
+        if (originalMutationFn && typeof originalMutationFn === 'function') {
+          mutation.options.mutationFn = async (...args: any[]) => {
+            try {
+              const result = await (originalMutationFn as any).apply(null, args);
+              return result;
+            } catch (error) {
+              // Convert function-type errors immediately
+              if (typeof error === 'function') {
+                const errorStr = getErrorMessage(error, 'An error occurred');
+                throw new Error(errorStr);
+              }
+              if (error && !(error instanceof Error)) {
+                const errorStr = getErrorMessage(error, 'An error occurred');
+                throw new Error(errorStr);
+              }
+              throw error;
+            }
+          };
+        }
+        
+        // CRITICAL: Wrap mutation.state with a Proxy that intercepts ALL property access
+        // This includes both 'get' and 'set' operations, preventing React Query from
+        // using the 'in' operator on function-type errors
+        const originalState = mutation.state;
+        if (originalState) {
+          // Helper function to create a safe error wrapper
+          const createSafeError = (error: unknown): Error => {
+            if (typeof error === 'function') {
+              const errorStr = getErrorMessage(error, 'An error occurred');
+              return new Error(errorStr);
+            }
+            if (error && !(error instanceof Error)) {
+              const errorStr = getErrorMessage(error, 'An error occurred');
+              return new Error(errorStr);
+            }
+            return error as Error;
+          };
+
+          mutation.state = new Proxy(originalState, {
+            get(target, prop) {
+              // If accessing 'error' property, ensure it's never a function
+              if (prop === 'error') {
+                const error = Reflect.get(target, prop);
+                if (error) {
+                  return createSafeError(error);
+                }
+                return error;
+              }
+              return Reflect.get(target, prop);
+            },
+            set(target, prop, value) {
+              // If setting 'error' property, convert function-type errors immediately
+              if (prop === 'error' && value) {
+                const safeError = createSafeError(value);
+                return Reflect.set(target, prop, safeError);
+              }
+              return Reflect.set(target, prop, value);
+            },
+            has(target, prop) {
+              // CRITICAL: Intercept 'in' operator checks on mutation.state
+              // This prevents React Query from checking properties on function-type errors
+              if (prop === 'error') {
+                const error = Reflect.get(target, prop);
+                if (error && (typeof error === 'function' || !(error instanceof Error))) {
+                  // Convert function-type error immediately
+                  const safeError = createSafeError(error);
+                  Reflect.set(target, prop, safeError);
+                  return true;
+                }
+              }
+              return Reflect.has(target, prop);
+            },
+            ownKeys(target) {
+              // Ensure error property is included in ownKeys
+              return Reflect.ownKeys(target);
+            },
+            getOwnPropertyDescriptor(target, prop) {
+              // CRITICAL: Intercept property descriptor access
+              // This prevents React Query from trying to enumerate function properties
+              if (prop === 'error') {
+                const error = Reflect.get(target, prop);
+                if (error && (typeof error === 'function' || !(error instanceof Error))) {
+                  // Convert function to Error immediately
+                  const safeError = createSafeError(error);
+                  Reflect.set(target, prop, safeError);
+                }
+              }
+              return Reflect.getOwnPropertyDescriptor(target, prop);
+            },
+          });
+        }
+        
+        return undefined;
+      },
+      onError: (error, _variables, _context, mutation) => {
+        // CRITICAL: Convert function-type errors IMMEDIATELY
+        // This is a fallback in case the Proxy didn't catch it
+        // We need to convert the error BEFORE React Query tries to serialize it
         try {
-          // Use Function.apply to avoid TypeScript spread operator issues
-          const result = await (originalMutationFn as any).apply(null, args);
-          return result;
-        } catch (error) {
-          // CRITICAL: Convert function-type errors BEFORE React Query sees them
+          let safeError: Error;
+          
           if (typeof error === 'function') {
             const errorStr = getErrorMessage(error, 'An error occurred');
-            throw new Error(errorStr);
-          }
-          // Ensure all errors are Error objects
-          if (error && !(error instanceof Error)) {
+            safeError = new Error(errorStr);
+          } else if (error && !(error instanceof Error)) {
             const errorStr = getErrorMessage(error, 'An error occurred');
-            throw new Error(errorStr);
+            safeError = new Error(errorStr);
+          } else {
+            safeError = error as Error;
           }
-          throw error;
-        }
-      };
-    }
-    
-    // CRITICAL: Also intercept errors by wrapping the mutation state
-    // Use a Proxy to intercept error property access
-    const originalState = mutation.state;
-    if (originalState) {
-      mutation.state = new Proxy(originalState, {
-        set(target, prop, value) {
-          // If setting the error property, convert function-type errors
-          if (prop === 'error' && typeof value === 'function') {
-            const errorStr = getErrorMessage(value, 'An error occurred');
-            return Reflect.set(target, prop, new Error(errorStr));
+          
+          // CRITICAL: Replace error in mutation.state IMMEDIATELY
+          // Use multiple methods to ensure it works
+          try {
+            // Try Object.defineProperty first (most reliable)
+            Object.defineProperty(mutation.state, 'error', {
+              value: safeError,
+              writable: true,
+              enumerable: true,
+              configurable: true,
+            });
+          } catch {
+            // Fallback to direct assignment
+            try {
+              (mutation.state as any).error = safeError;
+            } catch {
+              // Last resort: try to patch the mutation object directly
+              try {
+                (mutation as any).state = {
+                  ...mutation.state,
+                  error: safeError,
+                };
+              } catch {
+                // If all else fails, at least log it
+                console.error('Failed to replace function-type error in mutation state');
+              }
+            }
           }
-          if (prop === 'error' && value && !(value instanceof Error)) {
-            const errorStr = getErrorMessage(value, 'An error occurred');
-            return Reflect.set(target, prop, new Error(errorStr));
+        } catch (err) {
+          // Ultimate fallback - create a safe error
+          try {
+            (mutation.state as any).error = new Error('An error occurred');
+          } catch {
+            // Ignore - error conversion failed completely
           }
-          return Reflect.set(target, prop, value);
-        },
-      });
-    }
-    
-    return undefined;
-  },
-  onError: (error, _variables, _context, mutation) => {
-    // CRITICAL: Convert function-type errors IMMEDIATELY
-    // This is a fallback in case the onMutate wrapper didn't catch it
-    try {
-      if (typeof error === 'function') {
-        const errorStr = getErrorMessage(error, 'An error occurred');
-        // Replace the error in mutation state synchronously
-        try {
-          Object.defineProperty(mutation.state, 'error', {
-            value: new Error(errorStr),
-            writable: true,
-            enumerable: true,
-            configurable: true,
-          });
-        } catch (defineErr) {
-          (mutation.state as any).error = new Error(errorStr);
         }
-        console.error('Mutation error (function-type, converted in onError):', errorStr);
-        return;
-      }
-      if (error && !(error instanceof Error)) {
-        const errorStr = getErrorMessage(error, 'An error occurred');
-        try {
-          Object.defineProperty(mutation.state, 'error', {
-            value: new Error(errorStr),
-            writable: true,
-            enumerable: true,
-            configurable: true,
-          });
-        } catch (defineErr) {
-          (mutation.state as any).error = new Error(errorStr);
-        }
-      }
-    } catch (err) {
-      try {
-        (mutation.state as any).error = new Error('An error occurred');
-      } catch {
-        console.error('Error conversion failed in mutationCache');
-      }
-    }
-  },
-});
+      },
+    });
+  }
+}
+
+const mutationCache = new SafeMutationCache();
 
 // CRITICAL: Configure QueryClient to handle errors safely
 // This prevents "Cannot use 'in' operator" errors when React Query tries to serialize function-type errors

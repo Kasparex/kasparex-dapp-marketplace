@@ -136,21 +136,31 @@ export function KASTipWidget({
   const safeWriteError = useSafeError(rawWriteError);
   const safeTxError = useSafeError(rawTxError);
 
-  // CRITICAL: Watch for errors and convert them immediately to prevent React serialization
-  // Note: useSafeError already handles conversion, but this ensures errors are never passed to React as raw objects
-  // These effects are defensive and help catch any edge cases
+  // CRITICAL: Additional safety check - ensure errors are converted immediately
+  // This is a defensive measure in case React Query's mutationCache didn't catch it
   useEffect(() => {
-    if (rawWriteError && safeWriteError === null) {
-      // If useSafeError returned null but we have an error, something went wrong
-      console.warn('Error conversion may have failed - raw error exists but safe error is null');
+    if (rawWriteError) {
+      // Double-check that the error is not a function
+      if (typeof rawWriteError === 'function') {
+        console.error('CRITICAL: Function-type error detected in rawWriteError - this should have been caught by mutationCache');
+        // Force conversion by calling getErrorMessage
+        const errorStr = getErrorMessage(rawWriteError, 'Transaction failed');
+        // Note: We can't directly modify wagmi's error state, but this ensures we log it
+      }
     }
-  }, [rawWriteError, safeWriteError]);
+  }, [rawWriteError]);
 
   useEffect(() => {
-    if (rawTxError && safeTxError === null) {
-      console.warn('Error conversion may have failed - raw error exists but safe error is null');
+    if (rawTxError) {
+      // Double-check that the error is not a function
+      if (typeof rawTxError === 'function') {
+        console.error('CRITICAL: Function-type error detected in rawTxError - this should have been caught by mutationCache');
+        // Force conversion by calling getErrorMessage
+        const errorStr = getErrorMessage(rawTxError, 'Transaction confirmation failed');
+        // Note: We can't directly modify wagmi's error state, but this ensures we log it
+      }
     }
-  }, [rawTxError, safeTxError]);
+  }, [rawTxError]);
 
   // Calculate fee
   const calculatedFee = useMemo(() => {
