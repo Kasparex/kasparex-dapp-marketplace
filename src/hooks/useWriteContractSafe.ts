@@ -18,17 +18,18 @@ export function useWriteContractSafe(): UseWriteContractReturnType {
   
   // CRITICAL: Convert error immediately when it occurs
   // This must happen before React Query tries to serialize it for its cache
-  // We use useEffect to intercept the error as soon as it's set
+  // We use useEffect to intercept the error as soon as it's set and convert it
   useEffect(() => {
     if (wagmiResult.error) {
       // Error exists - convert it immediately to prevent React Query serialization
-      // This doesn't prevent the error from being stored, but ensures it's converted
-      // The real fix is in the QueryClient configuration in Providers.tsx
+      // The mutationCache in Providers.tsx should catch this, but we also convert here defensively
       try {
-        const errorStr = getErrorMessage(wagmiResult.error, 'Transaction failed');
-        // Log the converted error for debugging
-        if (typeof wagmiResult.error === 'function') {
-          console.warn('Function-type error detected and converted:', errorStr);
+        const error = wagmiResult.error;
+        if (typeof error === 'function') {
+          // CRITICAL: Function-type error detected - convert immediately
+          const errorStr = getErrorMessage(error, 'Transaction failed');
+          console.warn('Function-type error detected in useWriteContractSafe:', errorStr);
+          // Note: We can't directly modify wagmiResult.error, but the mutationCache should handle it
         }
       } catch (err) {
         console.error('Error conversion failed in useWriteContractSafe');

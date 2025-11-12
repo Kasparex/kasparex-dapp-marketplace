@@ -52,6 +52,11 @@ export function isEmbedded(): boolean {
  * occurs when React tries to serialize an error that is actually a function.
  * This function prevents that by converting functions to fallback messages immediately.
  */
+/**
+ * CRITICAL: This function MUST be called BEFORE React/React Query tries to serialize errors
+ * React Query tries to serialize errors for DevTools and internal state BEFORE onError callbacks run
+ * This function converts function-type errors to strings immediately to prevent serialization errors
+ */
 export function getErrorMessage(error: unknown, fallback: string = 'An error occurred'): string {
   // Handle null/undefined
   if (!error) {
@@ -66,6 +71,7 @@ export function getErrorMessage(error: unknown, fallback: string = 'An error occ
   // CRITICAL: Check for functions FIRST - functions are objects in JS but can't use 'in' operator
   // This is the root cause of "Cannot use 'in' operator to search for 'name' in function..."
   // React's error serialization tries to check properties using 'in', which fails on functions
+  // React Query's DevTools and internal state also try to serialize errors, causing this error
   // Check both typeof === 'function' AND if it has call/apply properties (function-like objects)
   if (typeof error === 'function') {
     // IMMEDIATELY return a safe string - never try to access properties on functions
