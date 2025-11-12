@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762987832-8b792e0",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix React Query error serialization - Use MutationCache to intercept errors before React Query serializes them - Replace mutation.state.error synchronously using Object.defineProperty - Add defensive error handling to prevent 'in' operator errors (by Kasparex)",
+      "date": "2025-11-12T23:50:11+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762987345-09e79e6",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript type issues in useWriteContractSafe - Add explicit type annotation for error variable - Use type assertion for return value to ensure compatibility - Import UseWriteContractReturnType as type-only import (by Kasparex)",
