@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762987003-bbdee29",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: Use correct wagmi type UseWriteContractReturnType (by Kasparex)",
+      "date": "2025-11-12T23:35:44+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762986738-049a26a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix build error: Remove invalid onError from queries defaultOptions - onError is only available for mutations, not queries - Use retry function to handle query errors instead - Fix useMemo dependency warning in useWriteContractSafe (by Kasparex)",
