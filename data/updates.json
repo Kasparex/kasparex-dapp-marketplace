@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762986572-3095c1d",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: CRITICAL FIX: Prevent 'in' operator errors by converting errors before React Query serialization - Created useWriteContractSafe hook to intercept and convert errors immediately - Enhanced QueryClient configuration with error handlers and structural sharing - Improved getErrorMessage to handle function-type errors more robustly - All errors now converted to strings before React Query caches them - This should completely eliminate 'Cannot use in operator' errors (by Kasparex)",
+      "date": "2025-11-12T23:29:08+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762986147-25ddc7a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix 'in' operator errors and optimize error handling - Enhanced getErrorMessage to better handle function-type errors from wagmi - Added useSafeError hooks for all wagmi errors in KASTipWidget - Fixed KAST token address display in DAppCard for KAS Tipping System - Optimized error conversion with defensive useEffect hooks - All errors now converted to strings before React serialization (by Kasparex)",
