@@ -434,7 +434,7 @@ export function KasWareWalletButton() {
 
         {/* Dropdown menu */}
         {isDropdownOpen && (
-          <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-50 overflow-hidden">
+          <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-[9999] overflow-hidden">
             {/* Wallet Info Section */}
             <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
               <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
@@ -642,7 +642,7 @@ export function KasWareWalletButton() {
       </button>
 
       {error && (
-        <div className="absolute top-full right-0 mt-2 w-64 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 shadow-lg z-50">
+        <div className="absolute top-full right-0 mt-2 w-64 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 shadow-lg z-[9999]">
           <p className="text-xs text-red-800 dark:text-red-300">{error}</p>
           {error.includes('not installed') && (
             <a

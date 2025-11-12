@@ -266,7 +266,7 @@ export function DAppWidgetHeader({
 
               {/* Dropdown Menu */}
               {showDeveloperDropdown && (
-                <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-50 overflow-hidden">
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-[9999] overflow-hidden">
                   {/* Developer Info Section */}
                   <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
                     <div className="flex items-center gap-3 mb-2">

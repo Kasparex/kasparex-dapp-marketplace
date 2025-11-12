@@ -76,28 +76,28 @@ export function StatusIndicator({ dapp, className = '', size = 'md' }: StatusInd
       case 'mainnet':
         return {
           bg: 'bg-green-500',
-          shadow: '0 0 8px rgba(34, 197, 94, 0.6), 0 0 12px rgba(34, 197, 94, 0.4)',
+          shadow: '0 0 4px rgba(34, 197, 94, 0.8), 0 0 6px rgba(34, 197, 94, 0.6), 0 0 8px rgba(34, 197, 94, 0.4)',
         };
       case 'testnet':
         return {
           bg: 'bg-yellow-500',
-          shadow: '0 0 8px rgba(234, 179, 8, 0.6), 0 0 12px rgba(234, 179, 8, 0.4)',
+          shadow: '0 0 4px rgba(234, 179, 8, 0.8), 0 0 6px rgba(234, 179, 8, 0.6), 0 0 8px rgba(234, 179, 8, 0.4)',
         };
       case 'both':
         return {
           bg: 'bg-green-500',
-          shadow: '0 0 8px rgba(34, 197, 94, 0.6), 0 0 12px rgba(34, 197, 94, 0.4)',
+          shadow: '0 0 4px rgba(34, 197, 94, 0.8), 0 0 6px rgba(34, 197, 94, 0.6), 0 0 8px rgba(34, 197, 94, 0.4)',
         };
       case 'suspended':
         return {
           bg: 'bg-red-500',
-          shadow: '0 0 8px rgba(239, 68, 68, 0.6), 0 0 12px rgba(239, 68, 68, 0.4)',
+          shadow: '0 0 4px rgba(239, 68, 68, 0.8), 0 0 6px rgba(239, 68, 68, 0.6), 0 0 8px rgba(239, 68, 68, 0.4)',
         };
       case 'none':
       default:
         return {
           bg: 'bg-purple-500',
-          shadow: '0 0 8px rgba(168, 85, 247, 0.6), 0 0 12px rgba(168, 85, 247, 0.4)',
+          shadow: '0 0 4px rgba(168, 85, 247, 0.8), 0 0 6px rgba(168, 85, 247, 0.6), 0 0 8px rgba(168, 85, 247, 0.4)',
         };
     }
   };
@@ -126,7 +126,7 @@ export function StatusIndicator({ dapp, className = '', size = 'md' }: StatusInd
       
       {/* Tooltip */}
       {showTooltip && (
-        <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-xl z-[100] p-3 pointer-events-none">
+        <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-xl z-[9999] p-3 pointer-events-none">
           {statusType === 'suspended' && (
             <div className="mb-3 pb-3 border-b border-zinc-300 dark:border-zinc-600">
               <p className="text-xs font-semibold text-red-600 dark:text-red-400">

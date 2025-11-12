@@ -74,7 +74,7 @@ export function UserMenu() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-50 overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-[9999] overflow-hidden">
           <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
             <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
               Connected Wallet

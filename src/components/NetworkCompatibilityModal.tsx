@@ -47,7 +47,7 @@ export function NetworkCompatibilityModal({
 
   // EVM-compatible dApp but wrong network
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-lg w-full border border-zinc-200 dark:border-zinc-800">
         <div className="p-8">
           <div className="flex items-start justify-between mb-6">

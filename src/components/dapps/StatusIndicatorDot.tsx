@@ -26,28 +26,28 @@ export function StatusIndicatorDot({ statusType, size = 'md', className = '' }: 
       case 'mainnet':
         return {
           bg: 'bg-green-500',
-          shadow: '0 0 8px rgba(34, 197, 94, 0.6), 0 0 12px rgba(34, 197, 94, 0.4)',
+          shadow: '0 0 4px rgba(34, 197, 94, 0.8), 0 0 6px rgba(34, 197, 94, 0.6), 0 0 8px rgba(34, 197, 94, 0.4)',
         };
       case 'testnet':
         return {
           bg: 'bg-yellow-500',
-          shadow: '0 0 8px rgba(234, 179, 8, 0.6), 0 0 12px rgba(234, 179, 8, 0.4)',
+          shadow: '0 0 4px rgba(234, 179, 8, 0.8), 0 0 6px rgba(234, 179, 8, 0.6), 0 0 8px rgba(234, 179, 8, 0.4)',
         };
       case 'both':
         return {
           bg: 'bg-green-500',
-          shadow: '0 0 8px rgba(34, 197, 94, 0.6), 0 0 12px rgba(34, 197, 94, 0.4)',
+          shadow: '0 0 4px rgba(34, 197, 94, 0.8), 0 0 6px rgba(34, 197, 94, 0.6), 0 0 8px rgba(34, 197, 94, 0.4)',
         };
       case 'suspended':
         return {
           bg: 'bg-red-500',
-          shadow: '0 0 8px rgba(239, 68, 68, 0.6), 0 0 12px rgba(239, 68, 68, 0.4)',
+          shadow: '0 0 4px rgba(239, 68, 68, 0.8), 0 0 6px rgba(239, 68, 68, 0.6), 0 0 8px rgba(239, 68, 68, 0.4)',
         };
       case 'none':
       default:
         return {
           bg: 'bg-purple-500',
-          shadow: '0 0 8px rgba(168, 85, 247, 0.6), 0 0 12px rgba(168, 85, 247, 0.4)',
+          shadow: '0 0 4px rgba(168, 85, 247, 0.8), 0 0 6px rgba(168, 85, 247, 0.6), 0 0 8px rgba(168, 85, 247, 0.4)',
         };
     }
   };

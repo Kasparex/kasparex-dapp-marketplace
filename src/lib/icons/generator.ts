@@ -4,7 +4,7 @@
  */
 
 import { generateColorPalette, type ColorPalette } from './colors';
-import { getDAppIcon } from './iconLibrary';
+import { getDAppIconComponent } from './dAppIconLibrary';
 
 export interface IconConfig {
   size?: number;
@@ -15,7 +15,7 @@ export interface IconConfig {
 
 export interface GeneratedIcon {
   letter: string;
-  icon?: string; // Emoji icon for dApps
+  iconComponent?: (props: { className?: string; color?: string }) => JSX.Element; // SVG icon component for dApps
   colors: ColorPalette;
   config: IconConfig;
 }
@@ -53,12 +53,12 @@ export function generateDAppIcon(
 ): GeneratedIcon {
   const identifier = `${name}_${category || 'general'}`;
   const letter = getInitials(name, 1);
-  const icon = getDAppIcon(identifier);
+  const iconComponent = getDAppIconComponent(identifier);
   const colors = generateColorPalette(identifier);
 
   return {
     letter,
-    icon,
+    iconComponent,
     colors,
     config: {
       size: config.size || 48,

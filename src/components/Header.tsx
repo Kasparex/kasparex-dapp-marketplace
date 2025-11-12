@@ -228,7 +228,7 @@ export function Header() {
                         setDAppsDropdownOpen(false);
                       }, 500);
                     }}
-                    className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-50 overflow-hidden"
+                    className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-[9999] overflow-hidden"
                   >
                     {projectLinks.map((project) => (
                       <a

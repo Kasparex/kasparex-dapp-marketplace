@@ -95,10 +95,11 @@ export function IconDisplay({
       className={className}
       aria-label={`${type} icon for ${identifier}`}
     >
-      {type === 'dapp' && icon.icon ? (
-        <span style={{ fontSize: `${Math.floor((icon.config.size || size || 48) * 0.6)}px` }}>
-          {icon.icon}
-        </span>
+      {type === 'dapp' && icon.iconComponent ? (
+        icon.iconComponent({ 
+          className: 'w-full h-full',
+          color: icon.colors.textColor 
+        })
       ) : (
         icon.config.showLetter && icon.letter
       )}
