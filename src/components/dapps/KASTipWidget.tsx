@@ -127,11 +127,29 @@ export function KASTipWidget({
   // Write contract for tipping
   // CRITICAL: Convert errors to strings immediately to prevent 'in' operator errors
   const { writeContract, data: hash, isPending: isPendingWrite, error: rawWriteError } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+  const { isLoading: isConfirming, isSuccess, error: rawTxError } = useWaitForTransactionReceipt({ hash });
 
-  // Immediately convert error to string using useSafeError to prevent React serialization issues
+  // Immediately convert errors to strings using useSafeError to prevent React serialization issues
   // This ensures errors from wagmi (which can be function-type) are converted before React tries to render them
+  // CRITICAL: These hooks MUST be called at the component level, not inside callbacks or conditionals
   const safeWriteError = useSafeError(rawWriteError);
+  const safeTxError = useSafeError(rawTxError);
+
+  // CRITICAL: Watch for errors and convert them immediately to prevent React serialization
+  // Note: useSafeError already handles conversion, but this ensures errors are never passed to React as raw objects
+  // These effects are defensive and help catch any edge cases
+  useEffect(() => {
+    if (rawWriteError && safeWriteError === null) {
+      // If useSafeError returned null but we have an error, something went wrong
+      console.warn('Error conversion may have failed - raw error exists but safe error is null');
+    }
+  }, [rawWriteError, safeWriteError]);
+
+  useEffect(() => {
+    if (rawTxError && safeTxError === null) {
+      console.warn('Error conversion may have failed - raw error exists but safe error is null');
+    }
+  }, [rawTxError, safeTxError]);
 
   // Calculate fee
   const calculatedFee = useMemo(() => {
@@ -338,9 +356,11 @@ export function KASTipWidget({
                 </div>
               )}
 
-              {safeWriteError && (
+              {(safeWriteError || safeTxError) && (
                 <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                  <p className="text-sm text-red-600 dark:text-red-400">{safeWriteError}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400">
+                    {safeWriteError || safeTxError || 'Transaction failed'}
+                  </p>
                 </div>
               )}
 

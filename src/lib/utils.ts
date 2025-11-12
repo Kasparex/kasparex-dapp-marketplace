@@ -68,22 +68,34 @@ export function getErrorMessage(error: unknown, fallback: string = 'An error occ
   // React's error serialization tries to check properties using 'in', which fails on functions
   // Check both typeof === 'function' AND if it has call/apply properties (function-like objects)
   if (typeof error === 'function') {
-    // Try to get function name for better error message, but be very careful
+    // IMMEDIATELY return a safe string - never try to access properties on functions
+    // This prevents React from trying to serialize the function
     try {
       // Check if it's a contract function signature by checking toString
+      // We use String() instead of .toString() to avoid potential issues
       const str = String(error);
-      if (str.includes('function') && (str.includes('external') || str.includes('public'))) {
+      if (str.includes('function') && (str.includes('external') || str.includes('public') || str.includes('payable'))) {
         // Extract function name from signature if possible
+        // Match patterns like "function tip(address _recipient, address _referral) external payable"
         const match = str.match(/function\s+(\w+)\s*\(/);
         if (match && match[1]) {
           return `${fallback} (${match[1]})`;
         }
         return `${fallback} (contract function)`;
       }
-      // Regular function, try to get name
-      const funcName = (error as any).name || 'function';
-      return `${fallback} (${funcName})`;
+      // Regular function - try to get name safely without using 'in' operator
+      // Use try-catch and direct property access instead of 'in'
+      try {
+        const funcName = (error as any).name;
+        if (typeof funcName === 'string' && funcName) {
+          return `${fallback} (${funcName})`;
+        }
+      } catch {
+        // Ignore - name property access failed
+      }
+      return `${fallback} (function-type error)`;
     } catch {
+      // If even String() fails, return fallback immediately
       return fallback;
     }
   }

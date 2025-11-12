@@ -143,8 +143,12 @@ export function DAppCard({ dapp }: DAppCardProps) {
   }, [showEmbedIconTooltip]);
 
   // Get token information
-  const tokenTicker = contractData?.ticker || null;
-  const tokenAddress = contractData?.tokenAddress || null;
+  // For KAS Tipping System, ensure KAST token is linked
+  const kastTokenAddress = mergedDApp.slug === 'kas-tipping-system' ? '0x58f026dC9985a253620C5ceDE16EC6316E5085C1' : null;
+  const kastTicker = mergedDApp.slug === 'kas-tipping-system' ? 'KAST' : null;
+  
+  const tokenTicker = contractData?.ticker || kastTicker || null;
+  const tokenAddress = contractData?.tokenAddress || kastTokenAddress || null;
   const dAppContractAddress = contractData?.contractAddress || mergedDApp.contractAddress || null;
   
   // Format addresses for display
