@@ -55,6 +55,27 @@ const mutationCache = new MutationCache({
         }
       };
     }
+    
+    // CRITICAL: Also intercept errors by wrapping the mutation state
+    // Use a Proxy to intercept error property access
+    const originalState = mutation.state;
+    if (originalState) {
+      mutation.state = new Proxy(originalState, {
+        set(target, prop, value) {
+          // If setting the error property, convert function-type errors
+          if (prop === 'error' && typeof value === 'function') {
+            const errorStr = getErrorMessage(value, 'An error occurred');
+            return Reflect.set(target, prop, new Error(errorStr));
+          }
+          if (prop === 'error' && value && !(value instanceof Error)) {
+            const errorStr = getErrorMessage(value, 'An error occurred');
+            return Reflect.set(target, prop, new Error(errorStr));
+          }
+          return Reflect.set(target, prop, value);
+        },
+      });
+    }
+    
     return undefined;
   },
   onError: (error, _variables, _context, mutation) => {
