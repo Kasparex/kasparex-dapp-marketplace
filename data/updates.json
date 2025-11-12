@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762989121-142734f",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error in useWriteContractSafe - Remove incorrect promise check (writeContract returns void) - Simplify error handling to match wagmi's actual API (by Kasparex)",
+      "date": "2025-11-13T00:11:36+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762988662-89e8055",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript spread operator error - Use Function.apply instead of spread operator for mutationFn call - Avoids TypeScript tuple type error (by Kasparex)",
