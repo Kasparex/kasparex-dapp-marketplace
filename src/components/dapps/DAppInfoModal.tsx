@@ -7,6 +7,8 @@ import { useDeployerProfile, formatDeployerName, getDeployerProfileUrl } from '@
 import { Avatar } from '@/components/Avatar';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
 import { useChainId } from 'wagmi';
+import { getContractAddress } from '@/lib/contracts/addresses';
+import { getExplorerUrl } from '@/lib/dapps/deployer';
 
 interface DAppInfoModalProps {
   dapp: DApp;
@@ -44,11 +46,35 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
     return () => window.removeEventListener('keydown', handleEscape);
   }, [onClose]);
 
-  // Check if there's any content to show
-  const hasContent = dapp.description || dapp.utility || dapp.process || dapp.benefits;
-  if (!hasContent) {
-    return null;
+  // Get contract addresses for ecosystem components
+  const gridTokenAddress = getContractAddress(chainId, 'GRIDToken') || undefined;
+  const proofOfUtilityAddress = getContractAddress(chainId, 'ProofOfUtility') || undefined;
+  const feeHandlerAddress = getContractAddress(chainId, 'FeeHandler') || undefined;
+  const rewardManagerAddress = getContractAddress(chainId, 'RewardManager') || undefined;
+  
+  // Get resolved contract address
+  let resolvedContractAddress = contractAddress || dapp.contractAddress || '';
+  if (!resolvedContractAddress && dapp.slug === 'kas-tipping-system') {
+    resolvedContractAddress = '0x962d06f6c11A95CBc02D5f965135368492d37Fd3';
   }
+  
+  // Format addresses for display
+  const formatAddress = (address: string | null) => {
+    if (!address || !address.startsWith('0x')) return null;
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+  
+  // Get explorer URLs
+  const getExplorerLink = (address: string | undefined) => {
+    if (!address || !address.startsWith('0x')) return null;
+    return getExplorerUrl(address, chainId);
+  };
+  
+  // Format token supply
+  const formatTokenSupply = (supply: bigint | null | undefined) => {
+    if (!supply) return 'N/A';
+    return (Number(supply) / 1e18).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  };
 
   const modalContent = (
     <div
@@ -148,10 +174,15 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
               </div>
             )}
 
-            {/* Process */}
+            {/* How to Use (from process field) */}
             {dapp.process && (
               <div>
-                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">How It Works</h3>
+                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  How to Use
+                </h3>
                 <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
                   {dapp.process}
                 </p>
@@ -167,6 +198,243 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
                 </p>
               </div>
             )}
+
+            {/* Security */}
+            {dapp.security && (
+              <div>
+                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  Security
+                </h3>
+                <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
+                  {dapp.security}
+                </p>
+              </div>
+            )}
+
+            {/* Fees Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Fees
+              </h3>
+              <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4 space-y-2">
+                <p className="text-base text-zinc-600 dark:text-zinc-400">
+                  Each dApp transaction includes a small fee that supports the Kasparex ecosystem. Fees are automatically collected and distributed to support infrastructure, rewards, and development.
+                </p>
+                <p className="text-sm text-zinc-500 dark:text-zinc-500">
+                  Fee rates vary by dApp and are displayed before transaction confirmation.
+                </p>
+                {feeHandlerAddress && (
+                  <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Fee Handler Contract:</p>
+                    {getExplorerLink(feeHandlerAddress) ? (
+                      <a
+                        href={getExplorerLink(feeHandlerAddress)!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-mono text-[#02abb8] hover:underline"
+                      >
+                        {formatAddress(feeHandlerAddress)}
+                      </a>
+                    ) : (
+                      <span className="text-sm font-mono text-zinc-500 dark:text-zinc-500">{formatAddress(feeHandlerAddress)}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* dApp Token Section */}
+            {contractData?.tokenAddress && contractData.ticker && (
+              <div>
+                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  dApp Token ({contractData.ticker})
+                </h3>
+                <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-base text-zinc-600 dark:text-zinc-400">Total Supply:</span>
+                    <span className="text-base font-medium text-zinc-900 dark:text-zinc-100">
+                      {formatTokenSupply(contractData.totalSupply)} {contractData.ticker}
+                    </span>
+                  </div>
+                  <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Token Contract:</p>
+                    {getExplorerLink(contractData.tokenAddress) ? (
+                      <a
+                        href={getExplorerLink(contractData.tokenAddress)!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-mono text-[#02abb8] hover:underline"
+                      >
+                        {formatAddress(contractData.tokenAddress)}
+                      </a>
+                    ) : (
+                      <span className="text-sm font-mono text-zinc-500 dark:text-zinc-500">{formatAddress(contractData.tokenAddress)}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* GRID Token Section */}
+            {gridTokenAddress && (
+              <div>
+                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  Ecosystem GRID Token
+                </h3>
+                <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4">
+                  <p className="text-base text-zinc-600 dark:text-zinc-400 mb-2">
+                    GRID is the ecosystem reward token that can be earned through Proof-of-Utility interactions across all dApps.
+                  </p>
+                  <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">GRID Token Contract:</p>
+                    {getExplorerLink(gridTokenAddress) ? (
+                      <a
+                        href={getExplorerLink(gridTokenAddress)!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-mono text-[#02abb8] hover:underline"
+                      >
+                        {formatAddress(gridTokenAddress)}
+                      </a>
+                    ) : (
+                      <span className="text-sm font-mono text-zinc-500 dark:text-zinc-500">{formatAddress(gridTokenAddress)}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Rewards Section */}
+            {(contractData?.tokenAddress || gridTokenAddress) && (
+              <div>
+                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                  </svg>
+                  Rewards
+                </h3>
+                <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4 space-y-2">
+                  <p className="text-base text-zinc-600 dark:text-zinc-400">
+                    Users can earn rewards through Proof-of-Utility interactions. Rewards may be distributed as:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-base text-zinc-600 dark:text-zinc-400 ml-2">
+                    {contractData?.tokenAddress && contractData.ticker && (
+                      <li>{contractData.ticker} tokens (dApp-specific rewards)</li>
+                    )}
+                    {gridTokenAddress && (
+                      <li>GRID tokens (ecosystem-wide rewards)</li>
+                    )}
+                  </ul>
+                  {rewardManagerAddress && (
+                    <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Reward Manager Contract:</p>
+                      {getExplorerLink(rewardManagerAddress) ? (
+                        <a
+                          href={getExplorerLink(rewardManagerAddress)!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm font-mono text-[#02abb8] hover:underline"
+                        >
+                          {formatAddress(rewardManagerAddress)}
+                        </a>
+                      ) : (
+                        <span className="text-sm font-mono text-zinc-500 dark:text-zinc-500">{formatAddress(rewardManagerAddress)}</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Proof of Utility Section */}
+            {proofOfUtilityAddress && (
+              <div>
+                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Proof of Utility
+                </h3>
+                <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4">
+                  <p className="text-base text-zinc-600 dark:text-zinc-400 mb-2">
+                    Proof-of-Utility tracks on-chain usage events and enables automatic reward distribution based on your interactions with dApps.
+                  </p>
+                  <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Proof of Utility Contract:</p>
+                    {getExplorerLink(proofOfUtilityAddress) ? (
+                      <a
+                        href={getExplorerLink(proofOfUtilityAddress)!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-mono text-[#02abb8] hover:underline"
+                      >
+                        {formatAddress(proofOfUtilityAddress)}
+                      </a>
+                    ) : (
+                      <span className="text-sm font-mono text-zinc-500 dark:text-zinc-500">{formatAddress(proofOfUtilityAddress)}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Contract Addresses Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                Contract Addresses
+              </h3>
+              <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4 space-y-3">
+                {resolvedContractAddress && resolvedContractAddress.startsWith('0x') && (
+                  <div>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">dApp Contract:</p>
+                    {getExplorerLink(resolvedContractAddress) ? (
+                      <a
+                        href={getExplorerLink(resolvedContractAddress)!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-mono text-[#02abb8] hover:underline break-all"
+                      >
+                        {resolvedContractAddress}
+                      </a>
+                    ) : (
+                      <span className="text-sm font-mono text-zinc-500 dark:text-zinc-500 break-all">{resolvedContractAddress}</span>
+                    )}
+                  </div>
+                )}
+                {contractData?.tokenAddress && (
+                  <div>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Token Contract:</p>
+                    {getExplorerLink(contractData.tokenAddress) ? (
+                      <a
+                        href={getExplorerLink(contractData.tokenAddress)!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-mono text-[#02abb8] hover:underline break-all"
+                      >
+                        {contractData.tokenAddress}
+                      </a>
+                    ) : (
+                      <span className="text-sm font-mono text-zinc-500 dark:text-zinc-500 break-all">{contractData.tokenAddress}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="flex justify-end mt-6">
