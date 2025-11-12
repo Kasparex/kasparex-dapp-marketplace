@@ -121,7 +121,15 @@ export function ProfileEditModal({
       }
     },
     onError: (err) => {
-      setError(getErrorMessage(err, 'Payment failed'));
+      // Convert error to string immediately to prevent 'in' operator issues
+      // err is already an Error object from useTreasuryPayment, but we convert it safely
+      try {
+        const errorMessage = getErrorMessage(err, 'Payment failed');
+        setError(errorMessage);
+      } catch {
+        // Fallback if error conversion fails
+        setError('Payment failed');
+      }
     },
   });
 

@@ -62,19 +62,19 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
         </div>
       )}
 
-      {/* Rewards Display */}
-      {(gridTokenAddress || contractData?.tokenAddress || dapp.slug === 'kas-tipping-system') && (
+      {/* Rewards Display - Skip for KAS Tipping System (already in widget) */}
+      {dapp.slug !== 'kas-tipping-system' && (gridTokenAddress || contractData?.tokenAddress) && (
         <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
           <RewardsDisplay
             gridTokenAddress={gridTokenAddress}
-            dAppTokenAddress={dapp.slug === 'kas-tipping-system' ? '0x58f026dC9985a253620C5ceDE16EC6316E5085C1' : (contractData?.tokenAddress || undefined)}
-            ticker={dapp.slug === 'kas-tipping-system' ? 'KAST' : (contractData?.ticker || undefined)}
+            dAppTokenAddress={contractData?.tokenAddress || undefined}
+            ticker={contractData?.ticker || undefined}
           />
         </div>
       )}
 
-      {/* Proof of Utility */}
-      {proofOfUtilityAddress && (
+      {/* Proof of Utility - Skip for KAS Tipping System (already in widget) */}
+      {dapp.slug !== 'kas-tipping-system' && proofOfUtilityAddress && (
         <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
           <ProofOfUtility
             proofOfUtilityAddress={proofOfUtilityAddress}
@@ -82,15 +82,8 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
         </div>
       )}
 
-      {/* Affiliate Widget */}
-      {dapp.slug === 'kas-tipping-system' ? (
-        <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
-          <AffiliateWidget
-            affiliateManagerAddress={getContractAddress(chainId, 'AffiliateManager') || undefined}
-            dAppContractAddress={contractAddress}
-          />
-        </div>
-      ) : (
+      {/* Affiliate Widget - Skip for KAS Tipping System (already in widget) */}
+      {dapp.slug !== 'kas-tipping-system' && (
         <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
           <AffiliateWidget
             dAppId={dapp.id}

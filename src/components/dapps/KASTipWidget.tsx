@@ -125,10 +125,13 @@ export function KASTipWidget({
   }, [topTippers]);
 
   // Write contract for tipping
-  const { writeContract, data: hash, isPending: isPendingWrite, error: writeError } = useWriteContract();
+  // CRITICAL: Convert errors to strings immediately to prevent 'in' operator errors
+  const { writeContract, data: hash, isPending: isPendingWrite, error: rawWriteError } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
-  const safeWriteError = useSafeError(writeError);
+  // Immediately convert error to string using useSafeError to prevent React serialization issues
+  // This ensures errors from wagmi (which can be function-type) are converted before React tries to render them
+  const safeWriteError = useSafeError(rawWriteError);
 
   // Calculate fee
   const calculatedFee = useMemo(() => {
@@ -180,14 +183,25 @@ export function KASTipWidget({
       const amountWei = parseEther(amount);
       const referralAddress = referral && isAddress(referral) ? referral : '0x0000000000000000000000000000000000000000';
 
-      writeContract({
-        address: contractAddress as `0x${string}`,
-        abi: KAS_TIP_ABI,
-        functionName: 'tip',
-        args: [recipient as `0x${string}`, referralAddress as `0x${string}`],
-        value: amountWei,
-      });
+      // Wrap writeContract call to catch any synchronous errors immediately
+      // Note: writeContract from wagmi typically doesn't throw synchronously,
+      // but we wrap it defensively to catch any edge cases
+      try {
+        writeContract({
+          address: contractAddress as `0x${string}`,
+          abi: KAS_TIP_ABI,
+          functionName: 'tip',
+          args: [recipient as `0x${string}`, referralAddress as `0x${string}`],
+          value: amountWei,
+        });
+      } catch (syncErr) {
+        // Convert error immediately to prevent 'in' operator issues
+        const errorMessage = getErrorMessage(syncErr, 'Failed to send tip');
+        setError(errorMessage);
+        return;
+      }
     } catch (err) {
+      // Convert error immediately to prevent 'in' operator issues
       const errorMessage = getErrorMessage(err, 'Failed to send tip');
       setError(errorMessage);
     }

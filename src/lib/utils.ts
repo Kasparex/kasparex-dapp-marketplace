@@ -66,17 +66,60 @@ export function getErrorMessage(error: unknown, fallback: string = 'An error occ
   // CRITICAL: Check for functions FIRST - functions are objects in JS but can't use 'in' operator
   // This is the root cause of "Cannot use 'in' operator to search for 'name' in function..."
   // React's error serialization tries to check properties using 'in', which fails on functions
+  // Check both typeof === 'function' AND if it has call/apply properties (function-like objects)
   if (typeof error === 'function') {
-    // Try to get function name for better error message
+    // Try to get function name for better error message, but be very careful
     try {
-      const funcName = (error as any).name || String(error).match(/function\s+(\w+)/)?.[1] || 'function';
+      // Check if it's a contract function signature by checking toString
+      const str = String(error);
+      if (str.includes('function') && (str.includes('external') || str.includes('public'))) {
+        // Extract function name from signature if possible
+        const match = str.match(/function\s+(\w+)\s*\(/);
+        if (match && match[1]) {
+          return `${fallback} (${match[1]})`;
+        }
+        return `${fallback} (contract function)`;
+      }
+      // Regular function, try to get name
+      const funcName = (error as any).name || 'function';
       return `${fallback} (${funcName})`;
     } catch {
       return fallback;
     }
   }
+
+  // Check if it's a function-like object BEFORE treating it as a regular object
+  // This prevents 'in' operator errors when React tries to serialize
+  // NEVER use 'in' operator - use try-catch with direct property access instead
+  if (typeof error === 'object' && error !== null) {
+    // Check if it's function-like by safely accessing call/apply properties
+    try {
+      const errorAny = error as any;
+      // Try to access call and apply properties directly (without 'in' operator)
+      // If accessing these properties throws or they're functions, it might be function-like
+      const callProp = errorAny.call;
+      const applyProp = errorAny.apply;
+      
+      // If both call and apply exist and call is a function, it's likely function-like
+      if (callProp !== undefined && applyProp !== undefined && typeof callProp === 'function') {
+        // It's function-like - check if toString reveals a function signature
+        const str = String(error);
+        if (str.includes('function') && (str.includes('external') || str.includes('public'))) {
+          const match = str.match(/function\s+(\w+)\s*\(/);
+          if (match && match[1]) {
+            return `${fallback} (${match[1]})`;
+          }
+          return `${fallback} (contract function)`;
+        }
+        return `${fallback} (function-like object)`;
+      }
+    } catch {
+      // If checking properties fails, it might be a function - return fallback immediately
+      return fallback;
+    }
+  }
   
-  // If it's an Error object, return its message FIRST (before checking for functions)
+  // If it's an Error object, return its message
   if (error instanceof Error) {
     // Try to get the actual error message from wagmi errors
     const wagmiError = error as any;
@@ -107,10 +150,9 @@ export function getErrorMessage(error: unknown, fallback: string = 'An error occ
   if (typeof error === 'object' && error !== null) {
     const errorObj = error as Record<string, unknown>;
     
-    // NEVER use 'in' operator - it fails on functions
-    // Instead, try direct property access with try-catch
+    // NEVER use 'in' operator directly - use try-catch with property access
+    // Try shortMessage first (wagmi's user-friendly error message)
     try {
-      // Try shortMessage first (wagmi's user-friendly error message)
       const shortMessage = errorObj.shortMessage;
       if (typeof shortMessage === 'string' && shortMessage) {
         return shortMessage;
@@ -152,27 +194,20 @@ export function getErrorMessage(error: unknown, fallback: string = 'An error occ
       // Ignore
     }
 
-    // Now check if it's a function-like object (AFTER trying to extract messages)
+    // Check if toString returns function signature (wagmi ABI function)
+    // This catches cases where the error object itself represents a function
     try {
-      // Check if it has a call property (function-like)
-      const callProp = (error as any).call;
-      if (typeof callProp === 'function') {
-        // It's function-like, but we already tried to extract messages above
-        // Return a more helpful message
-        return `${fallback} (function-type error)`;
-      }
-      
-      // Check if toString returns function signature (wagmi ABI function)
       const toStringResult = String(error);
-      if (toStringResult.includes('function') && toStringResult.includes('external')) {
-        // This is likely an ABI function that was returned as an error
-        // But we should have extracted the real error message above
-        // If we get here, the error object itself is the function
+      if (toStringResult.includes('function') && (toStringResult.includes('external') || toStringResult.includes('public'))) {
+        // Extract function name if possible
+        const match = toStringResult.match(/function\s+(\w+)\s*\(/);
+        if (match && match[1]) {
+          return `${fallback} (${match[1]})`;
+        }
         return `${fallback} (contract function error)`;
       }
     } catch {
-      // If accessing properties fails, it's likely a function or problematic object
-      // But we already tried to extract messages, so return fallback
+      // If toString fails, it might be a problematic object
     }
 
     // Try to stringify if it's a plain object
@@ -192,7 +227,11 @@ export function getErrorMessage(error: unknown, fallback: string = 'An error occ
   try {
     const stringified = String(error);
     // If it looks like a function signature, don't return it as-is
-    if (stringified.includes('function') && stringified.includes('external')) {
+    if (stringified.includes('function') && (stringified.includes('external') || stringified.includes('public'))) {
+      const match = stringified.match(/function\s+(\w+)\s*\(/);
+      if (match && match[1]) {
+        return `${fallback} (${match[1]})`;
+      }
       return `${fallback} (contract function)`;
     }
     if (stringified !== '[object Object]' && stringified !== 'null' && stringified !== 'undefined') {

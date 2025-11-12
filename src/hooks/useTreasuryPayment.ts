@@ -138,11 +138,20 @@ export function useTreasuryPayment({
   
   // Convert errors to strings immediately to prevent 'in' operator errors
   // This must happen before errors are used anywhere in React
+  // CRITICAL: Errors from wagmi can be function-type objects that React can't serialize
   const writeError = useMemo(() => {
     if (!rawWriteError) return null;
     try {
-      return getErrorMessage(rawWriteError, 'Transaction failed');
-    } catch {
+      // Immediately convert to string - never let React see the raw error
+      const errorMsg = getErrorMessage(rawWriteError, 'Transaction failed');
+      // Double-check it's actually a string
+      if (typeof errorMsg !== 'string') {
+        return 'Transaction failed';
+      }
+      return errorMsg;
+    } catch (err) {
+      // Even getErrorMessage can fail in edge cases - return safe fallback
+      console.error('Error converting writeError:', err);
       return 'Transaction failed';
     }
   }, [rawWriteError]);
@@ -150,8 +159,16 @@ export function useTreasuryPayment({
   const txError = useMemo(() => {
     if (!rawTxError) return null;
     try {
-      return getErrorMessage(rawTxError, 'Transaction confirmation failed');
-    } catch {
+      // Immediately convert to string - never let React see the raw error
+      const errorMsg = getErrorMessage(rawTxError, 'Transaction confirmation failed');
+      // Double-check it's actually a string
+      if (typeof errorMsg !== 'string') {
+        return 'Transaction confirmation failed';
+      }
+      return errorMsg;
+    } catch (err) {
+      // Even getErrorMessage can fail in edge cases - return safe fallback
+      console.error('Error converting txError:', err);
       return 'Transaction confirmation failed';
     }
   }, [rawTxError]);
