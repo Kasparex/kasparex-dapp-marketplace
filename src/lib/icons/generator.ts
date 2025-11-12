@@ -47,6 +47,7 @@ export function getInitials(text: string, maxLength: number = 2): string {
 
 /**
  * Generate icon for a dApp
+ * Uses single-color boxes with contrasting letters (dark box with light letter, or light box with dark letter)
  */
 export function generateDAppIcon(
   name: string,
@@ -55,18 +56,60 @@ export function generateDAppIcon(
 ): GeneratedIcon {
   const identifier = `${name}_${category || 'general'}`;
   const letter = getInitials(name, 1);
-  const iconComponent = getDAppIconComponent(identifier);
-  const colors = generateColorPalette(identifier);
+  const baseColors = generateColorPalette(identifier);
+  
+  // Create single-color box with contrasting letter
+  // Determine if we should use dark or light box based on color brightness
+  const hexToRgb = (hex: string) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
+  };
+  
+  const rgb = hexToRgb(baseColors.primary);
+  const brightness = rgb ? (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000 : 128;
+  
+  // Use dark box with light letter if brightness > 128, otherwise light box with dark letter
+  const useDarkBox = brightness > 128;
+  
+  // Adjust colors for better contrast
+  let backgroundColor: string;
+  let textColor: string;
+  
+  if (useDarkBox) {
+    // Dark box (navy, dark orange, etc.) with light letter
+    backgroundColor = baseColors.primary;
+    // Lighten the text color for contrast
+    const lightR = Math.min(255, rgb!.r + 100);
+    const lightG = Math.min(255, rgb!.g + 100);
+    const lightB = Math.min(255, rgb!.b + 100);
+    textColor = `rgb(${lightR}, ${lightG}, ${lightB})`;
+  } else {
+    // Light box (light yellow, etc.) with dark letter
+    // Lighten the background
+    const lightR = Math.min(255, rgb!.r + 80);
+    const lightG = Math.min(255, rgb!.g + 80);
+    const lightB = Math.min(255, rgb!.b + 80);
+    backgroundColor = `rgb(${lightR}, ${lightG}, ${lightB})`;
+    // Darken the text color
+    textColor = baseColors.primary;
+  }
 
   return {
     letter,
-    iconComponent,
-    colors,
+    colors: {
+      ...baseColors,
+      backgroundColor,
+      textColor,
+    },
     config: {
       size: config.size || 48,
       borderRadius: config.borderRadius || 8,
       showLetter: config.showLetter !== false,
-      gradient: config.gradient || false,
+      gradient: false, // Always use single color for dApps
     },
   };
 }
