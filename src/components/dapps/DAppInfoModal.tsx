@@ -58,6 +58,17 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
     resolvedContractAddress = '0x962d06f6c11A95CBc02D5f965135368492d37Fd3';
   }
   
+  // For KAS Tipping System, ensure KAST token is linked
+  const kastTokenAddress = dapp.slug === 'kas-tipping-system' ? '0x58f026dC9985a253620C5ceDE16EC6316E5085C1' : null;
+  const kastTicker = dapp.slug === 'kas-tipping-system' ? 'KAST' : null;
+  
+  // Merge contract data with KAST info for KAS Tipping System
+  const mergedContractData = dapp.slug === 'kas-tipping-system' && kastTokenAddress ? {
+    ...contractData,
+    tokenAddress: contractData?.tokenAddress || kastTokenAddress,
+    ticker: contractData?.ticker || kastTicker,
+  } : contractData;
+  
   // Format addresses for display
   const formatAddress = (address: string | null) => {
     if (!address || !address.startsWith('0x')) return null;
@@ -250,34 +261,34 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
             </div>
 
             {/* dApp Token Section */}
-            {contractData?.tokenAddress && contractData.ticker && (
+            {mergedContractData?.tokenAddress && mergedContractData.ticker && (
               <div>
                 <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3 flex items-center gap-2">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  dApp Token ({contractData.ticker})
+                  dApp Token ({mergedContractData.ticker})
                 </h3>
                 <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4 space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-base text-zinc-600 dark:text-zinc-400">Total Supply:</span>
                     <span className="text-base font-medium text-zinc-900 dark:text-zinc-100">
-                      {formatTokenSupply(contractData.totalSupply)} {contractData.ticker}
+                      {formatTokenSupply(mergedContractData.totalSupply)} {mergedContractData.ticker}
                     </span>
                   </div>
                   <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
                     <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Token Contract:</p>
-                    {getExplorerLink(contractData.tokenAddress) ? (
+                    {getExplorerLink(mergedContractData.tokenAddress) ? (
                       <a
-                        href={getExplorerLink(contractData.tokenAddress)!}
+                        href={getExplorerLink(mergedContractData.tokenAddress)!}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm font-mono text-[#02abb8] hover:underline"
                       >
-                        {formatAddress(contractData.tokenAddress)}
+                        {formatAddress(mergedContractData.tokenAddress)}
                       </a>
                     ) : (
-                      <span className="text-sm font-mono text-zinc-500 dark:text-zinc-500">{formatAddress(contractData.tokenAddress)}</span>
+                      <span className="text-sm font-mono text-zinc-500 dark:text-zinc-500">{formatAddress(mergedContractData.tokenAddress)}</span>
                     )}
                   </div>
                 </div>
@@ -317,7 +328,7 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
             )}
 
             {/* Rewards Section */}
-            {(contractData?.tokenAddress || gridTokenAddress) && (
+            {(mergedContractData?.tokenAddress || gridTokenAddress) && (
               <div>
                 <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3 flex items-center gap-2">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -330,8 +341,8 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
                     Users can earn rewards through Proof-of-Utility interactions. Rewards may be distributed as:
                   </p>
                   <ul className="list-disc list-inside space-y-1 text-base text-zinc-600 dark:text-zinc-400 ml-2">
-                    {contractData?.tokenAddress && contractData.ticker && (
-                      <li>{contractData.ticker} tokens (dApp-specific rewards)</li>
+                    {mergedContractData?.tokenAddress && mergedContractData.ticker && (
+                      <li>{mergedContractData.ticker} tokens (dApp-specific rewards)</li>
                     )}
                     {gridTokenAddress && (
                       <li>GRID tokens (ecosystem-wide rewards)</li>
@@ -416,20 +427,20 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
                     )}
                   </div>
                 )}
-                {contractData?.tokenAddress && (
+                {mergedContractData?.tokenAddress && (
                   <div>
                     <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Token Contract:</p>
-                    {getExplorerLink(contractData.tokenAddress) ? (
+                    {getExplorerLink(mergedContractData.tokenAddress) ? (
                       <a
-                        href={getExplorerLink(contractData.tokenAddress)!}
+                        href={getExplorerLink(mergedContractData.tokenAddress)!}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm font-mono text-[#02abb8] hover:underline break-all"
                       >
-                        {contractData.tokenAddress}
+                        {mergedContractData.tokenAddress}
                       </a>
                     ) : (
-                      <span className="text-sm font-mono text-zinc-500 dark:text-zinc-500 break-all">{contractData.tokenAddress}</span>
+                      <span className="text-sm font-mono text-zinc-500 dark:text-zinc-500 break-all">{mergedContractData.tokenAddress}</span>
                     )}
                   </div>
                 )}

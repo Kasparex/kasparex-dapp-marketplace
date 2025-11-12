@@ -353,7 +353,12 @@ export function KASTipWidget({
               )}
 
               <button
-                onClick={handleTip}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleTip();
+                }}
                 disabled={isLoading || !isConnected}
                 className="w-full px-4 py-3 bg-[#02abb8] hover:bg-[#0299a6] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >

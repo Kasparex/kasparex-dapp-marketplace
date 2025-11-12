@@ -11,7 +11,7 @@ interface StatusIndicatorProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-type StatusType = 'mainnet' | 'testnet' | 'both' | 'none' | 'suspended';
+type StatusType = 'mainnet' | 'testnet' | 'both' | 'none' | 'suspended' | 'vprogs';
 
 /**
  * Determines the status type based on dApp's supported networks
@@ -26,6 +26,14 @@ function getStatusType(dapp: DApp): StatusType {
   
   if (supportedChainIds.length === 0) {
     return 'none';
+  }
+
+  // Check for vProgs compatibility
+  const hasVProgs = supportedChainIds.includes(CHAIN_IDS.VPROGS_TESTNET) || 
+                    supportedChainIds.includes(CHAIN_IDS.VPROGS_MAINNET);
+  
+  if (hasVProgs) {
+    return 'vprogs';
   }
 
   const hasMainnet = supportedChainIds.includes(CHAIN_IDS.KASPLEX_L2_MAINNET);
@@ -56,12 +64,16 @@ export function StatusIndicator({ dapp, className = '', size = 'md' }: StatusInd
     .map(chain => chain!.name);
   
   // Get all available chains for comparison
-  const allChainIds = [CHAIN_IDS.KASPLEX_L2_MAINNET, CHAIN_IDS.KASPLEX_L2_TESTNET];
+  const allChainIds = [CHAIN_IDS.KASPLEX_L2_MAINNET, CHAIN_IDS.KASPLEX_L2_TESTNET, CHAIN_IDS.VPROGS_TESTNET, CHAIN_IDS.VPROGS_MAINNET];
   const allNetworks = allChainIds
     .map(id => getChainById(id))
     .filter(Boolean)
     .map(chain => chain!.name);
   const unavailableNetworks = allNetworks.filter(network => !supportedNetworks.includes(network));
+  
+  // Check for vProgs networks
+  const hasVProgsTestnet = supportedChainIds.includes(CHAIN_IDS.VPROGS_TESTNET);
+  const hasVProgsMainnet = supportedChainIds.includes(CHAIN_IDS.VPROGS_MAINNET);
 
   // Size classes
   const sizeClasses = {
@@ -93,11 +105,16 @@ export function StatusIndicator({ dapp, className = '', size = 'md' }: StatusInd
           bg: 'bg-red-500',
           shadow: '0 0 4px rgba(239, 68, 68, 0.8), 0 0 6px rgba(239, 68, 68, 0.6), 0 0 8px rgba(239, 68, 68, 0.4)',
         };
-      case 'none':
-      default:
+      case 'vprogs':
         return {
           bg: 'bg-purple-500',
           shadow: '0 0 4px rgba(168, 85, 247, 0.8), 0 0 6px rgba(168, 85, 247, 0.6), 0 0 8px rgba(168, 85, 247, 0.4)',
+        };
+      case 'none':
+      default:
+        return {
+          bg: 'bg-zinc-500',
+          shadow: '0 0 4px rgba(113, 113, 122, 0.8), 0 0 6px rgba(113, 113, 122, 0.6), 0 0 8px rgba(113, 113, 122, 0.4)',
         };
     }
   };
@@ -132,6 +149,27 @@ export function StatusIndicator({ dapp, className = '', size = 'md' }: StatusInd
               <p className="text-xs font-semibold text-red-600 dark:text-red-400">
                 ⚠ Suspended
               </p>
+            </div>
+          )}
+          
+          {statusType === 'vprogs' && (
+            <div className="mb-3 pb-3 border-b border-zinc-300 dark:border-zinc-600">
+              <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-1.5">
+                vProgs Compatible
+              </p>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                This dApp is or will be compatible with vProgs (Kaspa Virtual Programs), enabling native Kaspa integration and enhanced performance.
+              </p>
+              {(hasVProgsTestnet || hasVProgsMainnet) && (
+                <div className="mt-2 space-y-1">
+                  {hasVProgsTestnet && (
+                    <p className="text-xs text-zinc-600 dark:text-zinc-400">• vProgs Testnet</p>
+                  )}
+                  {hasVProgsMainnet && (
+                    <p className="text-xs text-zinc-600 dark:text-zinc-400">• vProgs Mainnet</p>
+                  )}
+                </div>
+              )}
             </div>
           )}
           

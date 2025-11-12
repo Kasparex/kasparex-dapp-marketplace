@@ -34,6 +34,17 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
     contractAddress?.startsWith('0x') ? contractAddress : undefined,
     chainId
   );
+  
+  // For KAS Tipping System, ensure KAST token is linked
+  const kastTokenAddress = dapp.slug === 'kas-tipping-system' ? '0x58f026dC9985a253620C5ceDE16EC6316E5085C1' : null;
+  const kastTicker = dapp.slug === 'kas-tipping-system' ? 'KAST' : null;
+  
+  // Merge contract data with KAST info for KAS Tipping System
+  const mergedContractData = dapp.slug === 'kas-tipping-system' && kastTokenAddress ? {
+    ...contractData,
+    tokenAddress: contractData?.tokenAddress || kastTokenAddress,
+    ticker: contractData?.ticker || kastTicker,
+  } : contractData;
 
   // Get contract addresses for token components
   const gridTokenAddress = getContractAddress(chainId, 'GRIDToken') || undefined;
@@ -51,24 +62,24 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
       <DAppWidget dapp={dapp} />
 
       {/* Token Information */}
-      {contractData?.tokenAddress && contractData.ticker && (
+      {mergedContractData?.tokenAddress && mergedContractData.ticker && (
         <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
           <TokenDisplay
-            tokenAddress={contractData.tokenAddress}
-            ticker={contractData.ticker}
-            totalSupply={contractData.totalSupply?.toString() || '0'}
+            tokenAddress={mergedContractData.tokenAddress}
+            ticker={mergedContractData.ticker}
+            totalSupply={mergedContractData.totalSupply?.toString() || '0'}
             dAppName={dapp.name}
           />
         </div>
       )}
 
       {/* Rewards Display - Skip for KAS Tipping System (already in widget) */}
-      {dapp.slug !== 'kas-tipping-system' && (gridTokenAddress || contractData?.tokenAddress) && (
+      {dapp.slug !== 'kas-tipping-system' && (gridTokenAddress || mergedContractData?.tokenAddress) && (
         <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
           <RewardsDisplay
             gridTokenAddress={gridTokenAddress}
-            dAppTokenAddress={contractData?.tokenAddress || undefined}
-            ticker={contractData?.ticker || undefined}
+            dAppTokenAddress={mergedContractData?.tokenAddress || undefined}
+            ticker={mergedContractData?.ticker || undefined}
           />
         </div>
       )}

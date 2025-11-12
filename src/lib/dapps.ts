@@ -308,8 +308,20 @@ export const filterDApps = (
     }
     
     // Network filter - empty array means all selected
-    if (filters.network.length > 0 && !filters.network.includes(dapp.network) && !filters.network.includes('all')) {
-      return false;
+    if (filters.network.length > 0 && !filters.network.includes('all')) {
+      const hasVProgsFilter = filters.network.includes('vProgs');
+      const supportedChainIds = getDAppChainIds(dapp);
+      const hasVProgs = supportedChainIds.includes(CHAIN_IDS.VPROGS_TESTNET) || 
+                        supportedChainIds.includes(CHAIN_IDS.VPROGS_MAINNET);
+      
+      // Check if dApp matches any selected network (OR logic)
+      const matchesNetwork = filters.network.includes(dapp.network);
+      const matchesVProgs = hasVProgsFilter && hasVProgs;
+      
+      // If neither network name nor vProgs compatibility matches, filter out
+      if (!matchesNetwork && !matchesVProgs) {
+        return false;
+      }
     }
     
     // Search query filter
@@ -371,8 +383,20 @@ export const getCategoryCounts = (
       return false;
     }
     // Network filter - empty array means all selected
-    if (filters.network.length > 0 && !filters.network.includes(dapp.network) && !filters.network.includes('all')) {
-      return false;
+    if (filters.network.length > 0 && !filters.network.includes('all')) {
+      const hasVProgsFilter = filters.network.includes('vProgs');
+      const supportedChainIds = getDAppChainIds(dapp);
+      const hasVProgs = supportedChainIds.includes(CHAIN_IDS.VPROGS_TESTNET) || 
+                        supportedChainIds.includes(CHAIN_IDS.VPROGS_MAINNET);
+      
+      // Check if dApp matches any selected network (OR logic)
+      const matchesNetwork = filters.network.includes(dapp.network);
+      const matchesVProgs = hasVProgsFilter && hasVProgs;
+      
+      // If neither network name nor vProgs compatibility matches, filter out
+      if (!matchesNetwork && !matchesVProgs) {
+        return false;
+      }
     }
     
     // Search query filter

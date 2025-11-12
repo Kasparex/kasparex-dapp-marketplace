@@ -38,6 +38,7 @@ const networkOptions: { label: string; logo?: string }[] = [
   { label: 'Kasplex L2 Mainnet', logo: '/img/logos/kasplex.png' },
   { label: 'Kasplex L2 Testnet', logo: '/img/logos/kasplex.png' },
   { label: 'Igra Caravel Testnet', logo: '/img/logos/igra.png' },
+  { label: 'vProgs', logo: '/img/logos/kaspa.png' },
 ];
 
 export function Sidebar({

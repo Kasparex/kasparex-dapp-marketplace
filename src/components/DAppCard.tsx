@@ -69,13 +69,42 @@ export function DAppCard({ dapp }: DAppCardProps) {
     embedIcon?: { top: number; left: number };
   }>({});
   
-  // Calculate tooltip positions (getBoundingClientRect returns viewport coordinates, perfect for fixed positioning)
+  // Calculate tooltip positions with boundary checking
+  const calculateTooltipPosition = (rect: DOMRect, tooltipWidth: number = 288) => {
+    const padding = 8;
+    let left = rect.left;
+    let top = rect.top;
+    
+    // Check right boundary
+    if (left + tooltipWidth > window.innerWidth - padding) {
+      left = window.innerWidth - tooltipWidth - padding;
+    }
+    
+    // Check left boundary
+    if (left < padding) {
+      left = padding;
+    }
+    
+    // Check bottom boundary (tooltip appears above, so we check if there's enough space above)
+    const tooltipHeight = 200; // Approximate tooltip height
+    if (top - tooltipHeight - padding < 0) {
+      // Not enough space above, show below instead
+      top = rect.bottom + padding;
+    } else {
+      // Show above
+      top = rect.top;
+    }
+    
+    return { top, left };
+  };
+  
   useEffect(() => {
     if (showDAppTooltip && dAppTooltipRef.current) {
       const rect = dAppTooltipRef.current.getBoundingClientRect();
+      const pos = calculateTooltipPosition(rect, 288);
       setTooltipPositions(prev => ({
         ...prev,
-        dApp: { top: rect.top, left: rect.left }
+        dApp: pos
       }));
     }
   }, [showDAppTooltip]);
@@ -83,9 +112,10 @@ export function DAppCard({ dapp }: DAppCardProps) {
   useEffect(() => {
     if (showTokenTooltip && tokenTooltipRef.current) {
       const rect = tokenTooltipRef.current.getBoundingClientRect();
+      const pos = calculateTooltipPosition(rect, 288);
       setTooltipPositions(prev => ({
         ...prev,
-        token: { top: rect.top, left: rect.left }
+        token: pos
       }));
     }
   }, [showTokenTooltip]);
@@ -93,9 +123,10 @@ export function DAppCard({ dapp }: DAppCardProps) {
   useEffect(() => {
     if (showInfoIconTooltip && infoIconTooltipRef.current) {
       const rect = infoIconTooltipRef.current.getBoundingClientRect();
+      const pos = calculateTooltipPosition(rect, 256);
       setTooltipPositions(prev => ({
         ...prev,
-        infoIcon: { top: rect.top, left: rect.left }
+        infoIcon: pos
       }));
     }
   }, [showInfoIconTooltip]);
@@ -103,9 +134,10 @@ export function DAppCard({ dapp }: DAppCardProps) {
   useEffect(() => {
     if (showEmbedIconTooltip && embedIconTooltipRef.current) {
       const rect = embedIconTooltipRef.current.getBoundingClientRect();
+      const pos = calculateTooltipPosition(rect, 256);
       setTooltipPositions(prev => ({
         ...prev,
-        embedIcon: { top: rect.top, left: rect.left }
+        embedIcon: pos
       }));
     }
   }, [showEmbedIconTooltip]);
@@ -210,9 +242,10 @@ export function DAppCard({ dapp }: DAppCardProps) {
               <div 
                 className="fixed w-72 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-xl z-[99999] p-3 pointer-events-none"
                 style={{ 
-                  top: `${tooltipPositions.dApp.top}px`,
+                  top: tooltipPositions.dApp.top < 200 ? `${tooltipPositions.dApp.top + 24}px` : `${tooltipPositions.dApp.top}px`,
                   left: `${tooltipPositions.dApp.left}px`,
-                  transform: 'translateY(calc(-100% - 8px))'
+                  transform: tooltipPositions.dApp.top < 200 ? 'none' : 'translateY(calc(-100% - 8px))',
+                  maxWidth: 'calc(100vw - 16px)',
                 }}
               >
                 <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">dApp Information</p>
@@ -274,9 +307,10 @@ export function DAppCard({ dapp }: DAppCardProps) {
               <div 
                 className="fixed w-72 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-xl z-[99999] p-3 pointer-events-none"
                 style={{ 
-                  top: `${tooltipPositions.token.top}px`,
+                  top: tooltipPositions.token.top < 200 ? `${tooltipPositions.token.top + 24}px` : `${tooltipPositions.token.top}px`,
                   left: `${tooltipPositions.token.left}px`,
-                  transform: 'translateY(calc(-100% - 8px))'
+                  transform: tooltipPositions.token.top < 200 ? 'none' : 'translateY(calc(-100% - 8px))',
+                  maxWidth: 'calc(100vw - 16px)',
                 }}
               >
                 <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Token Information</p>
@@ -329,9 +363,10 @@ export function DAppCard({ dapp }: DAppCardProps) {
                 <div 
                   className="fixed w-64 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-xl z-[99999] p-3 pointer-events-none"
                   style={{ 
-                    top: `${tooltipPositions.infoIcon.top}px`,
+                    top: tooltipPositions.infoIcon.top < 200 ? `${tooltipPositions.infoIcon.top + 24}px` : `${tooltipPositions.infoIcon.top}px`,
                     left: `${tooltipPositions.infoIcon.left}px`,
-                    transform: 'translateY(calc(-100% - 8px))'
+                    transform: tooltipPositions.infoIcon.top < 200 ? 'none' : 'translateY(calc(-100% - 8px))',
+                    maxWidth: 'calc(100vw - 16px)',
                   }}
                 >
                   <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Fees Information</p>
@@ -363,9 +398,10 @@ export function DAppCard({ dapp }: DAppCardProps) {
               <div 
                 className="fixed w-64 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-xl z-[99999] p-3 pointer-events-none"
                 style={{ 
-                  top: `${tooltipPositions.embedIcon.top}px`,
+                  top: tooltipPositions.embedIcon.top < 200 ? `${tooltipPositions.embedIcon.top + 24}px` : `${tooltipPositions.embedIcon.top}px`,
                   left: `${tooltipPositions.embedIcon.left}px`,
-                  transform: 'translateY(calc(-100% - 8px))'
+                  transform: tooltipPositions.embedIcon.top < 200 ? 'none' : 'translateY(calc(-100% - 8px))',
+                  maxWidth: 'calc(100vw - 16px)',
                 }}
               >
                 <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">How to Embed</p>

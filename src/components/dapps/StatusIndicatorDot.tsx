@@ -3,7 +3,7 @@
 import { CHAIN_IDS } from '@/lib/wagmi';
 
 interface StatusIndicatorDotProps {
-  statusType: 'mainnet' | 'testnet' | 'both' | 'none' | 'suspended';
+  statusType: 'mainnet' | 'testnet' | 'both' | 'none' | 'suspended' | 'vprogs';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
@@ -43,11 +43,16 @@ export function StatusIndicatorDot({ statusType, size = 'md', className = '' }: 
           bg: 'bg-red-500',
           shadow: '0 0 4px rgba(239, 68, 68, 0.8), 0 0 6px rgba(239, 68, 68, 0.6), 0 0 8px rgba(239, 68, 68, 0.4)',
         };
-      case 'none':
-      default:
+      case 'vprogs':
         return {
           bg: 'bg-purple-500',
           shadow: '0 0 4px rgba(168, 85, 247, 0.8), 0 0 6px rgba(168, 85, 247, 0.6), 0 0 8px rgba(168, 85, 247, 0.4)',
+        };
+      case 'none':
+      default:
+        return {
+          bg: 'bg-zinc-500',
+          shadow: '0 0 4px rgba(113, 113, 122, 0.8), 0 0 6px rgba(113, 113, 122, 0.6), 0 0 8px rgba(113, 113, 122, 0.4)',
         };
     }
   };
@@ -76,7 +81,7 @@ export function StatusIndicatorDot({ statusType, size = 'md', className = '' }: 
  * Helper function to determine status type from status string
  * This is used for filtering in the sidebar
  */
-export function getStatusTypeFromString(status: string): 'mainnet' | 'testnet' | 'both' | 'none' | 'suspended' {
+export function getStatusTypeFromString(status: string): 'mainnet' | 'testnet' | 'both' | 'none' | 'suspended' | 'vprogs' {
   if (status === 'Suspended') {
     return 'suspended';
   }
@@ -85,6 +90,9 @@ export function getStatusTypeFromString(status: string): 'mainnet' | 'testnet' |
   }
   if (status === 'Testnet') {
     return 'testnet';
+  }
+  if (status === 'vProgs' || status === 'vprogs') {
+    return 'vprogs';
   }
   // For filtering purposes, we'll treat other statuses as 'none'
   return 'none';
