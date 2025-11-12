@@ -37,16 +37,36 @@ export function useWriteContractSafe(): UseWriteContractReturnType {
     }
   }, [wagmiResult.error]);
   
-  // Wrap writeContract to intercept synchronous errors
+  // Wrap writeContract to intercept synchronous errors AND wrap the mutation
+  // CRITICAL: We need to intercept errors at the mutation level, not just the hook level
   const safeWriteContract = useMemo(() => {
     return (args: Parameters<typeof wagmiResult.writeContract>[0]) => {
       try {
         // Call the original writeContract
-        return wagmiResult.writeContract(args);
+        // Note: wagmi's writeContract doesn't throw synchronously - errors come via the error state
+        // But we wrap it defensively anyway
+        const result = wagmiResult.writeContract(args);
+        
+        // If writeContract returns a promise (it shouldn't for wagmi, but be defensive)
+        if (result && typeof result === 'object' && 'then' in result) {
+          return Promise.resolve(result).catch((err: unknown) => {
+            // Convert function-type errors before they reach React Query
+            if (typeof err === 'function') {
+              const errorStr = getErrorMessage(err, 'Transaction failed');
+              throw new Error(errorStr);
+            }
+            if (err && !(err instanceof Error)) {
+              const errorStr = getErrorMessage(err, 'Transaction failed');
+              throw new Error(errorStr);
+            }
+            throw err;
+          });
+        }
+        
+        return result;
       } catch (err) {
         // If writeContract throws synchronously, convert error immediately
         const errorStr = getErrorMessage(err, 'Transaction failed');
-        // Create a new Error with the string message
         throw new Error(errorStr);
       }
     };

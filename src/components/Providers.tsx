@@ -9,25 +9,61 @@ import { config } from '@/lib/wagmi';
 import { KaspaWalletProvider } from '@/lib/kaspa/context';
 import { getErrorMessage } from '@/lib/utils';
 
+// CRITICAL: Global error handler to intercept React Query's error serialization
+// This runs BEFORE React Query tries to serialize errors for DevTools/cache
+if (typeof window !== 'undefined') {
+  // Intercept React Query's internal error handling by patching MutationCache
+  const originalSetError = MutationCache.prototype.setError;
+  MutationCache.prototype.setError = function(error: any, ...args: any[]) {
+    // Convert function-type errors BEFORE React Query tries to serialize them
+    if (typeof error === 'function') {
+      const errorStr = getErrorMessage(error, 'An error occurred');
+      error = new Error(errorStr);
+    } else if (error && !(error instanceof Error)) {
+      const errorStr = getErrorMessage(error, 'An error occurred');
+      error = new Error(errorStr);
+    }
+    return originalSetError.call(this, error, ...args);
+  };
+}
+
 // CRITICAL: Transform errors BEFORE React Query tries to serialize them
-// This mutation cache intercepts errors at the lowest level, before React Query stores them
-// We use onMutate to catch errors before they're set, and onError to transform them after
+// We intercept errors at the mutation execution level using a Proxy
+// This ensures errors are converted BEFORE React Query tries to serialize them
 const mutationCache = new MutationCache({
-  onMutate: async (variables) => {
-    // This runs before the mutation executes
-    // We can't catch errors here, but we can prepare
+  onMutate: async (variables, mutation) => {
+    // Wrap the mutation function to intercept errors BEFORE they reach React Query
+    const originalMutationFn = mutation.options.mutationFn;
+    if (originalMutationFn && typeof originalMutationFn === 'function') {
+      // Wrap the mutation function to catch and transform errors
+      mutation.options.mutationFn = async (...args: any[]) => {
+        try {
+          const result = await originalMutationFn(...args);
+          return result;
+        } catch (error) {
+          // CRITICAL: Convert function-type errors BEFORE React Query sees them
+          if (typeof error === 'function') {
+            const errorStr = getErrorMessage(error, 'An error occurred');
+            throw new Error(errorStr);
+          }
+          // Ensure all errors are Error objects
+          if (error && !(error instanceof Error)) {
+            const errorStr = getErrorMessage(error, 'An error occurred');
+            throw new Error(errorStr);
+          }
+          throw error;
+        }
+      };
+    }
     return undefined;
   },
   onError: (error, _variables, _context, mutation) => {
     // CRITICAL: Convert function-type errors IMMEDIATELY
-    // React Query may try to serialize before this runs, so we need to be defensive
+    // This is a fallback in case the onMutate wrapper didn't catch it
     try {
-      // Check if error is a function - this is the root cause
       if (typeof error === 'function') {
-        // Convert function to Error object immediately
         const errorStr = getErrorMessage(error, 'An error occurred');
-        // CRITICAL: Replace the error in mutation state BEFORE React Query serializes it
-        // Use Object.defineProperty to ensure the error is replaced synchronously
+        // Replace the error in mutation state synchronously
         try {
           Object.defineProperty(mutation.state, 'error', {
             value: new Error(errorStr),
@@ -36,13 +72,11 @@ const mutationCache = new MutationCache({
             configurable: true,
           });
         } catch (defineErr) {
-          // If defineProperty fails, try direct assignment
           (mutation.state as any).error = new Error(errorStr);
         }
-        console.error('Mutation error (function-type, converted):', errorStr);
+        console.error('Mutation error (function-type, converted in onError):', errorStr);
         return;
       }
-      // For non-function errors, ensure they're Error objects
       if (error && !(error instanceof Error)) {
         const errorStr = getErrorMessage(error, 'An error occurred');
         try {
@@ -57,12 +91,10 @@ const mutationCache = new MutationCache({
         }
       }
     } catch (err) {
-      // If conversion fails, replace with a safe error
       try {
         (mutation.state as any).error = new Error('An error occurred');
       } catch {
-        // Last resort - can't modify mutation state
-        console.error('Error conversion failed in mutationCache - cannot modify mutation state');
+        console.error('Error conversion failed in mutationCache');
       }
     }
   },
