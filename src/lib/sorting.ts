@@ -43,15 +43,11 @@ export function sortDApps(dapps: DApp[], sortBy: SortOption, favorites?: Set<str
       return sorted.sort((a, b) => b.name.localeCompare(a.name));
 
     case 'status':
-      // Sort by status priority: Mainnet > Testnet > Prototype > U/C > Concept > Devnet > Suspended
+      // Sort by status priority: Mainnet > Testnet > Suspended
       const statusOrder: Record<string, number> = {
         Mainnet: 1,
         Testnet: 2,
-        Prototype: 3,
-        'U/C': 4,
-        Concept: 5,
-        Devnet: 6,
-        Suspended: 7,
+        Suspended: 3,
       };
       return sorted.sort((a, b) => {
         const aOrder = statusOrder[a.status] || 999;

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { categories, type Category } from '@/lib/categories';
 import type { FilterState, DAppStatus } from '@/lib/dapps';
 import { CategoriesIcon, StatusIcon, DeveloperIcon, NetworkIcon } from '@/components/icons/SectionIcons';
+import { StatusIndicatorDot, getStatusTypeFromString } from './dapps/StatusIndicatorDot';
 
 interface SidebarProps {
   selectedCategories: Category[];
@@ -17,15 +18,11 @@ interface SidebarProps {
   onResetFilters: () => void;
 }
 
-const statusOptions: { value: DAppStatus | 'all'; emoji: string; label: string }[] = [
-  { value: 'all', emoji: '', label: 'All' },
-  { value: 'Concept', emoji: '⚪', label: 'Concept' },
-  { value: 'Prototype', emoji: '🟠', label: 'Prototype' },
-  { value: 'Testnet', emoji: '🟡', label: 'Testnet' },
-  { value: 'Mainnet', emoji: '🟢', label: 'Mainnet' },
-  { value: 'Devnet', emoji: '🟣', label: 'Devnet' },
-  { value: 'U/C', emoji: '🔵', label: 'U/C' },
-  { value: 'Suspended', emoji: '🔴', label: 'Suspended' },
+const statusOptions: { value: DAppStatus | 'all'; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'Mainnet', label: 'Mainnet' },
+  { value: 'Testnet', label: 'Testnet' },
+  { value: 'Suspended', label: 'Suspended' },
 ];
 
 const developerOptions: { label: string; logo?: string }[] = [
@@ -347,7 +344,13 @@ export function Sidebar({
                         onChange={() => handleStatusToggle(option.value)}
                       />
                       <div className="control__indicator"></div>
-                      {option.emoji && <span className="text-lg flex-shrink-0">{option.emoji}</span>}
+                      {option.value !== 'all' && (
+                        <StatusIndicatorDot
+                          statusType={getStatusTypeFromString(option.value)}
+                          size="sm"
+                          className="flex-shrink-0"
+                        />
+                      )}
                       <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
                     </label>
                   );

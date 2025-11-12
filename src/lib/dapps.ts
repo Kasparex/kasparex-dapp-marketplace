@@ -4,11 +4,7 @@ import { CHAIN_IDS } from './wagmi';
 export type DAppStatus = 
   | 'Mainnet'
   | 'Testnet'
-  | 'Concept'
-  | 'Prototype'
-  | 'U/C'
-  | 'Suspended'
-  | 'Devnet';
+  | 'Suspended';
 
 export interface DeveloperLink {
   label: string;
@@ -61,7 +57,7 @@ export const placeholderDApps: DApp[] = [
       { label: 'Telegram', url: 'https://t.me/kasparex' },
       { label: 'X (Twitter)', url: 'https://x.com/kasparex' },
     ],
-    status: 'Prototype',
+    status: 'Testnet',
     network: 'Testnet',
     provider: 'Kasparex',
     version: 'V 1.0',
@@ -75,7 +71,7 @@ export const placeholderDApps: DApp[] = [
     process: 'Routes percentages to preset wallet addresses.',
     benefits: 'Use for collabs, revenue shares, royalties.',
     developer: 'Kasparex',
-    status: 'Concept',
+    status: 'Testnet',
     network: 'Testnet',
     provider: 'Kasparex',
     version: 'V 1.0',
@@ -103,7 +99,7 @@ export const placeholderDApps: DApp[] = [
     process: 'Stores short text string per address.',
     benefits: 'Collective brainpower.',
     developer: 'Kasparex',
-    status: 'Concept',
+    status: 'Testnet',
     network: 'Testnet',
     provider: 'Kasparex',
     version: 'V 1.0',
@@ -117,7 +113,7 @@ export const placeholderDApps: DApp[] = [
     process: 'Reads metadata, renders content with templates.',
     benefits: 'Instant branded pages for token projects.',
     developer: 'Kasparex',
-    status: 'U/C',
+    status: 'Testnet',
     network: 'Testnet',
     provider: 'Kasparex',
     version: 'V 1.0',
@@ -131,7 +127,7 @@ export const placeholderDApps: DApp[] = [
     process: 'Contract verifies ownership and deploys the page.',
     benefits: 'Verified project presence and credibility.',
     developer: 'Kasparex',
-    status: 'Prototype',
+    status: 'Testnet',
     network: 'Testnet',
     provider: 'Kasparex',
     version: 'V 1.0',
@@ -187,7 +183,7 @@ export const placeholderDApps: DApp[] = [
     process: 'Small KAS fee to send message.',
     benefits: 'Honest community feedback without fear.',
     developer: 'Kasparex',
-    status: 'Concept',
+    status: 'Testnet',
     network: 'Testnet',
     provider: 'Kasparex',
     version: 'V 1.0',

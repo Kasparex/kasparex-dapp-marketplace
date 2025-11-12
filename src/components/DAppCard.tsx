@@ -2,31 +2,21 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { DApp, type DAppStatus, getDAppChainIds } from '@/lib/dapps';
+import { DApp } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
 import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
-import { getChainById } from '@/lib/wagmi';
 import { DAppInfoModal } from './dapps/DAppInfoModal';
 import { DAppGuideAndInfoModal } from './dapps/DAppGuideAndInfoModal';
 import { DAppEmbed } from './dapps/DAppEmbed';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { DAppIcon } from './dapps/DAppIcon';
+import { StatusIndicator } from './dapps/StatusIndicator';
 
 interface DAppCardProps {
   dapp: DApp;
 }
-
-const statusColors: Record<DAppStatus, string> = {
-  Mainnet: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-300 dark:border-green-700',
-  Testnet: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-300 dark:border-yellow-700',
-  Concept: 'bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-300 border-gray-300 dark:border-gray-700',
-  Prototype: 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 border-orange-300 dark:border-orange-700',
-  'U/C': 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700',
-  Suspended: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700',
-  Devnet: 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-700',
-};
 
 export function DAppCard({ dapp }: DAppCardProps) {
   // Merge localStorage metadata with frontend data
@@ -44,14 +34,6 @@ export function DAppCard({ dapp }: DAppCardProps) {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showGuideAndInfoModal, setShowGuideAndInfoModal] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
-  const [showNetworkTooltip, setShowNetworkTooltip] = useState(false);
-
-  // Get network information
-  const supportedChainIds = getDAppChainIds(mergedDApp);
-  const supportedNetworks = supportedChainIds
-    .map(id => getChainById(id))
-    .filter(Boolean)
-    .map(chain => chain!.name);
 
   const handleIconClick = (e: React.MouseEvent, action: () => void) => {
     e.preventDefault();
@@ -78,35 +60,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
               {mergedDApp.name}
             </h3>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <div className="relative">
-                <span
-                  className={`
-                    px-2 py-1 text-xs font-medium rounded border cursor-help
-                    ${statusColors[mergedDApp.status] || statusColors.Concept}
-                  `}
-                  onMouseEnter={() => setShowNetworkTooltip(true)}
-                  onMouseLeave={() => setShowNetworkTooltip(false)}
-                >
-                  {mergedDApp.status}
-                </span>
-                {showNetworkTooltip && supportedNetworks.length > 0 && (
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-[100] p-3 pointer-events-none">
-                    <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
-                      Available Networks:
-                    </p>
-                    <ul className="space-y-1">
-                      {supportedNetworks.map((network, index) => (
-                        <li key={index} className="text-xs text-zinc-600 dark:text-zinc-400 flex items-center gap-2">
-                          <svg className="w-3 h-3 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                          <span className="truncate">{network}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
+              <StatusIndicator dapp={mergedDApp} size="md" />
             </div>
           </div>
 

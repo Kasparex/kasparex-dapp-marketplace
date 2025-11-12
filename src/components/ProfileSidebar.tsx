@@ -14,7 +14,6 @@ interface ProfileSidebarProps {
   emoji: string;
   profile: ProfileData;
   isOwnProfile: boolean;
-  onToggleEdit?: () => void;
   onProfileUpdate: (updates: Partial<ProfileData>) => void;
 }
 
@@ -23,7 +22,6 @@ export function ProfileSidebar({
   emoji,
   profile,
   isOwnProfile,
-  onToggleEdit,
   onProfileUpdate,
 }: ProfileSidebarProps) {
   const { state: kaspaState } = useKaspaWallet();
@@ -245,26 +243,7 @@ export function ProfileSidebar({
             </div>
           </CollapsibleSection>
 
-          {/* Settings Section (only for own profile) */}
-          {isOwnProfile && onToggleEdit && (
-            <CollapsibleSection
-              title="Settings"
-              icon={<SettingsIcon />}
-              expanded={settingsExpanded}
-              onToggle={() => setSettingsExpanded(!settingsExpanded)}
-            >
-              <div className="space-y-3 mb-4">
-                <button
-                  onClick={onToggleEdit}
-                  className="w-full text-left px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium"
-                >
-                  Edit Profile
-                </button>
-              </div>
-            </CollapsibleSection>
-          )}
-
-          {/* Privacy Settings Section (only for own profile) */}
+          {/* Privacy Settings Section (read-only) */}
           {isOwnProfile && (
             <CollapsibleSection
               title="Privacy"
@@ -273,19 +252,20 @@ export function ProfileSidebar({
               onToggle={() => setPrivacyExpanded(!privacyExpanded)}
             >
               <div className="space-y-3 mb-4">
-                <label className="flex items-center justify-between cursor-pointer">
+                <div className="flex items-center justify-between">
                   <span className="text-sm text-zinc-700 dark:text-zinc-300">
                     Prevent Screenshots
                   </span>
-                  <input
-                    type="checkbox"
-                    checked={profile.preventScreenshots}
-                    onChange={(e) => onProfileUpdate({ preventScreenshots: e.target.checked })}
-                    className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:ring-zinc-500"
-                  />
-                </label>
+                  <span className={`text-xs px-2 py-1 rounded ${
+                    profile.preventScreenshots 
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300' 
+                      : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
+                  }`}>
+                    {profile.preventScreenshots ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  When enabled, screenshots will be discouraged
+                  Privacy settings are read-only
                 </p>
               </div>
             </CollapsibleSection>

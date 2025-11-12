@@ -42,7 +42,7 @@ export function DAppPreview({ formData }: DAppPreviewProps) {
                 </span>
               )}
               <span className="px-2 py-1 text-xs font-medium bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded">
-                {formData.status || 'Concept'}
+                {formData.status || 'Testnet'}
               </span>
               <span className="px-2 py-1 text-xs font-medium bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded">
                 {formData.network || 'Testnet'}

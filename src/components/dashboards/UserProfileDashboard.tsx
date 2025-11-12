@@ -6,10 +6,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useReadContract } from 'wagmi';
 import { UserIcon } from '@/components/users/UserIcon';
-import { useIPFSUpload } from '@/lib/ipfs/hooks';
-import { USER_PROFILE_DASHBOARD_ABI, PROFILE_REGISTRY_ABI } from '@/lib/contracts/abis';
+import { PROFILE_REGISTRY_ABI } from '@/lib/contracts/abis';
 import { generateUserIcon } from '@/lib/icons/generator';
 
 export interface UserProfileDashboardProps {
@@ -27,9 +26,9 @@ export function UserProfileDashboard({
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
   const [iconColor, setIconColor] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
+  // Edit functionality removed - profiles are now read-only
 
-  const { uploadJSON, isUploading } = useIPFSUpload();
+  // Edit functionality removed - profiles are now read-only
 
   // Get profile CID
   const { data: profileCID } = useReadContract({
@@ -53,10 +52,7 @@ export function UserProfileDashboard({
     },
   }) as { data: [string, string] | undefined };
 
-  const { writeContract, data: updateHash, isPending } = useWriteContract();
-  const { isLoading: isConfirming } = useWaitForTransactionReceipt({
-    hash: updateHash,
-  });
+  // Edit functionality removed - profiles are now read-only
 
   // Load profile data
   useEffect(() => {
@@ -69,36 +65,7 @@ export function UserProfileDashboard({
     }
   }, [profileData]);
 
-  const handleSave = async () => {
-    if (!address || !userProfileDashboardAddress) return;
-
-    try {
-      // Upload profile metadata to IPFS
-      const metadata = {
-        displayName,
-        bio,
-        iconColor,
-        updatedAt: new Date().toISOString(),
-      };
-
-      const cid = await uploadJSON(metadata, { pin: true });
-      if (!cid) {
-        throw new Error('Failed to upload to IPFS');
-      }
-
-      // Update profile on-chain
-      await writeContract({
-        address: userProfileDashboardAddress as `0x${string}`,
-        abi: USER_PROFILE_DASHBOARD_ABI,
-        functionName: 'updateProfile',
-        args: [cid],
-      });
-
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Failed to save profile:', error);
-    }
-  };
+  // Edit functionality removed - profiles are now read-only
 
   if (!isConnected || !address) {
     return (
@@ -118,78 +85,11 @@ export function UserProfileDashboard({
         <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
           Your Profile
         </h2>
-        {!isEditing && (
-          <button
-            onClick={() => setIsEditing(true)}
-            className="px-4 py-2 bg-[#02abb8] hover:bg-[#0199a3] text-white text-sm rounded-lg transition-colors"
-          >
-            Edit
-          </button>
-        )}
+        {/* Edit functionality removed - profiles are now read-only */}
       </div>
 
-      {isEditing ? (
-        <div className="space-y-4">
-          <div className="flex items-center gap-4">
-            <UserIcon address={address} size={64} />
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
-                Display Name
-              </label>
-              <input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100"
-                placeholder="Your name"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
-              Bio
-            </label>
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100"
-              rows={4}
-              placeholder="Tell us about yourself..."
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
-              Icon Color (Hex)
-            </label>
-            <input
-              type="text"
-              value={iconColor}
-              onChange={(e) => setIconColor(e.target.value)}
-              className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100 font-mono text-sm"
-              placeholder="#02abb8"
-            />
-          </div>
-
-          <div className="flex gap-3">
-            <button
-              onClick={handleSave}
-              disabled={isUploading || isPending || isConfirming}
-              className="flex-1 px-4 py-2 bg-[#02abb8] hover:bg-[#0199a3] text-white rounded-lg transition-colors disabled:opacity-50"
-            >
-              {isUploading || isPending || isConfirming ? 'Saving...' : 'Save'}
-            </button>
-            <button
-              onClick={() => setIsEditing(false)}
-              className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-4">
+      {/* Read-only profile display */}
+      <div className="space-y-4">
           <div className="flex items-center gap-4">
             <UserIcon address={address} size={64} />
             <div>
@@ -208,7 +108,6 @@ export function UserProfileDashboard({
             </div>
           )}
         </div>
-      )}
     </div>
   );
 }

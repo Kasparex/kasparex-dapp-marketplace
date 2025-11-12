@@ -10,7 +10,7 @@ interface FormStepProps {
 }
 
 export function BasicInfoStep({ formData, onUpdate }: FormStepProps) {
-  const statusOptions: DAppStatus[] = ['Mainnet', 'Testnet', 'Concept', 'Prototype', 'U/C', 'Suspended', 'Devnet'];
+  const statusOptions: DAppStatus[] = ['Mainnet', 'Testnet', 'Suspended'];
   const networkOptions = ['Mainnet', 'Testnet', 'Devnet'];
   const categoryOptions = categories.filter((cat) => cat.id !== 'all');
 
@@ -131,7 +131,7 @@ export function BasicInfoStep({ formData, onUpdate }: FormStepProps) {
             Status
           </label>
           <select
-            value={formData.status || 'Concept'}
+            value={formData.status || 'Testnet'}
             onChange={(e) => onUpdate({ status: e.target.value as DAppStatus })}
             className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
           >

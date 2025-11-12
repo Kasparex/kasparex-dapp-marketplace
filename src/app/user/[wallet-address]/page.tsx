@@ -22,11 +22,7 @@ import { useMyAssignedDApps } from '@/hooks/useDAppAuthorization';
 import { generateDAppSlug } from '@/lib/utils';
 import Link from 'next/link';
 
-// Dynamically import ProfileEditModal with no SSR to prevent build-time evaluation
-const ProfileEditModal = dynamicImport(
-  () => import('@/components/ProfileEditModal').then(mod => ({ default: mod.ProfileEditModal })),
-  { ssr: false }
-);
+// Edit functionality removed - profiles are now read-only
 
 // Force dynamic rendering to avoid SSR issues with wagmi hooks
 export const dynamic = 'force-dynamic';
@@ -37,7 +33,6 @@ export default function UserProfilePage() {
   const { address: connectedAddress, isConnected } = useAccount();
   const { state: kaspaState } = useKaspaWallet();
   const walletAddress = params?.['wallet-address'] as string | undefined;
-  const [showEditModal, setShowEditModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'activity' | 'dapps' | 'assigned' | 'favorites' | 'settings'>('overview');
   const { getFavoritesForWallet } = useFavorites();
@@ -64,13 +59,7 @@ export default function UserProfilePage() {
 
   const displayName = profile.displayName || getDefaultUsername(walletAddress || '');
 
-  // Redirect to edit mode if URL has ?edit=true
-  useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    if (searchParams.get('edit') === 'true') {
-      setShowEditModal(true);
-    }
-  }, []);
+  // Edit functionality removed - profiles are now read-only
 
   if (!walletAddress || !isValidAddress) {
     return (
@@ -111,7 +100,6 @@ export default function UserProfilePage() {
             emoji={emoji}
             profile={profile}
             isOwnProfile={isOwnProfile}
-            onToggleEdit={() => setShowEditModal(true)}
             onProfileUpdate={updateProfile}
           />
         </div>
@@ -122,7 +110,6 @@ export default function UserProfilePage() {
             emoji={emoji}
             profile={profile}
             isOwnProfile={isOwnProfile}
-            onToggleEdit={() => setShowEditModal(true)}
             onProfileUpdate={updateProfile}
           />
         </div>
@@ -151,32 +138,10 @@ export default function UserProfilePage() {
                           target.parentElement?.appendChild(avatar);
                         }}
                       />
-                      {isOwnProfile && (
-                        <button
-                          onClick={() => setShowEditModal(true)}
-                          className="absolute bottom-0 right-0 p-1.5 bg-[#02abb8] text-white rounded-full hover:bg-[#0299a3] transition-colors shadow-lg"
-                          title="Edit profile picture"
-                        >
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                          </svg>
-                        </button>
-                      )}
                     </div>
                   ) : (
                     <div className="relative">
                       <Avatar address={walletAddress} size={64} />
-                      {isOwnProfile && (
-                        <button
-                          onClick={() => setShowEditModal(true)}
-                          className="absolute bottom-0 right-0 p-1.5 bg-[#02abb8] text-white rounded-full hover:bg-[#0299a3] transition-colors shadow-lg"
-                          title="Edit profile picture"
-                        >
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                          </svg>
-                        </button>
-                      )}
                     </div>
                   )}
                 </div>
@@ -190,14 +155,6 @@ export default function UserProfilePage() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                {isOwnProfile && (
-                  <button
-                    onClick={() => setShowEditModal(true)}
-                    className="px-4 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors font-medium"
-                  >
-                    Edit Profile
-                  </button>
-                )}
                 <button className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
@@ -513,17 +470,7 @@ export default function UserProfilePage() {
               );
             })()}
 
-            {/* Edit Profile Modal */}
-            {showEditModal && isOwnProfile && (
-              <ProfileEditModal
-                profile={profile}
-                walletAddress={walletAddress}
-                onClose={() => setShowEditModal(false)}
-                onSave={(updates) => {
-                  updateProfile(updates);
-                }}
-              />
-            )}
+            {/* Edit functionality removed - profiles are now read-only */}
 
             {/* Featured Image */}
             {activeTab === 'overview' && profile.featuredImage && (
@@ -670,17 +617,9 @@ export default function UserProfilePage() {
                 </h3>
                 <div className="space-y-2">
                   {isOwnProfile && (
-                    <>
-                      <button
-                        onClick={() => setShowEditModal(true)}
-                        className="w-full text-left px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium"
-                      >
-                        Edit Profile
-                      </button>
-                      <button className="w-full text-left px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium">
-                        View Activity
-                      </button>
-                    </>
+                    <button className="w-full text-left px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium">
+                      View Activity
+                    </button>
                   )}
                   <button className="w-full text-left px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium">
                     Share Profile

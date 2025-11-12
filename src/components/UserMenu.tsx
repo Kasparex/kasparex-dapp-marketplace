@@ -40,10 +40,7 @@ export function UserMenu() {
     setIsOpen(false);
   };
 
-  const handleEditProfile = () => {
-    router.push(`/user/${address}?edit=true`);
-    setIsOpen(false);
-  };
+  // Edit functionality removed - profiles are now read-only
 
   const handleChangeNetwork = () => {
     openChainModal?.();
@@ -103,20 +100,7 @@ export function UserMenu() {
               View Profile
             </button>
             
-            <button
-              onClick={handleEditProfile}
-              className="w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-2"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              Edit Profile
-            </button>
+            {/* Edit functionality removed - profiles are now read-only */}
             
             <button
               onClick={handleChangeNetwork}

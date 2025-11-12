@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useAccount, useChainId } from 'wagmi';
 import { DApp } from '@/lib/dapps';
 import { isDeployer } from '@/lib/dapps/deployer';
-import { EditDAppModal } from './EditDAppModal';
+// Edit functionality removed - dApps are now read-only
 import { DAppInfoModal } from './DAppInfoModal';
 import { DAppAdditionalInfoModal } from './DAppAdditionalInfoModal';
 import { DAppEmbed } from './DAppEmbed';
@@ -54,7 +54,6 @@ export function DAppHeader({ dapp, contractAddress }: DAppHeaderProps) {
   const isDeployerUser = isDeployer(connectedAddress, deployerAddress);
 
   // Modal states
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showAdditionalInfoModal, setShowAdditionalInfoModal] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
@@ -143,29 +142,13 @@ export function DAppHeader({ dapp, contractAddress }: DAppHeaderProps) {
                 </svg>
               </button>
 
-              {/* Edit Button (Deployers only) */}
-              {isDeployerUser && (
-                <button
-                  onClick={() => setShowEditModal(true)}
-                  className="px-4 py-2 text-sm font-medium text-white bg-zinc-900 dark:bg-zinc-100 text-zinc-100 dark:text-zinc-900 rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
-                >
-                  Edit
-                </button>
-              )}
+              {/* Edit functionality removed - dApps are now read-only */}
             </div>
           </div>
         </div>
       </div>
 
       {/* Modals */}
-      {showEditModal && (
-        <EditDAppModal
-          dapp={dapp}
-          contractAddress={resolvedContractAddress}
-          contractData={contractData}
-          onClose={() => setShowEditModal(false)}
-        />
-      )}
       {showInfoModal && (
         <DAppInfoModal
           dapp={dapp}

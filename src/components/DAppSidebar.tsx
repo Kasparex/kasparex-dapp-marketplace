@@ -8,7 +8,7 @@ import { DApp } from '@/lib/dapps';
 import { DescriptionIcon, UtilityIcon, ProcessIcon, BenefitsIcon, DeveloperIcon } from '@/components/icons/SectionIcons';
 import { isDeployer } from '@/lib/dapps/deployer';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
-import { EditDAppModal } from './dapps/EditDAppModal';
+// Edit functionality removed - dApps are now read-only
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 
@@ -67,7 +67,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
   const [securityExpanded, setSecurityExpanded] = useState(false);
   const [roadmapExpanded, setRoadmapExpanded] = useState(false);
   const [developerExpanded, setDeveloperExpanded] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+  // Edit functionality removed
 
   // Get contract address
   let contractAddress = dapp.contractAddress || '';
@@ -183,32 +183,13 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
                 Back to Categories
               </Link>
               
-              {/* Edit Button (Deployers only) */}
-              {isDeployerUser && (
-                <button
-                  onClick={() => setShowEditModal(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-zinc-900 dark:bg-zinc-100 text-zinc-100 dark:text-zinc-900 rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  Edit dApp
-                </button>
-              )}
+              {/* Edit functionality removed - dApps are now read-only */}
             </div>
 
             {/* Featured Image */}
             <div className="mb-6">
               <div 
-                className={`relative w-full aspect-video rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 ${
-                  isDeployerUser ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''
-                }`}
-                onClick={() => {
-                  if (isDeployerUser) {
-                    setShowEditModal(true);
-                  }
-                }}
-                title={isDeployerUser ? 'Click to upload/change featured image' : undefined}
+                className="relative w-full aspect-video rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700"
               >
                 {mergedDApp.featuredImage ? (
                   <Image
@@ -348,15 +329,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
         </div>
       </aside>
 
-      {/* Modals */}
-      {showEditModal && (
-        <EditDAppModal
-          dapp={mergedDApp}
-          contractAddress={contractAddress}
-          contractData={contractData}
-          onClose={() => setShowEditModal(false)}
-        />
-      )}
+      {/* Edit functionality removed - dApps are now read-only */}
     </>
   );
 }

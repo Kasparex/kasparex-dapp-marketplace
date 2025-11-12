@@ -35,7 +35,7 @@ export function BuildDAppWizard({ onComplete, onCancel }: BuildDAppWizardProps) 
     benefits: '',
     developer: '',
     developerLinks: [],
-    status: 'Concept',
+    status: 'Testnet',
     network: 'Testnet',
     provider: 'Kasparex',
     version: '1.0',

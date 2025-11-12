@@ -11,7 +11,7 @@ import { getCategoryById } from '@/lib/categories';
 import { isDeployer, useDeployerProfile, formatDeployerName, getDeployerProfileUrl } from '@/lib/dapps/deployer';
 import { Avatar } from '@/components/Avatar';
 import Link from 'next/link';
-import { EditDAppModal } from './EditDAppModal';
+// Edit functionality removed - dApps are now read-only
 import { DAppInfoModal } from './DAppInfoModal';
 import { DAppEmbed } from './DAppEmbed';
 import { DAppGuideAndInfoModal } from './DAppGuideAndInfoModal';
@@ -24,6 +24,7 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { useLikes } from '@/hooks/useLikes';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
+import { StatusIndicator } from './StatusIndicator';
 
 interface DAppWidgetHeaderProps {
   dapp: DApp;
@@ -163,7 +164,6 @@ export function DAppWidgetHeader({
     : shortDescription;
 
   // Modal states
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showGuideAndInfoModal, setShowGuideAndInfoModal] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
@@ -176,7 +176,12 @@ export function DAppWidgetHeader({
 
   return (
     <>
-      <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+      <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 relative">
+        {/* Status Indicator - Top Right */}
+        <div className="absolute top-4 right-4 sm:top-5 sm:right-6 z-10">
+          <StatusIndicator dapp={mergedDApp} size="md" />
+        </div>
+
         {/* Title Section with Icon */}
         <div className="flex items-start gap-4 mb-4 relative">
           <DAppIcon
@@ -412,15 +417,7 @@ export function DAppWidgetHeader({
 
               {/* Right-aligned icons */}
               <div className="flex items-center gap-2 ml-auto">
-                {/* Edit Button (Deployers only) */}
-                {isDeployerUser && (
-                  <button
-                    onClick={() => setShowEditModal(true)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
-                  >
-                    Edit
-                  </button>
-                )}
+                {/* Edit functionality removed - dApps are now read-only */}
 
                 {/* Star Button (Favorites) */}
                 {!hideStar && (
@@ -710,14 +707,6 @@ export function DAppWidgetHeader({
       )}
 
       {/* Modals */}
-      {showEditModal && (
-        <EditDAppModal
-          dapp={mergedDApp}
-          contractAddress={resolvedContractAddress}
-          contractData={contractData}
-          onClose={() => setShowEditModal(false)}
-        />
-      )}
       {showInfoModal && (
         <DAppInfoModal
           dapp={mergedDApp}
@@ -745,14 +734,7 @@ export function DAppWidgetHeader({
           onClose={() => setShowThemeModal(false)}
         />
       )}
-      {showEditModal && (
-        <EditDAppModal
-          dapp={mergedDApp}
-          contractAddress={resolvedContractAddress}
-          contractData={contractData}
-          onClose={() => setShowEditModal(false)}
-        />
-      )}
+      {/* Edit functionality removed - dApps are now read-only */}
     </>
   );
 }
