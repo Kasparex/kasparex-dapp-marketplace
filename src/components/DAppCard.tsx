@@ -370,7 +370,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
               >
                 <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">How to Embed</p>
                 <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
-                  <p>Click this icon to get the embed code for this dApp widget. Copy the provided iframe code and paste it into your website's HTML.</p>
+                  <p>Click this icon to get the embed code for this dApp widget. Copy the provided iframe code and paste it into your website&apos;s HTML.</p>
                   <p className="pt-2 border-t border-zinc-300 dark:border-zinc-600">The widget will be fully functional and responsive on your site.</p>
                 </div>
               </div>,
