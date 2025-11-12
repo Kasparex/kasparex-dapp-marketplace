@@ -20,37 +20,54 @@ export function StatusIndicatorDot({ statusType, size = 'md', className = '' }: 
     lg: 'w-3 h-3',
   };
 
-  // Color classes based on status type
-  const getColorClasses = (type: typeof statusType) => {
+  // Color classes and shadow styles based on status type
+  const getColorConfig = (type: typeof statusType) => {
     switch (type) {
       case 'mainnet':
-        return 'bg-green-500 shadow-green-500/50';
+        return {
+          bg: 'bg-green-500',
+          shadow: '0 0 8px rgba(34, 197, 94, 0.6), 0 0 12px rgba(34, 197, 94, 0.4)',
+        };
       case 'testnet':
-        return 'bg-yellow-500 shadow-yellow-500/50';
+        return {
+          bg: 'bg-yellow-500',
+          shadow: '0 0 8px rgba(234, 179, 8, 0.6), 0 0 12px rgba(234, 179, 8, 0.4)',
+        };
       case 'both':
-        return 'bg-gradient-to-br from-green-500 to-yellow-500 shadow-green-500/30 shadow-yellow-500/30';
+        return {
+          bg: 'bg-gradient-to-br from-green-500 to-yellow-500',
+          shadow: '0 0 8px rgba(34, 197, 94, 0.4), 0 0 12px rgba(234, 179, 8, 0.4)',
+        };
       case 'suspended':
-        return 'bg-red-500 shadow-red-500/50';
+        return {
+          bg: 'bg-red-500',
+          shadow: '0 0 8px rgba(239, 68, 68, 0.6), 0 0 12px rgba(239, 68, 68, 0.4)',
+        };
       case 'none':
       default:
-        return 'bg-purple-500 shadow-purple-500/50';
+        return {
+          bg: 'bg-purple-500',
+          shadow: '0 0 8px rgba(168, 85, 247, 0.6), 0 0 12px rgba(168, 85, 247, 0.4)',
+        };
     }
   };
 
-  const colorClasses = getColorClasses(statusType);
+  const colorConfig = getColorConfig(statusType);
   const sizeClass = sizeClasses[size];
 
   return (
     <div
       className={`
         ${sizeClass}
-        ${colorClasses}
+        ${colorConfig.bg}
         rounded-full
         animate-pulse
-        shadow-lg
         ring-2 ring-white dark:ring-zinc-900
         ${className}
       `}
+      style={{
+        boxShadow: colorConfig.shadow,
+      }}
     />
   );
 }
