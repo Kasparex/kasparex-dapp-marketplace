@@ -13,9 +13,11 @@ export interface IconConfig {
   gradient?: boolean;
 }
 
+import React from 'react';
+
 export interface GeneratedIcon {
   letter: string;
-  iconComponent?: (props: { className?: string; color?: string }) => JSX.Element; // SVG icon component for dApps
+  iconComponent?: (props: { className?: string; color?: string }) => React.ReactElement; // SVG icon component for dApps
   colors: ColorPalette;
   config: IconConfig;
 }

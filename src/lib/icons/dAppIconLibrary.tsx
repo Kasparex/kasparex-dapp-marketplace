@@ -3,13 +3,15 @@
  * Provides deterministic SVG icon selection based on identifiers
  */
 
+import React from 'react';
+
 interface IconComponentProps {
   className?: string;
   color?: string;
 }
 
 // Collection of SVG icon components
-const iconComponents: Array<(props: IconComponentProps) => JSX.Element> = [
+const iconComponents: Array<(props: IconComponentProps) => React.ReactElement> = [
   // Grid/Layout icons
   ({ className = 'w-full h-full', color = 'currentColor' }) => (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke={color} strokeWidth={2}>
@@ -342,7 +344,7 @@ const iconComponents: Array<(props: IconComponentProps) => JSX.Element> = [
  * @param identifier - Unique identifier for the dApp (e.g., name + category)
  * @returns An icon component function
  */
-export function getDAppIconComponent(identifier: string): (props: IconComponentProps) => JSX.Element {
+export function getDAppIconComponent(identifier: string): (props: IconComponentProps) => React.ReactElement {
   // Create a simple hash from the identifier
   let hash = 0;
   for (let i = 0; i < identifier.length; i++) {
