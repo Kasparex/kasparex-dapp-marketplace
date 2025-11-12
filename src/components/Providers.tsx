@@ -24,7 +24,8 @@ const mutationCache = new MutationCache({
       // Wrap the mutation function to catch and transform errors
       mutation.options.mutationFn = async (...args: any[]) => {
         try {
-          const result = await originalMutationFn(...args);
+          // Use Function.apply to avoid TypeScript spread operator issues
+          const result = await (originalMutationFn as any).apply(null, args);
           return result;
         } catch (error) {
           // CRITICAL: Convert function-type errors BEFORE React Query sees them
