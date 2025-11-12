@@ -37,35 +37,18 @@ export function useWriteContractSafe(): UseWriteContractReturnType {
     }
   }, [wagmiResult.error]);
   
-  // Wrap writeContract to intercept synchronous errors AND wrap the mutation
-  // CRITICAL: We need to intercept errors at the mutation level, not just the hook level
+  // Wrap writeContract to intercept synchronous errors
+  // CRITICAL: wagmi's writeContract returns void, not a promise
+  // Errors come via the error state, not as thrown exceptions
   const safeWriteContract = useMemo(() => {
     return (args: Parameters<typeof wagmiResult.writeContract>[0]) => {
       try {
         // Call the original writeContract
-        // Note: wagmi's writeContract doesn't throw synchronously - errors come via the error state
-        // But we wrap it defensively anyway
-        const result = wagmiResult.writeContract(args);
-        
-        // If writeContract returns a promise (it shouldn't for wagmi, but be defensive)
-        if (result && typeof result === 'object' && 'then' in result) {
-          return Promise.resolve(result).catch((err: unknown) => {
-            // Convert function-type errors before they reach React Query
-            if (typeof err === 'function') {
-              const errorStr = getErrorMessage(err, 'Transaction failed');
-              throw new Error(errorStr);
-            }
-            if (err && !(err instanceof Error)) {
-              const errorStr = getErrorMessage(err, 'Transaction failed');
-              throw new Error(errorStr);
-            }
-            throw err;
-          });
-        }
-        
-        return result;
+        // Note: wagmi's writeContract returns void - errors come via the error state
+        wagmiResult.writeContract(args);
+        // No return value - wagmi handles the mutation internally
       } catch (err) {
-        // If writeContract throws synchronously, convert error immediately
+        // If writeContract throws synchronously (shouldn't happen, but be defensive)
         const errorStr = getErrorMessage(err, 'Transaction failed');
         throw new Error(errorStr);
       }
