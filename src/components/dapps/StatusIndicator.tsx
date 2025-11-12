@@ -54,6 +54,14 @@ export function StatusIndicator({ dapp, className = '', size = 'md' }: StatusInd
     .map(id => getChainById(id))
     .filter(Boolean)
     .map(chain => chain!.name);
+  
+  // Get all available chains for comparison
+  const allChainIds = [CHAIN_IDS.KASPLEX_L2_MAINNET, CHAIN_IDS.KASPLEX_L2_TESTNET];
+  const allNetworks = allChainIds
+    .map(id => getChainById(id))
+    .filter(Boolean)
+    .map(chain => chain!.name);
+  const unavailableNetworks = allNetworks.filter(network => !supportedNetworks.includes(network));
 
   // Size classes
   const sizeClasses = {
@@ -77,8 +85,8 @@ export function StatusIndicator({ dapp, className = '', size = 'md' }: StatusInd
         };
       case 'both':
         return {
-          bg: 'bg-gradient-to-br from-green-500 to-yellow-500',
-          shadow: '0 0 8px rgba(34, 197, 94, 0.4), 0 0 12px rgba(234, 179, 8, 0.4)',
+          bg: 'bg-green-500',
+          shadow: '0 0 8px rgba(34, 197, 94, 0.6), 0 0 12px rgba(34, 197, 94, 0.4)',
         };
       case 'suspended':
         return {
@@ -118,32 +126,55 @@ export function StatusIndicator({ dapp, className = '', size = 'md' }: StatusInd
       
       {/* Tooltip */}
       {showTooltip && (
-        <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 dark:bg-zinc-100 border-2 border-zinc-700 dark:border-zinc-300 rounded-lg shadow-xl z-[100] p-3 pointer-events-none">
-          <p className="text-xs font-semibold text-white dark:text-zinc-900 mb-2">
-            Available Networks:
-          </p>
-          {supportedNetworks.length > 0 ? (
-            <ul className="space-y-1.5">
-              {supportedNetworks.map((network, index) => (
-                <li key={index} className="text-xs text-zinc-200 dark:text-zinc-700 flex items-center gap-2">
-                  <svg className="w-3 h-3 text-green-400 dark:text-green-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <span className="truncate">{network}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-xs text-zinc-400 dark:text-zinc-600">
-              No networks configured
-            </p>
-          )}
+        <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-xl z-[100] p-3 pointer-events-none">
           {statusType === 'suspended' && (
-            <div className="mt-2 pt-2 border-t border-zinc-700 dark:border-zinc-300">
-              <p className="text-xs font-medium text-red-400 dark:text-red-600">
+            <div className="mb-3 pb-3 border-b border-zinc-300 dark:border-zinc-600">
+              <p className="text-xs font-semibold text-red-600 dark:text-red-400">
                 ⚠ Suspended
               </p>
             </div>
+          )}
+          
+          {supportedNetworks.length > 0 && (
+            <div className="mb-3">
+              <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                Available Networks:
+              </p>
+              <ul className="space-y-1">
+                {supportedNetworks.map((network, index) => (
+                  <li key={index} className="text-xs text-zinc-600 dark:text-zinc-400 flex items-center gap-2">
+                    <svg className="w-3 h-3 text-green-500 dark:text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="truncate">{network}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {unavailableNetworks.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                Not Available Networks:
+              </p>
+              <ul className="space-y-1">
+                {unavailableNetworks.map((network, index) => (
+                  <li key={index} className="text-xs text-zinc-500 dark:text-zinc-500 flex items-center gap-2">
+                    <svg className="w-3 h-3 text-zinc-400 dark:text-zinc-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                    <span className="truncate">{network}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {supportedNetworks.length === 0 && unavailableNetworks.length === 0 && (
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              No networks configured
+            </p>
           )}
         </div>
       )}

@@ -35,8 +35,8 @@ export function StatusIndicatorDot({ statusType, size = 'md', className = '' }: 
         };
       case 'both':
         return {
-          bg: 'bg-gradient-to-br from-green-500 to-yellow-500',
-          shadow: '0 0 8px rgba(34, 197, 94, 0.4), 0 0 12px rgba(234, 179, 8, 0.4)',
+          bg: 'bg-green-500',
+          shadow: '0 0 8px rgba(34, 197, 94, 0.6), 0 0 12px rgba(34, 197, 94, 0.4)',
         };
       case 'suspended':
         return {

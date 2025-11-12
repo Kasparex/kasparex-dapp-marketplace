@@ -95,7 +95,13 @@ export function IconDisplay({
       className={className}
       aria-label={`${type} icon for ${identifier}`}
     >
-      {icon.config.showLetter && icon.letter}
+      {type === 'dapp' && icon.icon ? (
+        <span style={{ fontSize: `${Math.floor((icon.config.size || size || 48) * 0.6)}px` }}>
+          {icon.icon}
+        </span>
+      ) : (
+        icon.config.showLetter && icon.letter
+      )}
     </div>
   );
 }
