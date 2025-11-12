@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762988662-89e8055",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript spread operator error - Use Function.apply instead of spread operator for mutationFn call - Avoids TypeScript tuple type error (by Kasparex)",
+      "date": "2025-11-13T00:03:52+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762988462-7709c8e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error - Remove MutationCache.prototype.setError patch (method doesn't exist) - Keep Proxy-based error interception in onMutate (by Kasparex)",
