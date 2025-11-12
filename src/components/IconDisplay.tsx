@@ -63,6 +63,10 @@ export function IconDisplay({
     const iconSize = icon.config.size || size || 48;
     const borderRadius = icon.config.borderRadius || 8;
     
+    // For dApp icons, use modern gradient with better color combinations
+    const isDApp = type === 'dapp';
+    const iconScale = isDApp ? 0.5 : 0.6; // Smaller icons for dApps (50% vs 60%)
+    
     const baseStyle: React.CSSProperties = {
       width: `${iconSize}px`,
       height: `${iconSize}px`,
@@ -71,10 +75,20 @@ export function IconDisplay({
       alignItems: 'center',
       justifyContent: 'center',
       fontWeight: 'bold',
-      fontSize: `${Math.floor(iconSize * 0.4)}px`,
+      fontSize: `${Math.floor(iconSize * iconScale)}px`,
       color: icon.colors.textColor,
       flexShrink: 0,
+      padding: isDApp ? '2px' : '0', // Small padding for dApp icons
     };
+
+    if (isDApp) {
+      // Modern gradient for dApp icons with better color combinations
+      return {
+        ...baseStyle,
+        background: `linear-gradient(135deg, ${icon.colors.primary} 0%, ${icon.colors.secondary} 100%)`,
+        boxShadow: `0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)`,
+      };
+    }
 
     if (icon.config.gradient) {
       return {
@@ -87,7 +101,7 @@ export function IconDisplay({
       ...baseStyle,
       backgroundColor: icon.colors.backgroundColor,
     };
-  }, [icon, size]);
+  }, [icon, size, type]);
 
   return (
     <div

@@ -25,6 +25,7 @@ import { useLikes } from '@/hooks/useLikes';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { StatusIndicator } from './StatusIndicator';
+import { getExplorerUrl } from '@/lib/dapps/deployer';
 
 interface DAppWidgetHeaderProps {
   dapp: DApp;
@@ -168,6 +169,22 @@ export function DAppWidgetHeader({
   const [showGuideAndInfoModal, setShowGuideAndInfoModal] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
+  const [showTokenTooltip, setShowTokenTooltip] = useState(false);
+
+  // Get token information
+  const tokenTicker = contractData?.ticker || null;
+  const tokenAddress = contractData?.tokenAddress || null;
+  const dAppContractAddress = contractData?.contractAddress || resolvedContractAddress || null;
+  
+  // Format addresses for display
+  const formatAddress = (address: string | null) => {
+    if (!address || !address.startsWith('0x')) return null;
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+  
+  // Get explorer URLs
+  const dAppExplorerUrl = dAppContractAddress ? getExplorerUrl(dAppContractAddress, chainId) : null;
+  const tokenExplorerUrl = tokenAddress ? getExplorerUrl(tokenAddress, chainId) : null;
 
   // Category link - open in new tab when embedded
   const categoryLinkProps = isEmbeddedPage
@@ -193,24 +210,103 @@ export function DAppWidgetHeader({
 
           {/* Title and Description */}
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-              {isEmbeddedPage ? (
-                <a
-                  href={`/dapps/${dapp.slug || dapp.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-[#02abb8] transition-colors"
-                >
-                  {mergedDApp.name}
-                </a>
-              ) : (
-                mergedDApp.name
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                {isEmbeddedPage ? (
+                  <a
+                    href={`/dapps/${dapp.slug || dapp.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-[#02abb8] transition-colors"
+                  >
+                    {mergedDApp.name}
+                  </a>
+                ) : (
+                  mergedDApp.name
+                )}
+              </h1>
+              {tokenTicker && (
+                <div className="relative">
+                  <span
+                    className="text-xs font-medium px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 cursor-help"
+                    onMouseEnter={() => setShowTokenTooltip(true)}
+                    onMouseLeave={() => setShowTokenTooltip(false)}
+                  >
+                    {tokenTicker}
+                  </span>
+                  {showTokenTooltip && contractData && (
+                    <div className="absolute left-0 bottom-full mb-2 w-64 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-xl z-[9999] p-3 pointer-events-none">
+                      <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Token Information</p>
+                      <div className="space-y-1.5 text-xs">
+                        {contractData.totalSupply && (
+                          <div className="flex justify-between">
+                            <span className="text-zinc-600 dark:text-zinc-400">Total Supply:</span>
+                            <span className="text-zinc-900 dark:text-zinc-100 font-medium">
+                              {(Number(contractData.totalSupply) / 1e18).toLocaleString(undefined, { maximumFractionDigits: 0 })} {tokenTicker}
+                            </span>
+                          </div>
+                        )}
+                        {tokenAddress && (
+                          <div className="flex justify-between">
+                            <span className="text-zinc-600 dark:text-zinc-400">Token Address:</span>
+                            <span className="text-zinc-900 dark:text-zinc-100 font-mono">{formatAddress(tokenAddress)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
-            </h1>
+            </div>
             {truncatedDescription && (
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2 mb-3">
                 {truncatedDescription}
               </p>
+            )}
+            
+            {/* dApp and Token Information Rows */}
+            {(dAppContractAddress || tokenAddress) && (
+              <div className="space-y-1.5 mt-3 pt-3 border-t border-zinc-200/50 dark:border-zinc-800/50">
+                {/* dApp Row */}
+                {dAppContractAddress && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-zinc-500 dark:text-zinc-500 font-medium min-w-[60px]">dApp:</span>
+                    <span className="text-zinc-900 dark:text-zinc-100 font-medium truncate">{mergedDApp.name}</span>
+                    {dAppExplorerUrl && (
+                      <a
+                        href={dAppExplorerUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-zinc-500 dark:text-zinc-400 hover:text-[#02abb8] dark:hover:text-[#02abb8] font-mono ml-auto transition-colors"
+                        title={dAppContractAddress}
+                      >
+                        {formatAddress(dAppContractAddress)}
+                      </a>
+                    )}
+                  </div>
+                )}
+                
+                {/* Token Row */}
+                {tokenAddress && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-zinc-500 dark:text-zinc-500 font-medium min-w-[60px]">Token:</span>
+                    <span className="text-zinc-900 dark:text-zinc-100 font-medium truncate">
+                      {tokenTicker || 'N/A'}
+                    </span>
+                    {tokenExplorerUrl && (
+                      <a
+                        href={tokenExplorerUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-zinc-500 dark:text-zinc-400 hover:text-[#02abb8] dark:hover:text-[#02abb8] font-mono ml-auto transition-colors"
+                        title={tokenAddress}
+                      >
+                        {formatAddress(tokenAddress)}
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
