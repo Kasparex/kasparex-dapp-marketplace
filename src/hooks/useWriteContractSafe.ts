@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useEffect } from 'react';
-import { useWriteContract as useWagmiWriteContract, UseWriteContractReturn } from 'wagmi';
+import { useWriteContract as useWagmiWriteContract, UseWriteContractReturnType } from 'wagmi';
 import { getErrorMessage } from '@/lib/utils';
 
 /**
@@ -12,7 +12,7 @@ import { getErrorMessage } from '@/lib/utils';
  * The error is converted immediately when it occurs, preventing React Query from
  * storing a function-type error in its cache.
  */
-export function useWriteContractSafe(): UseWriteContractReturn {
+export function useWriteContractSafe(): UseWriteContractReturnType {
   const wagmiResult = useWagmiWriteContract();
   
   // CRITICAL: Convert error immediately when it occurs
