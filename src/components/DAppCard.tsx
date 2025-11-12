@@ -59,8 +59,8 @@ export function DAppCard({ dapp }: DAppCardProps) {
   // Refs for tooltip positioning
   const dAppTooltipRef = useRef<HTMLDivElement>(null);
   const tokenTooltipRef = useRef<HTMLDivElement>(null);
-  const infoIconTooltipRef = useRef<HTMLDivElement>(null);
-  const embedIconTooltipRef = useRef<HTMLDivElement>(null);
+  const infoIconTooltipRef = useRef<HTMLButtonElement>(null);
+  const embedIconTooltipRef = useRef<HTMLButtonElement>(null);
   
   const [tooltipPositions, setTooltipPositions] = useState<{
     dApp?: { top: number; left: number };
