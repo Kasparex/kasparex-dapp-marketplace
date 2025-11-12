@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762988214-3ba4e88",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: CRITICAL FIX: Intercept React Query error serialization at MutationCache level - Patch MutationCache.setError to convert function-type errors BEFORE serialization - Wrap mutation functions in onMutate to catch errors early - Add global error handler to prevent 'in' operator errors (by Kasparex)",
+      "date": "2025-11-12T23:56:32+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762987832-8b792e0",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix React Query error serialization - Use MutationCache to intercept errors before React Query serializes them - Replace mutation.state.error synchronously using Object.defineProperty - Add defensive error handling to prevent 'in' operator errors (by Kasparex)",
