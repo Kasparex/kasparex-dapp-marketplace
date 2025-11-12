@@ -53,7 +53,8 @@ export function useWriteContractSafe(): UseWriteContractReturnType {
   // Convert error to a safe Error object immediately
   // This ensures the error is serializable by React Query
   const safeError = useMemo(() => {
-    if (!wagmiResult.error) {
+    const error = wagmiResult.error;
+    if (!error) {
       return undefined;
     }
     
@@ -61,13 +62,13 @@ export function useWriteContractSafe(): UseWriteContractReturnType {
     // React Query will try to serialize this error, so we must convert it first
     try {
       // Check if it's a function - if so, convert immediately
-      if (typeof wagmiResult.error === 'function') {
-        const errorStr = getErrorMessage(wagmiResult.error, 'Transaction failed');
+      if (typeof error === 'function') {
+        const errorStr = getErrorMessage(error, 'Transaction failed');
         return new Error(errorStr);
       }
       
       // For other error types, try to convert safely
-      const errorStr = getErrorMessage(wagmiResult.error, 'Transaction failed');
+      const errorStr = getErrorMessage(error, 'Transaction failed');
       // Return a new Error object with the string message
       // This is safe for React Query to serialize
       return new Error(errorStr);
