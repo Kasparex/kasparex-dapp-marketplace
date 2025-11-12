@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762963966-e04e8ff",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Merge branch 'main' of https://github.com/Kasparex/kasparex-dapp-marketplace (by Kasparex)",
+      "date": "2025-11-12T17:12:19+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762904860-5756c2e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: Rename dynamic import to nextDynamic to avoid naming conflict with export const dynamic (by Kasparex)",
