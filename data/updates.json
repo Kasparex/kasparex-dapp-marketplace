@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762999196-73acf43",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix contract address validation: ensure null instead of empty string to prevent function-type errors (by Kasparex)",
+      "date": "2025-11-13T02:59:35+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762998786-388b301",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix 'in' operator error in Quiz-to-Earn submitAnswer: convert function-type errors immediately (by Kasparex)",
