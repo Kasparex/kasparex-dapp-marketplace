@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762998786-388b301",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix 'in' operator error in Quiz-to-Earn submitAnswer: convert function-type errors immediately (by Kasparex)",
+      "date": "2025-11-13T02:52:35+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762998134-3cd7bf7",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript: exclude templates from compilation and create comprehensive error log (by Kasparex)",
