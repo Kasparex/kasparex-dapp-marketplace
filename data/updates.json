@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1763031334-5df0a4b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add onSettled callback to SafeQueryCache for earlier error interception - Wrap query.state immediately when query settles (before serialization) - Add convertQueryError helper method - Intercept errors at earliest possible point in React Query lifecycle (by Kasparex)",
+      "date": "2025-11-13T11:51:24+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1763030348-79771b7",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add SafeQueryCache to intercept query errors (useReadContract) - Create SafeQueryCache class similar to SafeMutationCache - Wrap query.state with Proxy to intercept 'in' operator checks - Convert function-type errors before React Query serializes them - Fix 'Cannot use in operator' error for useReadContract queries (by Kasparex)",
