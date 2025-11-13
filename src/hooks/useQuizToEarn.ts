@@ -6,6 +6,7 @@ import { parseEther, formatEther } from 'viem';
 import { QUIZ_TO_EARN_ABI } from '@/lib/contracts/abis';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { useSafeError } from './useSafeError';
+import { getErrorMessage } from '@/lib/utils';
 
 export interface Question {
   id: bigint;
@@ -352,10 +353,25 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
         args: [questionId, selectedAnswerIndex],
       });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to submit answer';
+      // CRITICAL: Convert function-type errors immediately to prevent 'in' operator errors
+      // This ensures React Query never sees function-type errors
+      let errorMessage: string;
+      if (typeof err === 'function') {
+        // Function-type error from wagmi - convert immediately
+        errorMessage = getErrorMessage(err, 'Failed to submit answer');
+        const safeError = new Error(errorMessage);
+        setError(errorMessage);
+        setIsLoading(false);
+        throw safeError; // Throw Error object, not function
+      } else if (err && typeof err === 'object' && 'message' in err) {
+        errorMessage = String(err.message || 'Failed to submit answer');
+      } else {
+        errorMessage = getErrorMessage(err, 'Failed to submit answer');
+      }
       setError(errorMessage);
       setIsLoading(false);
-      throw err;
+      // Always throw an Error object, never a function or raw error
+      throw new Error(errorMessage);
     }
   }, [contractAddress, isConnected, address, writeContract]);
 

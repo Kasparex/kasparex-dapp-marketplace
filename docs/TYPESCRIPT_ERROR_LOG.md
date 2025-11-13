@@ -304,7 +304,68 @@ Before pushing, ensure:
 
 ---
 
+---
+
+## "Cannot use 'in' operator" Error (Function-Type Errors)
+
+### Problem
+React Query tries to serialize errors using the `in` operator, which fails when wagmi returns function-type errors (contract function signatures).
+
+### Error Example
+```
+TypeError: Cannot use 'in' operator to search for 'name' in function submitAnswer(uint256 _questionId, uint256 _selectedAnswerIndex) external
+```
+
+### Root Cause
+According to [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/in_operator_no_object), the `in` operator can only be used on objects, not on primitive types like functions. When wagmi returns a function signature as an error, React Query's serialization fails.
+
+### Solution Pattern
+
+#### In Custom Hooks (useQuizToEarn, etc.):
+```typescript
+try {
+  await writeContract({...});
+} catch (err) {
+  // CRITICAL: Convert function-type errors immediately
+  let errorMessage: string;
+  if (typeof err === 'function') {
+    // Function-type error from wagmi - convert immediately
+    errorMessage = getErrorMessage(err, 'Failed to submit answer');
+    const safeError = new Error(errorMessage);
+    setError(errorMessage);
+    throw safeError; // Always throw Error object, never function
+  } else {
+    errorMessage = getErrorMessage(err, 'Failed to submit answer');
+  }
+  setError(errorMessage);
+  throw new Error(errorMessage); // Always Error object
+}
+```
+
+#### Global Solution (Already Implemented):
+- `SafeMutationCache` in `src/components/Providers.tsx` intercepts errors at the React Query level
+- Proxy on `mutation.state` intercepts `has()` trap (which handles `in` operator)
+- `getErrorMessage()` utility safely converts all error types
+
+### Files Fixed
+- `src/components/Providers.tsx` - SafeMutationCache with Proxy interception
+- `src/hooks/useQuizToEarn.ts` - submitAnswer error handling
+- `src/lib/utils.ts` - getErrorMessage utility
+
+### Prevention
+- Always check `typeof err === 'function'` before using error
+- Always throw `Error` objects, never raw errors or functions
+- Use `getErrorMessage()` utility for safe conversion
+- The global SafeMutationCache should catch most cases, but hooks should also handle defensively
+
+### References
+- [MDN: Cannot use 'in' operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/in_operator_no_object)
+- [Ethers.js Issue #4182](https://github.com/ethers-io/ethers.js/issues/4182)
+- [Ethereum StackExchange: Cannot call function](https://ethereum.stackexchange.com/questions/71056/cannot-call-function-even-though-it-is-present-in-the-jsoninteface)
+
+---
+
 ## Last Updated
 - Date: 2025-11-13
-- Fixed Issues: Contract read types, template compilation, category types, contract addresses
+- Fixed Issues: Contract read types, template compilation, category types, contract addresses, 'in' operator errors
 
