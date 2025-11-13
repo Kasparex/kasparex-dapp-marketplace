@@ -407,9 +407,20 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
   }, [contractAddress, isConnected, address, writeContract]);
 
   // Update error state from transaction
+  // CRITICAL: Convert errors immediately to prevent React Query serialization issues
   useEffect(() => {
     if (safeWriteError || safeTxError) {
-      setError(safeWriteError || safeTxError || null);
+      const errorToSet = safeWriteError || safeTxError;
+      if (errorToSet) {
+        // Double-check: ensure error is converted to string
+        // This prevents any function-type errors from reaching React Query
+        const errorStr = typeof errorToSet === 'string' 
+          ? errorToSet 
+          : getErrorMessage(errorToSet, 'Transaction failed');
+        setError(errorStr);
+      } else {
+        setError(null);
+      }
     }
   }, [safeWriteError, safeTxError]);
 
