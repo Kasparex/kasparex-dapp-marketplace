@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762996360-a75f649",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: properly type count variable in useQuizToEarn (by Kasparex)",
+      "date": "2025-11-13T02:12:20+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762996058-625b30b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update ProofOfUtility ABI with recordUsageAndReward function (by Kasparex)",
