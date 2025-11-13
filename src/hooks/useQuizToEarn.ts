@@ -384,7 +384,9 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
     // CRITICAL: Validate contract address BEFORE calling writeContract
     // Empty or invalid addresses cause wagmi to return function-type errors
     if (!contractAddress || contractAddress === '' || !contractAddress.startsWith('0x') || contractAddress.length !== 42) {
-      setError('Quiz-to-Earn contract is not deployed on this network. Please switch to Kasplex L2 Testnet (Chain ID: 167012).');
+      const errorMsg = 'Quiz-to-Earn contract is not deployed on this network. Please switch to Kasplex L2 Testnet (Chain ID: 167012).';
+      setError(errorMsg);
+      console.warn('Invalid contract address:', contractAddress, 'Chain ID:', chainId);
       return;
     }
 
@@ -392,34 +394,51 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
     setError(null);
 
     try {
-      await writeContract({
+      // CRITICAL: Wrap writeContract call to intercept errors immediately
+      // wagmi's writeContract doesn't throw - errors come via error state
+      // But we wrap it in a try-catch to catch any synchronous errors
+      // and also set up immediate error interception
+      
+      // Clear any previous errors first
+      setError(null);
+      
+      // Call writeContract - it returns void, errors come via writeError state
+      writeContract({
         address: contractAddress as `0x${string}`,
         abi: QUIZ_TO_EARN_ABI,
         functionName: 'submitAnswer',
         args: [questionId, selectedAnswerIndex],
       });
+      
+      // Note: writeContract doesn't return a promise, so we can't await it
+      // Errors will come through writeError state, which we intercept in useEffect
+      // The transaction hash will come through the hash state
+      
     } catch (err) {
       // CRITICAL: Convert function-type errors immediately to prevent 'in' operator errors
-      // This ensures React Query never sees function-type errors
+      // This catches any synchronous errors (though writeContract shouldn't throw)
       let errorMessage: string;
+      let safeError: Error;
+      
       if (typeof err === 'function') {
         // Function-type error from wagmi - convert immediately
         errorMessage = getErrorMessage(err, 'Failed to submit answer');
-        const safeError = new Error(errorMessage);
-        setError(errorMessage);
-        setIsLoading(false);
-        throw safeError; // Throw Error object, not function
-      } else if (err && typeof err === 'object' && 'message' in err) {
-        errorMessage = String(err.message || 'Failed to submit answer');
+        safeError = new Error(errorMessage);
+        console.error('🚨 Function-type error caught in submitAnswer catch block:', errorMessage);
+      } else if (err instanceof Error) {
+        errorMessage = getErrorMessage(err, 'Failed to submit answer');
+        safeError = new Error(errorMessage);
       } else {
         errorMessage = getErrorMessage(err, 'Failed to submit answer');
+        safeError = new Error(errorMessage);
       }
+      
       setError(errorMessage);
       setIsLoading(false);
       // Always throw an Error object, never a function or raw error
-      throw new Error(errorMessage);
+      throw safeError;
     }
-  }, [contractAddress, isConnected, address, writeContract]);
+  }, [contractAddress, isConnected, address, writeContract, chainId]);
 
   // Update error state from transaction
   // CRITICAL: Convert errors immediately to prevent React Query serialization issues

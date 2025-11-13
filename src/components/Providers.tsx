@@ -19,7 +19,8 @@ class SafeMutationCache extends MutationCache {
   constructor() {
     super({
       onMutate: async (variables, mutation) => {
-        // Wrap mutation function to catch errors before they're stored
+        // CRITICAL: Wrap mutation function to catch errors BEFORE they're stored
+        // This is the FIRST line of defense - intercept errors at the mutation function level
         const originalMutationFn = mutation.options.mutationFn;
         if (originalMutationFn && typeof originalMutationFn === 'function') {
           mutation.options.mutationFn = async (...args: any[]) => {
@@ -27,12 +28,20 @@ class SafeMutationCache extends MutationCache {
               const result = await (originalMutationFn as any).apply(null, args);
               return result;
             } catch (error) {
-              // Convert function-type errors immediately
+              // CRITICAL: Convert function-type errors IMMEDIATELY
+              // This prevents React Query from ever seeing function-type errors
               if (typeof error === 'function') {
                 const errorStr = getErrorMessage(error, 'An error occurred');
+                console.error('🚨 Function-type error intercepted in SafeMutationCache.onMutate:', errorStr);
                 throw new Error(errorStr);
               }
               if (error && !(error instanceof Error)) {
+                const errorStr = getErrorMessage(error, 'An error occurred');
+                throw new Error(errorStr);
+              }
+              // Even if it's already an Error, ensure it's safe
+              if (error instanceof Error) {
+                // Double-check: if error.message contains function signature, convert it
                 const errorStr = getErrorMessage(error, 'An error occurred');
                 throw new Error(errorStr);
               }
