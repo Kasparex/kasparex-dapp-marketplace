@@ -237,6 +237,16 @@ const mutationCache = new SafeMutationCache();
 class SafeQueryCache extends QueryCache {
   constructor() {
     super({
+      onSettled: (data: unknown, error: unknown, query: any) => {
+        // CRITICAL: Wrap query.state IMMEDIATELY when query settles (success or error)
+        // This ensures Proxy is in place BEFORE React Query tries to serialize errors
+        this.wrapQueryState(query);
+        
+        // Also handle error conversion here as a first line of defense
+        if (error) {
+          this.convertQueryError(error, query);
+        }
+      },
       onSuccess: (data: unknown, query: any) => {
         // Wrap query.state with Proxy when query succeeds (to catch future errors)
         this.wrapQueryState(query);
@@ -297,6 +307,57 @@ class SafeQueryCache extends QueryCache {
         this.wrapQueryState(query);
       },
     });
+  }
+
+  // CRITICAL: Convert query error immediately
+  // This is called BEFORE React Query tries to serialize the error
+  private convertQueryError(error: unknown, query: any) {
+    if (!query?.state) return;
+    
+    try {
+      let safeError: Error;
+      
+      if (typeof error === 'function') {
+        const errorStr = getErrorMessage(error, 'Query failed');
+        safeError = new Error(errorStr);
+        console.error('🚨 Function-type error intercepted in SafeQueryCache.convertQueryError:', errorStr);
+      } else if (error && !(error instanceof Error)) {
+        const errorStr = getErrorMessage(error, 'Query failed');
+        safeError = new Error(errorStr);
+      } else {
+        safeError = error as Error;
+      }
+      
+      // CRITICAL: Replace error in query.state IMMEDIATELY
+      try {
+        Object.defineProperty(query.state, 'error', {
+          value: safeError,
+          writable: true,
+          enumerable: true,
+          configurable: true,
+        });
+      } catch {
+        try {
+          (query.state as any).error = safeError;
+        } catch {
+          try {
+            (query as any).state = {
+              ...query.state,
+              error: safeError,
+            };
+          } catch {
+            // Ignore - conversion failed
+          }
+        }
+      }
+    } catch (err) {
+      // Fallback
+      try {
+        (query.state as any).error = new Error('Query failed');
+      } catch {
+        // Ignore
+      }
+    }
   }
 
   // CRITICAL: Wrap query.state with Proxy to intercept 'in' operator checks
