@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762996853-b232fca",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: properly type-check array result from getActiveQuestions (by Kasparex)",
+      "date": "2025-11-13T02:20:32+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762996636-24b1e75",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error in useQuizToEarn and add TypeScript best practices to DAPP_TEMPLATE (by Kasparex)",
