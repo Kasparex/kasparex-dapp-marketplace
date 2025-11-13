@@ -1107,32 +1107,224 @@ export const REWARD_VAULT_ABI = [
 ] as const;
 
 export const USER_PROFILE_DASHBOARD_ABI = [
-  "function updateProfile(string memory ipfsCID) external",
-  "function setPreferences(bytes memory preferences) external",
-  "function linkSocial(string memory platform, string memory handle) external",
-  "function setIconColor(string memory colorHex) external",
-  "function getProfileCID(address user) external view returns (string memory)",
+  {
+    type: "function",
+    name: "updateProfile",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "string", name: "ipfsCID", type: "string" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setPreferences",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "bytes", name: "preferences", type: "bytes" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "linkSocial",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "string", name: "platform", type: "string" },
+      { internalType: "string", name: "handle", type: "string" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setIconColor",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "string", name: "colorHex", type: "string" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "getProfileCID",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" }
+    ],
+    outputs: [
+      { internalType: "string", name: "", type: "string" }
+    ]
+  }
 ] as const;
 
 export const ADMIN_DASHBOARD_ABI = [
-  "function proposeOperation(bytes32 operationHash) external returns (bytes32)",
-  "function approveOperation(bytes32 operationId) external",
-  "function approveDApp(uint256 dAppId) external",
-  "function setFeeRates(uint256 newKasparexPercentage, uint256 newProjectPercentage) external",
-  "function setMultiSigThreshold(uint256 newThreshold) external",
-  "function getPendingOperations() external view returns (bytes32[] memory)",
-  "function getOperation(bytes32 operationId) external view returns (bytes32, address, uint256, bool)",
-  "function multiSigThreshold() external view returns (uint256)",
+  {
+    type: "function",
+    name: "proposeOperation",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "bytes32", name: "operationHash", type: "bytes32" }
+    ],
+    outputs: [
+      { internalType: "bytes32", name: "", type: "bytes32" }
+    ]
+  },
+  {
+    type: "function",
+    name: "approveOperation",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "bytes32", name: "operationId", type: "bytes32" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "approveDApp",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "uint256", name: "dAppId", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setFeeRates",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "uint256", name: "newKasparexPercentage", type: "uint256" },
+      { internalType: "uint256", name: "newProjectPercentage", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setMultiSigThreshold",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "uint256", name: "newThreshold", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "getPendingOperations",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "bytes32[]", name: "", type: "bytes32[]" }
+    ]
+  },
+  {
+    type: "function",
+    name: "getOperation",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "bytes32", name: "operationId", type: "bytes32" }
+    ],
+    outputs: [
+      { internalType: "bytes32", name: "", type: "bytes32" },
+      { internalType: "address", name: "", type: "address" },
+      { internalType: "uint256", name: "", type: "uint256" },
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  },
+  {
+    type: "function",
+    name: "multiSigThreshold",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  }
 ] as const;
 
 export const PROFILE_REGISTRY_ABI = [
-  "function setProfileCID(address user, string memory ipfsCID) external",
-  "function setDisplayName(address user, string memory displayName) external",
-  "function setVerified(address user, bool verified) external",
-  "function setPreferences(address user, bytes memory preferences) external",
-  "function getProfile(address user) external view returns ((string, string, bool, bytes, uint256))",
-  "function getProfileCID(address user) external view returns (string memory)",
-  "function verifiedAddresses(address) external view returns (bool)",
+  {
+    type: "function",
+    name: "setProfileCID",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" },
+      { internalType: "string", name: "ipfsCID", type: "string" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setDisplayName",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" },
+      { internalType: "string", name: "displayName", type: "string" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setVerified",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" },
+      { internalType: "bool", name: "verified", type: "bool" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setPreferences",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" },
+      { internalType: "bytes", name: "preferences", type: "bytes" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "getProfile",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" }
+    ],
+    outputs: [
+      {
+        components: [
+          { internalType: "string", name: "", type: "string" },
+          { internalType: "string", name: "", type: "string" },
+          { internalType: "bool", name: "", type: "bool" },
+          { internalType: "bytes", name: "", type: "bytes" },
+          { internalType: "uint256", name: "", type: "uint256" }
+        ],
+        internalType: "tuple",
+        name: "",
+        type: "tuple"
+      }
+    ]
+  },
+  {
+    type: "function",
+    name: "getProfileCID",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" }
+    ],
+    outputs: [
+      { internalType: "string", name: "", type: "string" }
+    ]
+  },
+  {
+    type: "function",
+    name: "verifiedAddresses",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "", type: "address" }
+    ],
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  }
 ] as const;
 
 export const SIMPLE_PAYMENT_ABI = [
@@ -1298,54 +1490,450 @@ export const SIMPLE_PAYMENT_ABI = [
 ] as const;
 
 export const PLATFORM_SUBSCRIPTION_ABI = [
-  "function subscribe() external payable",
-  "function isSubscribed(address _user) external view returns (bool)",
-  "function isInGracePeriod(address _user) external view returns (bool)",
-  "function getExpiryTimestamp(address _user) external view returns (uint256)",
-  "function monthlyPrice() external view returns (uint256)",
-  "function subscriptionPeriod() external view returns (uint256)",
-  "function gracePeriod() external view returns (uint256)",
-  "event SubscriptionPurchased(address indexed user, uint256 amount, uint256 expiryTimestamp, uint256 timestamp)",
-  "event SubscriptionRenewed(address indexed user, uint256 amount, uint256 newExpiryTimestamp, uint256 timestamp)",
+  {
+    type: "function",
+    name: "subscribe",
+    stateMutability: "payable",
+    inputs: [],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "isSubscribed",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "_user", type: "address" }
+    ],
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  },
+  {
+    type: "function",
+    name: "isInGracePeriod",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "_user", type: "address" }
+    ],
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  },
+  {
+    type: "function",
+    name: "getExpiryTimestamp",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "_user", type: "address" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "monthlyPrice",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "subscriptionPeriod",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "gracePeriod",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "event",
+    name: "SubscriptionPurchased",
+    inputs: [
+      { indexed: true, internalType: "address", name: "user", type: "address" },
+      { indexed: false, internalType: "uint256", name: "amount", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "expiryTimestamp", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "SubscriptionRenewed",
+    inputs: [
+      { indexed: true, internalType: "address", name: "user", type: "address" },
+      { indexed: false, internalType: "uint256", name: "amount", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "newExpiryTimestamp", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  }
 ] as const;
 
 export const DAPP_SUBSCRIPTION_ABI = [
-  "function subscribe(address _dAppContract, uint8 _frequency) external payable",
-  "function isSubscribed(address _user, address _dAppContract) external view returns (bool)",
-  "function getExpiryTimestamp(address _user, address _dAppContract) external view returns (uint256)",
-  "function createSubscriptionPlan(address _dAppContract, uint256 _monthlyPrice, uint256 _quarterlyPrice, uint256 _yearlyPrice) external",
-  "function updateSubscriptionPlan(address _dAppContract, uint256 _monthlyPrice, uint256 _quarterlyPrice, uint256 _yearlyPrice) external",
-  "function getSubscriptionPlan(address _dAppContract) external view returns ((address, address, uint256, uint256, uint256, bool, uint256))",
-  "function setKasparexFeePercentage(uint256 _newPercentage) external",
-  "function kasparexFeePercentage() external view returns (uint256)",
-  "function setTreasury(address _treasury) external",
-  "function setAuthorizationRegistry(address _authorizationRegistry) external",
-  "function setDAppRegistry(address _dAppRegistry) external",
-  "event SubscriptionPurchased(address indexed user, address indexed dAppContract, uint8 frequency, uint256 amount, uint256 expiryTimestamp, uint256 timestamp)",
-  "event SubscriptionPlanCreated(address indexed dAppContract, address indexed developer, uint256 monthlyPrice, uint256 quarterlyPrice, uint256 yearlyPrice, uint256 timestamp)",
+  {
+    type: "function",
+    name: "subscribe",
+    stateMutability: "payable",
+    inputs: [
+      { internalType: "address", name: "_dAppContract", type: "address" },
+      { internalType: "uint8", name: "_frequency", type: "uint8" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "isSubscribed",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "_user", type: "address" },
+      { internalType: "address", name: "_dAppContract", type: "address" }
+    ],
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  },
+  {
+    type: "function",
+    name: "getExpiryTimestamp",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "_user", type: "address" },
+      { internalType: "address", name: "_dAppContract", type: "address" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "createSubscriptionPlan",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "_dAppContract", type: "address" },
+      { internalType: "uint256", name: "_monthlyPrice", type: "uint256" },
+      { internalType: "uint256", name: "_quarterlyPrice", type: "uint256" },
+      { internalType: "uint256", name: "_yearlyPrice", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "updateSubscriptionPlan",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "_dAppContract", type: "address" },
+      { internalType: "uint256", name: "_monthlyPrice", type: "uint256" },
+      { internalType: "uint256", name: "_quarterlyPrice", type: "uint256" },
+      { internalType: "uint256", name: "_yearlyPrice", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "getSubscriptionPlan",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "_dAppContract", type: "address" }
+    ],
+    outputs: [
+      {
+        components: [
+          { internalType: "address", name: "", type: "address" },
+          { internalType: "address", name: "", type: "address" },
+          { internalType: "uint256", name: "", type: "uint256" },
+          { internalType: "uint256", name: "", type: "uint256" },
+          { internalType: "uint256", name: "", type: "uint256" },
+          { internalType: "bool", name: "", type: "bool" },
+          { internalType: "uint256", name: "", type: "uint256" }
+        ],
+        internalType: "tuple",
+        name: "",
+        type: "tuple"
+      }
+    ]
+  },
+  {
+    type: "function",
+    name: "setKasparexFeePercentage",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "uint256", name: "_newPercentage", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "kasparexFeePercentage",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "setTreasury",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "_treasury", type: "address" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setAuthorizationRegistry",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "_authorizationRegistry", type: "address" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setDAppRegistry",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "_dAppRegistry", type: "address" }
+    ],
+    outputs: []
+  },
+  {
+    type: "event",
+    name: "SubscriptionPurchased",
+    inputs: [
+      { indexed: true, internalType: "address", name: "user", type: "address" },
+      { indexed: true, internalType: "address", name: "dAppContract", type: "address" },
+      { indexed: false, internalType: "uint8", name: "frequency", type: "uint8" },
+      { indexed: false, internalType: "uint256", name: "amount", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "expiryTimestamp", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "SubscriptionPlanCreated",
+    inputs: [
+      { indexed: true, internalType: "address", name: "dAppContract", type: "address" },
+      { indexed: true, internalType: "address", name: "developer", type: "address" },
+      { indexed: false, internalType: "uint256", name: "monthlyPrice", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "quarterlyPrice", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "yearlyPrice", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  }
 ] as const;
 
 export const SUBSCRIPTION_MANAGER_ABI = [
-  "function hasAccess(address _user, address _dAppContract) external view returns (bool)",
-  "function hasPlatformSubscription(address _user) external view returns (bool)",
-  "function hasDAppSubscription(address _user, address _dAppContract) external view returns (bool)",
-  "function isInPlatformGracePeriod(address _user) external view returns (bool)",
-  "function getPlatformExpiry(address _user) external view returns (uint256)",
-  "function getDAppExpiry(address _user, address _dAppContract) external view returns (uint256)",
-  "function getSubscriptionStatus(address _user, address _dAppContract) external view returns (bool, uint256, bool, uint256, bool)",
+  {
+    type: "function",
+    name: "hasAccess",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "_user", type: "address" },
+      { internalType: "address", name: "_dAppContract", type: "address" }
+    ],
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  },
+  {
+    type: "function",
+    name: "hasPlatformSubscription",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "_user", type: "address" }
+    ],
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  },
+  {
+    type: "function",
+    name: "hasDAppSubscription",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "_user", type: "address" },
+      { internalType: "address", name: "_dAppContract", type: "address" }
+    ],
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  },
+  {
+    type: "function",
+    name: "isInPlatformGracePeriod",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "_user", type: "address" }
+    ],
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  },
+  {
+    type: "function",
+    name: "getPlatformExpiry",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "_user", type: "address" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "getDAppExpiry",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "_user", type: "address" },
+      { internalType: "address", name: "_dAppContract", type: "address" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "getSubscriptionStatus",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "_user", type: "address" },
+      { internalType: "address", name: "_dAppContract", type: "address" }
+    ],
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" },
+      { internalType: "uint256", name: "", type: "uint256" },
+      { internalType: "bool", name: "", type: "bool" },
+      { internalType: "uint256", name: "", type: "uint256" },
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  }
 ] as const;
 
 export const AUTHORIZATION_REGISTRY_ABI = [
-  "function assignDeveloper(uint256 _dAppId, address _developer) external",
-  "function revokeDeveloper(uint256 _dAppId, address _developer) external",
-  "function isDeveloper(uint256 _dAppId, address _developer) external view returns (bool)",
-  "function getDAppDevelopers(uint256 _dAppId) external view returns (address[])",
-  "function getDeveloperDApps(address _developer) external view returns (uint256[])",
-  "function batchAssignDevelopers(uint256 _dAppId, address[] calldata _developers) external",
-  "function batchRevokeDevelopers(uint256 _dAppId, address[] calldata _developers) external",
-  "function dAppDevelopers(uint256, address) external view returns (bool)",
-  "event DeveloperAssigned(uint256 indexed dAppId, address indexed developer, address indexed assignedBy, uint256 timestamp)",
-  "event DeveloperRevoked(uint256 indexed dAppId, address indexed developer, address indexed revokedBy, uint256 timestamp)",
+  {
+    type: "function",
+    name: "assignDeveloper",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "uint256", name: "_dAppId", type: "uint256" },
+      { internalType: "address", name: "_developer", type: "address" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "revokeDeveloper",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "uint256", name: "_dAppId", type: "uint256" },
+      { internalType: "address", name: "_developer", type: "address" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "isDeveloper",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "uint256", name: "_dAppId", type: "uint256" },
+      { internalType: "address", name: "_developer", type: "address" }
+    ],
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  },
+  {
+    type: "function",
+    name: "getDAppDevelopers",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "uint256", name: "_dAppId", type: "uint256" }
+    ],
+    outputs: [
+      { internalType: "address[]", name: "", type: "address[]" }
+    ]
+  },
+  {
+    type: "function",
+    name: "getDeveloperDApps",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "_developer", type: "address" }
+    ],
+    outputs: [
+      { internalType: "uint256[]", name: "", type: "uint256[]" }
+    ]
+  },
+  {
+    type: "function",
+    name: "batchAssignDevelopers",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "uint256", name: "_dAppId", type: "uint256" },
+      { internalType: "address[]", name: "_developers", type: "address[]" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "batchRevokeDevelopers",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "uint256", name: "_dAppId", type: "uint256" },
+      { internalType: "address[]", name: "_developers", type: "address[]" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "dAppDevelopers",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "uint256", name: "", type: "uint256" },
+      { internalType: "address", name: "", type: "address" }
+    ],
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  },
+  {
+    type: "event",
+    name: "DeveloperAssigned",
+    inputs: [
+      { indexed: true, internalType: "uint256", name: "dAppId", type: "uint256" },
+      { indexed: true, internalType: "address", name: "developer", type: "address" },
+      { indexed: true, internalType: "address", name: "assignedBy", type: "address" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "DeveloperRevoked",
+    inputs: [
+      { indexed: true, internalType: "uint256", name: "dAppId", type: "uint256" },
+      { indexed: true, internalType: "address", name: "developer", type: "address" },
+      { indexed: true, internalType: "address", name: "revokedBy", type: "address" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  }
 ] as const;
 
 export const DAO_VOTING_ABI = [

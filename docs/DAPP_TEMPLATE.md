@@ -430,16 +430,92 @@ export interface {{ItemInterface}} {
 ### Contract ABI
 Add your contract ABI to `src/lib/contracts/abis.ts`:
 
+**CRITICAL: Always use JSON objects, never string signatures!** viem/wagmi requires JSON objects with `type`, `name`, `inputs`, `outputs` properties.
+
 ```typescript
 export const {{CONTRACT_NAME}}_ABI = [
-  "function yourMainFunction(uint256 _param1, address _param2) external payable",
-  "function getItem(uint256 _itemId) external view returns (YourStruct)",
-  "function getItems(uint256 _offset, uint256 _limit) external view returns (YourStruct[])",
-  "function itemCount() external view returns (uint256)",
-  "function fee() external view returns (uint256)",
-  "event ItemCreated(uint256 indexed itemId, address indexed user, uint256 amount, uint256 timestamp)",
+  {
+    type: "function",
+    name: "yourMainFunction",
+    stateMutability: "payable",
+    inputs: [
+      { internalType: "uint256", name: "_param1", type: "uint256" },
+      { internalType: "address", name: "_param2", type: "address" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "getItem",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "uint256", name: "_itemId", type: "uint256" }
+    ],
+    outputs: [
+      {
+        components: [
+          { internalType: "uint256", name: "id", type: "uint256" },
+          { internalType: "string", name: "text", type: "string" }
+        ],
+        internalType: "struct YourContract.Item",
+        name: "",
+        type: "tuple"
+      }
+    ]
+  },
+  {
+    type: "function",
+    name: "getItems",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "uint256", name: "_offset", type: "uint256" },
+      { internalType: "uint256", name: "_limit", type: "uint256" }
+    ],
+    outputs: [
+      {
+        components: [
+          { internalType: "uint256", name: "id", type: "uint256" },
+          { internalType: "string", name: "text", type: "string" }
+        ],
+        internalType: "struct YourContract.Item[]",
+        name: "",
+        type: "tuple[]"
+      }
+    ]
+  },
+  {
+    type: "function",
+    name: "itemCount",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "fee",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "event",
+    name: "ItemCreated",
+    inputs: [
+      { indexed: true, internalType: "uint256", name: "itemId", type: "uint256" },
+      { indexed: true, internalType: "address", name: "user", type: "address" },
+      { indexed: false, internalType: "uint256", name: "amount", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  }
 ] as const;
 ```
+
+See `docs/ABI_FORMAT_GUIDE.md` for complete format requirements.
 
 ## Address Management
 
