@@ -49,11 +49,19 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const contractAddress = getContractAddress(chainId, 'QuizToEarn');
+  const contractAddressRaw = getContractAddress(chainId, 'QuizToEarn');
+  
+  // CRITICAL: Validate contract address - empty or invalid addresses cause function-type errors
+  // Only use valid Ethereum addresses (starts with 0x, 42 characters)
+  const contractAddress = contractAddressRaw && 
+    contractAddressRaw.startsWith('0x') && 
+    contractAddressRaw.length === 42 
+    ? contractAddressRaw 
+    : null;
 
   // Read contract state
   const { data: questionCountRaw } = useReadContract({
-    address: contractAddress as `0x${string}`,
+    address: contractAddress as `0x${string}` | undefined,
     abi: QUIZ_TO_EARN_ABI,
     functionName: 'questionCount',
     query: {
@@ -62,7 +70,7 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
   });
 
   const { data: defaultRewardAmountRaw } = useReadContract({
-    address: contractAddress as `0x${string}`,
+    address: contractAddress as `0x${string}` | undefined,
     abi: QUIZ_TO_EARN_ABI,
     functionName: 'defaultRewardAmount',
     query: {
