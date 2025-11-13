@@ -60,7 +60,8 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
     : null;
 
   // Read contract state
-  const { data: questionCountRaw } = useReadContract({
+  // CRITICAL: Wrap useReadContract hooks to intercept function-type errors
+  const { data: questionCountRaw, error: questionCountError } = useReadContract({
     address: contractAddress as `0x${string}` | undefined,
     abi: QUIZ_TO_EARN_ABI,
     functionName: 'questionCount',
@@ -69,7 +70,7 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
     },
   });
 
-  const { data: defaultRewardAmountRaw } = useReadContract({
+  const { data: defaultRewardAmountRaw, error: defaultRewardAmountError } = useReadContract({
     address: contractAddress as `0x${string}` | undefined,
     abi: QUIZ_TO_EARN_ABI,
     functionName: 'defaultRewardAmount',
@@ -77,6 +78,27 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
       enabled: !!contractAddress && isConnected,
     },
   });
+
+  // CRITICAL: Convert function-type errors from useReadContract hooks immediately
+  useEffect(() => {
+    if (questionCountError) {
+      if (typeof questionCountError === 'function') {
+        const errorStr = getErrorMessage(questionCountError, 'Failed to load question count');
+        console.error('🚨 Function-type error in useReadContract (questionCount):', errorStr);
+        setError(errorStr);
+      }
+    }
+  }, [questionCountError]);
+
+  useEffect(() => {
+    if (defaultRewardAmountError) {
+      if (typeof defaultRewardAmountError === 'function') {
+        const errorStr = getErrorMessage(defaultRewardAmountError, 'Failed to load default reward amount');
+        console.error('🚨 Function-type error in useReadContract (defaultRewardAmount):', errorStr);
+        setError(errorStr);
+      }
+    }
+  }, [defaultRewardAmountError]);
 
   // Properly handle unknown types from useReadContract
   const questionCount: bigint | null = useMemo(() => {
@@ -130,11 +152,25 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
 
     try {
       // Get question count first
-      const countResult = await publicClient.readContract({
-        address: contractAddress as `0x${string}`,
-        abi: QUIZ_TO_EARN_ABI,
-        functionName: 'questionCount',
-      });
+      // CRITICAL: Wrap readContract calls to catch and convert function-type errors immediately
+      let countResult: unknown;
+      try {
+        countResult = await publicClient.readContract({
+          address: contractAddress as `0x${string}`,
+          abi: QUIZ_TO_EARN_ABI,
+          functionName: 'questionCount',
+        });
+      } catch (readErr) {
+        // CRITICAL: Convert function-type errors immediately to prevent React Query serialization
+        if (typeof readErr === 'function') {
+          const errorStr = getErrorMessage(readErr, 'Failed to load question count');
+          console.error('Error loading question count:', errorStr);
+          setError(errorStr);
+          setIsLoading(false);
+          return;
+        }
+        throw readErr; // Re-throw if not a function-type error
+      }
 
       // Properly handle unknown type from readContract
       let count: bigint;
@@ -162,12 +198,25 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
 
       while (offset < count) {
         try {
-          const result = await publicClient.readContract({
-            address: contractAddress as `0x${string}`,
-            abi: QUIZ_TO_EARN_ABI,
-            functionName: 'getActiveQuestions',
-            args: [offset, batchSize],
-          });
+          // CRITICAL: Wrap readContract calls to catch and convert function-type errors immediately
+          let result: unknown;
+          try {
+            result = await publicClient.readContract({
+              address: contractAddress as `0x${string}`,
+              abi: QUIZ_TO_EARN_ABI,
+              functionName: 'getActiveQuestions',
+              args: [offset, batchSize],
+            });
+          } catch (readErr) {
+            // CRITICAL: Convert function-type errors immediately to prevent React Query serialization
+            if (typeof readErr === 'function') {
+              const errorStr = getErrorMessage(readErr, `Failed to load questions batch at offset ${offset}`);
+              console.error('Error loading questions batch:', errorStr);
+              // Break out of loop on function-type error
+              break;
+            }
+            throw readErr; // Re-throw if not a function-type error
+          }
 
           // Properly handle unknown type from readContract
           if (!Array.isArray(result) || result.length !== 5) {
@@ -215,9 +264,16 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
 
       setQuestions(allQuestions);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load questions';
+      // CRITICAL: Convert function-type errors immediately to prevent React Query serialization
+      let errorMessage: string;
+      if (typeof err === 'function') {
+        errorMessage = getErrorMessage(err, 'Failed to load questions');
+        console.error('🚨 Function-type error in refreshQuestions:', errorMessage);
+      } else {
+        errorMessage = getErrorMessage(err, 'Failed to load questions');
+      }
       setError(errorMessage);
-      console.error('Error loading questions:', err);
+      console.error('Error loading questions:', errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -237,12 +293,25 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
 
     try {
       // Get list of answered question IDs
-      const answeredIdsResult = await publicClient.readContract({
-        address: contractAddress as `0x${string}`,
-        abi: QUIZ_TO_EARN_ABI,
-        functionName: 'getUserAnsweredQuestions',
-        args: [address],
-      });
+      // CRITICAL: Wrap readContract calls to catch and convert function-type errors immediately
+      let answeredIdsResult: unknown;
+      try {
+        answeredIdsResult = await publicClient.readContract({
+          address: contractAddress as `0x${string}`,
+          abi: QUIZ_TO_EARN_ABI,
+          functionName: 'getUserAnsweredQuestions',
+          args: [address],
+        });
+      } catch (readErr) {
+        // CRITICAL: Convert function-type errors immediately to prevent React Query serialization
+        if (typeof readErr === 'function') {
+          const errorStr = getErrorMessage(readErr, 'Failed to load user answered questions');
+          console.error('🚨 Function-type error in refreshUserAnswers (getUserAnsweredQuestions):', errorStr);
+          setUserAnswers(new Map());
+          return;
+        }
+        throw readErr; // Re-throw if not a function-type error
+      }
 
       // Properly handle unknown type from readContract
       if (!Array.isArray(answeredIdsResult)) {
@@ -256,12 +325,24 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
       // Load each answer
       for (const questionId of answeredIds) {
         try {
-          const answerResult = await publicClient.readContract({
-            address: contractAddress as `0x${string}`,
-            abi: QUIZ_TO_EARN_ABI,
-            functionName: 'getUserAnswer',
-            args: [address, questionId],
-          });
+          // CRITICAL: Wrap readContract calls to catch and convert function-type errors immediately
+          let answerResult: unknown;
+          try {
+            answerResult = await publicClient.readContract({
+              address: contractAddress as `0x${string}`,
+              abi: QUIZ_TO_EARN_ABI,
+              functionName: 'getUserAnswer',
+              args: [address, questionId],
+            });
+          } catch (readErr) {
+            // CRITICAL: Convert function-type errors immediately to prevent React Query serialization
+            if (typeof readErr === 'function') {
+              const errorStr = getErrorMessage(readErr, `Failed to load answer for question ${questionId}`);
+              console.error(`🚨 Function-type error loading answer for question ${questionId}:`, errorStr);
+              continue; // Skip this answer and continue with next
+            }
+            throw readErr; // Re-throw if not a function-type error
+          }
 
           // Properly handle unknown type from readContract
           if (!answerResult || typeof answerResult !== 'object' || !('timestamp' in answerResult)) {
@@ -284,13 +365,25 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
             rewardClaimed: answer.rewardClaimed,
           });
         } catch (err) {
-          console.error(`Error loading answer for question ${questionId}:`, err);
+          // CRITICAL: Convert function-type errors immediately to prevent React Query serialization
+          if (typeof err === 'function') {
+            const errorStr = getErrorMessage(err, `Failed to load answer for question ${questionId}`);
+            console.error(`🚨 Function-type error loading answer for question ${questionId}:`, errorStr);
+          } else {
+            console.error(`Error loading answer for question ${questionId}:`, err);
+          }
         }
       }
 
       setUserAnswers(answersMap);
     } catch (err) {
-      console.error('Error loading user answers:', err);
+      // CRITICAL: Convert function-type errors immediately to prevent React Query serialization
+      if (typeof err === 'function') {
+        const errorStr = getErrorMessage(err, 'Failed to load user answers');
+        console.error('🚨 Function-type error in refreshUserAnswers:', errorStr);
+      } else {
+        console.error('Error loading user answers:', err);
+      }
     }
   }, [contractAddress, publicClient, isConnected, address]);
 
@@ -306,12 +399,24 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
     }
 
     try {
-      const answerResult = await publicClient.readContract({
-        address: contractAddress as `0x${string}`,
-        abi: QUIZ_TO_EARN_ABI,
-        functionName: 'getUserAnswer',
-        args: [address, questionId],
-      });
+      // CRITICAL: Wrap readContract calls to catch and convert function-type errors immediately
+      let answerResult: unknown;
+      try {
+        answerResult = await publicClient.readContract({
+          address: contractAddress as `0x${string}`,
+          abi: QUIZ_TO_EARN_ABI,
+          functionName: 'getUserAnswer',
+          args: [address, questionId],
+        });
+      } catch (readErr) {
+        // CRITICAL: Convert function-type errors immediately to prevent React Query serialization
+        if (typeof readErr === 'function') {
+          const errorStr = getErrorMessage(readErr, `Failed to get user answer for question ${questionId}`);
+          console.error(`🚨 Function-type error in getUserAnswer:`, errorStr);
+          return null;
+        }
+        throw readErr; // Re-throw if not a function-type error
+      }
 
       // Properly handle unknown type from readContract
       if (!answerResult || typeof answerResult !== 'object' || !('timestamp' in answerResult)) {
@@ -338,7 +443,13 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
         rewardClaimed: answer.rewardClaimed,
       };
     } catch (err) {
-      console.error(`Error getting user answer for question ${questionId}:`, err);
+      // CRITICAL: Convert function-type errors immediately to prevent React Query serialization
+      if (typeof err === 'function') {
+        const errorStr = getErrorMessage(err, `Failed to get user answer for question ${questionId}`);
+        console.error(`🚨 Function-type error in getUserAnswer:`, errorStr);
+      } else {
+        console.error(`Error getting user answer for question ${questionId}:`, err);
+      }
       return null;
     }
   }, [contractAddress, publicClient, isConnected, address]);
@@ -355,12 +466,24 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
     }
 
     try {
-      const answeredIdsResult = await publicClient.readContract({
-        address: contractAddress as `0x${string}`,
-        abi: QUIZ_TO_EARN_ABI,
-        functionName: 'getUserAnsweredQuestions',
-        args: [address],
-      });
+      // CRITICAL: Wrap readContract calls to catch and convert function-type errors immediately
+      let answeredIdsResult: unknown;
+      try {
+        answeredIdsResult = await publicClient.readContract({
+          address: contractAddress as `0x${string}`,
+          abi: QUIZ_TO_EARN_ABI,
+          functionName: 'getUserAnsweredQuestions',
+          args: [address],
+        });
+      } catch (readErr) {
+        // CRITICAL: Convert function-type errors immediately to prevent React Query serialization
+        if (typeof readErr === 'function') {
+          const errorStr = getErrorMessage(readErr, 'Failed to get user answered questions');
+          console.error('🚨 Function-type error in getUserAnsweredQuestions:', errorStr);
+          return [];
+        }
+        throw readErr; // Re-throw if not a function-type error
+      }
 
       // Properly handle unknown type from readContract
       if (!Array.isArray(answeredIdsResult)) {
@@ -369,7 +492,13 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
 
       return answeredIdsResult as bigint[];
     } catch (err) {
-      console.error('Error getting user answered questions:', err);
+      // CRITICAL: Convert function-type errors immediately to prevent React Query serialization
+      if (typeof err === 'function') {
+        const errorStr = getErrorMessage(err, 'Failed to get user answered questions');
+        console.error('🚨 Function-type error in getUserAnsweredQuestions:', errorStr);
+      } else {
+        console.error('Error getting user answered questions:', err);
+      }
       return [];
     }
   }, [contractAddress, publicClient, isConnected, address]);
