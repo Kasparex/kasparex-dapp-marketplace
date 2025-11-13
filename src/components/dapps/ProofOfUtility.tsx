@@ -36,9 +36,9 @@ export function ProofOfUtility({
     address: proofOfUtilityAddress as `0x${string}`,
     abi: PROOF_OF_UTILITY_ABI,
     functionName: 'getUserEvents',
-    args: address ? [address] : undefined,
+    args: address && address.startsWith('0x') ? [address as `0x${string}`] : undefined,
     query: {
-      enabled: !!address && !!proofOfUtilityAddress,
+      enabled: !!address && !!proofOfUtilityAddress && address.startsWith('0x'),
       refetchInterval: 30000, // Auto-refresh every 30 seconds
     },
   }) as { data: unknown; isLoading: boolean };
@@ -48,9 +48,9 @@ export function ProofOfUtility({
     address: proofOfUtilityAddress as `0x${string}`,
     abi: PROOF_OF_UTILITY_ABI,
     functionName: 'getUserEventCount',
-    args: address ? [address] : undefined,
+    args: address && address.startsWith('0x') ? [address as `0x${string}`] : undefined,
     query: {
-      enabled: !!address && !!proofOfUtilityAddress,
+      enabled: !!address && !!proofOfUtilityAddress && address.startsWith('0x'),
       refetchInterval: 30000,
     },
   }) as { data: bigint | undefined };
