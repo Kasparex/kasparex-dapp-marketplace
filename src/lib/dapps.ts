@@ -245,7 +245,7 @@ export const placeholderDApps: DApp[] = [
     id: '14',
     name: 'Quiz-to-Earn',
     slug: 'quiz-to-earn',
-    category: 'education',
+    category: 'games',
     utility: 'Answer crypto and ecosystem questions to earn GRID or token rewards',
     process: 'Select a question, choose your answer, and submit. Correct answers earn rewards automatically.',
     benefits: 'Learn about Kaspa and blockchain technology while earning rewards. Educational gamification with on-chain rewards.',
