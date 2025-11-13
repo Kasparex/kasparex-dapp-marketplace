@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762996058-625b30b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update ProofOfUtility ABI with recordUsageAndReward function (by Kasparex)",
+      "date": "2025-11-13T02:07:17+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762995987-a2c9b20",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add Quiz-to-Earn dApp with RewardManager integration and upgrade ProofOfUtility (by Kasparex)",
