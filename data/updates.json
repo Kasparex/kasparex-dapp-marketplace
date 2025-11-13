@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1763063105-7812362",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript errors: Cast addresses to 0x type in ProofOfUtility components (by Kasparex)",
+      "date": "2025-11-13T20:44:46+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1763062891-84296a0",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Redesign dApp modals: Full-screen layout with 2-column structure - Make DAppInfoModal wider (max-w-7xl) with 2-column layout - Add header with title, version, developer dropdown, and social icons - Create timeline-style right sidebar for dApp/token info - Update Embed modal with 2-column layout (inputs left, switchers right) - Merge Page Theme modal into Embed modal - Add icons to Description, Utility, Benefits titles - Move version number to modal header - Update Footer with new social links (Website, Telegram, X, YouTube, GitHub, Docs) - Create reusable SocialIcons component - Remove separate theme modal (merged into embed) (by Kasparex)",
