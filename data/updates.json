@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1763032357-ed35cb7",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: CRITICAL FIX: Convert QUIZ_TO_EARN_ABI from string signatures to JSON objects - Replace all string function signatures with proper JSON ABI format - Fixes 'Cannot use in operator to search for name' error from viem/wagmi - viem expects JSON objects with type/name/inputs/outputs, not string signatures - This is the root cause: viem does 'name' in abiItem which fails on strings (by Kasparex)",
+      "date": "2025-11-13T12:12:15+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1763031841-4b4ca77",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: CRITICAL FIX: Wrap query object itself to intercept direct error access - Add wrapQueryObject method to intercept query.error property access - Wrap both query.state (Proxy) and query.error (getter/setter) - Convert function-type errors immediately when accessed or set - This should finally fix the 'in operator' error by catching all error access paths (by Kasparex)",
