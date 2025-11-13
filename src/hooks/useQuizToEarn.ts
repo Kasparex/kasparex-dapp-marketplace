@@ -89,11 +89,13 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
 
     try {
       // Get question count first
-      const count = await publicClient.readContract({
+      const countResult = await publicClient.readContract({
         address: contractAddress as `0x${string}`,
         abi: QUIZ_TO_EARN_ABI,
         functionName: 'questionCount',
       });
+
+      const count = typeof countResult === 'bigint' ? countResult : BigInt(countResult || 0);
 
       if (count === 0n) {
         setQuestions([]);
