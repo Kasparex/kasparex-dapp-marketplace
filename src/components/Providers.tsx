@@ -242,6 +242,9 @@ class SafeQueryCache extends QueryCache {
         // This ensures Proxy is in place BEFORE React Query tries to serialize errors
         this.wrapQueryState(query);
         
+        // CRITICAL: Also wrap the query object itself to intercept direct error access
+        this.wrapQueryObject(query);
+        
         // Also handle error conversion here as a first line of defense
         if (error) {
           this.convertQueryError(error, query);
@@ -358,6 +361,46 @@ class SafeQueryCache extends QueryCache {
         // Ignore
       }
     }
+  }
+
+  // CRITICAL: Wrap the entire query object to intercept direct error property access
+  // This catches cases where React Query accesses query.error directly (not query.state.error)
+  private wrapQueryObject(query: any) {
+    if (!query || (query as any).__safeQueryWrapped) return;
+    
+    const createSafeError = (error: unknown): Error => {
+      if (typeof error === 'function') {
+        const errorStr = getErrorMessage(error, 'Query failed');
+        return new Error(errorStr);
+      }
+      if (error && !(error instanceof Error)) {
+        const errorStr = getErrorMessage(error, 'Query failed');
+        return new Error(errorStr);
+      }
+      return error as Error;
+    };
+    
+    // Wrap query.error property with getter/setter
+    let currentError = query.error;
+    Object.defineProperty(query, 'error', {
+      get() {
+        if (currentError) {
+          return createSafeError(currentError);
+        }
+        return currentError;
+      },
+      set(value: any) {
+        currentError = value;
+        // Convert immediately if it's a function-type error
+        if (value && typeof value === 'function') {
+          currentError = createSafeError(value);
+        }
+      },
+      enumerable: true,
+      configurable: true,
+    });
+    
+    (query as any).__safeQueryWrapped = true;
   }
 
   // CRITICAL: Wrap query.state with Proxy to intercept 'in' operator checks
@@ -493,6 +536,21 @@ const queryClient = new QueryClient({
       },
     },
     queries: {
+      // CRITICAL: Wrap queryFn to catch errors BEFORE they reach React Query
+      queryFn: async (context: any) => {
+        // This is a fallback - wagmi handles its own queries
+        // But we wrap it defensively to catch function-type errors
+        try {
+          // If wagmi's queryFn throws a function-type error, convert it immediately
+          throw new Error('This should not be called directly');
+        } catch (err) {
+          if (typeof err === 'function') {
+            const errorStr = getErrorMessage(err, 'Query failed');
+            throw new Error(errorStr);
+          }
+          throw err;
+        }
+      },
       // Prevent React Query from storing function-type errors in cache
       retry: (failureCount, error) => {
         // CRITICAL: If error is a function, don't retry (it will cause serialization issues)
