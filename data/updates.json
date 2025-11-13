@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1763030348-79771b7",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add SafeQueryCache to intercept query errors (useReadContract) - Create SafeQueryCache class similar to SafeMutationCache - Wrap query.state with Proxy to intercept 'in' operator checks - Convert function-type errors before React Query serializes them - Fix 'Cannot use in operator' error for useReadContract queries (by Kasparex)",
+      "date": "2025-11-13T11:38:51+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1763028713-048190c",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix 'Cannot use in operator' error in Quiz-to-Earn dApp - Wrap all readContract calls with function-type error handling - Add error interception for useReadContract hooks - Convert function-type errors to strings immediately to prevent React Query serialization (by Kasparex)",
