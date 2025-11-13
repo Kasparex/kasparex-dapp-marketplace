@@ -128,7 +128,19 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
             args: [offset, batchSize],
           });
 
-          const [ids, questionTexts, optionsArray, categories, rewardAmounts] = result;
+          // Properly handle unknown type from readContract
+          if (!Array.isArray(result) || result.length !== 5) {
+            console.error('Invalid result format from getActiveQuestions');
+            break;
+          }
+
+          const [ids, questionTexts, optionsArray, categories, rewardAmounts] = result as [
+            bigint[],
+            string[],
+            string[][],
+            string[],
+            bigint[]
+          ];
 
           for (let i = 0; i < ids.length; i++) {
             allQuestions.push({
