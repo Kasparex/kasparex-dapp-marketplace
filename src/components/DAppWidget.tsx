@@ -198,7 +198,6 @@ export function DAppWidget({
               hideHeart={hideHeart}
               hideInfo={hideInfo}
               hideEmbed={hideEmbed}
-              hideTheme={hideTheme}
               accentColor={accentColor}
             />
           )}

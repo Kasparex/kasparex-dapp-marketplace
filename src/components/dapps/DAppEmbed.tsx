@@ -32,7 +32,6 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
   const [showHeartIcon, setShowHeartIcon] = useState(true);
   const [showInfoIcon, setShowInfoIcon] = useState(true);
   const [showEmbedIcon, setShowEmbedIcon] = useState(true);
-  const [showThemeIcon, setShowThemeIcon] = useState(true);
   const [accentColor, setAccentColor] = useState('#02abb8');
   const [customStyle, setCustomStyle] = useState('max-width: 100%; width: 100%;');
   const [copied, setCopied] = useState(false);
@@ -66,7 +65,6 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
   if (!showHeartIcon) params.append('hideHeart', 'true');
   if (!showInfoIcon) params.append('hideInfo', 'true');
   if (!showEmbedIcon) params.append('hideEmbed', 'true');
-  if (!showThemeIcon) params.append('hideTheme', 'true');
   if (accentColor !== '#02abb8') params.append('accentColor', accentColor);
   
   const queryString = params.toString();
@@ -427,19 +425,6 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
                         <ToggleSwitch
                           checked={showEmbedIcon}
                           onChange={setShowEmbedIcon}
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <label className="text-sm text-zinc-700 dark:text-zinc-300 cursor-pointer flex items-center gap-2">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                          </svg>
-                          Theme
-                        </label>
-                        <ToggleSwitch
-                          checked={showThemeIcon}
-                          onChange={setShowThemeIcon}
                         />
                       </div>
                     </div>
