@@ -202,7 +202,13 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
 
   // Load user answers
   const refreshUserAnswers = useCallback(async () => {
-    if (!contractAddress || !publicClient || !isConnected || !address) {
+    // CRITICAL: Validate contract address BEFORE calling readContract
+    if (!contractAddress || contractAddress === '' || !contractAddress.startsWith('0x') || contractAddress.length !== 42) {
+      setUserAnswers(new Map());
+      return;
+    }
+
+    if (!publicClient || !isConnected || !address) {
       return;
     }
 
@@ -267,7 +273,12 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
 
   // Get user answer for a specific question
   const getUserAnswer = useCallback(async (questionId: bigint): Promise<UserAnswer | null> => {
-    if (!contractAddress || !publicClient || !isConnected || !address) {
+    // CRITICAL: Validate contract address BEFORE calling readContract
+    if (!contractAddress || contractAddress === '' || !contractAddress.startsWith('0x') || contractAddress.length !== 42) {
+      return null;
+    }
+
+    if (!publicClient || !isConnected || !address) {
       return null;
     }
 
@@ -311,7 +322,12 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
 
   // Get user's answered question IDs
   const getUserAnsweredQuestions = useCallback(async (): Promise<bigint[]> => {
-    if (!contractAddress || !publicClient || !isConnected || !address) {
+    // CRITICAL: Validate contract address BEFORE calling readContract
+    if (!contractAddress || contractAddress === '' || !contractAddress.startsWith('0x') || contractAddress.length !== 42) {
+      return [];
+    }
+
+    if (!publicClient || !isConnected || !address) {
       return [];
     }
 
@@ -337,8 +353,15 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
 
   // Submit answer
   const submitAnswer = useCallback(async (questionId: bigint, selectedAnswerIndex: bigint) => {
-    if (!contractAddress || !isConnected || !address) {
-      setError('Wallet not connected or contract address missing');
+    if (!isConnected || !address) {
+      setError('Wallet not connected');
+      return;
+    }
+
+    // CRITICAL: Validate contract address BEFORE calling writeContract
+    // Empty or invalid addresses cause wagmi to return function-type errors
+    if (!contractAddress || contractAddress === '' || !contractAddress.startsWith('0x') || contractAddress.length !== 42) {
+      setError('Quiz-to-Earn contract is not deployed on this network. Please switch to Kasplex L2 Testnet (Chain ID: 167012).');
       return;
     }
 

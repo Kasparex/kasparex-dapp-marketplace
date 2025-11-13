@@ -357,6 +357,26 @@ try {
 - Always throw `Error` objects, never raw errors or functions
 - Use `getErrorMessage()` utility for safe conversion
 - The global SafeMutationCache should catch most cases, but hooks should also handle defensively
+- **CRITICAL: Validate contract addresses BEFORE calling writeContract/readContract**
+  - Check if address is not empty: `if (!contractAddress || contractAddress === '')`
+  - Check if address is valid Ethereum format: `contractAddress.startsWith('0x') && contractAddress.length === 42`
+  - Empty/invalid addresses cause wagmi to return function-type errors
+
+### Common Cause: Missing Contract Deployment
+If the error occurs when calling a contract function, check:
+1. Is the contract deployed on the current network?
+2. Is the contract address valid (not empty string)?
+3. Is the user on the correct network (check chainId)?
+
+**Solution**: Add address validation before all contract calls:
+```typescript
+const contractAddress = getContractAddress(chainId, 'ContractName');
+// Validate BEFORE using
+if (!contractAddress || contractAddress === '' || !contractAddress.startsWith('0x') || contractAddress.length !== 42) {
+  setError('Contract not deployed on this network');
+  return;
+}
+```
 
 ### References
 - [MDN: Cannot use 'in' operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/in_operator_no_object)
