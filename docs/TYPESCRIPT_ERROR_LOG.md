@@ -8,6 +8,7 @@ This document tracks common TypeScript errors encountered in the codebase and th
 3. [Category Type Errors](#category-type-errors)
 4. [Contract Address Type Errors](#contract-address-type-errors)
 5. [React Hook Dependencies](#react-hook-dependencies)
+6. ["Cannot use 'in' operator" Error (ABI Format Issue)](#cannot-use-in-operator-error-abi-format-issue-resolved)
 
 ---
 
@@ -306,63 +307,116 @@ Before pushing, ensure:
 
 ---
 
-## "Cannot use 'in' operator" Error (Function-Type Errors)
+## "Cannot use 'in' operator" Error (ABI Format Issue) ✅ RESOLVED
 
 ### Problem
-React Query tries to serialize errors using the `in` operator, which fails when wagmi returns function-type errors (contract function signatures).
-
-### Error Example
+Error occurs when viem/wagmi tries to inspect ABI items using the `in` operator. The error message shows:
 ```
 TypeError: Cannot use 'in' operator to search for 'name' in function submitAnswer(uint256 _questionId, uint256 _selectedAnswerIndex) external
 ```
 
-### Root Cause
-According to [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/in_operator_no_object), the `in` operator can only be used on objects, not on primitive types like functions. When wagmi returns a function signature as an error, React Query's serialization fails.
+### Root Cause (FINAL SOLUTION)
+**The error comes from viem/wagmi internally, NOT from React Query serialization.**
 
-### Solution Pattern
+When viem/wagmi processes an ABI array, it checks `'name' in abiItem` to determine if an item is a function/event. If the ABI contains **string function signatures** instead of **JSON objects**, this check fails because:
+- Strings don't support the `in` operator
+- viem expects JSON objects with `{ type, name, inputs, outputs }` structure
 
-#### In Custom Hooks (useQuizToEarn, etc.):
+**Example of WRONG format (causes error):**
+```typescript
+export const QUIZ_TO_EARN_ABI = [
+  "function submitAnswer(uint256 _questionId, uint256 _selectedAnswerIndex) external", // ❌ String signature
+  "function getQuestion(uint256 _questionId) external view returns (...)", // ❌ String signature
+] as const;
+```
+
+**Example of CORRECT format (fixed):**
+```typescript
+export const QUIZ_TO_EARN_ABI = [
+  {
+    type: "function",
+    name: "submitAnswer",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "uint256", name: "_questionId", type: "uint256" },
+      { internalType: "uint256", name: "_selectedAnswerIndex", type: "uint256" }
+    ],
+    outputs: []
+  },
+  // ... other functions as JSON objects
+] as const;
+```
+
+### Solution (IMPLEMENTED)
+Convert all ABI entries from string signatures to proper JSON objects:
+
+1. **For functions:**
+   - `type`: "function"
+   - `name`: function name (string)
+   - `stateMutability`: "nonpayable", "view", "payable", etc.
+   - `inputs`: array of `{ internalType, name, type }`
+   - `outputs`: array of `{ internalType, name, type }` (empty array for non-view functions)
+
+2. **For events:**
+   - `type`: "event"
+   - `name`: event name (string)
+   - `inputs`: array with `indexed` boolean flag
+   - `anonymous`: boolean
+
+### Files Fixed
+- ✅ `src/lib/contracts/abis.ts` - Converted `QUIZ_TO_EARN_ABI` from string signatures to JSON objects
+- ✅ `src/components/Providers.tsx` - Added `SafeQueryCache` and `SafeMutationCache` for defensive error handling
+- ✅ `src/hooks/useQuizToEarn.ts` - Added comprehensive error handling
+- ✅ `src/lib/utils.ts` - Enhanced `getErrorMessage` utility
+
+### Prevention Checklist
+- ✅ **ALWAYS use JSON objects in ABI arrays**, never string signatures
+- ✅ When adding new ABIs, ensure each entry has `type`, `name`, `inputs`, `outputs`
+- ✅ Use contract compilation artifacts or typechain-generated ABIs when possible
+- ✅ Validate ABI format before committing: all entries must be objects, not strings
+
+### Related Error Handling (Defensive Measures)
+While the root cause was ABI format, we also implemented defensive error handling:
+
+#### Global Error Interception:
+- `SafeMutationCache` in `src/components/Providers.tsx` - Intercepts mutation errors
+- `SafeQueryCache` in `src/components/Providers.tsx` - Intercepts query errors
+- Proxy wrappers on `query.state` and `query.error` to catch serialization issues
+- `getErrorMessage()` utility safely converts all error types
+
+#### In Custom Hooks:
 ```typescript
 try {
   await writeContract({...});
 } catch (err) {
   // CRITICAL: Convert function-type errors immediately
-  let errorMessage: string;
   if (typeof err === 'function') {
-    // Function-type error from wagmi - convert immediately
-    errorMessage = getErrorMessage(err, 'Failed to submit answer');
-    const safeError = new Error(errorMessage);
+    const errorMessage = getErrorMessage(err, 'Failed to submit answer');
     setError(errorMessage);
-    throw safeError; // Always throw Error object, never function
-  } else {
-    errorMessage = getErrorMessage(err, 'Failed to submit answer');
+    throw new Error(errorMessage);
   }
-  setError(errorMessage);
-  throw new Error(errorMessage); // Always Error object
+  // ... handle other error types
 }
 ```
 
-#### Global Solution (Already Implemented):
-- `SafeMutationCache` in `src/components/Providers.tsx` intercepts errors at the React Query level
-- Proxy on `mutation.state` intercepts `has()` trap (which handles `in` operator)
-- `getErrorMessage()` utility safely converts all error types
+### Status: ✅ RESOLVED
+- **Date Fixed**: 2025-01-XX
+- **Root Cause**: ABI format (string signatures instead of JSON objects)
+- **Solution**: Converted `QUIZ_TO_EARN_ABI` from string signatures to proper JSON objects
+- **Verification**: Error no longer occurs in Quiz-to-Earn dApp
+- **Commit**: `ed35cb7` - CRITICAL FIX: Convert QUIZ_TO_EARN_ABI from string signatures to JSON objects
 
-### Files Fixed
-- `src/components/Providers.tsx` - SafeMutationCache with Proxy interception
-- `src/hooks/useQuizToEarn.ts` - submitAnswer error handling
-- `src/lib/utils.ts` - getErrorMessage utility
-
-### Prevention
-- Always check `typeof err === 'function'` before using error
-- Always throw `Error` objects, never raw errors or functions
-- Use `getErrorMessage()` utility for safe conversion
-- The global SafeMutationCache should catch most cases, but hooks should also handle defensively
-- **CRITICAL: Validate contract addresses BEFORE calling writeContract/readContract**
+### Additional Prevention Measures
+- ✅ **CRITICAL: Validate contract addresses BEFORE calling writeContract/readContract**
   - Check if address is not empty: `if (!contractAddress || contractAddress === '')`
   - Check if address is valid Ethereum format: `contractAddress.startsWith('0x') && contractAddress.length === 42`
-  - Empty/invalid addresses cause wagmi to return function-type errors
+  - Empty/invalid addresses can cause wagmi to return unexpected errors
+- ✅ Use `getErrorMessage()` utility for safe error conversion
+- ✅ The global `SafeMutationCache` and `SafeQueryCache` provide defensive error handling
 
-### Common Cause: Missing Contract Deployment
+### Common Causes & Solutions
+
+#### Missing Contract Deployment
 If the error occurs when calling a contract function, check:
 1. Is the contract deployed on the current network?
 2. Is the contract address valid (not empty string)?
@@ -378,6 +432,22 @@ if (!contractAddress || contractAddress === '' || !contractAddress.startsWith('0
 }
 ```
 
+#### Mixed ABI Format
+If an ABI array contains both strings and objects, convert ALL entries to objects:
+```typescript
+// ❌ WRONG - Mixed format
+export const MY_ABI = [
+  { type: "function", name: "func1", ... }, // Object
+  "function func2(...) external", // String - will cause error
+] as const;
+
+// ✅ CORRECT - All objects
+export const MY_ABI = [
+  { type: "function", name: "func1", ... },
+  { type: "function", name: "func2", ... },
+] as const;
+```
+
 ### References
 - [MDN: Cannot use 'in' operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/in_operator_no_object)
 - [Ethers.js Issue #4182](https://github.com/ethers-io/ethers.js/issues/4182)
@@ -386,6 +456,7 @@ if (!contractAddress || contractAddress === '' || !contractAddress.startsWith('0
 ---
 
 ## Last Updated
-- Date: 2025-11-13
-- Fixed Issues: Contract read types, template compilation, category types, contract addresses, 'in' operator errors
+- Date: 2025-01-XX
+- Fixed Issues: Contract read types, template compilation, category types, contract addresses, 'in' operator errors (ABI format)
+- Latest Fix: Converted QUIZ_TO_EARN_ABI from string signatures to JSON objects (RESOLVED ✅)
 
