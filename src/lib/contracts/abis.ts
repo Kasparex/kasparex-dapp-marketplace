@@ -69,11 +69,15 @@ export const GRID_TOKEN_ABI = [
 export const PROOF_OF_UTILITY_ABI = [
   "function recordUsage(address user, address dAppContract, uint256 dAppId, string memory actionType) external",
   "function recordUsageBatch(address[] memory users, address[] memory dAppContracts, uint256[] memory dAppIds, string[] memory actionTypes) external",
+  "function recordUsageAndReward(address user, address dAppContract, uint256 dAppId, string memory actionType, uint256 actionValue) external",
   "function getUserEvents(address user) external view returns ((address, address, uint256, string, uint256)[])",
   "function getDAppEvents(address dAppContract) external view returns ((address, address, uint256, string, uint256)[])",
   "function getUserEventCount(address user) external view returns (uint256)",
   "function totalEvents() external view returns (uint256)",
+  "function rewardManager() external view returns (address)",
+  "function setRewardManager(address _rewardManager) external",
   "event UsageEventRecorded(address indexed user, address indexed dAppContract, uint256 indexed dAppId, string actionType, uint256 timestamp)",
+  "event RewardManagerUpdated(address indexed oldManager, address indexed newManager)",
 ] as const;
 
 export const ACCESS_CONTROL_ABI = [
