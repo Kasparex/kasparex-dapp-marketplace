@@ -209,12 +209,25 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
       // Load each answer
       for (const questionId of answeredIds) {
         try {
-          const answer = await publicClient.readContract({
+          const answerResult = await publicClient.readContract({
             address: contractAddress as `0x${string}`,
             abi: QUIZ_TO_EARN_ABI,
             functionName: 'getUserAnswer',
             args: [address, questionId],
           });
+
+          // Properly handle unknown type from readContract
+          if (!answerResult || typeof answerResult !== 'object' || !('timestamp' in answerResult)) {
+            continue;
+          }
+
+          const answer = answerResult as {
+            questionId: bigint;
+            selectedAnswerIndex: bigint;
+            isCorrect: boolean;
+            timestamp: bigint;
+            rewardClaimed: boolean;
+          };
 
           answersMap.set(questionId, {
             questionId: answer.questionId,
@@ -241,12 +254,25 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
     }
 
     try {
-      const answer = await publicClient.readContract({
+      const answerResult = await publicClient.readContract({
         address: contractAddress as `0x${string}`,
         abi: QUIZ_TO_EARN_ABI,
         functionName: 'getUserAnswer',
         args: [address, questionId],
       });
+
+      // Properly handle unknown type from readContract
+      if (!answerResult || typeof answerResult !== 'object' || !('timestamp' in answerResult)) {
+        return null;
+      }
+
+      const answer = answerResult as {
+        questionId: bigint;
+        selectedAnswerIndex: bigint;
+        isCorrect: boolean;
+        timestamp: bigint;
+        rewardClaimed: boolean;
+      };
 
       if (answer.timestamp === 0n) {
         return null; // Not answered yet
