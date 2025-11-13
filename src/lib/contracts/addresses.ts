@@ -141,6 +141,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     SubscriptionManager: "",
     AuthorizationRegistry: "",
     DAOVoting: "",
+    QuizToEarn: "",
     GRIDToken: "",
     RewardVault: "",
     RewardManager: "",
