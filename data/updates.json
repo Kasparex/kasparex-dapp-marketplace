@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1763028713-048190c",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix 'Cannot use in operator' error in Quiz-to-Earn dApp - Wrap all readContract calls with function-type error handling - Add error interception for useReadContract hooks - Convert function-type errors to strings immediately to prevent React Query serialization (by Kasparex)",
+      "date": "2025-11-13T11:11:31+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762999901-372d128",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: CRITICAL FIX: Use Object.defineProperty + Proxy to aggressively prevent function-type errors in mutation.state - intercept 'in' operator at multiple levels (by Kasparex)",
