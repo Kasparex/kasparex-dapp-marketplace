@@ -5,7 +5,7 @@
  * Documentation: https://developer.gitbook.com/
  */
 
-import type { GitBookConfig, GitBookPage, GitBookPageCreate, GitBookPageUpdate, GitBookAPIResponse } from './types';
+import type { GitBookConfig, GitBookPage, GitBookPageCreate, GitBookPageUpdate, GitBookSpace, GitBookAPIResponse } from './types';
 
 const GITBOOK_API_BASE = 'https://api.gitbook.com/v1';
 
