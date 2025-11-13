@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762999815-1e61136",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: CRITICAL: Enhance SafeMutationCache to catch function-type errors at mutation function level - prevent React Query serialization (by Kasparex)",
+      "date": "2025-11-13T03:09:51+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762999196-73acf43",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix contract address validation: ensure null instead of empty string to prevent function-type errors (by Kasparex)",
