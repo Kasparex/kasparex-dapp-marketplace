@@ -93,7 +93,9 @@ export class GitBookClient {
   async findPageByPath(path: string): Promise<GitBookAPIResponse<GitBookPage | null>> {
     const pagesResponse = await this.listPages();
     if (pagesResponse.error || !pagesResponse.data) {
-      return pagesResponse as GitBookAPIResponse<GitBookPage | null>;
+      return {
+        error: pagesResponse.error || { message: 'Failed to list pages' },
+      };
     }
 
     const page = pagesResponse.data.find((p) => p.path === path);
