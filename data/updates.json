@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1763031841-4b4ca77",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: CRITICAL FIX: Wrap query object itself to intercept direct error access - Add wrapQueryObject method to intercept query.error property access - Wrap both query.state (Proxy) and query.error (getter/setter) - Convert function-type errors immediately when accessed or set - This should finally fix the 'in operator' error by catching all error access paths (by Kasparex)",
+      "date": "2025-11-13T12:03:40+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1763031334-5df0a4b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add onSettled callback to SafeQueryCache for earlier error interception - Wrap query.state immediately when query settles (before serialization) - Add convertQueryError helper method - Intercept errors at earliest possible point in React Query lifecycle (by Kasparex)",
