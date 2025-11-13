@@ -11,9 +11,15 @@
  *   DAPP_NAME="My Awesome dApp"
  *   DAPP_VERSION="1.0.0"
  *   DAPP_CATEGORY="general"
+ *   CONTRACT_NAME="MyContract"  // Name of your contract (must exist in contracts/)
  *   TOKEN_NAME="My Awesome dApp Token"
  *   TOKEN_SYMBOL="MADT"
  *   TOKEN_MAX_SUPPLY="1000000"  // In tokens (will be converted to wei)
+ *   
+ *   // For ecosystem integration (optional):
+ *   PROOF_OF_UTILITY_ADDRESS="0x..."
+ *   AFFILIATE_MANAGER_ADDRESS="0x..."
+ *   FEE_HANDLER_ADDRESS="0x..."
  */
 
 const hre = require('hardhat');
@@ -35,17 +41,27 @@ async function main() {
   const rewardVaultAddress = process.env.REWARD_VAULT_ADDRESS || '0x59e49E4f60397CC1C2F0eB3d7ebcF9C9c8AACCAD';
   
   // Get dApp configuration
-  const dAppName = process.env.DAPP_NAME || 'KAS Tipping System';
+  const dAppName = process.env.DAPP_NAME || 'My Awesome dApp';
   const dAppVersion = process.env.DAPP_VERSION || '1.0.0';
-  const dAppCategory = process.env.DAPP_CATEGORY || 'social';
+  const dAppCategory = process.env.DAPP_CATEGORY || 'general';
+  const contractName = process.env.CONTRACT_NAME || '';
   
   // Get token configuration
   const tokenName = process.env.TOKEN_NAME || `${dAppName} Token`;
-  const tokenSymbol = process.env.TOKEN_SYMBOL || 'KAST';
+  const tokenSymbol = process.env.TOKEN_SYMBOL || 'TOKEN';
   const tokenMaxSupply = process.env.TOKEN_MAX_SUPPLY || '1000000'; // 1M tokens
+  
+  // Validate contract name
+  if (!contractName) {
+    console.error('\n❌ ERROR: CONTRACT_NAME environment variable is required\n');
+    console.log('Please set CONTRACT_NAME to the name of your contract (e.g., "MyContract")');
+    console.log('The contract must exist in the contracts/ directory\n');
+    process.exit(1);
+  }
   
   console.log('📋 Configuration:');
   console.log('   dApp Name:', dAppName);
+  console.log('   Contract Name:', contractName);
   console.log('   dApp Version:', dAppVersion);
   console.log('   dApp Category:', dAppCategory);
   console.log('   Token Name:', tokenName);
@@ -100,34 +116,40 @@ async function main() {
     const tokenAddress = await dAppToken.getAddress();
     console.log('   ✅ DAppToken deployed to:', tokenAddress);
 
-    // Step 2: Deploy KASTip dApp contract
-    console.log('\n2️⃣  Deploying KASTip Contract...');
+    // Step 2: Deploy dApp contract
+    console.log(`\n2️⃣  Deploying ${contractName} Contract...`);
     
-    // Get ecosystem contract addresses
+    // Get ecosystem contract addresses (optional, depends on your contract)
     const proofOfUtilityAddress = process.env.PROOF_OF_UTILITY_ADDRESS || '';
     const affiliateManagerAddress = process.env.AFFILIATE_MANAGER_ADDRESS || '';
     const feeHandlerAddress = process.env.FEE_HANDLER_ADDRESS || '';
+    const feeCollectorAddress = process.env.FEE_COLLECTOR_ADDRESS || '';
     
-    if (!proofOfUtilityAddress || !affiliateManagerAddress || !feeHandlerAddress) {
-      console.error('\n❌ ERROR: Missing ecosystem contract addresses\n');
-      console.log('Required environment variables:');
-      console.log('   PROOF_OF_UTILITY_ADDRESS');
-      console.log('   AFFILIATE_MANAGER_ADDRESS');
-      console.log('   FEE_HANDLER_ADDRESS\n');
-      console.log('💡 Find these in ECOSYSTEM_DEPLOYMENT_SUCCESS.md or src/lib/contracts/addresses.ts\n');
-      process.exit(1);
+    // Deploy contract - adjust constructor parameters based on your contract
+    const ContractFactory = await hre.ethers.getContractFactory(contractName);
+    
+    // TODO: Adjust constructor parameters based on your contract
+    // Example for simple contract with FeeCollector:
+    let dAppContract;
+    if (feeCollectorAddress) {
+      dAppContract = await ContractFactory.deploy(feeCollectorAddress);
+    } else if (proofOfUtilityAddress && affiliateManagerAddress && feeHandlerAddress) {
+      // Example for contract with full ecosystem integration:
+      dAppContract = await ContractFactory.deploy(
+        proofOfUtilityAddress,
+        affiliateManagerAddress,
+        feeHandlerAddress,
+        dAppRegistryAddress
+      );
+    } else {
+      // Fallback: try deploying with just dAppRegistry
+      console.log('   ⚠️  No ecosystem addresses provided, deploying with minimal parameters');
+      dAppContract = await ContractFactory.deploy(dAppRegistryAddress);
     }
     
-    const KASTip = await hre.ethers.getContractFactory('KASTip');
-    const kasTip = await KASTip.deploy(
-      proofOfUtilityAddress,
-      affiliateManagerAddress,
-      feeHandlerAddress,
-      dAppRegistryAddress
-    );
-    await kasTip.waitForDeployment();
-    const dAppContractAddress = await kasTip.getAddress();
-    console.log('   ✅ KASTip deployed to:', dAppContractAddress);
+    await dAppContract.waitForDeployment();
+    const dAppContractAddress = await dAppContract.getAddress();
+    console.log(`   ✅ ${contractName} deployed to:`, dAppContractAddress);
 
     // Step 3: Register dApp in DAppRegistry
     console.log('\n3️⃣  Registering dApp in DAppRegistry...');
@@ -147,11 +169,20 @@ async function main() {
     const dAppId = await dAppRegistry.dAppCount();
     console.log('   📝 dApp ID:', dAppId.toString());
 
-    // Step 3.5: Set dApp ID in KASTip contract
-    console.log('\n3️⃣.5 Setting dApp ID in KASTip...');
-    const setDAppIdTx = await kasTip.setDAppId(dAppId);
-    await setDAppIdTx.wait();
-    console.log('   ✅ dApp ID set in KASTip contract');
+    // Step 3.5: Set dApp ID in contract (if contract has setDAppId function)
+    try {
+      console.log(`\n3️⃣.5 Setting dApp ID in ${contractName}...`);
+      if (typeof dAppContract.setDAppId === 'function') {
+        const setDAppIdTx = await dAppContract.setDAppId(dAppId);
+        await setDAppIdTx.wait();
+        console.log(`   ✅ dApp ID set in ${contractName} contract`);
+      } else {
+        console.log(`   ⚠️  ${contractName} does not have setDAppId function, skipping`);
+      }
+    } catch (error) {
+      console.log(`   ⚠️  Could not set dApp ID: ${error.message}`);
+      console.log('   💡 This is optional if your contract does not need dApp ID');
+    }
 
     // Step 4: Link token to dApp in DAppRegistry
     console.log('\n4️⃣  Linking token to dApp...');

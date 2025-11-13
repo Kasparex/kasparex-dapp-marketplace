@@ -53,21 +53,10 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
   const rewardManagerAddress = getContractAddress(chainId, 'RewardManager') || undefined;
   
   // Get resolved contract address
-  let resolvedContractAddress = contractAddress || dapp.contractAddress || '';
-  if (!resolvedContractAddress && dapp.slug === 'kas-tipping-system') {
-    resolvedContractAddress = '0x962d06f6c11A95CBc02D5f965135368492d37Fd3';
-  }
+  const resolvedContractAddress = contractAddress || dapp.contractAddress || '';
   
-  // For KAS Tipping System, ensure KAST token is linked
-  const kastTokenAddress = dapp.slug === 'kas-tipping-system' ? '0x58f026dC9985a253620C5ceDE16EC6316E5085C1' : null;
-  const kastTicker = dapp.slug === 'kas-tipping-system' ? 'KAST' : null;
-  
-  // Merge contract data with KAST info for KAS Tipping System
-  const mergedContractData = dapp.slug === 'kas-tipping-system' && kastTokenAddress ? {
-    ...contractData,
-    tokenAddress: contractData?.tokenAddress || kastTokenAddress,
-    ticker: contractData?.ticker || kastTicker,
-  } : contractData;
+  // Use contract data as-is
+  const mergedContractData = contractData;
   
   // Format addresses for display
   const formatAddress = (address: string | null) => {

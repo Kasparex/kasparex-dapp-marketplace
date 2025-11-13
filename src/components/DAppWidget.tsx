@@ -7,7 +7,7 @@ import { NetworkCompatibilityModal } from './NetworkCompatibilityModal';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
 import { SimplePaymentWidget } from './dapps/SimplePaymentWidget';
 import { DAOVotingWidget } from './dapps/DAOVotingWidget';
-import { KASTipWidget } from './dapps/KASTipWidget';
+import { QuizToEarnWidget } from './dapps/QuizToEarnWidget';
 import { DAppWidgetHeader } from './dapps/DAppWidgetHeader';
 import { DAppWidgetFooter } from './dapps/DAppWidgetFooter';
 import { getContractAddress } from '@/lib/contracts/addresses';
@@ -68,9 +68,6 @@ export function DAppWidget({
     } catch (e) {
       console.warn('Could not get DAOVoting contract address');
     }
-  }
-  if (!contractAddress && (dapp.slug === 'kas-tipping-system' || dapp.id === '13')) {
-    contractAddress = dapp.contractAddress || '0x962d06f6c11A95CBc02D5f965135368492d37Fd3';
   }
 
   // Render SimplePayment widget if it's the Simple Payment dApp
@@ -149,15 +146,8 @@ export function DAppWidget({
     );
   }
 
-  // Render KASTip widget if it's the KAS Tipping System dApp
-  if (dapp.slug === 'kas-tipping-system' || dapp.id === '13') {
-    // Get ecosystem contract addresses
-    const proofOfUtilityAddress = getContractAddress(chainId, 'ProofOfUtility') || undefined;
-    const affiliateManagerAddress = getContractAddress(chainId, 'AffiliateManager') || undefined;
-    const rewardManagerAddress = getContractAddress(chainId, 'RewardManager') || undefined;
-    const dAppTokenAddress = '0x58f026dC9985a253620C5ceDE16EC6316E5085C1'; // KAST token
-    const ticker = 'KAST';
-
+  // Render QuizToEarn widget if it's the Quiz-to-Earn dApp
+  if (dapp.slug === 'quiz-to-earn') {
     return (
       <>
         <NetworkCompatibilityModal
@@ -181,15 +171,8 @@ export function DAppWidget({
               />
             </div>
           )}
-          <div className={`p-6 ${!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}`}>
-            <KASTipWidget
-              contractAddress={contractAddress}
-              proofOfUtilityAddress={proofOfUtilityAddress}
-              affiliateManagerAddress={affiliateManagerAddress}
-              rewardManagerAddress={rewardManagerAddress}
-              dAppTokenAddress={dAppTokenAddress}
-              ticker={ticker}
-            />
+          <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
+            <QuizToEarnWidget />
           </div>
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>

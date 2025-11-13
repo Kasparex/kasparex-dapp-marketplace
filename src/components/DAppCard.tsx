@@ -29,9 +29,6 @@ export function DAppCard({ dapp }: DAppCardProps) {
   
   // Get contract data for token information
   let contractAddress = mergedDApp.contractAddress || '';
-  if (!contractAddress && mergedDApp.slug === 'kas-tipping-system') {
-    contractAddress = '0x962d06f6c11A95CBc02D5f965135368492d37Fd3';
-  }
   if (!contractAddress) {
     contractAddress = getContractAddress(chainId, 'DAppRegistry') || '';
   }
@@ -143,12 +140,8 @@ export function DAppCard({ dapp }: DAppCardProps) {
   }, [showEmbedIconTooltip]);
 
   // Get token information
-  // For KAS Tipping System, ensure KAST token is linked
-  const kastTokenAddress = mergedDApp.slug === 'kas-tipping-system' ? '0x58f026dC9985a253620C5ceDE16EC6316E5085C1' : null;
-  const kastTicker = mergedDApp.slug === 'kas-tipping-system' ? 'KAST' : null;
-  
-  const tokenTicker = contractData?.ticker || kastTicker || null;
-  const tokenAddress = contractData?.tokenAddress || kastTokenAddress || null;
+  const tokenTicker = contractData?.ticker || null;
+  const tokenAddress = contractData?.tokenAddress || null;
   const dAppContractAddress = contractData?.contractAddress || mergedDApp.contractAddress || null;
   
   // Format addresses for display

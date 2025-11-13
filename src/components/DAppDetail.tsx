@@ -24,9 +24,6 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
   
   // Get contract data to check for token
   let contractAddress = dapp.contractAddress || '';
-  if (!contractAddress && dapp.slug === 'kas-tipping-system') {
-    contractAddress = '0x962d06f6c11A95CBc02D5f965135368492d37Fd3'; // KASTip contract
-  }
   if (!contractAddress) {
     contractAddress = getContractAddress(chainId, 'DAppRegistry') || '';
   }
@@ -35,16 +32,8 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
     chainId
   );
   
-  // For KAS Tipping System, ensure KAST token is linked
-  const kastTokenAddress = dapp.slug === 'kas-tipping-system' ? '0x58f026dC9985a253620C5ceDE16EC6316E5085C1' : null;
-  const kastTicker = dapp.slug === 'kas-tipping-system' ? 'KAST' : null;
-  
-  // Merge contract data with KAST info for KAS Tipping System
-  const mergedContractData = dapp.slug === 'kas-tipping-system' && kastTokenAddress ? {
-    ...contractData,
-    tokenAddress: contractData?.tokenAddress || kastTokenAddress,
-    ticker: contractData?.ticker || kastTicker,
-  } : contractData;
+  // Use contract data as-is
+  const mergedContractData = contractData;
 
   // Get contract addresses for token components
   const gridTokenAddress = getContractAddress(chainId, 'GRIDToken') || undefined;
@@ -73,8 +62,8 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
         </div>
       )}
 
-      {/* Rewards Display - Skip for KAS Tipping System (already in widget) */}
-      {dapp.slug !== 'kas-tipping-system' && (gridTokenAddress || mergedContractData?.tokenAddress) && (
+      {/* Rewards Display */}
+      {(gridTokenAddress || mergedContractData?.tokenAddress) && (
         <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
           <RewardsDisplay
             gridTokenAddress={gridTokenAddress}
@@ -84,8 +73,8 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
         </div>
       )}
 
-      {/* Proof of Utility - Skip for KAS Tipping System (already in widget) */}
-      {dapp.slug !== 'kas-tipping-system' && proofOfUtilityAddress && (
+      {/* Proof of Utility */}
+      {proofOfUtilityAddress && (
         <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
           <ProofOfUtility
             proofOfUtilityAddress={proofOfUtilityAddress}
@@ -93,15 +82,13 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
         </div>
       )}
 
-      {/* Affiliate Widget - Skip for KAS Tipping System (already in widget) */}
-      {dapp.slug !== 'kas-tipping-system' && (
-        <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
-          <AffiliateWidget
-            dAppId={dapp.id}
-            dAppName={dapp.name}
-          />
-        </div>
-      )}
+      {/* Affiliate Widget */}
+      <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
+        <AffiliateWidget
+          dAppId={dapp.id}
+          dAppName={dapp.name}
+        />
+      </div>
     </div>
   );
 }

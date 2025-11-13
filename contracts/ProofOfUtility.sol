@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./DAppToken.sol";
 import "./GRIDToken.sol";
+import "./RewardManager.sol";
 
 /**
  * @title ProofOfUtility
@@ -13,7 +14,7 @@ import "./GRIDToken.sol";
  */
 contract ProofOfUtility is Ownable, ReentrancyGuard {
     // RewardManager contract
-    address public rewardManager;
+    RewardManager public rewardManager;
     
     // Usage event structure
     struct UsageEvent {
@@ -55,7 +56,7 @@ contract ProofOfUtility is Ownable, ReentrancyGuard {
      */
     constructor(address _rewardManager) Ownable(msg.sender) {
         require(_rewardManager != address(0), "ProofOfUtility: Invalid reward manager");
-        rewardManager = _rewardManager;
+        rewardManager = RewardManager(_rewardManager);
     }
     
     /**
@@ -163,13 +164,52 @@ contract ProofOfUtility is Ownable, ReentrancyGuard {
     }
     
     /**
+     * @dev Record usage and distribute reward (called by dApp contracts)
+     * @param user Address of the user
+     * @param dAppContract Address of the dApp contract
+     * @param dAppId ID of the dApp
+     * @param actionType Type of action performed
+     * @param actionValue Value of the action (for reward calculation)
+     */
+    function recordUsageAndReward(
+        address user,
+        address dAppContract,
+        uint256 dAppId,
+        string memory actionType,
+        uint256 actionValue
+    ) public {
+        require(user != address(0), "ProofOfUtility: Invalid user");
+        require(dAppContract != address(0), "ProofOfUtility: Invalid dApp contract");
+        
+        // Record usage event
+        UsageEvent memory event_ = UsageEvent({
+            user: user,
+            dAppContract: dAppContract,
+            dAppId: dAppId,
+            actionType: actionType,
+            timestamp: block.timestamp
+        });
+        
+        userEvents[user].push(event_);
+        dAppEvents[dAppContract].push(event_);
+        totalEvents++;
+        
+        emit UsageEventRecorded(user, dAppContract, dAppId, actionType, block.timestamp);
+        
+        // Distribute reward if actionValue > 0
+        if (actionValue > 0) {
+            rewardManager.distributeReward(user, dAppContract, actionValue);
+        }
+    }
+    
+    /**
      * @dev Update reward manager (only owner)
      * @param _rewardManager New reward manager address
      */
     function setRewardManager(address _rewardManager) external onlyOwner {
         require(_rewardManager != address(0), "ProofOfUtility: Invalid reward manager");
-        address oldManager = rewardManager;
-        rewardManager = _rewardManager;
+        address oldManager = address(rewardManager);
+        rewardManager = RewardManager(_rewardManager);
         emit RewardManagerUpdated(oldManager, _rewardManager);
     }
 }
