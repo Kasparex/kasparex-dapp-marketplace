@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762997098-456f096",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix remaining TypeScript errors: properly type-check getUserAnswer results (by Kasparex)",
+      "date": "2025-11-13T02:24:36+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762996853-b232fca",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: properly type-check array result from getActiveQuestions (by Kasparex)",
