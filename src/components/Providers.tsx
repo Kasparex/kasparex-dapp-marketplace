@@ -68,13 +68,37 @@ class SafeMutationCache extends MutationCache {
             return error as Error;
           };
 
+          // CRITICAL: Use Object.defineProperty to ensure error is always an Error object
+          // This is more aggressive than Proxy and ensures React Query never sees function-type errors
+          try {
+            // First, check if there's already an error and convert it
+            const existingError = originalState.error;
+            if (existingError && (typeof existingError === 'function' || !(existingError instanceof Error))) {
+              const safeError = createSafeError(existingError);
+              Object.defineProperty(originalState, 'error', {
+                value: safeError,
+                writable: true,
+                enumerable: true,
+                configurable: true,
+              });
+            }
+          } catch (err) {
+            // If defineProperty fails, continue with Proxy
+          }
+
           mutation.state = new Proxy(originalState, {
             get(target, prop) {
               // If accessing 'error' property, ensure it's never a function
               if (prop === 'error') {
                 const error = Reflect.get(target, prop);
                 if (error) {
-                  return createSafeError(error);
+                  // CRITICAL: Always convert to safe error
+                  const safeError = createSafeError(error);
+                  // Update the target immediately to prevent future issues
+                  try {
+                    Reflect.set(target, prop, safeError);
+                  } catch {}
+                  return safeError;
                 }
                 return error;
               }
@@ -96,7 +120,16 @@ class SafeMutationCache extends MutationCache {
                 if (error && (typeof error === 'function' || !(error instanceof Error))) {
                   // Convert function-type error immediately
                   const safeError = createSafeError(error);
-                  Reflect.set(target, prop, safeError);
+                  try {
+                    Reflect.set(target, prop, safeError);
+                    // Also try defineProperty as fallback
+                    Object.defineProperty(target, prop, {
+                      value: safeError,
+                      writable: true,
+                      enumerable: true,
+                      configurable: true,
+                    });
+                  } catch {}
                   return true;
                 }
               }
@@ -114,10 +147,26 @@ class SafeMutationCache extends MutationCache {
                 if (error && (typeof error === 'function' || !(error instanceof Error))) {
                   // Convert function to Error immediately
                   const safeError = createSafeError(error);
-                  Reflect.set(target, prop, safeError);
+                  try {
+                    Reflect.set(target, prop, safeError);
+                    Object.defineProperty(target, prop, {
+                      value: safeError,
+                      writable: true,
+                      enumerable: true,
+                      configurable: true,
+                    });
+                  } catch {}
                 }
               }
-              return Reflect.getOwnPropertyDescriptor(target, prop);
+              const descriptor = Reflect.getOwnPropertyDescriptor(target, prop);
+              // If it's the error property, ensure the value is safe
+              if (prop === 'error' && descriptor && descriptor.value) {
+                const error = descriptor.value;
+                if (typeof error === 'function' || !(error instanceof Error)) {
+                  descriptor.value = createSafeError(error);
+                }
+              }
+              return descriptor;
             },
           });
         }
