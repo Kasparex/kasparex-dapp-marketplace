@@ -598,28 +598,261 @@ export const DAO_VOTING_ABI = [
 ] as const;
 
 export const QUIZ_TO_EARN_ABI = [
-  "function submitAnswer(uint256 _questionId, uint256 _selectedAnswerIndex) external",
-  "function addQuestion(string memory _questionText, string[] memory _options, uint256 _correctAnswerIndex, string memory _category, uint256 _rewardAmount) external",
-  "function updateQuestionStatus(uint256 _questionId, bool _isActive) external",
-  "function getQuestion(uint256 _questionId) external view returns (uint256 id, string memory questionText, string[] memory options, string memory category, uint256 rewardAmount, bool isActive, uint256 createdAt)",
-  "function getUserAnswer(address _user, uint256 _questionId) external view returns ((uint256 questionId, uint256 selectedAnswerIndex, bool isCorrect, uint256 timestamp, bool rewardClaimed))",
-  "function getUserAnsweredQuestions(address _user) external view returns (uint256[] memory)",
-  "function getActiveQuestions(uint256 _offset, uint256 _limit) external view returns (uint256[] memory ids, string[] memory questionTexts, string[][] memory optionsArray, string[] memory categories, uint256[] memory rewardAmounts)",
-  "function questionCount() external view returns (uint256)",
-  "function defaultRewardAmount() external view returns (uint256)",
-  "function feePercentage() external view returns (uint256)",
-  "function dAppId() external view returns (uint256)",
-  "function setDAppId(uint256 _dAppId) external",
-  "function setDefaultRewardAmount(uint256 _newRewardAmount) external",
-  "function setFeePercentage(uint256 _newFeePercentage) external",
-  "function setFeeCollector(address _feeCollector) external",
-  "function setProofOfUtility(address _proofOfUtility) external",
-  "function calculateFee(uint256 _amount) external view returns (uint256)",
-  "event QuestionAdded(uint256 indexed questionId, string questionText, string category, uint256 rewardAmount, uint256 timestamp)",
-  "event QuestionUpdated(uint256 indexed questionId, bool isActive)",
-  "event AnswerSubmitted(address indexed user, uint256 indexed questionId, uint256 selectedAnswerIndex, bool isCorrect, uint256 rewardAmount, uint256 timestamp)",
-  "event RewardClaimed(address indexed user, uint256 indexed questionId, uint256 rewardAmount, uint256 timestamp)",
-  "event DAppInitialized(uint256 indexed dAppId, address indexed deployer, uint256 timestamp)",
-  "event DefaultRewardUpdated(uint256 oldReward, uint256 newReward)",
+  {
+    type: "function",
+    name: "submitAnswer",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "uint256", name: "_questionId", type: "uint256" },
+      { internalType: "uint256", name: "_selectedAnswerIndex", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "addQuestion",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "string", name: "_questionText", type: "string" },
+      { internalType: "string[]", name: "_options", type: "string[]" },
+      { internalType: "uint256", name: "_correctAnswerIndex", type: "uint256" },
+      { internalType: "string", name: "_category", type: "string" },
+      { internalType: "uint256", name: "_rewardAmount", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "updateQuestionStatus",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "uint256", name: "_questionId", type: "uint256" },
+      { internalType: "bool", name: "_isActive", type: "bool" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "getQuestion",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "uint256", name: "_questionId", type: "uint256" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "id", type: "uint256" },
+      { internalType: "string", name: "questionText", type: "string" },
+      { internalType: "string[]", name: "options", type: "string[]" },
+      { internalType: "string", name: "category", type: "string" },
+      { internalType: "uint256", name: "rewardAmount", type: "uint256" },
+      { internalType: "bool", name: "isActive", type: "bool" },
+      { internalType: "uint256", name: "createdAt", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "getUserAnswer",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "_user", type: "address" },
+      { internalType: "uint256", name: "_questionId", type: "uint256" }
+    ],
+    outputs: [
+      {
+        components: [
+          { internalType: "uint256", name: "questionId", type: "uint256" },
+          { internalType: "uint256", name: "selectedAnswerIndex", type: "uint256" },
+          { internalType: "bool", name: "isCorrect", type: "bool" },
+          { internalType: "uint256", name: "timestamp", type: "uint256" },
+          { internalType: "bool", name: "rewardClaimed", type: "bool" }
+        ],
+        internalType: "struct QuizToEarn.UserAnswer",
+        name: "",
+        type: "tuple"
+      }
+    ]
+  },
+  {
+    type: "function",
+    name: "getUserAnsweredQuestions",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "_user", type: "address" }
+    ],
+    outputs: [
+      { internalType: "uint256[]", name: "", type: "uint256[]" }
+    ]
+  },
+  {
+    type: "function",
+    name: "getActiveQuestions",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "uint256", name: "_offset", type: "uint256" },
+      { internalType: "uint256", name: "_limit", type: "uint256" }
+    ],
+    outputs: [
+      { internalType: "uint256[]", name: "ids", type: "uint256[]" },
+      { internalType: "string[]", name: "questionTexts", type: "string[]" },
+      { internalType: "string[][]", name: "optionsArray", type: "string[][]" },
+      { internalType: "string[]", name: "categories", type: "string[]" },
+      { internalType: "uint256[]", name: "rewardAmounts", type: "uint256[]" }
+    ]
+  },
+  {
+    type: "function",
+    name: "questionCount",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "defaultRewardAmount",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "feePercentage",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "dAppId",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "setDAppId",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "uint256", name: "_dAppId", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setDefaultRewardAmount",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "uint256", name: "_newRewardAmount", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setFeePercentage",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "uint256", name: "_newFeePercentage", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setFeeCollector",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "_feeCollector", type: "address" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setProofOfUtility",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "_proofOfUtility", type: "address" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "calculateFee",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "uint256", name: "_amount", type: "uint256" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "event",
+    name: "QuestionAdded",
+    inputs: [
+      { indexed: true, internalType: "uint256", name: "questionId", type: "uint256" },
+      { indexed: false, internalType: "string", name: "questionText", type: "string" },
+      { indexed: false, internalType: "string", name: "category", type: "string" },
+      { indexed: false, internalType: "uint256", name: "rewardAmount", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "QuestionUpdated",
+    inputs: [
+      { indexed: true, internalType: "uint256", name: "questionId", type: "uint256" },
+      { indexed: false, internalType: "bool", name: "isActive", type: "bool" }
+    ],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "AnswerSubmitted",
+    inputs: [
+      { indexed: true, internalType: "address", name: "user", type: "address" },
+      { indexed: true, internalType: "uint256", name: "questionId", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "selectedAnswerIndex", type: "uint256" },
+      { indexed: false, internalType: "bool", name: "isCorrect", type: "bool" },
+      { indexed: false, internalType: "uint256", name: "rewardAmount", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "RewardClaimed",
+    inputs: [
+      { indexed: true, internalType: "address", name: "user", type: "address" },
+      { indexed: true, internalType: "uint256", name: "questionId", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "rewardAmount", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "DAppInitialized",
+    inputs: [
+      { indexed: true, internalType: "uint256", name: "dAppId", type: "uint256" },
+      { indexed: true, internalType: "address", name: "deployer", type: "address" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "DefaultRewardUpdated",
+    inputs: [
+      { indexed: false, internalType: "uint256", name: "oldReward", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "newReward", type: "uint256" }
+    ],
+    anonymous: false
+  }
 ] as const;
 
