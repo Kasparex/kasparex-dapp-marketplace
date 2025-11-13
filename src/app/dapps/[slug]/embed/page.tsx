@@ -17,7 +17,6 @@ function EmbedContent() {
   const hideHeart = searchParams.get('hideHeart') === 'true';
   const hideInfo = searchParams.get('hideInfo') === 'true';
   const hideEmbed = searchParams.get('hideEmbed') === 'true';
-  const hideTheme = searchParams.get('hideTheme') === 'true';
   const accentColor = searchParams.get('accentColor') || '#02abb8';
   
   const dapp = getDAppBySlug(placeholderDApps, slug);
@@ -47,7 +46,6 @@ function EmbedContent() {
           hideHeart={hideHeart}
           hideInfo={hideInfo}
           hideEmbed={hideEmbed}
-          hideTheme={hideTheme}
           accentColor={accentColor}
         />
       </div>
