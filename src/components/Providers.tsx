@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { WagmiProvider } from 'wagmi';
-import { QueryClient, QueryClientProvider, MutationCache } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, MutationCache, QueryCache } from '@tanstack/react-query';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { darkTheme, lightTheme } from '@rainbow-me/rainbowkit';
 import { config } from '@/lib/wagmi';
@@ -232,10 +232,181 @@ class SafeMutationCache extends MutationCache {
 
 const mutationCache = new SafeMutationCache();
 
+// CRITICAL: Create a SafeQueryCache to intercept query errors BEFORE React Query serializes them
+// This is essential because useReadContract uses queries, not mutations
+class SafeQueryCache extends QueryCache {
+  constructor() {
+    super({
+      onSuccess: (data: unknown, query: any) => {
+        // Wrap query.state with Proxy when query succeeds (to catch future errors)
+        this.wrapQueryState(query);
+      },
+      onError: (error, query) => {
+        // CRITICAL: Convert function-type errors IMMEDIATELY before React Query serializes them
+        // This is the same pattern as SafeMutationCache but for queries
+        try {
+          let safeError: Error;
+          
+          if (typeof error === 'function') {
+            const errorStr = getErrorMessage(error, 'Query failed');
+            safeError = new Error(errorStr);
+            console.error('🚨 Function-type error intercepted in SafeQueryCache.onError:', errorStr);
+          } else if (error && !(error instanceof Error)) {
+            const errorStr = getErrorMessage(error, 'Query failed');
+            safeError = new Error(errorStr);
+          } else {
+            safeError = error as Error;
+          }
+          
+          // CRITICAL: Replace error in query.state IMMEDIATELY
+          // Use multiple methods to ensure it works
+          try {
+            // Try Object.defineProperty first (most reliable)
+            Object.defineProperty(query.state, 'error', {
+              value: safeError,
+              writable: true,
+              enumerable: true,
+              configurable: true,
+            });
+          } catch {
+            // Fallback to direct assignment
+            try {
+              (query.state as any).error = safeError;
+            } catch {
+              // Last resort: try to patch the query object directly
+              try {
+                (query as any).state = {
+                  ...query.state,
+                  error: safeError,
+                };
+              } catch {
+                console.error('Failed to replace function-type error in query state');
+              }
+            }
+          }
+        } catch (err) {
+          // Ultimate fallback - create a safe error
+          try {
+            (query.state as any).error = new Error('Query failed');
+          } catch {
+            // Ignore - error conversion failed completely
+          }
+        }
+        
+        // Also wrap query.state with Proxy to prevent future serialization issues
+        this.wrapQueryState(query);
+      },
+    });
+  }
+
+  // CRITICAL: Wrap query.state with Proxy to intercept 'in' operator checks
+  // This prevents React Query from using 'in' operator on function-type errors
+  private wrapQueryState(query: any) {
+    if (!query.state) return;
+    
+    // Check if already wrapped (avoid double-wrapping)
+    if ((query.state as any).__safeQueryStateWrapped) return;
+    
+    const originalState = query.state;
+    const createSafeError = (error: unknown): Error => {
+      if (typeof error === 'function') {
+        const errorStr = getErrorMessage(error, 'Query failed');
+        return new Error(errorStr);
+      }
+      if (error && !(error instanceof Error)) {
+        const errorStr = getErrorMessage(error, 'Query failed');
+        return new Error(errorStr);
+      }
+      return error as Error;
+    };
+
+    // Wrap with Proxy to intercept property access
+    query.state = new Proxy(originalState, {
+      get(target, prop) {
+        // If accessing 'error' property, ensure it's never a function
+        if (prop === 'error') {
+          const error = Reflect.get(target, prop);
+          if (error) {
+            const safeError = createSafeError(error);
+            // Update the target immediately
+            try {
+              Reflect.set(target, prop, safeError);
+            } catch {}
+            return safeError;
+          }
+          return error;
+        }
+        return Reflect.get(target, prop);
+      },
+      set(target, prop, value) {
+        // If setting 'error' property, convert function-type errors immediately
+        if (prop === 'error' && value) {
+          const safeError = createSafeError(value);
+          return Reflect.set(target, prop, safeError);
+        }
+        return Reflect.set(target, prop, value);
+      },
+      has(target, prop) {
+        // CRITICAL: Intercept 'in' operator checks on query.state
+        // This prevents React Query from checking properties on function-type errors
+        if (prop === 'error') {
+          const error = Reflect.get(target, prop);
+          if (error && (typeof error === 'function' || !(error instanceof Error))) {
+            const safeError = createSafeError(error);
+            try {
+              Reflect.set(target, prop, safeError);
+              Object.defineProperty(target, prop, {
+                value: safeError,
+                writable: true,
+                enumerable: true,
+                configurable: true,
+              });
+            } catch {}
+            return true;
+          }
+        }
+        return Reflect.has(target, prop);
+      },
+      getOwnPropertyDescriptor(target, prop) {
+        // CRITICAL: Intercept property descriptor access
+        if (prop === 'error') {
+          const error = Reflect.get(target, prop);
+          if (error && (typeof error === 'function' || !(error instanceof Error))) {
+            const safeError = createSafeError(error);
+            try {
+              Reflect.set(target, prop, safeError);
+              Object.defineProperty(target, prop, {
+                value: safeError,
+                writable: true,
+                enumerable: true,
+                configurable: true,
+              });
+            } catch {}
+          }
+        }
+        const descriptor = Reflect.getOwnPropertyDescriptor(target, prop);
+        if (prop === 'error' && descriptor && descriptor.value) {
+          const error = descriptor.value;
+          if (typeof error === 'function' || !(error instanceof Error)) {
+            descriptor.value = createSafeError(error);
+          }
+        }
+        return descriptor;
+      },
+    });
+    
+    // Mark as wrapped to avoid double-wrapping
+    (query.state as any).__safeQueryStateWrapped = true;
+  }
+}
+
+const queryCache = new SafeQueryCache();
+
 // CRITICAL: Configure QueryClient to handle errors safely
 // This prevents "Cannot use 'in' operator" errors when React Query tries to serialize function-type errors
 const queryClient = new QueryClient({
   mutationCache,
+  queryCache,
   defaultOptions: {
     mutations: {
       onError: (error) => {
