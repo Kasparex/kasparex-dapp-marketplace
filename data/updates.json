@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1763072656-abdab96",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Remove hideTheme prop from DAppWidget component (by Kasparex)",
+      "date": "2025-11-13T23:23:56+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1763072452-43356c6",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Reorganize dApp widget header: move version/category/developer next to title, remove Guide modal, move icons next to Star/Heart, reorganize network/compatibility/debug controls (by Kasparex)",
