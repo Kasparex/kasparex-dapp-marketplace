@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1763068731-0801db0",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update GitBook documentation (by Kasparex)",
+      "date": "2025-11-13T22:18:29+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1763063105-7812362",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript errors: Cast addresses to 0x type in ProofOfUtility components (by Kasparex)",
