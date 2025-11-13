@@ -190,13 +190,20 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
 
     try {
       // Get list of answered question IDs
-      const answeredIds = await publicClient.readContract({
+      const answeredIdsResult = await publicClient.readContract({
         address: contractAddress as `0x${string}`,
         abi: QUIZ_TO_EARN_ABI,
         functionName: 'getUserAnsweredQuestions',
         args: [address],
       });
 
+      // Properly handle unknown type from readContract
+      if (!Array.isArray(answeredIdsResult)) {
+        setUserAnswers(new Map());
+        return;
+      }
+
+      const answeredIds = answeredIdsResult as bigint[];
       const answersMap = new Map<bigint, UserAnswer>();
 
       // Load each answer
@@ -265,14 +272,19 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
     }
 
     try {
-      const answeredIds = await publicClient.readContract({
+      const answeredIdsResult = await publicClient.readContract({
         address: contractAddress as `0x${string}`,
         abi: QUIZ_TO_EARN_ABI,
         functionName: 'getUserAnsweredQuestions',
         args: [address],
       });
 
-      return answeredIds;
+      // Properly handle unknown type from readContract
+      if (!Array.isArray(answeredIdsResult)) {
+        return [];
+      }
+
+      return answeredIdsResult as bigint[];
     } catch (err) {
       console.error('Error getting user answered questions:', err);
       return [];
