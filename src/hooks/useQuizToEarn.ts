@@ -101,6 +101,21 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
     hash,
   });
 
+  // CRITICAL: Intercept writeError immediately to convert function-type errors
+  // This must happen BEFORE React Query tries to serialize the error
+  useEffect(() => {
+    if (writeError) {
+      // Check if error is a function - if so, convert immediately
+      if (typeof writeError === 'function') {
+        const errorStr = getErrorMessage(writeError, 'Transaction failed');
+        console.error('🚨 Function-type error intercepted in useQuizToEarn writeError:', errorStr);
+        console.error('Contract address:', contractAddress, 'Chain ID:', chainId);
+        // Set error immediately to prevent React Query from seeing the function
+        setError(errorStr);
+      }
+    }
+  }, [writeError, contractAddress, chainId]);
+
   const safeWriteError = useSafeError(writeError);
   const safeTxError = useSafeError(txError);
 
