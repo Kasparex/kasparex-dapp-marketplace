@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, useChainId, usePublicClient } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
 import { QUIZ_TO_EARN_ABI } from '@/lib/contracts/abis';
@@ -51,7 +51,7 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
   const contractAddress = getContractAddress(chainId, 'QuizToEarn');
 
   // Read contract state
-  const { data: questionCount } = useReadContract({
+  const { data: questionCountRaw } = useReadContract({
     address: contractAddress as `0x${string}`,
     abi: QUIZ_TO_EARN_ABI,
     functionName: 'questionCount',
@@ -60,7 +60,7 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
     },
   });
 
-  const { data: defaultRewardAmount } = useReadContract({
+  const { data: defaultRewardAmountRaw } = useReadContract({
     address: contractAddress as `0x${string}`,
     abi: QUIZ_TO_EARN_ABI,
     functionName: 'defaultRewardAmount',
@@ -68,6 +68,23 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
       enabled: !!contractAddress && isConnected,
     },
   });
+
+  // Properly handle unknown types from useReadContract
+  const questionCount: bigint | null = useMemo(() => {
+    if (!questionCountRaw) return null;
+    if (typeof questionCountRaw === 'bigint') return questionCountRaw;
+    if (typeof questionCountRaw === 'number') return BigInt(questionCountRaw);
+    if (typeof questionCountRaw === 'string') return BigInt(questionCountRaw);
+    return null;
+  }, [questionCountRaw]);
+
+  const defaultRewardAmount: bigint | null = useMemo(() => {
+    if (!defaultRewardAmountRaw) return null;
+    if (typeof defaultRewardAmountRaw === 'bigint') return defaultRewardAmountRaw;
+    if (typeof defaultRewardAmountRaw === 'number') return BigInt(defaultRewardAmountRaw);
+    if (typeof defaultRewardAmountRaw === 'string') return BigInt(defaultRewardAmountRaw);
+    return null;
+  }, [defaultRewardAmountRaw]);
 
   // Write contract
   const { writeContract, data: hash, isPending: isPendingWrite, error: writeError } = useWriteContract();
@@ -379,8 +396,8 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
     submitAnswer,
     refreshQuestions,
     refreshUserAnswers,
-    questionCount: questionCount || null,
-    defaultRewardAmount: defaultRewardAmount || null,
+    questionCount,
+    defaultRewardAmount,
     getUserAnswer,
     getUserAnsweredQuestions,
   };
