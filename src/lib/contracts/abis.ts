@@ -6,136 +6,1104 @@
  */
 
 export const TREASURY_ABI = [
-  "function collectFee() external payable",
-  "function distributeRevenue() external",
-  "function setDistributionPercentages(uint256 _treasuryPercentage, uint256 _developerPercentage, uint256 _builderPercentage) external",
-  "function setDistributionAddresses(address _developerAddress, address _builderAddress) external",
-  "function getBalance() external view returns (uint256)",
-  "function totalFeesCollected() external view returns (uint256)",
-  "function treasuryPercentage() external view returns (uint256)",
-  "function developerPercentage() external view returns (uint256)",
-  "function builderPercentage() external view returns (uint256)",
-  "function developerAddress() external view returns (address)",
-  "function builderAddress() external view returns (address)",
-  "event FeeCollected(address indexed from, uint256 amount, uint256 timestamp)",
-  "event RevenueDistributed(uint256 treasuryAmount, uint256 developerAmount, uint256 builderAmount, uint256 timestamp)",
+  {
+    type: "function",
+    name: "collectFee",
+    stateMutability: "payable",
+    inputs: [],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "distributeRevenue",
+    stateMutability: "nonpayable",
+    inputs: [],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setDistributionPercentages",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "uint256", name: "_treasuryPercentage", type: "uint256" },
+      { internalType: "uint256", name: "_developerPercentage", type: "uint256" },
+      { internalType: "uint256", name: "_builderPercentage", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setDistributionAddresses",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "_developerAddress", type: "address" },
+      { internalType: "address", name: "_builderAddress", type: "address" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "getBalance",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "totalFeesCollected",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "treasuryPercentage",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "developerPercentage",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "builderPercentage",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "developerAddress",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "address", name: "", type: "address" }
+    ]
+  },
+  {
+    type: "function",
+    name: "builderAddress",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "address", name: "", type: "address" }
+    ]
+  },
+  {
+    type: "event",
+    name: "FeeCollected",
+    inputs: [
+      { indexed: true, internalType: "address", name: "from", type: "address" },
+      { indexed: false, internalType: "uint256", name: "amount", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "RevenueDistributed",
+    inputs: [
+      { indexed: false, internalType: "uint256", name: "treasuryAmount", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "developerAmount", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "builderAmount", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  }
 ] as const;
 
 export const FEE_COLLECTOR_ABI = [
-  "function forwardFee() external payable",
-  "function setTreasury(address _treasury) external",
-  "function treasury() external view returns (address)",
-  "event FeeForwarded(address indexed from, uint256 amount, uint256 timestamp)",
+  {
+    type: "function",
+    name: "forwardFee",
+    stateMutability: "payable",
+    inputs: [],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setTreasury",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "_treasury", type: "address" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "treasury",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "address", name: "", type: "address" }
+    ]
+  },
+  {
+    type: "event",
+    name: "FeeForwarded",
+    inputs: [
+      { indexed: true, internalType: "address", name: "from", type: "address" },
+      { indexed: false, internalType: "uint256", name: "amount", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  }
 ] as const;
 
 export const DAPP_REGISTRY_ABI = [
-  "function registerDApp(string memory _name, string memory _version, string memory _category, address _contractAddress) external returns (uint256)",
-  "function linkDAppToToken(uint256 _dAppId, address _tokenAddress, string memory _ticker, uint256 _totalSupply) external",
-  "function updateDAppStatus(uint256 _dAppId, bool _isActive) external",
-  "function updateDAppMetadata(uint256 _dAppId, string memory _ipfsCID) external",
-  "function getDApp(uint256 _dAppId) external view returns ((string, string, string, address, address, bool, uint256, address, string, uint256, string))",
-  "function getDAppToken(uint256 _dAppId) external view returns (address)",
-  "function getTokenDApps(address _tokenAddress) external view returns (uint256[] memory)",
-  "function getDAppIdByContract(address _contractAddress) external view returns (uint256)",
-  "function dAppCount() external view returns (uint256)",
-  "event DAppRegistered(uint256 indexed dAppId, string name, string version, address indexed deployer, address indexed contractAddress, uint256 timestamp)",
-  "event DAppLinkedToToken(uint256 indexed dAppId, address indexed tokenAddress, string ticker, uint256 totalSupply, uint256 timestamp)",
-  "event DAppMetadataUpdated(uint256 indexed dAppId, string ipfsCID, uint256 timestamp)",
+  {
+    type: "function",
+    name: "registerDApp",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "string", name: "_name", type: "string" },
+      { internalType: "string", name: "_version", type: "string" },
+      { internalType: "string", name: "_category", type: "string" },
+      { internalType: "address", name: "_contractAddress", type: "address" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "linkDAppToToken",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "uint256", name: "_dAppId", type: "uint256" },
+      { internalType: "address", name: "_tokenAddress", type: "address" },
+      { internalType: "string", name: "_ticker", type: "string" },
+      { internalType: "uint256", name: "_totalSupply", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "updateDAppStatus",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "uint256", name: "_dAppId", type: "uint256" },
+      { internalType: "bool", name: "_isActive", type: "bool" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "updateDAppMetadata",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "uint256", name: "_dAppId", type: "uint256" },
+      { internalType: "string", name: "_ipfsCID", type: "string" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "getDApp",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "uint256", name: "_dAppId", type: "uint256" }
+    ],
+    outputs: [
+      {
+        components: [
+          { internalType: "string", name: "", type: "string" },
+          { internalType: "string", name: "", type: "string" },
+          { internalType: "string", name: "", type: "string" },
+          { internalType: "address", name: "", type: "address" },
+          { internalType: "address", name: "", type: "address" },
+          { internalType: "bool", name: "", type: "bool" },
+          { internalType: "uint256", name: "", type: "uint256" },
+          { internalType: "address", name: "", type: "address" },
+          { internalType: "string", name: "", type: "string" },
+          { internalType: "uint256", name: "", type: "uint256" },
+          { internalType: "string", name: "", type: "string" }
+        ],
+        internalType: "tuple",
+        name: "",
+        type: "tuple"
+      }
+    ]
+  },
+  {
+    type: "function",
+    name: "getDAppToken",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "uint256", name: "_dAppId", type: "uint256" }
+    ],
+    outputs: [
+      { internalType: "address", name: "", type: "address" }
+    ]
+  },
+  {
+    type: "function",
+    name: "getTokenDApps",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "_tokenAddress", type: "address" }
+    ],
+    outputs: [
+      { internalType: "uint256[]", name: "", type: "uint256[]" }
+    ]
+  },
+  {
+    type: "function",
+    name: "getDAppIdByContract",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "_contractAddress", type: "address" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "dAppCount",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "event",
+    name: "DAppRegistered",
+    inputs: [
+      { indexed: true, internalType: "uint256", name: "dAppId", type: "uint256" },
+      { indexed: false, internalType: "string", name: "name", type: "string" },
+      { indexed: false, internalType: "string", name: "version", type: "string" },
+      { indexed: true, internalType: "address", name: "deployer", type: "address" },
+      { indexed: true, internalType: "address", name: "contractAddress", type: "address" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "DAppLinkedToToken",
+    inputs: [
+      { indexed: true, internalType: "uint256", name: "dAppId", type: "uint256" },
+      { indexed: true, internalType: "address", name: "tokenAddress", type: "address" },
+      { indexed: false, internalType: "string", name: "ticker", type: "string" },
+      { indexed: false, internalType: "uint256", name: "totalSupply", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "DAppMetadataUpdated",
+    inputs: [
+      { indexed: true, internalType: "uint256", name: "dAppId", type: "uint256" },
+      { indexed: false, internalType: "string", name: "ipfsCID", type: "string" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  }
 ] as const;
 
 export const DAPP_TOKEN_ABI = [
-  "function balanceOf(address account) external view returns (uint256)",
-  "function totalSupply() external view returns (uint256)",
-  "function getRemainingSupply() external view returns (uint256)",
-  "function MAX_SUPPLY() external view returns (uint256)",
-  "function mint(address to, uint256 amount) external",
-  "function burn(uint256 amount) external",
-  "function transfer(address to, uint256 amount) external returns (bool)",
-  "function approve(address spender, uint256 amount) external returns (bool)",
-  "function allowance(address owner, address spender) external view returns (uint256)",
+  {
+    type: "function",
+    name: "balanceOf",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "account", type: "address" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "totalSupply",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "getRemainingSupply",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "MAX_SUPPLY",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "mint",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "to", type: "address" },
+      { internalType: "uint256", name: "amount", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "burn",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "uint256", name: "amount", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "transfer",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "to", type: "address" },
+      { internalType: "uint256", name: "amount", type: "uint256" }
+    ],
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  },
+  {
+    type: "function",
+    name: "approve",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "spender", type: "address" },
+      { internalType: "uint256", name: "amount", type: "uint256" }
+    ],
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  },
+  {
+    type: "function",
+    name: "allowance",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "owner", type: "address" },
+      { internalType: "address", name: "spender", type: "address" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  }
 ] as const;
 
 export const GRID_TOKEN_ABI = [
-  "function balanceOf(address account) external view returns (uint256)",
-  "function totalSupply() external view returns (uint256)",
-  "function totalBurned() external view returns (uint256)",
-  "function circulatingSupply() external view returns (uint256)",
-  "function burnPercentage() external view returns (uint256)",
-  "function burn(uint256 amount) external",
-  "function burnFrom(address from, uint256 amount) external",
-  "function transfer(address to, uint256 amount) external returns (bool)",
+  {
+    type: "function",
+    name: "balanceOf",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "account", type: "address" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "totalSupply",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "totalBurned",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "circulatingSupply",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "burnPercentage",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "burn",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "uint256", name: "amount", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "burnFrom",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "from", type: "address" },
+      { internalType: "uint256", name: "amount", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "transfer",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "to", type: "address" },
+      { internalType: "uint256", name: "amount", type: "uint256" }
+    ],
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  }
 ] as const;
 
 export const PROOF_OF_UTILITY_ABI = [
-  "function recordUsage(address user, address dAppContract, uint256 dAppId, string memory actionType) external",
-  "function recordUsageBatch(address[] memory users, address[] memory dAppContracts, uint256[] memory dAppIds, string[] memory actionTypes) external",
-  "function recordUsageAndReward(address user, address dAppContract, uint256 dAppId, string memory actionType, uint256 actionValue) external",
-  "function getUserEvents(address user) external view returns ((address, address, uint256, string, uint256)[])",
-  "function getDAppEvents(address dAppContract) external view returns ((address, address, uint256, string, uint256)[])",
-  "function getUserEventCount(address user) external view returns (uint256)",
-  "function totalEvents() external view returns (uint256)",
-  "function rewardManager() external view returns (address)",
-  "function setRewardManager(address _rewardManager) external",
-  "event UsageEventRecorded(address indexed user, address indexed dAppContract, uint256 indexed dAppId, string actionType, uint256 timestamp)",
-  "event RewardManagerUpdated(address indexed oldManager, address indexed newManager)",
+  {
+    type: "function",
+    name: "recordUsage",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" },
+      { internalType: "address", name: "dAppContract", type: "address" },
+      { internalType: "uint256", name: "dAppId", type: "uint256" },
+      { internalType: "string", name: "actionType", type: "string" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "recordUsageBatch",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address[]", name: "users", type: "address[]" },
+      { internalType: "address[]", name: "dAppContracts", type: "address[]" },
+      { internalType: "uint256[]", name: "dAppIds", type: "uint256[]" },
+      { internalType: "string[]", name: "actionTypes", type: "string[]" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "recordUsageAndReward",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" },
+      { internalType: "address", name: "dAppContract", type: "address" },
+      { internalType: "uint256", name: "dAppId", type: "uint256" },
+      { internalType: "string", name: "actionType", type: "string" },
+      { internalType: "uint256", name: "actionValue", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "getUserEvents",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" }
+    ],
+    outputs: [
+      {
+        components: [
+          { internalType: "address", name: "", type: "address" },
+          { internalType: "address", name: "", type: "address" },
+          { internalType: "uint256", name: "", type: "uint256" },
+          { internalType: "string", name: "", type: "string" },
+          { internalType: "uint256", name: "", type: "uint256" }
+        ],
+        internalType: "tuple[]",
+        name: "",
+        type: "tuple[]"
+      }
+    ]
+  },
+  {
+    type: "function",
+    name: "getDAppEvents",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "dAppContract", type: "address" }
+    ],
+    outputs: [
+      {
+        components: [
+          { internalType: "address", name: "", type: "address" },
+          { internalType: "address", name: "", type: "address" },
+          { internalType: "uint256", name: "", type: "uint256" },
+          { internalType: "string", name: "", type: "string" },
+          { internalType: "uint256", name: "", type: "uint256" }
+        ],
+        internalType: "tuple[]",
+        name: "",
+        type: "tuple[]"
+      }
+    ]
+  },
+  {
+    type: "function",
+    name: "getUserEventCount",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "totalEvents",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "rewardManager",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "address", name: "", type: "address" }
+    ]
+  },
+  {
+    type: "function",
+    name: "setRewardManager",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "_rewardManager", type: "address" }
+    ],
+    outputs: []
+  },
+  {
+    type: "event",
+    name: "UsageEventRecorded",
+    inputs: [
+      { indexed: true, internalType: "address", name: "user", type: "address" },
+      { indexed: true, internalType: "address", name: "dAppContract", type: "address" },
+      { indexed: true, internalType: "uint256", name: "dAppId", type: "uint256" },
+      { indexed: false, internalType: "string", name: "actionType", type: "string" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "RewardManagerUpdated",
+    inputs: [
+      { indexed: true, internalType: "address", name: "oldManager", type: "address" },
+      { indexed: true, internalType: "address", name: "newManager", type: "address" }
+    ],
+    anonymous: false
+  }
 ] as const;
 
 export const ACCESS_CONTROL_ABI = [
-  "function hasAccess(address user) external view returns (bool)",
-  "function checkAndCacheAccess(address user) external returns (bool)",
-  "function recordTokenAcquisition(address user) external",
-  "function accessToken() external view returns (address)",
-  "function minBalance() external view returns (uint256)",
-  "function minHoldingTime() external view returns (uint256)",
+  {
+    type: "function",
+    name: "hasAccess",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" }
+    ],
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  },
+  {
+    type: "function",
+    name: "checkAndCacheAccess",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" }
+    ],
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  },
+  {
+    type: "function",
+    name: "recordTokenAcquisition",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "accessToken",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "address", name: "", type: "address" }
+    ]
+  },
+  {
+    type: "function",
+    name: "minBalance",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "minHoldingTime",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  }
 ] as const;
 
 export const FEE_HANDLER_ABI = [
-  "function collectFee(address _projectTreasury) external payable",
-  "function collectFeesBatch(address[] memory _projectTreasuries) external payable",
-  "function getProjectFees(address _projectTreasury) external view returns (uint256)",
-  "function totalFeesCollected() external view returns (uint256)",
-  "function kasparexTreasury() external view returns (address)",
-  "function projectTreasury() external view returns (address)",
-  "event FeeReceived(address indexed from, address indexed projectTreasury, uint256 totalAmount, uint256 kasparexAmount, uint256 projectAmount, uint256 timestamp)",
+  {
+    type: "function",
+    name: "collectFee",
+    stateMutability: "payable",
+    inputs: [
+      { internalType: "address", name: "_projectTreasury", type: "address" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "collectFeesBatch",
+    stateMutability: "payable",
+    inputs: [
+      { internalType: "address[]", name: "_projectTreasuries", type: "address[]" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "getProjectFees",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "_projectTreasury", type: "address" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "totalFeesCollected",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "kasparexTreasury",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "address", name: "", type: "address" }
+    ]
+  },
+  {
+    type: "function",
+    name: "projectTreasury",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "address", name: "", type: "address" }
+    ]
+  },
+  {
+    type: "event",
+    name: "FeeReceived",
+    inputs: [
+      { indexed: true, internalType: "address", name: "from", type: "address" },
+      { indexed: true, internalType: "address", name: "projectTreasury", type: "address" },
+      { indexed: false, internalType: "uint256", name: "totalAmount", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "kasparexAmount", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "projectAmount", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  }
 ] as const;
 
 export const REWARD_MANAGER_ABI = [
-  "function distributeReward(address user, address dAppContract, uint256 actionValue) external",
-  "function distributeRewardsBatch(address[] memory users, address[] memory dAppContracts, uint256[] memory actionValues) external",
-  "function setRewardRate(address dAppContract, uint256 rate) external",
-  "function setRewardType(address dAppContract, bool useGRID) external",
-  "function setDAppToken(address dAppContract, address tokenContract) external",
-  "function rewardRates(address) external view returns (uint256)",
-  "function useGRID(address) external view returns (bool)",
-  "event RewardDistributed(address indexed user, address indexed dAppContract, address indexed token, uint256 amount, string rewardType)",
+  {
+    type: "function",
+    name: "distributeReward",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" },
+      { internalType: "address", name: "dAppContract", type: "address" },
+      { internalType: "uint256", name: "actionValue", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "distributeRewardsBatch",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address[]", name: "users", type: "address[]" },
+      { internalType: "address[]", name: "dAppContracts", type: "address[]" },
+      { internalType: "uint256[]", name: "actionValues", type: "uint256[]" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setRewardRate",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "dAppContract", type: "address" },
+      { internalType: "uint256", name: "rate", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setRewardType",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "dAppContract", type: "address" },
+      { internalType: "bool", name: "useGRID", type: "bool" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setDAppToken",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "dAppContract", type: "address" },
+      { internalType: "address", name: "tokenContract", type: "address" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "rewardRates",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "", type: "address" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "useGRID",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "", type: "address" }
+    ],
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  },
+  {
+    type: "event",
+    name: "RewardDistributed",
+    inputs: [
+      { indexed: true, internalType: "address", name: "user", type: "address" },
+      { indexed: true, internalType: "address", name: "dAppContract", type: "address" },
+      { indexed: true, internalType: "address", name: "token", type: "address" },
+      { indexed: false, internalType: "uint256", name: "amount", type: "uint256" },
+      { indexed: false, internalType: "string", name: "rewardType", type: "string" }
+    ],
+    anonymous: false
+  }
 ] as const;
 
 export const AFFILIATE_MANAGER_ABI = [
-  "function recordReferral(address affiliate, address user, address dAppContract) external",
-  "function distributeReferralReward(address affiliate, address dAppContract, uint256 actionValue) external",
-  "function getReferralCount(address affiliate, address dAppContract) external view returns (uint256)",
-  "function getUserReferrals(address user) external view returns ((address, address, address, uint256, bool)[])",
-  "function getAffiliateReferrals(address affiliate) external view returns ((address, address, address, uint256, bool)[])",
-  "function referralRewardRate() external view returns (uint256)",
-  "event ReferralRecorded(address indexed affiliate, address indexed user, address indexed dAppContract, uint256 timestamp)",
-  "event ReferralRewarded(address indexed affiliate, address indexed dAppContract, uint256 amount, uint256 timestamp)",
+  {
+    type: "function",
+    name: "recordReferral",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "affiliate", type: "address" },
+      { internalType: "address", name: "user", type: "address" },
+      { internalType: "address", name: "dAppContract", type: "address" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "distributeReferralReward",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "affiliate", type: "address" },
+      { internalType: "address", name: "dAppContract", type: "address" },
+      { internalType: "uint256", name: "actionValue", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "getReferralCount",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "affiliate", type: "address" },
+      { internalType: "address", name: "dAppContract", type: "address" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "getUserReferrals",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" }
+    ],
+    outputs: [
+      {
+        components: [
+          { internalType: "address", name: "", type: "address" },
+          { internalType: "address", name: "", type: "address" },
+          { internalType: "address", name: "", type: "address" },
+          { internalType: "uint256", name: "", type: "uint256" },
+          { internalType: "bool", name: "", type: "bool" }
+        ],
+        internalType: "tuple[]",
+        name: "",
+        type: "tuple[]"
+      }
+    ]
+  },
+  {
+    type: "function",
+    name: "getAffiliateReferrals",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "affiliate", type: "address" }
+    ],
+    outputs: [
+      {
+        components: [
+          { internalType: "address", name: "", type: "address" },
+          { internalType: "address", name: "", type: "address" },
+          { internalType: "address", name: "", type: "address" },
+          { internalType: "uint256", name: "", type: "uint256" },
+          { internalType: "bool", name: "", type: "bool" }
+        ],
+        internalType: "tuple[]",
+        name: "",
+        type: "tuple[]"
+      }
+    ]
+  },
+  {
+    type: "function",
+    name: "referralRewardRate",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "event",
+    name: "ReferralRecorded",
+    inputs: [
+      { indexed: true, internalType: "address", name: "affiliate", type: "address" },
+      { indexed: true, internalType: "address", name: "user", type: "address" },
+      { indexed: true, internalType: "address", name: "dAppContract", type: "address" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "ReferralRewarded",
+    inputs: [
+      { indexed: true, internalType: "address", name: "affiliate", type: "address" },
+      { indexed: true, internalType: "address", name: "dAppContract", type: "address" },
+      { indexed: false, internalType: "uint256", name: "amount", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  }
 ] as const;
 
 export const LOYALTY_POINTS_ABI = [
-  "function awardPoints(address user, string memory actionType) external",
-  "function awardPointsBatch(address[] memory users, string[] memory actionTypes) external",
-  "function getUserLoyalty(address user) external view returns ((uint256, uint256, uint256, uint256))",
-  "function getTotalPoints(address user) external view returns (uint256)",
-  "function getStreak(address user) external view returns (uint256)",
-  "function actionPoints(string) external view returns (uint256)",
-  "event PointsAwarded(address indexed user, string actionType, uint256 points, uint256 totalPoints, uint256 timestamp)",
+  {
+    type: "function",
+    name: "awardPoints",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" },
+      { internalType: "string", name: "actionType", type: "string" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "awardPointsBatch",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address[]", name: "users", type: "address[]" },
+      { internalType: "string[]", name: "actionTypes", type: "string[]" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "getUserLoyalty",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" }
+    ],
+    outputs: [
+      {
+        components: [
+          { internalType: "uint256", name: "", type: "uint256" },
+          { internalType: "uint256", name: "", type: "uint256" },
+          { internalType: "uint256", name: "", type: "uint256" },
+          { internalType: "uint256", name: "", type: "uint256" }
+        ],
+        internalType: "tuple",
+        name: "",
+        type: "tuple"
+      }
+    ]
+  },
+  {
+    type: "function",
+    name: "getTotalPoints",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "getStreak",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "actionPoints",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "string", name: "", type: "string" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "event",
+    name: "PointsAwarded",
+    inputs: [
+      { indexed: true, internalType: "address", name: "user", type: "address" },
+      { indexed: false, internalType: "string", name: "actionType", type: "string" },
+      { indexed: false, internalType: "uint256", name: "points", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "totalPoints", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    anonymous: false
+  }
 ] as const;
 
 export const REWARD_VAULT_ABI = [
-  "function deposit(address token, uint256 amount) external",
-  "function withdraw(address token, address to, uint256 amount) external",
-  "function getBalance(address token) external view returns (uint256)",
-  "function rewardManager() external view returns (address)",
+  {
+    type: "function",
+    name: "deposit",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "token", type: "address" },
+      { internalType: "uint256", name: "amount", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "withdraw",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "token", type: "address" },
+      { internalType: "address", name: "to", type: "address" },
+      { internalType: "uint256", name: "amount", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "getBalance",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "token", type: "address" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "rewardManager",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "address", name: "", type: "address" }
+    ]
+  }
 ] as const;
 
 export const USER_PROFILE_DASHBOARD_ABI = [
