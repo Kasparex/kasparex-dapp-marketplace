@@ -27,7 +27,13 @@
     "hardhat:configure": "hardhat run scripts/configure-treasury.js",
     "hardhat:verify": "hardhat run scripts/verify-contracts.js",
     "hardhat:verify:testnet": "hardhat run scripts/verify-contracts.js --network kasplexL2Testnet",
-    "hardhat:verify:mainnet": "hardhat run scripts/verify-contracts.js --network kasplexL2Mainnet"
+    "hardhat:verify:mainnet": "hardhat run scripts/verify-contracts.js --network kasplexL2Mainnet",
+    "gitbook:setup": "node scripts/gitbook-sync/cli.js setup",
+    "gitbook:sync": "node scripts/gitbook-sync/cli.js sync",
+    "gitbook:test": "node scripts/gitbook-sync/cli.js test",
+    "gitbook:listen": "node scripts/gitbook-sync/listener.js",
+    "gitbook:generate": "node scripts/gitbook-sync/generate-markdown.js",
+    "gitbook:sync:git": "node scripts/gitbook-sync/sync-to-git.js"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.4.0",
