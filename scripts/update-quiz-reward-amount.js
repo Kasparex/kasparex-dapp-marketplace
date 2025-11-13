@@ -1,17 +1,27 @@
 /**
- * Update QuizToEarn defaultRewardAmount to distribute 1000 GRID tokens per correct answer
+ * Update QuizToEarn defaultRewardAmount for sustainable GRID token rewards
  * 
- * Calculation:
- * - Target: 1000 GRID tokens per correct answer
- * - Current reward rate: 100 basis points (1%)
- * - Required actionValue: 1000 GRID × 10000 / 100 = 100,000 KAS
+ * Recommended Configuration (Option 1 - Moderate):
+ * - Target: 0.01 GRID tokens per correct answer
+ * - Reward rate: 100 basis points (1%)
+ * - Required actionValue: 0.01 GRID × 10000 / 100 = 1 KAS
+ * 
+ * Alternative Options:
+ * - Option 2 (Balanced): REWARD_AMOUNT=10 → 0.1 GRID tokens
+ * - Option 3 (Generous): REWARD_AMOUNT=100 → 1 GRID token
+ * 
+ * See docs/QUIZ_REWARD_RECOMMENDATIONS.md for detailed analysis
  * 
  * Usage:
+ *   # Recommended (0.01 GRID per answer)
  *   npx hardhat run scripts/update-quiz-reward-amount.js --network kasplexL2Testnet
+ * 
+ *   # Alternative (0.1 GRID per answer)
+ *   REWARD_AMOUNT=10 npx hardhat run scripts/update-quiz-reward-amount.js --network kasplexL2Testnet
  * 
  * Environment Variables:
  *   QUIZ_TO_EARN_ADDRESS - QuizToEarn contract address (default: deployed address)
- *   REWARD_AMOUNT - Reward amount in KAS (default: 100000 = 100,000 KAS)
+ *   REWARD_AMOUNT - Reward amount in KAS (default: 1 = 1 KAS → 0.01 GRID)
  */
 
 const hre = require('hardhat');
@@ -33,9 +43,10 @@ async function main() {
   
   const quizToEarnAddress = process.env.QUIZ_TO_EARN_ADDRESS || (isIgra ? igraQuizToEarn : defaultQuizToEarn);
   
-  // Reward amount: 100,000 KAS to get 1000 GRID tokens at 1% rate
-  // Calculation: 1000 GRID = (actionValue × 100) / 10000 → actionValue = 100,000 KAS
-  const rewardAmountKAS = process.env.REWARD_AMOUNT ? parseFloat(process.env.REWARD_AMOUNT) : 100000;
+  // Recommended: 1 KAS to get 0.01 GRID tokens at 1% rate
+  // Calculation: 0.01 GRID = (actionValue × 100) / 10000 → actionValue = 1 KAS
+  // Alternative: 10 KAS → 0.1 GRID, 100 KAS → 1 GRID
+  const rewardAmountKAS = process.env.REWARD_AMOUNT ? parseFloat(process.env.REWARD_AMOUNT) : 1;
   const rewardAmountWei = hre.ethers.parseEther(rewardAmountKAS.toString());
   
   // Validate address
@@ -45,11 +56,14 @@ async function main() {
     process.exit(1);
   }
   
+  const expectedGRID = (rewardAmountKAS * 100) / 10000;
+  
   console.log(`📋 Network: ${network}`);
   console.log(`   Chain ID: ${isIgra ? '19416' : '167012'}`);
   console.log(`   QuizToEarn: ${quizToEarnAddress}`);
   console.log(`   New Reward Amount: ${rewardAmountKAS.toLocaleString()} KAS`);
-  console.log(`   Expected GRID Reward: 1000 GRID tokens (at 1% rate)\n`);
+  console.log(`   Expected GRID Reward: ${expectedGRID} GRID tokens (at 1% rate)`);
+  console.log(`   📊 This is ${expectedGRID >= 1 ? 'generous' : expectedGRID >= 0.1 ? 'balanced' : 'moderate'} reward level\n`);
 
   try {
     const QuizToEarn = await hre.ethers.getContractFactory('QuizToEarn');
@@ -90,12 +104,13 @@ async function main() {
     console.log('\n📦 QuizToEarn Reward Configuration:');
     console.log('   Contract:', quizToEarnAddress);
     console.log('   Default Reward Amount:', rewardAmountKAS.toLocaleString(), 'KAS');
-    console.log('   Expected GRID Reward: 1000 GRID tokens per correct answer');
+    console.log('   Expected GRID Reward:', expectedGRID, 'GRID tokens per correct answer');
     console.log('\n💡 Note:');
     console.log('   - Reward rate: 1% (100 basis points)');
     console.log('   - Reward type: GRID Token');
-    console.log('   - Calculation: 100,000 KAS × 1% = 1000 GRID tokens');
+    console.log(`   - Calculation: ${rewardAmountKAS} KAS × 1% = ${expectedGRID} GRID tokens`);
     console.log('   - Ensure RewardManager has sufficient GRID tokens');
+    console.log('\n📚 See docs/QUIZ_REWARD_RECOMMENDATIONS.md for reward options and sustainability analysis');
     console.log('');
 
   } catch (error) {

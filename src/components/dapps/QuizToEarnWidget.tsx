@@ -138,7 +138,8 @@ export function QuizToEarnWidget() {
 
         <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
           <p className="text-sm text-blue-700 dark:text-blue-400">
-            💰 Reward per correct answer: <span className="font-semibold">1000 GRID tokens</span>
+            💰 Reward per correct answer: <span className="font-semibold">0.01 GRID tokens</span>
+            <span className="text-xs ml-2 opacity-75">(Recommended: sustainable and scalable)</span>
           </p>
         </div>
 
@@ -248,7 +249,7 @@ export function QuizToEarnWidget() {
                         {question.questionText}
                       </h4>
                       <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Reward: <span className="font-semibold">1000 GRID tokens</span>
+                        Reward: <span className="font-semibold">0.01 GRID tokens</span>
                       </p>
                     </div>
                     <div className="ml-4">
@@ -366,7 +367,7 @@ export function QuizToEarnWidget() {
               </p>
               {currentAnswer.isCorrect && (
                 <p className="text-sm text-green-700 dark:text-green-400 mt-2">
-                  💰 You earned <span className="font-semibold">1000 GRID tokens</span>! Your GRID balance will update automatically.
+                  💰 You earned <span className="font-semibold">0.01 GRID tokens</span>! Your GRID balance will update automatically.
                 </p>
               )}
             </div>

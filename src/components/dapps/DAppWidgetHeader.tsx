@@ -15,7 +15,6 @@ import Link from 'next/link';
 import { DAppInfoModal } from './DAppInfoModal';
 import { DAppEmbed } from './DAppEmbed';
 import { DAppGuideAndInfoModal } from './DAppGuideAndInfoModal';
-import { DAppThemeSwitcherModal } from './DAppThemeSwitcherModal';
 import { useDAppFromContract, mergeDAppData } from '@/lib/dapps/contractData';
 import { CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
@@ -168,7 +167,6 @@ export function DAppWidgetHeader({
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showGuideAndInfoModal, setShowGuideAndInfoModal] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
-  const [showThemeModal, setShowThemeModal] = useState(false);
   const [showTokenTooltip, setShowTokenTooltip] = useState(false);
 
   // Get token information
@@ -499,7 +497,7 @@ export function DAppWidgetHeader({
                 {/* Theme Switcher Icon */}
                 {!hideTheme && (
                   <button
-                    onClick={() => setShowThemeModal(true)}
+                    onClick={() => setShowEmbedModal(true)}
                     className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
                     title="Page Theme"
                     aria-label="Change page theme"
@@ -821,13 +819,6 @@ export function DAppWidgetHeader({
           dapp={mergedDApp}
           isOpen={showGuideAndInfoModal}
           onClose={() => setShowGuideAndInfoModal(false)}
-        />
-      )}
-      {showThemeModal && (
-        <DAppThemeSwitcherModal
-          dapp={mergedDApp}
-          isOpen={showThemeModal}
-          onClose={() => setShowThemeModal(false)}
         />
       )}
       {/* Edit functionality removed - dApps are now read-only */}
