@@ -95,7 +95,18 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
         functionName: 'questionCount',
       });
 
-      const count = typeof countResult === 'bigint' ? countResult : BigInt(countResult || 0);
+      // Properly handle unknown type from readContract
+      let count: bigint;
+      if (typeof countResult === 'bigint') {
+        count = countResult;
+      } else if (typeof countResult === 'number') {
+        count = BigInt(countResult);
+      } else if (typeof countResult === 'string') {
+        count = BigInt(countResult);
+      } else {
+        // Fallback to 0 if type is unexpected
+        count = 0n;
+      }
 
       if (count === 0n) {
         setQuestions([]);

@@ -93,7 +93,25 @@ This guide walks you through the entire process of creating a new dApp, from sma
    - Implement data loading logic
    - Add refresh mechanisms
 4. Define TypeScript interfaces for your data structures
-5. Test hook functionality
+5. **CRITICAL: Properly handle TypeScript types from contract reads**
+   - `readContract()` returns `unknown` type - always type-check before use
+   - Example for `bigint` values:
+     ```typescript
+     const result = await publicClient.readContract({...});
+     let count: bigint;
+     if (typeof result === 'bigint') {
+       count = result;
+     } else if (typeof result === 'number') {
+       count = BigInt(result);
+     } else if (typeof result === 'string') {
+       count = BigInt(result);
+     } else {
+       count = 0n; // Fallback
+     }
+     ```
+   - Never use `BigInt(result || 0)` directly - it fails if `result` is an object
+   - Always check types explicitly before type conversions
+6. Test hook functionality
 
 ### Step 5: Create Widget Component
 

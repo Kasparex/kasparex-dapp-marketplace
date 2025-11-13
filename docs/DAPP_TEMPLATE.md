@@ -347,6 +347,66 @@ List all UI components needed:
 - `getItem(itemId: bigint)` - Get single item
 - `refreshItems()` - Refresh items list
 
+### ⚠️ CRITICAL: TypeScript Type Handling
+
+**ALWAYS properly handle types from contract reads!**
+
+The `readContract()` function from wagmi/viem returns `unknown` type. You MUST type-check before using the result:
+
+**❌ WRONG - This will cause TypeScript errors:**
+```typescript
+const count = await publicClient.readContract({...});
+const countBigInt = BigInt(count || 0); // ERROR: count might be an object!
+```
+
+**✅ CORRECT - Always check types explicitly:**
+```typescript
+const countResult = await publicClient.readContract({
+  address: contractAddress as `0x${string}`,
+  abi: YOUR_ABI,
+  functionName: 'questionCount',
+});
+
+// Properly handle unknown type
+let count: bigint;
+if (typeof countResult === 'bigint') {
+  count = countResult;
+} else if (typeof countResult === 'number') {
+  count = BigInt(countResult);
+} else if (typeof countResult === 'string') {
+  count = BigInt(countResult);
+} else {
+  count = 0n; // Safe fallback
+}
+```
+
+**For arrays/structs:**
+```typescript
+const result = await publicClient.readContract({...});
+// Type guard for arrays
+if (Array.isArray(result)) {
+  const [id, name, value] = result;
+  // Use typed values
+}
+```
+
+**For objects/structs:**
+```typescript
+const result = await publicClient.readContract({...});
+// Type guard for objects
+if (result && typeof result === 'object' && 'id' in result) {
+  const item = result as { id: bigint; name: string; value: bigint };
+  // Use typed item
+}
+```
+
+**Key Rules:**
+1. ✅ Always check `typeof` before type conversions
+2. ✅ Use explicit type guards for complex types
+3. ✅ Provide safe fallbacks (e.g., `0n` for bigint, `[]` for arrays)
+4. ✅ Never use `BigInt(value || 0)` directly - check type first
+5. ✅ Test TypeScript compilation before pushing (`npm run build`)
+
 ### Hook State
 - `items: {{ItemInterface}}[]` - Array of items
 - `isLoading: boolean` - Loading state
