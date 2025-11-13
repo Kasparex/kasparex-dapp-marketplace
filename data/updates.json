@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1763073666-deb6426",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: Properly handle error case in findPageByPath (by Kasparex)",
+      "date": "2025-11-13T23:40:21+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1763073417-02a9ec1",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: Add GitBookSpace to imports (by Kasparex)",
