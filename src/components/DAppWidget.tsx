@@ -21,7 +21,6 @@ interface DAppWidgetProps {
   hideHeart?: boolean;
   hideInfo?: boolean;
   hideEmbed?: boolean;
-  hideTheme?: boolean;
   accentColor?: string;
 }
 
@@ -34,7 +33,6 @@ export function DAppWidget({
   hideHeart = false,
   hideInfo = false,
   hideEmbed = false,
-  hideTheme = false,
   accentColor = '#02abb8',
 }: DAppWidgetProps) {
   const [showModal, setShowModal] = useState(false);
@@ -90,7 +88,6 @@ export function DAppWidget({
                 hideHeart={hideHeart}
                 hideInfo={hideInfo}
                 hideEmbed={hideEmbed}
-                hideTheme={hideTheme}
                 accentColor={accentColor}
               />
             </div>
@@ -128,7 +125,6 @@ export function DAppWidget({
                 hideHeart={hideHeart}
                 hideInfo={hideInfo}
                 hideEmbed={hideEmbed}
-                hideTheme={hideTheme}
                 accentColor={accentColor}
               />
             </div>
@@ -166,7 +162,6 @@ export function DAppWidget({
                 hideHeart={hideHeart}
                 hideInfo={hideInfo}
                 hideEmbed={hideEmbed}
-                hideTheme={hideTheme}
                 accentColor={accentColor}
               />
             </div>
@@ -294,7 +289,6 @@ export function DAppWidget({
                 hideHeart={hideHeart}
                 hideInfo={hideInfo}
                 hideEmbed={hideEmbed}
-                hideTheme={hideTheme}
                 accentColor={accentColor}
               />
             </div>
