@@ -140,9 +140,14 @@ export function DAppCard({ dapp }: DAppCardProps) {
   }, [showEmbedIconTooltip]);
 
   // Get token information
+  // For Quiz-to-Earn, ensure contract address is shown
+  const quizToEarnContractAddress = mergedDApp.slug === 'quiz-to-earn' 
+    ? getContractAddress(chainId, 'QuizToEarn') 
+    : null;
+  
   const tokenTicker = contractData?.ticker || null;
   const tokenAddress = contractData?.tokenAddress || null;
-  const dAppContractAddress = contractData?.contractAddress || mergedDApp.contractAddress || null;
+  const dAppContractAddress = contractData?.contractAddress || mergedDApp.contractAddress || quizToEarnContractAddress || null;
   
   // Format addresses for display
   const formatAddress = (address: string | null) => {

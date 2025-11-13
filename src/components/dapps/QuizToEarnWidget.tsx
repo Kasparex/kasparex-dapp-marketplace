@@ -5,6 +5,8 @@ import { useAccount, useChainId } from 'wagmi';
 import { formatEther } from 'viem';
 import { useQuizToEarn, Question, UserAnswer } from '@/hooks/useQuizToEarn';
 import { getContractAddress } from '@/lib/contracts/addresses';
+import { RewardsDisplay } from './RewardsDisplay';
+import { getExplorerUrl } from '@/lib/dapps/deployer';
 
 export function QuizToEarnWidget() {
   const { address, isConnected } = useAccount();
@@ -15,6 +17,7 @@ export function QuizToEarnWidget() {
   const [currentAnswer, setCurrentAnswer] = useState<UserAnswer | null>(null);
 
   const contractAddress = getContractAddress(chainId, 'QuizToEarn');
+  const gridTokenAddress = getContractAddress(chainId, 'GRIDToken');
 
   const {
     questions,
@@ -28,6 +31,14 @@ export function QuizToEarnWidget() {
     defaultRewardAmount,
     getUserAnswer,
   } = useQuizToEarn();
+
+  // Format contract address for display
+  const formatAddress = (address: string | null) => {
+    if (!address || !address.startsWith('0x')) return null;
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
+  const contractExplorerUrl = contractAddress ? getExplorerUrl(contractAddress, chainId) : null;
 
   // Load user answer when question is selected
   useEffect(() => {
@@ -125,11 +136,32 @@ export function QuizToEarnWidget() {
           </p>
         </div>
 
-        {defaultRewardAmount && (
-          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <p className="text-sm text-blue-700 dark:text-blue-400">
-              💰 Reward per correct answer: {formatEther(defaultRewardAmount)} KAS worth of tokens
-            </p>
+        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+          <p className="text-sm text-blue-700 dark:text-blue-400">
+            💰 Reward per correct answer: <span className="font-semibold">1000 GRID tokens</span>
+          </p>
+        </div>
+
+        {contractAddress && (
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-zinc-600 dark:text-zinc-400 font-medium">Contract:</span>
+              {contractExplorerUrl ? (
+                <a
+                  href={contractExplorerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#02abb8] hover:text-[#0199a3] hover:underline font-mono transition-colors"
+                  title={contractAddress}
+                >
+                  {formatAddress(contractAddress)}
+                </a>
+              ) : (
+                <span className="text-zinc-500 dark:text-zinc-400 font-mono">
+                  {formatAddress(contractAddress)}
+                </span>
+              )}
+            </div>
           </div>
         )}
 
@@ -216,7 +248,7 @@ export function QuizToEarnWidget() {
                         {question.questionText}
                       </h4>
                       <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Reward: {formatEther(question.rewardAmount)} KAS worth
+                        Reward: <span className="font-semibold">1000 GRID tokens</span>
                       </p>
                     </div>
                     <div className="ml-4">
@@ -230,6 +262,16 @@ export function QuizToEarnWidget() {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* My Rewards Section */}
+        {isConnected && gridTokenAddress && (
+          <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-700">
+            <RewardsDisplay
+              gridTokenAddress={gridTokenAddress}
+              className=""
+            />
           </div>
         )}
       </div>
@@ -324,7 +366,7 @@ export function QuizToEarnWidget() {
               </p>
               {currentAnswer.isCorrect && (
                 <p className="text-sm text-green-700 dark:text-green-400 mt-2">
-                  💰 You earned {formatEther(selectedQuestion.rewardAmount)} KAS worth of rewards!
+                  💰 You earned <span className="font-semibold">1000 GRID tokens</span>! Your GRID balance will update automatically.
                 </p>
               )}
             </div>
@@ -398,6 +440,16 @@ export function QuizToEarnWidget() {
       {error && (
         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
           <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        </div>
+      )}
+
+      {/* My Rewards Section */}
+      {isConnected && gridTokenAddress && (
+        <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-700">
+          <RewardsDisplay
+            gridTokenAddress={gridTokenAddress}
+            className=""
+          />
         </div>
       )}
     </div>
