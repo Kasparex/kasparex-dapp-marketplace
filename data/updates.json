@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762997254-9395e92",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: properly type-check questionCount and defaultRewardAmount from useReadContract (by Kasparex)",
+      "date": "2025-11-13T02:27:14+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762997098-456f096",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix remaining TypeScript errors: properly type-check getUserAnswer results (by Kasparex)",
