@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1762997407-07319ad",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: add QuizToEarn to DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet (by Kasparex)",
+      "date": "2025-11-13T02:29:44+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1762997254-9395e92",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: properly type-check questionCount and defaultRewardAmount from useReadContract (by Kasparex)",
