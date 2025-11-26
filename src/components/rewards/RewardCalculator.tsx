@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import type { CalculatorInputs, KREXTier, NFTStatus, CustomBaseRewards, NodeProviderStatus, SupplyMetrics } from '@/lib/rewards/types';
-import { BASE_REWARDS, DEFAULT_NODE_MULTIPLIER, DEFAULT_NODE_FEE_REDUCTION } from '@/lib/rewards/types';
+import type { CalculatorInputs, KREXTier, NFTStatus, CustomBaseRewards, NodeProviderStatus, SupplyMetrics, FeeSettings } from '@/lib/rewards/types';
+import { BASE_REWARDS, DEFAULT_NODE_MULTIPLIER, DEFAULT_NODE_FEE_REDUCTION, DEFAULT_FEE_DISTRIBUTION, DEFAULT_BASE_FEE_PERCENT } from '@/lib/rewards/types';
 import { calculateRewards, validateInputs } from '@/lib/rewards/calculator';
 import { RewardBreakdown } from './RewardBreakdown';
 import { PointsDisplay } from './PointsDisplay';
@@ -39,6 +39,13 @@ export function RewardCalculator() {
     grtMinted: 0,
     lrtMinted: 0,
   });
+  const [feeSettings, setFeeSettings] = useState<FeeSettings>({
+    baseFeePercent: DEFAULT_BASE_FEE_PERCENT,
+    useCustomDistribution: false,
+    kasparexPercent: DEFAULT_FEE_DISTRIBUTION.KASPAREX,
+    grtTreasuryPercent: DEFAULT_FEE_DISTRIBUTION.GRT_TREASURY,
+    lrtTreasuryPercent: DEFAULT_FEE_DISTRIBUTION.LRT_TREASURY,
+  });
 
   // Build inputs object
   const inputs: CalculatorInputs = useMemo(
@@ -49,8 +56,9 @@ export function RewardCalculator() {
       seasonalBoost,
       customBaseRewards,
       nodeProvider,
+      feeSettings,
     }),
-    [kasAmount, krexTier, nftStatus, seasonalBoost, customBaseRewards, nodeProvider]
+    [kasAmount, krexTier, nftStatus, seasonalBoost, customBaseRewards, nodeProvider, feeSettings]
   );
 
   // Validate inputs

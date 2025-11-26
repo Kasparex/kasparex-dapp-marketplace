@@ -16,7 +16,8 @@ import {
   NFT_FEE_REDUCTION,
   DIAMOND_NFT_MULTIPLIER,
   DIAMOND_NFT_FEE_REDUCTION,
-  FEE_DISTRIBUTION,
+  DEFAULT_FEE_DISTRIBUTION,
+  DEFAULT_BASE_FEE_PERCENT,
 } from './types';
 import type { SupplyMetrics } from './types';
 
@@ -128,7 +129,22 @@ export function calculateRewards(
   const finalXP = baseXP * pointsMultiplier;
 
   // Calculate fee
-  let feePercent = tierConfig.feePercent;
+  // Use custom base fee if provided, otherwise use tier's default fee
+  const baseFee = inputs.feeSettings.baseFeePercent;
+  let feePercent = baseFee;
+  
+  // Apply tier-based fee reductions from the base fee
+  // Tier0: base fee (no reduction)
+  // Tier1: 0.8% of base (20% reduction)
+  // Tier2: 0.7% of base (30% reduction)
+  // Tier3: 0.5% of base (50% reduction)
+  if (krexTier === 'Tier1') {
+    feePercent = baseFee * 0.8;
+  } else if (krexTier === 'Tier2') {
+    feePercent = baseFee * 0.7;
+  } else if (krexTier === 'Tier3') {
+    feePercent = baseFee * 0.5;
+  }
   
   // Apply NFT fee reductions (stack with tier reduction)
   // Regular NFT: -0.1% if holding at least 1 NFT from KREXPRIME or PIXELKREX
@@ -146,11 +162,19 @@ export function calculateRewards(
 
   const feeAmount = (kasAmount * feePercent) / 100;
 
-  // Calculate fee distribution
+  // Calculate fee distribution (use custom if enabled, otherwise default)
+  const distribution = inputs.feeSettings.useCustomDistribution
+    ? {
+        kasparex: inputs.feeSettings.kasparexPercent,
+        grtTreasury: inputs.feeSettings.grtTreasuryPercent,
+        lrtTreasury: inputs.feeSettings.lrtTreasuryPercent,
+      }
+    : DEFAULT_FEE_DISTRIBUTION;
+
   const feeDistribution = {
-    kasparex: (feeAmount * FEE_DISTRIBUTION.KASPAREX) / 100,
-    grtTreasury: (feeAmount * FEE_DISTRIBUTION.GRT_TREASURY) / 100,
-    lrtTreasury: (feeAmount * FEE_DISTRIBUTION.LRT_TREASURY) / 100,
+    kasparex: (feeAmount * distribution.kasparex) / 100,
+    grtTreasury: (feeAmount * distribution.grtTreasury) / 100,
+    lrtTreasury: (feeAmount * distribution.lrtTreasury) / 100,
   };
 
   // Calculate supply exhaustion if metrics provided

@@ -47,7 +47,9 @@ export function FeeDistribution({
       <div className="space-y-3">
         <div className="flex items-center justify-between text-sm mb-2">
           <span className="text-zinc-600 dark:text-zinc-400">Distribution:</span>
-          <span className="text-zinc-500 dark:text-zinc-400">60% / 20% / 20%</span>
+          <span className="text-zinc-500 dark:text-zinc-400">
+            {Math.round((feeDistribution.kasparex / total) * 100)}% / {Math.round((feeDistribution.grtTreasury / total) * 100)}% / {Math.round((feeDistribution.lrtTreasury / total) * 100)}%
+          </span>
         </div>
 
         {/* Visual Bar */}

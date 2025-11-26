@@ -30,8 +30,16 @@ export interface CustomBaseRewards {
 
 export interface NodeProviderStatus {
   isNodeProvider: boolean;
-  nodeMultiplier: number; // e.g., 10x
+  nodeMultiplier: number; // e.g., 5x
   nodeFeeReduction: number; // percentage reduction
+}
+
+export interface FeeSettings {
+  baseFeePercent: number; // Default base fee percentage (e.g., 1%)
+  useCustomDistribution: boolean;
+  kasparexPercent: number; // Default 60%
+  grtTreasuryPercent: number; // Default 20%
+  lrtTreasuryPercent: number; // Default 20%
 }
 
 export interface SupplyMetrics {
@@ -50,6 +58,7 @@ export interface CalculatorInputs {
   seasonalBoost: number; // percentage (0-100)
   customBaseRewards: CustomBaseRewards;
   nodeProvider: NodeProviderStatus;
+  feeSettings: FeeSettings;
 }
 
 export interface RewardResult {
@@ -115,18 +124,18 @@ export const KREX_TIERS: Record<KREXTier, KREXTierConfig> = {
   Tier2: {
     tier: 'Tier2',
     minKREX: 10_000_000,
-    multiplier: 6,
+    multiplier: 5,
     feePercent: 0.7,
-    pointsMultiplier: 6,
+    pointsMultiplier: 5,
     label: 'Tier 2',
     description: '≥ 10M KREX',
   },
   Tier3: {
     tier: 'Tier3',
     minKREX: 100_000_000,
-    multiplier: 11,
+    multiplier: 10,
     feePercent: 0.5,
-    pointsMultiplier: 11,
+    pointsMultiplier: 10,
     label: 'Tier 3',
     description: '≥ 100M KREX',
   },
@@ -149,10 +158,13 @@ export const DIAMOND_NFT_FEE_REDUCTION = 0.2; // 0.2% fee reduction for Diamond 
 export const DEFAULT_NODE_MULTIPLIER = 5; // 5x multiplier for node providers
 export const DEFAULT_NODE_FEE_REDUCTION = 0.1; // 0.1% fee reduction for node providers
 
-// Fee distribution percentages
-export const FEE_DISTRIBUTION = {
+// Default fee distribution percentages
+export const DEFAULT_FEE_DISTRIBUTION = {
   KASPAREX: 60,
   GRT_TREASURY: 20,
   LRT_TREASURY: 20,
 } as const;
+
+// Default base fee percentage
+export const DEFAULT_BASE_FEE_PERCENT = 1.0;
 
