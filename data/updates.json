@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764191203-3826c29",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Move dApps dropdown back next to logo/title and add subtle hover animations to logo and title (by Kasparex)",
+      "date": "2025-11-26T22:05:47+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764190409-91cedfc",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix syntax error in Header.tsx - remove stray closing tags (by Kasparex)",
