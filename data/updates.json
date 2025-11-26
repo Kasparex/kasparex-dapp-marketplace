@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764190409-91cedfc",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix syntax error in Header.tsx - remove stray closing tags (by Kasparex)",
+      "date": "2025-11-26T21:52:29+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764190136-9e9d206",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add lazy loading to Updates page with Load More button and make header logo/title link to home page (by Kasparex)",
