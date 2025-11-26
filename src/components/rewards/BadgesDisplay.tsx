@@ -72,13 +72,13 @@ export function BadgesDisplay({
                   Rarest NFT Badge
                 </div>
                 <div className="text-xs text-zinc-600 dark:text-zinc-400">
-                  NFT #515 (PIXELKREX) or #345 (KREXPRIME)
+                  Rarest NFT (any collection)
                 </div>
               </div>
             </div>
             <div className="mt-3 pt-3 border-t border-zinc-200 dark:border-zinc-700">
               <div className="text-xs text-yellow-600 dark:text-yellow-400 font-medium">
-                +5x multiplier • Zero-fee mode
+                +5x multiplier • 0.0% fee
               </div>
             </div>
           </div>

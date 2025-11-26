@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 import type { CalculatorInputs, KREXTier, NFTStatus, CustomBaseRewards, NodeProviderStatus, SupplyMetrics, FeeSettings } from '@/lib/rewards/types';
 import { BASE_REWARDS, DEFAULT_NODE_MULTIPLIER, DEFAULT_NODE_FEE_REDUCTION, DEFAULT_FEE_DISTRIBUTION, DEFAULT_BASE_FEE_PERCENT } from '@/lib/rewards/types';
 import { calculateRewards, validateInputs } from '@/lib/rewards/calculator';
@@ -10,6 +12,7 @@ import { MultiplierDisplay } from './MultiplierDisplay';
 import { FeeDistribution } from './FeeDistribution';
 import { SupplyMetrics as SupplyMetricsDisplay } from './SupplyMetrics';
 import { BadgesDisplay } from './BadgesDisplay';
+import { EcosystemPerks } from './EcosystemPerks';
 
 export function RewardCalculator() {
   const [kasAmount, setKasAmount] = useState<number>(10);
@@ -337,14 +340,14 @@ export function RewardCalculator() {
                         }}
                         className="w-4 h-4 text-yellow-600 border-yellow-300 dark:border-yellow-700 rounded focus:ring-yellow-600 focus:ring-2"
                       />
-                      <span className="text-sm text-zinc-900 dark:text-zinc-100">⭐ Rarest NFT (#515 PIXELKREX or #345 KREXPRIME)</span>
+                      <span className="text-sm text-zinc-900 dark:text-zinc-100">⭐ Rarest NFT (any collection)</span>
                     </div>
                     <div className="text-xs text-yellow-600 dark:text-yellow-400 font-medium">
-                      +5x multiplier, Zero-fee mode
+                      +5x multiplier, 0.0% fee
                     </div>
                   </div>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-                    Holding at least 1 NFT from KREXPRIME or PIXELKREX gives +1x. Holding any Diamond NFT gives +3x. Rarest NFT (#515 or #345) gives +5x and zero-fee mode (highest priority).
+                    Holding at least 1 NFT from KREXPRIME or PIXELKREX gives +1x. Holding any Diamond NFT gives +3x. Rarest NFT (any collection) gives +5x and 0.0% fee (highest priority).
                   </p>
                 </div>
               </div>
@@ -531,6 +534,11 @@ export function RewardCalculator() {
               />
               <FeeDistribution result={result} kasAmount={kasAmount} />
               <BadgesDisplay
+                krexTier={krexTier}
+                nftStatus={nftStatus}
+                nodeProvider={nodeProvider}
+              />
+              <EcosystemPerks
                 krexTier={krexTier}
                 nftStatus={nftStatus}
                 nodeProvider={nodeProvider}

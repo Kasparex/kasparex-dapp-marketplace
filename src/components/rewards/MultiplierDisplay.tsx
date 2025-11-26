@@ -84,6 +84,12 @@ export function MultiplierDisplay({
                 {hasDiamondNFT ? '✓ Owned' : 'Not owned'}
               </span>
             </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-zinc-600 dark:text-zinc-400">⭐ Rarest NFT:</span>
+              <span className={hasRarestNFT ? 'text-yellow-600 dark:text-yellow-400 font-medium' : 'text-zinc-400'}>
+                {hasRarestNFT ? '✓ Owned' : 'Not owned'}
+              </span>
+            </div>
             {hasAnyNFT && (
               <div className="text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-200 dark:border-zinc-700">
                 {hasRarestNFT ? (
