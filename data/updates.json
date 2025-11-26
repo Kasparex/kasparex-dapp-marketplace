@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764179312-5c53d7a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update rarest NFT text, add Kasparex logo/title with home link, add rarest NFT to status section, and add ecosystem perks component (by Kasparex)",
+      "date": "2025-11-26T18:48:11+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764176973-7a226e4",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add rarest NFT checkbox to UI (by Kasparex)",
