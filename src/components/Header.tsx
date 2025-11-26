@@ -254,8 +254,6 @@ export function Header() {
                 )}
               </div>
             </span>
-          </h1>
-        </div>
 
         {/* Right side: Wallet Connect and Theme Toggle - no padding, flush to right */}
         <div className="flex items-center gap-2 sm:gap-3 pr-2 sm:pr-4 lg:pr-6">
