@@ -94,9 +94,9 @@ export function MultiplierDisplay({
               <div className="text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-200 dark:border-zinc-700">
                 {hasRarestNFT ? (
                   <>
-                    <span className="text-yellow-600 dark:text-yellow-400 font-medium">+5x multiplier (Rarest NFT #515 or #345)</span>
+                    <span className="text-yellow-600 dark:text-yellow-400 font-medium">+5x multiplier (Rarest NFT any collection)</span>
                     <br />
-                    <span className="text-yellow-600 dark:text-yellow-400 font-medium">Zero-fee mode active</span>
+                    <span className="text-yellow-600 dark:text-yellow-400 font-medium">0.0% fee</span>
                   </>
                 ) : hasDiamondNFT ? (
                   <>
