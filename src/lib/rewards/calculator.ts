@@ -100,12 +100,16 @@ export function calculateRewards(
   // Calculate multipliers
   const krexMultiplier = tierConfig.multiplier;
   
-  // NFT multiplier: +1x per regular NFT, +5x per Diamond NFT
+  // NFT multiplier: +1x if holding at least 1 NFT from KREXPRIME or PIXELKREX, +3x if holding any Diamond NFT
   let nftMultiplier = 1;
-  if (nftStatus.hasKREXPRIME) nftMultiplier += NFT_MULTIPLIER;
-  if (nftStatus.hasPIXELKREX) nftMultiplier += NFT_MULTIPLIER;
-  if (nftStatus.hasDiamondKREXPRIME) nftMultiplier += DIAMOND_NFT_MULTIPLIER;
-  if (nftStatus.hasDiamondPIXELKREX) nftMultiplier += DIAMOND_NFT_MULTIPLIER;
+  const hasRegularNFT = nftStatus.hasKREXPRIME || nftStatus.hasPIXELKREX;
+  const hasDiamondNFT = nftStatus.hasDiamondKREXPRIME || nftStatus.hasDiamondPIXELKREX;
+  
+  if (hasDiamondNFT) {
+    nftMultiplier += DIAMOND_NFT_MULTIPLIER; // +3x for any Diamond NFT
+  } else if (hasRegularNFT) {
+    nftMultiplier += NFT_MULTIPLIER; // +1x for at least 1 regular NFT
+  }
   
   // Node provider multiplier
   const nodeMultiplier = nodeProvider.isNodeProvider ? nodeProvider.nodeMultiplier : 1;
@@ -127,19 +131,12 @@ export function calculateRewards(
   let feePercent = tierConfig.feePercent;
   
   // Apply NFT fee reductions (stack with tier reduction)
-  if (nftStatus.hasKREXPRIME) {
-    feePercent = Math.max(0, feePercent - NFT_FEE_REDUCTION);
-  }
-  if (nftStatus.hasPIXELKREX) {
-    feePercent = Math.max(0, feePercent - NFT_FEE_REDUCTION);
-  }
-  
-  // Apply Diamond NFT fee reductions (additional reduction)
-  if (nftStatus.hasDiamondKREXPRIME) {
+  // Regular NFT: -0.1% if holding at least 1 NFT from KREXPRIME or PIXELKREX
+  // Diamond NFT: -0.2% if holding any Diamond NFT (replaces regular NFT reduction)
+  if (hasDiamondNFT) {
     feePercent = Math.max(0, feePercent - DIAMOND_NFT_FEE_REDUCTION);
-  }
-  if (nftStatus.hasDiamondPIXELKREX) {
-    feePercent = Math.max(0, feePercent - DIAMOND_NFT_FEE_REDUCTION);
+  } else if (hasRegularNFT) {
+    feePercent = Math.max(0, feePercent - NFT_FEE_REDUCTION);
   }
   
   // Apply node provider fee reduction

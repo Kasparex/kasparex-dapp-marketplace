@@ -274,25 +274,19 @@ export function RewardCalculator() {
                     <div className="flex items-center space-x-2">
                       <input
                         type="checkbox"
-                        checked={nftStatus.hasKREXPRIME}
-                        onChange={() => handleNFTToggle('KREXPRIME')}
+                        checked={nftStatus.hasKREXPRIME || nftStatus.hasPIXELKREX}
+                        onChange={() => {
+                          // Toggle both together
+                          const newValue = !(nftStatus.hasKREXPRIME || nftStatus.hasPIXELKREX);
+                          setNftStatus(prev => ({
+                            ...prev,
+                            hasKREXPRIME: newValue,
+                            hasPIXELKREX: newValue,
+                          }));
+                        }}
                         className="w-4 h-4 text-[#02abb8] border-zinc-300 dark:border-zinc-700 rounded focus:ring-[#02abb8] focus:ring-2"
                       />
-                      <span className="text-sm text-zinc-900 dark:text-zinc-100">KREXPRIME</span>
-                    </div>
-                    <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                      +1x multiplier, -0.1% fee
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={nftStatus.hasPIXELKREX}
-                        onChange={() => handleNFTToggle('PIXELKREX')}
-                        className="w-4 h-4 text-[#02abb8] border-zinc-300 dark:border-zinc-700 rounded focus:ring-[#02abb8] focus:ring-2"
-                      />
-                      <span className="text-sm text-zinc-900 dark:text-zinc-100">PIXELKREX</span>
+                      <span className="text-sm text-zinc-900 dark:text-zinc-100">KREXPRIME or PIXELKREX</span>
                     </div>
                     <div className="text-xs text-zinc-500 dark:text-zinc-400">
                       +1x multiplier, -0.1% fee
@@ -302,30 +296,27 @@ export function RewardCalculator() {
                     <div className="flex items-center space-x-2">
                       <input
                         type="checkbox"
-                        checked={nftStatus.hasDiamondKREXPRIME}
-                        onChange={() => handleNFTToggle('DiamondKREXPRIME')}
+                        checked={nftStatus.hasDiamondKREXPRIME || nftStatus.hasDiamondPIXELKREX}
+                        onChange={() => {
+                          // Toggle both together
+                          const newValue = !(nftStatus.hasDiamondKREXPRIME || nftStatus.hasDiamondPIXELKREX);
+                          setNftStatus(prev => ({
+                            ...prev,
+                            hasDiamondKREXPRIME: newValue,
+                            hasDiamondPIXELKREX: newValue,
+                          }));
+                        }}
                         className="w-4 h-4 text-purple-600 border-purple-300 dark:border-purple-700 rounded focus:ring-purple-600 focus:ring-2"
                       />
-                      <span className="text-sm text-zinc-900 dark:text-zinc-100">💎 Diamond KREXPRIME</span>
+                      <span className="text-sm text-zinc-900 dark:text-zinc-100">💎 Diamond NFT (any collection)</span>
                     </div>
                     <div className="text-xs text-purple-600 dark:text-purple-400">
-                      +5x multiplier, -0.2% fee
+                      +3x multiplier, -0.2% fee
                     </div>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={nftStatus.hasDiamondPIXELKREX}
-                        onChange={() => handleNFTToggle('DiamondPIXELKREX')}
-                        className="w-4 h-4 text-purple-600 border-purple-300 dark:border-purple-700 rounded focus:ring-purple-600 focus:ring-2"
-                      />
-                      <span className="text-sm text-zinc-900 dark:text-zinc-100">💎 Diamond PIXELKREX</span>
-                    </div>
-                    <div className="text-xs text-purple-600 dark:text-purple-400">
-                      +5x multiplier, -0.2% fee
-                    </div>
-                  </div>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                    Holding at least 1 NFT from KREXPRIME or PIXELKREX gives +1x. Holding any Diamond NFT gives +3x (replaces regular NFT bonus).
+                  </p>
                 </div>
               </div>
 

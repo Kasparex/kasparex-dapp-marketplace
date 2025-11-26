@@ -140,13 +140,13 @@ export const BASE_REWARDS = {
 } as const;
 
 // NFT multipliers and fee reductions
-export const NFT_MULTIPLIER = 1; // +1x multiplier per NFT (e.g., 2x total if has one NFT)
-export const NFT_FEE_REDUCTION = 0.1; // 0.1% reduction per NFT
-export const DIAMOND_NFT_MULTIPLIER = 5; // +5x multiplier for Diamond NFTs
+export const NFT_MULTIPLIER = 1; // +1x multiplier if holding at least 1 NFT from KREXPRIME or PIXELKREX collections
+export const NFT_FEE_REDUCTION = 0.1; // 0.1% fee reduction
+export const DIAMOND_NFT_MULTIPLIER = 3; // +3x multiplier for any Diamond NFT from any collection
 export const DIAMOND_NFT_FEE_REDUCTION = 0.2; // 0.2% fee reduction for Diamond NFTs
 
 // Node provider defaults
-export const DEFAULT_NODE_MULTIPLIER = 10; // 10x multiplier for node providers
+export const DEFAULT_NODE_MULTIPLIER = 5; // 5x multiplier for node providers
 export const DEFAULT_NODE_FEE_REDUCTION = 0.1; // 0.1% fee reduction for node providers
 
 // Fee distribution percentages

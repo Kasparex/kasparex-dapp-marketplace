@@ -72,31 +72,32 @@ export function MultiplierDisplay({
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-zinc-600 dark:text-zinc-400">KREXPRIME:</span>
-              <span className={nftStatus.hasKREXPRIME ? 'text-green-600 dark:text-green-400 font-medium' : 'text-zinc-400'}>
-                {nftStatus.hasKREXPRIME ? '✓ Owned' : 'Not owned'}
+              <span className="text-zinc-600 dark:text-zinc-400">KREXPRIME or PIXELKREX:</span>
+              <span className={(nftStatus.hasKREXPRIME || nftStatus.hasPIXELKREX) ? 'text-green-600 dark:text-green-400 font-medium' : 'text-zinc-400'}>
+                {(nftStatus.hasKREXPRIME || nftStatus.hasPIXELKREX) ? '✓ Owned' : 'Not owned'}
               </span>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-zinc-600 dark:text-zinc-400">PIXELKREX:</span>
-              <span className={nftStatus.hasPIXELKREX ? 'text-green-600 dark:text-green-400 font-medium' : 'text-zinc-400'}>
-                {nftStatus.hasPIXELKREX ? '✓ Owned' : 'Not owned'}
+              <span className="text-zinc-600 dark:text-zinc-400">💎 Diamond NFT:</span>
+              <span className={hasDiamondNFT ? 'text-purple-600 dark:text-purple-400 font-medium' : 'text-zinc-400'}>
+                {hasDiamondNFT ? '✓ Owned' : 'Not owned'}
               </span>
             </div>
-            {(nftStatus.hasDiamondKREXPRIME || nftStatus.hasDiamondPIXELKREX) && (
-              <div className="flex items-center justify-between text-sm mt-2">
-                <span className="text-zinc-600 dark:text-zinc-400">💎 Diamond NFTs:</span>
-                <span className="text-purple-600 dark:text-purple-400 font-medium">
-                  {[nftStatus.hasDiamondKREXPRIME && 'KREXPRIME', nftStatus.hasDiamondPIXELKREX && 'PIXELKREX'].filter(Boolean).join(', ')}
-                </span>
-              </div>
-            )}
             {hasAnyNFT && (
               <div className="text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-200 dark:border-zinc-700">
-                +{result.nftMultiplier > 1 ? (result.nftMultiplier - 1).toFixed(0) : '0'}x multiplier
-                {hasDiamondNFT && ' (includes +5x per Diamond NFT)'}
-                <br />
-                Regular NFTs: -0.1% fee each, Diamond NFTs: -0.2% fee each
+                {hasDiamondNFT ? (
+                  <>
+                    +3x multiplier (Diamond NFT from any collection)
+                    <br />
+                    -0.2% fee reduction
+                  </>
+                ) : (
+                  <>
+                    +1x multiplier (at least 1 NFT from KREXPRIME or PIXELKREX)
+                    <br />
+                    -0.1% fee reduction
+                  </>
+                )}
               </div>
             )}
           </div>
