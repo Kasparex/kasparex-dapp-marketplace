@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764166344-2c28f9e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Enhance reward calculator: two-column layout, NFT multipliers, Diamond NFTs, custom base rewards, and node provider support (by Kasparex)",
+      "date": "2025-11-26T15:11:54+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764161612-c3b8daf",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add reward calculator page with GRT, LRT, XP Points simulation (by Kasparex)",
