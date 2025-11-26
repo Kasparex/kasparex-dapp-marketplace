@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764191588-7d1c3fe",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix missing closing div tag in Header component (by Kasparex)",
+      "date": "2025-11-26T22:12:13+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764191203-3826c29",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Move dApps dropdown back next to logo/title and add subtle hover animations to logo and title (by Kasparex)",
