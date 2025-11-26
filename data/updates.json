@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764176973-7a226e4",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add rarest NFT checkbox to UI (by Kasparex)",
+      "date": "2025-11-26T18:09:11+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764176905-bf75130",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add rarest NFT support (zero-fee mode + 5x multiplier) and badges/recognition system for status display (by Kasparex)",
