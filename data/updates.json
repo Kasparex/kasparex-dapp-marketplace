@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764179405-25ccb16",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update rarest NFT text in MultiplierDisplay to match new format (by Kasparex)",
+      "date": "2025-11-26T18:49:32+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764179312-5c53d7a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update rarest NFT text, add Kasparex logo/title with home link, add rarest NFT to status section, and add ecosystem perks component (by Kasparex)",
