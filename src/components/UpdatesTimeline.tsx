@@ -16,6 +16,12 @@ export function UpdatesTimeline({ onEdit, refreshKey, showEditButton = false }: 
   const [data, setData] = useState<UpdatesData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [displayedCount, setDisplayedCount] = useState<Record<Category, number>>({
+    updates: 15,
+    tasks: 15,
+    ideas: 15,
+    bugFixes: 15,
+  });
 
   const fetchData = async () => {
     try {
@@ -39,6 +45,14 @@ export function UpdatesTimeline({ onEdit, refreshKey, showEditButton = false }: 
   useEffect(() => {
     fetchData();
   }, [refreshKey]);
+
+  // Reset displayed count when tab changes
+  useEffect(() => {
+    setDisplayedCount((prev) => ({
+      ...prev,
+      [activeTab]: 15, // Reset to initial count when switching tabs
+    }));
+  }, [activeTab]);
 
   const categories: Category[] = ['updates', 'tasks', 'ideas', 'bugFixes'];
 
@@ -116,6 +130,15 @@ export function UpdatesTimeline({ onEdit, refreshKey, showEditButton = false }: 
   }
 
   const activeEntries = sortEntriesByDate(data[activeTab] || []);
+  const displayedEntries = activeEntries.slice(0, displayedCount[activeTab]);
+  const hasMore = activeEntries.length > displayedCount[activeTab];
+
+  const handleLoadMore = () => {
+    setDisplayedCount((prev) => ({
+      ...prev,
+      [activeTab]: prev[activeTab] + 15, // Load 15 more items
+    }));
+  };
 
   return (
     <div className="w-full">
@@ -163,8 +186,9 @@ export function UpdatesTimeline({ onEdit, refreshKey, showEditButton = false }: 
             No {getCategoryLabel(activeTab).toLowerCase()} yet. Add one using the editor below.
           </div>
         ) : (
-          <div className="space-y-6">
-            {activeEntries.map((entry, index) => (
+          <>
+            <div className="space-y-6">
+              {displayedEntries.map((entry, index) => (
               <div
                 key={entry.id}
                 className="relative pl-8 pb-6 border-l-2 border-zinc-200 dark:border-zinc-800 last:border-l-0 last:pb-0"
@@ -230,8 +254,21 @@ export function UpdatesTimeline({ onEdit, refreshKey, showEditButton = false }: 
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+            
+            {/* Load More Button */}
+            {hasMore && (
+              <div className="mt-8 flex justify-center">
+                <button
+                  onClick={handleLoadMore}
+                  className="px-6 py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+                >
+                  Load More ({activeEntries.length - displayedCount[activeTab]} remaining)
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
