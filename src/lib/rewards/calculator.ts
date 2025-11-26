@@ -163,18 +163,20 @@ export function calculateRewards(
   const feeAmount = (kasAmount * feePercent) / 100;
 
   // Calculate fee distribution (use custom if enabled, otherwise default)
-  const distribution = inputs.feeSettings.useCustomDistribution
-    ? {
-        kasparex: inputs.feeSettings.kasparexPercent,
-        grtTreasury: inputs.feeSettings.grtTreasuryPercent,
-        lrtTreasury: inputs.feeSettings.lrtTreasuryPercent,
-      }
-    : DEFAULT_FEE_DISTRIBUTION;
+  const kasparexPercent = inputs.feeSettings.useCustomDistribution
+    ? inputs.feeSettings.kasparexPercent
+    : DEFAULT_FEE_DISTRIBUTION.KASPAREX;
+  const grtTreasuryPercent = inputs.feeSettings.useCustomDistribution
+    ? inputs.feeSettings.grtTreasuryPercent
+    : DEFAULT_FEE_DISTRIBUTION.GRT_TREASURY;
+  const lrtTreasuryPercent = inputs.feeSettings.useCustomDistribution
+    ? inputs.feeSettings.lrtTreasuryPercent
+    : DEFAULT_FEE_DISTRIBUTION.LRT_TREASURY;
 
   const feeDistribution = {
-    kasparex: (feeAmount * distribution.kasparex) / 100,
-    grtTreasury: (feeAmount * distribution.grtTreasury) / 100,
-    lrtTreasury: (feeAmount * distribution.lrtTreasury) / 100,
+    kasparex: (feeAmount * kasparexPercent) / 100,
+    grtTreasury: (feeAmount * grtTreasuryPercent) / 100,
+    lrtTreasury: (feeAmount * lrtTreasuryPercent) / 100,
   };
 
   // Calculate supply exhaustion if metrics provided
