@@ -14,14 +14,74 @@ import {
   BASE_REWARDS,
   NFT_MULTIPLIER,
   NFT_FEE_REDUCTION,
+  DIAMOND_NFT_MULTIPLIER,
   DIAMOND_NFT_FEE_REDUCTION,
   FEE_DISTRIBUTION,
 } from './types';
+import type { SupplyMetrics } from './types';
+
+/**
+ * Calculate supply exhaustion metrics
+ */
+export function calculateSupplyExhaustion(
+  inputs: CalculatorInputs,
+  supplyMetrics: SupplyMetrics,
+  avgMultiplier: number
+): {
+  daysUntilGRTExhaustion: number;
+  daysUntilLRTExhaustion: number;
+  grtProgress: number;
+  lrtProgress: number;
+  dailyGRTEmission: number;
+  dailyLRTEmission: number;
+} {
+  const { grtMaxSupply, lrtMaxSupply, dailyKasSpent, numberOfUsers, grtMinted, lrtMinted } = supplyMetrics;
+  
+  // Calculate base rewards per KAS
+  const grtPerKas = inputs.customBaseRewards.useCustom 
+    ? inputs.customBaseRewards.grtPerKas 
+    : BASE_REWARDS.GRT_PER_KAS;
+  const lrtPerKas = inputs.customBaseRewards.useCustom 
+    ? inputs.customBaseRewards.lrtPerKas 
+    : BASE_REWARDS.LRT_PER_KAS;
+
+  // Calculate daily emissions (total across all users)
+  const dailyGRTEmission = dailyKasSpent * grtPerKas * avgMultiplier;
+  const dailyLRTEmission = dailyKasSpent * lrtPerKas * avgMultiplier;
+
+  // Calculate remaining supply
+  const remainingGRT = Math.max(0, grtMaxSupply - grtMinted);
+  const remainingLRT = Math.max(0, lrtMaxSupply - lrtMinted);
+
+  // Calculate days until exhaustion
+  const daysUntilGRTExhaustion = dailyGRTEmission > 0 
+    ? remainingGRT / dailyGRTEmission 
+    : Infinity;
+  const daysUntilLRTExhaustion = dailyLRTEmission > 0 
+    ? remainingLRT / dailyLRTEmission 
+    : Infinity;
+
+  // Calculate progress percentages
+  const grtProgress = grtMaxSupply > 0 ? (grtMinted / grtMaxSupply) * 100 : 0;
+  const lrtProgress = lrtMaxSupply > 0 ? (lrtMinted / lrtMaxSupply) * 100 : 0;
+
+  return {
+    daysUntilGRTExhaustion,
+    daysUntilLRTExhaustion,
+    grtProgress: Math.min(100, grtProgress),
+    lrtProgress: Math.min(100, lrtProgress),
+    dailyGRTEmission,
+    dailyLRTEmission,
+  };
+}
 
 /**
  * Calculate rewards based on inputs
  */
-export function calculateRewards(inputs: CalculatorInputs): RewardResult {
+export function calculateRewards(
+  inputs: CalculatorInputs,
+  supplyMetrics?: SupplyMetrics
+): RewardResult {
   const { kasAmount, krexTier, nftStatus, seasonalBoost, customBaseRewards, nodeProvider } = inputs;
 
   // Get KREX tier configuration
@@ -40,10 +100,12 @@ export function calculateRewards(inputs: CalculatorInputs): RewardResult {
   // Calculate multipliers
   const krexMultiplier = tierConfig.multiplier;
   
-  // NFT multiplier: +1x per NFT (so 2x if has one, 3x if has both)
+  // NFT multiplier: +1x per regular NFT, +5x per Diamond NFT
   let nftMultiplier = 1;
   if (nftStatus.hasKREXPRIME) nftMultiplier += NFT_MULTIPLIER;
   if (nftStatus.hasPIXELKREX) nftMultiplier += NFT_MULTIPLIER;
+  if (nftStatus.hasDiamondKREXPRIME) nftMultiplier += DIAMOND_NFT_MULTIPLIER;
+  if (nftStatus.hasDiamondPIXELKREX) nftMultiplier += DIAMOND_NFT_MULTIPLIER;
   
   // Node provider multiplier
   const nodeMultiplier = nodeProvider.isNodeProvider ? nodeProvider.nodeMultiplier : 1;
@@ -94,6 +156,12 @@ export function calculateRewards(inputs: CalculatorInputs): RewardResult {
     lrtTreasury: (feeAmount * FEE_DISTRIBUTION.LRT_TREASURY) / 100,
   };
 
+  // Calculate supply exhaustion if metrics provided
+  let supplyMetricsResult;
+  if (supplyMetrics) {
+    supplyMetricsResult = calculateSupplyExhaustion(inputs, supplyMetrics, totalMultiplier);
+  }
+
   return {
     baseGRT,
     baseLRT,
@@ -110,6 +178,7 @@ export function calculateRewards(inputs: CalculatorInputs): RewardResult {
     feeAmount,
     feeDistribution,
     pointsMultiplier,
+    supplyMetrics: supplyMetricsResult,
   };
 }
 

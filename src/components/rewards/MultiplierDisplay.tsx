@@ -93,8 +93,10 @@ export function MultiplierDisplay({
             )}
             {hasAnyNFT && (
               <div className="text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-200 dark:border-zinc-700">
-                +{result.nftMultiplier > 1 ? (result.nftMultiplier - 1).toFixed(0) : '0'}x multiplier, -0.2% fee per NFT
-                {hasDiamondNFT && ', -0.3% additional per Diamond'}
+                +{result.nftMultiplier > 1 ? (result.nftMultiplier - 1).toFixed(0) : '0'}x multiplier
+                {hasDiamondNFT && ' (includes +5x per Diamond NFT)'}
+                <br />
+                Regular NFTs: -0.1% fee each, Diamond NFTs: -0.2% fee each
               </div>
             )}
           </div>

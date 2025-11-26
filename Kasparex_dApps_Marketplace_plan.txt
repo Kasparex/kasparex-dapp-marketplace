@@ -1,0 +1,17 @@
+1. First, I think best for reducing future scaling costs is to move everything to Cloudflare Workers + Cloudflare Pages instead of Vercel which can be super expensive once the project grows. 
+The ideal setup for Kasparex is:
+? Cloudflare Pages (frontend)
+? Cloudflare Workers (backend)
+? R2 (storage)
+? KV + Durable Objects (dApp metadata, caching, sessions)
+This can give:
+maximum speed
+lowest cost
+highest scalability
+smooth global delivery
+zero management
+perfect fit for a dApp aggregator / marketplace
+Correct me if this is not good idea. 
+2. Using IPFS for storing (and maybe Storacha too). We already have IPFS implemented as I remember and it is also to highly reduce/cut off usage and future costs.
+3. 
+

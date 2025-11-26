@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import type { CalculatorInputs, KREXTier, NFTStatus, CustomBaseRewards, NodeProviderStatus } from '@/lib/rewards/types';
+import type { CalculatorInputs, KREXTier, NFTStatus, CustomBaseRewards, NodeProviderStatus, SupplyMetrics } from '@/lib/rewards/types';
 import { BASE_REWARDS, DEFAULT_NODE_MULTIPLIER, DEFAULT_NODE_FEE_REDUCTION } from '@/lib/rewards/types';
 import { calculateRewards, validateInputs } from '@/lib/rewards/calculator';
 import { RewardBreakdown } from './RewardBreakdown';
 import { PointsDisplay } from './PointsDisplay';
 import { MultiplierDisplay } from './MultiplierDisplay';
 import { FeeDistribution } from './FeeDistribution';
+import { SupplyMetrics as SupplyMetricsDisplay } from './SupplyMetrics';
 
 export function RewardCalculator() {
   const [kasAmount, setKasAmount] = useState<number>(10);
@@ -29,6 +30,14 @@ export function RewardCalculator() {
     isNodeProvider: false,
     nodeMultiplier: DEFAULT_NODE_MULTIPLIER,
     nodeFeeReduction: DEFAULT_NODE_FEE_REDUCTION,
+  });
+  const [supplyMetrics, setSupplyMetrics] = useState<SupplyMetrics>({
+    grtMaxSupply: 100_000_000_000, // 100B
+    lrtMaxSupply: 100_000_000, // 100M
+    dailyKasSpent: 1000,
+    numberOfUsers: 100,
+    grtMinted: 0,
+    lrtMinted: 0,
   });
 
   // Build inputs object
@@ -52,8 +61,8 @@ export function RewardCalculator() {
     if (!validation.valid || kasAmount <= 0) {
       return null;
     }
-    return calculateRewards(inputs);
-  }, [inputs, validation.valid, kasAmount]);
+    return calculateRewards(inputs, supplyMetrics);
+  }, [inputs, validation.valid, kasAmount, supplyMetrics]);
 
   const handleKASChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value) || 0;
@@ -272,7 +281,7 @@ export function RewardCalculator() {
                       <span className="text-sm text-zinc-900 dark:text-zinc-100">KREXPRIME</span>
                     </div>
                     <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                      +1x multiplier, -0.2% fee
+                      +1x multiplier, -0.1% fee
                     </div>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
@@ -286,7 +295,7 @@ export function RewardCalculator() {
                       <span className="text-sm text-zinc-900 dark:text-zinc-100">PIXELKREX</span>
                     </div>
                     <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                      +1x multiplier, -0.2% fee
+                      +1x multiplier, -0.1% fee
                     </div>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
@@ -300,7 +309,7 @@ export function RewardCalculator() {
                       <span className="text-sm text-zinc-900 dark:text-zinc-100">💎 Diamond KREXPRIME</span>
                     </div>
                     <div className="text-xs text-purple-600 dark:text-purple-400">
-                      -0.3% additional fee
+                      +5x multiplier, -0.2% fee
                     </div>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
@@ -314,7 +323,7 @@ export function RewardCalculator() {
                       <span className="text-sm text-zinc-900 dark:text-zinc-100">💎 Diamond PIXELKREX</span>
                     </div>
                     <div className="text-xs text-purple-600 dark:text-purple-400">
-                      -0.3% additional fee
+                      +5x multiplier, -0.2% fee
                     </div>
                   </div>
                 </div>
@@ -366,6 +375,87 @@ export function RewardCalculator() {
                     </p>
                   </div>
                 )}
+              </div>
+
+              {/* Supply Metrics */}
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-3">
+                  Token Supply Metrics
+                </label>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
+                      GRT Max Supply
+                    </label>
+                    <input
+                      type="number"
+                      value={supplyMetrics.grtMaxSupply}
+                      onChange={(e) => setSupplyMetrics(prev => ({ ...prev, grtMaxSupply: parseFloat(e.target.value) || 0 }))}
+                      min="0"
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
+                      LRT Max Supply
+                    </label>
+                    <input
+                      type="number"
+                      value={supplyMetrics.lrtMaxSupply}
+                      onChange={(e) => setSupplyMetrics(prev => ({ ...prev, lrtMaxSupply: parseFloat(e.target.value) || 0 }))}
+                      min="0"
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
+                      Daily KAS Spent
+                    </label>
+                    <input
+                      type="number"
+                      value={supplyMetrics.dailyKasSpent}
+                      onChange={(e) => setSupplyMetrics(prev => ({ ...prev, dailyKasSpent: parseFloat(e.target.value) || 0 }))}
+                      min="0"
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
+                      Number of Users
+                    </label>
+                    <input
+                      type="number"
+                      value={supplyMetrics.numberOfUsers}
+                      onChange={(e) => setSupplyMetrics(prev => ({ ...prev, numberOfUsers: parseFloat(e.target.value) || 0 }))}
+                      min="0"
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
+                      GRT Already Minted
+                    </label>
+                    <input
+                      type="number"
+                      value={supplyMetrics.grtMinted}
+                      onChange={(e) => setSupplyMetrics(prev => ({ ...prev, grtMinted: parseFloat(e.target.value) || 0 }))}
+                      min="0"
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
+                      LRT Already Minted
+                    </label>
+                    <input
+                      type="number"
+                      value={supplyMetrics.lrtMinted}
+                      onChange={(e) => setSupplyMetrics(prev => ({ ...prev, lrtMinted: parseFloat(e.target.value) || 0 }))}
+                      min="0"
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded text-sm"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Seasonal Boost */}
@@ -420,6 +510,7 @@ export function RewardCalculator() {
                 result={result}
               />
               <FeeDistribution result={result} kasAmount={kasAmount} />
+              <SupplyMetricsDisplay result={result} />
             </>
           ) : (
             <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 text-center">

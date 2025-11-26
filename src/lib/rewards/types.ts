@@ -30,8 +30,17 @@ export interface CustomBaseRewards {
 
 export interface NodeProviderStatus {
   isNodeProvider: boolean;
-  nodeMultiplier: number; // e.g., 1.5x, 2x
+  nodeMultiplier: number; // e.g., 10x
   nodeFeeReduction: number; // percentage reduction
+}
+
+export interface SupplyMetrics {
+  grtMaxSupply: number; // Default 100B
+  lrtMaxSupply: number; // Default 100M
+  dailyKasSpent: number; // Default 1000 KAS
+  numberOfUsers: number; // Number of active users
+  grtMinted: number; // Already minted GRT (for progress bar)
+  lrtMinted: number; // Already minted LRT (for progress bar)
 }
 
 export interface CalculatorInputs {
@@ -72,6 +81,16 @@ export interface RewardResult {
   
   // Points
   pointsMultiplier: number;
+  
+  // Supply exhaustion calculations
+  supplyMetrics?: {
+    daysUntilGRTExhaustion: number;
+    daysUntilLRTExhaustion: number;
+    grtProgress: number; // Percentage minted
+    lrtProgress: number; // Percentage minted
+    dailyGRTEmission: number;
+    dailyLRTEmission: number;
+  };
 }
 
 export const KREX_TIERS: Record<KREXTier, KREXTierConfig> = {
@@ -97,7 +116,7 @@ export const KREX_TIERS: Record<KREXTier, KREXTierConfig> = {
     tier: 'Tier2',
     minKREX: 10_000_000,
     multiplier: 6,
-    feePercent: 0.5,
+    feePercent: 0.7,
     pointsMultiplier: 6,
     label: 'Tier 2',
     description: '≥ 10M KREX',
@@ -106,7 +125,7 @@ export const KREX_TIERS: Record<KREXTier, KREXTierConfig> = {
     tier: 'Tier3',
     minKREX: 100_000_000,
     multiplier: 11,
-    feePercent: 0.3,
+    feePercent: 0.5,
     pointsMultiplier: 11,
     label: 'Tier 3',
     description: '≥ 100M KREX',
@@ -122,11 +141,12 @@ export const BASE_REWARDS = {
 
 // NFT multipliers and fee reductions
 export const NFT_MULTIPLIER = 1; // +1x multiplier per NFT (e.g., 2x total if has one NFT)
-export const NFT_FEE_REDUCTION = 0.2; // 0.2% reduction per NFT
-export const DIAMOND_NFT_FEE_REDUCTION = 0.3; // 0.3% additional reduction for Diamond NFTs
+export const NFT_FEE_REDUCTION = 0.1; // 0.1% reduction per NFT
+export const DIAMOND_NFT_MULTIPLIER = 5; // +5x multiplier for Diamond NFTs
+export const DIAMOND_NFT_FEE_REDUCTION = 0.2; // 0.2% fee reduction for Diamond NFTs
 
 // Node provider defaults
-export const DEFAULT_NODE_MULTIPLIER = 1.5; // 1.5x multiplier for node providers
+export const DEFAULT_NODE_MULTIPLIER = 10; // 10x multiplier for node providers
 export const DEFAULT_NODE_FEE_REDUCTION = 0.1; // 0.1% fee reduction for node providers
 
 // Fee distribution percentages
