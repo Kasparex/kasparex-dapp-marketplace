@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764200923-bd9773b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add GRT progress metrics, reorder sidebar, create XP Points page - Add GRT progress bar to GRID holdings box - Add both GRT and LRT progress metrics to dApp page - Move Fees box below KREX/NFT Multipliers - Make scrollbars much darker and barely visible - Create XP Points page with perks/benefits - Add View Perks button to XP Points box (by Kasparex)",
+      "date": "2025-11-27T00:47:43+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764197888-918620a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Simplify dApp cards and sidebars - Remove Fees & Rewards box from cards, keep only LRT supply metrics - Replace contract info with Base Rewards text and tooltip - Move contracts below progress bar - Merge GRT and Wallet Holdings into single GRID box - Add LRT Holdings box to dApp pages - Darken scrollbars (by Kasparex)",
