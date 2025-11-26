@@ -30,7 +30,7 @@ export function RewardBreakdown({ result, className = '' }: RewardBreakdownProps
             <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
               {formatLargeNumber(result.finalGRT)}
             </div>
-            {result.krexMultiplier > 1 && (
+            {(result.krexMultiplier > 1 || result.nftMultiplier > 1 || result.nodeMultiplier > 1 || result.seasonalMultiplier > 1) && (
               <div className="text-xs text-zinc-500 dark:text-zinc-400">
                 Base: {formatLargeNumber(result.baseGRT)} × {result.totalMultiplier.toFixed(2)}x
               </div>
@@ -52,7 +52,7 @@ export function RewardBreakdown({ result, className = '' }: RewardBreakdownProps
             <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
               {formatLargeNumber(result.finalLRT)}
             </div>
-            {result.krexMultiplier > 1 && (
+            {(result.krexMultiplier > 1 || result.nftMultiplier > 1 || result.nodeMultiplier > 1 || result.seasonalMultiplier > 1) && (
               <div className="text-xs text-zinc-500 dark:text-zinc-400">
                 Base: {formatLargeNumber(result.baseLRT)} × {result.totalMultiplier.toFixed(2)}x
               </div>

@@ -17,6 +17,21 @@ export interface KREXTierConfig {
 export interface NFTStatus {
   hasKREXPRIME: boolean;
   hasPIXELKREX: boolean;
+  hasDiamondKREXPRIME: boolean;
+  hasDiamondPIXELKREX: boolean;
+}
+
+export interface CustomBaseRewards {
+  grtPerKas: number;
+  lrtPerKas: number;
+  xpPerKas: number;
+  useCustom: boolean;
+}
+
+export interface NodeProviderStatus {
+  isNodeProvider: boolean;
+  nodeMultiplier: number; // e.g., 1.5x, 2x
+  nodeFeeReduction: number; // percentage reduction
 }
 
 export interface CalculatorInputs {
@@ -24,6 +39,8 @@ export interface CalculatorInputs {
   krexTier: KREXTier;
   nftStatus: NFTStatus;
   seasonalBoost: number; // percentage (0-100)
+  customBaseRewards: CustomBaseRewards;
+  nodeProvider: NodeProviderStatus;
 }
 
 export interface RewardResult {
@@ -37,9 +54,12 @@ export interface RewardResult {
   finalLRT: number;
   finalXP: number;
   
-  // Multipliers
+  // Multipliers breakdown
   krexMultiplier: number;
-  totalMultiplier: number; // KREX + seasonal boost
+  nftMultiplier: number; // From NFT ownership
+  nodeMultiplier: number; // From node provider status
+  seasonalMultiplier: number;
+  totalMultiplier: number; // All multipliers combined
   
   // Fees
   feePercent: number;
@@ -100,8 +120,14 @@ export const BASE_REWARDS = {
   XP_PER_KAS: 100,
 } as const;
 
-// NFT fee reduction
+// NFT multipliers and fee reductions
+export const NFT_MULTIPLIER = 1; // +1x multiplier per NFT (e.g., 2x total if has one NFT)
 export const NFT_FEE_REDUCTION = 0.2; // 0.2% reduction per NFT
+export const DIAMOND_NFT_FEE_REDUCTION = 0.3; // 0.3% additional reduction for Diamond NFTs
+
+// Node provider defaults
+export const DEFAULT_NODE_MULTIPLIER = 1.5; // 1.5x multiplier for node providers
+export const DEFAULT_NODE_FEE_REDUCTION = 0.1; // 0.1% fee reduction for node providers
 
 // Fee distribution percentages
 export const FEE_DISTRIBUTION = {

@@ -36,7 +36,7 @@ export function PointsDisplay({ result, className = '' }: PointsDisplayProps) {
           <div className="flex items-center justify-between text-sm">
             <span className="text-zinc-600 dark:text-zinc-400">Multiplier:</span>
             <span className="font-medium text-[#02abb8]">
-              {result.pointsMultiplier}x
+              {result.pointsMultiplier.toFixed(2)}x
             </span>
           </div>
         )}

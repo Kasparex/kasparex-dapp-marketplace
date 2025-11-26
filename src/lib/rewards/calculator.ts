@@ -12,7 +12,9 @@ import type {
 import {
   KREX_TIERS,
   BASE_REWARDS,
+  NFT_MULTIPLIER,
   NFT_FEE_REDUCTION,
+  DIAMOND_NFT_FEE_REDUCTION,
   FEE_DISTRIBUTION,
 } from './types';
 
@@ -20,25 +22,44 @@ import {
  * Calculate rewards based on inputs
  */
 export function calculateRewards(inputs: CalculatorInputs): RewardResult {
-  const { kasAmount, krexTier, nftStatus, seasonalBoost } = inputs;
+  const { kasAmount, krexTier, nftStatus, seasonalBoost, customBaseRewards, nodeProvider } = inputs;
 
   // Get KREX tier configuration
   const tierConfig = KREX_TIERS[krexTier];
 
+  // Determine base reward rates (use custom if enabled, otherwise default)
+  const grtPerKas = customBaseRewards.useCustom ? customBaseRewards.grtPerKas : BASE_REWARDS.GRT_PER_KAS;
+  const lrtPerKas = customBaseRewards.useCustom ? customBaseRewards.lrtPerKas : BASE_REWARDS.LRT_PER_KAS;
+  const xpPerKas = customBaseRewards.useCustom ? customBaseRewards.xpPerKas : BASE_REWARDS.XP_PER_KAS;
+
   // Calculate base rewards
-  const baseGRT = kasAmount * BASE_REWARDS.GRT_PER_KAS;
-  const baseLRT = kasAmount * BASE_REWARDS.LRT_PER_KAS;
-  const baseXP = kasAmount * BASE_REWARDS.XP_PER_KAS;
+  const baseGRT = kasAmount * grtPerKas;
+  const baseLRT = kasAmount * lrtPerKas;
+  const baseXP = kasAmount * xpPerKas;
 
   // Calculate multipliers
   const krexMultiplier = tierConfig.multiplier;
+  
+  // NFT multiplier: +1x per NFT (so 2x if has one, 3x if has both)
+  let nftMultiplier = 1;
+  if (nftStatus.hasKREXPRIME) nftMultiplier += NFT_MULTIPLIER;
+  if (nftStatus.hasPIXELKREX) nftMultiplier += NFT_MULTIPLIER;
+  
+  // Node provider multiplier
+  const nodeMultiplier = nodeProvider.isNodeProvider ? nodeProvider.nodeMultiplier : 1;
+  
+  // Seasonal multiplier
   const seasonalMultiplier = 1 + seasonalBoost / 100; // Convert percentage to multiplier
-  const totalMultiplier = krexMultiplier * seasonalMultiplier;
+  
+  // Total multiplier (all combined)
+  const totalMultiplier = krexMultiplier * nftMultiplier * nodeMultiplier * seasonalMultiplier;
 
   // Apply multipliers to rewards
   const finalGRT = baseGRT * totalMultiplier;
   const finalLRT = baseLRT * totalMultiplier;
-  const finalXP = baseXP * tierConfig.pointsMultiplier; // Points use KREX multiplier only
+  // Points use KREX multiplier + NFT multiplier (not node or seasonal)
+  const pointsMultiplier = tierConfig.pointsMultiplier * nftMultiplier;
+  const finalXP = baseXP * pointsMultiplier;
 
   // Calculate fee
   let feePercent = tierConfig.feePercent;
@@ -49,6 +70,19 @@ export function calculateRewards(inputs: CalculatorInputs): RewardResult {
   }
   if (nftStatus.hasPIXELKREX) {
     feePercent = Math.max(0, feePercent - NFT_FEE_REDUCTION);
+  }
+  
+  // Apply Diamond NFT fee reductions (additional reduction)
+  if (nftStatus.hasDiamondKREXPRIME) {
+    feePercent = Math.max(0, feePercent - DIAMOND_NFT_FEE_REDUCTION);
+  }
+  if (nftStatus.hasDiamondPIXELKREX) {
+    feePercent = Math.max(0, feePercent - DIAMOND_NFT_FEE_REDUCTION);
+  }
+  
+  // Apply node provider fee reduction
+  if (nodeProvider.isNodeProvider) {
+    feePercent = Math.max(0, feePercent - nodeProvider.nodeFeeReduction);
   }
 
   const feeAmount = (kasAmount * feePercent) / 100;
@@ -68,11 +102,14 @@ export function calculateRewards(inputs: CalculatorInputs): RewardResult {
     finalLRT,
     finalXP,
     krexMultiplier,
+    nftMultiplier,
+    nodeMultiplier,
+    seasonalMultiplier,
     totalMultiplier,
     feePercent,
     feeAmount,
     feeDistribution,
-    pointsMultiplier: tierConfig.pointsMultiplier,
+    pointsMultiplier,
   };
 }
 
@@ -126,6 +163,27 @@ export function validateInputs(inputs: Partial<CalculatorInputs>): {
     }
     if (inputs.seasonalBoost > 1000) {
       errors.push('Seasonal boost seems unusually high');
+    }
+  }
+
+  if (inputs.customBaseRewards?.useCustom) {
+    if (inputs.customBaseRewards.grtPerKas < 0) {
+      errors.push('GRT per KAS must be positive');
+    }
+    if (inputs.customBaseRewards.lrtPerKas < 0) {
+      errors.push('LRT per KAS must be positive');
+    }
+    if (inputs.customBaseRewards.xpPerKas < 0) {
+      errors.push('XP per KAS must be positive');
+    }
+  }
+
+  if (inputs.nodeProvider?.isNodeProvider) {
+    if (inputs.nodeProvider.nodeMultiplier < 1) {
+      errors.push('Node multiplier must be at least 1x');
+    }
+    if (inputs.nodeProvider.nodeFeeReduction < 0) {
+      errors.push('Node fee reduction must be positive');
     }
   }
 
