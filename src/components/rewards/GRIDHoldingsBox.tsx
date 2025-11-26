@@ -1,12 +1,13 @@
 'use client';
 
 import { useAccount } from 'wagmi';
-import { getMockWalletHoldings } from '@/lib/rewards/mockData';
+import { getMockWalletHoldings, getMockGRTSupplyMetrics } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 
 export function GRIDHoldingsBox() {
   const { address, isConnected } = useAccount();
   const holdings = isConnected && address ? getMockWalletHoldings(address) : null;
+  const grtMetrics = getMockGRTSupplyMetrics();
 
   return (
     <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
@@ -14,27 +15,51 @@ export function GRIDHoldingsBox() {
         GRID (GRT) Token
       </h3>
       
-      {!isConnected ? (
-        <div className="text-center py-4">
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
-            Connect wallet to view GRID balance
-          </p>
-        </div>
-      ) : holdings ? (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
+      <div className="space-y-3">
+        {/* Progress Bar Metrics */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-zinc-600 dark:text-zinc-400">
-              Balance
+              Max Supply
             </span>
-            <span className="text-xl font-bold text-[#02abb8]">
-              {formatLargeNumber(holdings.grt)}
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">
+              {grtMetrics.progress.toFixed(2)}% minted
             </span>
           </div>
-          <div className="text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-200 dark:border-zinc-700">
-            Global Reward Token
+          
+          {/* Progress Bar */}
+          <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2 mb-2">
+            <div
+              className="bg-[#02abb8] h-2 rounded-full transition-all"
+              style={{ width: `${Math.min(100, grtMetrics.progress)}%` }}
+            />
+          </div>
+          
+          <div className="text-xs text-zinc-500 dark:text-zinc-400">
+            {formatLargeNumber(grtMetrics.minted)} / {formatLargeNumber(grtMetrics.maxSupply)}
           </div>
         </div>
-      ) : null}
+
+        {/* Balance (if connected) */}
+        {isConnected && holdings ? (
+          <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-zinc-600 dark:text-zinc-400">
+                Your Balance
+              </span>
+              <span className="text-xl font-bold text-[#02abb8]">
+                {formatLargeNumber(holdings.grt)}
+              </span>
+            </div>
+          </div>
+        ) : !isConnected ? (
+          <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700 text-center">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Connect wallet to view balance
+            </p>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }
