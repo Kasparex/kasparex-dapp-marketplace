@@ -324,8 +324,27 @@ export function RewardCalculator() {
                       +3x multiplier, -0.2% fee
                     </div>
                   </div>
+                  <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border-2 border-yellow-500/40">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={nftStatus.hasRarestNFT}
+                        onChange={() => {
+                          setNftStatus(prev => ({
+                            ...prev,
+                            hasRarestNFT: !prev.hasRarestNFT,
+                          }));
+                        }}
+                        className="w-4 h-4 text-yellow-600 border-yellow-300 dark:border-yellow-700 rounded focus:ring-yellow-600 focus:ring-2"
+                      />
+                      <span className="text-sm text-zinc-900 dark:text-zinc-100">⭐ Rarest NFT (#515 PIXELKREX or #345 KREXPRIME)</span>
+                    </div>
+                    <div className="text-xs text-yellow-600 dark:text-yellow-400 font-medium">
+                      +5x multiplier, Zero-fee mode
+                    </div>
+                  </div>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-                    Holding at least 1 NFT from KREXPRIME or PIXELKREX gives +1x. Holding any Diamond NFT gives +3x (replaces regular NFT bonus).
+                    Holding at least 1 NFT from KREXPRIME or PIXELKREX gives +1x. Holding any Diamond NFT gives +3x. Rarest NFT (#515 or #345) gives +5x and zero-fee mode (highest priority).
                   </p>
                 </div>
               </div>
