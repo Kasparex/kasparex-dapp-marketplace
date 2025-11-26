@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764174482-701febf",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error in fee distribution calculation (by Kasparex)",
+      "date": "2025-11-26T17:27:34+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764174240-a5130d2",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update KREX tier multipliers (Tier2: 5x, Tier3: 10x) and add customizable base fee and fee distribution settings (by Kasparex)",
