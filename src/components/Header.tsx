@@ -160,55 +160,56 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-zinc-950/80">
       <div className="flex h-16 items-center justify-between w-full">
         {/* Left side: Logo and Title - no padding, flush to left */}
-        <Link href="/" className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 lg:pl-6 hover:opacity-80 transition-opacity">
-          {!logoError ? (
-            <div className="relative h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
-              <Image
-                src="/kasparex-oval.png"
-                alt="Kasparex Logo"
-                fill
-                className="object-contain"
-                priority
-                unoptimized
-                onError={() => setLogoError(true)}
-              />
-            </div>
-          ) : (
-            <div className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 rounded-lg">
-              <span className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                K
+        <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 lg:pl-6">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition-all duration-300 hover:scale-105 group">
+            {!logoError ? (
+              <div className="relative h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 transition-transform duration-300 group-hover:rotate-6">
+                <Image
+                  src="/kasparex-oval.png"
+                  alt="Kasparex Logo"
+                  fill
+                  className="object-contain"
+                  priority
+                  unoptimized
+                  onError={() => setLogoError(true)}
+                />
+              </div>
+            ) : (
+              <div className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 rounded-lg transition-transform duration-300 group-hover:rotate-6">
+                <span className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                  K
+                </span>
+              </div>
+            )}
+            <h1 className="text-base sm:text-lg lg:text-xl font-semibold text-zinc-900 dark:text-zinc-100 whitespace-nowrap flex items-center gap-2 transition-colors duration-300 group-hover:text-[#02abb8]">
+              <span className="uppercase">
+                <span className="font-bold">KASPA</span>
+                <span className="font-normal">REX</span>
               </span>
-            </div>
-          )}
-          <h1 className="text-base sm:text-lg lg:text-xl font-semibold text-zinc-900 dark:text-zinc-100 whitespace-nowrap flex items-center gap-2">
-            <span className="uppercase">
-              <span className="font-bold">KASPA</span>
-              <span className="font-normal">REX</span>
-            </span>
-            <span className="text-[#02abb8]">𐤊</span>
-          </h1>
-        </Link>
-        <span className="relative">
-          <div
-            onMouseEnter={() => {
-              if (hoverTimeoutRef.current) {
-                clearTimeout(hoverTimeoutRef.current);
-                hoverTimeoutRef.current = null;
-              }
-              setDAppsDropdownOpen(true);
-            }}
-            onMouseLeave={() => {
-              hoverTimeoutRef.current = setTimeout(() => {
-                setDAppsDropdownOpen(false);
-              }, 500);
-            }}
-            className="inline-flex items-center gap-2 cursor-pointer"
-          >
-            <button
-              className="text-zinc-900 dark:text-zinc-100 hover:text-[#02abb8] transition-colors"
+              <span className="text-[#02abb8] transition-transform duration-300 group-hover:scale-110">𐤊</span>
+            </h1>
+          </Link>
+          <span className="relative">
+            <div
+              onMouseEnter={() => {
+                if (hoverTimeoutRef.current) {
+                  clearTimeout(hoverTimeoutRef.current);
+                  hoverTimeoutRef.current = null;
+                }
+                setDAppsDropdownOpen(true);
+              }}
+              onMouseLeave={() => {
+                hoverTimeoutRef.current = setTimeout(() => {
+                  setDAppsDropdownOpen(false);
+                }, 500);
+              }}
+              className="inline-flex items-center gap-2 cursor-pointer"
             >
-              dApps
-            </button>
+              <button
+                className="text-zinc-900 dark:text-zinc-100 hover:text-[#02abb8] transition-colors"
+              >
+                dApps
+              </button>
                 <svg
                   className="w-4 h-4 text-zinc-900 dark:text-zinc-100"
                   fill="none"
