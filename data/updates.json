@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764176905-bf75130",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add rarest NFT support (zero-fee mode + 5x multiplier) and badges/recognition system for status display (by Kasparex)",
+      "date": "2025-11-26T18:07:55+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764174482-701febf",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error in fee distribution calculation (by Kasparex)",
