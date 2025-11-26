@@ -16,6 +16,7 @@ import { StatusIndicator } from './dapps/StatusIndicator';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { createPortal } from 'react-dom';
+import { DAppCardRewards } from './rewards/DAppCardRewards';
 
 interface DAppCardProps {
   dapp: DApp;
@@ -468,6 +469,9 @@ export function DAppCard({ dapp }: DAppCardProps) {
           </button>
         </div>
       </div>
+
+      {/* Rewards Section */}
+      <DAppCardRewards tokenTicker={tokenTicker} />
 
       {/* Modals */}
       {showInfoModal && (

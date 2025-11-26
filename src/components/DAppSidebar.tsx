@@ -1,16 +1,15 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAccount, useChainId } from 'wagmi';
 import { DApp } from '@/lib/dapps';
-import { DescriptionIcon, UtilityIcon, ProcessIcon, BenefitsIcon, DeveloperIcon } from '@/components/icons/SectionIcons';
 import { isDeployer } from '@/lib/dapps/deployer';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
 // Edit functionality removed - dApps are now read-only
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { mergeDAppData } from '@/lib/dapps/contractData';
+import { DAppRewardsSidebar } from './rewards/DAppRewardsSidebar';
 
 interface DAppSidebarProps {
   dapp: DApp;
@@ -60,13 +59,6 @@ const getLinkIcon = (label: string, url: string) => {
 export function DAppSidebar({ dapp }: DAppSidebarProps) {
   const { address: connectedAddress } = useAccount();
   const chainId = useChainId();
-  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
-  const [utilityExpanded, setUtilityExpanded] = useState(false);
-  const [processExpanded, setProcessExpanded] = useState(false);
-  const [benefitsExpanded, setBenefitsExpanded] = useState(false);
-  const [securityExpanded, setSecurityExpanded] = useState(false);
-  const [roadmapExpanded, setRoadmapExpanded] = useState(false);
-  const [developerExpanded, setDeveloperExpanded] = useState(false);
   // Edit functionality removed
 
   // Get contract address
@@ -90,47 +82,9 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
   
   // Merge localStorage data
   const mergedDApp = mergeDAppData(contractData, dapp);
-
-  const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
-    <svg
-      className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-    </svg>
-  );
-
-  const CollapsibleSection = ({
-    title,
-    icon,
-    expanded,
-    onToggle,
-    children,
-  }: {
-    title: string;
-    icon?: React.ReactNode;
-    expanded: boolean;
-    onToggle: () => void;
-    children: React.ReactNode;
-  }) => (
-    <div className="mb-4">
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between text-sm font-semibold text-zinc-700 dark:text-white opacity-80 uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-white hover:opacity-100 transition-all"
-      >
-        <div className="flex items-center gap-2">
-          {icon && (
-            <span className="text-zinc-700 dark:text-white opacity-80">{icon}</span>
-          )}
-          <span>{title}</span>
-        </div>
-        <ChevronIcon expanded={expanded} />
-      </button>
-      {expanded && <div className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">{children}</div>}
-    </div>
-  );
+  
+  // Get token ticker from contract data
+  const tokenTicker = contractData?.ticker || null;
 
   return (
     <>
@@ -224,107 +178,11 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
               </div>
             </div>
 
-            {/* Content Area */}
-            {/* Description */}
-            {dapp.description && (
-              <CollapsibleSection
-                title="Description"
-                icon={<DescriptionIcon />}
-                expanded={descriptionExpanded}
-                onToggle={() => setDescriptionExpanded(!descriptionExpanded)}
-              >
-                <p>{dapp.description}</p>
-              </CollapsibleSection>
-            )}
-
-            {/* Utility */}
-            <CollapsibleSection
-              title="Utility"
-              icon={<UtilityIcon />}
-              expanded={utilityExpanded}
-              onToggle={() => setUtilityExpanded(!utilityExpanded)}
-            >
-              <p>✅ {dapp.utility}</p>
-            </CollapsibleSection>
-
-            {/* Process */}
-            <CollapsibleSection
-              title="Process"
-              icon={<ProcessIcon />}
-              expanded={processExpanded}
-              onToggle={() => setProcessExpanded(!processExpanded)}
-            >
-              <p>✅ {dapp.process}</p>
-            </CollapsibleSection>
-
-            {/* Benefits */}
-            <CollapsibleSection
-              title="Benefits"
-              icon={<BenefitsIcon />}
-              expanded={benefitsExpanded}
-              onToggle={() => setBenefitsExpanded(!benefitsExpanded)}
-            >
-              <p>✅ {dapp.benefits}</p>
-            </CollapsibleSection>
-
-            {/* Security */}
-            {dapp.security && (
-              <CollapsibleSection
-                title="Security"
-                icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>}
-                expanded={securityExpanded}
-                onToggle={() => setSecurityExpanded(!securityExpanded)}
-              >
-                <p className="whitespace-pre-line">{dapp.security}</p>
-              </CollapsibleSection>
-            )}
-
-            {/* Roadmap */}
-            {dapp.roadmap && (
-              <CollapsibleSection
-                title="Roadmap"
-                icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>}
-                expanded={roadmapExpanded}
-                onToggle={() => setRoadmapExpanded(!roadmapExpanded)}
-              >
-                <p className="whitespace-pre-line">{dapp.roadmap}</p>
-              </CollapsibleSection>
-            )}
-
-            {/* Developer Info */}
-            <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-800">
-              <CollapsibleSection
-                title="Developer"
-                icon={<DeveloperIcon />}
-                expanded={developerExpanded}
-                onToggle={() => setDeveloperExpanded(!developerExpanded)}
-              >
-                <div className="space-y-3">
-                  <p className="text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                    {dapp.developer}
-                  </p>
-                  
-                  {/* Developer Links as Icons */}
-                  {dapp.developerLinks && dapp.developerLinks.length > 0 && (
-                    <div className="flex items-center gap-3">
-                      {dapp.developerLinks.slice(0, 3).map((link, index) => (
-                        <a
-                          key={index}
-                          href={link.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-                          title={link.label}
-                          aria-label={link.label}
-                        >
-                          {getLinkIcon(link.label, link.url)}
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </CollapsibleSection>
-            </div>
+            {/* Rewards Sidebar */}
+            <DAppRewardsSidebar 
+              tokenTicker={tokenTicker}
+              dappName={mergedDApp.name}
+            />
           </div>
         </div>
       </aside>
