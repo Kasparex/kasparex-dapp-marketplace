@@ -10,6 +10,7 @@ import { useDAppFromContract } from '@/lib/dapps/contractData';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { DAppRewardsSidebar } from './rewards/DAppRewardsSidebar';
+import { LRTHoldingsBox } from './rewards/LRTHoldingsBox';
 
 interface DAppSidebarProps {
   dapp: DApp;
@@ -177,6 +178,9 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
                 )}
               </div>
             </div>
+
+            {/* LRT Holdings */}
+            <LRTHoldingsBox tokenTicker={tokenTicker} />
 
             {/* Rewards Sidebar */}
             <DAppRewardsSidebar 

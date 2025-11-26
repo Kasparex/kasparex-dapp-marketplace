@@ -6,8 +6,7 @@ import { categories, type Category } from '@/lib/categories';
 import type { FilterState, DAppStatus } from '@/lib/dapps';
 import { CategoriesIcon, StatusIcon, DeveloperIcon, NetworkIcon } from '@/components/icons/SectionIcons';
 import { StatusIndicatorDot, getStatusTypeFromString } from './dapps/StatusIndicatorDot';
-import { GRTInfoBox } from './rewards/GRTInfoBox';
-import { WalletHoldingsBox } from './rewards/WalletHoldingsBox';
+import { GRIDHoldingsBox } from './rewards/GRIDHoldingsBox';
 import { XPPointsBox } from './rewards/XPPointsBox';
 
 interface SidebarProps {
@@ -209,8 +208,7 @@ export function Sidebar({
       >
         <div className="p-4 lg:p-6">
           {/* Rewards Info Boxes */}
-          <GRTInfoBox />
-          <WalletHoldingsBox />
+          <GRIDHoldingsBox />
           <XPPointsBox />
           
           {/* Search Box */}

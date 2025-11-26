@@ -32,21 +32,21 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-zinc-300 dark:bg-zinc-700 rounded-full;
+  @apply bg-zinc-500 dark:bg-zinc-600 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-zinc-400 dark:bg-zinc-600;
+  @apply bg-zinc-600 dark:bg-zinc-500;
 }
 
 /* Firefox scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgb(212 212 212) transparent; /* zinc-300 */
+  scrollbar-color: rgb(113 113 122) transparent; /* zinc-500 */
 }
 
 .dark * {
-  scrollbar-color: rgb(63 63 70) transparent; /* zinc-700 */
+  scrollbar-color: rgb(82 82 91) transparent; /* zinc-600 */
 }
 
 /* Custom checkbox styling */

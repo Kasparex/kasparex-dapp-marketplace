@@ -17,6 +17,7 @@ import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { createPortal } from 'react-dom';
 import { DAppCardRewards } from './rewards/DAppCardRewards';
+import { formatLargeNumber } from '@/lib/rewards/calculator';
 
 interface DAppCardProps {
   dapp: DApp;
@@ -49,20 +50,17 @@ export function DAppCard({ dapp }: DAppCardProps) {
   // Modal states
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
-  const [showDAppTooltip, setShowDAppTooltip] = useState(false);
-  const [showTokenTooltip, setShowTokenTooltip] = useState(false);
+  const [showRewardsTooltip, setShowRewardsTooltip] = useState(false);
   const [showInfoIconTooltip, setShowInfoIconTooltip] = useState(false);
   const [showEmbedIconTooltip, setShowEmbedIconTooltip] = useState(false);
   
   // Refs for tooltip positioning
-  const dAppTooltipRef = useRef<HTMLDivElement>(null);
-  const tokenTooltipRef = useRef<HTMLDivElement>(null);
+  const rewardsTooltipRef = useRef<HTMLButtonElement>(null);
   const infoIconTooltipRef = useRef<HTMLButtonElement>(null);
   const embedIconTooltipRef = useRef<HTMLButtonElement>(null);
   
   const [tooltipPositions, setTooltipPositions] = useState<{
-    dApp?: { top: number; left: number };
-    token?: { top: number; left: number };
+    rewards?: { top: number; left: number };
     infoIcon?: { top: number; left: number };
     embedIcon?: { top: number; left: number };
   }>({});
@@ -97,27 +95,16 @@ export function DAppCard({ dapp }: DAppCardProps) {
   };
   
   useEffect(() => {
-    if (showDAppTooltip && dAppTooltipRef.current) {
-      const rect = dAppTooltipRef.current.getBoundingClientRect();
+    if (showRewardsTooltip && rewardsTooltipRef.current) {
+      const rect = rewardsTooltipRef.current.getBoundingClientRect();
       const pos = calculateTooltipPosition(rect, 288);
       setTooltipPositions(prev => ({
         ...prev,
-        dApp: pos
+        rewards: pos
       }));
     }
-  }, [showDAppTooltip]);
-  
-  useEffect(() => {
-    if (showTokenTooltip && tokenTooltipRef.current) {
-      const rect = tokenTooltipRef.current.getBoundingClientRect();
-      const pos = calculateTooltipPosition(rect, 288);
-      setTooltipPositions(prev => ({
-        ...prev,
-        token: pos
-      }));
-    }
-  }, [showTokenTooltip]);
-  
+  }, [showRewardsTooltip]);
+
   useEffect(() => {
     if (showInfoIconTooltip && infoIconTooltipRef.current) {
       const rect = infoIconTooltipRef.current.getBoundingClientRect();
@@ -128,7 +115,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
       }));
     }
   }, [showInfoIconTooltip]);
-  
+
   useEffect(() => {
     if (showEmbedIconTooltip && embedIconTooltipRef.current) {
       const rect = embedIconTooltipRef.current.getBoundingClientRect();
@@ -210,133 +197,52 @@ export function DAppCard({ dapp }: DAppCardProps) {
         </div>
       </div>
 
-      {/* Bottom Section: dApp/Token Info (left) and Star/Heart (right) */}
+      {/* Bottom Section: Base Rewards (left) and Action Icons (right) */}
       <div className="mt-4 pt-4 border-t border-zinc-200/50 dark:border-zinc-800/50 flex items-center justify-between gap-2 relative z-10">
-        {/* Left: dApp and Token Information */}
-        <div className="flex flex-col gap-1.5 text-xs min-w-0 flex-1">
-          {/* dApp Row */}
-          <div className="relative">
-            <div
-              ref={dAppTooltipRef}
-              className="flex items-center gap-1.5 cursor-help"
-              onMouseEnter={() => setShowDAppTooltip(true)}
-              onMouseLeave={() => setShowDAppTooltip(false)}
-            >
-              <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-              <span className="text-zinc-700 dark:text-zinc-300 font-medium">Dapp contract:</span>
-              {dAppContractAddress && dAppExplorerUrl ? (
-                <a
-                  href={dAppExplorerUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="text-zinc-500 dark:text-zinc-400 hover:text-[#02abb8] dark:hover:text-[#02abb8] font-mono transition-colors"
-                  title={dAppContractAddress}
-                >
-                  {formatAddress(dAppContractAddress)}
-                </a>
-              ) : (
-                <span className="text-zinc-500 dark:text-zinc-400">contract not available</span>
-              )}
-            </div>
-            {showDAppTooltip && tooltipPositions.dApp && typeof window !== 'undefined' && createPortal(
-              <div 
-                className="fixed w-72 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-xl z-[99999] p-3 pointer-events-none"
-                style={{ 
-                  top: tooltipPositions.dApp.top < 200 ? `${tooltipPositions.dApp.top + 24}px` : `${tooltipPositions.dApp.top}px`,
-                  left: `${tooltipPositions.dApp.left}px`,
-                  transform: tooltipPositions.dApp.top < 200 ? 'none' : 'translateY(calc(-100% - 8px))',
-                  maxWidth: 'calc(100vw - 16px)',
-                }}
-              >
-                <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">dApp Information</p>
-                <div className="space-y-2 text-xs">
-                  <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                    Each dApp is associated with a token that serves as both a reward mechanism and a tradeable asset. 
-                    Users earn tokens through Proof-of-Utility rewards when they interact with the dApp.
-                  </p>
-                  {mergedDApp.description && (
-                    <div>
-                      <span className="text-zinc-700 dark:text-zinc-300 font-medium">Description: </span>
-                      <span className="text-zinc-600 dark:text-zinc-400">{mergedDApp.description}</span>
-                    </div>
-                  )}
-                  <div className="pt-2 border-t border-zinc-300 dark:border-zinc-600">
-                    <p className="text-zinc-700 dark:text-zinc-300 font-medium mb-1">Rewards System:</p>
-                    <ul className="list-disc list-inside space-y-0.5 text-zinc-600 dark:text-zinc-400">
-                      <li>Proof-of-Utility tracking for on-chain usage</li>
-                      <li>Automatic token rewards for interactions</li>
-                      {tokenTicker && <li>Earn {tokenTicker} tokens through usage</li>}
-                    </ul>
-                  </div>
-                </div>
-              </div>,
-              document.body
-            )}
+        {/* Left: Base Rewards */}
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div className="text-xs text-zinc-600 dark:text-zinc-400">
+            1 KAS = {formatLargeNumber(10000)} GRT → {formatLargeNumber(1000)} {tokenTicker || 'LRT'} → {formatLargeNumber(100)} XP
           </div>
-          
-          {/* Token Row */}
-          <div className="relative">
-            <div
-              ref={tokenTooltipRef}
-              className="flex items-center gap-1.5 cursor-help"
-              onMouseEnter={() => setShowTokenTooltip(true)}
-              onMouseLeave={() => setShowTokenTooltip(false)}
+          {/* Info Icon with tooltip for Fees & Rewards + Multipliers */}
+          <div className="relative flex-shrink-0">
+            <button
+              ref={rewardsTooltipRef}
+              className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+              onMouseEnter={() => setShowRewardsTooltip(true)}
+              onMouseLeave={() => setShowRewardsTooltip(false)}
+              onClick={(e) => e.stopPropagation()}
+              aria-label="Fees & Rewards details"
             >
-              <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-zinc-700 dark:text-zinc-300 font-medium">
-                {tokenTicker ? `(${tokenTicker}) Token contract:` : 'Token contract:'}
-              </span>
-              {tokenAddress && tokenExplorerUrl ? (
-                <a
-                  href={tokenExplorerUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="text-zinc-500 dark:text-zinc-400 hover:text-[#02abb8] dark:hover:text-[#02abb8] font-mono transition-colors"
-                  title={tokenAddress}
-                >
-                  {formatAddress(tokenAddress)}
-                </a>
-              ) : (
-                <span className="text-zinc-500 dark:text-zinc-400">not linked yet..</span>
-              )}
-            </div>
-            {showTokenTooltip && contractData && tooltipPositions.token && typeof window !== 'undefined' && createPortal(
+            </button>
+            {showRewardsTooltip && tooltipPositions.rewards && typeof window !== 'undefined' && createPortal(
               <div 
                 className="fixed w-72 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-xl z-[99999] p-3 pointer-events-none"
                 style={{ 
-                  top: tooltipPositions.token.top < 200 ? `${tooltipPositions.token.top + 24}px` : `${tooltipPositions.token.top}px`,
-                  left: `${tooltipPositions.token.left}px`,
-                  transform: tooltipPositions.token.top < 200 ? 'none' : 'translateY(calc(-100% - 8px))',
+                  top: tooltipPositions.rewards.top < 200 ? `${tooltipPositions.rewards.top + 24}px` : `${tooltipPositions.rewards.top}px`,
+                  left: `${tooltipPositions.rewards.left}px`,
+                  transform: tooltipPositions.rewards.top < 200 ? 'none' : 'translateY(calc(-100% - 8px))',
                   maxWidth: 'calc(100vw - 16px)',
                 }}
               >
-                <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Token Information</p>
-                <div className="space-y-2 text-xs">
-                  <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                    This token is not only a reward token for dApp usage but also available for trading, buying, and selling. 
-                    Future listings and marketplaces will enable full token trading functionality.
-                  </p>
-                  {contractData.totalSupply && (
-                    <div className="flex justify-between pt-2 border-t border-zinc-300 dark:border-zinc-600">
-                      <span className="text-zinc-600 dark:text-zinc-400">Max Supply:</span>
-                      <span className="text-zinc-900 dark:text-zinc-100 font-medium">
-                        {(Number(contractData.totalSupply) / 1e18).toLocaleString(undefined, { maximumFractionDigits: 0 })} {tokenTicker}
-                      </span>
-                    </div>
-                  )}
-                  <div className="pt-2 border-t border-zinc-300 dark:border-zinc-600">
-                    <p className="text-zinc-700 dark:text-zinc-300 font-medium mb-1">Token Features:</p>
-                    <ul className="list-disc list-inside space-y-0.5 text-zinc-600 dark:text-zinc-400">
-                      <li>Reward mechanism for dApp usage</li>
-                      <li>Tradeable asset (marketplace coming soon)</li>
-                      <li>Buy and sell functionality (future)</li>
-                    </ul>
+                <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Fees & Rewards</p>
+                <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+                  <div className="flex items-center justify-between">
+                    <span>Fee:</span>
+                    <span className="font-medium">1%</span>
+                  </div>
+                  <div className="pt-1.5 border-t border-zinc-300 dark:border-zinc-600">
+                    <p className="font-medium mb-1">Base Rewards:</p>
+                    <p>1 KAS = 10,000 GRT → 1,000 {tokenTicker || 'LRT'} → 100 XP</p>
+                  </div>
+                  <div className="pt-1.5 border-t border-zinc-300 dark:border-zinc-600">
+                    <p className="font-medium mb-1">Multipliers:</p>
+                    <p>KREX Tier: 1x (default)</p>
+                    <p>NFT: 1x (none)</p>
+                    <p>Total: 1x</p>
                   </div>
                 </div>
               </div>,
@@ -345,44 +251,8 @@ export function DAppCard({ dapp }: DAppCardProps) {
           </div>
         </div>
 
-        {/* Right: Action Icons (Info, Guide, Embed, Star, Heart) */}
+        {/* Right: Action Icons (Embed, Star, Heart) */}
         <div className="flex items-center gap-1 flex-shrink-0">
-          {/* Info Icon */}
-          {(mergedDApp.description || mergedDApp.utility) && (
-            <div className="relative">
-              <button
-                ref={infoIconTooltipRef}
-                onClick={(e) => handleIconClick(e, () => setShowInfoModal(true))}
-                className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-                onMouseEnter={() => setShowInfoIconTooltip(true)}
-                onMouseLeave={() => setShowInfoIconTooltip(false)}
-                aria-label="View description"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </button>
-              {showInfoIconTooltip && tooltipPositions.infoIcon && typeof window !== 'undefined' && createPortal(
-                <div 
-                  className="fixed w-64 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-xl z-[99999] p-3 pointer-events-none"
-                  style={{ 
-                    top: tooltipPositions.infoIcon.top < 200 ? `${tooltipPositions.infoIcon.top + 24}px` : `${tooltipPositions.infoIcon.top}px`,
-                    left: `${tooltipPositions.infoIcon.left}px`,
-                    transform: tooltipPositions.infoIcon.top < 200 ? 'none' : 'translateY(calc(-100% - 8px))',
-                    maxWidth: 'calc(100vw - 16px)',
-                  }}
-                >
-                  <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Fees Information</p>
-                  <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
-                    <p>Each dApp transaction includes a small fee that supports the Kasparex ecosystem. Fees are automatically collected and distributed to support infrastructure, rewards, and development.</p>
-                    <p className="pt-2 border-t border-zinc-300 dark:border-zinc-600">Fee rates vary by dApp and are displayed before transaction confirmation.</p>
-                  </div>
-                </div>,
-                document.body
-              )}
-            </div>
-          )}
-
           {/* Embed Icon */}
           <div className="relative">
             <button
@@ -471,7 +341,14 @@ export function DAppCard({ dapp }: DAppCardProps) {
       </div>
 
       {/* Rewards Section */}
-      <DAppCardRewards tokenTicker={tokenTicker} />
+      <DAppCardRewards 
+        tokenTicker={tokenTicker}
+        dAppContractAddress={dAppContractAddress}
+        dAppExplorerUrl={dAppExplorerUrl}
+        tokenAddress={tokenAddress}
+        tokenExplorerUrl={tokenExplorerUrl}
+        formatAddress={formatAddress}
+      />
 
       {/* Modals */}
       {showInfoModal && (
