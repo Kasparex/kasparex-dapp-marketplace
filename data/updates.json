@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764190136-9e9d206",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add lazy loading to Updates page with Load More button and make header logo/title link to home page (by Kasparex)",
+      "date": "2025-11-26T21:48:04+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764179405-25ccb16",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update rarest NFT text in MultiplierDisplay to match new format (by Kasparex)",
