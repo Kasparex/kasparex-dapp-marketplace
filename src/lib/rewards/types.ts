@@ -19,6 +19,7 @@ export interface NFTStatus {
   hasPIXELKREX: boolean;
   hasDiamondKREXPRIME: boolean;
   hasDiamondPIXELKREX: boolean;
+  hasRarestNFT: boolean; // NFT #515 from PIXELKREX or #345 from KREXPRIME
 }
 
 export interface CustomBaseRewards {
@@ -153,6 +154,8 @@ export const NFT_MULTIPLIER = 1; // +1x multiplier if holding at least 1 NFT fro
 export const NFT_FEE_REDUCTION = 0.1; // 0.1% fee reduction
 export const DIAMOND_NFT_MULTIPLIER = 3; // +3x multiplier for any Diamond NFT from any collection
 export const DIAMOND_NFT_FEE_REDUCTION = 0.2; // 0.2% fee reduction for Diamond NFTs
+export const RAREST_NFT_MULTIPLIER = 5; // +5x multiplier for rarest NFT (#515 PIXELKREX or #345 KREXPRIME)
+export const RAREST_NFT_FEE_REDUCTION = 100; // 100% fee reduction = zero-fee mode
 
 // Node provider defaults
 export const DEFAULT_NODE_MULTIPLIER = 5; // 5x multiplier for node providers

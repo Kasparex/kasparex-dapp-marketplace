@@ -16,6 +16,8 @@ import {
   NFT_FEE_REDUCTION,
   DIAMOND_NFT_MULTIPLIER,
   DIAMOND_NFT_FEE_REDUCTION,
+  RAREST_NFT_MULTIPLIER,
+  RAREST_NFT_FEE_REDUCTION,
   DEFAULT_FEE_DISTRIBUTION,
   DEFAULT_BASE_FEE_PERCENT,
 } from './types';
@@ -101,12 +103,15 @@ export function calculateRewards(
   // Calculate multipliers
   const krexMultiplier = tierConfig.multiplier;
   
-  // NFT multiplier: +1x if holding at least 1 NFT from KREXPRIME or PIXELKREX, +3x if holding any Diamond NFT
+  // NFT multiplier: Rarest NFT > Diamond NFT > Regular NFT
   let nftMultiplier = 1;
   const hasRegularNFT = nftStatus.hasKREXPRIME || nftStatus.hasPIXELKREX;
   const hasDiamondNFT = nftStatus.hasDiamondKREXPRIME || nftStatus.hasDiamondPIXELKREX;
+  const hasRarestNFT = nftStatus.hasRarestNFT; // NFT #515 PIXELKREX or #345 KREXPRIME
   
-  if (hasDiamondNFT) {
+  if (hasRarestNFT) {
+    nftMultiplier += RAREST_NFT_MULTIPLIER; // +5x for rarest NFT (highest priority)
+  } else if (hasDiamondNFT) {
     nftMultiplier += DIAMOND_NFT_MULTIPLIER; // +3x for any Diamond NFT
   } else if (hasRegularNFT) {
     nftMultiplier += NFT_MULTIPLIER; // +1x for at least 1 regular NFT
@@ -147,16 +152,19 @@ export function calculateRewards(
   }
   
   // Apply NFT fee reductions (stack with tier reduction)
+  // Rarest NFT: 100% reduction = zero-fee mode (highest priority)
+  // Diamond NFT: -0.2% if holding any Diamond NFT
   // Regular NFT: -0.1% if holding at least 1 NFT from KREXPRIME or PIXELKREX
-  // Diamond NFT: -0.2% if holding any Diamond NFT (replaces regular NFT reduction)
-  if (hasDiamondNFT) {
+  if (hasRarestNFT) {
+    feePercent = 0; // Zero-fee mode for rarest NFT
+  } else if (hasDiamondNFT) {
     feePercent = Math.max(0, feePercent - DIAMOND_NFT_FEE_REDUCTION);
   } else if (hasRegularNFT) {
     feePercent = Math.max(0, feePercent - NFT_FEE_REDUCTION);
   }
   
-  // Apply node provider fee reduction
-  if (nodeProvider.isNodeProvider) {
+  // Apply node provider fee reduction (only if not in zero-fee mode)
+  if (nodeProvider.isNodeProvider && feePercent > 0) {
     feePercent = Math.max(0, feePercent - nodeProvider.nodeFeeReduction);
   }
 

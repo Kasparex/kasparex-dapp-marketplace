@@ -9,6 +9,7 @@ import { PointsDisplay } from './PointsDisplay';
 import { MultiplierDisplay } from './MultiplierDisplay';
 import { FeeDistribution } from './FeeDistribution';
 import { SupplyMetrics as SupplyMetricsDisplay } from './SupplyMetrics';
+import { BadgesDisplay } from './BadgesDisplay';
 
 export function RewardCalculator() {
   const [kasAmount, setKasAmount] = useState<number>(10);
@@ -18,6 +19,7 @@ export function RewardCalculator() {
     hasPIXELKREX: false,
     hasDiamondKREXPRIME: false,
     hasDiamondPIXELKREX: false,
+    hasRarestNFT: false,
   });
   const [seasonalBoost, setSeasonalBoost] = useState<number>(0);
   const [customBaseRewards, setCustomBaseRewards] = useState<CustomBaseRewards>({
@@ -509,6 +511,11 @@ export function RewardCalculator() {
                 result={result}
               />
               <FeeDistribution result={result} kasAmount={kasAmount} />
+              <BadgesDisplay
+                krexTier={krexTier}
+                nftStatus={nftStatus}
+                nodeProvider={nodeProvider}
+              />
               <SupplyMetricsDisplay result={result} />
             </>
           ) : (

@@ -27,6 +27,7 @@ export function MultiplierDisplay({
   const tierConfig = KREX_TIERS[krexTier];
   const hasAnyNFT = nftStatus.hasKREXPRIME || nftStatus.hasPIXELKREX;
   const hasDiamondNFT = nftStatus.hasDiamondKREXPRIME || nftStatus.hasDiamondPIXELKREX;
+  const hasRarestNFT = nftStatus.hasRarestNFT;
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -85,7 +86,13 @@ export function MultiplierDisplay({
             </div>
             {hasAnyNFT && (
               <div className="text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-200 dark:border-zinc-700">
-                {hasDiamondNFT ? (
+                {hasRarestNFT ? (
+                  <>
+                    <span className="text-yellow-600 dark:text-yellow-400 font-medium">+5x multiplier (Rarest NFT #515 or #345)</span>
+                    <br />
+                    <span className="text-yellow-600 dark:text-yellow-400 font-medium">Zero-fee mode active</span>
+                  </>
+                ) : hasDiamondNFT ? (
                   <>
                     +3x multiplier (Diamond NFT from any collection)
                     <br />
