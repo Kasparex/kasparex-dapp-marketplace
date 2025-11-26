@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764169335-f575536",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add supply exhaustion calculations, update fee tiers, NFT multipliers (Diamond +5x), node provider 10x default, and add calculator link to EVM wallet menu (by Kasparex)",
+      "date": "2025-11-26T16:01:44+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764166344-2c28f9e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Enhance reward calculator: two-column layout, NFT multipliers, Diamond NFTs, custom base rewards, and node provider support (by Kasparex)",
