@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764174240-a5130d2",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update KREX tier multipliers (Tier2: 5x, Tier3: 10x) and add customizable base fee and fee distribution settings (by Kasparex)",
+      "date": "2025-11-26T17:23:17+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764170914-2369b1f",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Simplify NFT rewards: merge KREXPRIME/PIXELKREX to +1x, Diamond NFTs to +3x, reduce node provider to 5x (by Kasparex)",
