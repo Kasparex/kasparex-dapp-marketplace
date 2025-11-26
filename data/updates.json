@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764195078-f598255",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Redesign dApp cards and pages for rewards system - Add GRT info, wallet holdings, and XP boxes to main sidebar - Add LRT supply metrics and fees/rewards to dApp cards - Replace dApp page sidebar with structured rewards info boxes - All using simulation data for testing (by Kasparex)",
+      "date": "2025-11-26T23:10:25+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764191588-7d1c3fe",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix missing closing div tag in Header component (by Kasparex)",
