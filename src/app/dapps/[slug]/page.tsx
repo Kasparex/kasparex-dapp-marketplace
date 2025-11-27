@@ -52,19 +52,25 @@ export default async function DAppPage({ params }: PageProps) {
     <div className="flex flex-col min-h-screen">
       <Header />
       
-      <main className="flex-1 flex flex-col lg:flex-row">
-        {/* Left Sidebar - Rewards & Info */}
-        <DAppSidebar dapp={dapp} />
+      <main className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col lg:flex-row">
+          {/* Left Sidebar - Rewards & Info */}
+          <DAppSidebar dapp={dapp} />
 
-        {/* Main Content */}
-        <div className="flex-1 p-4 sm:p-6 lg:p-8 lg:pl-6">
-          <DAppDetail dapp={dapp} />
-          <RelatedDApps currentDApp={dapp} />
-          <DAppFooter contractAddress={contractAddress} />
+          {/* Main Content */}
+          <div className="flex-1 p-4 sm:p-6 lg:p-8 lg:pl-6">
+            <DAppDetail dapp={dapp} />
+            <DAppFooter contractAddress={contractAddress} />
+          </div>
+
+          {/* Right Sidebar - Info & Actions */}
+          <DAppInfoSidebar dapp={dapp} contractAddress={contractAddress} />
         </div>
 
-        {/* Right Sidebar - Info & Actions */}
-        <DAppInfoSidebar dapp={dapp} contractAddress={contractAddress} />
+        {/* Related dApps - Below 3-column layout */}
+        <div className="p-4 sm:p-6 lg:p-8 lg:pl-6">
+          <RelatedDApps currentDApp={dapp} />
+        </div>
       </main>
 
       <Footer />

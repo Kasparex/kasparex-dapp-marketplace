@@ -271,9 +271,23 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                     ))}
                   </div>
                   <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <p className="text-xs text-blue-700 dark:text-blue-300">
-                      💡 KREX Token Contract Address: <code className="font-mono text-[10px]">{KREX_TOKEN_CA}</code>
+                    <p className="text-xs text-blue-700 dark:text-blue-300 mb-2">
+                      💡 KREX Token Contract Address:
                     </p>
+                    <button
+                      onClick={async () => {
+                        await navigator.clipboard.writeText(KREX_TOKEN_CA);
+                        // You could add a toast notification here if needed
+                      }}
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-blue-300 dark:border-blue-700 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-left"
+                    >
+                      <code className="font-mono text-sm text-blue-700 dark:text-blue-300 break-all">
+                        {KREX_TOKEN_CA}
+                      </code>
+                      <div className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+                        Click to copy
+                      </div>
+                    </button>
                   </div>
                 </div>
               ) : (

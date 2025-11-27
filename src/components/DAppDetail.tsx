@@ -8,7 +8,6 @@ import { NetworkCompatibilityModal } from './NetworkCompatibilityModal';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
 import { TokenDisplay } from './dapps/TokenDisplay';
-import { RewardsDisplay } from './dapps/RewardsDisplay';
 import { ProofOfUtility } from './dapps/ProofOfUtility';
 import { getContractAddress } from '@/lib/contracts/addresses';
 
@@ -57,17 +56,6 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
             ticker={mergedContractData.ticker}
             totalSupply={mergedContractData.totalSupply?.toString() || '0'}
             dAppName={dapp.name}
-          />
-        </div>
-      )}
-
-      {/* Rewards Display */}
-      {(gridTokenAddress || mergedContractData?.tokenAddress) && (
-        <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
-          <RewardsDisplay
-            gridTokenAddress={gridTokenAddress}
-            dAppTokenAddress={mergedContractData?.tokenAddress || undefined}
-            ticker={mergedContractData?.ticker || undefined}
           />
         </div>
       )}

@@ -83,20 +83,12 @@ export function AffiliateWidget({
         </p>
       </div>
 
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={referralLink}
-          readOnly
-          className="flex-1 px-3 py-2 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100"
-        />
-        <button
-          onClick={handleCopy}
-          className="px-4 py-2 bg-[#02abb8] hover:bg-[#0199a3] text-white text-sm font-medium rounded-lg transition-colors"
-        >
-          {copied ? 'Copied!' : 'Copy'}
-        </button>
-      </div>
+      <button
+        onClick={handleCopy}
+        className="w-full px-3 py-2 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-left font-mono text-xs break-all"
+      >
+        {copied ? '✓ Copied!' : referralLink}
+      </button>
 
       {/* Show referral stats if using contract mode */}
       {useContractMode && !isLoadingAffiliate && (
