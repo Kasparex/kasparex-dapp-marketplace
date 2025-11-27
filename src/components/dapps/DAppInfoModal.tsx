@@ -111,7 +111,7 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
             </h2>
             {dapp.version && (
               <span className="px-2 py-1 text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded">
-                v{dapp.version}
+                {dapp.version?.replace(/^v\s*/i, '') || dapp.version}
               </span>
             )}
             <div className="flex-1"></div>

@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { getMockLRTSupplyMetrics, getDefaultRewardsBreakdown } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 
@@ -10,6 +12,10 @@ interface DAppCardRewardsProps {
 export function DAppCardRewards({ 
   tokenTicker,
 }: DAppCardRewardsProps) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null);
+  
   const lrtMetrics = getMockLRTSupplyMetrics();
   const rewards = getDefaultRewardsBreakdown(tokenTicker || undefined);
 
@@ -28,10 +34,39 @@ export function DAppCardRewards({
     return `${Math.round(days)} days`;
   };
 
+  useEffect(() => {
+    if (showTooltip && tooltipRef.current) {
+      const rect = tooltipRef.current.getBoundingClientRect();
+      const tooltipWidth = 280;
+      const padding = 8;
+      
+      let left = rect.left + rect.width / 2 - tooltipWidth / 2;
+      let top = rect.top - 120; // Position above the element
+      
+      // Check boundaries
+      if (left < padding) {
+        left = padding;
+      } else if (left + tooltipWidth > window.innerWidth - padding) {
+        left = window.innerWidth - tooltipWidth - padding;
+      }
+      
+      if (top < padding) {
+        top = rect.bottom + padding;
+      }
+      
+      setTooltipPosition({ top, left });
+    }
+  }, [showTooltip]);
+
   return (
     <div className="mt-4 pt-4 border-t border-zinc-200/50 dark:border-zinc-800/50">
       {/* LRT Supply Metrics */}
-      <div className="space-y-2 mb-3">
+      <div 
+        ref={tooltipRef}
+        className="space-y-2 mb-3"
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+      >
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
             {rewards.tokenTicker} Token Supply
@@ -55,6 +90,25 @@ export function DAppCardRewards({
         </div>
       </div>
 
+      {/* Tooltip */}
+      {showTooltip && tooltipPosition && typeof window !== 'undefined' && createPortal(
+        <div
+          className="fixed bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-xl z-[99999] p-3 pointer-events-none"
+          style={{
+            top: `${tooltipPosition.top}px`,
+            left: `${tooltipPosition.left}px`,
+            width: '280px',
+            transform: 'translateY(-100%)',
+            maxWidth: 'calc(100vw - 16px)',
+          }}
+        >
+          <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed">
+            Using this dApp rewards you with {rewards.tokenTicker} tokens (Local Reward Token). 
+            This works as Use-To-Mint / Proof of Utility — the more you use the dApp, the more rewards you earn.
+          </p>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

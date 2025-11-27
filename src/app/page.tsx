@@ -156,17 +156,23 @@ function HomeContent() {
                 >
                   Build dApp
                 </Link>
+                <SortFilters 
+                  sortBy={sortBy} 
+                  onSortChange={setSortBy}
+                  favoritesCount={favoritesSet.size}
+                />
+                <button
+                  onClick={handleResetFilters}
+                  className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors whitespace-nowrap"
+                >
+                  Reset Filters
+                </button>
                 <Link
                   href="/list-dapp"
                   className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors whitespace-nowrap"
                 >
                   List dApp
                 </Link>
-                <SortFilters 
-                  sortBy={sortBy} 
-                  onSortChange={setSortBy}
-                  favoritesCount={favoritesSet.size}
-                />
               </div>
             </div>
             <DAppGrid 

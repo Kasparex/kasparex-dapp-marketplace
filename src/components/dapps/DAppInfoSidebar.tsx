@@ -372,7 +372,7 @@ export function DAppInfoSidebar({
               {/* Version */}
               {displayVersion && displayVersion !== 'N/A' && (
                 <div className="px-3 py-1.5 text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded text-center">
-                  v{displayVersion}
+                  {displayVersion.replace(/^v\s*/i, '')}
                 </div>
               )}
 
