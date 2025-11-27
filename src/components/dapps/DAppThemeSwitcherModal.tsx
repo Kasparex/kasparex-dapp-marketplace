@@ -17,11 +17,15 @@ export function DAppThemeSwitcherModal({
   onClose
 }: DAppThemeSwitcherModalProps) {
   const { theme, toggleTheme } = useTheme();
-  const [selectedTheme, setSelectedTheme] = useState<'light' | 'dark'>(theme);
+  // Map kaspa theme to dark for display
+  const getDisplayTheme = (t: typeof theme): 'light' | 'dark' => {
+    return t === 'kaspa' ? 'dark' : t;
+  };
+  const [selectedTheme, setSelectedTheme] = useState<'light' | 'dark'>(getDisplayTheme(theme));
 
   // Sync with global theme
   useEffect(() => {
-    setSelectedTheme(theme);
+    setSelectedTheme(getDisplayTheme(theme));
   }, [theme]);
 
   // Close on Escape key
@@ -40,7 +44,9 @@ export function DAppThemeSwitcherModal({
   const handleThemeSelect = (newTheme: 'light' | 'dark') => {
     setSelectedTheme(newTheme);
     // Use global theme toggle to change entire page theme
-    if (newTheme !== theme) {
+    // If current theme is kaspa, we need to toggle appropriately
+    const currentDisplayTheme = getDisplayTheme(theme);
+    if (newTheme !== currentDisplayTheme) {
       toggleTheme();
     }
   };

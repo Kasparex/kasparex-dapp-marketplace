@@ -19,8 +19,12 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
   const chainId = useChainId();
   const chain = chainId ? getChainById(chainId) : null;
   const { theme, toggleTheme } = useTheme();
-  const [selectedTheme, setSelectedTheme] = useState<'light' | 'dark'>(theme);
-  
+  // Map kaspa theme to dark for embed preview
+  const getEmbedTheme = (t: typeof theme): 'light' | 'dark' => {
+    return t === 'kaspa' ? 'dark' : t;
+  };
+  const [selectedTheme, setSelectedTheme] = useState<'light' | 'dark'>(getEmbedTheme(theme));
+
   const [widthType, setWidthType] = useState<'px' | '%' | 'vw'>('%');
   const [width, setWidth] = useState(100);
   const [heightType, setHeightType] = useState<'px' | 'vh' | '%' | 'auto'>('auto');
@@ -39,12 +43,17 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
 
   // Sync theme with global theme
   useEffect(() => {
-    setSelectedTheme(theme);
+    setSelectedTheme(getEmbedTheme(theme));
   }, [theme]);
 
   const handleThemeSelect = (newTheme: 'light' | 'dark') => {
     setSelectedTheme(newTheme);
-    if (newTheme !== theme) {
+    // If current theme is kaspa, we need to toggle to get to the right theme
+    if (theme === 'kaspa' && newTheme === 'dark') {
+      // Already dark-like, no change needed
+      return;
+    }
+    if (newTheme !== getEmbedTheme(theme)) {
       toggleTheme();
     }
   };
