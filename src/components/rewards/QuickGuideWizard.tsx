@@ -49,7 +49,7 @@ export function QuickGuideWizard({ isOpen, onClose }: QuickGuideWizardProps) {
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50" />
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
       
       {/* Modal Content */}
       <div

@@ -44,7 +44,7 @@ export function KREXStatusBox() {
             onClick={() => setShowModal(true)}
             aria-label="View tier requirements"
           >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </button>
@@ -94,7 +94,7 @@ export function KREXStatusBox() {
           onClick={() => setShowModal(false)}
         >
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/50" />
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
           
           {/* Modal Content */}
           <div
