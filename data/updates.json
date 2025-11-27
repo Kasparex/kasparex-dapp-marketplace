@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764203084-941ba46",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript errors for kaspa theme in DAppEmbed and DAppThemeSwitcherModal (by Kasparex)",
+      "date": "2025-11-27T01:23:57+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764202751-de2d4b9",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add KREX status box, merge rewards/metrics, create Kaspa theme - Add KREX Status box to main sidebar with tiers, multipliers, and NFT info - Merge Rewards and Calculations & Metrics boxes on dApp pages - Remove example calculation from dApp pages - Remove LRT Holdings box from dApp pages - Adjust scrollbar styling for light theme - Create Kaspa theme cycling dark â†’ light â†’ Kaspa with brand colors (by Kasparex)",
