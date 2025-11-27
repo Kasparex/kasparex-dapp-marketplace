@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764206627-31178cf",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Move featured image to widget, disable Kaspa theme, add All Perks link, reposition tooltip (by Kasparex)",
+      "date": "2025-11-27T02:22:45+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764205066-1518deb",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update Kaspa theme colors, split KREX/NFT status boxes, add tier tooltip and calculator links (by Kasparex)",
