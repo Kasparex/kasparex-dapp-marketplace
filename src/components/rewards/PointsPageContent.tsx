@@ -94,11 +94,11 @@ export function PointsPageContent() {
   const nextPerk = getNextPerk();
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div>
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
               XP Points & Perks
             </h1>
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -144,7 +144,7 @@ export function PointsPageContent() {
       {/* Unlocked Perks */}
       {unlockedPerks.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
             Unlocked Perks ({unlockedPerks.length})
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -175,7 +175,7 @@ export function PointsPageContent() {
 
       {/* All Perks */}
       <div>
-        <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
           All Available Perks
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

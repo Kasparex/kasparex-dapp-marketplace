@@ -8,7 +8,14 @@ import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 
 // Mock KREX balance to determine tier (for simulation)
-const mockKREXBalance = 0; // Default to Tier 0
+function getMockKREXBalance(address: string | undefined): number {
+  if (!address) return 0;
+  // Generate consistent mock balance based on address
+  const hash = address.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  // Return a balance that could be in any tier for testing
+  const tierOptions = [0, 5_000_000, 25_000_000, 75_000_000, 150_000_000];
+  return tierOptions[hash % tierOptions.length];
+}
 
 function getKREXTierFromBalance(balance: number): KREXTier {
   if (balance >= 100_000_000) return 'Tier3';
@@ -18,7 +25,8 @@ function getKREXTierFromBalance(balance: number): KREXTier {
 }
 
 export function KREXStatusBox() {
-  const { isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
+  const mockKREXBalance = getMockKREXBalance(address);
   const krexTier = getKREXTierFromBalance(mockKREXBalance);
   const tierConfig = KREX_TIERS[krexTier];
   const [showModal, setShowModal] = useState(false);
@@ -127,34 +135,42 @@ export function KREXStatusBox() {
                     </tr>
                   </thead>
                   <tbody>
-                    {Object.values(KREX_TIERS).map((tier) => (
-                      <tr
-                        key={tier.tier}
-                        className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
-                      >
-                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                          {tier.label}
-                        </td>
-                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                          {tier.minKREX === 0 ? '< 10M' : `≥ ${formatLargeNumber(tier.minKREX)}`}
-                        </td>
-                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
-                          {tier.multiplier}x
-                        </td>
-                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                          {tier.feePercent}%
-                        </td>
-                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
-                          {tier.pointsMultiplier}x
-                        </td>
-                      </tr>
-                    ))}
+                    {Object.values(KREX_TIERS).map((tier) => {
+                      const isUserTier = tier.tier === krexTier;
+                      return (
+                        <tr
+                          key={tier.tier}
+                          className={`border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${
+                            isUserTier ? 'bg-[#02abb8]/10 dark:bg-[#02abb8]/20' : ''
+                          }`}
+                        >
+                          <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                            {tier.label}
+                            {isUserTier && (
+                              <span className="ml-2 text-xs text-[#02abb8] font-medium">(Current)</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                            {tier.minKREX === 0 ? '< 10M' : `≥ ${formatLargeNumber(tier.minKREX)}`}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
+                            {tier.multiplier}x
+                          </td>
+                          <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                            {tier.feePercent}%
+                          </td>
+                          <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
+                            {tier.pointsMultiplier}x
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
 
-              {/* Buy KREX Button */}
-              <div className="mt-6 flex justify-center">
+              {/* Buy KREX Button and Balance */}
+              <div className="mt-6 grid grid-cols-2 gap-4">
                 <button
                   className="px-6 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
                   onClick={() => {
@@ -164,6 +180,16 @@ export function KREXStatusBox() {
                 >
                   Buy KREX
                 </button>
+                <div className="flex items-center justify-end">
+                  <div className="text-right">
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
+                      Your KREX Balance
+                    </div>
+                    <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                      {isConnected ? formatLargeNumber(mockKREXBalance) : '—'}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
