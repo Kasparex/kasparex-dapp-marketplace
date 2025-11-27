@@ -507,4 +507,93 @@ export function isDAppCompatibleWithChain(dapp: DApp, chainId: number): boolean 
   return supportedChainIds.includes(chainId);
 }
 
+/**
+ * Generate a simulated contract address from a dApp ID
+ * This creates a deterministic address based on the dApp ID
+ */
+export function generateSimulatedAddress(dappId: string): string {
+  // Create a deterministic hash-like string from the dApp ID
+  // This ensures the same dApp always gets the same address
+  let hash = 0;
+  for (let i = 0; i < dappId.length; i++) {
+    const char = dappId.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  
+  // Convert to positive number and pad to 40 hex characters (20 bytes)
+  const positiveHash = Math.abs(hash);
+  const hexString = positiveHash.toString(16).padStart(8, '0');
+  
+  // Repeat and pad to 40 characters for a full address
+  const fullHex = (hexString.repeat(5) + hexString.substring(0, 8)).substring(0, 40);
+  
+  return `0x${fullHex}`;
+}
+
+/**
+ * Generate a simulated token ticker from a dApp name
+ * This is used as a fallback when contract data doesn't have a ticker
+ */
+export function generateSimulatedTicker(dappName: string): string {
+  // Remove common words and special characters
+  const cleaned = dappName
+    .toUpperCase()
+    .replace(/[^A-Z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // Special cases for known dApps
+  const specialCases: Record<string, string> = {
+    'SUBSCRIPTION CHECKER': 'SUB',
+    'TOKEN PAYMENT SPLITTER': 'SPLIT',
+    'MULTI-CHOICE VOTING PANEL': 'VOTE',
+    'DAO VOTING': 'VOTE',
+    'QUIZ-TO-EARN': 'QUIZ',
+    'QUIZ TO EARN': 'QUIZ',
+    'SIMPLE PAYMENT': 'PAY',
+    'IDEA SUBMISSION BOX': 'IDEA',
+    'CUSTOM DAPP PAGE BUILDER': 'BUILD',
+    'TOKEN PROFILE PAGE': 'PROFILE',
+    'HOLD-TO-VIEW THREADS': 'HOLD',
+    'HOLD TO VIEW THREADS': 'HOLD',
+    'VOTING TOURNAMENT TOOL': 'TOURNAMENT',
+    'TOKEN MILESTONE LOGGER': 'MILESTONE',
+    'ANONYMOUS FEEDBACK BOX': 'FEEDBACK',
+  };
+
+  if (specialCases[cleaned]) {
+    return specialCases[cleaned];
+  }
+
+  // Extract meaningful words (skip common words)
+  const words = cleaned.split(' ').filter(word => {
+    const commonWords = ['THE', 'A', 'AN', 'TO', 'FOR', 'OF', 'AND', 'OR', 'IN', 'ON', 'AT', 'BY'];
+    return word.length > 2 && !commonWords.includes(word);
+  });
+
+  if (words.length === 0) {
+    // Fallback: use first 3-4 letters of the name
+    return cleaned.substring(0, 4).replace(/\s/g, '');
+  }
+
+  if (words.length === 1) {
+    // Single word: use first 3-4 letters
+    return words[0].substring(0, 4);
+  }
+
+  // Multiple words: use first letter of each word (up to 4 words)
+  const initials = words.slice(0, 4).map(word => word[0]).join('');
+  
+  // If we have 2-3 words, try to use first 2 letters of first word + first letter of others
+  if (words.length === 2 || words.length === 3) {
+    const firstWord = words[0];
+    if (firstWord.length >= 2) {
+      return (firstWord.substring(0, 2) + words.slice(1).map(w => w[0]).join('')).substring(0, 5);
+    }
+  }
+
+  return initials.substring(0, 5);
+}
+
 
