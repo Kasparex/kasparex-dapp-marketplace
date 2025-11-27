@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764272437-19be69b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Reorganize dApp info sidebar into boxed sections, fix spacing (by Kasparex)",
+      "date": "2025-11-27T20:39:23+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764265290-e834f70",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update Quick Guide button style, improve modal backdrops, increase info icons, redesign footer (by Kasparex)",
