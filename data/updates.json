@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764253837-a910b16",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add right sidebar to dApp page with info, actions, and referral link; simplify widget header (by Kasparex)",
+      "date": "2025-11-27T15:30:03+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764251676-c6150e6",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add badges to Points page, create custom Points sidebar with filters, update title to XP Points Perks & Badges (by Kasparex)",
