@@ -68,7 +68,7 @@ export default async function DAppPage({ params }: PageProps) {
         </div>
 
         {/* Related dApps - Below 3-column layout */}
-        <div className="p-4 sm:p-6 lg:p-8 lg:pl-6">
+        <div className="px-4 sm:px-6 lg:px-8 lg:pl-6 pb-4 sm:pb-6 lg:pb-8">
           <RelatedDApps currentDApp={dapp} />
         </div>
       </main>

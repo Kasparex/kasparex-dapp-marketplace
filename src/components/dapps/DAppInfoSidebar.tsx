@@ -10,6 +10,7 @@ import { getCategoryById } from '@/lib/categories';
 import { isDeployer, useDeployerProfile, formatDeployerName, getDeployerProfileUrl } from '@/lib/dapps/deployer';
 import { Avatar } from '@/components/Avatar';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useDAppFromContract, mergeDAppData } from '@/lib/dapps/contractData';
 import { CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
@@ -113,110 +114,97 @@ export function DAppInfoSidebar({
   const displayAddress = formatAddressForDisplay(deployerAddress);
   const displayVersion = pollingVersion || mergedDApp.version || 'N/A';
 
-  // Copy referral link state
-  const [copiedReferralLink, setCopiedReferralLink] = useState(false);
-
   // Category link props
   const categoryLinkProps = isEmbeddedPage
     ? { target: '_blank', rel: 'noopener noreferrer' }
     : {};
+
+  // Featured image
+  const featuredImage = mergedDApp.featuredImage;
 
   return (
     <>
       <aside className="hidden lg:block w-full lg:w-64 flex-shrink-0">
         <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto bg-white dark:bg-zinc-950 border-l border-zinc-200 dark:border-zinc-800">
           <div className="p-4 lg:p-6 space-y-6">
-            {/* Developer */}
-            {deployerAddress && (
-              <div>
-                <h3 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2">
-                  Developer
-                </h3>
-                <Link
-                  href={deployerUrl}
-                  className="w-full flex items-center gap-2 px-3 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium rounded-lg"
-                  aria-label="Developer profile"
-                >
-                  <Avatar address={deployerAddress} size={24} />
-                  <span className="text-zinc-900 dark:text-zinc-100 flex-1 text-left truncate">
-                    {deployerName || displayAddress}
-                  </span>
-                  <svg
-                    className="w-4 h-4 text-zinc-600 dark:text-zinc-400 flex-shrink-0"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
+            {/* Box 1: Action Icons */}
+            {!hideIcons && (
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                <div className="flex items-center gap-2">
+                  {/* Info Icon */}
+                  {!hideInfo && (mergedDApp.description || mergedDApp.utility) && (
+                    <button
+                      onClick={() => setShowInfoModal(true)}
+                      className="flex-1 p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                      title="Description"
+                      aria-label="View description"
+                    >
+                      <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </button>
+                  )}
 
-                {/* Social Media Links */}
-                {mergedDApp.developerLinks && mergedDApp.developerLinks.length > 0 && (
-                  <div className="mt-2 flex items-center gap-2 flex-wrap">
-                    {mergedDApp.developerLinks.map((link, index) => (
-                      <a
-                        key={index}
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-[#02abb8] dark:hover:text-[#02abb8] hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-                        title={link.label}
-                        aria-label={link.label}
-                      >
-                        {link.label.toLowerCase().includes('twitter') || link.label.toLowerCase().includes('x') ? (
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                          </svg>
-                        ) : link.label.toLowerCase().includes('telegram') ? (
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-                          </svg>
-                        ) : link.label.toLowerCase().includes('website') || link.label.toLowerCase().includes('web') ? (
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                          </svg>
-                        ) : (
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                          </svg>
-                        )}
-                      </a>
-                    ))}
-                  </div>
-                )}
+                  {/* Embed Icon */}
+                  {!hideEmbed && (
+                    <button
+                      onClick={() => setShowEmbedModal(true)}
+                      className="flex-1 p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                      title="Embed"
+                      aria-label="Get embed code"
+                    >
+                      <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                  )}
+
+                  {/* Star Button (Favorites) */}
+                  {!hideStar && (
+                    <button
+                      onClick={() => toggleFavorite(mergedDApp.id)}
+                      className={`flex-1 p-2 rounded-lg transition-colors ${
+                        isFavorite(mergedDApp.id)
+                          ? 'text-yellow-500 hover:text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
+                          : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                      }`}
+                      title={isFavorite(mergedDApp.id) ? 'Remove from favorites' : 'Add to favorites'}
+                      aria-label={isFavorite(mergedDApp.id) ? 'Remove from favorites' : 'Add to favorites'}
+                    >
+                      <svg className="w-5 h-5 mx-auto" fill={isFavorite(mergedDApp.id) ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                      </svg>
+                    </button>
+                  )}
+
+                  {/* Heart Button (Like) */}
+                  {!hideHeart && (
+                    <button
+                      onClick={() => toggleLike(mergedDApp.id)}
+                      className={`flex-1 p-2 rounded-lg transition-colors relative ${
+                        hasLiked(mergedDApp.id)
+                          ? 'text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-900/20'
+                          : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                      }`}
+                      title={hasLiked(mergedDApp.id) ? 'Unlike' : 'Like'}
+                      aria-label={hasLiked(mergedDApp.id) ? 'Unlike' : 'Like'}
+                    >
+                      <svg className="w-5 h-5 mx-auto" fill={hasLiked(mergedDApp.id) ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
+                      {getLikeCount(mergedDApp.id) > 0 && (
+                        <span className="absolute -top-1 -right-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                          {getLikeCount(mergedDApp.id)}
+                        </span>
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
-            {/* Category & Version */}
-            <div>
-              <h3 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2">
-                Info
-              </h3>
-              <div className="space-y-2">
-                {category && (
-                  <a
-                    href={`/?category=${mergedDApp.category}`}
-                    {...categoryLinkProps}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors w-full justify-center"
-                  >
-                    <span>{category.emoji}</span>
-                    <span>{category.name}</span>
-                  </a>
-                )}
-                {displayVersion && displayVersion !== 'N/A' && (
-                  <div className="px-3 py-1.5 text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded text-center">
-                    v{displayVersion}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Network & Compatibility */}
-            <div>
-              <h3 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2">
-                Network
-              </h3>
+            {/* Box 2: Network & Compatibility */}
+            <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
               <div className="space-y-2">
                 {!isConnected && (
                   <ConnectButton.Custom>
@@ -305,91 +293,87 @@ export function DAppInfoSidebar({
               </div>
             </div>
 
-
-            {/* Action Icons */}
-            {!hideIcons && (
-              <div>
-                <h3 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2">
-                  Actions
-                </h3>
-                <div className="flex items-center gap-2">
-                  {/* Info Icon */}
-                  {!hideInfo && (mergedDApp.description || mergedDApp.utility) && (
-                    <button
-                      onClick={() => setShowInfoModal(true)}
-                      className="flex-1 p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-                      title="Description"
-                      aria-label="View description"
+            {/* Box 3: Developer & Info */}
+            <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              {deployerAddress && (
+                <>
+                  <Link
+                    href={deployerUrl}
+                    className="w-full flex items-center gap-2 px-3 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium rounded-lg mb-3"
+                    aria-label="Developer profile"
+                  >
+                    <Avatar address={deployerAddress} size={24} />
+                    <span className="text-zinc-900 dark:text-zinc-100 flex-1 text-left truncate">
+                      {deployerName || displayAddress}
+                    </span>
+                    <svg
+                      className="w-4 h-4 text-zinc-600 dark:text-zinc-400 flex-shrink-0"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
                     >
-                      <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </button>
-                  )}
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
 
-                  {/* Embed Icon */}
-                  {!hideEmbed && (
-                    <button
-                      onClick={() => setShowEmbedModal(true)}
-                      className="flex-1 p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-                      title="Embed"
-                      aria-label="Get embed code"
-                    >
-                      <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                    </button>
-                  )}
+                  {/* Featured Image */}
+                  <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 mb-3">
+                    {featuredImage ? (
+                      <Image
+                        src={featuredImage}
+                        alt={mergedDApp.name}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-zinc-400 dark:text-zinc-600">
+                        <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
 
-                  {/* Star Button (Favorites) */}
-                  {!hideStar && (
-                    <button
-                      onClick={() => toggleFavorite(mergedDApp.id)}
-                      className={`flex-1 p-2 rounded-lg transition-colors ${
-                        isFavorite(mergedDApp.id)
-                          ? 'text-yellow-500 hover:text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
-                          : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                      }`}
-                      title={isFavorite(mergedDApp.id) ? 'Remove from favorites' : 'Add to favorites'}
-                      aria-label={isFavorite(mergedDApp.id) ? 'Remove from favorites' : 'Add to favorites'}
-                    >
-                      <svg className="w-5 h-5 mx-auto" fill={isFavorite(mergedDApp.id) ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                      </svg>
-                    </button>
-                  )}
+                  {/* Social Icons (from Info modal) */}
+                  <div className="mb-3 flex items-center justify-center">
+                    <SocialIcons iconSize="w-4 h-4" />
+                  </div>
+                </>
+              )}
 
-                  {/* Heart Button (Like) */}
-                  {!hideHeart && (
-                    <button
-                      onClick={() => toggleLike(mergedDApp.id)}
-                      className={`flex-1 p-2 rounded-lg transition-colors relative ${
-                        hasLiked(mergedDApp.id)
-                          ? 'text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-900/20'
-                          : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                      }`}
-                      title={hasLiked(mergedDApp.id) ? 'Unlike' : 'Like'}
-                      aria-label={hasLiked(mergedDApp.id) ? 'Unlike' : 'Like'}
-                    >
-                      <svg className="w-5 h-5 mx-auto" fill={hasLiked(mergedDApp.id) ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                      {getLikeCount(mergedDApp.id) > 0 && (
-                        <span className="absolute -top-1 -right-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                          {getLikeCount(mergedDApp.id)}
-                        </span>
-                      )}
-                    </button>
-                  )}
+              {/* Category */}
+              {category && (
+                <Link
+                  href={`/?category=${mergedDApp.category}`}
+                  {...categoryLinkProps}
+                  className="block w-full mb-2 px-3 py-1.5 text-sm font-medium rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors text-center"
+                >
+                  <span className="mr-1.5">{category.emoji}</span>
+                  <span>{category.name}</span>
+                </Link>
+              )}
+
+              {/* Version */}
+              {displayVersion && displayVersion !== 'N/A' && (
+                <div className="px-3 py-1.5 text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded text-center mb-2">
+                  v{displayVersion}
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Referral Link */}
-            <div>
-              <h3 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2">
-                Referral
-              </h3>
+              {/* Open Info Modal Button */}
+              {(mergedDApp.description || mergedDApp.utility) && (
+                <button
+                  onClick={() => setShowInfoModal(true)}
+                  className="w-full px-3 py-2 text-sm font-medium bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors"
+                >
+                  View Details
+                </button>
+              )}
+            </div>
+
+            {/* Box 4: Referral Link */}
+            <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
               <AffiliateWidget
                 dAppId={dapp.id}
                 dAppName={dapp.name}
@@ -417,4 +401,3 @@ export function DAppInfoSidebar({
     </>
   );
 }
-

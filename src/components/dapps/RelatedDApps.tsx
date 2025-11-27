@@ -52,7 +52,7 @@ export function RelatedDApps({ currentDApp }: RelatedDAppsProps) {
   }
 
   return (
-    <div className="mt-12 pt-8 border-t border-zinc-200 dark:border-zinc-800">
+    <div className="pt-6 border-t border-zinc-200 dark:border-zinc-800">
       <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
         Related dApps
       </h2>
