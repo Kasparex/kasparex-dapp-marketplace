@@ -13,6 +13,7 @@ export function DAppCardRewards({
   tokenTicker,
 }: DAppCardRewardsProps) {
   const [showTooltip, setShowTooltip] = useState(false);
+  const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null);
   
@@ -35,28 +36,42 @@ export function DAppCardRewards({
   };
 
   useEffect(() => {
-    if (showTooltip && tooltipRef.current) {
-      const rect = tooltipRef.current.getBoundingClientRect();
+    if (showTooltip && tooltipRef.current && mousePosition) {
       const tooltipWidth = 280;
-      const padding = 8;
+      const tooltipHeight = 80;
+      const padding = 12;
+      const offset = 10; // Distance from mouse pointer
       
-      let left = rect.left + rect.width / 2 - tooltipWidth / 2;
-      let top = rect.top - 120; // Position above the element
+      let left = mousePosition.x + offset;
+      let top = mousePosition.y - tooltipHeight - offset;
       
-      // Check boundaries
-      if (left < padding) {
-        left = padding;
-      } else if (left + tooltipWidth > window.innerWidth - padding) {
-        left = window.innerWidth - tooltipWidth - padding;
+      // Check right boundary
+      if (left + tooltipWidth > window.innerWidth - padding) {
+        left = mousePosition.x - tooltipWidth - offset;
       }
       
+      // Check left boundary
+      if (left < padding) {
+        left = padding;
+      }
+      
+      // Check top boundary - if not enough space above, show below
       if (top < padding) {
-        top = rect.bottom + padding;
+        top = mousePosition.y + offset;
+      }
+      
+      // Check bottom boundary
+      if (top + tooltipHeight > window.innerHeight - padding) {
+        top = window.innerHeight - tooltipHeight - padding;
       }
       
       setTooltipPosition({ top, left });
     }
-  }, [showTooltip]);
+  }, [showTooltip, mousePosition]);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    setMousePosition({ x: e.clientX, y: e.clientY });
+  };
 
   return (
     <div className="mt-4 pt-4 border-t border-zinc-200/50 dark:border-zinc-800/50">
@@ -65,7 +80,11 @@ export function DAppCardRewards({
         ref={tooltipRef}
         className="space-y-2 mb-3"
         onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
+        onMouseLeave={() => {
+          setShowTooltip(false);
+          setMousePosition(null);
+        }}
+        onMouseMove={handleMouseMove}
       >
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
@@ -98,7 +117,6 @@ export function DAppCardRewards({
             top: `${tooltipPosition.top}px`,
             left: `${tooltipPosition.left}px`,
             width: '280px',
-            transform: 'translateY(-100%)',
             maxWidth: 'calc(100vw - 16px)',
           }}
         >
