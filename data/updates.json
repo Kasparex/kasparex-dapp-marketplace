@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764258015-02601da",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update KREX wizard, simplify dApp info sidebar, remove rewards panel, move related dApps (by Kasparex)",
+      "date": "2025-11-27T16:39:48+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764256795-74d288c",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add KREX Buy & Bridge wizard and move Rewards Calculator button to GRID box (by Kasparex)",
