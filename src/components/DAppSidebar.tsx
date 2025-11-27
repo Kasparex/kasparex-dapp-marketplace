@@ -10,6 +10,8 @@ import { useDAppFromContract } from '@/lib/dapps/contractData';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { DAppRewardsSidebar } from './rewards/DAppRewardsSidebar';
+import { KREXStatusBox } from './rewards/KREXStatusBox';
+import { NFTStatusBox } from './rewards/NFTStatusBox';
 
 interface DAppSidebarProps {
   dapp: DApp;
@@ -139,6 +141,12 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
               
               {/* Edit functionality removed - dApps are now read-only */}
             </div>
+
+            {/* KREX Status */}
+            <KREXStatusBox />
+
+            {/* NFT Status */}
+            <NFTStatusBox />
 
             {/* Rewards Sidebar */}
             <DAppRewardsSidebar 

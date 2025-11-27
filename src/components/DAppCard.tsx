@@ -359,11 +359,6 @@ export function DAppCard({ dapp }: DAppCardProps) {
       {/* Rewards Section */}
       <DAppCardRewards 
         tokenTicker={tokenTicker}
-        dAppContractAddress={dAppContractAddress}
-        dAppExplorerUrl={dAppExplorerUrl}
-        tokenAddress={tokenAddress}
-        tokenExplorerUrl={tokenExplorerUrl}
-        formatAddress={formatAddress}
       />
 
       {/* Modals */}
