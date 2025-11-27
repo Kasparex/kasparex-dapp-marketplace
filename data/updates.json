@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764256795-74d288c",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add KREX Buy & Bridge wizard and move Rewards Calculator button to GRID box (by Kasparex)",
+      "date": "2025-11-27T16:19:24+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764254591-43e0d1f",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix ESLint error: escape apostrophe in NFTBuyWizard (by Kasparex)",
