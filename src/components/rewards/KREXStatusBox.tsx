@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
-import Link from 'next/link';
 import { createPortal } from 'react-dom';
 import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
+import { KREXBuyWizard } from './KREXBuyWizard';
 
 // Mock KREX balance to determine tier (for simulation)
 function getMockKREXBalance(address: string | undefined): number {
@@ -30,6 +30,7 @@ export function KREXStatusBox() {
   const krexTier = getKREXTierFromBalance(mockKREXBalance);
   const tierConfig = KREX_TIERS[krexTier];
   const [showModal, setShowModal] = useState(false);
+  const [showBuyWizard, setShowBuyWizard] = useState(false);
 
   return (
     <>
@@ -75,12 +76,12 @@ export function KREXStatusBox() {
           </span>
         </div>
         <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
-          <Link
-            href="/rewards-calculator"
-            className="block w-full mt-2 px-3 py-2 text-xs font-medium text-center bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors"
+          <button
+            onClick={() => setShowBuyWizard(true)}
+            className="block w-full mt-2 px-3 py-2 text-xs font-medium text-center bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
           >
-            Rewards Calculator
-          </Link>
+            Buy & Bridge KREX
+          </button>
         </div>
       </div>
 
@@ -174,8 +175,8 @@ export function KREXStatusBox() {
                 <button
                   className="px-6 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
                   onClick={() => {
-                    // TODO: Add link when provided
-                    console.log('Buy KREX clicked');
+                    setShowModal(false);
+                    setShowBuyWizard(true);
                   }}
                 >
                   Buy KREX
@@ -196,6 +197,12 @@ export function KREXStatusBox() {
         </div>,
         document.body
       )}
+
+      {/* KREX Buy & Bridge Wizard */}
+      <KREXBuyWizard
+        isOpen={showBuyWizard}
+        onClose={() => setShowBuyWizard(false)}
+      />
     </>
   );
 }

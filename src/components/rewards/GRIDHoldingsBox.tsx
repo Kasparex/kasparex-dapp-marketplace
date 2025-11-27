@@ -1,6 +1,7 @@
 'use client';
 
 import { useAccount } from 'wagmi';
+import Link from 'next/link';
 import { getMockWalletHoldings, getMockGRTSupplyMetrics } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 
@@ -59,6 +60,16 @@ export function GRIDHoldingsBox() {
             </p>
           </div>
         ) : null}
+
+        {/* Rewards Calculator Button */}
+        <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
+          <Link
+            href="/rewards-calculator"
+            className="block w-full mt-2 px-3 py-2 text-xs font-medium text-center bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors"
+          >
+            Rewards Calculator
+          </Link>
+        </div>
       </div>
     </div>
   );
