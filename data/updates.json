@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764251676-c6150e6",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add badges to Points page, create custom Points sidebar with filters, update title to XP Points Perks & Badges (by Kasparex)",
+      "date": "2025-11-27T14:53:51+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764248630-d356443",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Highlight KREX tier in modal, add balance display, NFT modal with rewards table, update Points page layout, featured image already in header (by Kasparex)",
