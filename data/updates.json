@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764245521-bb86376",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Move search to top, KREX Status above GRID, convert tooltip to modal with table, update KREX tiers (by Kasparex)",
+      "date": "2025-11-27T13:10:58+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764206627-31178cf",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Move featured image to widget, disable Kaspa theme, add All Perks link, reposition tooltip (by Kasparex)",
