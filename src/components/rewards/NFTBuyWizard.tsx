@@ -239,7 +239,7 @@ export function NFTBuyWizard({ isOpen, onClose }: NFTBuyWizardProps) {
               </div>
               <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                 <p className="text-xs text-green-700 dark:text-green-300">
-                  ✓ Once bridged, your NFT will be available on L2 and you'll start earning rewards automatically.
+                  ✓ Once bridged, your NFT will be available on L2 and you&apos;ll start earning rewards automatically.
                 </p>
               </div>
             </div>
