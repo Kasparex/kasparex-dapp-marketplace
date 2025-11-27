@@ -10,6 +10,7 @@ import { GRIDHoldingsBox } from './rewards/GRIDHoldingsBox';
 import { XPPointsBox } from './rewards/XPPointsBox';
 import { KREXStatusBox } from './rewards/KREXStatusBox';
 import { NFTStatusBox } from './rewards/NFTStatusBox';
+import { QuickGuideWizard } from './rewards/QuickGuideWizard';
 
 interface SidebarProps {
   selectedCategories: Category[];
@@ -60,6 +61,7 @@ export function Sidebar({
   const [statusExpanded, setStatusExpanded] = useState(false);
   const [developerExpanded, setDeveloperExpanded] = useState(false);
   const [networkExpanded, setNetworkExpanded] = useState(false);
+  const [showQuickGuide, setShowQuickGuide] = useState(false);
 
   const handleStatusToggle = (status: DAppStatus | 'all') => {
     const currentStatus = filters.status || [];
@@ -235,11 +237,24 @@ export function Sidebar({
             </div>
           </div>
 
+          {/* Quick Guide Button */}
+          <div className="mb-6">
+            <button
+              onClick={() => setShowQuickGuide(true)}
+              className="w-full px-4 py-2.5 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Quick Guide
+            </button>
+          </div>
+
           {/* Rewards Info Boxes */}
           <KREXStatusBox />
+          <NFTStatusBox />
           <GRIDHoldingsBox />
           <XPPointsBox />
-          <NFTStatusBox />
 
           {/* Categories Section */}
           <CollapsibleSection
@@ -526,6 +541,12 @@ export function Sidebar({
           </div>
         </div>
       </aside>
+
+      {/* Quick Guide Wizard */}
+      <QuickGuideWizard
+        isOpen={showQuickGuide}
+        onClose={() => setShowQuickGuide(false)}
+      />
     </>
   );
 }

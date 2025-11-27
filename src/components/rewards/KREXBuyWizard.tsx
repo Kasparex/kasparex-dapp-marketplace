@@ -3,6 +3,38 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 
+// Copyable Address Component
+function CopyableAddress({ address }: { address: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(address);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={handleCopy}
+        className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-blue-300 dark:border-blue-700 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-left"
+      >
+        <code className="font-mono text-sm text-blue-700 dark:text-blue-300 break-all">
+          {address}
+        </code>
+        <div className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+          {copied ? '✓ Copied!' : 'Click to copy'}
+        </div>
+      </button>
+      {copied && (
+        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-green-500 text-white text-xs rounded shadow-lg">
+          Copied!
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface KREXBuyWizardProps {
   isOpen: boolean;
   onClose: () => void;
@@ -274,20 +306,7 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                     <p className="text-xs text-blue-700 dark:text-blue-300 mb-2">
                       💡 KREX Token Contract Address:
                     </p>
-                    <button
-                      onClick={async () => {
-                        await navigator.clipboard.writeText(KREX_TOKEN_CA);
-                        // You could add a toast notification here if needed
-                      }}
-                      className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-blue-300 dark:border-blue-700 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-left"
-                    >
-                      <code className="font-mono text-sm text-blue-700 dark:text-blue-300 break-all">
-                        {KREX_TOKEN_CA}
-                      </code>
-                      <div className="mt-1 text-xs text-blue-600 dark:text-blue-400">
-                        Click to copy
-                      </div>
-                    </button>
+                    <CopyableAddress address={KREX_TOKEN_CA} />
                   </div>
                 </div>
               ) : (
