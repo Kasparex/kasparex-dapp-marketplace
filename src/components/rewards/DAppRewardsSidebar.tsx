@@ -58,35 +58,80 @@ export function DAppRewardsSidebar({ tokenTicker, dappName }: DAppRewardsSidebar
 
   return (
     <div className="space-y-4">
-      {/* Rewards Box */}
+      {/* Rewards & Metrics Box */}
       <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-          Rewards
+          Rewards & Metrics
         </h3>
-        <div className="space-y-2">
-          <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
-            Base Rates (per 1 KAS):
+        <div className="space-y-3">
+          {/* Base Rates */}
+          <div>
+            <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
+              Base Rates (per 1 KAS):
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-600 dark:text-zinc-400">GRT (GRID):</span>
+                <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                  {formatLargeNumber(rewards.grtPerKas)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-600 dark:text-zinc-400">
+                  {rewards.tokenTicker} (LRT):
+                </span>
+                <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                  {formatLargeNumber(rewards.lrtPerKas)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-600 dark:text-zinc-400">XP Points:</span>
+                <span className="font-medium text-[#02abb8]">
+                  {formatLargeNumber(rewards.xpPerKas)}
+                </span>
+              </div>
+            </div>
           </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-zinc-600 dark:text-zinc-400">GRT (GRID):</span>
-              <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                {formatLargeNumber(rewards.grtPerKas)}
+
+          {/* GRT Supply Metrics */}
+          <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-zinc-600 dark:text-zinc-400">
+                GRT (GRID) Supply
+              </span>
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                {grtMetrics.progress.toFixed(2)}% minted
               </span>
             </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-zinc-600 dark:text-zinc-400">
-                {rewards.tokenTicker} (LRT):
+            <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2 mb-1">
+              <div
+                className="bg-[#02abb8] h-2 rounded-full transition-all"
+                style={{ width: `${Math.min(100, grtMetrics.progress)}%` }}
+              />
+            </div>
+            <div className="text-xs text-zinc-500 dark:text-zinc-400">
+              {formatLargeNumber(grtMetrics.minted)} / {formatLargeNumber(grtMetrics.maxSupply)}
+            </div>
+          </div>
+
+          {/* LRT Supply Metrics */}
+          <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-zinc-600 dark:text-zinc-400">
+                {rewards.tokenTicker} Supply
               </span>
-              <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                {formatLargeNumber(rewards.lrtPerKas)}
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                {lrtMetrics.progress.toFixed(2)}% minted
               </span>
             </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-zinc-600 dark:text-zinc-400">XP Points:</span>
-              <span className="font-medium text-[#02abb8]">
-                {formatLargeNumber(rewards.xpPerKas)}
-              </span>
+            <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2 mb-1">
+              <div
+                className="bg-[#02abb8] h-2 rounded-full transition-all"
+                style={{ width: `${Math.min(100, lrtMetrics.progress)}%` }}
+              />
+            </div>
+            <div className="text-xs text-zinc-500 dark:text-zinc-400">
+              {formatLargeNumber(lrtMetrics.minted)} / {formatLargeNumber(lrtMetrics.maxSupply)}
             </div>
           </div>
         </div>
@@ -181,70 +226,6 @@ export function DAppRewardsSidebar({ tokenTicker, dappName }: DAppRewardsSidebar
           </div>
           <div className="text-xs text-zinc-500 dark:text-zinc-400">
             {mockSeasonalMultiplier > 1 ? 'Active boosters applied' : 'No active boosters'}
-          </div>
-        </div>
-      </div>
-
-      {/* Calculations and Metrics Box */}
-      <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-          Calculations & Metrics
-        </h3>
-        <div className="space-y-3">
-          {/* Example Calculation */}
-          <div>
-            <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1.5">
-              Example (1 KAS):
-            </div>
-            <div className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              {formatLargeNumber(rewards.grtPerKas)} GRT × {mockTotalMultiplier.toFixed(2)}x = {formatLargeNumber(exampleGRT)} GRT
-              <br />
-              {formatLargeNumber(rewards.lrtPerKas)} {rewards.tokenTicker} × {mockTotalMultiplier.toFixed(2)}x = {formatLargeNumber(exampleLRT)} {rewards.tokenTicker}
-              <br />
-              {formatLargeNumber(rewards.xpPerKas)} XP × {mockPointsMultiplier.toFixed(2)}x = {formatLargeNumber(exampleXP)} XP
-            </div>
-          </div>
-
-          {/* GRT Supply Metrics */}
-          <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-zinc-600 dark:text-zinc-400">
-                GRT (GRID) Supply
-              </span>
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                {grtMetrics.progress.toFixed(2)}% minted
-              </span>
-            </div>
-            <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2 mb-1">
-              <div
-                className="bg-[#02abb8] h-2 rounded-full transition-all"
-                style={{ width: `${Math.min(100, grtMetrics.progress)}%` }}
-              />
-            </div>
-            <div className="text-xs text-zinc-500 dark:text-zinc-400">
-              {formatLargeNumber(grtMetrics.minted)} / {formatLargeNumber(grtMetrics.maxSupply)}
-            </div>
-          </div>
-
-          {/* LRT Supply Metrics */}
-          <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-zinc-600 dark:text-zinc-400">
-                {rewards.tokenTicker} Supply
-              </span>
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                {lrtMetrics.progress.toFixed(2)}% minted
-              </span>
-            </div>
-            <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2 mb-1">
-              <div
-                className="bg-[#02abb8] h-2 rounded-full transition-all"
-                style={{ width: `${Math.min(100, lrtMetrics.progress)}%` }}
-              />
-            </div>
-            <div className="text-xs text-zinc-500 dark:text-zinc-400">
-              {formatLargeNumber(lrtMetrics.minted)} / {formatLargeNumber(lrtMetrics.maxSupply)}
-            </div>
           </div>
         </div>
       </div>

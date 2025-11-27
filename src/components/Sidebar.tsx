@@ -8,6 +8,7 @@ import { CategoriesIcon, StatusIcon, DeveloperIcon, NetworkIcon } from '@/compon
 import { StatusIndicatorDot, getStatusTypeFromString } from './dapps/StatusIndicatorDot';
 import { GRIDHoldingsBox } from './rewards/GRIDHoldingsBox';
 import { XPPointsBox } from './rewards/XPPointsBox';
+import { KREXStatusBox } from './rewards/KREXStatusBox';
 
 interface SidebarProps {
   selectedCategories: Category[];
@@ -208,6 +209,7 @@ export function Sidebar({
       >
         <div className="p-4 lg:p-6">
           {/* Rewards Info Boxes */}
+          <KREXStatusBox />
           <GRIDHoldingsBox />
           <XPPointsBox />
           

@@ -22,7 +22,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    // Cycle through: dark → light → kaspa → dark
+    let newTheme: Theme;
+    if (theme === 'dark') {
+      newTheme = 'light';
+    } else if (theme === 'light') {
+      newTheme = 'kaspa';
+    } else {
+      newTheme = 'dark';
+    }
     setTheme(newTheme);
     setStoredTheme(newTheme);
     applyTheme(newTheme);
