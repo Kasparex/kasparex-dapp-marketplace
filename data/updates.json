@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764205066-1518deb",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update Kaspa theme colors, split KREX/NFT status boxes, add tier tooltip and calculator links (by Kasparex)",
+      "date": "2025-11-27T01:57:12+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764203084-941ba46",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript errors for kaspa theme in DAppEmbed and DAppThemeSwitcherModal (by Kasparex)",
