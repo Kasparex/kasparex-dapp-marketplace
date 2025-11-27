@@ -1,6 +1,7 @@
 'use client';
 
 import { useAccount } from 'wagmi';
+import Link from 'next/link';
 import { 
   getDefaultRewardsBreakdown, 
   getMockLRTSupplyMetrics,
@@ -60,9 +61,17 @@ export function DAppRewardsSidebar({ tokenTicker, dappName }: DAppRewardsSidebar
     <div className="space-y-4">
       {/* Rewards & Metrics Box */}
       <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-          Rewards & Metrics
-        </h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+            Rewards & Metrics
+          </h3>
+          <Link
+            href="/rewards-calculator"
+            className="px-3 py-1.5 text-xs font-medium bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors"
+          >
+            Calculator
+          </Link>
+        </div>
         <div className="space-y-3">
           {/* Base Rates */}
           <div>

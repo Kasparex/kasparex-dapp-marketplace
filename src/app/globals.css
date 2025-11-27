@@ -37,34 +37,41 @@
   --kaspa-secondary: #49EACB;
   --kaspa-black: #231F20;
   --kaspa-gray: #B6B6B6;
+  --kaspa-bg: #0a1f1c; /* Turquoise-style dark background */
+  --kaspa-bg-light: #0f2a26; /* Lighter turquoise background */
+}
+
+.kaspa body {
+  background: linear-gradient(135deg, #0a1f1c 0%, #0f2a26 50%, #0a1f1c 100%) !important;
+  background-attachment: fixed !important;
 }
 
 .kaspa .bg-white {
-  background-color: #231F20 !important;
+  background-color: var(--kaspa-bg-light) !important;
 }
 
 .kaspa .bg-zinc-50 {
-  background-color: rgba(35, 31, 32, 0.8) !important;
+  background-color: rgba(15, 42, 38, 0.8) !important; /* Turquoise-tinted */
 }
 
 .kaspa .bg-zinc-100 {
-  background-color: rgba(35, 31, 32, 0.6) !important;
+  background-color: rgba(15, 42, 38, 0.6) !important;
 }
 
 .kaspa .bg-zinc-900 {
-  background-color: rgba(35, 31, 32, 0.9) !important;
+  background-color: rgba(10, 31, 28, 0.9) !important;
 }
 
 .kaspa .bg-zinc-950 {
-  background-color: #231F20 !important;
+  background-color: var(--kaspa-bg) !important;
 }
 
 .kaspa .text-zinc-900 {
-  color: #B6B6B6 !important;
+  color: #ffffff !important;
 }
 
 .kaspa .text-zinc-100 {
-  color: #B6B6B6 !important;
+  color: #ffffff !important;
 }
 
 .kaspa .text-zinc-600 {
@@ -88,39 +95,39 @@
 }
 
 .kaspa .border-zinc-200 {
-  border-color: rgba(182, 182, 182, 0.2) !important;
+  border-color: rgba(112, 199, 186, 0.2) !important; /* Turquoise borders */
 }
 
 .kaspa .border-zinc-800 {
-  border-color: rgba(182, 182, 182, 0.3) !important;
+  border-color: rgba(112, 199, 186, 0.3) !important;
 }
 
 .kaspa .border-zinc-700 {
-  border-color: rgba(182, 182, 182, 0.25) !important;
+  border-color: rgba(112, 199, 186, 0.25) !important;
 }
 
 .kaspa .hover\:bg-zinc-100:hover {
-  background-color: rgba(35, 31, 32, 0.7) !important;
+  background-color: rgba(15, 42, 38, 0.9) !important;
 }
 
 .kaspa .hover\:bg-zinc-200:hover {
-  background-color: rgba(35, 31, 32, 0.8) !important;
+  background-color: rgba(15, 42, 38, 1) !important;
 }
 
 .kaspa .hover\:bg-zinc-800:hover {
-  background-color: rgba(35, 31, 32, 0.9) !important;
+  background-color: rgba(10, 31, 28, 1) !important;
 }
 
 .kaspa .hover\:bg-zinc-700:hover {
-  background-color: rgba(35, 31, 32, 0.85) !important;
+  background-color: rgba(10, 31, 28, 0.95) !important;
 }
 
 .kaspa .bg-zinc-200 {
-  background-color: rgba(182, 182, 182, 0.1) !important;
+  background-color: rgba(112, 199, 186, 0.1) !important;
 }
 
 .kaspa .bg-zinc-800 {
-  background-color: rgba(182, 182, 182, 0.15) !important;
+  background-color: rgba(112, 199, 186, 0.15) !important;
 }
 
 /* Kaspa accent colors */

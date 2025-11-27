@@ -9,6 +9,7 @@ import { StatusIndicatorDot, getStatusTypeFromString } from './dapps/StatusIndic
 import { GRIDHoldingsBox } from './rewards/GRIDHoldingsBox';
 import { XPPointsBox } from './rewards/XPPointsBox';
 import { KREXStatusBox } from './rewards/KREXStatusBox';
+import { NFTStatusBox } from './rewards/NFTStatusBox';
 
 interface SidebarProps {
   selectedCategories: Category[];
@@ -209,9 +210,10 @@ export function Sidebar({
       >
         <div className="p-4 lg:p-6">
           {/* Rewards Info Boxes */}
-          <KREXStatusBox />
           <GRIDHoldingsBox />
           <XPPointsBox />
+          <KREXStatusBox />
+          <NFTStatusBox />
           
           {/* Search Box */}
           <div className="mb-6">
