@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764285356-82e05de",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix dApp card layout structure - Place dApp/Token titles next to logo, keep StatusIndicator in top-right, move icons to same row as Category/Version/ID below description (by Kasparex)",
+      "date": "2025-11-28T00:12:32+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764275246-fe280fb",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Reorganize dApp info sidebar: center icons, remove boxes, move contract addresses, add KREX/NFT status to left sidebar (by Kasparex)",
