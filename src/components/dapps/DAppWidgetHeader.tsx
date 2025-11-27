@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useAccount, useChainId } from 'wagmi';
+import Image from 'next/image';
 import { DAppIcon } from './DAppIcon';
 import { useChainModal } from '@rainbow-me/rainbowkit';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
@@ -193,8 +194,21 @@ export function DAppWidgetHeader({
           <StatusIndicator dapp={mergedDApp} size="md" />
         </div>
 
-        {/* Title Section with Icon */}
+        {/* Title Section with Featured Image, Icon, and Info */}
         <div className="flex items-start gap-4 mb-4 relative">
+          {/* Featured Image */}
+          {mergedDApp.featuredImage && (
+            <div className="relative w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+              <Image
+                src={mergedDApp.featuredImage}
+                alt={mergedDApp.name}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+          )}
+          
           <DAppIcon
             dAppName={mergedDApp.name}
             category={mergedDApp.category}

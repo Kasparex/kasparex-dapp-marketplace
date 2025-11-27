@@ -22,12 +22,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const toggleTheme = () => {
-    // Cycle through: dark → light → kaspa → dark
+    // Cycle through: dark → light (Kaspa theme disabled)
     let newTheme: Theme;
     if (theme === 'dark') {
       newTheme = 'light';
-    } else if (theme === 'light') {
-      newTheme = 'kaspa';
     } else {
       newTheme = 'dark';
     }

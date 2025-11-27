@@ -97,10 +97,26 @@ export function DAppCard({ dapp }: DAppCardProps) {
   useEffect(() => {
     if (showRewardsTooltip && rewardsTooltipRef.current) {
       const rect = rewardsTooltipRef.current.getBoundingClientRect();
-      const pos = calculateTooltipPosition(rect, 288);
+      const padding = 8;
+      const tooltipWidth = 288;
+      // Position to the left of the icon
+      let left = rect.left - tooltipWidth - padding;
+      let top = rect.top;
+      
+      // Check left boundary
+      if (left < padding) {
+        left = padding;
+      }
+      
+      // Check bottom boundary
+      const tooltipHeight = 200;
+      if (top + tooltipHeight > window.innerHeight - padding) {
+        top = window.innerHeight - tooltipHeight - padding;
+      }
+      
       setTooltipPositions(prev => ({
         ...prev,
-        rewards: pos
+        rewards: { top, left }
       }));
     }
   }, [showRewardsTooltip]);
@@ -201,9 +217,6 @@ export function DAppCard({ dapp }: DAppCardProps) {
       <div className="mt-4 pt-4 border-t border-zinc-200/50 dark:border-zinc-800/50 flex items-center justify-between gap-2 relative z-10">
         {/* Left: Base Rewards */}
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <div className="text-xs text-zinc-600 dark:text-zinc-400">
-            1 KAS = {formatLargeNumber(10000)} GRT → {formatLargeNumber(1000)} {tokenTicker || 'LRT'} → {formatLargeNumber(100)} XP
-          </div>
           {/* Info Icon with tooltip for Fees & Rewards + Multipliers */}
           <div className="relative flex-shrink-0">
             <button
@@ -248,6 +261,9 @@ export function DAppCard({ dapp }: DAppCardProps) {
               </div>,
               document.body
             )}
+          </div>
+          <div className="text-xs text-zinc-600 dark:text-zinc-400">
+            1 KAS = {formatLargeNumber(10000)} GRT → {formatLargeNumber(1000)} {tokenTicker || 'LRT'} → {formatLargeNumber(100)} XP
           </div>
         </div>
 
