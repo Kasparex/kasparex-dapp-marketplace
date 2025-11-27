@@ -4,6 +4,34 @@ import { useAccount } from 'wagmi';
 import { getMockWalletHoldings } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import Link from 'next/link';
+import { BadgesDisplay } from './BadgesDisplay';
+import { KREX_TIERS, type KREXTier, type NFTStatus, type NodeProviderStatus } from '@/lib/rewards/types';
+
+// Mock helper functions (same as in KREXStatusBox)
+function getMockKREXBalance(address: string | undefined): number {
+  if (!address) return 0;
+  const hash = address.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const tierOptions = [0, 5_000_000, 25_000_000, 75_000_000, 150_000_000];
+  return tierOptions[hash % tierOptions.length];
+}
+
+function getKREXTierFromBalance(balance: number): KREXTier {
+  if (balance >= 100_000_000) return 'Tier3';
+  if (balance >= 50_000_000) return 'Tier2';
+  if (balance >= 10_000_000) return 'Tier1';
+  return 'Tier0';
+}
+
+interface PointsPageContentProps {
+  filters: {
+    unlockedPerks: boolean;
+    lockedPerks: boolean;
+    unlockedBadges: boolean;
+    lockedBadges: boolean;
+    nftPerks: boolean;
+    nodePerks: boolean;
+  };
+}
 
 interface Perk {
   title: string;
@@ -76,10 +104,30 @@ const XP_PERKS: Perk[] = [
   },
 ];
 
-export function PointsPageContent() {
+export function PointsPageContent({ filters }: PointsPageContentProps) {
   const { address, isConnected } = useAccount();
   const holdings = isConnected && address ? getMockWalletHoldings(address) : null;
   const currentXP = holdings?.xp || 0;
+
+  // Mock badge status (for simulation)
+  const mockKREXBalance = getMockKREXBalance(address);
+  const krexTier = getKREXTierFromBalance(mockKREXBalance);
+  const mockNFTStatus: NFTStatus = {
+    hasKREXPRIME: false,
+    hasPIXELKREX: false,
+    hasDiamondKREXPRIME: false,
+    hasDiamondPIXELKREX: false,
+    hasRarestNFT: false,
+  };
+  const mockNodeProvider: NodeProviderStatus = {
+    isNodeProvider: false,
+    nodeMultiplier: 5,
+    nodeFeeReduction: 0.1,
+  };
+
+  const hasAnyBadge = krexTier !== 'Tier0' || mockNFTStatus.hasKREXPRIME || mockNFTStatus.hasPIXELKREX || 
+    mockNFTStatus.hasDiamondKREXPRIME || mockNFTStatus.hasDiamondPIXELKREX || 
+    mockNFTStatus.hasRarestNFT || mockNodeProvider.isNodeProvider;
 
   const getUnlockedPerks = () => {
     return XP_PERKS.filter(perk => currentXP >= perk.pointsRequired);
@@ -93,13 +141,21 @@ export function PointsPageContent() {
   const unlockedPerks = getUnlockedPerks();
   const nextPerk = getNextPerk();
 
+  // Filter perks based on filters
+  const filteredPerks = XP_PERKS.filter(perk => {
+    const isUnlocked = currentXP >= perk.pointsRequired;
+    if (isUnlocked && !filters.unlockedPerks) return false;
+    if (!isUnlocked && !filters.lockedPerks) return false;
+    return true;
+  });
+
   return (
     <div>
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-              XP Points & Perks
+              XP Points, Perks & Badges
             </h1>
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
               Earn points through dApp usage and unlock exclusive benefits
@@ -141,8 +197,36 @@ export function PointsPageContent() {
         </div>
       </div>
 
+      {/* Badges Section */}
+      {(filters.unlockedBadges || filters.lockedBadges) && (
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+            Status, Rarity & Recognition
+          </h2>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+            These badges will be displayed on your Kasparex profile and across supported dApps, recognizing your elite status in the ecosystem.
+          </p>
+          {hasAnyBadge && filters.unlockedBadges && (
+            <div className="mb-6">
+              <BadgesDisplay
+                krexTier={krexTier}
+                nftStatus={mockNFTStatus}
+                nodeProvider={mockNodeProvider}
+              />
+            </div>
+          )}
+          {filters.lockedBadges && (
+            <div className="p-3 bg-zinc-100 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+              <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                💡 Connect your wallet and hold KREX tokens, NFTs, or become a node provider to unlock additional badges.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Unlocked Perks */}
-      {unlockedPerks.length > 0 && (
+      {unlockedPerks.length > 0 && filters.unlockedPerks && (
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
             Unlocked Perks ({unlockedPerks.length})
@@ -174,12 +258,13 @@ export function PointsPageContent() {
       )}
 
       {/* All Perks */}
-      <div>
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-          All Available Perks
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {XP_PERKS.map((perk, index) => {
+      {(filters.unlockedPerks || filters.lockedPerks) && (
+        <div>
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+            All Available Perks
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredPerks.map((perk, index) => {
             const isUnlocked = currentXP >= perk.pointsRequired;
             const isNext = nextPerk?.title === perk.title;
             
@@ -238,8 +323,9 @@ export function PointsPageContent() {
               </div>
             );
           })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* How to Earn */}
       <div className="mt-8 p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
