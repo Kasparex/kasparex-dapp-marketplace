@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764263035-25a9f2a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add Quick Guide wizard, improve KREX address copy, reorder sidebar blocks (by Kasparex)",
+      "date": "2025-11-27T18:03:38+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764258441-a5c0388",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix missing useEffect import in DAppInfoSidebar (by Kasparex)",
