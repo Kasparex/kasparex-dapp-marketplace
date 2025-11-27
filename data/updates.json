@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764275246-fe280fb",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Reorganize dApp info sidebar: center icons, remove boxes, move contract addresses, add KREX/NFT status to left sidebar (by Kasparex)",
+      "date": "2025-11-27T21:26:29+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764272437-19be69b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Reorganize dApp info sidebar into boxed sections, fix spacing (by Kasparex)",
