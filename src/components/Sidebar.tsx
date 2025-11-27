@@ -209,12 +209,6 @@ export function Sidebar({
         `}
       >
         <div className="p-4 lg:p-6">
-          {/* Rewards Info Boxes */}
-          <GRIDHoldingsBox />
-          <XPPointsBox />
-          <KREXStatusBox />
-          <NFTStatusBox />
-          
           {/* Search Box */}
           <div className="mb-6">
             <div className="relative">
@@ -240,6 +234,12 @@ export function Sidebar({
               />
             </div>
           </div>
+
+          {/* Rewards Info Boxes */}
+          <KREXStatusBox />
+          <GRIDHoldingsBox />
+          <XPPointsBox />
+          <NFTStatusBox />
 
           {/* Categories Section */}
           <CollapsibleSection
