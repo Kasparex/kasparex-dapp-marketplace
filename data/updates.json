@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764254348-dca7b3e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add NFT Buy & Bridge wizard modal to NFT Status box (by Kasparex)",
+      "date": "2025-11-27T15:38:37+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764253837-a910b16",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add right sidebar to dApp page with info, actions, and referral link; simplify widget header (by Kasparex)",
