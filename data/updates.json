@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764265290-e834f70",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update Quick Guide button style, improve modal backdrops, increase info icons, redesign footer (by Kasparex)",
+      "date": "2025-11-27T18:40:30+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764263035-25a9f2a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add Quick Guide wizard, improve KREX address copy, reorder sidebar blocks (by Kasparex)",
