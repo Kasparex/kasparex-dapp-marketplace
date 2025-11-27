@@ -593,7 +593,10 @@ export function generateSimulatedTicker(dappName: string): string {
     }
   }
 
-  return initials.substring(0, 5);
+  const result = initials.substring(0, 5);
+  
+  // Limit to 6 characters max
+  return result.substring(0, 6);
 }
 
 
