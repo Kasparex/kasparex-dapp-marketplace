@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764258441-a5c0388",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix missing useEffect import in DAppInfoSidebar (by Kasparex)",
+      "date": "2025-11-27T16:46:43+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764258015-02601da",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update KREX wizard, simplify dApp info sidebar, remove rewards panel, move related dApps (by Kasparex)",
