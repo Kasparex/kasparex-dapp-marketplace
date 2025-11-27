@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { DAppSidebar } from '@/components/DAppSidebar';
+import { DAppInfoSidebar } from '@/components/dapps/DAppInfoSidebar';
 import { DAppDetail } from '@/components/DAppDetail';
 import { DAppFooter } from '@/components/dapps/DAppFooter';
 import { RelatedDApps } from '@/components/dapps/RelatedDApps';
@@ -52,7 +53,7 @@ export default async function DAppPage({ params }: PageProps) {
       <Header />
       
       <main className="flex-1 flex flex-col lg:flex-row">
-        {/* dApp-Specific Sidebar */}
+        {/* Left Sidebar - Rewards & Info */}
         <DAppSidebar dapp={dapp} />
 
         {/* Main Content */}
@@ -61,6 +62,9 @@ export default async function DAppPage({ params }: PageProps) {
           <RelatedDApps currentDApp={dapp} />
           <DAppFooter contractAddress={contractAddress} />
         </div>
+
+        {/* Right Sidebar - Info & Actions */}
+        <DAppInfoSidebar dapp={dapp} contractAddress={contractAddress} />
       </main>
 
       <Footer />

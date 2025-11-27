@@ -10,7 +10,6 @@ import { useDAppFromContract } from '@/lib/dapps/contractData';
 import { TokenDisplay } from './dapps/TokenDisplay';
 import { RewardsDisplay } from './dapps/RewardsDisplay';
 import { ProofOfUtility } from './dapps/ProofOfUtility';
-import { AffiliateWidget } from './dapps/AffiliateWidget';
 import { getContractAddress } from '@/lib/contracts/addresses';
 
 interface DAppDetailProps {
@@ -82,13 +81,6 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
         </div>
       )}
 
-      {/* Affiliate Widget */}
-      <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
-        <AffiliateWidget
-          dAppId={dapp.id}
-          dAppName={dapp.name}
-        />
-      </div>
     </div>
   );
 }
