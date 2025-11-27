@@ -84,38 +84,68 @@ export function DAppCard({ dapp }: DAppCardProps) {
         <StatusIndicator dapp={mergedDApp} size="md" />
       </div>
 
-      <div className="flex items-start gap-4 relative z-10">
-        {/* Left Column: Logo, Description, Category */}
-        <div className="flex flex-col gap-3 flex-shrink-0">
-          <DAppIcon
-            dAppName={mergedDApp.name}
-            category={mergedDApp.category}
-            size={48}
-            className="flex-shrink-0"
-          />
-          
-          {/* Description Section - Directly under logo, aligned left */}
-          <div>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3">
-              {mergedDApp.utility || mergedDApp.description || mergedDApp.process || ''}
-            </p>
-          </div>
+      <div className="relative z-10">
+        {/* Top Row: Logo, Titles, and Status Indicator */}
+        <div className="flex items-start gap-4 mb-3">
+        <DAppIcon
+          dAppName={mergedDApp.name}
+          category={mergedDApp.category}
+          size={48}
+          className="flex-shrink-0"
+        />
 
-          {/* Category/Version/ID - Under description */}
+          {/* Dapp and Token Title Rows - Next to logo */}
+          <div className="space-y-1.5 flex-1 min-w-0">
+            {/* Dapp Row */}
+            {dAppContractAddress && (
+              <div className="flex items-center gap-2 text-sm">
+                <svg className="w-4 h-4 text-zinc-500 dark:text-zinc-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                <span className="text-zinc-500 dark:text-zinc-500 font-medium">Dapp:</span>
+                <span className="text-zinc-900 dark:text-zinc-100 font-bold truncate">{mergedDApp.name}</span>
+            </div>
+            )}
+            
+            {/* Token Row */}
+            {tokenTicker && (
+              <div className="flex items-center gap-2 text-sm">
+                <svg className="w-4 h-4 text-zinc-500 dark:text-zinc-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-zinc-500 dark:text-zinc-500 font-medium">Token:</span>
+                <span className="text-zinc-900 dark:text-zinc-100 font-bold truncate">
+                  {tokenTicker}
+              </span>
+            </div>
+          )}
+          </div>
+        </div>
+
+        {/* Description Section - Full width below logo and titles */}
+        <div className="mb-3">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3">
+            {mergedDApp.utility || mergedDApp.description || mergedDApp.process || ''}
+          </p>
+      </div>
+
+        {/* Category/Version/ID and Icons Row */}
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          {/* Left: Category/Version/ID */}
           <div className="flex items-center gap-2 flex-wrap">
             {/* Category Button (NOT clickable on cards) */}
             {category && (
               <div className="px-3 py-1.5 text-sm font-medium rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
                 <span className="mr-1.5">{category.emoji}</span>
                 <span>{category.name}</span>
-              </div>
+                </div>
             )}
             
             {/* Version Box */}
             {mergedDApp.version && mergedDApp.version !== 'N/A' && (
               <div className="px-3 py-1.5 text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded text-center">
                 {mergedDApp.version.replace(/^v\s*/i, '')}
-              </div>
+                </div>
             )}
             
             {/* dApp ID */}
@@ -123,92 +153,59 @@ export function DAppCard({ dapp }: DAppCardProps) {
               {mergedDApp.id}
             </span>
           </div>
-        </div>
 
-        {/* Right Column: Titles and Icons at top */}
-        <div className="flex-1 min-w-0 flex flex-col">
-          {/* Top Row: Titles and Icons */}
-          <div className="flex items-start justify-between gap-2 mb-3">
-            {/* Dapp and Token Title Rows */}
-            <div className="space-y-1.5 flex-1 min-w-0">
-              {/* Dapp Row */}
-              {dAppContractAddress && (
-                <div className="flex items-center gap-2 text-sm">
-                  <svg className="w-4 h-4 text-zinc-500 dark:text-zinc-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                  <span className="text-zinc-500 dark:text-zinc-500 font-medium">Dapp:</span>
-                  <span className="text-zinc-900 dark:text-zinc-100 font-bold truncate">{mergedDApp.name}</span>
-                </div>
-              )}
-              
-              {/* Token Row */}
-              {tokenTicker && (
-                <div className="flex items-center gap-2 text-sm">
-                  <svg className="w-4 h-4 text-zinc-500 dark:text-zinc-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="text-zinc-500 dark:text-zinc-500 font-medium">Token:</span>
-                  <span className="text-zinc-900 dark:text-zinc-100 font-bold truncate">
-                    {tokenTicker}
-                  </span>
-                </div>
-              )}
-            </div>
+          {/* Right: Star/Heart Icons */}
+          <div className="flex items-center gap-1">
+          {/* Star Button (Favorites) */}
+          <button
+            onClick={(e) => handleIconClick(e, () => {
+              if (isWalletConnectedForFavorites) {
+                toggleFavorite(mergedDApp.id);
+              }
+            })}
+            className={`p-1.5 rounded-lg transition-colors ${
+              isFavoriteDapp
+                ? 'text-yellow-500 hover:text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
+                : isWalletConnectedForFavorites
+                ? 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                : 'text-zinc-300 dark:text-zinc-600 cursor-not-allowed'
+            }`}
+            title={isWalletConnectedForFavorites ? (isFavoriteDapp ? 'Remove from favorites' : 'Add to favorites') : 'Connect wallet to favorite'}
+            aria-label={isWalletConnectedForFavorites ? (isFavoriteDapp ? 'Remove from favorites' : 'Add to favorites') : 'Connect wallet to favorite'}
+            disabled={!isWalletConnectedForFavorites}
+          >
+            <svg className="w-4 h-4" fill={isFavoriteDapp ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+            </svg>
+          </button>
 
-            {/* Icons at top right */}
-            <div className="flex items-center gap-1 flex-shrink-0">
-              {/* Star Button (Favorites) */}
-              <button
-                onClick={(e) => handleIconClick(e, () => {
-                  if (isWalletConnectedForFavorites) {
-                    toggleFavorite(mergedDApp.id);
-                  }
-                })}
-                className={`p-1.5 rounded-lg transition-colors ${
-                  isFavoriteDapp
-                    ? 'text-yellow-500 hover:text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
-                    : isWalletConnectedForFavorites
-                    ? 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                    : 'text-zinc-300 dark:text-zinc-600 cursor-not-allowed'
-                }`}
-                title={isWalletConnectedForFavorites ? (isFavoriteDapp ? 'Remove from favorites' : 'Add to favorites') : 'Connect wallet to favorite'}
-                aria-label={isWalletConnectedForFavorites ? (isFavoriteDapp ? 'Remove from favorites' : 'Add to favorites') : 'Connect wallet to favorite'}
-                disabled={!isWalletConnectedForFavorites}
-              >
-                <svg className="w-4 h-4" fill={isFavoriteDapp ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                </svg>
-              </button>
-
-              {/* Heart Button (Like) */}
-              <button
-                onClick={(e) => handleIconClick(e, () => {
-                  if (isWalletConnectedForLikes) {
-                    toggleLike(mergedDApp.id);
-                  }
-                })}
-                className={`p-1.5 rounded-lg transition-colors relative ${
-                  isLiked
-                    ? 'text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-900/20'
-                    : isWalletConnectedForLikes
-                    ? 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                    : 'text-zinc-300 dark:text-zinc-600 cursor-not-allowed'
-                }`}
-                title={isWalletConnectedForLikes ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
-                aria-label={isWalletConnectedForLikes ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
-                disabled={!isWalletConnectedForLikes}
-              >
-                <svg className="w-4 h-4" fill={isLiked ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-                {likeCount > 0 && (
-                  <span className="absolute -top-1 -right-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                    {likeCount}
-                  </span>
-                )}
-              </button>
-            </div>
+          {/* Heart Button (Like) */}
+          <button
+            onClick={(e) => handleIconClick(e, () => {
+              if (isWalletConnectedForLikes) {
+                toggleLike(mergedDApp.id);
+              }
+            })}
+            className={`p-1.5 rounded-lg transition-colors relative ${
+              isLiked
+                ? 'text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-900/20'
+                : isWalletConnectedForLikes
+                ? 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                : 'text-zinc-300 dark:text-zinc-600 cursor-not-allowed'
+            }`}
+            title={isWalletConnectedForLikes ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
+            aria-label={isWalletConnectedForLikes ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
+            disabled={!isWalletConnectedForLikes}
+          >
+            <svg className="w-4 h-4" fill={isLiked ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            {likeCount > 0 && (
+              <span className="absolute -top-1 -right-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                {likeCount}
+              </span>
+            )}
+          </button>
           </div>
         </div>
       </div>
