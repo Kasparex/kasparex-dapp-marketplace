@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764336469-874cc1e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update timeline: 2025-11-28T13:27:36.331Z (by Kasparex)",
+      "date": "2025-11-28T14:27:36+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764333075-a6ff88d",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add fees modal, reorganize card layout, update dApp page header, clean up sidebar (by Kasparex)",
