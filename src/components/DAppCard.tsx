@@ -81,7 +81,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
       className="block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all relative flex flex-col min-h-[280px]"
     >
       {/* Status Indicator and Fees Icon - Top Right (non-clickable on cards) */}
-      <div className="absolute top-4 right-4 z-50 flex items-center gap-2 pointer-events-none">
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-2 pointer-events-none">
         <div className="pointer-events-auto">
           <StatusIndicator dapp={mergedDApp} size="md" clickable={false} />
         </div>

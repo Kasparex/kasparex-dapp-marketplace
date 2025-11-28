@@ -109,7 +109,7 @@ export function DemoCard({ dapp, gradientColors }: DemoCardProps) {
       <div style={gradientStyle} />
 
       {/* Status Indicator and Fees Icon - Top Right (non-clickable on cards) */}
-      <div className="absolute top-4 right-4 z-50 flex items-center gap-2 pointer-events-none">
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-2 pointer-events-none">
         <div className="pointer-events-auto">
           <StatusIndicator dapp={mergedDApp} size="md" clickable={false} />
         </div>

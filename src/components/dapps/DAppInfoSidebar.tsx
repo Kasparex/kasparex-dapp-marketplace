@@ -189,36 +189,38 @@ export function DAppInfoSidebar({
 
   return (
     <>
-      {/* Hide/Show Button - Fixed position, always visible above scrollbar */}
-      <button
-        onClick={() => setIsHidden(!isHidden)}
-        className={`
-          hidden lg:flex
-          fixed z-[60]
-          w-6 h-6 rounded-full
-          bg-white dark:bg-zinc-900
-          border border-zinc-200 dark:border-zinc-800
-          shadow-md
-          items-center justify-center
-          hover:bg-zinc-100 dark:hover:bg-zinc-800
-          transition-all duration-300 ease-in-out
-        `}
-        style={{
-          right: isHidden ? '12px' : `${sidebarWidth - 12}px`,
-          top: 'calc(50vh - 12px)',
-        }}
-        title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-        aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-      >
-        <svg
-          className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+      {/* Hide/Show Button - Fixed position when sidebar is hidden */}
+      {isHidden && (
+        <button
+          onClick={() => setIsHidden(!isHidden)}
+          className={`
+            hidden lg:flex
+            fixed z-[60]
+            w-6 h-6 rounded-full
+            bg-white dark:bg-zinc-900
+            border border-zinc-200 dark:border-zinc-800
+            shadow-md
+            items-center justify-center
+            hover:bg-zinc-100 dark:hover:bg-zinc-800
+            transition-all duration-300 ease-in-out
+          `}
+          style={{
+            right: '12px',
+            top: 'calc(50vh - 12px)',
+          }}
+          title="Show sidebar"
+          aria-label="Show sidebar"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
-        </svg>
-      </button>
+          <svg
+            className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+      )}
 
       <aside 
         ref={sidebarRef}
@@ -267,6 +269,35 @@ export function DAppInfoSidebar({
           }
         }}
       >
+        {/* Hide/Show Button - Sticky at top of sidebar, above scrollbar */}
+        {!isHidden && (
+          <div className="sticky top-0 z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 flex justify-start p-2">
+            <button
+              onClick={() => setIsHidden(!isHidden)}
+              className={`
+                hidden lg:flex
+                w-6 h-6 rounded-full
+                bg-white dark:bg-zinc-900
+                border border-zinc-200 dark:border-zinc-800
+                shadow-md
+                items-center justify-center
+                hover:bg-zinc-100 dark:hover:bg-zinc-800
+                transition-all duration-300 ease-in-out
+              `}
+              title="Hide sidebar"
+              aria-label="Hide sidebar"
+            >
+              <svg
+                className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        )}
 
         <div className={`p-4 lg:p-6 space-y-6 ${isHidden ? 'hidden' : ''}`}>
             {/* Developer & Info (No Box) */}

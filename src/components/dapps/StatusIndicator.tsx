@@ -192,20 +192,20 @@ export function StatusIndicator({ dapp, className = '', size = 'md', clickable =
               )}
               
               {statusType === 'vprogs' && (
-                <div className="mb-4 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
-                  <p className="text-sm font-semibold text-purple-600 dark:text-purple-400 mb-1.5">
+                <div className="mb-4 p-4 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-lg">
+                  <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
                     vProgs Compatible
                   </p>
-                  <p className="text-xs text-purple-600 dark:text-purple-400 mb-2">
-                    This dApp is or will be compatible with vProgs (Kaspa Virtual Programs), enabling native Kaspa integration and enhanced performance.
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-2">
+                    This dApp is or will be compatible with vProgs (Kaspa Verifiable Programs), enabling native Kaspa integration and enhanced performance through off-chain computation with on-chain verification.
                   </p>
                   {(hasVProgsTestnet || hasVProgsMainnet) && (
                     <div className="mt-2 space-y-1">
                       {hasVProgsTestnet && (
-                        <p className="text-xs text-purple-600 dark:text-purple-400">• vProgs Testnet</p>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400">• vProgs Testnet</p>
                       )}
                       {hasVProgsMainnet && (
-                        <p className="text-xs text-purple-600 dark:text-purple-400">• vProgs Mainnet</p>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400">• vProgs Mainnet</p>
                       )}
                     </div>
                   )}
@@ -261,12 +261,15 @@ export function StatusIndicator({ dapp, className = '', size = 'md', clickable =
                 <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3">
                   Compatibility
                 </p>
-                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
-                  <p className="text-sm font-semibold text-purple-600 dark:text-purple-400 mb-2">
+                <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-lg">
+                  <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
                     vProgs Coming Soon
                   </p>
-                  <p className="text-xs text-purple-600 dark:text-purple-400">
-                    vProgs (Kaspa Virtual Programs) compatibility is coming soon. Once available, this dApp will support native Kaspa integration and enhanced performance through the vProgs platform.
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-2">
+                    vProgs (Kaspa Verifiable Programs) compatibility is coming soon. Once available, this dApp will support native Kaspa integration and enhanced performance through off-chain computation with on-chain verification.
+                  </p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-2">
+                    vProgs enable scalable dApps by running complex logic off-chain and submitting cryptographic proofs to Kaspa's Layer 1 for verification, providing faster execution and lower fees while maintaining security and decentralization.
                   </p>
                 </div>
               </div>
