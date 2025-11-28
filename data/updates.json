@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764373953-c403830",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Move collapsible sections above KREX Status, update table view, set all versions to 1.0.0, update modals (by Kasparex)",
+      "date": "2025-11-29T00:51:47+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764372113-47e572f",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Remove sticky headers from sidebars and move Show buttons to top position (by Kasparex)",
