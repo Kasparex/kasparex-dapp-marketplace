@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useChainId } from 'wagmi';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -43,9 +43,6 @@ export function DAppWidgetHeader({
 }: DAppWidgetHeaderProps) {
   const chainId = useChainId();
   const isEmbeddedPage = isEmbedded();
-  const titleRef = useRef<HTMLDivElement>(null);
-  const iconsRef = useRef<HTMLDivElement>(null);
-  const [shouldHideIcons, setShouldHideIcons] = useState(false);
   
   // Get contract address if not provided
   let resolvedContractAddress = contractAddress || dapp.contractAddress || '';
@@ -105,40 +102,6 @@ export function DAppWidgetHeader({
   const [copiedDAppAddress, setCopiedDAppAddress] = useState(false);
   const [copiedTokenAddress, setCopiedTokenAddress] = useState(false);
 
-  // Check for overlap between titles and icons
-  useEffect(() => {
-    const checkOverlap = () => {
-      if (titleRef.current && iconsRef.current) {
-        const titleRect = titleRef.current.getBoundingClientRect();
-        const iconsRect = iconsRef.current.getBoundingClientRect();
-        // Check if title extends into the icon area (with some padding)
-        // Only hide if there's actual overlap (title right edge is past icon left edge minus padding)
-        const overlap = titleRect.right > (iconsRect.left - 16) && titleRect.left < iconsRect.right;
-        setShouldHideIcons(overlap);
-      } else {
-        // If refs aren't ready, show icons by default
-        setShouldHideIcons(false);
-      }
-    };
-
-    // Use multiple delays to ensure DOM is fully rendered
-    const timeout1 = setTimeout(checkOverlap, 50);
-    const timeout2 = setTimeout(checkOverlap, 200);
-    const timeout3 = setTimeout(checkOverlap, 500);
-    
-    window.addEventListener('resize', checkOverlap);
-    // Also check on scroll in case layout changes
-    window.addEventListener('scroll', checkOverlap, true);
-
-    return () => {
-      window.removeEventListener('resize', checkOverlap);
-      window.removeEventListener('scroll', checkOverlap, true);
-      clearTimeout(timeout1);
-      clearTimeout(timeout2);
-      clearTimeout(timeout3);
-    };
-  }, [mergedDApp.name, tokenTicker]);
-
   const handleIconClick = (e: React.MouseEvent, action: () => void) => {
     e.preventDefault();
     e.stopPropagation();
@@ -165,7 +128,7 @@ export function DAppWidgetHeader({
     <>
       <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 relative">
         {/* Status Indicator and Fees Icon - Top Right */}
-        <div ref={iconsRef} className={`absolute top-4 right-4 sm:top-5 sm:right-6 z-10 flex items-center gap-2 ${shouldHideIcons ? 'hidden' : ''}`}>
+        <div className="absolute top-4 right-4 sm:top-5 sm:right-6 z-50 flex items-center gap-2">
           <StatusIndicator dapp={mergedDApp} size="md" />
           <DAppFeesModal dapp={mergedDApp} tokenTicker={tokenTicker} />
         </div>
@@ -195,7 +158,7 @@ export function DAppWidgetHeader({
             />
             
             {/* Dapp and Token Title Rows - Next to logo, aligned to bottom */}
-            <div ref={titleRef} className="space-y-1.5 flex-1 min-w-0 flex items-end">
+            <div className="space-y-1.5 flex-1 min-w-0 flex items-end pr-24">
               <div className="space-y-1.5 w-full">
                 {/* Dapp Row */}
                 {dAppContractAddress && (

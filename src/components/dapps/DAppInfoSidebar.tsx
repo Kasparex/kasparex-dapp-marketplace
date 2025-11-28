@@ -53,7 +53,6 @@ export function DAppInfoSidebar({
   const [sidebarWidth, setSidebarWidth] = useState(256); // Default 256px (w-64)
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const resizeHandleRef = useRef<HTMLDivElement>(null);
 
   // Load sidebar state from localStorage
   useEffect(() => {
@@ -205,20 +204,19 @@ export function DAppInfoSidebar({
           transition-all duration-300 ease-in-out
         `}
         style={{
-          right: isHidden ? '0px' : `${sidebarWidth - 12}px`,
+          right: isHidden ? '12px' : `${sidebarWidth - 12}px`,
           top: 'calc(50vh - 12px)',
-          transform: isHidden ? 'translateX(50%)' : 'translateX(0)',
         }}
         title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
         aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
       >
         <svg
-          className={`w-4 h-4 text-zinc-600 dark:text-zinc-400 transition-transform ${isHidden ? 'rotate-180' : ''}`}
+          className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M9 5l7 7-7 7" : "M9 5l7 7-7 7"} />
         </svg>
       </button>
 
@@ -226,7 +224,8 @@ export function DAppInfoSidebar({
         ref={sidebarRef}
         className={`
           hidden lg:block flex-shrink-0
-          sticky top-16 h-[calc(100vh-4rem)]
+          fixed lg:sticky top-16 lg:top-0 right-0 z-40
+          h-[calc(100vh-4rem)] lg:h-screen
           overflow-y-auto
           bg-white dark:bg-zinc-950
           border-l border-zinc-200 dark:border-zinc-800
@@ -236,28 +235,28 @@ export function DAppInfoSidebar({
         style={{ 
           width: isHidden ? 0 : `${sidebarWidth}px`,
           minWidth: isHidden ? 0 : `${sidebarWidth}px`,
-          maxWidth: isHidden ? 0 : `${sidebarWidth}px`
+          maxWidth: isHidden ? 0 : `${sidebarWidth}px`,
+          cursor: isResizing ? 'col-resize' : ''
         }}
-      >
-        {/* Resize Handle */}
-        {!isHidden && (
-          <div
-            ref={resizeHandleRef}
-            onMouseDown={(e) => {
+        onMouseMove={(e) => {
+          if (!isHidden && !isResizing && sidebarRef.current) {
+            const rect = sidebarRef.current.getBoundingClientRect();
+            // Full height border detection (left side for right sidebar, positioned on right side of scrollbar)
+            const isOnBorder = e.clientX >= rect.left && e.clientX <= rect.left + 4;
+            sidebarRef.current.style.cursor = isOnBorder ? 'col-resize' : '';
+          }
+        }}
+        onMouseDown={(e) => {
+          // Make the left border draggable (for right sidebar, full height)
+          if (!isHidden && sidebarRef.current) {
+            const rect = sidebarRef.current.getBoundingClientRect();
+            if (e.clientX >= rect.left && e.clientX <= rect.left + 4) {
               e.preventDefault();
               setIsResizing(true);
-            }}
-            className="
-              absolute top-0 left-0 w-1 h-full
-              cursor-col-resize
-              hover:bg-[#02abb8] dark:hover:bg-[#02abb8]
-              transition-colors
-              z-30
-            "
-            style={{ marginLeft: '-1px' }}
-            title="Drag to resize"
-          />
-        )}
+            }
+          }
+        }}
+      >
 
         <div className={`p-4 lg:p-6 space-y-6 ${isHidden ? 'hidden' : ''}`}>
             {/* Developer & Info (No Box) */}
