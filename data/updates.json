@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764363860-e5d9784",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix ESLint error: escape apostrophe in StatusIndicator (by Kasparex)",
+      "date": "2025-11-28T22:03:10+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764363528-5570075",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix sidebar buttons to follow sidebar, reduce icon z-index, update vProgs styling and terminology (by Kasparex)",
