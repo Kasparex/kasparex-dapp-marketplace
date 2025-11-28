@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764338795-7cd7168",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update Fees & Rewards modal, add token progress bar to dApp pages, reorder filters, move Build dApp button, fix favorites auto-update (by Kasparex)",
+      "date": "2025-11-28T15:05:58+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764336543-2bf41f9",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update timeline: 2025-11-28T13:28:52.369Z (by Kasparex)",
