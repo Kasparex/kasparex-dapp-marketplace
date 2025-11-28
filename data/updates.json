@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764333075-a6ff88d",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add fees modal, reorganize card layout, update dApp page header, clean up sidebar (by Kasparex)",
+      "date": "2025-11-28T13:30:41+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764285356-82e05de",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix dApp card layout structure - Place dApp/Token titles next to logo, keep StatusIndicator in top-right, move icons to same row as Category/Version/ID below description (by Kasparex)",
