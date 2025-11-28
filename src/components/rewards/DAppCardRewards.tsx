@@ -74,7 +74,7 @@ export function DAppCardRewards({
   };
 
   return (
-    <div className="mt-4 pt-4 border-t border-zinc-200/50 dark:border-zinc-800/50">
+    <div className="pt-4 border-t border-zinc-200/50 dark:border-zinc-800/50">
       {/* LRT Supply Metrics */}
       <div 
         ref={tooltipRef}

@@ -56,7 +56,7 @@ export function RelatedDApps({ currentDApp }: RelatedDAppsProps) {
       <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
         Related dApps
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
         {relatedDApps.map((dapp) => (
           <DAppCard key={dapp.id} dapp={dapp} />
         ))}

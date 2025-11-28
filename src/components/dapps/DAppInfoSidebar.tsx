@@ -219,94 +219,6 @@ export function DAppInfoSidebar({
               </div>
             )}
 
-            {/* Network & Compatibility (No Box) */}
-            <div className="space-y-2">
-              {!isConnected && (
-                <ConnectButton.Custom>
-                  {({ openConnectModal, mounted }) => {
-                    const ready = mounted;
-                    return (
-                      <div
-                        {...(!ready && {
-                          'aria-hidden': true,
-                          style: {
-                            opacity: 0,
-                            pointerEvents: 'none',
-                            userSelect: 'none',
-                          },
-                        })}
-                      >
-                        <button
-                          onClick={openConnectModal}
-                          type="button"
-                          style={{ 
-                            backgroundColor: accentColor === '#02abb8' ? '#0097b2' : accentColor
-                          }}
-                          className="w-full px-4 py-2 rounded-lg text-white hover:opacity-90 transition-opacity text-sm font-medium flex items-center justify-center gap-2"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                          </svg>
-                          Connect Wallet
-                        </button>
-                      </div>
-                    );
-                  }}
-                </ConnectButton.Custom>
-              )}
-
-              {isConnected && (
-                <>
-                  <button
-                    onClick={() => openChainModal?.()}
-                    className={`w-full px-3 py-2 rounded-lg border transition-colors text-sm font-medium flex items-center justify-between ${
-                      isMainnet
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-300 dark:border-green-700 hover:bg-green-200 dark:hover:bg-green-900/40'
-                        : isTestnet
-                        ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-300 dark:border-yellow-700 hover:bg-yellow-200 dark:hover:bg-yellow-900/40'
-                        : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-                    }`}
-                    aria-label="Switch network"
-                  >
-                    <div className="flex items-center gap-2">
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"
-                        />
-                      </svg>
-                      <span className="text-xs">{chain?.name || 'Switch Network'}</span>
-                    </div>
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-
-                  {isConnected && (
-                    <div className={`px-3 py-1.5 rounded-lg text-xs font-medium text-center ${
-                      compatibility.isCompatible
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
-                        : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
-                    }`}>
-                      {compatibility.isCompatible ? '✓ Compatible' : '⚠ Not compatible'}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-
             {/* Developer & Info (No Box) */}
             <div className="space-y-3">
               {/* Featured Image (Above Developer Button) */}
@@ -357,79 +269,93 @@ export function DAppInfoSidebar({
                 </>
               )}
 
-              {/* Category */}
-              {category && (
-                <Link
-                  href={`/?category=${mergedDApp.category}`}
-                  {...categoryLinkProps}
-                  className="block w-full px-3 py-1.5 text-sm font-medium rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors text-center"
-                >
-                  <span className="mr-1.5">{category.emoji}</span>
-                  <span>{category.name}</span>
-                </Link>
-              )}
+              {/* Network & Compatibility (Moved below Developer) */}
+              <div className="space-y-2 pt-3 border-t border-zinc-200 dark:border-zinc-800">
+                {!isConnected && (
+                  <ConnectButton.Custom>
+                    {({ openConnectModal, mounted }) => {
+                      const ready = mounted;
+                      return (
+                        <div
+                          {...(!ready && {
+                            'aria-hidden': true,
+                            style: {
+                              opacity: 0,
+                              pointerEvents: 'none',
+                              userSelect: 'none',
+                            },
+                          })}
+                        >
+                          <button
+                            onClick={openConnectModal}
+                            type="button"
+                            style={{ 
+                              backgroundColor: accentColor === '#02abb8' ? '#0097b2' : accentColor
+                            }}
+                            className="w-full px-4 py-2 rounded-lg text-white hover:opacity-90 transition-opacity text-sm font-medium flex items-center justify-center gap-2"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            Connect Wallet
+                          </button>
+                        </div>
+                      );
+                    }}
+                  </ConnectButton.Custom>
+                )}
 
-              {/* Version */}
-              {displayVersion && displayVersion !== 'N/A' && (
-                <div className="px-3 py-1.5 text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded text-center">
-                  {displayVersion.replace(/^v\s*/i, '')}
-                </div>
-              )}
-
-              {/* Contract Addresses: Dapp and Token */}
-              <div className="flex items-center justify-between gap-4 pt-2 text-xs border-t border-zinc-200 dark:border-zinc-800">
-                {/* Dapp Contract (Left) */}
-                <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                  <svg className="w-3 h-3 text-zinc-500 dark:text-zinc-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                  <span className="text-zinc-600 dark:text-zinc-400">Dapp:</span>
-                  {dAppContractAddress && dAppExplorerUrl && formatAddress(dAppContractAddress) ? (
-                    <a
-                      href={dAppExplorerUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-zinc-500 dark:text-zinc-400 hover:text-[#02abb8] dark:hover:text-[#02abb8] font-mono transition-colors truncate"
-                      title={dAppContractAddress}
+                {isConnected && (
+                  <>
+                    <button
+                      onClick={() => openChainModal?.()}
+                      className={`w-full px-3 py-2 rounded-lg border transition-colors text-sm font-medium flex items-center justify-between ${
+                        isMainnet
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-300 dark:border-green-700 hover:bg-green-200 dark:hover:bg-green-900/40'
+                          : isTestnet
+                          ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-300 dark:border-yellow-700 hover:bg-yellow-200 dark:hover:bg-yellow-900/40'
+                          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                      }`}
+                      aria-label="Switch network"
                     >
-                      {formatAddress(dAppContractAddress)}
-                    </a>
-                  ) : (
-                    <span className="text-zinc-500 dark:text-zinc-400">—</span>
-                  )}
-                </div>
+                      <div className="flex items-center gap-2">
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"
+                          />
+                        </svg>
+                        <span className="text-xs">{chain?.name || 'Switch Network'}</span>
+                      </div>
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
 
-                {/* Token Contract (Right) */}
-                <div className="flex items-center gap-1.5 min-w-0 flex-1 justify-end">
-                  <svg className="w-3 h-3 text-zinc-500 dark:text-zinc-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="text-zinc-600 dark:text-zinc-400">Token:</span>
-                  {tokenAddress && tokenExplorerUrl && formatAddress(tokenAddress) ? (
-                    <a
-                      href={tokenExplorerUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-zinc-500 dark:text-zinc-400 hover:text-[#02abb8] dark:hover:text-[#02abb8] font-mono transition-colors truncate"
-                      title={tokenAddress}
-                    >
-                      {formatAddress(tokenAddress)}
-                    </a>
-                  ) : (
-                    <span className="text-zinc-500 dark:text-zinc-400">—</span>
-                  )}
-                </div>
+                    {isConnected && (
+                      <div className={`px-3 py-1.5 rounded-lg text-xs font-medium text-center ${
+                        compatibility.isCompatible
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+                          : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
+                      }`}>
+                        {compatibility.isCompatible ? '✓ Compatible' : '⚠ Not compatible'}
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
-
-              {/* Open Info Modal Button */}
-              {(mergedDApp.description || mergedDApp.utility) && (
-                <button
-                  onClick={() => setShowInfoModal(true)}
-                  className="w-full px-3 py-2 text-sm font-medium bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors"
-                >
-                  View Details
-                </button>
-              )}
             </div>
 
             {/* Box 4: Referral Link */}
