@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764359072-5b13f4e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix sidebar buttons, add modal for network availability, make icons clickable only on dApp pages, add turquoise border highlight on hover (by Kasparex)",
+      "date": "2025-11-28T20:43:58+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764357402-de48e5b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix sidebar and icon visibility issues: ensure network dot and fees icon always visible, fix chevron directions, improve drag-to-resize handlers, fix sidebar height (by Kasparex)",
