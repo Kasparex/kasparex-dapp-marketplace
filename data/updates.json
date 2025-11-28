@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764343112-5ee199d",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix favorites count, add copy icons to addresses, remove action icons from sidebar, move Embed and add Referral modal to header (by Kasparex)",
+      "date": "2025-11-28T16:17:45+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764338795-7cd7168",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update Fees & Rewards modal, add token progress bar to dApp pages, reorder filters, move Build dApp button, fix favorites auto-update (by Kasparex)",
