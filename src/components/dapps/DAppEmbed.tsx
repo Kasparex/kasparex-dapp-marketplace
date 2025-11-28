@@ -115,11 +115,11 @@ export function DAppEmbed({ dapp, onClose }: DAppEmbedProps) {
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"
+      className="fixed inset-0 z-[9999] flex items-center justify-center px-8 py-4 bg-black/70 backdrop-blur-md"
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-7xl w-full max-h-[95vh] overflow-hidden border border-zinc-200 dark:border-zinc-800 flex flex-col"
+        className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-[90vw] w-full max-h-[95vh] overflow-hidden border border-zinc-200 dark:border-zinc-800 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

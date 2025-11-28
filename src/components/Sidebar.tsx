@@ -404,12 +404,6 @@ export function Sidebar({
             </button>
           </div>
 
-          {/* Rewards Info Boxes */}
-          <KREXStatusBox />
-          <NFTStatusBox />
-          <GRIDHoldingsBox />
-          <XPPointsBox />
-
           {/* Categories Section */}
           <CollapsibleSection
             title="Categories"
@@ -680,6 +674,12 @@ export function Sidebar({
               </nav>
             </div>
           </CollapsibleSection>
+
+          {/* Rewards Info Boxes */}
+          <KREXStatusBox />
+          <NFTStatusBox />
+          <GRIDHoldingsBox />
+          <XPPointsBox />
 
           {/* Build dApp Button */}
           <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">

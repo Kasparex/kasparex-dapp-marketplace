@@ -60,7 +60,7 @@ export const placeholderDApps: DApp[] = [
     status: 'Testnet',
     network: 'Testnet',
     provider: 'Kasparex',
-    version: 'V 1.0',
+    version: '1.0.0',
     description: 'A subscription-based access control system for Kaspa dApps and content platforms.',
   },
   {
@@ -74,7 +74,7 @@ export const placeholderDApps: DApp[] = [
     status: 'Testnet',
     network: 'Testnet',
     provider: 'Kasparex',
-    version: 'V 1.0',
+    version: '1.0.0',
     description: 'Automatically distribute token payments across multiple recipients based on predefined percentages.',
   },
   {
@@ -88,7 +88,7 @@ export const placeholderDApps: DApp[] = [
     status: 'Mainnet',
     network: 'Mainnet',
     provider: 'Kasparex',
-    version: 'V 1.0',
+    version: '1.0.0',
     description: 'Enable decentralized governance through token-weighted voting on Kaspa network.',
   },
   {
@@ -102,7 +102,7 @@ export const placeholderDApps: DApp[] = [
     status: 'Testnet',
     network: 'Testnet',
     provider: 'Kasparex',
-    version: 'V 1.0',
+    version: '1.0.0',
     description: 'A Web3 idea submission system where community members can share and track ideas linked to their wallet addresses.',
   },
   {
@@ -116,7 +116,7 @@ export const placeholderDApps: DApp[] = [
     status: 'Testnet',
     network: 'Testnet',
     provider: 'Kasparex',
-    version: 'V 1.0',
+    version: '1.0.0',
     description: 'Build custom dApp homepages effortlessly by reading token metadata and rendering content with customizable templates.',
   },
   {
@@ -130,7 +130,7 @@ export const placeholderDApps: DApp[] = [
     status: 'Testnet',
     network: 'Testnet',
     provider: 'Kasparex',
-    version: 'V 1.0',
+    version: '1.0.0',
     description: 'Create and verify token project profiles on Kasparex with on-chain ownership verification.',
   },
   {
@@ -144,7 +144,7 @@ export const placeholderDApps: DApp[] = [
     status: 'Testnet',
     network: 'Testnet',
     provider: 'Kasparex',
-    version: 'V 1.0',
+    version: '1.0.0',
     description: 'Hold-to-view content system that reveals replies and deep content only to verified token holders.',
   },
   {
@@ -158,7 +158,7 @@ export const placeholderDApps: DApp[] = [
     status: 'Mainnet',
     network: 'Testnet',
     provider: 'Kasparex',
-    version: 'V 1.0',
+    version: '1.0.0',
     description: 'Create and manage bracket-style voting tournaments where community members vote on pairings using token-based contracts.',
   },
   {
@@ -172,7 +172,7 @@ export const placeholderDApps: DApp[] = [
     status: 'Testnet',
     network: 'Mainnet',
     provider: 'KasTools',
-    version: 'V 1.0',
+    version: '1.0.0',
     description: 'Record and track major token milestones on-chain, including DEX listings, holder milestones, and significant events.',
   },
   {
@@ -186,7 +186,7 @@ export const placeholderDApps: DApp[] = [
     status: 'Testnet',
     network: 'Testnet',
     provider: 'Kasparex',
-    version: 'V 1.0',
+    version: '1.0.0',
     description: 'Enable anonymous feedback collection from community members with a small KAS fee per message to prevent spam.',
   },
   {
