@@ -252,37 +252,6 @@ export function Sidebar({
         />
       )}
 
-      {/* Hide/Show Button - Always visible, positioned relative to sidebar border */}
-      <button
-        onClick={() => setIsHidden(!isHidden)}
-        className={`
-          hidden lg:flex
-          fixed z-50
-          w-6 h-6 rounded-full
-          bg-white dark:bg-zinc-900
-          border border-zinc-200 dark:border-zinc-800
-          shadow-md
-          items-center justify-center
-          hover:bg-zinc-100 dark:hover:bg-zinc-800
-          transition-all duration-300 ease-in-out
-        `}
-        style={{
-          left: isHidden ? '12px' : `${sidebarWidth - 12}px`,
-          top: 'calc(50vh - 12px)',
-        }}
-        title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-        aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-      >
-        <svg
-          className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M15 19l-7-7 7-7" : "M15 19l-7-7 7-7"} />
-        </svg>
-      </button>
-
       {/* Sidebar */}
       <aside
         ref={sidebarRef}
@@ -308,6 +277,16 @@ export function Sidebar({
             // Full height border detection (right side)
             const isOnBorder = e.clientX >= rect.right - 4 && e.clientX <= rect.right;
             sidebarRef.current.style.cursor = isOnBorder ? 'col-resize' : '';
+            if (isOnBorder) {
+              sidebarRef.current.style.borderRight = '2px solid #06b6d4';
+            } else {
+              sidebarRef.current.style.borderRight = '';
+            }
+          }
+        }}
+        onMouseLeave={() => {
+          if (sidebarRef.current && !isResizing) {
+            sidebarRef.current.style.borderRight = '';
           }
         }}
         onMouseDown={(e) => {
@@ -321,6 +300,37 @@ export function Sidebar({
           }
         }}
       >
+        {/* Hide/Show Button - Sticky to sidebar */}
+        <button
+          onClick={() => setIsHidden(!isHidden)}
+          className={`
+            hidden lg:flex
+            absolute z-50
+            w-6 h-6 rounded-full
+            bg-white dark:bg-zinc-900
+            border border-zinc-200 dark:border-zinc-800
+            shadow-md
+            items-center justify-center
+            hover:bg-zinc-100 dark:hover:bg-zinc-800
+            transition-all duration-300 ease-in-out
+          `}
+          style={{
+            right: isHidden ? '-18px' : '-12px',
+            top: 'calc(50% - 12px)',
+          }}
+          title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
+          aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
+        >
+          <svg
+            className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M9 5l7 7-7 7" : "M15 19l-7-7 7-7"} />
+          </svg>
+        </button>
+
 
         {/* Sidebar Content */}
         <div className={`p-4 lg:p-6 ${isHidden ? 'lg:hidden' : ''}`}>

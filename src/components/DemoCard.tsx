@@ -108,10 +108,14 @@ export function DemoCard({ dapp, gradientColors }: DemoCardProps) {
       {/* Gradient overlay that follows mouse */}
       <div style={gradientStyle} />
 
-      {/* Status Indicator and Fees Icon - Top Right */}
-      <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
-        <StatusIndicator dapp={mergedDApp} size="md" />
-        <DAppFeesModal dapp={mergedDApp} tokenTicker={tokenTicker} />
+      {/* Status Indicator and Fees Icon - Top Right (non-clickable on cards) */}
+      <div className="absolute top-4 right-4 z-50 flex items-center gap-2 pointer-events-none">
+        <div className="pointer-events-auto">
+          <StatusIndicator dapp={mergedDApp} size="md" clickable={false} />
+        </div>
+        <div className="pointer-events-none">
+          <DAppFeesModal dapp={mergedDApp} tokenTicker={tokenTicker} clickable={false} />
+        </div>
       </div>
 
       <div className="relative z-10 flex flex-col flex-1 min-h-0">

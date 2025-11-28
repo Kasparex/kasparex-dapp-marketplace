@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { DApp, getDAppChainIds } from '@/lib/dapps';
 import { getChainById } from '@/lib/wagmi';
 import { CHAIN_IDS } from '@/lib/wagmi';
@@ -9,6 +10,7 @@ interface StatusIndicatorProps {
   dapp: DApp;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
+  clickable?: boolean;
 }
 
 type StatusType = 'mainnet' | 'testnet' | 'both' | 'none' | 'suspended' | 'vprogs';
@@ -54,8 +56,8 @@ function getStatusType(dapp: DApp): StatusType {
  * Status Indicator Component
  * Shows a pulsating dot indicator based on network availability
  */
-export function StatusIndicator({ dapp, className = '', size = 'md' }: StatusIndicatorProps) {
-  const [showTooltip, setShowTooltip] = useState(false);
+export function StatusIndicator({ dapp, className = '', size = 'md', clickable = true }: StatusIndicatorProps) {
+  const [showModal, setShowModal] = useState(false);
   const statusType = getStatusType(dapp);
   const supportedChainIds = getDAppChainIds(dapp);
   const supportedNetworks = supportedChainIds
@@ -123,100 +125,142 @@ export function StatusIndicator({ dapp, className = '', size = 'md' }: StatusInd
   const sizeClass = sizeClasses[size];
 
   return (
-    <div className={`relative inline-block ${className}`}>
+    <>
       <div
         className={`
           ${sizeClass}
           ${colorConfig.bg}
           rounded-full
-          cursor-help
+          ${clickable ? 'cursor-pointer' : 'cursor-default'}
           animate-pulse
           ring-2 ring-white dark:ring-zinc-900
+          ${className}
         `}
         style={{
           boxShadow: colorConfig.shadow,
         }}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-        title="Network availability"
+        onClick={clickable ? () => setShowModal(true) : undefined}
+        title={clickable ? "Click to view network availability" : "Network availability"}
       />
       
-      {/* Tooltip */}
-      {showTooltip && (
-        <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-xl z-[9999] p-3 pointer-events-none">
-          {statusType === 'suspended' && (
-            <div className="mb-3 pb-3 border-b border-zinc-300 dark:border-zinc-600">
-              <p className="text-xs font-semibold text-red-600 dark:text-red-400">
-                ⚠ Suspended
-              </p>
-            </div>
-          )}
+      {/* Network Availability Modal */}
+      {showModal && clickable && typeof window !== 'undefined' && createPortal(
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
+          onClick={() => setShowModal(false)}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
           
-          {statusType === 'vprogs' && (
-            <div className="mb-3 pb-3 border-b border-zinc-300 dark:border-zinc-600">
-              <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-1.5">
-                vProgs Compatible
-              </p>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                This dApp is or will be compatible with vProgs (Kaspa Virtual Programs), enabling native Kaspa integration and enhanced performance.
-              </p>
-              {(hasVProgsTestnet || hasVProgsMainnet) && (
-                <div className="mt-2 space-y-1">
-                  {hasVProgsTestnet && (
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400">• vProgs Testnet</p>
-                  )}
-                  {hasVProgsMainnet && (
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400">• vProgs Mainnet</p>
+          {/* Modal Content */}
+          <div
+            className="relative bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-zinc-200 dark:border-zinc-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                  Network Availability
+                </h2>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                  Available networks for {dapp.name}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowModal(false)}
+                className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+                aria-label="Close modal"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              {statusType === 'suspended' && (
+                <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <p className="text-sm font-semibold text-red-600 dark:text-red-400">
+                    ⚠ Suspended
+                  </p>
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                    This dApp is currently suspended and not available on any network.
+                  </p>
+                </div>
+              )}
+              
+              {statusType === 'vprogs' && (
+                <div className="mb-4 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                  <p className="text-sm font-semibold text-purple-600 dark:text-purple-400 mb-1.5">
+                    vProgs Compatible
+                  </p>
+                  <p className="text-xs text-purple-600 dark:text-purple-400 mb-2">
+                    This dApp is or will be compatible with vProgs (Kaspa Virtual Programs), enabling native Kaspa integration and enhanced performance.
+                  </p>
+                  {(hasVProgsTestnet || hasVProgsMainnet) && (
+                    <div className="mt-2 space-y-1">
+                      {hasVProgsTestnet && (
+                        <p className="text-xs text-purple-600 dark:text-purple-400">• vProgs Testnet</p>
+                      )}
+                      {hasVProgsMainnet && (
+                        <p className="text-xs text-purple-600 dark:text-purple-400">• vProgs Mainnet</p>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
+              
+              {supportedNetworks.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3">
+                    Available Networks:
+                  </p>
+                  <ul className="space-y-2">
+                    {supportedNetworks.map((network, index) => (
+                      <li key={index} className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                        <svg className="w-5 h-5 text-green-500 dark:text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-sm text-zinc-900 dark:text-zinc-100 font-medium">{network}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {unavailableNetworks.length > 0 && (
+                <div>
+                  <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3">
+                    Not Available Networks:
+                  </p>
+                  <ul className="space-y-2">
+                    {unavailableNetworks.map((network, index) => (
+                      <li key={index} className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg">
+                        <svg className="w-5 h-5 text-zinc-400 dark:text-zinc-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-sm text-zinc-500 dark:text-zinc-400">{network}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {supportedNetworks.length === 0 && unavailableNetworks.length === 0 && (
+                <div className="p-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg">
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                    No networks configured
+                  </p>
+                </div>
+              )}
             </div>
-          )}
-          
-          {supportedNetworks.length > 0 && (
-            <div className="mb-3">
-              <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                Available Networks:
-              </p>
-              <ul className="space-y-1">
-                {supportedNetworks.map((network, index) => (
-                  <li key={index} className="text-xs text-zinc-600 dark:text-zinc-400 flex items-center gap-2">
-                    <svg className="w-3 h-3 text-green-500 dark:text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    <span className="truncate">{network}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          
-          {unavailableNetworks.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                Not Available Networks:
-              </p>
-              <ul className="space-y-1">
-                {unavailableNetworks.map((network, index) => (
-                  <li key={index} className="text-xs text-zinc-500 dark:text-zinc-500 flex items-center gap-2">
-                    <svg className="w-3 h-3 text-zinc-400 dark:text-zinc-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                    <span className="truncate">{network}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          
-          {supportedNetworks.length === 0 && unavailableNetworks.length === 0 && (
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              No networks configured
-            </p>
-          )}
-        </div>
+          </div>
+        </div>,
+        document.body
       )}
-    </div>
+    </>
   );
 }
 

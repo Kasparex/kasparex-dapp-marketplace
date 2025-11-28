@@ -127,10 +127,10 @@ export function DAppWidgetHeader({
   return (
     <>
       <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 relative">
-        {/* Status Indicator and Fees Icon - Top Right */}
+        {/* Status Indicator and Fees Icon - Top Right (clickable on dApp page) */}
         <div className="absolute top-4 right-4 sm:top-5 sm:right-6 z-50 flex items-center gap-2">
-          <StatusIndicator dapp={mergedDApp} size="md" />
-          <DAppFeesModal dapp={mergedDApp} tokenTicker={tokenTicker} />
+          <StatusIndicator dapp={mergedDApp} size="md" clickable={true} />
+          <DAppFeesModal dapp={mergedDApp} tokenTicker={tokenTicker} clickable={true} />
         </div>
 
         {/* Title Section with Featured Image, Icon, and Info */}

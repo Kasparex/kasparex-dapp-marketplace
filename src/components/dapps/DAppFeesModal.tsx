@@ -9,6 +9,7 @@ import { formatLargeNumber } from '@/lib/rewards/calculator';
 interface DAppFeesModalProps {
   dapp: DApp;
   tokenTicker?: string | null;
+  clickable?: boolean;
 }
 
 // Mock fees data based on dApp category/name
@@ -50,16 +51,27 @@ function getDAppFees(dapp: DApp, tokenTicker: string): Array<{ action: string; c
   ];
 }
 
-export function DAppFeesModal({ dapp, tokenTicker }: DAppFeesModalProps) {
+export function DAppFeesModal({ dapp, tokenTicker, clickable = true }: DAppFeesModalProps) {
   const [showModal, setShowModal] = useState(false);
   const rewards = getDefaultRewardsBreakdown(tokenTicker || undefined);
   const fees = getDAppFees(dapp, rewards.tokenTicker);
+
+  if (!clickable) {
+    return (
+      <div className="p-1 text-zinc-400 rounded" title="Fees and rewards">
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+    );
+  }
 
   return (
     <>
       <button
         className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
         onClick={() => setShowModal(true)}
+        title="View fees and rewards"
         aria-label="View fees and rewards"
       >
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -189,37 +189,6 @@ export function DAppInfoSidebar({
 
   return (
     <>
-      {/* Hide/Show Button - Always visible, positioned relative to sidebar border */}
-      <button
-        onClick={() => setIsHidden(!isHidden)}
-        className={`
-          hidden lg:flex
-          fixed z-50
-          w-6 h-6 rounded-full
-          bg-white dark:bg-zinc-900
-          border border-zinc-200 dark:border-zinc-800
-          shadow-md
-          items-center justify-center
-          hover:bg-zinc-100 dark:hover:bg-zinc-800
-          transition-all duration-300 ease-in-out
-        `}
-        style={{
-          right: isHidden ? '12px' : `${sidebarWidth - 12}px`,
-          top: 'calc(50vh - 12px)',
-        }}
-        title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-        aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-      >
-        <svg
-          className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M9 5l7 7-7 7" : "M9 5l7 7-7 7"} />
-        </svg>
-      </button>
-
       <aside 
         ref={sidebarRef}
         className={`
@@ -241,9 +210,19 @@ export function DAppInfoSidebar({
         onMouseMove={(e) => {
           if (!isHidden && !isResizing && sidebarRef.current) {
             const rect = sidebarRef.current.getBoundingClientRect();
-            // Full height border detection (left side for right sidebar, positioned on right side of scrollbar)
+            // Full height border detection (left side for right sidebar)
             const isOnBorder = e.clientX >= rect.left && e.clientX <= rect.left + 4;
             sidebarRef.current.style.cursor = isOnBorder ? 'col-resize' : '';
+            if (isOnBorder) {
+              sidebarRef.current.style.borderLeft = '2px solid #06b6d4';
+            } else {
+              sidebarRef.current.style.borderLeft = '';
+            }
+          }
+        }}
+        onMouseLeave={() => {
+          if (sidebarRef.current && !isResizing) {
+            sidebarRef.current.style.borderLeft = '';
           }
         }}
         onMouseDown={(e) => {
@@ -257,6 +236,36 @@ export function DAppInfoSidebar({
           }
         }}
       >
+        {/* Hide/Show Button - Sticky to sidebar */}
+        <button
+          onClick={() => setIsHidden(!isHidden)}
+          className={`
+            hidden lg:flex
+            absolute z-50
+            w-6 h-6 rounded-full
+            bg-white dark:bg-zinc-900
+            border border-zinc-200 dark:border-zinc-800
+            shadow-md
+            items-center justify-center
+            hover:bg-zinc-100 dark:hover:bg-zinc-800
+            transition-all duration-300 ease-in-out
+          `}
+          style={{
+            left: isHidden ? '-18px' : '-12px',
+            top: 'calc(50% - 12px)',
+          }}
+          title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
+          aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
+        >
+          <svg
+            className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
+          </svg>
+        </button>
 
         <div className={`p-4 lg:p-6 space-y-6 ${isHidden ? 'hidden' : ''}`}>
             {/* Developer & Info (No Box) */}
