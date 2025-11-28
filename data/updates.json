@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764352887-ea5fc27",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Remove extra closing div tag in DAppInfoSidebar (by Kasparex)",
+      "date": "2025-11-28T19:00:16+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764350555-ff6a3a3",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Remove extra closing div tag in DAppSidebar (by Kasparex)",
