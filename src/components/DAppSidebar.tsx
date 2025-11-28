@@ -167,7 +167,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
         </Link>
       </div>
 
-      {/* Hide/Show Button - Fixed when sidebar is hidden, centered vertically */}
+      {/* Hide/Show Button - Fixed position when sidebar is hidden */}
       {isHidden && (
         <button
           onClick={() => setIsHidden(!isHidden)}
@@ -248,30 +248,9 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
           }
         }}
       >
-        {/* Header with Back Button and Hide Button */}
-        <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-3">
-          <div className="flex items-center gap-2">
-            {/* Back to Categories Button */}
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex-1 min-w-0"
-            >
-              <svg
-                className="h-4 w-4 flex-shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-              <span className="truncate">Back to Categories</span>
-            </Link>
-            {/* Hide/Show Button */}
+        {/* Hide/Show Button - Sticky at top of sidebar, above scrollbar */}
+        {!isHidden && (
+          <div className="sticky top-0 z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 flex justify-end p-2">
             <button
               onClick={() => setIsHidden(!isHidden)}
               className={`
@@ -283,10 +262,9 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
                 items-center justify-center
                 hover:bg-zinc-100 dark:hover:bg-zinc-800
                 transition-all duration-300 ease-in-out
-                flex-shrink-0
               `}
-              title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-              aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
+              title="Hide sidebar"
+              aria-label="Hide sidebar"
             >
               <svg
                 className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
@@ -294,13 +272,37 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M9 5l7 7-7 7" : "M15 19l-7-7 7-7"} />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
           </div>
-        </div>
+        )}
 
         <div className={`p-4 lg:p-6 ${isHidden ? 'hidden' : ''}`}>
+            {/* Back to Categories Button and Edit Button */}
+            <div className="mb-6 pb-4 border-b border-zinc-200 dark:border-zinc-800 space-y-3">
+              <Link
+                href="/"
+                className="flex items-center gap-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+                Back to Categories
+              </Link>
+              
+              {/* Edit functionality removed - dApps are now read-only */}
+            </div>
 
             {/* KREX Status */}
             <KREXStatusBox />

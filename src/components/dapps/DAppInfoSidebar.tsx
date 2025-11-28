@@ -71,29 +71,6 @@ export function DAppInfoSidebar({
     localStorage.setItem('dapp-info-sidebar-width', String(sidebarWidth));
   }, [sidebarWidth]);
 
-  // Format creation date
-  const formatCreationDate = () => {
-    if (contractData?.registeredAt) {
-      // registeredAt is a bigint timestamp (seconds)
-      const timestamp = Number(contractData.registeredAt) * 1000; // Convert to milliseconds
-      return new Date(timestamp).toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
-      });
-    }
-    if (dapp.createdAt) {
-      return new Date(dapp.createdAt).toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
-      });
-    }
-    return 'N/A';
-  };
-  
-  const creationDate = formatCreationDate();
-
   // Handle resize
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -212,7 +189,7 @@ export function DAppInfoSidebar({
 
   return (
     <>
-      {/* Hide/Show Button - Fixed when sidebar is hidden, centered vertically */}
+      {/* Hide/Show Button - Fixed position when sidebar is hidden */}
       {isHidden && (
         <button
           onClick={() => setIsHidden(!isHidden)}
@@ -292,50 +269,35 @@ export function DAppInfoSidebar({
           }
         }}
       >
-        {/* Header with Creation Date and Hide Button */}
-        <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between p-3">
-          <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+        {/* Hide/Show Button - Sticky at top of sidebar, above scrollbar */}
+        {!isHidden && (
+          <div className="sticky top-0 z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 flex justify-start p-2">
+            <button
+              onClick={() => setIsHidden(!isHidden)}
+              className={`
+                hidden lg:flex
+                w-6 h-6 rounded-full
+                bg-white dark:bg-zinc-900
+                border border-zinc-200 dark:border-zinc-800
+                shadow-md
+                items-center justify-center
+                hover:bg-zinc-100 dark:hover:bg-zinc-800
+                transition-all duration-300 ease-in-out
+              `}
+              title="Hide sidebar"
+              aria-label="Hide sidebar"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            <span className="text-xs font-medium">{creationDate}</span>
+              <svg
+                className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
           </div>
-          <button
-            onClick={() => setIsHidden(!isHidden)}
-            className={`
-              hidden lg:flex
-              w-6 h-6 rounded-full
-              bg-white dark:bg-zinc-900
-              border border-zinc-200 dark:border-zinc-800
-              shadow-md
-              items-center justify-center
-              hover:bg-zinc-100 dark:hover:bg-zinc-800
-              transition-all duration-300 ease-in-out
-              flex-shrink-0
-            `}
-            title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-            aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-          >
-            <svg
-              className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
-            </svg>
-          </button>
-        </div>
+        )}
 
         <div className={`p-4 lg:p-6 space-y-6 ${isHidden ? 'hidden' : ''}`}>
             {/* Developer & Info (No Box) */}

@@ -196,7 +196,7 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
         />
       )}
 
-      {/* Hide/Show Button - Fixed when sidebar is hidden, centered vertically */}
+      {/* Hide/Show Button - Fixed position when sidebar is hidden */}
       {isHidden && (
         <button
           onClick={() => setIsHidden(!isHidden)}
@@ -277,33 +277,35 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
           }
         }}
       >
-        {/* Header with Hide Button */}
-        <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 flex justify-end p-3">
-          <button
-            onClick={() => setIsHidden(!isHidden)}
-            className={`
-              hidden lg:flex
-              w-6 h-6 rounded-full
-              bg-white dark:bg-zinc-900
-              border border-zinc-200 dark:border-zinc-800
-              shadow-md
-              items-center justify-center
-              hover:bg-zinc-100 dark:hover:bg-zinc-800
-              transition-all duration-300 ease-in-out
-            `}
-            title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-            aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-          >
-            <svg
-              className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+        {/* Hide/Show Button - Sticky at top of sidebar, above scrollbar */}
+        {!isHidden && (
+          <div className="sticky top-0 z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 flex justify-end p-2">
+            <button
+              onClick={() => setIsHidden(!isHidden)}
+              className={`
+                hidden lg:flex
+                w-6 h-6 rounded-full
+                bg-white dark:bg-zinc-900
+                border border-zinc-200 dark:border-zinc-800
+                shadow-md
+                items-center justify-center
+                hover:bg-zinc-100 dark:hover:bg-zinc-800
+                transition-all duration-300 ease-in-out
+              `}
+              title="Hide sidebar"
+              aria-label="Hide sidebar"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M9 5l7 7-7 7" : "M15 19l-7-7 7-7"} />
-            </svg>
-          </button>
-        </div>
+              <svg
+                className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+          </div>
+        )}
 
         <div className={`p-4 lg:p-6 ${isHidden ? 'lg:hidden' : ''}`}>
           {/* Rewards Info Boxes */}
