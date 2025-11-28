@@ -1,13 +1,6 @@
 {
   "updates": [
     {
-      "id": "deploy-1764336501-c1a457b",
-      "title": "Deployment to main",
-      "description": "Website deployed successfully. Commit: Update timeline: 2025-11-28T13:28:06.312Z (by Kasparex)",
-      "date": "2025-11-28T14:28:06+01:00",
-      "type": "deployment"
-    },
-    {
       "id": "deploy-1764333075-a6ff88d",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add fees modal, reorganize card layout, update dApp page header, clean up sidebar (by Kasparex)",
@@ -1104,12 +1097,12 @@
       "priority": "high"
     },
     {
-      "id": "1764336486180-0xpjnzkyn",
-      "title": "dfgdh",
-      "description": "dghdgh",
+      "id": "1764336532244-ioarergi8",
+      "title": "Test 2",
+      "description": "Testing 2",
       "date": "2025-11-28T00:00:00.000Z",
-      "type": "fix",
-      "priority": "high"
+      "type": "feature",
+      "priority": "medium"
     }
   ],
   "bugFixes": [
