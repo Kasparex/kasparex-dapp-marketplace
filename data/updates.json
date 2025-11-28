@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764350555-ff6a3a3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Remove extra closing div tag in DAppSidebar (by Kasparex)",
+      "date": "2025-11-28T18:21:52+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764348462-257f67c",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Merge branch 'main' of https://github.com/Kasparex/kasparex-dapp-marketplace (by Kasparex)",
