@@ -167,7 +167,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
         </Link>
       </div>
 
-      {/* Hide/Show Button - Fixed when sidebar is hidden, positioned at sidebar edge */}
+      {/* Hide/Show Button - Fixed when sidebar is hidden, centered vertically */}
       {isHidden && (
         <button
           onClick={() => setIsHidden(!isHidden)}
@@ -183,8 +183,8 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
             transition-all duration-300 ease-in-out
           `}
           style={{
-            left: `${sidebarWidth - 18}px`,
-            top: '16px',
+            left: '12px',
+            top: 'calc(50vh - 12px)',
           }}
           title="Show sidebar"
           aria-label="Show sidebar"
