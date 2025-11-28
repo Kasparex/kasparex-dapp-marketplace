@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useChainId } from 'wagmi';
 import { DApp, generateSimulatedTicker, generateSimulatedAddress } from '@/lib/dapps';
@@ -23,6 +23,9 @@ interface DAppCardProps {
 
 export function DAppCard({ dapp }: DAppCardProps) {
   const chainId = useChainId();
+  const titleRef = useRef<HTMLDivElement>(null);
+  const iconsRef = useRef<HTMLDivElement>(null);
+  const [shouldHideIcons, setShouldHideIcons] = useState(false);
   
   // Merge localStorage metadata with frontend data
   const mergedDApp = mergeDAppData(null, dapp);
@@ -56,6 +59,29 @@ export function DAppCard({ dapp }: DAppCardProps) {
   
   const rawTicker = contractData?.ticker || generateSimulatedTicker(mergedDApp.name);
   const tokenTicker = rawTicker ? rawTicker.substring(0, 6) : null;
+
+  // Check for overlap between titles and icons
+  useEffect(() => {
+    const checkOverlap = () => {
+      if (titleRef.current && iconsRef.current) {
+        const titleRect = titleRef.current.getBoundingClientRect();
+        const iconsRect = iconsRef.current.getBoundingClientRect();
+        // Check if title extends into the icon area (with some padding)
+        const overlap = titleRect.right > iconsRect.left - 16; // 16px padding
+        setShouldHideIcons(overlap);
+      }
+    };
+
+    checkOverlap();
+    window.addEventListener('resize', checkOverlap);
+    // Use a small delay to ensure DOM is fully rendered
+    const timeout = setTimeout(checkOverlap, 100);
+
+    return () => {
+      window.removeEventListener('resize', checkOverlap);
+      clearTimeout(timeout);
+    };
+  }, [mergedDApp.name, tokenTicker]);
   const tokenAddress = contractData?.tokenAddress || (tokenTicker ? generateSimulatedAddress(`${mergedDApp.id}-token`) : null);
   const dAppContractAddress = contractData?.contractAddress || mergedDApp.contractAddress || quizToEarnContractAddress || generateSimulatedAddress(mergedDApp.id);
   
@@ -81,7 +107,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
       className="block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all relative flex flex-col min-h-[280px]"
     >
       {/* Status Indicator and Fees Icon - Top Right */}
-      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+      <div ref={iconsRef} className={`absolute top-4 right-4 z-10 flex items-center gap-2 ${shouldHideIcons ? 'hidden' : ''}`}>
         <StatusIndicator dapp={mergedDApp} size="md" />
         <DAppFeesModal dapp={mergedDApp} tokenTicker={tokenTicker} />
       </div>
@@ -97,7 +123,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
         />
 
           {/* Dapp and Token Title Rows - Next to logo */}
-          <div className="space-y-1.5 flex-1 min-w-0">
+          <div ref={titleRef} className="space-y-1.5 flex-1 min-w-0">
             {/* Dapp Row */}
             {dAppContractAddress && (
               <div className="flex items-center gap-2 text-sm">

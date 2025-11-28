@@ -161,9 +161,13 @@ export function Header() {
       <div className="flex h-16 items-center justify-between w-full">
         {/* Left side: Logo and Title - no padding, flush to left */}
         <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 lg:pl-6">
-          <Link href="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition-all duration-300 hover:scale-105 group">
+          <Link 
+            href="/" 
+            className="flex items-center gap-2 sm:gap-3 relative group"
+            title="Back to main page"
+          >
             {!logoError ? (
-              <div className="relative h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 transition-transform duration-300 group-hover:rotate-6">
+              <div className="relative h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
                 <Image
                   src="/kasparex-oval.png"
                   alt="Kasparex Logo"
@@ -175,19 +179,23 @@ export function Header() {
                 />
               </div>
             ) : (
-              <div className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 rounded-lg transition-transform duration-300 group-hover:rotate-6">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 rounded-lg">
                 <span className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-zinc-100">
                   K
                 </span>
               </div>
             )}
-            <h1 className="text-base sm:text-lg lg:text-xl font-semibold text-zinc-900 dark:text-zinc-100 whitespace-nowrap flex items-center gap-2 transition-colors duration-300 group-hover:text-[#02abb8]">
+            <h1 className="text-base sm:text-lg lg:text-xl font-semibold text-zinc-900 dark:text-zinc-100 whitespace-nowrap flex items-center gap-2">
               <span className="uppercase">
                 <span className="font-bold">KASPA</span>
                 <span className="font-normal">REX</span>
               </span>
-              <span className="text-[#02abb8] transition-transform duration-300 group-hover:scale-110">𐤊</span>
+              <span className="text-[#02abb8]">𐤊</span>
             </h1>
+            {/* Tooltip */}
+            <span className="absolute left-0 top-full mt-2 px-2 py-1 text-xs text-white bg-zinc-900 dark:bg-zinc-700 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+              Back to main page
+            </span>
           </Link>
           <span className="relative">
             <div

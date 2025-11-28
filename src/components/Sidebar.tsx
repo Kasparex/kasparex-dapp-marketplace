@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { categories, type Category } from '@/lib/categories';
@@ -63,6 +63,60 @@ export function Sidebar({
   const [developerExpanded, setDeveloperExpanded] = useState(false);
   const [networkExpanded, setNetworkExpanded] = useState(false);
   const [showQuickGuide, setShowQuickGuide] = useState(false);
+  
+  // Sidebar hide/show and resize state
+  const [isHidden, setIsHidden] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(256); // Default 256px (w-64)
+  const [isResizing, setIsResizing] = useState(false);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const resizeHandleRef = useRef<HTMLDivElement>(null);
+
+  // Load sidebar state from localStorage
+  useEffect(() => {
+    const savedHidden = localStorage.getItem('sidebar-hidden');
+    const savedWidth = localStorage.getItem('sidebar-width');
+    if (savedHidden === 'true') setIsHidden(true);
+    if (savedWidth) setSidebarWidth(parseInt(savedWidth, 10));
+  }, []);
+
+  // Save sidebar state to localStorage
+  useEffect(() => {
+    localStorage.setItem('sidebar-hidden', String(isHidden));
+  }, [isHidden]);
+
+  useEffect(() => {
+    localStorage.setItem('sidebar-width', String(sidebarWidth));
+  }, [sidebarWidth]);
+
+  // Handle resize
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing || !sidebarRef.current) return;
+      const sidebarRect = sidebarRef.current.getBoundingClientRect();
+      const newWidth = e.clientX - sidebarRect.left;
+      if (newWidth >= 200 && newWidth <= 500) {
+        setSidebarWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing]);
 
   const handleStatusToggle = (status: DAppStatus | 'all') => {
     const currentStatus = filters.status || [];
@@ -200,18 +254,71 @@ export function Sidebar({
 
       {/* Sidebar */}
       <aside
+        ref={sidebarRef}
         className={`
           fixed lg:sticky top-16 lg:top-0 left-0 z-40
           h-[calc(100vh-4rem)] lg:h-auto lg:max-h-[calc(100vh-4rem)]
-          w-64 lg:w-full
           bg-white dark:bg-zinc-950
           border-r border-zinc-200 dark:border-zinc-800
-          transform transition-transform duration-300 ease-in-out
+          transform transition-all duration-300 ease-in-out
           overflow-y-auto
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          ${isHidden ? 'lg:translate-x-[-100%]' : ''}
         `}
+        style={{ 
+          width: isHidden ? 0 : `${sidebarWidth}px`,
+          minWidth: isHidden ? 0 : `${sidebarWidth}px`,
+          maxWidth: isHidden ? 0 : `${sidebarWidth}px`
+        }}
       >
-        <div className="p-4 lg:p-6">
+        {/* Hide/Show Button - Top Center of Right Border */}
+        <button
+          onClick={() => setIsHidden(!isHidden)}
+          className={`
+            absolute top-4 -right-3 z-50
+            w-6 h-6 rounded-full
+            bg-white dark:bg-zinc-900
+            border border-zinc-200 dark:border-zinc-800
+            shadow-md
+            flex items-center justify-center
+            hover:bg-zinc-100 dark:hover:bg-zinc-800
+            transition-colors
+            ${isHidden ? 'right-[-12px]' : ''}
+          `}
+          title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
+          aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
+        >
+          <svg
+            className={`w-4 h-4 text-zinc-600 dark:text-zinc-400 transition-transform ${isHidden ? 'rotate-180' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
+        {/* Resize Handle */}
+        {!isHidden && (
+          <div
+            ref={resizeHandleRef}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setIsResizing(true);
+            }}
+            className="
+              absolute top-0 right-0 w-1 h-full
+              cursor-col-resize
+              hover:bg-[#02abb8] dark:hover:bg-[#02abb8]
+              transition-colors
+              z-40
+            "
+            title="Drag to resize"
+          />
+        )}
+
+        {/* Sidebar Content */}
+        <div className={`p-4 lg:p-6 ${isHidden ? 'lg:hidden' : ''}`}>
           {/* Search Box */}
           <div className="mb-6">
             <div className="relative">

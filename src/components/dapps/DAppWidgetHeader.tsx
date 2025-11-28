@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useChainId } from 'wagmi';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -43,6 +43,9 @@ export function DAppWidgetHeader({
 }: DAppWidgetHeaderProps) {
   const chainId = useChainId();
   const isEmbeddedPage = isEmbedded();
+  const titleRef = useRef<HTMLDivElement>(null);
+  const iconsRef = useRef<HTMLDivElement>(null);
+  const [shouldHideIcons, setShouldHideIcons] = useState(false);
   
   // Get contract address if not provided
   let resolvedContractAddress = contractAddress || dapp.contractAddress || '';
@@ -102,6 +105,29 @@ export function DAppWidgetHeader({
   const [copiedDAppAddress, setCopiedDAppAddress] = useState(false);
   const [copiedTokenAddress, setCopiedTokenAddress] = useState(false);
 
+  // Check for overlap between titles and icons
+  useEffect(() => {
+    const checkOverlap = () => {
+      if (titleRef.current && iconsRef.current) {
+        const titleRect = titleRef.current.getBoundingClientRect();
+        const iconsRect = iconsRef.current.getBoundingClientRect();
+        // Check if title extends into the icon area (with some padding)
+        const overlap = titleRect.right > iconsRect.left - 16; // 16px padding
+        setShouldHideIcons(overlap);
+      }
+    };
+
+    checkOverlap();
+    window.addEventListener('resize', checkOverlap);
+    // Use a small delay to ensure DOM is fully rendered
+    const timeout = setTimeout(checkOverlap, 100);
+
+    return () => {
+      window.removeEventListener('resize', checkOverlap);
+      clearTimeout(timeout);
+    };
+  }, [mergedDApp.name, tokenTicker]);
+
   const handleIconClick = (e: React.MouseEvent, action: () => void) => {
     e.preventDefault();
     e.stopPropagation();
@@ -128,7 +154,7 @@ export function DAppWidgetHeader({
     <>
       <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 relative">
         {/* Status Indicator and Fees Icon - Top Right */}
-        <div className="absolute top-4 right-4 sm:top-5 sm:right-6 z-10 flex items-center gap-2">
+        <div ref={iconsRef} className={`absolute top-4 right-4 sm:top-5 sm:right-6 z-10 flex items-center gap-2 ${shouldHideIcons ? 'hidden' : ''}`}>
           <StatusIndicator dapp={mergedDApp} size="md" />
           <DAppFeesModal dapp={mergedDApp} tokenTicker={tokenTicker} />
         </div>
@@ -158,7 +184,7 @@ export function DAppWidgetHeader({
             />
             
             {/* Dapp and Token Title Rows - Next to logo, aligned to bottom */}
-            <div className="space-y-1.5 flex-1 min-w-0 flex items-end">
+            <div ref={titleRef} className="space-y-1.5 flex-1 min-w-0 flex items-end">
               <div className="space-y-1.5 w-full">
                 {/* Dapp Row */}
                 {dAppContractAddress && (
