@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764357402-de48e5b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix sidebar and icon visibility issues: ensure network dot and fees icon always visible, fix chevron directions, improve drag-to-resize handlers, fix sidebar height (by Kasparex)",
+      "date": "2025-11-28T20:16:12+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764352887-ea5fc27",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Remove extra closing div tag in DAppInfoSidebar (by Kasparex)",
