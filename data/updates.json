@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764360904-07e29ef",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix sidebar hide/show buttons visibility, add vProgs compatibility section, implement 3-column grid when sidebar hidden, add card/table view switcher, create table view for dApps (by Kasparex)",
+      "date": "2025-11-28T21:14:36+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764359072-5b13f4e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix sidebar buttons, add modal for network availability, make icons clickable only on dApp pages, add turquoise border highlight on hover (by Kasparex)",
