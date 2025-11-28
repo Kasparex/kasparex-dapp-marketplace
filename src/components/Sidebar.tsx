@@ -252,38 +252,36 @@ export function Sidebar({
         />
       )}
 
-      {/* Hide/Show Button - Fixed position when sidebar is hidden */}
-      {isHidden && (
-        <button
-          onClick={() => setIsHidden(!isHidden)}
-          className={`
-            hidden lg:flex
-            fixed z-[60]
-            w-6 h-6 rounded-full
-            bg-white dark:bg-zinc-900
-            border border-zinc-200 dark:border-zinc-800
-            shadow-md
-            items-center justify-center
-            hover:bg-zinc-100 dark:hover:bg-zinc-800
-            transition-all duration-300 ease-in-out
-          `}
-          style={{
-            left: '12px',
-            top: 'calc(50vh - 12px)',
-          }}
-          title="Show sidebar"
-          aria-label="Show sidebar"
+      {/* Hide/Show Button - Sticky at top-right corner (always visible) */}
+      <button
+        onClick={() => setIsHidden(!isHidden)}
+        className={`
+          hidden lg:flex
+          fixed z-[60]
+          w-6 h-6 rounded-full
+          bg-white dark:bg-zinc-900
+          border border-zinc-200 dark:border-zinc-800
+          shadow-md
+          items-center justify-center
+          hover:bg-zinc-100 dark:hover:bg-zinc-800
+          transition-all duration-300 ease-in-out
+        `}
+        style={{
+          left: isHidden ? '12px' : `${sidebarWidth - 18}px`,
+          top: '16px',
+        }}
+        title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
+        aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
+      >
+        <svg
+          className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
         >
-          <svg
-            className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      )}
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M9 5l7 7-7 7" : "M15 19l-7-7 7-7"} />
+        </svg>
+      </button>
 
       {/* Sidebar */}
       <aside
@@ -333,41 +331,11 @@ export function Sidebar({
           }
         }}
       >
-        {/* Hide/Show Button - Sticky at top of sidebar, above scrollbar */}
-        {!isHidden && (
-          <div className="sticky top-0 z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 flex justify-end p-2">
-            <button
-              onClick={() => setIsHidden(!isHidden)}
-              className={`
-                hidden lg:flex
-                w-6 h-6 rounded-full
-                bg-white dark:bg-zinc-900
-                border border-zinc-200 dark:border-zinc-800
-                shadow-md
-                items-center justify-center
-                hover:bg-zinc-100 dark:hover:bg-zinc-800
-                transition-all duration-300 ease-in-out
-              `}
-              title="Hide sidebar"
-              aria-label="Hide sidebar"
-            >
-              <svg
-                className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-          </div>
-        )}
-
-        {/* Sidebar Content */}
-        <div className={`p-4 lg:p-6 ${isHidden ? 'lg:hidden' : ''}`}>
-          {/* Search Box */}
-          <div className="mb-6">
-            <div className="relative">
+        {/* Sticky Header with Search Box and Hide Button */}
+        <div className="sticky top-0 z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-3">
+          <div className="flex items-center gap-2">
+            {/* Search Box */}
+            <div className="flex-1 relative">
               <svg
                 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400 dark:text-zinc-500"
                 fill="none"
@@ -389,7 +357,37 @@ export function Sidebar({
                 className="w-full pl-10 pr-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-500 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
               />
             </div>
+            {/* Hide Button */}
+            <button
+              onClick={() => setIsHidden(!isHidden)}
+              className={`
+                hidden lg:flex
+                w-6 h-6 rounded-full
+                bg-white dark:bg-zinc-900
+                border border-zinc-200 dark:border-zinc-800
+                shadow-md
+                items-center justify-center
+                hover:bg-zinc-100 dark:hover:bg-zinc-800
+                transition-all duration-300 ease-in-out
+                flex-shrink-0
+              `}
+              title="Hide sidebar"
+              aria-label="Hide sidebar"
+            >
+              <svg
+                className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
           </div>
+        </div>
+
+        {/* Sidebar Content */}
+        <div className={`p-4 lg:p-6 ${isHidden ? 'lg:hidden' : ''}`}>
 
           {/* Quick Guide Button */}
           <div className="mb-6">

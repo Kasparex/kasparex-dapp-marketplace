@@ -52,6 +52,7 @@ export function DAppInfoSidebar({
   const [isHidden, setIsHidden] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(256); // Default 256px (w-64)
   const [isResizing, setIsResizing] = useState(false);
+  const [buttonRight, setButtonRight] = useState(12);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   // Load sidebar state from localStorage
@@ -70,6 +71,22 @@ export function DAppInfoSidebar({
   useEffect(() => {
     localStorage.setItem('dapp-info-sidebar-width', String(sidebarWidth));
   }, [sidebarWidth]);
+
+  // Calculate button position for right sidebar
+  useEffect(() => {
+    const updateButtonPosition = () => {
+      if (typeof window !== 'undefined') {
+        if (isHidden) {
+          setButtonRight(12);
+        } else {
+          setButtonRight(window.innerWidth - sidebarWidth + 6);
+        }
+      }
+    };
+    updateButtonPosition();
+    window.addEventListener('resize', updateButtonPosition);
+    return () => window.removeEventListener('resize', updateButtonPosition);
+  }, [isHidden, sidebarWidth]);
 
   // Handle resize
   useEffect(() => {
@@ -189,38 +206,36 @@ export function DAppInfoSidebar({
 
   return (
     <>
-      {/* Hide/Show Button - Fixed position when sidebar is hidden */}
-      {isHidden && (
-        <button
-          onClick={() => setIsHidden(!isHidden)}
-          className={`
-            hidden lg:flex
-            fixed z-[60]
-            w-6 h-6 rounded-full
-            bg-white dark:bg-zinc-900
-            border border-zinc-200 dark:border-zinc-800
-            shadow-md
-            items-center justify-center
-            hover:bg-zinc-100 dark:hover:bg-zinc-800
-            transition-all duration-300 ease-in-out
-          `}
-          style={{
-            right: '12px',
-            top: 'calc(50vh - 12px)',
-          }}
-          title="Show sidebar"
-          aria-label="Show sidebar"
+      {/* Hide/Show Button - Sticky at top-left corner (always visible) */}
+      <button
+        onClick={() => setIsHidden(!isHidden)}
+        className={`
+          hidden lg:flex
+          fixed z-[60]
+          w-6 h-6 rounded-full
+          bg-white dark:bg-zinc-900
+          border border-zinc-200 dark:border-zinc-800
+          shadow-md
+          items-center justify-center
+          hover:bg-zinc-100 dark:hover:bg-zinc-800
+          transition-all duration-300 ease-in-out
+        `}
+        style={{
+          right: `${buttonRight}px`,
+          top: '16px',
+        }}
+        title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
+        aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
+      >
+        <svg
+          className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
         >
-          <svg
-            className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-      )}
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
+        </svg>
+      </button>
 
       <aside 
         ref={sidebarRef}
@@ -269,35 +284,50 @@ export function DAppInfoSidebar({
           }
         }}
       >
-        {/* Hide/Show Button - Sticky at top of sidebar, above scrollbar */}
-        {!isHidden && (
-          <div className="sticky top-0 z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 flex justify-start p-2">
-            <button
-              onClick={() => setIsHidden(!isHidden)}
-              className={`
-                hidden lg:flex
-                w-6 h-6 rounded-full
-                bg-white dark:bg-zinc-900
-                border border-zinc-200 dark:border-zinc-800
-                shadow-md
-                items-center justify-center
-                hover:bg-zinc-100 dark:hover:bg-zinc-800
-                transition-all duration-300 ease-in-out
-              `}
-              title="Hide sidebar"
-              aria-label="Hide sidebar"
+        {/* Sticky Header with Info Icon and Hide Button */}
+        <div className="sticky top-0 z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between p-2">
+          <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              <svg
-                className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span className="text-xs font-medium">dApp Info</span>
           </div>
-        )}
+          <button
+            onClick={() => setIsHidden(!isHidden)}
+            className={`
+              hidden lg:flex
+              w-6 h-6 rounded-full
+              bg-white dark:bg-zinc-900
+              border border-zinc-200 dark:border-zinc-800
+              shadow-md
+              items-center justify-center
+              hover:bg-zinc-100 dark:hover:bg-zinc-800
+              transition-all duration-300 ease-in-out
+              flex-shrink-0
+            `}
+            title="Hide sidebar"
+            aria-label="Hide sidebar"
+          >
+            <svg
+              className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
 
         <div className={`p-4 lg:p-6 space-y-6 ${isHidden ? 'hidden' : ''}`}>
             {/* Developer & Info (No Box) */}
