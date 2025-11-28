@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764369992-c03a69c",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Revert sidebar buttons to centered position when hidden (by Kasparex)",
+      "date": "2025-11-28T23:45:39+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764369382-3d3fa69",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix sidebar buttons: remove sticky headers, keep buttons inline, fix right sidebar positioning, replace dApp Info with creation date (by Kasparex)",
