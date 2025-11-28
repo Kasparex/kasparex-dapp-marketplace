@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764366842-d58ae62",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Make sidebar buttons sticky at top corners and move search/back buttons to header area (by Kasparex)",
+      "date": "2025-11-28T22:53:35+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764363860-e5d9784",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix ESLint error: escape apostrophe in StatusIndicator (by Kasparex)",
