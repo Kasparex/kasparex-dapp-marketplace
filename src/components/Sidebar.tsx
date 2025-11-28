@@ -252,36 +252,38 @@ export function Sidebar({
         />
       )}
 
-      {/* Hide/Show Button - Sticky at top-right corner (always visible) */}
-      <button
-        onClick={() => setIsHidden(!isHidden)}
-        className={`
-          hidden lg:flex
-          fixed z-[60]
-          w-6 h-6 rounded-full
-          bg-white dark:bg-zinc-900
-          border border-zinc-200 dark:border-zinc-800
-          shadow-md
-          items-center justify-center
-          hover:bg-zinc-100 dark:hover:bg-zinc-800
-          transition-all duration-300 ease-in-out
-        `}
-        style={{
-          left: isHidden ? '12px' : `${sidebarWidth - 18}px`,
-          top: '16px',
-        }}
-        title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-        aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-      >
-        <svg
-          className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+      {/* Hide/Show Button - Fixed when sidebar is hidden, positioned at sidebar edge */}
+      {isHidden && (
+        <button
+          onClick={() => setIsHidden(!isHidden)}
+          className={`
+            hidden lg:flex
+            fixed z-[60]
+            w-6 h-6 rounded-full
+            bg-white dark:bg-zinc-900
+            border border-zinc-200 dark:border-zinc-800
+            shadow-md
+            items-center justify-center
+            hover:bg-zinc-100 dark:hover:bg-zinc-800
+            transition-all duration-300 ease-in-out
+          `}
+          style={{
+            left: `${sidebarWidth - 18}px`,
+            top: '16px',
+          }}
+          title="Show sidebar"
+          aria-label="Show sidebar"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M9 5l7 7-7 7" : "M15 19l-7-7 7-7"} />
-        </svg>
-      </button>
+          <svg
+            className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      )}
 
       {/* Sidebar */}
       <aside
@@ -331,8 +333,8 @@ export function Sidebar({
           }
         }}
       >
-        {/* Sticky Header with Search Box and Hide Button */}
-        <div className="sticky top-0 z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-3">
+        {/* Header with Search Box and Hide Button */}
+        <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-3">
           <div className="flex items-center gap-2">
             {/* Search Box */}
             <div className="flex-1 relative">
@@ -357,7 +359,7 @@ export function Sidebar({
                 className="w-full pl-10 pr-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-500 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
               />
             </div>
-            {/* Hide Button */}
+            {/* Hide/Show Button */}
             <button
               onClick={() => setIsHidden(!isHidden)}
               className={`
@@ -371,8 +373,8 @@ export function Sidebar({
                 transition-all duration-300 ease-in-out
                 flex-shrink-0
               `}
-              title="Hide sidebar"
-              aria-label="Hide sidebar"
+              title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
+              aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
             >
               <svg
                 className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
@@ -380,7 +382,7 @@ export function Sidebar({
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M9 5l7 7-7 7" : "M15 19l-7-7 7-7"} />
               </svg>
             </button>
           </div>

@@ -52,7 +52,6 @@ export function DAppInfoSidebar({
   const [isHidden, setIsHidden] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(256); // Default 256px (w-64)
   const [isResizing, setIsResizing] = useState(false);
-  const [buttonRight, setButtonRight] = useState(12);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   // Load sidebar state from localStorage
@@ -72,21 +71,28 @@ export function DAppInfoSidebar({
     localStorage.setItem('dapp-info-sidebar-width', String(sidebarWidth));
   }, [sidebarWidth]);
 
-  // Calculate button position for right sidebar
-  useEffect(() => {
-    const updateButtonPosition = () => {
-      if (typeof window !== 'undefined') {
-        if (isHidden) {
-          setButtonRight(12);
-        } else {
-          setButtonRight(window.innerWidth - sidebarWidth + 6);
-        }
-      }
-    };
-    updateButtonPosition();
-    window.addEventListener('resize', updateButtonPosition);
-    return () => window.removeEventListener('resize', updateButtonPosition);
-  }, [isHidden, sidebarWidth]);
+  // Format creation date
+  const formatCreationDate = () => {
+    if (contractData?.registeredAt) {
+      // registeredAt is a bigint timestamp (seconds)
+      const timestamp = Number(contractData.registeredAt) * 1000; // Convert to milliseconds
+      return new Date(timestamp).toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    }
+    if (dapp.createdAt) {
+      return new Date(dapp.createdAt).toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    }
+    return 'N/A';
+  };
+  
+  const creationDate = formatCreationDate();
 
   // Handle resize
   useEffect(() => {
@@ -206,36 +212,38 @@ export function DAppInfoSidebar({
 
   return (
     <>
-      {/* Hide/Show Button - Sticky at top-left corner (always visible) */}
-      <button
-        onClick={() => setIsHidden(!isHidden)}
-        className={`
-          hidden lg:flex
-          fixed z-[60]
-          w-6 h-6 rounded-full
-          bg-white dark:bg-zinc-900
-          border border-zinc-200 dark:border-zinc-800
-          shadow-md
-          items-center justify-center
-          hover:bg-zinc-100 dark:hover:bg-zinc-800
-          transition-all duration-300 ease-in-out
-        `}
-        style={{
-          right: `${buttonRight}px`,
-          top: '16px',
-        }}
-        title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-        aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-      >
-        <svg
-          className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+      {/* Hide/Show Button - Fixed when sidebar is hidden, positioned at sidebar edge */}
+      {isHidden && (
+        <button
+          onClick={() => setIsHidden(!isHidden)}
+          className={`
+            hidden lg:flex
+            fixed z-[60]
+            w-6 h-6 rounded-full
+            bg-white dark:bg-zinc-900
+            border border-zinc-200 dark:border-zinc-800
+            shadow-md
+            items-center justify-center
+            hover:bg-zinc-100 dark:hover:bg-zinc-800
+            transition-all duration-300 ease-in-out
+          `}
+          style={{
+            right: `${sidebarWidth - 18}px`,
+            top: '16px',
+          }}
+          title="Show sidebar"
+          aria-label="Show sidebar"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
-        </svg>
-      </button>
+          <svg
+            className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+      )}
 
       <aside 
         ref={sidebarRef}
@@ -284,9 +292,9 @@ export function DAppInfoSidebar({
           }
         }}
       >
-        {/* Sticky Header with Info Icon and Hide Button */}
-        <div className="sticky top-0 z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between p-2">
-          <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
+        {/* Header with Creation Date and Hide Button */}
+        <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between p-3">
+          <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
             <svg
               className="w-4 h-4"
               fill="none"
@@ -297,10 +305,10 @@ export function DAppInfoSidebar({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
               />
             </svg>
-            <span className="text-xs font-medium">dApp Info</span>
+            <span className="text-xs font-medium">{creationDate}</span>
           </div>
           <button
             onClick={() => setIsHidden(!isHidden)}
@@ -315,8 +323,8 @@ export function DAppInfoSidebar({
               transition-all duration-300 ease-in-out
               flex-shrink-0
             `}
-            title="Hide sidebar"
-            aria-label="Hide sidebar"
+            title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
+            aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
           >
             <svg
               className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
@@ -324,7 +332,7 @@ export function DAppInfoSidebar({
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
             </svg>
           </button>
         </div>

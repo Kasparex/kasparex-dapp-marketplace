@@ -174,36 +174,38 @@ export function ProfileSidebar({
         />
       )}
 
-      {/* Hide/Show Button - Sticky at top-right corner (always visible) */}
-      <button
-        onClick={() => setIsHidden(!isHidden)}
-        className={`
-          hidden lg:flex
-          fixed z-[60]
-          w-6 h-6 rounded-full
-          bg-white dark:bg-zinc-900
-          border border-zinc-200 dark:border-zinc-800
-          shadow-md
-          items-center justify-center
-          hover:bg-zinc-100 dark:hover:bg-zinc-800
-          transition-all duration-300 ease-in-out
-        `}
-        style={{
-          left: isHidden ? '12px' : `${sidebarWidth - 18}px`,
-          top: '16px',
-        }}
-        title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-        aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-      >
-        <svg
-          className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+      {/* Hide/Show Button - Fixed when sidebar is hidden, positioned at sidebar edge */}
+      {isHidden && (
+        <button
+          onClick={() => setIsHidden(!isHidden)}
+          className={`
+            hidden lg:flex
+            fixed z-[60]
+            w-6 h-6 rounded-full
+            bg-white dark:bg-zinc-900
+            border border-zinc-200 dark:border-zinc-800
+            shadow-md
+            items-center justify-center
+            hover:bg-zinc-100 dark:hover:bg-zinc-800
+            transition-all duration-300 ease-in-out
+          `}
+          style={{
+            left: `${sidebarWidth - 18}px`,
+            top: '16px',
+          }}
+          title="Show sidebar"
+          aria-label="Show sidebar"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M9 5l7 7-7 7" : "M15 19l-7-7 7-7"} />
-        </svg>
-      </button>
+          <svg
+            className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      )}
 
       {/* Sidebar */}
       <aside
@@ -253,8 +255,8 @@ export function ProfileSidebar({
           }
         }}
       >
-        {/* Sticky Header with Hide Button */}
-        <div className="sticky top-0 z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 flex justify-end p-2">
+        {/* Header with Hide Button */}
+        <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 flex justify-end p-3">
           <button
             onClick={() => setIsHidden(!isHidden)}
             className={`
@@ -267,8 +269,8 @@ export function ProfileSidebar({
               hover:bg-zinc-100 dark:hover:bg-zinc-800
               transition-all duration-300 ease-in-out
             `}
-            title="Hide sidebar"
-            aria-label="Hide sidebar"
+            title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
+            aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
           >
             <svg
               className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
@@ -276,7 +278,7 @@ export function ProfileSidebar({
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M9 5l7 7-7 7" : "M15 19l-7-7 7-7"} />
             </svg>
           </button>
         </div>
