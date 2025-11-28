@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764370656-00f0143",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Restore sidebar components to working version with centered show buttons (by Kasparex)",
+      "date": "2025-11-28T23:56:54+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764369992-c03a69c",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Revert sidebar buttons to centered position when hidden (by Kasparex)",
