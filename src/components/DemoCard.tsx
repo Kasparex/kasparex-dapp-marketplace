@@ -91,10 +91,10 @@ export function DemoCard({ dapp, gradientColors }: DemoCardProps) {
     bottom: 0,
     borderRadius: '0.5rem',
     background: isHovering
-      ? `radial-gradient(circle 300px at ${mousePosition.x}px ${mousePosition.y}px, rgba(${rgb1}, 0.08), rgba(${rgb2}, 0.03), transparent 60%)`
+      ? `radial-gradient(circle 600px at ${mousePosition.x}px ${mousePosition.y}px, rgba(${rgb1}, 0.12) 0%, rgba(${rgb1}, 0.08) 20%, rgba(${rgb2}, 0.05) 40%, rgba(${rgb2}, 0.02) 60%, transparent 80%)`
       : 'transparent',
     pointerEvents: 'none',
-    transition: isHovering ? 'none' : 'opacity 0.3s ease',
+    transition: isHovering ? 'none' : 'opacity 0.4s ease',
     zIndex: 1,
     opacity: isHovering ? 1 : 0,
   };
