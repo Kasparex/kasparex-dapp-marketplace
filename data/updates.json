@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764372113-47e572f",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Remove sticky headers from sidebars and move Show buttons to top position (by Kasparex)",
+      "date": "2025-11-29T00:21:32+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764370656-00f0143",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Restore sidebar components to working version with centered show buttons (by Kasparex)",
