@@ -56,11 +56,20 @@ export default function DemoCardsPage() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ background: '#1d061a' }}>
+    <div className="flex flex-col min-h-screen">
       <Header />
       
-      <main className="flex-1 flex justify-center items-center py-10 px-4">
-        <div className="demo-card-container">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+            Demo: Gradient Mouse Follow Effect
+          </h2>
+          <p className="text-zinc-600 dark:text-zinc-400">
+            Move your mouse over the cards to see the subtle gradient effect following your cursor
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {demoDApps.map((dapp, index) => {
             const gradient = cardGradients.get(index) || getCategoryGradientColors(dapp.category);
             return (
