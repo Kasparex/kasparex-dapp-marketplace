@@ -269,7 +269,6 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
               tokenTicker={tokenTicker}
               dappName={mergedDApp.name}
             />
-          </div>
         </div>
       </aside>
 
