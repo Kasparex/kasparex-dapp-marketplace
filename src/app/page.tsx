@@ -48,6 +48,13 @@ function HomeContent() {
   const { favoritesSet, toggleFavorite, isFavorite } = useFavorites();
   const { likes } = useLikes();
 
+  // Auto-switch from favorites view if no favorites remain
+  useEffect(() => {
+    if (sortBy === 'favorites' && favoritesSet.size === 0) {
+      setSortBy('newest');
+    }
+  }, [favoritesSet.size, sortBy]);
+
   // Get category counts based on current filters and search
   const categoryCounts = useMemo(() => {
     return getCategoryCounts(placeholderDApps, filters, searchQuery);
@@ -150,12 +157,6 @@ function HomeContent() {
               </div>
               {/* Action Buttons and Sort Filters - Positioned in top right */}
               <div className="flex items-center gap-2 flex-shrink-0">
-                <Link
-                  href="/build-dapp"
-                  className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors whitespace-nowrap"
-                >
-                  Build dApp
-                </Link>
                 <SortFilters 
                   sortBy={sortBy} 
                   onSortChange={setSortBy}

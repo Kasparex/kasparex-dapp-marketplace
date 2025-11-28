@@ -116,13 +116,16 @@ export function DAppCardRewards({
           style={{
             top: `${tooltipPosition.top}px`,
             left: `${tooltipPosition.left}px`,
-            width: '280px',
+            width: '320px',
             maxWidth: 'calc(100vw - 16px)',
           }}
         >
-          <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed">
+          <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed mb-2">
             Using this dApp rewards you with {rewards.tokenTicker} tokens (Local Reward Token). 
             This works as Use-To-Mint / Proof of Utility — the more you use the dApp, the more rewards you earn.
+          </p>
+          <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed">
+            You also receive GRID (Global Reward Token) rewards for every action. Holding KREX and NFTs multiplies both your GRID and {rewards.tokenTicker} rewards.
           </p>
         </div>,
         document.body

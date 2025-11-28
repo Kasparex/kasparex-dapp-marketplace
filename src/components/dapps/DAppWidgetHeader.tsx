@@ -16,6 +16,7 @@ import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
 import { DAppInfoModal } from './DAppInfoModal';
 import { DAppFeesModal } from './DAppFeesModal';
+import { DAppCardRewards } from '../rewards/DAppCardRewards';
 
 interface DAppWidgetHeaderProps {
   dapp: DApp;
@@ -108,7 +109,7 @@ export function DAppWidgetHeader({
         {/* Status Indicator and Fees Icon - Top Right */}
         <div className="absolute top-4 right-4 sm:top-5 sm:right-6 z-10 flex items-center gap-2">
           <StatusIndicator dapp={mergedDApp} size="md" />
-          <DAppFeesModal dapp={mergedDApp} />
+          <DAppFeesModal dapp={mergedDApp} tokenTicker={tokenTicker} />
         </div>
 
         {/* Title Section with Featured Image, Icon, and Info */}
@@ -204,6 +205,13 @@ export function DAppWidgetHeader({
                   {shortDescription}
                 </p>
               </button>
+            </div>
+          )}
+
+          {/* Token Progress Bar Section - Above Categories */}
+          {tokenTicker && (
+            <div className="mb-3">
+              <DAppCardRewards tokenTicker={tokenTicker} />
             </div>
           )}
 

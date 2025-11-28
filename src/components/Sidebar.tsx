@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { categories, type Category } from '@/lib/categories';
 import type { FilterState, DAppStatus } from '@/lib/dapps';
 import { CategoriesIcon, StatusIcon, DeveloperIcon, NetworkIcon } from '@/components/icons/SectionIcons';
@@ -526,6 +527,19 @@ export function Sidebar({
               </nav>
             </div>
           </CollapsibleSection>
+
+          {/* Build dApp Button */}
+          <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
+            <Link
+              href="/build-dapp"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Build dApp
+            </Link>
+          </div>
 
         </div>
       </aside>

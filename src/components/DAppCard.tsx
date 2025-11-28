@@ -83,7 +83,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
       {/* Status Indicator and Fees Icon - Top Right */}
       <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
         <StatusIndicator dapp={mergedDApp} size="md" />
-        <DAppFeesModal dapp={mergedDApp} />
+        <DAppFeesModal dapp={mergedDApp} tokenTicker={tokenTicker} />
       </div>
 
       <div className="relative z-10 flex flex-col flex-1 min-h-0">
