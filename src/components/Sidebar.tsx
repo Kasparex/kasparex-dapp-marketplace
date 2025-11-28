@@ -218,6 +218,7 @@ export function Sidebar({
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="lg:hidden fixed top-20 left-4 z-40 p-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-lg"
+        style={{ top: '5.5rem' }}
         aria-label="Toggle menu"
       >
         <svg
@@ -252,6 +253,38 @@ export function Sidebar({
         />
       )}
 
+      {/* Hide/Show Button - Always visible, positioned relative to sidebar border */}
+      <button
+        onClick={() => setIsHidden(!isHidden)}
+        className={`
+          hidden lg:flex
+          fixed z-50
+          w-6 h-6 rounded-full
+          bg-white dark:bg-zinc-900
+          border border-zinc-200 dark:border-zinc-800
+          shadow-md
+          items-center justify-center
+          hover:bg-zinc-100 dark:hover:bg-zinc-800
+          transition-all duration-300 ease-in-out
+        `}
+        style={{
+          left: isHidden ? '0px' : `${sidebarWidth - 12}px`,
+          top: 'calc(50vh - 12px)',
+          transform: isHidden ? 'translateX(-50%)' : 'translateX(0)',
+        }}
+        title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
+        aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
+      >
+        <svg
+          className={`w-4 h-4 text-zinc-600 dark:text-zinc-400 transition-transform ${isHidden ? 'rotate-180' : ''}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M9 5l7 7-7 7" : "M15 19l-7-7 7-7"} />
+        </svg>
+      </button>
+
       {/* Sidebar */}
       <aside
         ref={sidebarRef}
@@ -271,32 +304,6 @@ export function Sidebar({
           maxWidth: isHidden ? 0 : `${sidebarWidth}px`
         }}
       >
-        {/* Hide/Show Button - Top Center of Right Border */}
-        <button
-          onClick={() => setIsHidden(!isHidden)}
-          className={`
-            absolute top-4 -right-3 z-50
-            w-6 h-6 rounded-full
-            bg-white dark:bg-zinc-900
-            border border-zinc-200 dark:border-zinc-800
-            shadow-md
-            flex items-center justify-center
-            hover:bg-zinc-100 dark:hover:bg-zinc-800
-            transition-colors
-            ${isHidden ? 'right-[-12px]' : ''}
-          `}
-          title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-          aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-        >
-          <svg
-            className={`w-4 h-4 text-zinc-600 dark:text-zinc-400 transition-transform ${isHidden ? 'rotate-180' : ''}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
 
         {/* Resize Handle */}
         {!isHidden && (
@@ -311,8 +318,9 @@ export function Sidebar({
               cursor-col-resize
               hover:bg-[#02abb8] dark:hover:bg-[#02abb8]
               transition-colors
-              z-40
+              z-30
             "
+            style={{ marginRight: '-1px' }}
             title="Drag to resize"
           />
         )}

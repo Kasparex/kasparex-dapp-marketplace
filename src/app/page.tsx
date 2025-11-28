@@ -117,7 +117,7 @@ function HomeContent() {
       
       <main className="flex-1 flex flex-col lg:flex-row">
         {/* Sidebar */}
-        <div className="hidden lg:block w-full lg:w-1/4 lg:max-w-xs flex-shrink-0">
+        <div className="hidden lg:block flex-shrink-0">
           <Sidebar
             selectedCategories={selectedCategories}
             onCategoryChange={handleCategoryChange}
@@ -144,10 +144,10 @@ function HomeContent() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-4 sm:p-6 lg:p-8 lg:pl-6 relative">
+        <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 relative">
           <div>
             <div className="mb-6 flex items-start justify-between gap-4">
-              <div>
+              <div className="lg:pl-0 pl-12">
                 <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
                   Available dApps
                 </h2>

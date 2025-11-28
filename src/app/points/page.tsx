@@ -21,7 +21,7 @@ export default function PointsPage() {
       <Header />
       <main className="flex-1 flex flex-col lg:flex-row">
         {/* Sidebar */}
-        <div className="hidden lg:block w-full lg:w-1/4 lg:max-w-xs flex-shrink-0">
+        <div className="hidden lg:block flex-shrink-0">
           <PointsSidebar filters={filters} onFilterChange={setFilters} />
         </div>
         {/* Mobile sidebar */}
@@ -30,7 +30,7 @@ export default function PointsPage() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-4 sm:p-6 lg:p-8 lg:pl-6">
+        <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6">
           <PointsPageContent filters={filters} />
         </div>
       </main>

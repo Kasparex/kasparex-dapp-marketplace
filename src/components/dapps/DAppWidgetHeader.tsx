@@ -112,19 +112,30 @@ export function DAppWidgetHeader({
         const titleRect = titleRef.current.getBoundingClientRect();
         const iconsRect = iconsRef.current.getBoundingClientRect();
         // Check if title extends into the icon area (with some padding)
-        const overlap = titleRect.right > iconsRect.left - 16; // 16px padding
+        // Only hide if there's actual overlap (title right edge is past icon left edge minus padding)
+        const overlap = titleRect.right > (iconsRect.left - 16) && titleRect.left < iconsRect.right;
         setShouldHideIcons(overlap);
+      } else {
+        // If refs aren't ready, show icons by default
+        setShouldHideIcons(false);
       }
     };
 
-    checkOverlap();
+    // Use multiple delays to ensure DOM is fully rendered
+    const timeout1 = setTimeout(checkOverlap, 50);
+    const timeout2 = setTimeout(checkOverlap, 200);
+    const timeout3 = setTimeout(checkOverlap, 500);
+    
     window.addEventListener('resize', checkOverlap);
-    // Use a small delay to ensure DOM is fully rendered
-    const timeout = setTimeout(checkOverlap, 100);
+    // Also check on scroll in case layout changes
+    window.addEventListener('scroll', checkOverlap, true);
 
     return () => {
       window.removeEventListener('resize', checkOverlap);
-      clearTimeout(timeout);
+      window.removeEventListener('scroll', checkOverlap, true);
+      clearTimeout(timeout1);
+      clearTimeout(timeout2);
+      clearTimeout(timeout3);
     };
   }, [mergedDApp.name, tokenTicker]);
 
