@@ -398,8 +398,6 @@ export function DAppInfoSidebar({
                 )}
               </div>
             </div>
-
-          </div>
         </div>
       </aside>
 
