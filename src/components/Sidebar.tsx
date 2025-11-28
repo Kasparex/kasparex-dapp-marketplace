@@ -269,7 +269,7 @@ export function Sidebar({
           `}
           style={{
             left: '12px',
-            top: 'calc(50vh - 12px)',
+            top: '80px',
           }}
           title="Show sidebar"
           aria-label="Show sidebar"
@@ -333,9 +333,9 @@ export function Sidebar({
           }
         }}
       >
-        {/* Hide/Show Button - Sticky at top of sidebar, above scrollbar */}
+        {/* Hide/Show Button - Fixed at top of sidebar */}
         {!isHidden && (
-          <div className="sticky top-0 z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 flex justify-end p-2">
+          <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 flex justify-end p-2">
             <button
               onClick={() => setIsHidden(!isHidden)}
               className={`
