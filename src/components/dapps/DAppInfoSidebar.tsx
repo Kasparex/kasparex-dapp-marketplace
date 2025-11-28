@@ -17,9 +17,7 @@ import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useLikes } from '@/hooks/useLikes';
 import { DAppInfoModal } from './DAppInfoModal';
-import { DAppEmbed } from './DAppEmbed';
 import { SocialIcons } from './SocialIcons';
-import { AffiliateWidget } from './AffiliateWidget';
 import { isEmbedded } from '@/lib/utils';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 
@@ -48,10 +46,7 @@ export function DAppInfoSidebar({
   const chainId = useChainId();
   const { openChainModal } = useChainModal();
   const isEmbeddedPage = isEmbedded();
-  const { toggleFavorite, isFavorite } = useFavorites();
-  const { toggleLike, hasLiked, getLikeCount } = useLikes();
   const [showInfoModal, setShowInfoModal] = useState(false);
-  const [showEmbedModal, setShowEmbedModal] = useState(false);
   
   // Get chain info
   const chain = chainId ? getChainById(chainId) : null;
@@ -143,82 +138,6 @@ export function DAppInfoSidebar({
       <aside className="hidden lg:block w-full lg:w-64 flex-shrink-0">
         <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto bg-white dark:bg-zinc-950 border-l border-zinc-200 dark:border-zinc-800">
           <div className="p-4 lg:p-6 space-y-6">
-            {/* Box 1: Action Icons (Centered) */}
-            {!hideIcons && (
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-                <div className="flex items-center justify-center gap-2">
-                  {/* Info Icon */}
-                  {!hideInfo && (mergedDApp.description || mergedDApp.utility) && (
-                    <button
-                      onClick={() => setShowInfoModal(true)}
-                      className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-                      title="Description"
-                      aria-label="View description"
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </button>
-                  )}
-
-                  {/* Embed Icon */}
-                  {!hideEmbed && (
-                    <button
-                      onClick={() => setShowEmbedModal(true)}
-                      className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-                      title="Embed"
-                      aria-label="Get embed code"
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                    </button>
-                  )}
-
-                  {/* Star Button (Favorites) */}
-                  {!hideStar && (
-                    <button
-                      onClick={() => toggleFavorite(mergedDApp.id)}
-                      className={`p-2 rounded-lg transition-colors ${
-                        isFavorite(mergedDApp.id)
-                          ? 'text-yellow-500 hover:text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
-                          : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                      }`}
-                      title={isFavorite(mergedDApp.id) ? 'Remove from favorites' : 'Add to favorites'}
-                      aria-label={isFavorite(mergedDApp.id) ? 'Remove from favorites' : 'Add to favorites'}
-                    >
-                      <svg className="w-5 h-5" fill={isFavorite(mergedDApp.id) ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                      </svg>
-                    </button>
-                  )}
-
-                  {/* Heart Button (Like) */}
-                  {!hideHeart && (
-                    <button
-                      onClick={() => toggleLike(mergedDApp.id)}
-                      className={`p-2 rounded-lg transition-colors relative ${
-                        hasLiked(mergedDApp.id)
-                          ? 'text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-900/20'
-                          : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                      }`}
-                      title={hasLiked(mergedDApp.id) ? 'Unlike' : 'Like'}
-                      aria-label={hasLiked(mergedDApp.id) ? 'Unlike' : 'Like'}
-                    >
-                      <svg className="w-5 h-5" fill={hasLiked(mergedDApp.id) ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                      {getLikeCount(mergedDApp.id) > 0 && (
-                        <span className="absolute -top-1 -right-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                          {getLikeCount(mergedDApp.id)}
-                        </span>
-                      )}
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
             {/* Developer & Info (No Box) */}
             <div className="space-y-3">
               {/* Featured Image (Above Developer Button) */}
@@ -358,14 +277,6 @@ export function DAppInfoSidebar({
               </div>
             </div>
 
-            {/* Box 4: Referral Link */}
-            <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-              <AffiliateWidget
-                dAppId={dapp.id}
-                dAppName={dapp.name}
-                dAppContractAddress={resolvedContractAddress}
-              />
-            </div>
           </div>
         </div>
       </aside>
@@ -376,12 +287,6 @@ export function DAppInfoSidebar({
           dapp={mergedDApp}
           contractAddress={resolvedContractAddress}
           onClose={() => setShowInfoModal(false)}
-        />
-      )}
-      {showEmbedModal && (
-        <DAppEmbed
-          dapp={mergedDApp}
-          onClose={() => setShowEmbedModal(false)}
         />
       )}
     </>

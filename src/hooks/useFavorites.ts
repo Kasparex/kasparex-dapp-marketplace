@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAccount } from 'wagmi';
 
 const FAVORITES_KEY = 'kasparex-dapp-favorites';
@@ -89,9 +89,13 @@ export function useFavorites() {
     return favorites[address] || [];
   };
 
+  // Memoize favorites array and set to ensure proper reactivity
+  const currentFavorites = useMemo(() => getCurrentWalletFavorites(), [favorites, address, isConnected]);
+  const favoritesSet = useMemo(() => new Set(currentFavorites), [currentFavorites]);
+
   return {
-    favorites: getCurrentWalletFavorites(),
-    favoritesSet: new Set(getCurrentWalletFavorites()),
+    favorites: currentFavorites,
+    favoritesSet,
     toggleFavorite,
     isFavorite,
     getFavoritesForWallet,

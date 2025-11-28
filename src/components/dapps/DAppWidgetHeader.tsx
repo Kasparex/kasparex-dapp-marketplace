@@ -17,6 +17,8 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { DAppInfoModal } from './DAppInfoModal';
 import { DAppFeesModal } from './DAppFeesModal';
 import { DAppCardRewards } from '../rewards/DAppCardRewards';
+import { DAppEmbed } from './DAppEmbed';
+import { DAppReferralModal } from './DAppReferralModal';
 
 interface DAppWidgetHeaderProps {
   dapp: DApp;
@@ -96,11 +98,30 @@ export function DAppWidgetHeader({
 
   // Modal state
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showEmbedModal, setShowEmbedModal] = useState(false);
+  const [copiedDAppAddress, setCopiedDAppAddress] = useState(false);
+  const [copiedTokenAddress, setCopiedTokenAddress] = useState(false);
 
   const handleIconClick = (e: React.MouseEvent, action: () => void) => {
     e.preventDefault();
     e.stopPropagation();
     action();
+  };
+
+  const handleCopyAddress = async (address: string | null, type: 'dapp' | 'token') => {
+    if (!address) return;
+    try {
+      await navigator.clipboard.writeText(address);
+      if (type === 'dapp') {
+        setCopiedDAppAddress(true);
+        setTimeout(() => setCopiedDAppAddress(false), 2000);
+      } else {
+        setCopiedTokenAddress(true);
+        setTimeout(() => setCopiedTokenAddress(false), 2000);
+      }
+    } catch (error) {
+      console.error('Failed to copy address:', error);
+    }
   };
 
   return (
@@ -147,7 +168,7 @@ export function DAppWidgetHeader({
                     </svg>
                     <span className="text-zinc-500 dark:text-zinc-500 font-medium">Dapp:</span>
                     <span className="text-zinc-900 dark:text-zinc-100 font-bold truncate">{mergedDApp.name}</span>
-                    {dAppExplorerUrl && (
+                    {dAppExplorerUrl && dAppContractAddress && (
                       <>
                         <span className="text-zinc-400 dark:text-zinc-600">—</span>
                         <a
@@ -159,6 +180,25 @@ export function DAppWidgetHeader({
                         >
                           {formatAddress(dAppContractAddress)}
                         </a>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleCopyAddress(dAppContractAddress, 'dapp');
+                          }}
+                          className="ml-1 p-0.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+                          title="Copy address"
+                        >
+                          {copiedDAppAddress ? (
+                            <svg className="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          ) : (
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                          )}
+                        </button>
                       </>
                     )}
                   </div>
@@ -186,6 +226,25 @@ export function DAppWidgetHeader({
                         >
                           {formatAddress(tokenAddress)}
                         </a>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleCopyAddress(tokenAddress, 'token');
+                          }}
+                          className="ml-1 p-0.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+                          title="Copy address"
+                        >
+                          {copiedTokenAddress ? (
+                            <svg className="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          ) : (
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                          )}
+                        </button>
                       </>
                     )}
                   </div>
@@ -236,6 +295,23 @@ export function DAppWidgetHeader({
                   {mergedDApp.version.replace(/^v\s*/i, '')}
                 </div>
               )}
+
+              {/* Embed Icon (only on dApp pages, not cards) */}
+              {!hideEmbed && (
+                <button
+                  onClick={(e) => handleIconClick(e, () => setShowEmbedModal(true))}
+                  className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                  title="Embed"
+                  aria-label="Get embed code"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              )}
+
+              {/* Referral Icon (only on dApp pages, not cards) */}
+              <DAppReferralModal dapp={mergedDApp} contractAddress={resolvedContractAddress} />
               
               {/* dApp ID */}
               <span className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -312,6 +388,14 @@ export function DAppWidgetHeader({
           dapp={mergedDApp}
           contractAddress={resolvedContractAddress}
           onClose={() => setShowInfoModal(false)}
+        />
+      )}
+
+      {/* Embed Modal */}
+      {showEmbedModal && (
+        <DAppEmbed
+          dapp={mergedDApp}
+          onClose={() => setShowEmbedModal(false)}
         />
       )}
     </>
