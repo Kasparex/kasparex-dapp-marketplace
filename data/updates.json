@@ -1095,6 +1095,14 @@
       "date": "2025-11-06T00:00:00.000Z",
       "type": "other",
       "priority": "high"
+    },
+    {
+      "id": "1764336456219-yr9cmscur",
+      "title": "Idea 2",
+      "description": "Testing idea 2",
+      "date": "2025-11-28T00:00:00.000Z",
+      "type": "other",
+      "priority": "low"
     }
   ],
   "bugFixes": [
