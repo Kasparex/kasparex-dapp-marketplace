@@ -269,7 +269,7 @@ export function StatusIndicator({ dapp, className = '', size = 'md', clickable =
                     vProgs (Kaspa Verifiable Programs) compatibility is coming soon. Once available, this dApp will support native Kaspa integration and enhanced performance through off-chain computation with on-chain verification.
                   </p>
                   <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-2">
-                    vProgs enable scalable dApps by running complex logic off-chain and submitting cryptographic proofs to Kaspa's Layer 1 for verification, providing faster execution and lower fees while maintaining security and decentralization.
+                    vProgs enable scalable dApps by running complex logic off-chain and submitting cryptographic proofs to Kaspa&apos;s Layer 1 for verification, providing faster execution and lower fees while maintaining security and decentralization.
                   </p>
                 </div>
               </div>
