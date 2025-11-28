@@ -13,13 +13,17 @@ export type SortOption =
   | 'likes-high'
   | 'likes-low';
 
+export type ViewMode = 'cards' | 'table';
+
 interface SortFiltersProps {
   sortBy: SortOption;
   onSortChange: (sort: SortOption) => void;
   favoritesCount?: number;
+  viewMode?: ViewMode;
+  onViewModeChange?: (mode: ViewMode) => void;
 }
 
-export function SortFilters({ sortBy, onSortChange, favoritesCount = 0 }: SortFiltersProps) {
+export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode = 'cards', onViewModeChange }: SortFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const sortOptions: { value: SortOption; label: string }[] = [
@@ -40,6 +44,40 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0 }: SortFi
 
   return (
     <div className="relative flex items-center gap-2">
+      {/* View Mode Switcher */}
+      {onViewModeChange && (
+        <div className="flex items-center border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
+          <button
+            onClick={() => onViewModeChange('cards')}
+            className={`px-3 py-2 text-sm font-medium transition-colors ${
+              viewMode === 'cards'
+                ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
+                : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+            }`}
+            title="Card view"
+            aria-label="Card view"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+          </button>
+          <button
+            onClick={() => onViewModeChange('table')}
+            className={`px-3 py-2 text-sm font-medium transition-colors border-l border-zinc-200 dark:border-zinc-800 ${
+              viewMode === 'table'
+                ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
+                : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+            }`}
+            title="Table view"
+            aria-label="Table view"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </button>
+        </div>
+      )}
+
       {/* Sort Dropdown */}
       <div className="relative">
         <button

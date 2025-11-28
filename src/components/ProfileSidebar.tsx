@@ -174,6 +174,37 @@ export function ProfileSidebar({
         />
       )}
 
+      {/* Hide/Show Button - Fixed position, always visible above scrollbar */}
+      <button
+        onClick={() => setIsHidden(!isHidden)}
+        className={`
+          hidden lg:flex
+          fixed z-[60]
+          w-6 h-6 rounded-full
+          bg-white dark:bg-zinc-900
+          border border-zinc-200 dark:border-zinc-800
+          shadow-md
+          items-center justify-center
+          hover:bg-zinc-100 dark:hover:bg-zinc-800
+          transition-all duration-300 ease-in-out
+        `}
+        style={{
+          left: isHidden ? '12px' : `${sidebarWidth - 12}px`,
+          top: 'calc(50vh - 12px)',
+        }}
+        title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
+        aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
+      >
+        <svg
+          className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M9 5l7 7-7 7" : "M15 19l-7-7 7-7"} />
+        </svg>
+      </button>
+
       {/* Sidebar */}
       <aside
         ref={sidebarRef}
@@ -222,36 +253,6 @@ export function ProfileSidebar({
           }
         }}
       >
-        {/* Hide/Show Button - Sticky to sidebar */}
-        <button
-          onClick={() => setIsHidden(!isHidden)}
-          className={`
-            hidden lg:flex
-            absolute z-50
-            w-6 h-6 rounded-full
-            bg-white dark:bg-zinc-900
-            border border-zinc-200 dark:border-zinc-800
-            shadow-md
-            items-center justify-center
-            hover:bg-zinc-100 dark:hover:bg-zinc-800
-            transition-all duration-300 ease-in-out
-          `}
-          style={{
-            right: isHidden ? '-18px' : '-12px',
-            top: 'calc(50% - 12px)',
-          }}
-          title={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-          aria-label={isHidden ? 'Show sidebar' : 'Hide sidebar'}
-        >
-          <svg
-            className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isHidden ? "M9 5l7 7-7 7" : "M15 19l-7-7 7-7"} />
-          </svg>
-        </button>
 
         <div className={`p-4 lg:p-6 ${isHidden ? 'lg:hidden' : ''}`}>
           {/* Back to Categories Button */}

@@ -255,6 +255,21 @@ export function StatusIndicator({ dapp, className = '', size = 'md', clickable =
                   </p>
                 </div>
               )}
+
+              {/* Compatibility Section */}
+              <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-700">
+                <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3">
+                  Compatibility
+                </p>
+                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                  <p className="text-sm font-semibold text-purple-600 dark:text-purple-400 mb-2">
+                    vProgs Coming Soon
+                  </p>
+                  <p className="text-xs text-purple-600 dark:text-purple-400">
+                    vProgs (Kaspa Virtual Programs) compatibility is coming soon. Once available, this dApp will support native Kaspa integration and enhanced performance through the vProgs platform.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>,

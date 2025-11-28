@@ -5,8 +5,9 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
-import { SortFilters, type SortOption } from '@/components/SortFilters';
+import { SortFilters, type SortOption, type ViewMode } from '@/components/SortFilters';
 import { DAppGrid } from '@/components/DAppGrid';
+import { DAppTable } from '@/components/DAppTable';
 import { Footer } from '@/components/Footer';
 import { placeholderDApps, filterDApps, getCategoryCounts, type FilterState } from '@/lib/dapps';
 import { sortDApps } from '@/lib/sorting';
@@ -44,6 +45,7 @@ function HomeContent() {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [viewMode, setViewMode] = useState<ViewMode>('cards');
   const [displayedCount, setDisplayedCount] = useState(50);
   const { favoritesSet, toggleFavorite, isFavorite } = useFavorites();
   const { likes } = useLikes();
@@ -161,6 +163,8 @@ function HomeContent() {
                   sortBy={sortBy} 
                   onSortChange={setSortBy}
                   favoritesCount={favoritesSet.size}
+                  viewMode={viewMode}
+                  onViewModeChange={setViewMode}
                 />
                 <button
                   onClick={handleResetFilters}
@@ -176,9 +180,15 @@ function HomeContent() {
                 </Link>
               </div>
             </div>
-            <DAppGrid 
-              dapps={displayedDApps}
-            />
+            {viewMode === 'cards' ? (
+              <DAppGrid 
+                dapps={displayedDApps}
+              />
+            ) : (
+              <DAppTable 
+                dapps={displayedDApps}
+              />
+            )}
             {showLoadMore && hasMore && (
               <div className="mt-8 flex justify-center">
                 <button
