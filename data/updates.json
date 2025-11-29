@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764431369-d94ce2f",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add NODE Status box, update multipliers, move Seasonal Boosters to left sidebar, and apply consistent spacing (by Kasparex)",
+      "date": "2025-11-29T16:48:47+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764430223-e895aa9",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix Action Flow box styling and restore proper spacing between boxes (by Kasparex)",
