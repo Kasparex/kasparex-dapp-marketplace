@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764454405-8eeb85a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update Show button styling, fix right sidebar layout, remove Network Availability box (by Kasparex)",
+      "date": "2025-11-29T23:12:58+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764452672-c8e892c",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix all sidebar button positions: remove sticky, fix chevron directions, ensure proper UX (by Kasparex)",
