@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { DApp } from '@/lib/dapps';
-import { getDefaultRewardsBreakdown } from '@/lib/rewards/mockData';
+import { getDefaultRewardsBreakdown, getMockWalletHoldings } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
 
@@ -196,9 +196,13 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
     { grid: 0, token: 0, xp: 0, totalCost: 0 }
   );
 
+  // Get wallet holdings
+  const holdings = getMockWalletHoldings(address);
+  const dAppTokenBalance = holdings?.lrtBalances.find(b => b.ticker === displayTokenTicker)?.balance || 0;
+
   return (
-    <div className="mb-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+      <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
           Action Flow
         </h3>
@@ -207,28 +211,48 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
       {/* Current Holdings */}
       {isConnected && (
         <div className="mb-4 p-3 bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
-          <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-2">Current Holdings</div>
+          <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">Current Holdings</div>
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-zinc-600 dark:text-zinc-400">KREX</span>
-              <span className="text-sm font-bold text-[#02abb8]">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-zinc-600 dark:text-zinc-400">KREX</span>
+              <span className="font-medium text-zinc-900 dark:text-zinc-100">
                 {formatLargeNumber(mockKREXBalance)}
               </span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-zinc-600 dark:text-zinc-400">Tier</span>
-              <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
-                {tierConfig.label} ({multiplier}x)
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-zinc-600 dark:text-zinc-400">GRID</span>
+              <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                {holdings ? formatLargeNumber(holdings.grt) : '0'}
               </span>
             </div>
-            {feeReduction > 0 && (
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-zinc-600 dark:text-zinc-400">Fee Reduction</span>
-                <span className="text-xs font-semibold text-green-600 dark:text-green-400">
-                  -{feeReduction.toFixed(1)}%
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-zinc-600 dark:text-zinc-400">{displayTokenTicker}</span>
+              <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                {formatLargeNumber(dAppTokenBalance)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-zinc-600 dark:text-zinc-400">XP</span>
+              <span className="font-medium text-[#02abb8]">
+                {holdings ? formatLargeNumber(holdings.xp) : '0'}
+              </span>
+            </div>
+            <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-600 dark:text-zinc-400">Tier</span>
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                  {tierConfig.label} ({multiplier}x)
                 </span>
               </div>
-            )}
+              {feeReduction > 0 && (
+                <div className="flex items-center justify-between text-xs mt-1.5">
+                  <span className="text-zinc-600 dark:text-zinc-400">Fee Reduction</span>
+                  <span className="font-semibold text-green-600 dark:text-green-400">
+                    -{feeReduction.toFixed(1)}%
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -263,12 +287,12 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
                 {/* Step Details */}
                 <div className="flex-1 min-w-0">
                   <div className="mb-2">
-                    <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
+                    <div className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
                       {action.action}
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-xs text-zinc-600 dark:text-zinc-400">
-                        Cost: <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                        Cost: <span className="font-medium text-zinc-900 dark:text-zinc-100">
                           {feeReduction > 0 ? (
                             <>
                               <span className="line-through text-zinc-400">{action.cost}</span>
@@ -288,34 +312,34 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
                   <div className="p-2 bg-white dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-700">
                     <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1.5">Rewards</div>
                     <div className="space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-zinc-600 dark:text-zinc-400">GRID</span>
-                        <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-zinc-600 dark:text-zinc-400">GRID</span>
+                        <span className="font-medium text-zinc-900 dark:text-zinc-100">
                           {formatLargeNumber(adjustedRewards.grid)}
                           {multiplier > 1 && (
-                            <span className="ml-1 text-xs text-green-600 dark:text-green-400">
+                            <span className="ml-1 text-green-600 dark:text-green-400">
                               ({multiplier}x)
                             </span>
                           )}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-zinc-600 dark:text-zinc-400">{displayTokenTicker}</span>
-                        <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-zinc-600 dark:text-zinc-400">{displayTokenTicker}</span>
+                        <span className="font-medium text-zinc-900 dark:text-zinc-100">
                           {formatLargeNumber(adjustedRewards.token)}
                           {multiplier > 1 && (
-                            <span className="ml-1 text-xs text-green-600 dark:text-green-400">
+                            <span className="ml-1 text-green-600 dark:text-green-400">
                               ({multiplier}x)
                             </span>
                           )}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-zinc-600 dark:text-zinc-400">XP</span>
-                        <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-zinc-600 dark:text-zinc-400">XP</span>
+                        <span className="font-medium text-[#02abb8]">
                           {formatLargeNumber(adjustedRewards.xp)}
                           {multiplier > 1 && (
-                            <span className="ml-1 text-xs text-green-600 dark:text-green-400">
+                            <span className="ml-1 text-green-600 dark:text-green-400">
                               ({multiplier}x)
                             </span>
                           )}
@@ -343,27 +367,27 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
           <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-2">Total Predicted (All Actions)</div>
           <div className="p-3 bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-zinc-600 dark:text-zinc-400">Total Cost</span>
-                <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-600 dark:text-zinc-400">Total Cost</span>
+                <span className="font-medium text-zinc-900 dark:text-zinc-100">
                   {totalPredicted.totalCost.toFixed(2)} KAS
                 </span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-zinc-600 dark:text-zinc-400">Total GRID</span>
-                <span className="text-sm font-bold text-[#02abb8]">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-600 dark:text-zinc-400">Total GRID</span>
+                <span className="font-medium text-[#02abb8]">
                   {formatLargeNumber(totalPredicted.grid)}
                 </span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-zinc-600 dark:text-zinc-400">Total {displayTokenTicker}</span>
-                <span className="text-sm font-bold text-[#02abb8]">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-600 dark:text-zinc-400">Total {displayTokenTicker}</span>
+                <span className="font-medium text-[#02abb8]">
                   {formatLargeNumber(totalPredicted.token)}
                 </span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-zinc-600 dark:text-zinc-400">Total XP</span>
-                <span className="text-sm font-bold text-[#02abb8]">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-600 dark:text-zinc-400">Total XP</span>
+                <span className="font-medium text-[#02abb8]">
                   {formatLargeNumber(totalPredicted.xp)}
                 </span>
               </div>

@@ -12,6 +12,7 @@ import { getContractAddress } from '@/lib/contracts/addresses';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { DAppRewardsSidebar } from './rewards/DAppRewardsSidebar';
 import { DAppActionFlow } from './dapps/DAppActionFlow';
+import { NetworkAvailabilityBox } from './dapps/NetworkAvailabilityBox';
 
 interface DAppSidebarProps {
   dapp: DApp;
@@ -302,6 +303,9 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
               
               {/* Edit functionality removed - dApps are now read-only */}
             </div>
+
+            {/* Network Availability */}
+            <NetworkAvailabilityBox dapp={mergedDApp} />
 
             {/* Action Flow */}
             <DAppActionFlow dapp={mergedDApp} tokenTicker={tokenTicker} />
