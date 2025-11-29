@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764458218-a73332b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Move sidebars to left, update footer, redesign PointsSidebar, add category icons (by Kasparex)",
+      "date": "2025-11-30T00:16:29+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764454405-8eeb85a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update Show button styling, fix right sidebar layout, remove Network Availability box (by Kasparex)",
