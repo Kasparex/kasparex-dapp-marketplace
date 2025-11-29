@@ -1,0 +1,183 @@
+export type KnowledgeBaseCategory = 
+  | 'getting-started'
+  | 'krex-nodes'
+  | 'api'
+  | 'rewards'
+  | 'glossary'
+  | 'troubleshooting'
+  | 'advanced';
+
+export interface KnowledgeBaseArticle {
+  id: string;
+  title: string;
+  description: string;
+  category: KnowledgeBaseCategory;
+  slug: string;
+  content?: string; // Full article content
+}
+
+export const knowledgeBaseCategories: Array<{
+  id: KnowledgeBaseCategory;
+  name: string;
+  description: string;
+}> = [
+  {
+    id: 'getting-started',
+    name: 'Getting Started',
+    description: 'Introduction and basics',
+  },
+  {
+    id: 'krex-nodes',
+    name: 'KREX Nodes',
+    description: 'Node setup and management',
+  },
+  {
+    id: 'api',
+    name: 'Kasparex API',
+    description: 'API documentation and guides',
+  },
+  {
+    id: 'rewards',
+    name: 'Rewards',
+    description: 'GRID, LRT, and multipliers',
+  },
+  {
+    id: 'glossary',
+    name: 'Glossary',
+    description: 'Terms and definitions',
+  },
+  {
+    id: 'troubleshooting',
+    name: 'Troubleshooting',
+    description: 'Common issues and solutions',
+  },
+  {
+    id: 'advanced',
+    name: 'Advanced',
+    description: 'Advanced topics and guides',
+  },
+];
+
+export const knowledgeBaseArticles: KnowledgeBaseArticle[] = [
+  {
+    id: 'what-is-kasparex',
+    title: 'What is Kasparex?',
+    description: 'An introduction to the Kasparex dApp Marketplace and ecosystem.',
+    category: 'getting-started',
+    slug: 'what-is-kasparex',
+  },
+  {
+    id: 'krex-node-overview',
+    title: 'KREX Node Overview',
+    description: 'Learn about KREX Nodes and how they support the Kasparex network.',
+    category: 'krex-nodes',
+    slug: 'krex-node-overview',
+  },
+  {
+    id: 'krex-node-setup',
+    title: 'Setting Up a KREX Node',
+    description: 'Step-by-step guide to setting up and running your first KREX Node.',
+    category: 'krex-nodes',
+    slug: 'krex-node-setup',
+  },
+  {
+    id: 'krex-node-rewards',
+    title: 'KREX Node Rewards',
+    description: 'Understanding how rewards work for KREX Node operators.',
+    category: 'rewards',
+    slug: 'krex-node-rewards',
+  },
+  {
+    id: 'api-overview',
+    title: 'Kasparex API Overview',
+    description: 'Introduction to the Kasparex API and its role in the ecosystem.',
+    category: 'api',
+    slug: 'api-overview',
+  },
+  {
+    id: 'api-endpoints',
+    title: 'API Endpoints Reference',
+    description: 'Complete reference for all Kasparex API endpoints.',
+    category: 'api',
+    slug: 'api-endpoints',
+  },
+  {
+    id: 'grid-token',
+    title: 'GRID Token',
+    description: 'Learn about the GRID (Global Reward Token) and its uses.',
+    category: 'rewards',
+    slug: 'grid-token',
+  },
+  {
+    id: 'lrt-tokens',
+    title: 'Local Reward Tokens (LRT)',
+    description: 'Understanding Local Reward Tokens and how they work.',
+    category: 'rewards',
+    slug: 'lrt-tokens',
+  },
+  {
+    id: 'krex-multipliers',
+    title: 'KREX Multipliers',
+    description: 'How KREX holdings affect your rewards and multipliers.',
+    category: 'rewards',
+    slug: 'krex-multipliers',
+  },
+  {
+    id: 'blockdag-explained',
+    title: 'What is a BlockDAG?',
+    description: 'Understanding Kaspa\'s BlockDAG architecture and how it differs from blockchain.',
+    category: 'glossary',
+    slug: 'blockdag-explained',
+  },
+  {
+    id: 'vprogs-explained',
+    title: 'Verifiable Programs (vProgs)',
+    description: 'Learn about Kaspa\'s verifiable programs and their role in the ecosystem.',
+    category: 'glossary',
+    slug: 'vprogs-explained',
+  },
+  {
+    id: 'node-troubleshooting',
+    title: 'KREX Node Troubleshooting',
+    description: 'Common issues and solutions for KREX Node operators.',
+    category: 'troubleshooting',
+    slug: 'node-troubleshooting',
+  },
+  {
+    id: 'api-troubleshooting',
+    title: 'API Connection Issues',
+    description: 'Troubleshooting guide for API connection problems.',
+    category: 'troubleshooting',
+    slug: 'api-troubleshooting',
+  },
+  {
+    id: 'advanced-node-config',
+    title: 'Advanced Node Configuration',
+    description: 'Advanced configuration options for power users.',
+    category: 'advanced',
+    slug: 'advanced-node-config',
+  },
+  {
+    id: 'ipfs-storacha',
+    title: 'IPFS and Storacha',
+    description: 'Understanding decentralized storage in the Kasparex ecosystem.',
+    category: 'glossary',
+    slug: 'ipfs-storacha',
+  },
+];
+
+export function getArticlesByCategory(category: KnowledgeBaseCategory | 'all'): KnowledgeBaseArticle[] {
+  if (category === 'all') {
+    return knowledgeBaseArticles;
+  }
+  return knowledgeBaseArticles.filter(article => article.category === category);
+}
+
+export function getArticleBySlug(slug: string): KnowledgeBaseArticle | undefined {
+  return knowledgeBaseArticles.find(article => article.slug === slug);
+}
+
+export function getCategoryById(id: KnowledgeBaseCategory) {
+  return knowledgeBaseCategories.find(cat => cat.id === id);
+}
+

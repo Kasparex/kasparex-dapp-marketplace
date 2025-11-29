@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import Link from 'next/link';
+import { TableOfContentsSidebar } from '@/components/docs/TableOfContentsSidebar';
 
 export const metadata: Metadata = {
   title: 'Kasparex API · api.kasparex.com',
@@ -14,7 +15,9 @@ export default function KasparexAPIPage() {
       <Header />
       
       <main className="flex-1">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="flex flex-col lg:flex-row">
+          {/* Main Content */}
+          <div className="flex-1 min-w-0 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           {/* Hero Section */}
           <div className="text-center mb-12">
             <h1 className="text-4xl sm:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
@@ -29,7 +32,7 @@ export default function KasparexAPIPage() {
           </div>
 
           {/* What is the API */}
-          <section className="mb-12">
+          <section id="what-is-api" className="mb-12">
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
               What is the Kasparex API?
             </h2>
@@ -65,7 +68,7 @@ export default function KasparexAPIPage() {
           </section>
 
           {/* Why is it needed */}
-          <section className="mb-12">
+          <section id="why-needed" className="mb-12">
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
               Why is the Kasparex API needed?
             </h2>
@@ -102,7 +105,7 @@ export default function KasparexAPIPage() {
           </section>
 
           {/* API Endpoints */}
-          <section className="mb-12">
+          <section id="api-endpoints" className="mb-12">
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
               API Endpoints
             </h2>
@@ -266,7 +269,7 @@ export default function KasparexAPIPage() {
           </section>
 
           {/* How it affects the project */}
-          <section className="mb-12">
+          <section id="affects-project" className="mb-12">
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
               How the Kasparex API Affects Your Project
             </h2>
@@ -319,7 +322,7 @@ export default function KasparexAPIPage() {
           </section>
 
           {/* Technical Summary */}
-          <section className="mb-12">
+          <section id="technical-summary" className="mb-12">
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
               Technical Summary
             </h2>
@@ -360,7 +363,7 @@ export default function KasparexAPIPage() {
           </section>
 
           {/* Future vProgs */}
-          <section className="mb-12">
+          <section id="vprogs-integration" className="mb-12">
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
               Future: vProgs Integration
             </h2>
@@ -417,6 +420,19 @@ export default function KasparexAPIPage() {
               </a>
             </div>
           </div>
+          </div>
+
+          {/* Right Sidebar - Table of Contents */}
+          <TableOfContentsSidebar
+            items={[
+              { id: 'what-is-api', title: 'What is the Kasparex API?' },
+              { id: 'why-needed', title: 'Why is the Kasparex API needed?' },
+              { id: 'api-endpoints', title: 'API Endpoints' },
+              { id: 'affects-project', title: 'How the Kasparex API Affects Your Project' },
+              { id: 'technical-summary', title: 'Technical Summary' },
+              { id: 'vprogs-integration', title: 'Future: vProgs Integration' },
+            ]}
+          />
         </div>
       </main>
 

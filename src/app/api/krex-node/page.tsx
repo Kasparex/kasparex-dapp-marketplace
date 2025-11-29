@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import Link from 'next/link';
+import { TableOfContentsSidebar } from '@/components/docs/TableOfContentsSidebar';
 
 export const metadata: Metadata = {
   title: 'Run a KREX Node · Join Kasparex',
@@ -14,7 +15,9 @@ export default function KREXNodePage() {
       <Header />
       
       <main className="flex-1">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="flex flex-col lg:flex-row">
+          {/* Main Content */}
+          <div className="flex-1 min-w-0 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           {/* Hero Section */}
           <div className="text-center mb-12">
             <h1 className="text-4xl sm:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
@@ -39,7 +42,7 @@ export default function KREXNodePage() {
           </div>
 
           {/* What is a KREX Node */}
-          <section className="mb-12">
+          <section id="what-is-krex-node" className="mb-12">
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
               What is a KREX Node?
             </h2>
@@ -99,7 +102,7 @@ export default function KREXNodePage() {
           </section>
 
           {/* Node Types */}
-          <section className="mb-12">
+          <section id="node-types" className="mb-12">
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
               Node Types
             </h2>
@@ -168,7 +171,7 @@ export default function KREXNodePage() {
           </section>
 
           {/* How to Run */}
-          <section className="mb-12">
+          <section id="how-to-run" className="mb-12">
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
               How to Run a KREX Node
             </h2>
@@ -281,7 +284,7 @@ export default function KREXNodePage() {
           </section>
 
           {/* Rewards Section */}
-          <section className="mb-12">
+          <section id="rewards" className="mb-12">
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
               How Rewards Work
             </h2>
@@ -373,7 +376,7 @@ export default function KREXNodePage() {
           </section>
 
           {/* Safety & Requirements */}
-          <section className="mb-12">
+          <section id="safety" className="mb-12">
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
               Is it Safe?
             </h2>
@@ -403,7 +406,7 @@ export default function KREXNodePage() {
           </section>
 
           {/* Who is this for */}
-          <section className="mb-12">
+          <section id="who-is-this-for" className="mb-12">
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
               Who is this for?
             </h2>
@@ -454,6 +457,19 @@ export default function KREXNodePage() {
               </Link>
             </div>
           </div>
+          </div>
+
+          {/* Right Sidebar - Table of Contents */}
+          <TableOfContentsSidebar
+            items={[
+              { id: 'what-is-krex-node', title: 'What is a KREX Node?' },
+              { id: 'node-types', title: 'Node Types' },
+              { id: 'how-to-run', title: 'How to Run a KREX Node' },
+              { id: 'rewards', title: 'How Rewards Work' },
+              { id: 'safety', title: 'Is it Safe?' },
+              { id: 'who-is-this-for', title: 'Who is this for?' },
+            ]}
+          />
         </div>
       </main>
 
