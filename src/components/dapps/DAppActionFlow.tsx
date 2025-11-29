@@ -172,7 +172,9 @@ function getDAppActions(dapp: DApp, tokenTicker: string): Array<{
 export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
   const { address, isConnected } = useAccount();
   const rewards = getDefaultRewardsBreakdown(tokenTicker || undefined);
-  const actions = getDAppActions(dapp, rewards.tokenTicker);
+  // Use actual token ticker if provided, otherwise use the default from rewards
+  const displayTokenTicker = tokenTicker || rewards.tokenTicker;
+  const actions = getDAppActions(dapp, displayTokenTicker);
   
   // Get KREX tier and multipliers
   const mockKREXBalance = getMockKREXBalance(address);
@@ -195,7 +197,7 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
   );
 
   return (
-    <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+    <div className="mb-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
           Action Flow
@@ -298,7 +300,7 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-zinc-600 dark:text-zinc-400">{rewards.tokenTicker}</span>
+                        <span className="text-xs text-zinc-600 dark:text-zinc-400">{displayTokenTicker}</span>
                         <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
                           {formatLargeNumber(adjustedRewards.token)}
                           {multiplier > 1 && (
@@ -354,7 +356,7 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-zinc-600 dark:text-zinc-400">Total {rewards.tokenTicker}</span>
+                <span className="text-xs text-zinc-600 dark:text-zinc-400">Total {displayTokenTicker}</span>
                 <span className="text-sm font-bold text-[#02abb8]">
                   {formatLargeNumber(totalPredicted.token)}
                 </span>
