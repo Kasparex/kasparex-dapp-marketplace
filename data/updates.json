@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764436678-078f267",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix ESLint errors: escape quotes in API page (by Kasparex)",
+      "date": "2025-11-29T18:17:27+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764436375-f74bdb2",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update NODE Status to KREX Node terminology and create KREX Node and Kasparex API pages (by Kasparex)",
