@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764460625-5ec946f",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update timeline: 2025-11-29T23:56:53.704Z (by Kasparex)",
+      "date": "2025-11-30T00:56:53+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764458445-af8f5b6",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix syntax error: missing closing div tag in API page (by Kasparex) 1",
