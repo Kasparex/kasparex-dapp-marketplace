@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764436375-f74bdb2",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update NODE Status to KREX Node terminology and create KREX Node and Kasparex API pages (by Kasparex)",
+      "date": "2025-11-29T18:12:10+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764431369-d94ce2f",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add NODE Status box, update multipliers, move Seasonal Boosters to left sidebar, and apply consistent spacing (by Kasparex)",
