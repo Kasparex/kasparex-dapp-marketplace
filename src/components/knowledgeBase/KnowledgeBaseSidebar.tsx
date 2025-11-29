@@ -183,19 +183,34 @@ export function KnowledgeBaseSidebar({
             </div>
 
             <div className="space-y-1">
-              {knowledgeBaseCategories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => onCategoryChange(category.id)}
-                  className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${
-                    selectedCategory === category.id
-                      ? 'bg-[#02abb8]/10 text-[#02abb8] font-medium'
-                      : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
-                  }`}
-                >
-                  {category.name}
-                </button>
-              ))}
+              {knowledgeBaseCategories.map((category) => {
+                const categoryConfig = {
+                  'getting-started': { icon: '🚀', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800' },
+                  'krex-nodes': { icon: '🖥️', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800' },
+                  'api': { icon: '🔌', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800' },
+                  'rewards': { icon: '💰', color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800' },
+                  'glossary': { icon: '📚', color: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800' },
+                  'troubleshooting': { icon: '🔧', color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800' },
+                  'advanced': { icon: '⚡', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800' },
+                }[category.id] || { icon: '📄', color: 'bg-zinc-100 dark:bg-zinc-900/30 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800' };
+
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => onCategoryChange(category.id)}
+                    className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors flex items-center gap-2 ${
+                      selectedCategory === category.id
+                        ? 'bg-[#02abb8]/10 text-[#02abb8] font-medium'
+                        : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
+                    }`}
+                  >
+                    <span className={`px-1.5 py-0.5 rounded text-xs border ${categoryConfig.color}`}>
+                      {categoryConfig.icon}
+                    </span>
+                    <span>{category.name}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}

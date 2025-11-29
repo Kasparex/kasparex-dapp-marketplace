@@ -16,6 +16,20 @@ export default function KREXNodePage() {
       
       <main className="flex-1">
         <div className="flex flex-col lg:flex-row">
+          {/* Left Sidebar - Table of Contents */}
+          <div className="w-full lg:w-64 lg:flex-shrink-0">
+            <TableOfContentsSidebar
+              items={[
+                { id: 'what-is-krex-node', title: 'What is a KREX Node?' },
+                { id: 'node-types', title: 'Node Types' },
+                { id: 'how-to-run', title: 'How to Run a KREX Node' },
+                { id: 'rewards', title: 'How Rewards Work' },
+                { id: 'safety', title: 'Is it Safe?' },
+                { id: 'who-is-this-for', title: 'Who is this for?' },
+              ]}
+            />
+          </div>
+
           {/* Main Content */}
           <div className="flex-1 min-w-0 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           {/* Hero Section */}
@@ -456,20 +470,8 @@ export default function KREXNodePage() {
                 Learn about the API
               </Link>
             </div>
+            </div>
           </div>
-          </div>
-
-          {/* Right Sidebar - Table of Contents */}
-          <TableOfContentsSidebar
-            items={[
-              { id: 'what-is-krex-node', title: 'What is a KREX Node?' },
-              { id: 'node-types', title: 'Node Types' },
-              { id: 'how-to-run', title: 'How to Run a KREX Node' },
-              { id: 'rewards', title: 'How Rewards Work' },
-              { id: 'safety', title: 'Is it Safe?' },
-              { id: 'who-is-this-for', title: 'Who is this for?' },
-            ]}
-          />
         </div>
       </main>
 

@@ -16,6 +16,21 @@ export default function KasparexAPIPage() {
       
       <main className="flex-1">
         <div className="flex flex-col lg:flex-row">
+          {/* Left Sidebar - Table of Contents */}
+          <div className="w-full lg:w-64 lg:flex-shrink-0">
+            <TableOfContentsSidebar
+              items={[
+                { id: 'what-is-api', title: 'What is the Kasparex API?' },
+                { id: 'why-needed', title: 'Why is the Kasparex API needed?' },
+                { id: 'what-it-does', title: 'What does the Kasparex API do?' },
+                { id: 'api-endpoints', title: 'API Endpoints' },
+                { id: 'affects-project', title: 'How the Kasparex API Affects Your Project' },
+                { id: 'technical-summary', title: 'Technical Summary' },
+                { id: 'vprogs-integration', title: 'Future: vProgs Integration' },
+              ]}
+            />
+          </div>
+
           {/* Main Content */}
           <div className="flex-1 min-w-0 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           {/* Hero Section */}
@@ -420,19 +435,6 @@ export default function KasparexAPIPage() {
               </a>
             </div>
           </div>
-          </div>
-
-          {/* Right Sidebar - Table of Contents */}
-          <TableOfContentsSidebar
-            items={[
-              { id: 'what-is-api', title: 'What is the Kasparex API?' },
-              { id: 'why-needed', title: 'Why is the Kasparex API needed?' },
-              { id: 'api-endpoints', title: 'API Endpoints' },
-              { id: 'affects-project', title: 'How the Kasparex API Affects Your Project' },
-              { id: 'technical-summary', title: 'Technical Summary' },
-              { id: 'vprogs-integration', title: 'Future: vProgs Integration' },
-            ]}
-          />
         </div>
       </main>
 
