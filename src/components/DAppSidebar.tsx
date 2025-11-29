@@ -172,10 +172,10 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
       {isHidden && (
         <button
           onClick={() => setIsHidden(false)}
-          className="hidden lg:block fixed left-0 top-16 z-[60] p-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-r-lg transition-colors shadow-lg"
+          className="hidden lg:block fixed left-0 top-20 z-[60] p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
           aria-label="Show sidebar"
         >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
