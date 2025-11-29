@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764439568-393d45d",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update remaining blockchain references to BlockDAG (by Kasparex)",
+      "date": "2025-11-29T19:05:09+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764436678-078f267",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix ESLint errors: escape quotes in API page (by Kasparex)",
