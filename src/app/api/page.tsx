@@ -435,6 +435,7 @@ export default function KasparexAPIPage() {
               </a>
             </div>
           </div>
+          </div>
         </div>
       </main>
 
