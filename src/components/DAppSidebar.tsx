@@ -231,7 +231,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
       >
         {/* Hide/Show Button */}
         {!isHidden && (
-          <div className="sticky top-0 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4 z-10">
+          <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                 dApp Info
@@ -250,7 +250,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
             {/* Back to Categories */}
             <Link
               href="/"
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors text-sm"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors text-sm"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />

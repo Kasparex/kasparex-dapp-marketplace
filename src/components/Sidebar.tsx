@@ -316,7 +316,7 @@ export function Sidebar({
       >
         {/* Hide/Show Button */}
         {!isHidden && (
-          <div className="sticky top-0 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4 z-10">
+          <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                 Filters

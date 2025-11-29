@@ -193,35 +193,15 @@ export function DAppInfoSidebar({
 
   return (
     <>
-      {/* Hide/Show Button - Fixed position when sidebar is hidden */}
+      {/* Show Sidebar Button - Fixed when hidden */}
       {isHidden && (
         <button
-          onClick={() => setIsHidden(!isHidden)}
-          className={`
-            hidden lg:flex
-            fixed z-[60]
-            w-6 h-6 rounded-full
-            bg-white dark:bg-zinc-900
-            border border-zinc-200 dark:border-zinc-800
-            shadow-md
-            items-center justify-center
-            hover:bg-zinc-100 dark:hover:bg-zinc-800
-            transition-all duration-300 ease-in-out
-          `}
-          style={{
-            right: '12px',
-            top: '80px',
-          }}
-          title="Show sidebar"
+          onClick={() => setIsHidden(false)}
+          className="hidden lg:block fixed right-0 top-80 z-[60] p-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-l-lg transition-colors shadow-lg"
           aria-label="Show sidebar"
         >
-          <svg
-            className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
       )}
@@ -273,33 +253,23 @@ export function DAppInfoSidebar({
           }
         }}
       >
-        {/* Hide/Show Button - Fixed at top of sidebar */}
+        {/* Hide/Show Button */}
         {!isHidden && (
-          <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 flex justify-start p-2">
-            <button
-              onClick={() => setIsHidden(!isHidden)}
-              className={`
-                hidden lg:flex
-                w-6 h-6 rounded-full
-                bg-white dark:bg-zinc-900
-                border border-zinc-200 dark:border-zinc-800
-                shadow-md
-                items-center justify-center
-                hover:bg-zinc-100 dark:hover:bg-zinc-800
-                transition-all duration-300 ease-in-out
-              `}
-              title="Hide sidebar"
-              aria-label="Hide sidebar"
-            >
-              <svg
-                className="w-4 h-4 text-zinc-600 dark:text-zinc-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+          <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                dApp Info
+              </h3>
+              <button
+                onClick={() => setIsHidden(true)}
+                className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+                aria-label="Hide sidebar"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
           </div>
         )}
 
