@@ -38,7 +38,7 @@ export function TableOfContentsSidebar({ items }: TableOfContentsSidebarProps) {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing || !sidebarRef.current) return;
 
-      const newWidth = window.innerWidth - e.clientX;
+      const newWidth = e.clientX;
       const minWidth = 200;
       const maxWidth = 500;
 
@@ -93,11 +93,11 @@ export function TableOfContentsSidebar({ items }: TableOfContentsSidebarProps) {
       {isHidden && (
         <button
           onClick={() => setIsHidden(false)}
-          className="fixed right-0 top-80 z-[60] p-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-l-lg transition-colors shadow-lg"
+          className="hidden lg:block fixed left-0 top-80 z-[60] p-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-r-lg transition-colors shadow-lg"
           aria-label="Show sidebar"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
       )}
@@ -106,13 +106,13 @@ export function TableOfContentsSidebar({ items }: TableOfContentsSidebarProps) {
         ref={sidebarRef}
         className={`
           hidden lg:block flex-shrink-0
-          fixed lg:sticky top-16 lg:top-0 right-0 z-40
+          fixed lg:sticky top-16 lg:top-0 left-0 z-40
           h-[calc(100vh-4rem)] lg:h-screen
           overflow-y-auto
           bg-white dark:bg-zinc-950
-          border-l border-zinc-200 dark:border-zinc-800
+          border-r border-zinc-200 dark:border-zinc-800
           transition-all duration-300 ease-in-out
-          ${isHidden ? 'translate-x-[100%]' : ''}
+          ${isHidden ? 'translate-x-[-100%]' : ''}
         `}
         style={{
           width: isHidden ? 0 : `${sidebarWidth}px`,
@@ -123,24 +123,24 @@ export function TableOfContentsSidebar({ items }: TableOfContentsSidebarProps) {
         onMouseMove={(e) => {
           if (!isHidden && !isResizing && sidebarRef.current) {
             const rect = sidebarRef.current.getBoundingClientRect();
-            const isOnBorder = e.clientX >= rect.left && e.clientX <= rect.left + 4;
+            const isOnBorder = e.clientX >= rect.right - 4 && e.clientX <= rect.right;
             sidebarRef.current.style.cursor = isOnBorder ? 'col-resize' : '';
             if (isOnBorder) {
-              sidebarRef.current.style.borderLeft = '2px solid #06b6d4';
+              sidebarRef.current.style.borderRight = '2px solid #06b6d4';
             } else {
-              sidebarRef.current.style.borderLeft = '';
+              sidebarRef.current.style.borderRight = '';
             }
           }
         }}
         onMouseLeave={() => {
           if (sidebarRef.current && !isResizing) {
-            sidebarRef.current.style.borderLeft = '';
+            sidebarRef.current.style.borderRight = '';
           }
         }}
         onMouseDown={(e) => {
           if (!isHidden && sidebarRef.current) {
             const rect = sidebarRef.current.getBoundingClientRect();
-            if (e.clientX >= rect.left && e.clientX <= rect.left + 4) {
+            if (e.clientX >= rect.right - 4 && e.clientX <= rect.right) {
               e.preventDefault();
               setIsResizing(true);
             }

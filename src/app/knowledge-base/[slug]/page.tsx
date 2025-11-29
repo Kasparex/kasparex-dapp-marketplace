@@ -347,6 +347,14 @@ export default async function KnowledgeBaseArticlePage({ params }: PageProps) {
       
       <main className="flex-1">
         <div className="flex flex-col lg:flex-row">
+          {/* Left Sidebar - Table of Contents */}
+          <TableOfContentsSidebar
+            items={content.sections.map((section) => ({
+              id: section.id,
+              title: section.title,
+            }))}
+          />
+          
           {/* Main Content */}
           <div className="flex-1 min-w-0 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
             {/* Breadcrumb */}
@@ -394,14 +402,6 @@ export default async function KnowledgeBaseArticlePage({ params }: PageProps) {
               </Link>
             </div>
           </div>
-
-          {/* Right Sidebar - Table of Contents */}
-          <TableOfContentsSidebar
-            items={content.sections.map((section) => ({
-              id: section.id,
-              title: section.title,
-            }))}
-          />
         </div>
       </main>
 
