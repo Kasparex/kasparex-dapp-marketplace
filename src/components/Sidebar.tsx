@@ -11,6 +11,7 @@ import { GRIDHoldingsBox } from './rewards/GRIDHoldingsBox';
 import { XPPointsBox } from './rewards/XPPointsBox';
 import { KREXStatusBox } from './rewards/KREXStatusBox';
 import { NFTStatusBox } from './rewards/NFTStatusBox';
+import { NODEStatusBox } from './rewards/NODEStatusBox';
 import { QuickGuideWizard } from './rewards/QuickGuideWizard';
 
 interface SidebarProps {
@@ -678,6 +679,7 @@ export function Sidebar({
           {/* Rewards Info Boxes */}
           <KREXStatusBox />
           <NFTStatusBox />
+          <NODEStatusBox />
           <GRIDHoldingsBox />
           <XPPointsBox />
 

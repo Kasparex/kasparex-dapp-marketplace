@@ -13,6 +13,7 @@ import { mergeDAppData } from '@/lib/dapps/contractData';
 import { DAppRewardsSidebar } from './rewards/DAppRewardsSidebar';
 import { DAppActionFlow } from './dapps/DAppActionFlow';
 import { NetworkAvailabilityBox } from './dapps/NetworkAvailabilityBox';
+import { SeasonalBoostersBox } from './rewards/SeasonalBoostersBox';
 
 interface DAppSidebarProps {
   dapp: DApp;
@@ -315,6 +316,9 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
               tokenTicker={tokenTicker}
               dappName={mergedDApp.name}
             />
+
+            {/* Seasonal Boosters */}
+            <SeasonalBoostersBox />
         </div>
       </aside>
 
