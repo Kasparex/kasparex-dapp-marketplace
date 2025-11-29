@@ -229,39 +229,31 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
           }
         }}
       >
-        {/* Hide Button - Fixed at top */}
-        {!isHidden && (
-          <div className="fixed top-16 left-0 z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 w-full" style={{ width: `${sidebarWidth}px` }}>
-            <div className="flex items-center justify-end p-2">
-              <button
-                onClick={() => setIsHidden(true)}
-                className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
-                aria-label="Hide sidebar"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Header with Back Button */}
-        <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4" style={{ marginTop: !isHidden ? '48px' : '0' }}>
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+        {/* Header with Hide Button and Back Button */}
+        <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
               dApp Info
             </h3>
-            <Link
-              href="/"
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors text-sm"
+            <button
+              onClick={() => setIsHidden(true)}
+              className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+              aria-label="Hide sidebar"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Back to Categories
-            </Link>
+            </button>
           </div>
+          <Link
+            href="/"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors text-sm"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Categories
+          </Link>
         </div>
 
         <div className={`p-4 ${isHidden ? 'lg:hidden' : ''}`}>

@@ -147,39 +147,31 @@ export function TableOfContentsSidebar({ items }: TableOfContentsSidebarProps) {
           }
         }}
       >
-        {/* Hide Button - Fixed at top */}
-        {!isHidden && (
-          <div className="fixed top-16 left-0 z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 w-full" style={{ width: `${sidebarWidth}px` }}>
-            <div className="flex items-center justify-end p-2">
-              <button
-                onClick={() => setIsHidden(true)}
-                className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
-                aria-label="Hide sidebar"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Header with Knowledge Base Link */}
-        <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4" style={{ marginTop: !isHidden ? '48px' : '0' }}>
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+        {/* Header with Hide Button and Knowledge Base Link */}
+        <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
               Table of Contents
             </h3>
-            <Link
-              href="/knowledge-base"
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors text-sm"
+            <button
+              onClick={() => setIsHidden(true)}
+              className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+              aria-label="Hide sidebar"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Knowledge Base
-            </Link>
+            </button>
           </div>
+          <Link
+            href="/knowledge-base"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors text-sm"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            Knowledge Base
+          </Link>
         </div>
 
         {/* Table of Contents */}
