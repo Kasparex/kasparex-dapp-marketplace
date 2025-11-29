@@ -20,17 +20,17 @@ const mockNodeStatus = {
 const NODE_TYPES = {
   light: {
     name: 'KREX Node (Light)',
-    multiplier: 1.2,
-    feeReduction: 5,
+    multiplier: 4.0,
+    feeReduction: 0.1,
     requirements: 'Run a KREX Light Node',
-    rewards: '20% reward multiplier, 5% fee reduction',
+    rewards: '4x reward multiplier, 0.1% fee reduction',
   },
   mirror: {
     name: 'KREX Node (Mirror)',
-    multiplier: 1.5,
-    feeReduction: 10,
+    multiplier: 5.0,
+    feeReduction: 0.2,
     requirements: 'Run a KREX Mirror Node',
-    rewards: '50% reward multiplier, 10% fee reduction',
+    rewards: '5x reward multiplier, 0.2% fee reduction',
   },
 };
 
@@ -320,7 +320,7 @@ export function NODEStatusBox() {
                   <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Connect to Kasparex Mesh</h3>
                 </div>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400 ml-8">
-                  Register your KREX Node with the Kasparex Mesh API by providing your node&apos;s public address. Your node will be verified and rewards will be activated.
+                  Register your KREX Node with the Kasparex API by providing your node&apos;s public address. Your node will be verified and rewards will be activated.
                 </p>
               </div>
 
@@ -337,12 +337,12 @@ export function NODEStatusBox() {
 
               {/* Documentation Link */}
               <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
-                <Link
-                  href="/mesh/krex-node"
-                  className="text-xs text-[#02abb8] hover:underline"
-                >
-                  View full KREX Node documentation →
-                </Link>
+              <Link
+                href="/api/krex-node"
+                className="text-xs text-[#02abb8] hover:underline"
+              >
+                View full KREX Node documentation →
+              </Link>
               </div>
             </div>
           </div>

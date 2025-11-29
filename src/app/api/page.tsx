@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Kasparex API · api.kasparex.com',
-  description: 'The Kasparex Mesh API is a lightweight backend service that coordinates GRID Nodes, tracks uptime, calculates rewards, and provides public data for the Kasparex ecosystem.',
+  description: 'The Kasparex API is a lightweight backend service that coordinates KREX Nodes, tracks uptime, calculates rewards, and provides public data for the Kasparex ecosystem.',
 };
 
 export default function KasparexAPIPage() {
@@ -24,17 +24,17 @@ export default function KasparexAPIPage() {
               api.kasparex.com
             </p>
             <p className="text-lg text-zinc-500 dark:text-zinc-500 max-w-2xl mx-auto">
-              The coordination brain of the decentralized Kasparex Mesh network
+              The coordination brain of the decentralized Kasparex network
             </p>
           </div>
 
           {/* What is the API */}
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-              What is the Kasparex Mesh API?
+              What is the Kasparex API?
             </h2>
             <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-              The Kasparex Mesh API is a lightweight backend service that coordinates GRID Nodes, tracks uptime and performance, calculates rewards (GRID + LRT + KREX multipliers), and provides public data for the Kasparex frontend and ecosystem.
+              The Kasparex API is a lightweight backend service that coordinates KREX Nodes, tracks uptime and performance, calculates rewards (GRID + LRT + KREX multipliers), and provides public data for the Kasparex frontend and ecosystem.
             </p>
             
             <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 mb-6">
@@ -45,13 +45,13 @@ export default function KasparexAPIPage() {
                 <li className="flex items-start gap-3">
                   <span className="text-[#02abb8] mt-1">•</span>
                   <div>
-                    <strong className="text-zinc-900 dark:text-zinc-100">GRID Nodes</strong> are the body — they pin and mirror data
+                    <strong className="text-zinc-900 dark:text-zinc-100">KREX Nodes</strong> are the body — they pin and mirror data
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-[#02abb8] mt-1">•</span>
                   <div>
-                    <strong className="text-zinc-900 dark:text-zinc-100">Kasparex Mesh API</strong> is the brain — it tracks, scores, and coordinates them
+                    <strong className="text-zinc-900 dark:text-zinc-100">Kasparex API</strong> is the brain — it tracks, scores, and coordinates them
                   </div>
                 </li>
               </ul>
@@ -59,7 +59,7 @@ export default function KasparexAPIPage() {
 
             <div className="p-6 bg-yellow-500/10 dark:bg-yellow-500/20 rounded-lg border border-yellow-500/30">
               <p className="text-zinc-600 dark:text-zinc-400">
-                <strong className="text-zinc-900 dark:text-zinc-100">Important:</strong> The Mesh API does NOT replace Kaspa blockchain, Storacha, or IPFS. It simply manages the node network and reward coordination.
+                <strong className="text-zinc-900 dark:text-zinc-100">Important:</strong> The Kasparex API does NOT replace Kaspa BlockDAG, Storacha, or IPFS. It simply manages the node network and reward coordination.
               </p>
             </div>
           </section>
@@ -67,17 +67,17 @@ export default function KasparexAPIPage() {
           {/* Why is it needed */}
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-              Why is the Mesh API needed?
+              Why is the Kasparex API needed?
             </h2>
             <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-              Without the Mesh API, GRID Nodes would have no identity, uptime tracking, reward calculation, reputation system, or coordination. Decentralized storage (IPFS/Storacha) alone is blind — the Mesh API gives structure and reward mechanisms to the network.
+              Without the Kasparex API, KREX Nodes would have no identity, uptime tracking, reward calculation, reputation system, or coordination. Decentralized storage (IPFS/Storacha) alone is blind — the Kasparex API gives structure and reward mechanisms to the network.
             </p>
             
             <div className="grid md:grid-cols-2 gap-4">
               <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-                <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Node Management</h3>
+                  <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Node Management</h3>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Allows GRID Nodes to register, send heartbeat pings, and report stats
+                  Allows KREX Nodes to register, send heartbeat pings, and report stats
                 </p>
               </div>
               <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
@@ -87,9 +87,9 @@ export default function KasparexAPIPage() {
                 </p>
               </div>
               <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-                <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Public Data</h3>
+                  <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Public Data</h3>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Provides node lists, dApp availability, and mesh statistics
+                  Provides node lists, dApp availability, and network statistics
                 </p>
               </div>
               <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
@@ -107,7 +107,7 @@ export default function KasparexAPIPage() {
               API Endpoints
             </h2>
             <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-              All endpoints begin with <code className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded text-sm">/mesh</code>
+              All endpoints begin with <code className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded text-sm">/api</code>
             </p>
 
             {/* Node Management */}
@@ -119,7 +119,7 @@ export default function KasparexAPIPage() {
                 <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
                   <div className="flex items-start gap-3 mb-2">
                     <span className="px-2 py-1 bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded text-xs font-mono">POST</span>
-                    <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/mesh/node/register</code>
+                    <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/api/node/register</code>
                   </div>
                   <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
                     Nodes call this when they start for the first time to create an identity.
@@ -139,7 +139,7 @@ export default function KasparexAPIPage() {
                 <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
                   <div className="flex items-start gap-3 mb-2">
                     <span className="px-2 py-1 bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded text-xs font-mono">POST</span>
-                    <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/mesh/node/ping</code>
+                    <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/api/node/ping</code>
                   </div>
                   <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
                     Heartbeat every 60 seconds to report uptime and stats.
@@ -163,7 +163,7 @@ export default function KasparexAPIPage() {
                 <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
                   <div className="flex items-start gap-3 mb-2">
                     <span className="px-2 py-1 bg-green-500/20 text-green-600 dark:text-green-400 rounded text-xs font-mono">GET</span>
-                    <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/mesh/nodes</code>
+                    <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/api/nodes</code>
                   </div>
                   <p className="text-sm text-zinc-600 dark:text-zinc-400">
                     Returns list of active nodes for frontend, explorers, and node dashboards.
@@ -181,7 +181,7 @@ export default function KasparexAPIPage() {
                 <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
                   <div className="flex items-start gap-3 mb-2">
                     <span className="px-2 py-1 bg-green-500/20 text-green-600 dark:text-green-400 rounded text-xs font-mono">GET</span>
-                    <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/mesh/rewards/node/:nodeId</code>
+                    <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/api/rewards/node/:nodeId</code>
                   </div>
                   <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
                     Returns rewards for a specific node including GRID, LRT, and multipliers.
@@ -207,7 +207,7 @@ export default function KasparexAPIPage() {
                 <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
                   <div className="flex items-start gap-3 mb-2">
                     <span className="px-2 py-1 bg-green-500/20 text-green-600 dark:text-green-400 rounded text-xs font-mono">GET</span>
-                    <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/mesh/rewards/epoch/:epochId</code>
+                    <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/api/rewards/epoch/:epochId</code>
                   </div>
                   <p className="text-sm text-zinc-600 dark:text-zinc-400">
                     Summary of all rewards in an epoch.
@@ -219,13 +219,13 @@ export default function KasparexAPIPage() {
             {/* Public Data */}
             <div className="mb-8">
               <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                3. Public Mesh Data Endpoints
+                3. Public Data Endpoints
               </h3>
               <div className="space-y-4">
                 <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
                   <div className="flex items-start gap-3 mb-2">
                     <span className="px-2 py-1 bg-green-500/20 text-green-600 dark:text-green-400 rounded text-xs font-mono">GET</span>
-                    <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/mesh/dapps/availability</code>
+                    <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/api/dapps/availability</code>
                   </div>
                   <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
                     Returns which nodes mirror which dApps. Helps frontend prioritize fast/nearby nodes.
@@ -244,7 +244,7 @@ export default function KasparexAPIPage() {
                 <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
                   <div className="flex items-start gap-3 mb-2">
                     <span className="px-2 py-1 bg-green-500/20 text-green-600 dark:text-green-400 rounded text-xs font-mono">GET</span>
-                    <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/mesh/stats</code>
+                    <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/api/stats</code>
                   </div>
                   <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
                     General network statistics for dashboards and explorers.
@@ -256,7 +256,7 @@ export default function KasparexAPIPage() {
   "mirrorNodes": 4,
   "lightNodes": 13,
   "totalPinnedCids": 22000,
-  "meshHealth": "good"
+  "networkHealth": "good"
 }`}
                     </pre>
                   </div>
@@ -268,7 +268,7 @@ export default function KasparexAPIPage() {
           {/* How it affects the project */}
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-              How the Mesh API Affects Your Project
+              How the Kasparex API Affects Your Project
             </h2>
             <div className="space-y-4">
               <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
@@ -276,7 +276,7 @@ export default function KasparexAPIPage() {
                   1. Enables Decentralization
                 </h3>
                 <p className="text-zinc-600 dark:text-zinc-400">
-                  GRID Nodes need a place to report, sync, and coordinate. Without this API, they have no network structure.
+                  KREX Nodes need a place to report, sync, and coordinate. Without this API, they have no network structure.
                 </p>
               </div>
 
@@ -285,7 +285,7 @@ export default function KasparexAPIPage() {
                   2. Enables Rewards
                 </h3>
                 <p className="text-zinc-600 dark:text-zinc-400">
-                  You cannot calculate uptime, requests, pinned data, or KREX multipliers without this API. The reward system is impossible without the Mesh API.
+                  You cannot calculate uptime, requests, pinned data, or KREX multipliers without this API. The reward system is impossible without the Kasparex API.
                 </p>
               </div>
 
@@ -294,7 +294,7 @@ export default function KasparexAPIPage() {
                   3. Protects the Marketplace
                 </h3>
                 <p className="text-zinc-600 dark:text-zinc-400">
-                  If Vercel/CDN fails, IPFS, Storacha, and GRID Nodes deliver. Frontend discovers memoized mirrors via /mesh/dapps/availability.
+                  If Vercel/CDN fails, IPFS, Storacha, and KREX Nodes deliver. Frontend discovers memoized mirrors via /api/dapps/availability.
                 </p>
               </div>
 
@@ -303,7 +303,7 @@ export default function KasparexAPIPage() {
                   4. Reduces Costs
                 </h3>
                 <p className="text-zinc-600 dark:text-zinc-400">
-                  The Mesh API redirects &quot;where to download from&quot;. If the API says a mirror node is nearby, the frontend loads metadata from it instead of Vercel.
+                  The Kasparex API redirects &quot;where to download from&quot;. If the API says a mirror node is nearby, the frontend loads metadata from it instead of Vercel.
                 </p>
               </div>
 
@@ -312,7 +312,7 @@ export default function KasparexAPIPage() {
                   5. Enables Dashboards
                 </h3>
                 <p className="text-zinc-600 dark:text-zinc-400">
-                  User dashboards can show &quot;My GRID Node: Online/Offline&quot;, rewards, uptime, LRT earnings, and KREX multiplier tier.
+                  User dashboards can show &quot;My KREX Node: Online/Offline&quot;, rewards, uptime, LRT earnings, and KREX multiplier tier.
                 </p>
               </div>
             </div>
@@ -325,7 +325,7 @@ export default function KasparexAPIPage() {
             </h2>
             <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
               <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-                Kasparex Mesh API is:
+                Kasparex API is:
               </p>
               <ul className="space-y-2 text-zinc-600 dark:text-zinc-400">
                 <li className="flex items-start gap-2">
@@ -354,7 +354,7 @@ export default function KasparexAPIPage() {
                 </li>
               </ul>
               <p className="text-zinc-600 dark:text-zinc-400 mt-4">
-                It is the <strong className="text-zinc-900 dark:text-zinc-100">&quot;network coordinator&quot;</strong> of your decentralized mesh.
+                It is the <strong className="text-zinc-900 dark:text-zinc-100">&quot;network coordinator&quot;</strong> of your decentralized network.
               </p>
             </div>
           </section>
@@ -366,7 +366,7 @@ export default function KasparexAPIPage() {
             </h2>
             <div className="p-6 bg-[#02abb8]/10 dark:bg-[#02abb8]/20 rounded-lg border border-[#02abb8]/30">
               <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-                When Kaspa smart contracts (vProgs) mature, you could migrate some parts of the Mesh API logic to vProgs:
+                When Kaspa smart contracts (vProgs) mature, you could migrate some parts of the Kasparex API logic to vProgs:
               </p>
               <ul className="space-y-2 text-zinc-600 dark:text-zinc-400">
                 <li className="flex items-start gap-2">
@@ -387,7 +387,7 @@ export default function KasparexAPIPage() {
                 </li>
               </ul>
               <p className="text-zinc-600 dark:text-zinc-400 mt-4">
-                This becomes a hybrid architecture: <strong className="text-zinc-900 dark:text-zinc-100">Off-chain Mesh API</strong> collects data and processes heavy logic, while <strong className="text-zinc-900 dark:text-zinc-100">On-chain vProg smart contracts</strong> verify hashed epochs and allow claiming.
+                This becomes a hybrid architecture: <strong className="text-zinc-900 dark:text-zinc-100">Off-chain Kasparex API</strong> collects data and processes heavy logic, while <strong className="text-zinc-900 dark:text-zinc-100">On-chain vProg smart contracts</strong> verify hashed epochs and allow claiming.
               </p>
             </div>
           </section>
@@ -398,17 +398,17 @@ export default function KasparexAPIPage() {
               Learn More
             </h2>
             <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-              Explore the Kasparex Mesh ecosystem and learn how to run a KREX Node.
+              Explore the Kasparex ecosystem and learn how to run a KREX Node.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/mesh/krex-node"
+                href="/api/krex-node"
                 className="px-6 py-3 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
               >
                 Run a KREX Node
               </Link>
               <a
-                href="https://github.com/Kasparex/kasparex-grid-node"
+                href="https://github.com/Kasparex/kasparex-krex-node"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-6 py-3 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium transition-colors"

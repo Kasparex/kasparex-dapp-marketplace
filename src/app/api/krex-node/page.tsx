@@ -4,8 +4,8 @@ import { Footer } from '@/components/Footer';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Run a KREX Node · Join the Kasparex Mesh',
-  description: 'Kasparex Mesh is a community-powered layer that keeps the Kasparex dApp Marketplace online, fast, and censorship-resistant.',
+  title: 'Run a KREX Node · Join Kasparex',
+  description: 'Kasparex is a community-powered layer that keeps the Kasparex dApp Marketplace online, fast, and censorship-resistant.',
 };
 
 export default function KREXNodePage() {
@@ -21,10 +21,10 @@ export default function KREXNodePage() {
               Run a KREX Node
             </h1>
             <p className="text-xl text-zinc-600 dark:text-zinc-400 mb-2">
-              Join the Kasparex Mesh
+              Join Kasparex
             </p>
             <p className="text-lg text-zinc-500 dark:text-zinc-500 max-w-2xl mx-auto">
-              Kasparex Mesh is a community-powered layer that keeps the Kasparex dApp Marketplace online, fast, and censorship-resistant.
+              Kasparex is a community-powered layer that keeps the Kasparex dApp Marketplace online, fast, and censorship-resistant.
             </p>
           </div>
 
@@ -44,7 +44,7 @@ export default function KREXNodePage() {
               What is a KREX Node?
             </h2>
             <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-              A KREX Node is a lightweight helper node that you run on your own computer or server. It is <strong>not</strong> a Kaspa blockchain node and does not require heavy hardware.
+              A KREX Node is a lightweight helper node that you run on your own computer or server. It is <strong>not</strong> a Kaspa BlockDAG node and does not require heavy hardware.
             </p>
             
             <div className="grid md:grid-cols-2 gap-4 mb-6">
@@ -119,7 +119,7 @@ export default function KREXNodePage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[#02abb8] mt-1">•</span>
-                    <span>Periodically syncs with Kasparex Core</span>
+                    <span>Periodically syncs with Kasparex API</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[#02abb8] mt-1">•</span>
@@ -128,7 +128,7 @@ export default function KREXNodePage() {
                 </ul>
                 <div className="pt-4 border-t border-zinc-200 dark:border-zinc-700">
                   <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    Reward: 20% multiplier, 5% fee reduction
+                    Reward: 4x multiplier, 0.1% fee reduction
                   </p>
                 </div>
               </div>
@@ -160,7 +160,7 @@ export default function KREXNodePage() {
                 </ul>
                 <div className="pt-4 border-t border-zinc-200 dark:border-zinc-700">
                   <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    Reward: 50% multiplier, 10% fee reduction
+                    Reward: 5x multiplier, 0.2% fee reduction
                   </p>
                 </div>
               </div>
@@ -207,10 +207,10 @@ export default function KREXNodePage() {
                       Download KREX Node
                     </h3>
                     <p className="text-zinc-600 dark:text-zinc-400 mb-3">
-                      Clone or download the Kasparex Mesh KREX Node repository.
+                      Clone or download the Kasparex KREX Node repository.
                     </p>
                     <div className="p-3 bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-700 font-mono text-sm text-zinc-900 dark:text-zinc-100">
-                      git clone https://github.com/Kasparex/kasparex-grid-node.git
+                      git clone https://github.com/Kasparex/kasparex-krex-node.git
                     </div>
                   </div>
                 </div>
@@ -271,7 +271,7 @@ export default function KREXNodePage() {
                     </p>
                     <div className="p-3 bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-700 font-mono text-sm text-zinc-900 dark:text-zinc-100">
                       npm install -g pm2<br />
-                      pm2 start src/index.js --name grid-node<br />
+                      pm2 start src/index.js --name krex-node<br />
                       pm2 save
                     </div>
                   </div>
@@ -286,7 +286,7 @@ export default function KREXNodePage() {
               How Rewards Work
             </h2>
             <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-              The reward engine works in epochs (for example, once per day). During each epoch, your node sends small status pings to Kasparex Core.
+              The reward engine works in epochs (for example, once per day). During each epoch, your node sends small status pings to Kasparex API.
             </p>
             
             <div className="grid md:grid-cols-2 gap-6 mb-6">
@@ -435,11 +435,11 @@ export default function KREXNodePage() {
               Ready to Get Started?
             </h2>
             <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-              Join the Kasparex Mesh and help build a decentralized, censorship-resistant dApp marketplace.
+              Join Kasparex and help build a decentralized, censorship-resistant dApp marketplace.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="https://github.com/Kasparex/kasparex-grid-node"
+                href="https://github.com/Kasparex/kasparex-krex-node"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-6 py-3 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
