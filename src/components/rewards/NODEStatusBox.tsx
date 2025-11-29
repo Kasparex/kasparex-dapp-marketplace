@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { createPortal } from 'react-dom';
+import Link from 'next/link';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 
 // Mock node status for simulation
@@ -18,17 +19,17 @@ const mockNodeStatus = {
 // Node types configuration
 const NODE_TYPES = {
   light: {
-    name: 'Light Node',
+    name: 'KREX Node (Light)',
     multiplier: 1.2,
     feeReduction: 5,
-    requirements: 'Run a Kaspa light node',
+    requirements: 'Run a KREX Light Node',
     rewards: '20% reward multiplier, 5% fee reduction',
   },
   mirror: {
-    name: 'Mirror Node',
+    name: 'KREX Node (Mirror)',
     multiplier: 1.5,
     feeReduction: 10,
-    requirements: 'Run a Kaspa mirror node',
+    requirements: 'Run a KREX Mirror Node',
     rewards: '50% reward multiplier, 10% fee reduction',
   },
 };
@@ -50,7 +51,7 @@ export function NODEStatusBox() {
       <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-            NODE Status
+            KREX Node Status
           </h3>
           <div className="flex items-center gap-2">
             {hasAnyNode && nodeConnected && (
@@ -149,10 +150,10 @@ export function NODEStatusBox() {
             <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                  Node Requirements
+                  KREX Node Requirements
                 </h2>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-                  Run a Kaspa node to unlock additional rewards
+                  Run a KREX Node to unlock additional rewards and support the Kasparex Mesh
                 </p>
               </div>
               <button
@@ -172,7 +173,7 @@ export function NODEStatusBox() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-zinc-200 dark:border-zinc-700">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Node Type</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">KREX Node Type</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Requirements</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reward Multiplier</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee Reduction</th>
@@ -250,10 +251,10 @@ export function NODEStatusBox() {
             <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                  Node Setup Wizard
+                  KREX Node Setup Wizard
                 </h2>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-                  Follow these steps to set up your Kaspa node
+                  Follow these steps to set up your KREX Node and join the Kasparex Mesh
                 </p>
               </div>
               <button
@@ -273,10 +274,10 @@ export function NODEStatusBox() {
               <div className="border-l-2 border-[#02abb8] pl-4">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="flex items-center justify-center w-6 h-6 bg-[#02abb8] text-white text-xs font-bold rounded-full">1</span>
-                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Choose Node Type</h3>
+                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Choose KREX Node Type</h3>
                 </div>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400 ml-8">
-                  Select between Light Node (lower requirements, 20% multiplier) or Mirror Node (higher requirements, 50% multiplier).
+                  Select between KREX Light Node (lower requirements, 20% multiplier) or KREX Mirror Node (higher requirements, 50% multiplier).
                 </p>
               </div>
 
@@ -284,14 +285,14 @@ export function NODEStatusBox() {
               <div className="border-l-2 border-[#02abb8] pl-4">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="flex items-center justify-center w-6 h-6 bg-[#02abb8] text-white text-xs font-bold rounded-full">2</span>
-                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Install Kaspa Node Software</h3>
+                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Install KREX Node Software</h3>
                 </div>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400 ml-8 mb-2">
-                  Download and install the Kaspa node software from the official repository.
+                  Download and install the KREX Node software from the Kasparex repository.
                 </p>
                 <div className="ml-8 p-3 bg-zinc-50 dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-700">
                   <code className="text-xs text-zinc-900 dark:text-zinc-100">
-                    git clone https://github.com/kaspanet/kaspad.git
+                    git clone https://github.com/Kasparex/kasparex-grid-node.git
                   </code>
                 </div>
               </div>
@@ -300,14 +301,14 @@ export function NODEStatusBox() {
               <div className="border-l-2 border-[#02abb8] pl-4">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="flex items-center justify-center w-6 h-6 bg-[#02abb8] text-white text-xs font-bold rounded-full">3</span>
-                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Configure Your Node</h3>
+                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Configure Your KREX Node</h3>
                 </div>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400 ml-8 mb-2">
-                  Configure your node settings and ensure it&apos;s synced with the Kaspa network.
+                  Configure your KREX Node settings and ensure it&apos;s connected to the Kasparex Mesh API.
                 </p>
                 <div className="ml-8 p-3 bg-zinc-50 dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-700">
                   <code className="text-xs text-zinc-900 dark:text-zinc-100">
-                    ./kaspad --config=config.json
+                    npm install && npm start
                   </code>
                 </div>
               </div>
@@ -316,10 +317,10 @@ export function NODEStatusBox() {
               <div className="border-l-2 border-[#02abb8] pl-4">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="flex items-center justify-center w-6 h-6 bg-[#02abb8] text-white text-xs font-bold rounded-full">4</span>
-                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Connect to Kasparex</h3>
+                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Connect to Kasparex Mesh</h3>
                 </div>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400 ml-8">
-                  Register your node with Kasparex by providing your node&apos;s public address. Your node will be verified and rewards will be activated.
+                  Register your KREX Node with the Kasparex Mesh API by providing your node&apos;s public address. Your node will be verified and rewards will be activated.
                 </p>
               </div>
 
@@ -336,14 +337,12 @@ export function NODEStatusBox() {
 
               {/* Documentation Link */}
               <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
-                <a
-                  href="https://docs.kaspa.org"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href="/mesh/krex-node"
                   className="text-xs text-[#02abb8] hover:underline"
                 >
-                  View full documentation →
-                </a>
+                  View full KREX Node documentation →
+                </Link>
               </div>
             </div>
           </div>
