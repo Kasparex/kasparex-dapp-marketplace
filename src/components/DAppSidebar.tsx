@@ -172,11 +172,11 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
       {isHidden && (
         <button
           onClick={() => setIsHidden(false)}
-          className="hidden lg:block fixed left-0 top-80 z-[60] p-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-r-lg transition-colors shadow-lg"
+          className="hidden lg:block fixed left-0 top-16 z-[60] p-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-r-lg transition-colors shadow-lg"
           aria-label="Show sidebar"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
       )}
@@ -229,13 +229,10 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
           }
         }}
       >
-        {/* Hide/Show Button */}
+        {/* Hide Button - Fixed at top */}
         {!isHidden && (
-          <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                dApp Info
-              </h3>
+          <div className="fixed top-16 left-0 z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 w-full" style={{ width: `${sidebarWidth}px` }}>
+            <div className="flex items-center justify-end p-2">
               <button
                 onClick={() => setIsHidden(true)}
                 className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
@@ -246,8 +243,15 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
                 </svg>
               </button>
             </div>
+          </div>
+        )}
 
-            {/* Back to Categories */}
+        {/* Header with Back Button */}
+        <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4" style={{ marginTop: !isHidden ? '48px' : '0' }}>
+          <div className="mb-4">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+              dApp Info
+            </h3>
             <Link
               href="/"
               className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors text-sm"
@@ -258,7 +262,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
               Back to Categories
             </Link>
           </div>
-        )}
+        </div>
 
         <div className={`p-4 ${isHidden ? 'lg:hidden' : ''}`}>
 
