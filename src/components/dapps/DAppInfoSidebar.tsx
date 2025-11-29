@@ -20,6 +20,7 @@ import { DAppInfoModal } from './DAppInfoModal';
 import { SocialIcons } from './SocialIcons';
 import { isEmbedded } from '@/lib/utils';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
+import { DAppActionFlow } from './DAppActionFlow';
 
 interface DAppInfoSidebarProps {
   dapp: DApp;
@@ -47,6 +48,7 @@ export function DAppInfoSidebar({
   const { openChainModal } = useChainModal();
   const isEmbeddedPage = isEmbedded();
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   
   // Sidebar hide/show and resize state
   const [isHidden, setIsHidden] = useState(false);
@@ -189,6 +191,44 @@ export function DAppInfoSidebar({
 
   return (
     <>
+      {/* Mobile Action Flow Button */}
+      <button
+        onClick={() => setIsMobileOpen(true)}
+        className="lg:hidden fixed bottom-4 right-4 z-50 w-14 h-14 rounded-full bg-[#02abb8] text-white shadow-lg hover:bg-[#028a94] transition-colors flex items-center justify-center"
+        aria-label="Open action flow"
+      >
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+      </button>
+
+      {/* Mobile Action Flow Sidebar */}
+      {isMobileOpen && (
+        <>
+          <div
+            className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+            onClick={() => setIsMobileOpen(false)}
+          />
+          <aside className="lg:hidden fixed right-0 top-0 bottom-0 z-50 w-80 bg-white dark:bg-zinc-950 border-l border-zinc-200 dark:border-zinc-800 overflow-y-auto">
+            <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Action Flow</h2>
+              <button
+                onClick={() => setIsMobileOpen(false)}
+                className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+                aria-label="Close"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4">
+              <DAppActionFlow dapp={mergedDApp} tokenTicker={tokenTicker} />
+            </div>
+          </aside>
+        </>
+      )}
+
       {/* Hide/Show Button - Fixed position when sidebar is hidden */}
       {isHidden && (
         <button
@@ -349,6 +389,9 @@ export function DAppInfoSidebar({
                   </div>
                 </>
               )}
+
+              {/* Action Flow */}
+              <DAppActionFlow dapp={mergedDApp} tokenTicker={tokenTicker} />
 
               {/* Network & Compatibility (Moved below Developer) */}
               <div className="space-y-2 pt-3 border-t border-zinc-200 dark:border-zinc-800">
