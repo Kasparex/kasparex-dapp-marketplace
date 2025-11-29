@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764441543-e462d78",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add right sidebars with table of contents to KREX Node and API pages, and create Knowledge Base with sidebar, filters, and article pages (by Kasparex)",
+      "date": "2025-11-29T19:38:23+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764439568-393d45d",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update remaining blockchain references to BlockDAG (by Kasparex)",
