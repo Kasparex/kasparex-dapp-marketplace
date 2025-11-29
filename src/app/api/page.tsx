@@ -303,7 +303,7 @@ export default function KasparexAPIPage() {
                   4. Reduces Costs
                 </h3>
                 <p className="text-zinc-600 dark:text-zinc-400">
-                  The Mesh API redirects "where to download from". If the API says a mirror node is nearby, the frontend loads metadata from it instead of Vercel.
+                  The Mesh API redirects &quot;where to download from&quot;. If the API says a mirror node is nearby, the frontend loads metadata from it instead of Vercel.
                 </p>
               </div>
 
@@ -312,7 +312,7 @@ export default function KasparexAPIPage() {
                   5. Enables Dashboards
                 </h3>
                 <p className="text-zinc-600 dark:text-zinc-400">
-                  User dashboards can show "My GRID Node: Online/Offline", rewards, uptime, LRT earnings, and KREX multiplier tier.
+                  User dashboards can show &quot;My GRID Node: Online/Offline&quot;, rewards, uptime, LRT earnings, and KREX multiplier tier.
                 </p>
               </div>
             </div>
@@ -354,7 +354,7 @@ export default function KasparexAPIPage() {
                 </li>
               </ul>
               <p className="text-zinc-600 dark:text-zinc-400 mt-4">
-                It is the <strong className="text-zinc-900 dark:text-zinc-100">"network coordinator"</strong> of your decentralized mesh.
+                It is the <strong className="text-zinc-900 dark:text-zinc-100">&quot;network coordinator&quot;</strong> of your decentralized mesh.
               </p>
             </div>
           </section>
