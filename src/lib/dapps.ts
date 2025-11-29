@@ -248,7 +248,7 @@ export const placeholderDApps: DApp[] = [
     category: 'games',
     utility: 'Answer crypto and ecosystem questions to earn GRID or token rewards',
     process: 'Select a question, choose your answer, and submit. Correct answers earn rewards automatically.',
-    benefits: 'Learn about Kaspa and blockchain technology while earning rewards. Educational gamification with on-chain rewards.',
+    benefits: 'Learn about Kaspa and BlockDAG technology while earning rewards. Educational gamification with on-chain rewards.',
     developer: 'Kasparex',
     developerLinks: [
       { label: 'Website', url: 'https://www.kasparex.com' },
@@ -259,7 +259,7 @@ export const placeholderDApps: DApp[] = [
     network: 'Kasplex L2',
     provider: 'Kasparex',
     version: '1.0.0',
-    description: 'Quiz-to-Earn is a gamified learning platform where users answer questions about Kaspa, blockchain technology, and the ecosystem to earn rewards. Each correct answer earns GRID or token rewards, tracked on-chain through Proof-of-Utility.',
+    description: 'Quiz-to-Earn is a gamified learning platform where users answer questions about Kaspa, BlockDAG technology, and the ecosystem to earn rewards. Each correct answer earns GRID or token rewards, tracked on-chain through Proof-of-Utility.',
     security: 'Built with OpenZeppelin contracts for security. All smart contracts use ReentrancyGuard to prevent reentrancy attacks. Questions and answers are stored on-chain for transparency. Rewards are distributed automatically through the RewardManager.',
     roadmap: 'Q4 2025: Testnet launch with initial question set\nQ1 2026: Mainnet deployment\nQ2 2026: Community question submission and moderation\nQ3 2026: Advanced features including streaks, leaderboards, and categories',
     createdAt: new Date().toISOString(),

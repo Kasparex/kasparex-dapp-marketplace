@@ -118,7 +118,7 @@ export function Activity({ walletAddress }: ActivityProps) {
     }
   }, [walletAddress]);
 
-  // Fetch transactions for the wallet from blockchain
+  // Fetch transactions for the wallet from BlockDAG
   useEffect(() => {
     if (!publicClient || !walletAddress) {
       return;
@@ -387,7 +387,7 @@ export function Activity({ walletAddress }: ActivityProps) {
     return (
       <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
         <p className="text-gray-600 dark:text-gray-400 text-center">
-          {!isConnected ? 'Please connect your wallet to view activity' : 'Loading blockchain connection...'}
+          {!isConnected ? 'Please connect your wallet to view activity' : 'Loading BlockDAG connection...'}
         </p>
       </div>
     );
