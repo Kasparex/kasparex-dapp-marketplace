@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764449121-010f2c1",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Remove sticky headers, update button colors, create style guide page (by Kasparex)",
+      "date": "2025-11-29T21:45:00+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764443160-17d144e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Move article sidebar to left, update dApp sidebars to match Knowledge Base template (by Kasparex)",
