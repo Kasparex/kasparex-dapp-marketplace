@@ -58,9 +58,9 @@ export function DAppRewardsSidebar({ tokenTicker, dappName }: DAppRewardsSidebar
   };
 
   return (
-    <div className="space-y-4">
+    <>
       {/* Rewards & Metrics & Fees Box */}
-      <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+      <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
             Rewards & Metrics
@@ -197,7 +197,7 @@ export function DAppRewardsSidebar({ tokenTicker, dappName }: DAppRewardsSidebar
       </div>
 
       {/* Seasonal Boosters Box */}
-      <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+      <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
           Seasonal Boosters
         </h3>
@@ -216,7 +216,7 @@ export function DAppRewardsSidebar({ tokenTicker, dappName }: DAppRewardsSidebar
 
       {/* Node Provider Rewards Box (Optional) */}
       {mockNodeMultiplier > 1 && (
-        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
           <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
             Node Provider Rewards
           </h3>
@@ -233,7 +233,7 @@ export function DAppRewardsSidebar({ tokenTicker, dappName }: DAppRewardsSidebar
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 

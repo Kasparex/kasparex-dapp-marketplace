@@ -22,7 +22,7 @@ export function NetworkAvailabilityBox({ dapp, accentColor = '#02abb8' }: Networ
   const compatibility = useNetworkCompatibility(dapp);
 
   return (
-    <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+    <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
       <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
         Network Availability
       </h3>

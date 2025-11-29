@@ -302,9 +302,9 @@ export function DAppInfoSidebar({
           </div>
         )}
 
-        <div className={`p-4 lg:p-6 space-y-4 ${isHidden ? 'hidden' : ''}`}>
+        <div className={`p-4 lg:p-6 ${isHidden ? 'hidden' : ''}`}>
             {/* Developer & Info (No Box) */}
-            <div className="space-y-3">
+            <div className="space-y-3 mb-6">
               {/* Featured Image (Above Developer Button) */}
               {featuredImage && (
                 <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">

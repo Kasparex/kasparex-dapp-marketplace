@@ -201,8 +201,8 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
   const dAppTokenBalance = holdings?.lrtBalances.find(b => b.ticker === displayTokenTicker)?.balance || 0;
 
   return (
-    <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-      <div className="flex items-center justify-between mb-3">
+    <div className="mb-6">
+      <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
           Action Flow
         </h3>
@@ -210,7 +210,7 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
 
       {/* Current Holdings */}
       {isConnected && (
-        <div className="mb-4 p-3 bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+        <div className="mb-4 p-3 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
           <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">Current Holdings</div>
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
@@ -309,7 +309,7 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
                   </div>
 
                   {/* Rewards */}
-                  <div className="p-2 bg-white dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-700">
+                  <div className="p-2 bg-zinc-50 dark:bg-zinc-900 rounded border border-zinc-200 dark:border-zinc-800">
                     <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1.5">Rewards</div>
                     <div className="space-y-1">
                       <div className="flex items-center justify-between text-xs">
@@ -365,7 +365,7 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
       {actions.length > 1 && (
         <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">
           <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-2">Total Predicted (All Actions)</div>
-          <div className="p-3 bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-zinc-600 dark:text-zinc-400">Total Cost</span>
