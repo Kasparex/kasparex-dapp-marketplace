@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764452672-c8e892c",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix all sidebar button positions: remove sticky, fix chevron directions, ensure proper UX (by Kasparex)",
+      "date": "2025-11-29T22:43:55+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764451199-ce31034",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Restore sidebar button positions, add Knowledge Base button, update footer, increase widget spacing (by Kasparex)",
