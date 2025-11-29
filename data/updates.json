@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764425591-56640d3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Move Action Flow to left sidebar, move KREX/NFT Status to right sidebar, remove box styling, use actual token names (by Kasparex)",
+      "date": "2025-11-29T15:12:42+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764424159-5d73959",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add Action Flow timeline to dApp pages right sidebar with mobile support (by Kasparex)",
