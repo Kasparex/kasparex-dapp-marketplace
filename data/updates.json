@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764424159-5d73959",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add Action Flow timeline to dApp pages right sidebar with mobile support (by Kasparex)",
+      "date": "2025-11-29T14:48:41+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764373953-c403830",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Move collapsible sections above KREX Status, update table view, set all versions to 1.0.0, update modals (by Kasparex)",
