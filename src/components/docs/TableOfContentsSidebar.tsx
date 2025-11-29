@@ -14,7 +14,7 @@ export function TableOfContentsSidebar({ items }: TableOfContentsSidebarProps) {
   const [isHidden, setIsHidden] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(280);
   const [isResizing, setIsResizing] = useState(false);
-  const sidebarRef = useRef<HTMLAsideElement>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
 
   // Load sidebar state from localStorage
   useEffect(() => {
