@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 
 export type SortOption = 
   | 'newest'
@@ -25,6 +26,25 @@ interface SortFiltersProps {
 
 export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode = 'cards', onViewModeChange }: SortFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
+  const plusMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close plus menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (plusMenuRef.current && !plusMenuRef.current.contains(event.target as Node)) {
+        setIsPlusMenuOpen(false);
+      }
+    };
+
+    if (isPlusMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isPlusMenuOpen]);
 
   const sortOptions: { value: SortOption; label: string }[] = [
     { value: 'newest', label: 'Newly Created' },
@@ -150,6 +170,44 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
           <span className="ml-1 text-xs font-medium">{favoritesCount}</span>
         )}
       </button>
+
+      {/* Plus Button with Dropdown */}
+      <div className="relative" ref={plusMenuRef}>
+        <button
+          onClick={() => setIsPlusMenuOpen(!isPlusMenuOpen)}
+          className="flex items-center justify-center px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+          aria-label="More options"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
+
+        {isPlusMenuOpen && (
+          <>
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setIsPlusMenuOpen(false)}
+            />
+            <div className="absolute top-full right-0 mt-1 w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-50 overflow-hidden">
+              <Link
+                href="/list-dapp"
+                onClick={() => setIsPlusMenuOpen(false)}
+                className="block w-full text-left px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+              >
+                List dApp
+              </Link>
+              <Link
+                href="/build-dapp"
+                onClick={() => setIsPlusMenuOpen(false)}
+                className="block w-full text-left px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+              >
+                Build dApp
+              </Link>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

@@ -345,6 +345,75 @@ export function Sidebar({
             expanded={filtersExpanded}
             onToggle={() => setFiltersExpanded(!filtersExpanded)}
           >
+            {/* Categories Filter */}
+            <CollapsibleSection
+              title="Categories"
+              icon={<CategoriesIcon />}
+              expanded={categoriesExpanded}
+              onToggle={() => setCategoriesExpanded(!categoriesExpanded)}
+            >
+              <div className="mb-4">
+                <div className="flex gap-2 mb-2">
+                  <button
+                    onClick={() => {
+                      const allCategories = categories.map((cat) => cat.id);
+                      onCategoryChange(allCategories);
+                    }}
+                    className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                  >
+                    Select All
+                  </button>
+                  <button
+                    onClick={() => {
+                      onCategoryChange([]);
+                    }}
+                    className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                  >
+                    Deselect All
+                  </button>
+                </div>
+                <nav className="space-y-1">
+                  {categories.map((category) => {
+                    const isChecked = selectedCategories.includes(category.id);
+                    const count = categoryCounts[category.id] || 0;
+                    return (
+                      <label
+                        key={category.id}
+                        className={`
+                          checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
+                          transition-colors pl-8
+                          ${
+                            isChecked
+                              ? 'bg-zinc-50 dark:bg-zinc-900/50'
+                              : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
+                          }
+                        `}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {
+                            const newCategories = isChecked
+                              ? selectedCategories.filter((c) => c !== category.id)
+                              : [...selectedCategories, category.id];
+                            onCategoryChange(newCategories);
+                          }}
+                        />
+                        <div className="control__indicator"></div>
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <span className="text-lg flex-shrink-0">{category.emoji}</span>
+                          <span className="text-sm text-zinc-700 dark:text-zinc-300">{category.name}</span>
+                        </div>
+                        <span className="text-xs px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex-shrink-0">
+                          {count}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </nav>
+              </div>
+            </CollapsibleSection>
+
             {/* Status Filter */}
             <CollapsibleSection
               title="Status"
@@ -564,66 +633,6 @@ export function Sidebar({
               Quick Guide
             </button>
           </div>
-
-          {/* Categories Section */}
-          <CollapsibleSection
-            title="Categories"
-            icon={<CategoriesIcon />}
-            expanded={categoriesExpanded}
-            onToggle={() => setCategoriesExpanded(!categoriesExpanded)}
-          >
-            <div className="mb-4">
-              <div className="flex gap-2 mb-2">
-                <button
-                  onClick={handleStatusSelectAll}
-                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                >
-                  Select All
-                </button>
-                <button
-                  onClick={handleStatusDeselectAll}
-                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                >
-                  Deselect All
-                </button>
-              </div>
-              <nav className="space-y-1">
-                {statusOptions.map((option) => {
-                  const currentStatus = filters.status || [];
-                  const isChecked = currentStatus.includes(option.value);
-                  return (
-                    <label
-                      key={option.value}
-                      className={`
-                        checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
-                        transition-colors pl-8
-                        ${
-                          isChecked
-                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
-                        }
-                      `}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => handleStatusToggle(option.value)}
-                      />
-                      <div className="control__indicator"></div>
-                      {option.value !== 'all' && (
-                        <StatusIndicatorDot
-                          statusType={getStatusTypeFromString(option.value)}
-                          size="sm"
-                          className="flex-shrink-0"
-                        />
-                      )}
-                      <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
-                    </label>
-                  );
-                })}
-              </nav>
-            </div>
-          </CollapsibleSection>
 
           {/* Rewards Info Boxes */}
           <KREXStatusBox />
