@@ -134,20 +134,40 @@ export default function StyleGuidePage() {
   );
 
   const categories = [
-    { id: 'buttons', label: 'Buttons', icon: <ButtonIcon /> },
-    { id: 'inputs', label: 'Inputs & Forms', icon: <InputIcon /> },
-    { id: 'checkboxes', label: 'Checkboxes', icon: <CheckboxIcon /> },
-    { id: 'icons', label: 'Icons', icon: <IconIcon /> },
-    { id: 'cards', label: 'Cards', icon: <CardIcon /> },
-    { id: 'modals', label: 'Modals', icon: <ModalIcon /> },
-    { id: 'sidebars', label: 'Sidebars', icon: <SidebarIcon /> },
-    { id: 'badges', label: 'Badges & Tags', icon: <BadgeIcon /> },
-    { id: 'typography', label: 'Typography', icon: <TypographyIcon /> },
-    { id: 'colors', label: 'Colors', icon: <ColorIcon /> },
-    { id: 'alerts', label: 'Alerts', icon: <AlertIcon /> },
-    { id: 'dapp-widget', label: 'dApp Widget', icon: <DAppWidgetIcon /> },
-    { id: 'dapp-card', label: 'dApp Cards', icon: <DAppCardIcon /> },
+    { id: 'buttons', label: 'Buttons', icon: <ButtonIcon />, color: 'emerald' },
+    { id: 'inputs', label: 'Inputs & Forms', icon: <InputIcon />, color: 'blue' },
+    { id: 'checkboxes', label: 'Checkboxes', icon: <CheckboxIcon />, color: 'purple' },
+    { id: 'icons', label: 'Icons', icon: <IconIcon />, color: 'indigo' },
+    { id: 'cards', label: 'Cards', icon: <CardIcon />, color: 'rose' },
+    { id: 'modals', label: 'Modals', icon: <ModalIcon />, color: 'cyan' },
+    { id: 'sidebars', label: 'Sidebars', icon: <SidebarIcon />, color: 'orange' },
+    { id: 'badges', label: 'Badges & Tags', icon: <BadgeIcon />, color: 'amber' },
+    { id: 'typography', label: 'Typography', icon: <TypographyIcon />, color: 'teal' },
+    { id: 'colors', label: 'Colors', icon: <ColorIcon />, color: 'violet' },
+    { id: 'alerts', label: 'Alerts', icon: <AlertIcon />, color: 'red' },
+    { id: 'dapp-widget', label: 'dApp Widget', icon: <DAppWidgetIcon />, color: 'sky' },
+    { id: 'dapp-card', label: 'dApp Cards', icon: <DAppCardIcon />, color: 'green' },
   ];
+
+  const getIconBoxClasses = (color: string) => {
+    const colorMap: Record<string, { bg: string; darkBg: string; text: string; darkText: string }> = {
+      emerald: { bg: 'bg-emerald-100', darkBg: 'dark:bg-emerald-900/50', text: 'text-emerald-600', darkText: 'dark:text-emerald-400' },
+      blue: { bg: 'bg-blue-100', darkBg: 'dark:bg-blue-900/50', text: 'text-blue-600', darkText: 'dark:text-blue-400' },
+      purple: { bg: 'bg-purple-100', darkBg: 'dark:bg-purple-900/50', text: 'text-purple-600', darkText: 'dark:text-purple-400' },
+      indigo: { bg: 'bg-indigo-100', darkBg: 'dark:bg-indigo-900/50', text: 'text-indigo-600', darkText: 'dark:text-indigo-400' },
+      rose: { bg: 'bg-rose-100', darkBg: 'dark:bg-rose-900/50', text: 'text-rose-600', darkText: 'dark:text-rose-400' },
+      cyan: { bg: 'bg-cyan-100', darkBg: 'dark:bg-cyan-900/50', text: 'text-cyan-600', darkText: 'dark:text-cyan-400' },
+      orange: { bg: 'bg-orange-100', darkBg: 'dark:bg-orange-900/50', text: 'text-orange-600', darkText: 'dark:text-orange-400' },
+      amber: { bg: 'bg-amber-100', darkBg: 'dark:bg-amber-900/50', text: 'text-amber-600', darkText: 'dark:text-amber-400' },
+      teal: { bg: 'bg-teal-100', darkBg: 'dark:bg-teal-900/50', text: 'text-teal-600', darkText: 'dark:text-teal-400' },
+      violet: { bg: 'bg-violet-100', darkBg: 'dark:bg-violet-900/50', text: 'text-violet-600', darkText: 'dark:text-violet-400' },
+      red: { bg: 'bg-red-100', darkBg: 'dark:bg-red-900/50', text: 'text-red-600', darkText: 'dark:text-red-400' },
+      sky: { bg: 'bg-sky-100', darkBg: 'dark:bg-sky-900/50', text: 'text-sky-600', darkText: 'dark:text-sky-400' },
+      green: { bg: 'bg-green-100', darkBg: 'dark:bg-green-900/50', text: 'text-green-600', darkText: 'dark:text-green-400' },
+    };
+    const colors = colorMap[color] || colorMap.emerald;
+    return `w-8 h-8 ${colors.bg} ${colors.darkBg} rounded-lg flex items-center justify-center ${colors.text} ${colors.darkText}`;
+  };
 
   const styleElements: Record<string, any[]> = {
     buttons: [
@@ -392,6 +412,256 @@ export default function StyleGuidePage() {
             <div>
               <h4 className="text-sm font-semibold text-sky-900 dark:text-sky-100 mb-1">Information</h4>
               <p className="text-sm text-sky-700 dark:text-sky-300">Here&apos;s some helpful information for you.</p>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: 'success-compact',
+        name: 'Success Alert (Compact)',
+        description: 'Compact success alert without title',
+        className: 'p-3 bg-emerald-50 dark:bg-emerald-950/50 rounded-lg',
+        example: (
+          <div className="p-3 bg-emerald-50 dark:bg-emerald-950/50 rounded-lg flex items-center gap-2">
+            <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="text-sm text-emerald-700 dark:text-emerald-300">Transaction completed successfully</p>
+          </div>
+        ),
+      },
+      {
+        id: 'error-destructive',
+        name: 'Error Alert (Destructive)',
+        description: 'Destructive error alert with action button',
+        className: 'p-4 bg-red-50 dark:bg-red-950/50 rounded-lg',
+        example: (
+          <div className="p-4 bg-red-50 dark:bg-red-950/50 rounded-lg">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h4 className="text-sm font-semibold text-red-900 dark:text-red-100 mb-1">Action Failed</h4>
+                <p className="text-sm text-red-700 dark:text-red-300">Unable to process your request. Please try again.</p>
+              </div>
+            </div>
+            <button className="px-3 py-1.5 bg-red-100 dark:bg-red-900/50 hover:bg-red-200 dark:hover:bg-red-900/70 text-red-700 dark:text-red-300 rounded-lg text-xs font-medium transition-colors">
+              Retry
+            </button>
+          </div>
+        ),
+      },
+      {
+        id: 'warning-action',
+        name: 'Warning Alert (With Action)',
+        description: 'Warning alert with action required',
+        className: 'p-4 bg-amber-50 dark:bg-amber-950/50 rounded-lg',
+        example: (
+          <div className="p-4 bg-amber-50 dark:bg-amber-950/50 rounded-lg">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h4 className="text-sm font-semibold text-amber-900 dark:text-amber-100 mb-1">Attention Required</h4>
+                <p className="text-sm text-amber-700 dark:text-amber-300">Your session will expire in 5 minutes.</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button className="px-3 py-1.5 bg-amber-100 dark:bg-amber-900/50 hover:bg-amber-200 dark:hover:bg-amber-900/70 text-amber-700 dark:text-amber-300 rounded-lg text-xs font-medium transition-colors">
+                Extend Session
+              </button>
+              <button className="px-3 py-1.5 text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 rounded-lg text-xs font-medium transition-colors">
+                Dismiss
+              </button>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: 'info-link',
+        name: 'Info Alert (With Link)',
+        description: 'Information alert with external link',
+        className: 'p-4 bg-sky-50 dark:bg-sky-950/50 rounded-lg',
+        example: (
+          <div className="p-4 bg-sky-50 dark:bg-sky-950/50 rounded-lg flex items-start gap-3">
+            <div className="w-10 h-10 bg-sky-100 dark:bg-sky-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-sky-600 dark:text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h4 className="text-sm font-semibold text-sky-900 dark:text-sky-100 mb-1">New Feature Available</h4>
+              <p className="text-sm text-sky-700 dark:text-sky-300 mb-2">Check out our latest updates and improvements.</p>
+              <a href="#" className="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-200 underline font-medium">
+                Learn more →
+              </a>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: 'neutral',
+        name: 'Neutral Alert',
+        description: 'Neutral information alert using zinc color palette',
+        className: 'p-4 bg-zinc-50 dark:bg-zinc-950/50 rounded-lg',
+        example: (
+          <div className="p-4 bg-zinc-50 dark:bg-zinc-950/50 rounded-lg flex items-start gap-3">
+            <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-1">Notice</h4>
+              <p className="text-sm text-zinc-700 dark:text-zinc-300">This is a neutral informational message.</p>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: 'success-icon-only',
+        name: 'Success Alert (Icon Only)',
+        description: 'Minimal success alert with icon only',
+        className: 'p-3 bg-emerald-50 dark:bg-emerald-950/50 rounded-lg',
+        example: (
+          <div className="p-3 bg-emerald-50 dark:bg-emerald-950/50 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: 'error-inline',
+        name: 'Error Alert (Inline)',
+        description: 'Inline error message for forms',
+        className: 'p-3 bg-red-50 dark:bg-red-950/50 rounded-lg',
+        example: (
+          <div className="p-3 bg-red-50 dark:bg-red-950/50 rounded-lg flex items-center gap-2">
+            <svg className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-sm text-red-700 dark:text-red-300">This field is required</p>
+          </div>
+        ),
+      },
+      {
+        id: 'warning-banner',
+        name: 'Warning Alert (Banner)',
+        description: 'Full-width banner warning alert',
+        className: 'p-4 bg-amber-50 dark:bg-amber-950/50 rounded-lg',
+        example: (
+          <div className="p-4 bg-amber-50 dark:bg-amber-950/50 rounded-lg border-l-4 border-amber-500 dark:border-amber-400">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h4 className="text-sm font-semibold text-amber-900 dark:text-amber-100">Maintenance Scheduled</h4>
+                <p className="text-sm text-amber-700 dark:text-amber-300">System maintenance will occur tonight at 2 AM UTC.</p>
+              </div>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: 'info-progress',
+        name: 'Info Alert (With Progress)',
+        description: 'Information alert with progress indicator',
+        className: 'p-4 bg-sky-50 dark:bg-sky-950/50 rounded-lg',
+        example: (
+          <div className="p-4 bg-sky-50 dark:bg-sky-950/50 rounded-lg">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-10 h-10 bg-sky-100 dark:bg-sky-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-sky-600 dark:text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h4 className="text-sm font-semibold text-sky-900 dark:text-sky-100 mb-1">Processing Request</h4>
+                <p className="text-sm text-sky-700 dark:text-sky-300 mb-2">Your transaction is being processed...</p>
+                <div className="w-full bg-sky-200 dark:bg-sky-900/50 rounded-full h-1.5">
+                  <div className="bg-sky-600 dark:bg-sky-400 h-1.5 rounded-full" style={{ width: '60%' }}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: 'success-toast',
+        name: 'Success Alert (Toast Style)',
+        description: 'Toast-style success notification',
+        className: 'p-3 bg-emerald-50 dark:bg-emerald-950/50 rounded-lg',
+        example: (
+          <div className="p-3 bg-emerald-50 dark:bg-emerald-950/50 rounded-lg flex items-center gap-2 shadow-lg">
+            <div className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center flex-shrink-0">
+              <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="text-sm font-medium text-emerald-900 dark:text-emerald-100">Saved successfully</p>
+          </div>
+        ),
+      },
+      {
+        id: 'error-dismissible',
+        name: 'Error Alert (Dismissible)',
+        description: 'Dismissible error alert with close button',
+        className: 'p-4 bg-red-50 dark:bg-red-950/50 rounded-lg',
+        example: (
+          <div className="p-4 bg-red-50 dark:bg-red-950/50 rounded-lg flex items-start gap-3">
+            <div className="w-10 h-10 bg-red-100 dark:bg-red-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h4 className="text-sm font-semibold text-red-900 dark:text-red-100 mb-1">Error Occurred</h4>
+              <p className="text-sm text-red-700 dark:text-red-300">Something went wrong. Please try again later.</p>
+            </div>
+            <button className="p-1 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200 transition-colors">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        ),
+      },
+      {
+        id: 'info-multiline',
+        name: 'Info Alert (Multiline)',
+        description: 'Multiline information alert with detailed content',
+        className: 'p-4 bg-sky-50 dark:bg-sky-950/50 rounded-lg',
+        example: (
+          <div className="p-4 bg-sky-50 dark:bg-sky-950/50 rounded-lg">
+            <div className="flex items-start gap-3 mb-2">
+              <div className="w-10 h-10 bg-sky-100 dark:bg-sky-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-sky-600 dark:text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h4 className="text-sm font-semibold text-sky-900 dark:text-sky-100 mb-1">Important Update</h4>
+                <p className="text-sm text-sky-700 dark:text-sky-300 mb-1">
+                  We&apos;ve made significant improvements to our platform. New features include enhanced security, faster processing, and better user experience.
+                </p>
+                <p className="text-xs text-sky-600 dark:text-sky-400">
+                  All changes are backward compatible and require no action from your side.
+                </p>
+              </div>
             </div>
           </div>
         ),
@@ -699,11 +969,14 @@ export default function StyleGuidePage() {
     {
       id: 'product',
       name: 'Product Card',
-      description: 'Card for displaying products or items',
+      description: 'Card for displaying products or items with dApp image banner',
       example: (
-        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden hover:shadow-lg transition-shadow shadow-sm">
-          <div className="h-48 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-            <span className="text-zinc-400">Image</span>
+        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden hover:shadow-lg hover:border-[#02abb8] dark:hover:border-[#02abb8] transition-all shadow-sm">
+          {/* Default dApp Image Banner */}
+          <div className="h-32 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border-b border-zinc-200 dark:border-zinc-700">
+            <svg className="w-12 h-12 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
           </div>
           <div className="p-4">
             <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">Product Name</h3>
@@ -721,12 +994,12 @@ export default function StyleGuidePage() {
     {
       id: 'profile',
       name: 'Profile Card',
-      description: 'User profile information card',
+      description: 'User profile information card with colorful icon',
       example: (
-        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg hover:border-[#02abb8] dark:hover:border-[#02abb8] transition-all shadow-sm">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
-              <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
@@ -750,14 +1023,16 @@ export default function StyleGuidePage() {
     {
       id: 'stats',
       name: 'Stats Card',
-      description: 'Statistics display card',
+      description: 'Statistics display card with colorful icon',
       example: (
-        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg hover:border-[#02abb8] dark:hover:border-[#02abb8] transition-all shadow-sm">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-zinc-600 dark:text-zinc-400">Total Users</span>
-            <svg className="w-5 h-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
+            <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </div>
           </div>
           <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">1,234</div>
           <div className="flex items-center gap-1 text-sm">
@@ -767,22 +1042,22 @@ export default function StyleGuidePage() {
         </div>
       ),
     },
-      {
-        id: 'feature',
-        name: 'Feature Card',
-        description: 'Feature highlight card with colored icon background',
-        example: (
-          <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg transition-shadow shadow-sm">
-            <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Feature Title</h3>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">Feature description and benefits explained here</p>
+    {
+      id: 'feature',
+      name: 'Feature Card',
+      description: 'Feature highlight card with colored icon background',
+      example: (
+        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg hover:border-[#02abb8] dark:hover:border-[#02abb8] transition-all shadow-sm">
+          <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg flex items-center justify-center mb-4">
+            <svg className="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
           </div>
-        ),
-      },
+          <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Feature Title</h3>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">Feature description and benefits explained here</p>
+        </div>
+      ),
+    },
   ];
 
   // dApp Widget Templates
@@ -833,6 +1108,136 @@ export default function StyleGuidePage() {
               </button>
             </div>
           </div>
+        </div>
+      ),
+    },
+    {
+      id: 'pay-kas-button',
+      name: 'Pay KAS Button',
+      description: 'Primary payment button for KAS transactions',
+      example: (
+        <div className="space-y-3">
+          <button className="w-full px-6 py-3 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Pay 100 KAS
+          </button>
+          <button className="w-full px-6 py-3 bg-zinc-800 hover:bg-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Pay 50 KAS
+          </button>
+        </div>
+      ),
+    },
+    {
+      id: 'vote-button',
+      name: 'Vote Button',
+      description: 'Voting action button for governance and polls',
+      example: (
+        <div className="space-y-3">
+          <button className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Vote Yes
+          </button>
+          <button className="w-full px-6 py-3 bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Vote No
+          </button>
+          <button className="w-full px-6 py-3 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Abstain
+          </button>
+        </div>
+      ),
+    },
+    {
+      id: 'submit-action',
+      name: 'Submit/Pay Action',
+      description: 'Submit and payment action buttons',
+      example: (
+        <div className="space-y-3">
+          <button className="w-full px-6 py-3 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Submit
+          </button>
+          <button className="w-full px-6 py-3 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Pay & Submit
+          </button>
+          <button className="w-full px-6 py-3 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg font-semibold transition-colors">
+            Cancel
+          </button>
+        </div>
+      ),
+    },
+    {
+      id: 'transaction-form',
+      name: 'Transaction Form',
+      description: 'Complete transaction form with amount input and action buttons',
+      example: (
+        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Amount (KAS)</label>
+            <input
+              type="number"
+              placeholder="0.00"
+              className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white rounded-lg font-semibold transition-colors">
+              Pay KAS
+            </button>
+            <button className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium transition-colors">
+              Max
+            </button>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: 'action-buttons-grid',
+      name: 'Action Buttons Grid',
+      description: 'Grid of common dApp action buttons',
+      example: (
+        <div className="grid grid-cols-2 gap-3">
+          <button className="px-4 py-3 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white rounded-lg font-semibold transition-colors text-sm flex items-center justify-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Pay
+          </button>
+          <button className="px-4 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors text-sm flex items-center justify-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Vote
+          </button>
+          <button className="px-4 py-3 bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors text-sm flex items-center justify-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Submit
+          </button>
+          <button className="px-4 py-3 bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700 text-white rounded-lg font-semibold transition-colors text-sm flex items-center justify-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </button>
         </div>
       ),
     },
@@ -1082,7 +1487,7 @@ export default function StyleGuidePage() {
                       : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
                   }`}
                 >
-                  <span className="flex-shrink-0 w-8 h-8 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                  <span className={`flex-shrink-0 ${getIconBoxClasses(category.color)}`}>
                     {category.icon}
                   </span>
                   <span>{category.label}</span>
@@ -1108,21 +1513,23 @@ export default function StyleGuidePage() {
         {/* Main Content */}
         <div className="flex-1 min-w-0 overflow-y-auto h-[calc(100vh-4rem)]">
           <div className="max-w-6xl mx-auto p-8">
-            {/* Back to Categories Button */}
+            {/* Back to Categories Link */}
             {selectedCategory && (
               <div className="mb-6">
-                <button
-                  onClick={() => {
+                <Link
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
                     setSelectedCategory(null);
                     setSelectedElement(null);
                   }}
-                  className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors text-sm flex items-center gap-2"
+                  className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium transition-colors text-sm flex items-center gap-1"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                   Back to Categories
-                </button>
+                </Link>
               </div>
             )}
 
@@ -1145,7 +1552,7 @@ export default function StyleGuidePage() {
                     onClick={() => setSelectedCategory(category.id)}
                     className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg transition-shadow text-left shadow-sm"
                   >
-                    <div className="mb-3 w-12 h-12 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                    <div className={`mb-3 ${getIconBoxClasses(category.color).replace('w-8 h-8', 'w-12 h-12')}`}>
                       {category.icon}
                     </div>
                     <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
