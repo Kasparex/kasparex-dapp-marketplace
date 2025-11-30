@@ -63,17 +63,87 @@ export default function StyleGuidePage() {
     };
   }, [isResizing]);
 
+  // Icon components for categories
+  const ButtonIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+    </svg>
+  );
+  const InputIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    </svg>
+  );
+  const CheckboxIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  );
+  const IconIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+    </svg>
+  );
+  const CardIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+    </svg>
+  );
+  const ModalIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+    </svg>
+  );
+  const SidebarIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  );
+  const BadgeIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+    </svg>
+  );
+  const TypographyIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  );
+  const ColorIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+    </svg>
+  );
+  const AlertIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+  );
+  const DAppWidgetIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+    </svg>
+  );
+  const DAppCardIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+    </svg>
+  );
+
   const categories = [
-    { id: 'buttons', label: 'Buttons', icon: '🔘' },
-    { id: 'inputs', label: 'Inputs & Forms', icon: '📝' },
-    { id: 'checkboxes', label: 'Checkboxes', icon: '☑️' },
-    { id: 'icons', label: 'Icons', icon: '🎨' },
-    { id: 'cards', label: 'Cards', icon: '🃏' },
-    { id: 'modals', label: 'Modals', icon: '🪟' },
-    { id: 'sidebars', label: 'Sidebars', icon: '📋' },
-    { id: 'badges', label: 'Badges & Tags', icon: '🏷️' },
-    { id: 'typography', label: 'Typography', icon: '✍️' },
-    { id: 'colors', label: 'Colors', icon: '🎨' },
+    { id: 'buttons', label: 'Buttons', icon: <ButtonIcon /> },
+    { id: 'inputs', label: 'Inputs & Forms', icon: <InputIcon /> },
+    { id: 'checkboxes', label: 'Checkboxes', icon: <CheckboxIcon /> },
+    { id: 'icons', label: 'Icons', icon: <IconIcon /> },
+    { id: 'cards', label: 'Cards', icon: <CardIcon /> },
+    { id: 'modals', label: 'Modals', icon: <ModalIcon /> },
+    { id: 'sidebars', label: 'Sidebars', icon: <SidebarIcon /> },
+    { id: 'badges', label: 'Badges & Tags', icon: <BadgeIcon /> },
+    { id: 'typography', label: 'Typography', icon: <TypographyIcon /> },
+    { id: 'colors', label: 'Colors', icon: <ColorIcon /> },
+    { id: 'alerts', label: 'Alerts', icon: <AlertIcon /> },
+    { id: 'dapp-widget', label: 'dApp Widget', icon: <DAppWidgetIcon /> },
+    { id: 'dapp-card', label: 'dApp Cards', icon: <DAppCardIcon /> },
   ];
 
   const styleElements: Record<string, any[]> = {
@@ -212,10 +282,10 @@ export default function StyleGuidePage() {
       {
         id: 'basic',
         name: 'Basic Card',
-        description: 'Standard card with border and padding',
-        className: 'bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6',
+        description: 'Standard card with border and padding - improved background contrast',
+        className: 'bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm',
         example: (
-          <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6">
+          <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
             <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Card Title</h3>
             <p className="text-sm text-zinc-600 dark:text-zinc-400">Card content goes here</p>
           </div>
@@ -224,10 +294,10 @@ export default function StyleGuidePage() {
       {
         id: 'hover',
         name: 'Hover Card',
-        description: 'Card with hover shadow effect',
-        className: 'bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg transition-shadow',
+        description: 'Card with hover shadow effect - improved background contrast',
+        className: 'bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all',
         example: (
-          <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg transition-shadow">
+          <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all">
             <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Hover Card</h3>
             <p className="text-sm text-zinc-600 dark:text-zinc-400">Hover to see shadow effect</p>
           </div>
@@ -236,12 +306,82 @@ export default function StyleGuidePage() {
       {
         id: 'status',
         name: 'Status Box',
-        description: 'Status information boxes',
-        className: 'p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800',
+        description: 'Status information boxes - improved background contrast',
+        className: 'p-4 bg-zinc-50 dark:bg-zinc-900/70 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm',
         example: (
-          <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+          <div className="p-4 bg-zinc-50 dark:bg-zinc-900/70 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Status Box</h4>
             <p className="text-xs text-zinc-600 dark:text-zinc-400">Status information</p>
+          </div>
+        ),
+      },
+    ],
+    alerts: [
+      {
+        id: 'success',
+        name: 'Success Alert',
+        description: 'Success message alert',
+        className: 'p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg',
+        example: (
+          <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-start gap-3">
+            <svg className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h4 className="text-sm font-semibold text-green-900 dark:text-green-100 mb-1">Success!</h4>
+              <p className="text-sm text-green-700 dark:text-green-300">Your action was completed successfully.</p>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: 'error',
+        name: 'Error Alert',
+        description: 'Error message alert',
+        className: 'p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg',
+        example: (
+          <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
+            <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h4 className="text-sm font-semibold text-red-900 dark:text-red-100 mb-1">Error</h4>
+              <p className="text-sm text-red-700 dark:text-red-300">Something went wrong. Please try again.</p>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: 'warning',
+        name: 'Warning Alert',
+        description: 'Warning message alert',
+        className: 'p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg',
+        example: (
+          <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg flex items-start gap-3">
+            <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <div>
+              <h4 className="text-sm font-semibold text-yellow-900 dark:text-yellow-100 mb-1">Warning</h4>
+              <p className="text-sm text-yellow-700 dark:text-yellow-300">Please review this information carefully.</p>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: 'info',
+        name: 'Info Alert',
+        description: 'Information message alert',
+        className: 'p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg',
+        example: (
+          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg flex items-start gap-3">
+            <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1">Information</h4>
+              <p className="text-sm text-blue-700 dark:text-blue-300">Here's some helpful information for you.</p>
+            </div>
           </div>
         ),
       },
@@ -550,7 +690,7 @@ export default function StyleGuidePage() {
       name: 'Product Card',
       description: 'Card for displaying products or items',
       example: (
-        <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden hover:shadow-lg transition-shadow">
+        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden hover:shadow-lg transition-shadow shadow-sm">
           <div className="h-48 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
             <span className="text-zinc-400">Image</span>
           </div>
@@ -572,7 +712,7 @@ export default function StyleGuidePage() {
       name: 'Profile Card',
       description: 'User profile information card',
       example: (
-        <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6">
+        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
           <div className="flex items-center gap-4 mb-4">
             <div className="w-16 h-16 bg-zinc-200 dark:bg-zinc-800 rounded-full flex items-center justify-center">
               <span className="text-2xl">👤</span>
@@ -599,7 +739,7 @@ export default function StyleGuidePage() {
       name: 'Stats Card',
       description: 'Statistics display card',
       example: (
-        <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6">
+        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-zinc-600 dark:text-zinc-400">Total Users</span>
             <svg className="w-5 h-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -619,7 +759,7 @@ export default function StyleGuidePage() {
       name: 'Feature Card',
       description: 'Feature highlight card',
       example: (
-        <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg transition-shadow">
+        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg transition-shadow shadow-sm">
           <div className="w-12 h-12 bg-[#02abb8]/10 rounded-lg flex items-center justify-center mb-4">
             <svg className="w-6 h-6 text-[#02abb8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -627,6 +767,156 @@ export default function StyleGuidePage() {
           </div>
           <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Feature Title</h3>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">Feature description and benefits explained here</p>
+        </div>
+      ),
+    },
+  ];
+
+  // dApp Widget Templates
+  const dAppWidgetTemplates = [
+    {
+      id: 'standard',
+      name: 'Standard dApp Widget',
+      description: 'Full-featured dApp widget with header, content, and actions',
+      example: (
+        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-lg overflow-hidden">
+          <div className="bg-gradient-to-r from-[#02abb8] to-[#028a94] p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-lg">📱</span>
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold text-sm">dApp Name</h3>
+                  <p className="text-white/80 text-xs">Category</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button className="p-1.5 bg-white/20 hover:bg-white/30 rounded text-white transition-colors">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                </button>
+                <button className="p-1.5 bg-white/20 hover:bg-white/30 rounded text-white transition-colors">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="p-4">
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">dApp description and utility information goes here.</p>
+            <div className="flex gap-2">
+              <button className="flex-1 px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg text-sm font-medium transition-colors">
+                Launch dApp
+              </button>
+              <button className="px-4 py-2 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
+                Info
+              </button>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+  ];
+
+  // dApp Card Templates with multiple layouts
+  const dAppCardTemplates = [
+    {
+      id: 'standard',
+      name: 'Standard dApp Card',
+      description: 'Standard layout with icon, title, description, and actions',
+      example: (
+        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-4 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
+          <div className="flex items-start gap-4 mb-3">
+            <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span className="text-2xl">📱</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">dApp Name</h3>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">dApp description and utility information displayed here.</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="px-2 py-1 text-xs font-medium rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">Category</span>
+            <button className="px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg text-sm font-medium transition-colors">
+              View
+            </button>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: 'compact',
+      name: 'Compact dApp Card',
+      description: 'Compact horizontal layout for list views',
+      example: (
+        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-3 hover:shadow-md transition-all">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span className="text-xl">📱</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 mb-0.5">dApp Name</h3>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-1">Brief description</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 text-xs rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">Category</span>
+              <button className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: 'featured',
+      name: 'Featured dApp Card',
+      description: 'Featured card with image area and prominent CTA',
+      example: (
+        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden hover:shadow-xl transition-all">
+          <div className="h-32 bg-gradient-to-br from-[#02abb8] to-[#028a94] flex items-center justify-center">
+            <span className="text-4xl">📱</span>
+          </div>
+          <div className="p-4">
+            <div className="flex items-start justify-between mb-2">
+              <div>
+                <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">Featured dApp</h3>
+                <p className="text-xs text-zinc-600 dark:text-zinc-400">Category • Status</p>
+              </div>
+              <span className="px-2 py-1 text-xs font-medium rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Featured</span>
+            </div>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4 line-clamp-2">Featured dApp description with more details about the utility and benefits.</p>
+            <button className="w-full px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg text-sm font-medium transition-colors">
+              Launch dApp
+            </button>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: 'minimal',
+      name: 'Minimal dApp Card',
+      description: 'Minimal design with essential information only',
+      example: (
+        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-4 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 bg-zinc-100 dark:bg-zinc-800 rounded flex items-center justify-center">
+              <span className="text-lg">📱</span>
+            </div>
+            <h3 className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">dApp Name</h3>
+          </div>
+          <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-3 line-clamp-2">Minimal description</p>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-zinc-500 dark:text-zinc-500">Category</span>
+            <svg className="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
         </div>
       ),
     },
@@ -697,6 +987,18 @@ export default function StyleGuidePage() {
                 </svg>
               </button>
             </div>
+            {/* Back to dApp categories button */}
+            <div className="mb-4">
+              <Link
+                href="/"
+                className="w-full px-3 py-2 text-sm bg-zinc-700 hover:bg-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 justify-center"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to dApp Categories
+              </Link>
+            </div>
             <nav className="space-y-1">
               {categories.map((category) => (
                 <button
@@ -711,7 +1013,7 @@ export default function StyleGuidePage() {
                       : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
                   }`}
                 >
-                  <span>{category.icon}</span>
+                  <span className="flex-shrink-0">{category.icon}</span>
                   <span>{category.label}</span>
                 </button>
               ))}
@@ -770,9 +1072,9 @@ export default function StyleGuidePage() {
                   <button
                     key={category.id}
                     onClick={() => setSelectedCategory(category.id)}
-                    className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg transition-shadow text-left"
+                    className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg transition-shadow text-left shadow-sm"
                   >
-                    <div className="text-3xl mb-3">{category.icon}</div>
+                    <div className="mb-3 text-zinc-600 dark:text-zinc-400">{category.icon}</div>
                     <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
                       {category.label}
                     </h3>
@@ -802,7 +1104,7 @@ export default function StyleGuidePage() {
                     {currentElements.map((colorGroup: any) => (
                       <div
                         key={colorGroup.id}
-                        className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6"
+                        className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm"
                       >
                         <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
                           {colorGroup.name}
@@ -841,7 +1143,7 @@ export default function StyleGuidePage() {
                     {currentElements.map((element: any) => (
                       <div
                         key={element.id}
-                        className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6"
+                        className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm"
                       >
                         <div className="mb-4">
                           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
@@ -879,7 +1181,61 @@ export default function StyleGuidePage() {
                       {cardTemplates.map((template) => (
                         <div
                           key={template.id}
-                          className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6"
+                          className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm"
+                        >
+                          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                            {template.name}
+                          </h3>
+                          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                            {template.description}
+                          </p>
+                          <div className="border-t border-zinc-200 dark:border-zinc-800 pt-4">
+                            {template.example}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* dApp Widget Templates Section */}
+                {selectedCategory === 'dapp-widget' && (
+                  <div className="mt-12">
+                    <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
+                      dApp Widget Templates
+                    </h2>
+                    <div className="space-y-6">
+                      {dAppWidgetTemplates.map((template) => (
+                        <div
+                          key={template.id}
+                          className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm"
+                        >
+                          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                            {template.name}
+                          </h3>
+                          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                            {template.description}
+                          </p>
+                          <div className="border-t border-zinc-200 dark:border-zinc-800 pt-4">
+                            {template.example}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* dApp Card Templates Section */}
+                {selectedCategory === 'dapp-card' && (
+                  <div className="mt-12">
+                    <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
+                      dApp Card Templates & Layout Variations
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {dAppCardTemplates.map((template) => (
+                        <div
+                          key={template.id}
+                          className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm"
                         >
                           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
                             {template.name}
