@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { knowledgeBaseCategories, type KnowledgeBaseCategory } from '@/lib/knowledgeBase';
+import { NODEStatusBox } from '../rewards/NODEStatusBox';
 
 interface KnowledgeBaseSidebarProps {
   selectedCategory: KnowledgeBaseCategory | 'all';
