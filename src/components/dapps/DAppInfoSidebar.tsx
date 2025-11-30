@@ -265,42 +265,38 @@ export function DAppInfoSidebar({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-              dApp Info
-            </h3>
+            <div className="flex items-center justify-center">
+              <SocialIcons iconSize="w-4 h-4" />
+            </div>
           </div>
         </div>
 
         <div className={`p-4 lg:p-6 ${isHidden ? 'hidden' : ''}`}>
             {/* Developer & Info (No Box) */}
-            <div className="space-y-3 mb-6">
+            <div className="space-y-6">
               {deployerAddress && (
-                <>
-                  <Link
-                    href={deployerUrl}
-                    className="w-full flex items-center gap-2 px-3 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium rounded-lg"
-                    aria-label="Developer profile"
+                <Link
+                  href={deployerUrl}
+                  className="w-full flex items-center gap-2 px-3 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium rounded-lg"
+                  aria-label="View developer profile"
+                >
+                  <Avatar address={deployerAddress} size={24} />
+                  <span className="text-zinc-900 dark:text-zinc-100 flex-1 text-left truncate">
+                    {deployerName || displayAddress}
+                  </span>
+                  <svg
+                    className="w-4 h-4 text-zinc-600 dark:text-zinc-400 flex-shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                   >
-                    <Avatar address={deployerAddress} size={24} />
-                    <span className="text-zinc-900 dark:text-zinc-100 flex-1 text-left truncate">
-                      {deployerName || displayAddress}
-                    </span>
-                    <svg
-                      className="w-4 h-4 text-zinc-600 dark:text-zinc-400 flex-shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </Link>
-
-                  {/* Social Icons (from Info modal) */}
-                  <div className="flex items-center justify-center">
-                    <SocialIcons iconSize="w-4 h-4" />
-                  </div>
-                </>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
               )}
+
+              {/* KREX/NFT Multipliers */}
+              <KREXNFTMultipliersBox />
 
               {/* KREX Status */}
               <KREXStatusBox />
@@ -310,9 +306,6 @@ export function DAppInfoSidebar({
 
               {/* NODE Status */}
               <NODEStatusBox />
-
-              {/* KREX/NFT Multipliers */}
-              <KREXNFTMultipliersBox />
             </div>
         </div>
       </aside>

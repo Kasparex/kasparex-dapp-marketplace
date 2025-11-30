@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useChainId } from 'wagmi';
 import { DApp, generateSimulatedTicker, generateSimulatedAddress } from '@/lib/dapps';
@@ -9,14 +9,14 @@ import { generateDAppSlug } from '@/lib/utils';
 import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
 import { DAppInfoModal } from './dapps/DAppInfoModal';
-import { mergeDAppData, useDAppFromContract } from '@/lib/dapps/contractData';
+import { mergeDAppData, useDAppFromContract, loadDAppLogo } from '@/lib/dapps/contractData';
 import { DAppIcon } from './dapps/DAppIcon';
 import { StatusIndicator } from './dapps/StatusIndicator';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { DAppCardRewards } from './rewards/DAppCardRewards';
 import { DAppFeesModal } from './dapps/DAppFeesModal';
-import { getCategoryGradientColors } from '@/lib/utils/colorExtraction';
+import { extractColorsFromImage, getCategoryGradientColors } from '@/lib/utils/colorExtraction';
 
 interface DAppCardProps {
   dapp: DApp;
@@ -48,6 +48,37 @@ export function DAppCard({ dapp }: DAppCardProps) {
 
   // Modal states
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [gradientColors, setGradientColors] = useState<[string, string] | null>(null);
+
+  // Extract colors from dApp logo
+  useEffect(() => {
+    const extractColors = async () => {
+      let logoUrl: string | null = null;
+      
+      if (mergedDApp.image) {
+        logoUrl = mergedDApp.image;
+      } else {
+        logoUrl = loadDAppLogo(mergedDApp.id);
+      }
+
+      if (logoUrl) {
+        try {
+          const colors = await extractColorsFromImage(logoUrl);
+          setGradientColors(colors);
+        } catch (error) {
+          // Fallback to category colors
+          const fallbackColors = getCategoryGradientColors(mergedDApp.category);
+          setGradientColors(fallbackColors);
+        }
+      } else {
+        // No logo, use category colors
+        const fallbackColors = getCategoryGradientColors(mergedDApp.category);
+        setGradientColors(fallbackColors);
+      }
+    };
+
+    extractColors();
+  }, [mergedDApp.id, mergedDApp.image, mergedDApp.category]);
 
   // Get token information
   // For Quiz-to-Earn, ensure contract address is shown
@@ -82,18 +113,21 @@ export function DAppCard({ dapp }: DAppCardProps) {
       className="block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all relative flex flex-col min-h-[280px]"
     >
       {/* Default dApp Featured Image Banner */}
-      {(() => {
-        const [color1, color2] = getCategoryGradientColors(mergedDApp.category);
+      {gradientColors && (() => {
+        const [color1, color2] = gradientColors;
         // Generate a random angle between 45deg and 225deg for variety
         const angle = 45 + (mergedDApp.id.charCodeAt(0) % 180);
+        // Make colors more subtle by adding opacity and lightening
+        const subtleColor1 = color1 + '40'; // 25% opacity
+        const subtleColor2 = color2 + '40'; // 25% opacity
         return (
           <div 
-            className="relative w-full h-32 flex items-center justify-center border-b border-zinc-200 dark:border-zinc-700"
+            className="relative w-full h-32 flex items-center justify-center border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900"
             style={{
-              background: `linear-gradient(${angle}deg, ${color1}, ${color2})`,
+              background: `linear-gradient(${angle}deg, ${subtleColor1}, ${subtleColor2})`,
             }}
           >
-            <svg className="w-12 h-12 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-12 h-12 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>

@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useChainId } from 'wagmi';
 import Image from 'next/image';
 import Link from 'next/link';
 import { DAppIcon } from './DAppIcon';
 import { DApp, generateSimulatedTicker, generateSimulatedAddress } from '@/lib/dapps';
-import { useDAppFromContract, mergeDAppData } from '@/lib/dapps/contractData';
+import { useDAppFromContract, mergeDAppData, loadDAppLogo } from '@/lib/dapps/contractData';
 import { CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 import { isEmbedded } from '@/lib/utils';
 import { StatusIndicator } from './StatusIndicator';
@@ -19,7 +19,7 @@ import { DAppFeesModal } from './DAppFeesModal';
 import { DAppCardRewards } from '../rewards/DAppCardRewards';
 import { DAppEmbed } from './DAppEmbed';
 import { DAppReferralModal } from './DAppReferralModal';
-import { getCategoryGradientColors } from '@/lib/utils/colorExtraction';
+import { extractColorsFromImage, getCategoryGradientColors } from '@/lib/utils/colorExtraction';
 
 interface DAppWidgetHeaderProps {
   dapp: DApp;
@@ -102,6 +102,38 @@ export function DAppWidgetHeader({
   const [showEmbedModal, setShowEmbedModal] = useState(false);
   const [copiedDAppAddress, setCopiedDAppAddress] = useState(false);
   const [copiedTokenAddress, setCopiedTokenAddress] = useState(false);
+  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
+  const [gradientColors, setGradientColors] = useState<[string, string] | null>(null);
+
+  // Extract colors from dApp logo
+  useEffect(() => {
+    const extractColors = async () => {
+      let logoUrl: string | null = null;
+      
+      if (mergedDApp.image) {
+        logoUrl = mergedDApp.image;
+      } else {
+        logoUrl = loadDAppLogo(mergedDApp.id);
+      }
+
+      if (logoUrl) {
+        try {
+          const colors = await extractColorsFromImage(logoUrl);
+          setGradientColors(colors);
+        } catch (error) {
+          // Fallback to category colors
+          const fallbackColors = getCategoryGradientColors(mergedDApp.category);
+          setGradientColors(fallbackColors);
+        }
+      } else {
+        // No logo, use category colors
+        const fallbackColors = getCategoryGradientColors(mergedDApp.category);
+        setGradientColors(fallbackColors);
+      }
+    };
+
+    extractColors();
+  }, [mergedDApp.id, mergedDApp.image, mergedDApp.category]);
 
   const handleIconClick = (e: React.MouseEvent, action: () => void) => {
     e.preventDefault();
@@ -125,6 +157,21 @@ export function DAppWidgetHeader({
     }
   };
 
+  if (isHeaderCollapsed) {
+    return (
+      <button
+        onClick={() => setIsHeaderCollapsed(false)}
+        className="w-full px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border-b border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+        aria-label="Expand header"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+        Show Header
+      </button>
+    );
+  }
+
   return (
     <>
       {/* Featured Image Banner - Default or Custom */}
@@ -137,22 +184,47 @@ export function DAppWidgetHeader({
             className="object-cover"
             unoptimized
           />
+          {/* Collapse Button */}
+          <button
+            onClick={() => setIsHeaderCollapsed(true)}
+            className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors z-10"
+            aria-label="Collapse header"
+            title="Collapse header"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+            </svg>
+          </button>
         </div>
       ) : (
-        (() => {
-          const [color1, color2] = getCategoryGradientColors(mergedDApp.category);
+        gradientColors && (() => {
+          const [color1, color2] = gradientColors;
           // Generate a random angle between 45deg and 225deg for variety
           const angle = 45 + (mergedDApp.id.charCodeAt(0) % 180);
+          // Make colors more subtle by adding opacity and lightening
+          const subtleColor1 = color1 + '40'; // 25% opacity
+          const subtleColor2 = color2 + '40'; // 25% opacity
           return (
             <div 
-              className="relative w-full h-32 flex items-center justify-center border-b border-zinc-200 dark:border-zinc-700"
+              className="relative w-full h-32 flex items-center justify-center border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900"
               style={{
-                background: `linear-gradient(${angle}deg, ${color1}, ${color2})`,
+                background: `linear-gradient(${angle}deg, ${subtleColor1}, ${subtleColor2})`,
               }}
             >
-              <svg className="w-12 h-12 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-12 h-12 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
+              {/* Collapse Button */}
+              <button
+                onClick={() => setIsHeaderCollapsed(true)}
+                className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors z-10"
+                aria-label="Collapse header"
+                title="Collapse header"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                </svg>
+              </button>
             </div>
           );
         })()
