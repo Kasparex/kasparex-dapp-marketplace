@@ -237,28 +237,19 @@ export function PointsPageContent({ filters }: PointsPageContentProps) {
                 key={index}
                 className="p-4 bg-emerald-50 dark:bg-emerald-950/50 rounded-lg"
               >
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-1">
-                      <h3 className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">
-                        {perk.title}
-                      </h3>
-                      <span className="text-xs px-2 py-1 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400 rounded-full">
-                        Unlocked
-                      </span>
-                    </div>
-                    <p className="text-xs text-emerald-700 dark:text-emerald-300 mb-2">
-                      {perk.description}
-                    </p>
-                    <div className="text-xs text-emerald-600 dark:text-emerald-400">
-                      {formatLargeNumber(perk.pointsRequired)} XP required
-                    </div>
-                  </div>
+                <div className="flex items-start justify-between mb-1">
+                  <h3 className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">
+                    {perk.title}
+                  </h3>
+                  <span className="text-xs px-2 py-1 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400 rounded-full">
+                    Unlocked
+                  </span>
+                </div>
+                <p className="text-xs text-emerald-700 dark:text-emerald-300 mb-2">
+                  {perk.description}
+                </p>
+                <div className="text-xs text-emerald-600 dark:text-emerald-400">
+                  {formatLargeNumber(perk.pointsRequired)} XP required
                 </div>
               </div>
             ))}

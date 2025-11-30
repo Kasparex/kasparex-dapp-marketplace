@@ -994,20 +994,11 @@ export default function StyleGuidePage() {
     {
       id: 'profile',
       name: 'Profile Card',
-      description: 'User profile information card with colorful icon',
+      description: 'User profile information card',
       example: (
         <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg hover:border-[#02abb8] dark:hover:border-[#02abb8] transition-all shadow-sm">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center">
-              <svg className="w-8 h-8 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">John Doe</h3>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">@johndoe</p>
-            </div>
-          </div>
+          <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">John Doe</h3>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">@johndoe</p>
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">Bio information goes here</p>
           <div className="flex gap-2">
             <button className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg text-sm font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">
@@ -1023,16 +1014,11 @@ export default function StyleGuidePage() {
     {
       id: 'stats',
       name: 'Stats Card',
-      description: 'Statistics display card with colorful icon',
+      description: 'Statistics display card',
       example: (
         <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg hover:border-[#02abb8] dark:hover:border-[#02abb8] transition-all shadow-sm">
-          <div className="flex items-center justify-between mb-2">
+          <div className="mb-2">
             <span className="text-sm text-zinc-600 dark:text-zinc-400">Total Users</span>
-            <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-            </div>
           </div>
           <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">1,234</div>
           <div className="flex items-center gap-1 text-sm">
@@ -1045,14 +1031,9 @@ export default function StyleGuidePage() {
     {
       id: 'feature',
       name: 'Feature Card',
-      description: 'Feature highlight card with colored icon background',
+      description: 'Feature highlight card',
       example: (
         <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg hover:border-[#02abb8] dark:hover:border-[#02abb8] transition-all shadow-sm">
-          <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg flex items-center justify-center mb-4">
-            <svg className="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
           <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Feature Title</h3>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">Feature description and benefits explained here</p>
         </div>
@@ -1370,30 +1351,6 @@ export default function StyleGuidePage() {
         <div className="p-4 text-sm text-zinc-600 dark:text-zinc-400">No sample dApp available</div>
       ),
     },
-    {
-      id: 'actual-card-2',
-      name: 'Actual dApp Card (Example 2)',
-      description: 'Real dApp card from main listing page',
-      example: sampleDApps[1] ? (
-        <div className="max-w-sm">
-          <DAppCard dapp={sampleDApps[1]} />
-        </div>
-      ) : (
-        <div className="p-4 text-sm text-zinc-600 dark:text-zinc-400">No sample dApp available</div>
-      ),
-    },
-    {
-      id: 'actual-card-3',
-      name: 'Actual dApp Card (Example 3)',
-      description: 'Real dApp card from main listing page',
-      example: sampleDApps[2] ? (
-        <div className="max-w-sm">
-          <DAppCard dapp={sampleDApps[2]} />
-        </div>
-      ) : (
-        <div className="p-4 text-sm text-zinc-600 dark:text-zinc-400">No sample dApp available</div>
-      ),
-    },
   ];
 
   return (
@@ -1461,17 +1418,33 @@ export default function StyleGuidePage() {
                 </svg>
               </button>
             </div>
-            {/* Back to dApp categories button */}
+            {/* Back to dApps link */}
             <div className="mb-4">
               <Link
                 href="/"
-                className="w-full px-3 py-2 text-sm bg-zinc-700 hover:bg-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 justify-center"
+                className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium transition-colors text-sm flex items-center gap-1"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                Back to dApp Categories
+                Back to dApps
               </Link>
+            </div>
+            {/* All UI Components button */}
+            <div className="mb-4">
+              <button
+                onClick={() => {
+                  setSelectedCategory(null);
+                  setSelectedElement(null);
+                }}
+                className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${
+                  selectedCategory === null
+                    ? 'bg-[#02abb8]/10 text-[#02abb8] font-medium'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
+                }`}
+              >
+                All UI Components
+              </button>
             </div>
             <nav className="space-y-1">
               {categories.map((category) => (
@@ -1487,7 +1460,7 @@ export default function StyleGuidePage() {
                       : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
                   }`}
                 >
-                  <span className={`flex-shrink-0 ${getIconBoxClasses(category.color)}`}>
+                  <span className="flex-shrink-0 text-zinc-600 dark:text-zinc-400">
                     {category.icon}
                   </span>
                   <span>{category.label}</span>
@@ -1552,9 +1525,6 @@ export default function StyleGuidePage() {
                     onClick={() => setSelectedCategory(category.id)}
                     className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg transition-shadow text-left shadow-sm"
                   >
-                    <div className={`mb-3 ${getIconBoxClasses(category.color).replace('w-8 h-8', 'w-12 h-12')}`}>
-                      {category.icon}
-                    </div>
                     <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
                       {category.label}
                     </h3>
