@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764528060-0e7a0d9",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update dApp pages: add featured image banner, replace sidebar titles with back links, improve Network Availability UX, reorganize sidebar filters, increase content margins (by Kasparex)",
+      "date": "2025-11-30T19:40:34+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764525286-81058d1",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Remove icons from Unlocked Perks, clean up style-guide menu and cards, add default dApp featured images (by Kasparex)",
