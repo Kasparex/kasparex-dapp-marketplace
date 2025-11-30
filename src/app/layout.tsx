@@ -4,6 +4,7 @@ import "./globals.css";
 import '@rainbow-me/rainbowkit/styles.css';
 import { Providers } from "@/components/Providers";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { BackToTop } from "@/components/BackToTop";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,6 +25,7 @@ export default function RootLayout({
         <Providers>
           <ThemeProvider>
             {children}
+            <BackToTop />
           </ThemeProvider>
         </Providers>
       </body>
