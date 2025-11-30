@@ -380,7 +380,7 @@ export default function StyleGuidePage() {
             </svg>
             <div>
               <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1">Information</h4>
-              <p className="text-sm text-blue-700 dark:text-blue-300">Here's some helpful information for you.</p>
+              <p className="text-sm text-blue-700 dark:text-blue-300">Here&apos;s some helpful information for you.</p>
             </div>
           </div>
         ),
