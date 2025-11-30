@@ -103,6 +103,37 @@ export function DAppWidgetHeader({
   const [copiedDAppAddress, setCopiedDAppAddress] = useState(false);
   const [copiedTokenAddress, setCopiedTokenAddress] = useState(false);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
+  const [gradientColors, setGradientColors] = useState<[string, string] | null>(null);
+
+  // Extract colors from dApp logo
+  useEffect(() => {
+    const extractColors = async () => {
+      let logoUrl: string | null = null;
+      
+      if (mergedDApp.image) {
+        logoUrl = mergedDApp.image;
+      } else {
+        logoUrl = loadDAppLogo(mergedDApp.id);
+      }
+
+      if (logoUrl) {
+        try {
+          const colors = await extractColorsFromImage(logoUrl);
+          setGradientColors(colors);
+        } catch (error) {
+          // Fallback to category colors
+          const fallbackColors = getCategoryGradientColors(mergedDApp.category);
+          setGradientColors(fallbackColors);
+        }
+      } else {
+        // No logo, use category colors
+        const fallbackColors = getCategoryGradientColors(mergedDApp.category);
+        setGradientColors(fallbackColors);
+      }
+    };
+
+    extractColors();
+  }, [mergedDApp.id, mergedDApp.image, mergedDApp.category]);
 
   const handleIconClick = (e: React.MouseEvent, action: () => void) => {
     e.preventDefault();
