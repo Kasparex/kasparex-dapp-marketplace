@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764542213-29259ac",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix sidebar spacing, replace Filters title with kasparex.com link, move NODE Status box, remove Rewards column, fix default featured image styling (by Kasparex)",
+      "date": "2025-11-30T23:36:21+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764540294-6c14b94",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Remove logo gradient extraction, update sidebar headers to 'Back to dApps', add NODEStatusBox to API pages, match Knowledge Base card styling (by Kasparex)",
