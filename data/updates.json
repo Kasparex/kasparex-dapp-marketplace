@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764525286-81058d1",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Remove icons from Unlocked Perks, clean up style-guide menu and cards, add default dApp featured images (by Kasparex)",
+      "date": "2025-11-30T18:54:08+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764522795-c5aaedc",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix JSX structure error in PointsPageContent (by Kasparex)",
