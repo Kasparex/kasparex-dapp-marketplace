@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764518337-fc3512b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Redesign alerts, update icons with colored backgrounds, replace emojis with icons, improve light mode support (by Kasparex)",
+      "date": "2025-11-30T16:58:02+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764515512-78649dc",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix build error: escape apostrophe in style guide alerts section (by Kasparex)",
