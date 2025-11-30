@@ -325,8 +325,6 @@ export function PointsPageContent({ filters }: PointsPageContentProps) {
                     <p className={`text-xs mb-2 ${isUnlocked ? 'text-emerald-700 dark:text-emerald-300' : isNext ? 'text-sky-700 dark:text-sky-300' : 'text-zinc-600 dark:text-zinc-400'}`}>
                       {perk.description}
                     </p>
-                  </div>
-                </div>
                     <div className="flex items-center justify-between">
                       <div className={`text-xs ${isUnlocked ? 'text-emerald-600 dark:text-emerald-400' : isNext ? 'text-sky-600 dark:text-sky-400' : 'text-zinc-500 dark:text-zinc-500'}`}>
                         {formatLargeNumber(perk.pointsRequired)} XP
@@ -338,7 +336,7 @@ export function PointsPageContent({ filters }: PointsPageContentProps) {
                       )}
                     </div>
                   </div>
-                )}
+                </div>
                 {!isUnlocked && (
                   <div className="mt-2 w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-1.5">
                     <div
