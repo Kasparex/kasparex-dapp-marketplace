@@ -197,8 +197,9 @@ export function DAppWidgetHeader({
           </button>
         </div>
       ) : (
-        gradientColors && (() => {
-          const [color1, color2] = gradientColors;
+        (() => {
+          const colors = gradientColors || getCategoryGradientColors(mergedDApp.category);
+          const [color1, color2] = colors;
           // Generate a random angle between 45deg and 225deg for variety
           const angle = 45 + (mergedDApp.id.charCodeAt(0) % 180);
           // Make colors more subtle by adding opacity and lightening
