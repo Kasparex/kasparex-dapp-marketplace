@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { GRIDHoldingsBox } from './GRIDHoldingsBox';
 import { XPPointsBox } from './XPPointsBox';
 import { KREXStatusBox } from './KREXStatusBox';
 import { NFTStatusBox } from './NFTStatusBox';
@@ -276,7 +275,7 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
           </div>
           <Link
             href="/"
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors text-sm"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors text-sm"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -287,7 +286,6 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
 
         <div className={`p-4 lg:p-6 ${isHidden ? 'lg:hidden' : ''}`}>
           {/* Rewards Info Boxes */}
-          <GRIDHoldingsBox />
           <XPPointsBox />
           <KREXStatusBox />
           <NFTStatusBox />
@@ -295,7 +293,11 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
           {/* Perks Filter Section */}
           <CollapsibleSection
             title="Perks"
-            icon={<span className="text-lg">🎁</span>}
+            icon={
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2v-2m0 13V5.5A2.5 2.5 0 1019.5 8V19M12 8l-4-4m4 4l4-4" />
+              </svg>
+            }
             expanded={perksExpanded}
             onToggle={() => setPerksExpanded(!perksExpanded)}
           >
@@ -321,7 +323,7 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     transition-colors pl-8
                     ${
                       filters.unlockedPerks
-                        ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
+                        ? 'bg-zinc-50 dark:bg-zinc-900/50'
                         : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
                     }
                   `}
@@ -332,9 +334,8 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     onChange={() => handleFilterToggle('unlockedPerks')}
                   />
                   <div className="control__indicator"></div>
-                  <span className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300 flex-1">
-                    <span className="text-green-600 dark:text-green-400">✓</span>
-                    <span>Unlocked Perks</span>
+                  <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">
+                    Unlocked Perks
                   </span>
                 </label>
                 <label
@@ -343,7 +344,7 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     transition-colors pl-8
                     ${
                       filters.lockedPerks
-                        ? 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800'
+                        ? 'bg-zinc-50 dark:bg-zinc-900/50'
                         : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
                     }
                   `}
@@ -354,9 +355,8 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     onChange={() => handleFilterToggle('lockedPerks')}
                   />
                   <div className="control__indicator"></div>
-                  <span className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300 flex-1">
-                    <span className="text-yellow-600 dark:text-yellow-400">🔒</span>
-                    <span>Locked Perks</span>
+                  <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">
+                    Locked Perks
                   </span>
                 </label>
               </nav>
@@ -366,7 +366,11 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
           {/* Badges Filter Section */}
           <CollapsibleSection
             title="Badges"
-            icon={<span className="text-lg">🏆</span>}
+            icon={
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              </svg>
+            }
             expanded={badgesExpanded}
             onToggle={() => setBadgesExpanded(!badgesExpanded)}
           >
@@ -392,7 +396,7 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     transition-colors pl-8
                     ${
                       filters.unlockedBadges
-                        ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800'
+                        ? 'bg-zinc-50 dark:bg-zinc-900/50'
                         : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
                     }
                   `}
@@ -403,9 +407,8 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     onChange={() => handleFilterToggle('unlockedBadges')}
                   />
                   <div className="control__indicator"></div>
-                  <span className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300 flex-1">
-                    <span className="text-blue-600 dark:text-blue-400">🏅</span>
-                    <span>Unlocked Badges</span>
+                  <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">
+                    Unlocked Badges
                   </span>
                 </label>
                 <label
@@ -414,7 +417,7 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     transition-colors pl-8
                     ${
                       filters.lockedBadges
-                        ? 'bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800'
+                        ? 'bg-zinc-50 dark:bg-zinc-900/50'
                         : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
                     }
                   `}
@@ -425,9 +428,8 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     onChange={() => handleFilterToggle('lockedBadges')}
                   />
                   <div className="control__indicator"></div>
-                  <span className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300 flex-1">
-                    <span className="text-purple-600 dark:text-purple-400">🔒</span>
-                    <span>Locked Badges</span>
+                  <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">
+                    Locked Badges
                   </span>
                 </label>
               </nav>
@@ -437,7 +439,11 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
           {/* Additional Filters */}
           <CollapsibleSection
             title="Additional"
-            icon={<span className="text-lg">⚡</span>}
+            icon={
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            }
             expanded={true}
             onToggle={() => {}}
           >
@@ -449,7 +455,7 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     transition-colors pl-8
                     ${
                       filters.nftPerks
-                        ? 'bg-pink-50 dark:bg-pink-900/20 border border-pink-200 dark:border-pink-800'
+                        ? 'bg-zinc-50 dark:bg-zinc-900/50'
                         : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
                     }
                   `}
@@ -460,9 +466,8 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     onChange={() => handleFilterToggle('nftPerks')}
                   />
                   <div className="control__indicator"></div>
-                  <span className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300 flex-1">
-                    <span className="text-pink-600 dark:text-pink-400">🖼️</span>
-                    <span>NFT Perks</span>
+                  <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">
+                    NFT Perks
                   </span>
                 </label>
                 <label
@@ -471,7 +476,7 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     transition-colors pl-8
                     ${
                       filters.nodePerks
-                        ? 'bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800'
+                        ? 'bg-zinc-50 dark:bg-zinc-900/50'
                         : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
                     }
                   `}
@@ -482,9 +487,8 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     onChange={() => handleFilterToggle('nodePerks')}
                   />
                   <div className="control__indicator"></div>
-                  <span className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300 flex-1">
-                    <span className="text-cyan-600 dark:text-cyan-400">🖥️</span>
-                    <span>Node Perks</span>
+                  <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">
+                    Node Perks
                   </span>
                 </label>
               </nav>

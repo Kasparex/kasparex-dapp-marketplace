@@ -4,6 +4,9 @@ import { useState, useRef, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import Link from 'next/link';
+import { DAppIcon } from '@/components/dapps/DAppIcon';
+import { DAppCard } from '@/components/DAppCard';
+import { placeholderDApps } from '@/lib/dapps';
 
 export default function StyleGuidePage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -320,16 +323,18 @@ export default function StyleGuidePage() {
       {
         id: 'success',
         name: 'Success Alert',
-        description: 'Success message alert',
-        className: 'p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg',
+        description: 'Success message alert - using emerald color palette',
+        className: 'p-4 bg-emerald-50 dark:bg-emerald-950/50 rounded-lg',
         example: (
-          <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-start gap-3">
-            <svg className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+          <div className="p-4 bg-emerald-50 dark:bg-emerald-950/50 rounded-lg flex items-start gap-3">
+            <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
             <div>
-              <h4 className="text-sm font-semibold text-green-900 dark:text-green-100 mb-1">Success!</h4>
-              <p className="text-sm text-green-700 dark:text-green-300">Your action was completed successfully.</p>
+              <h4 className="text-sm font-semibold text-emerald-900 dark:text-emerald-100 mb-1">Success!</h4>
+              <p className="text-sm text-emerald-700 dark:text-emerald-300">Your action was completed successfully.</p>
             </div>
           </div>
         ),
@@ -337,13 +342,15 @@ export default function StyleGuidePage() {
       {
         id: 'error',
         name: 'Error Alert',
-        description: 'Error message alert',
-        className: 'p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg',
+        description: 'Error message alert - using red color palette',
+        className: 'p-4 bg-red-50 dark:bg-red-950/50 rounded-lg',
         example: (
-          <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
-            <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+          <div className="p-4 bg-red-50 dark:bg-red-950/50 rounded-lg flex items-start gap-3">
+            <div className="w-10 h-10 bg-red-100 dark:bg-red-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
             <div>
               <h4 className="text-sm font-semibold text-red-900 dark:text-red-100 mb-1">Error</h4>
               <p className="text-sm text-red-700 dark:text-red-300">Something went wrong. Please try again.</p>
@@ -354,16 +361,18 @@ export default function StyleGuidePage() {
       {
         id: 'warning',
         name: 'Warning Alert',
-        description: 'Warning message alert',
-        className: 'p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg',
+        description: 'Warning message alert - using amber color palette',
+        className: 'p-4 bg-amber-50 dark:bg-amber-950/50 rounded-lg',
         example: (
-          <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg flex items-start gap-3">
-            <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
+          <div className="p-4 bg-amber-50 dark:bg-amber-950/50 rounded-lg flex items-start gap-3">
+            <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
             <div>
-              <h4 className="text-sm font-semibold text-yellow-900 dark:text-yellow-100 mb-1">Warning</h4>
-              <p className="text-sm text-yellow-700 dark:text-yellow-300">Please review this information carefully.</p>
+              <h4 className="text-sm font-semibold text-amber-900 dark:text-amber-100 mb-1">Warning</h4>
+              <p className="text-sm text-amber-700 dark:text-amber-300">Please review this information carefully.</p>
             </div>
           </div>
         ),
@@ -371,16 +380,18 @@ export default function StyleGuidePage() {
       {
         id: 'info',
         name: 'Info Alert',
-        description: 'Information message alert',
-        className: 'p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg',
+        description: 'Information message alert - using sky color palette',
+        className: 'p-4 bg-sky-50 dark:bg-sky-950/50 rounded-lg',
         example: (
-          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg flex items-start gap-3">
-            <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+          <div className="p-4 bg-sky-50 dark:bg-sky-950/50 rounded-lg flex items-start gap-3">
+            <div className="w-10 h-10 bg-sky-100 dark:bg-sky-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-sky-600 dark:text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
             <div>
-              <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1">Information</h4>
-              <p className="text-sm text-blue-700 dark:text-blue-300">Here&apos;s some helpful information for you.</p>
+              <h4 className="text-sm font-semibold text-sky-900 dark:text-sky-100 mb-1">Information</h4>
+              <p className="text-sm text-sky-700 dark:text-sky-300">Here&apos;s some helpful information for you.</p>
             </div>
           </div>
         ),
@@ -714,8 +725,10 @@ export default function StyleGuidePage() {
       example: (
         <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 bg-zinc-200 dark:bg-zinc-800 rounded-full flex items-center justify-center">
-              <span className="text-2xl">👤</span>
+            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
             </div>
             <div>
               <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">John Doe</h3>
@@ -754,22 +767,22 @@ export default function StyleGuidePage() {
         </div>
       ),
     },
-    {
-      id: 'feature',
-      name: 'Feature Card',
-      description: 'Feature highlight card',
-      example: (
-        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg transition-shadow shadow-sm">
-          <div className="w-12 h-12 bg-[#02abb8]/10 rounded-lg flex items-center justify-center mb-4">
-            <svg className="w-6 h-6 text-[#02abb8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
+      {
+        id: 'feature',
+        name: 'Feature Card',
+        description: 'Feature highlight card with colored icon background',
+        example: (
+          <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg transition-shadow shadow-sm">
+            <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg flex items-center justify-center mb-4">
+              <svg className="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Feature Title</h3>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">Feature description and benefits explained here</p>
           </div>
-          <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Feature Title</h3>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">Feature description and benefits explained here</p>
-        </div>
-      ),
-    },
+        ),
+      },
   ];
 
   // dApp Widget Templates
@@ -783,8 +796,12 @@ export default function StyleGuidePage() {
           <div className="bg-gradient-to-r from-[#02abb8] to-[#028a94] p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-lg">📱</span>
+                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                  <DAppIcon
+                    dAppName="Sample dApp"
+                    category="defi"
+                    size={32}
+                  />
                 </div>
                 <div>
                   <h3 className="text-white font-semibold text-sm">dApp Name</h3>
@@ -821,18 +838,24 @@ export default function StyleGuidePage() {
     },
   ];
 
+  // Get sample dApps for previews
+  const sampleDApps = placeholderDApps.slice(0, 3);
+
   // dApp Card Templates with multiple layouts
   const dAppCardTemplates = [
     {
       id: 'standard',
       name: 'Standard dApp Card',
-      description: 'Standard layout with icon, title, description, and actions',
+      description: 'Standard layout with DAppIcon, title, description, and actions',
       example: (
         <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-4 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
           <div className="flex items-start gap-4 mb-3">
-            <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center flex-shrink-0">
-              <span className="text-2xl">📱</span>
-            </div>
+            <DAppIcon
+              dAppName="Sample dApp"
+              category="defi"
+              size={48}
+              className="flex-shrink-0"
+            />
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">dApp Name</h3>
               <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">dApp description and utility information displayed here.</p>
@@ -854,9 +877,12 @@ export default function StyleGuidePage() {
       example: (
         <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-3 hover:shadow-md transition-all">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center flex-shrink-0">
-              <span className="text-xl">📱</span>
-            </div>
+            <DAppIcon
+              dAppName="Sample dApp"
+              category="defi"
+              size={40}
+              className="flex-shrink-0"
+            />
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 mb-0.5">dApp Name</h3>
               <p className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-1">Brief description</p>
@@ -876,11 +902,15 @@ export default function StyleGuidePage() {
     {
       id: 'featured',
       name: 'Featured dApp Card',
-      description: 'Featured card with image area and prominent CTA',
+      description: 'Featured card with icon area and prominent CTA',
       example: (
         <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden hover:shadow-xl transition-all">
-          <div className="h-32 bg-gradient-to-br from-[#02abb8] to-[#028a94] flex items-center justify-center">
-            <span className="text-4xl">📱</span>
+          <div className="h-32 bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center p-4">
+            <DAppIcon
+              dAppName="Featured dApp"
+              category="defi"
+              size={64}
+            />
           </div>
           <div className="p-4">
             <div className="flex items-start justify-between mb-2">
@@ -905,9 +935,12 @@ export default function StyleGuidePage() {
       example: (
         <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-4 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 bg-zinc-100 dark:bg-zinc-800 rounded flex items-center justify-center">
-              <span className="text-lg">📱</span>
-            </div>
+            <DAppIcon
+              dAppName="Sample dApp"
+              category="defi"
+              size={32}
+              className="flex-shrink-0"
+            />
             <h3 className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">dApp Name</h3>
           </div>
           <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-3 line-clamp-2">Minimal description</p>
@@ -918,6 +951,42 @@ export default function StyleGuidePage() {
             </svg>
           </div>
         </div>
+      ),
+    },
+    {
+      id: 'actual-card-1',
+      name: 'Actual dApp Card (Example 1)',
+      description: 'Real dApp card from main listing page',
+      example: sampleDApps[0] ? (
+        <div className="max-w-sm">
+          <DAppCard dapp={sampleDApps[0]} />
+        </div>
+      ) : (
+        <div className="p-4 text-sm text-zinc-600 dark:text-zinc-400">No sample dApp available</div>
+      ),
+    },
+    {
+      id: 'actual-card-2',
+      name: 'Actual dApp Card (Example 2)',
+      description: 'Real dApp card from main listing page',
+      example: sampleDApps[1] ? (
+        <div className="max-w-sm">
+          <DAppCard dapp={sampleDApps[1]} />
+        </div>
+      ) : (
+        <div className="p-4 text-sm text-zinc-600 dark:text-zinc-400">No sample dApp available</div>
+      ),
+    },
+    {
+      id: 'actual-card-3',
+      name: 'Actual dApp Card (Example 3)',
+      description: 'Real dApp card from main listing page',
+      example: sampleDApps[2] ? (
+        <div className="max-w-sm">
+          <DAppCard dapp={sampleDApps[2]} />
+        </div>
+      ) : (
+        <div className="p-4 text-sm text-zinc-600 dark:text-zinc-400">No sample dApp available</div>
       ),
     },
   ];
@@ -1013,7 +1082,9 @@ export default function StyleGuidePage() {
                       : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
                   }`}
                 >
-                  <span className="flex-shrink-0">{category.icon}</span>
+                  <span className="flex-shrink-0 w-8 h-8 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                    {category.icon}
+                  </span>
                   <span>{category.label}</span>
                 </button>
               ))}
@@ -1045,7 +1116,7 @@ export default function StyleGuidePage() {
                     setSelectedCategory(null);
                     setSelectedElement(null);
                   }}
-                  className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors text-sm flex items-center gap-2"
+                  className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors text-sm flex items-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -1074,7 +1145,9 @@ export default function StyleGuidePage() {
                     onClick={() => setSelectedCategory(category.id)}
                     className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg transition-shadow text-left shadow-sm"
                   >
-                    <div className="mb-3 text-zinc-600 dark:text-zinc-400">{category.icon}</div>
+                    <div className="mb-3 w-12 h-12 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                      {category.icon}
+                    </div>
                     <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
                       {category.label}
                     </h3>

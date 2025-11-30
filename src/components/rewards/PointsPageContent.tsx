@@ -216,9 +216,9 @@ export function PointsPageContent({ filters }: PointsPageContentProps) {
             </div>
           )}
           {filters.lockedBadges && (
-            <div className="p-3 bg-zinc-100 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+            <div className="p-3 bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm">
               <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                💡 Connect your wallet and hold KREX tokens, NFTs, or become a node provider to unlock additional badges.
+                Connect your wallet and hold KREX tokens, NFTs, or become a node provider to unlock additional badges.
               </p>
             </div>
           )}
@@ -235,14 +235,14 @@ export function PointsPageContent({ filters }: PointsPageContentProps) {
             {unlockedPerks.map((perk, index) => (
               <div
                 key={index}
-                className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border-2 border-green-500/40"
+                className="p-4 bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm"
               >
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                     {perk.title}
                   </h3>
-                  <span className="text-xs px-2 py-1 bg-green-500/20 text-green-700 dark:text-green-400 rounded-full">
-                    ✓ Unlocked
+                  <span className="text-xs px-2 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-400 rounded-full">
+                    Unlocked
                   </span>
                 </div>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-2">
@@ -273,10 +273,10 @@ export function PointsPageContent({ filters }: PointsPageContentProps) {
                 key={index}
                 className={`p-4 rounded-lg border ${
                   isUnlocked
-                    ? 'bg-green-50 dark:bg-green-900/20 border-2 border-green-500/40'
+                    ? 'bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 shadow-sm'
                     : isNext
-                    ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-500/40'
-                    : 'bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800'
+                    ? 'bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 shadow-sm'
+                    : 'bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 shadow-sm'
                 }`}
               >
                 <div className="flex items-start justify-between mb-2">
@@ -284,11 +284,11 @@ export function PointsPageContent({ filters }: PointsPageContentProps) {
                     {perk.title}
                   </h3>
                   {isUnlocked ? (
-                    <span className="text-xs px-2 py-1 bg-green-500/20 text-green-700 dark:text-green-400 rounded-full">
-                      ✓ Unlocked
+                    <span className="text-xs px-2 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-400 rounded-full">
+                      Unlocked
                     </span>
                   ) : isNext ? (
-                    <span className="text-xs px-2 py-1 bg-blue-500/20 text-blue-700 dark:text-blue-400 rounded-full">
+                    <span className="text-xs px-2 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-400 rounded-full">
                       Next
                     </span>
                   ) : (
