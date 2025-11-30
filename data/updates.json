@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764511402-3b4e2cc",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Rebuild style-guide with Mynaui-inspired design system: sidebar with hide/show and drag-to-resize, Tailwind color palettes, modal with close button, card templates section (by Kasparex)",
+      "date": "2025-11-30T15:02:48+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764460625-5ec946f",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update timeline: 2025-11-29T23:56:53.704Z (by Kasparex)",
