@@ -123,7 +123,7 @@ export default function KREXNodePage() {
             <div className="grid md:grid-cols-2 gap-6">
               <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
                 <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-                  KREX Light Node
+                  Light Node
                 </h3>
                 <ul className="space-y-2 text-zinc-600 dark:text-zinc-400 mb-4">
                   <li className="flex items-start gap-2">
@@ -153,7 +153,7 @@ export default function KREXNodePage() {
               <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 border-[#02abb8]/50">
                 <div className="flex items-center gap-2 mb-3">
                   <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-                    KREX Mirror Node
+                    Mirror Node
                   </h3>
                   <span className="text-xs px-2 py-1 bg-[#02abb8]/20 text-[#02abb8] rounded-full">Recommended</span>
                 </div>

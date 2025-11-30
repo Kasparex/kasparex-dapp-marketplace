@@ -1358,7 +1358,7 @@ export default function StyleGuidePage() {
       <Header />
       
       <main className="flex-1 flex">
-        {/* Sidebar */}
+          {/* Sidebar */}
         <aside
           ref={sidebarRef}
           className={`
@@ -1441,28 +1441,28 @@ export default function StyleGuidePage() {
               </button>
             </div>
             <nav className="space-y-1 mt-4">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
                   onClick={() => {
                     setSelectedCategory(category.id);
                     setSelectedElement(null);
                   }}
                   className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors flex items-center gap-2 ${
-                    selectedCategory === category.id
-                      ? 'bg-[#02abb8]/10 text-[#02abb8] font-medium'
-                      : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
-                  }`}
-                >
+                      selectedCategory === category.id
+                        ? 'bg-[#02abb8]/10 text-[#02abb8] font-medium'
+                        : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
+                    }`}
+                  >
                   <span className="flex-shrink-0 text-zinc-600 dark:text-zinc-400">
                     {category.icon}
                   </span>
                   <span>{category.label}</span>
-                </button>
-              ))}
-            </nav>
-          </div>
-        </aside>
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </aside>
 
         {/* Show Sidebar Button - Fixed when hidden */}
         {isHidden && (
@@ -1477,7 +1477,7 @@ export default function StyleGuidePage() {
           </button>
         )}
 
-        {/* Main Content */}
+          {/* Main Content */}
         <div className="flex-1 min-w-0 overflow-y-auto h-[calc(100vh-4rem)]">
           <div className="max-w-6xl mx-auto px-16 py-12">
             {/* Back to Categories Link */}
@@ -1501,14 +1501,14 @@ export default function StyleGuidePage() {
             )}
 
             {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-                Kasparex Design System
-              </h1>
-              <p className="text-lg text-zinc-600 dark:text-zinc-400">
-                Complete reference guide for all UI components and styling standards
-              </p>
-            </div>
+              <div className="mb-8">
+                <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+                  Kasparex Design System
+                </h1>
+                <p className="text-lg text-zinc-600 dark:text-zinc-400">
+                  Complete reference guide for all UI components and styling standards
+                </p>
+              </div>
 
             {/* Categories View */}
             {!selectedCategory && (
@@ -1533,14 +1533,14 @@ export default function StyleGuidePage() {
             {/* Category Content */}
             {selectedCategory && (
               <>
-                <div className="mb-6">
+              <div className="mb-6">
                   <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
                     {currentCategory?.label}
-                  </h2>
+                </h2>
                   <p className="text-zinc-600 dark:text-zinc-400">
                     {currentCategory?.label} components and examples
                   </p>
-                </div>
+              </div>
 
                 {/* Colors Section */}
                 {selectedCategory === 'colors' && (
@@ -1583,36 +1583,36 @@ export default function StyleGuidePage() {
 
                 {/* Other Sections */}
                 {selectedCategory !== 'colors' && (
-                  <div className="space-y-6">
+              <div className="space-y-6">
                     {currentElements.map((element: any) => (
-                      <div
+                  <div
                         key={element.id}
                         className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm"
-                      >
-                        <div className="mb-4">
-                          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
-                            {element.name}
-                          </h3>
-                          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
-                            {element.description}
-                          </p>
-                          <div className="bg-zinc-50 dark:bg-zinc-950 rounded p-3 mb-4">
-                            <code className="text-xs text-zinc-700 dark:text-zinc-300 break-all">
-                              {element.className}
-                            </code>
-                          </div>
-                        </div>
-                        <div className="border-t border-zinc-200 dark:border-zinc-800 pt-4">
-                          <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-2 uppercase tracking-wide">
-                            Preview
-                          </p>
-                          <div className="flex items-center gap-4">
-                            {element.example}
-                          </div>
-                        </div>
+                  >
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
+                        {element.name}
+                      </h3>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
+                        {element.description}
+                      </p>
+                      <div className="bg-zinc-50 dark:bg-zinc-950 rounded p-3 mb-4">
+                        <code className="text-xs text-zinc-700 dark:text-zinc-300 break-all">
+                          {element.className}
+                        </code>
                       </div>
-                    ))}
+                    </div>
+                    <div className="border-t border-zinc-200 dark:border-zinc-800 pt-4">
+                      <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-2 uppercase tracking-wide">
+                        Preview
+                      </p>
+                      <div className="flex items-center gap-4">
+                        {element.example}
+                      </div>
+                    </div>
                   </div>
+                ))}
+              </div>
                 )}
 
                 {/* Card Templates Section */}
@@ -1621,11 +1621,11 @@ export default function StyleGuidePage() {
                     <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
                       Card Templates & Examples
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {cardTemplates.map((template) => (
                         <div
                           key={template.id}
-                          className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm"
+                          className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-sm p-6"
                         >
                           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
                             {template.name}
@@ -1635,7 +1635,7 @@ export default function StyleGuidePage() {
                           </p>
                           <div className="border-t border-zinc-200 dark:border-zinc-800 pt-4">
                             {template.example}
-                          </div>
+            </div>
                         </div>
                       ))}
                     </div>
@@ -1675,11 +1675,11 @@ export default function StyleGuidePage() {
                     <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
                       dApp Card Templates & Layout Variations
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {dAppCardTemplates.map((template) => (
                         <div
                           key={template.id}
-                          className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm"
+                          className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-sm p-6"
                         >
                           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
                             {template.name}

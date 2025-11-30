@@ -69,7 +69,7 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
         <div className="flex items-center border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
           <button
             onClick={() => onViewModeChange('cards')}
-            className={`px-3 py-2 text-sm font-medium transition-colors ${
+            className={`p-2 text-sm font-medium transition-colors ${
               viewMode === 'cards'
                 ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
                 : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
@@ -83,7 +83,7 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
           </button>
           <button
             onClick={() => onViewModeChange('table')}
-            className={`px-3 py-2 text-sm font-medium transition-colors border-l border-zinc-200 dark:border-zinc-800 ${
+            className={`p-2 text-sm font-medium transition-colors border-l border-zinc-200 dark:border-zinc-800 ${
               viewMode === 'table'
                 ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
                 : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
@@ -175,7 +175,7 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
       <div className="relative" ref={plusMenuRef}>
         <button
           onClick={() => setIsPlusMenuOpen(!isPlusMenuOpen)}
-          className="flex items-center justify-center px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+          className="flex items-center justify-center p-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
           aria-label="More options"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
