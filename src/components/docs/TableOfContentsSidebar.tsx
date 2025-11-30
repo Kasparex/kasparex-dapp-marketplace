@@ -181,13 +181,6 @@ export function TableOfContentsSidebar({ items }: TableOfContentsSidebarProps) {
           </Link>
         </div>
 
-        {/* KREX Node Status Box */}
-        {!isHidden && (
-          <div className="px-4 pb-4">
-            <NODEStatusBox />
-          </div>
-        )}
-
         {/* Table of Contents */}
         {!isHidden && (
           <div className="p-4">
@@ -267,6 +260,13 @@ export function TableOfContentsSidebar({ items }: TableOfContentsSidebarProps) {
                 );
               })}
             </nav>
+          </div>
+        )}
+
+        {/* NODE Status Box */}
+        {!isHidden && (
+          <div className="px-4 pb-4">
+            <NODEStatusBox />
           </div>
         )}
       </aside>

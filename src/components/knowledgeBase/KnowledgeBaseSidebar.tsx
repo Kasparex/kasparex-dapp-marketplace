@@ -255,6 +255,13 @@ export function KnowledgeBaseSidebar({
             </div>
           </div>
         )}
+
+        {/* NODE Status Box */}
+        {!isHidden && (
+          <div className="px-4 pb-4 mt-4">
+            <NODEStatusBox />
+          </div>
+        )}
       </aside>
 
       {/* Mobile Overlay */}

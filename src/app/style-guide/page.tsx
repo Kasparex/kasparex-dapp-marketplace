@@ -1425,7 +1425,7 @@ export default function StyleGuidePage() {
               </button>
             </div>
             {/* All UI Components button */}
-            <div className="mb-4">
+            <div className="mb-4 mt-4">
               <button
                 onClick={() => {
                   setSelectedCategory(null);
@@ -1440,7 +1440,7 @@ export default function StyleGuidePage() {
                 All UI Components
               </button>
             </div>
-            <nav className="space-y-1">
+            <nav className="space-y-1 mt-4">
               {categories.map((category) => (
                 <button
                   key={category.id}

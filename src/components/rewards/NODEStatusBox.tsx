@@ -177,7 +177,6 @@ export function NODEStatusBox() {
                       <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Requirements</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reward Multiplier</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee Reduction</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Rewards</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -204,9 +203,6 @@ export function NODEStatusBox() {
                           </td>
                           <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
                             {node.feeReduction}%
-                          </td>
-                          <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                            {node.rewards}
                           </td>
                         </tr>
                       );
