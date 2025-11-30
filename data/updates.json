@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764532292-6d4ae62",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix sidebar headers, reorganize filters, add plus button dropdown, and update default dApp image gradients to colorful (by Kasparex)",
+      "date": "2025-11-30T20:50:48+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764528060-0e7a0d9",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update dApp pages: add featured image banner, replace sidebar titles with back links, improve Network Availability UX, reorganize sidebar filters, increase content margins (by Kasparex)",
