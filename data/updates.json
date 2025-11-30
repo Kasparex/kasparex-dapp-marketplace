@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764515512-78649dc",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix build error: escape apostrophe in style guide alerts section (by Kasparex)",
+      "date": "2025-11-30T16:11:09+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764515122-5ba2849",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Enhance style guide: add icons instead of emojis, Back to dApp categories button, alerts section, improved card backgrounds, dApp widget and dApp card template sections with multiple layouts (by Kasparex)",
