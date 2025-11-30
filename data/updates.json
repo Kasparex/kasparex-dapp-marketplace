@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764522795-c5aaedc",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix JSX structure error in PointsPageContent (by Kasparex)",
+      "date": "2025-11-30T18:12:47+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764522579-8557ed4",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add colorful menu icons, update card templates, improve alerts, add dApp widget UI elements, enhance XP Points styling (by Kasparex)",
