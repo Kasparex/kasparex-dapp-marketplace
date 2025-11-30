@@ -255,7 +255,10 @@ export function DAppInfoSidebar({
       >
         {/* Header with Hide Button */}
         <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+              dApp Info
+            </h3>
             <button
               onClick={() => setIsHidden(true)}
               className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
@@ -265,35 +268,21 @@ export function DAppInfoSidebar({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-              dApp Info
-            </h3>
           </div>
+          <Link
+            href="/"
+            className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium transition-colors text-sm flex items-center gap-1"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Categories
+          </Link>
         </div>
 
         <div className={`p-4 lg:p-6 ${isHidden ? 'hidden' : ''}`}>
             {/* Developer & Info (No Box) */}
             <div className="space-y-3 mb-6">
-              {/* Featured Image (Above Developer Button) */}
-              {featuredImage && (
-                <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
-                  <Image
-                    src={featuredImage}
-                    alt={mergedDApp.name}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                </div>
-              )}
-              {!featuredImage && (
-                <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center">
-                  <svg className="w-12 h-12 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-              )}
-
               {deployerAddress && (
                 <>
                   <Link

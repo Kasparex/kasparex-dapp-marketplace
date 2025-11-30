@@ -58,7 +58,7 @@ export default async function DAppPage({ params }: PageProps) {
           <DAppSidebar dapp={dapp} />
 
           {/* Main Content */}
-          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-12 lg:pl-8 lg:pr-8">
+          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:px-16 lg:py-12">
             <DAppDetail dapp={dapp} />
             <DAppFooter contractAddress={contractAddress} />
           </div>

@@ -1485,7 +1485,7 @@ export default function StyleGuidePage() {
 
         {/* Main Content */}
         <div className="flex-1 min-w-0 overflow-y-auto h-[calc(100vh-4rem)]">
-          <div className="max-w-6xl mx-auto p-8">
+          <div className="max-w-6xl mx-auto px-16 py-12">
             {/* Back to Categories Link */}
             {selectedCategory && (
               <div className="mb-6">

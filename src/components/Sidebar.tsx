@@ -60,6 +60,7 @@ export function Sidebar({
 }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [statusExpanded, setStatusExpanded] = useState(false);
   const [developerExpanded, setDeveloperExpanded] = useState(false);
   const [networkExpanded, setNetworkExpanded] = useState(false);
@@ -335,8 +336,217 @@ export function Sidebar({
             placeholder="Search dApps..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full px-3 py-2 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#02abb8] text-zinc-900 dark:text-zinc-100"
+            className="w-full px-3 py-2 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#02abb8] text-zinc-900 dark:text-zinc-100 mb-3"
           />
+          
+          {/* Collapsible Filters Group */}
+          <CollapsibleSection
+            title="Filters"
+            expanded={filtersExpanded}
+            onToggle={() => setFiltersExpanded(!filtersExpanded)}
+          >
+            {/* Status Filter */}
+            <CollapsibleSection
+              title="Status"
+              icon={<StatusIcon />}
+              expanded={statusExpanded}
+              onToggle={() => setStatusExpanded(!statusExpanded)}
+            >
+              <div className="mb-4">
+                <div className="flex gap-2 mb-2">
+                  <button
+                    onClick={handleStatusSelectAll}
+                    className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                  >
+                    Select All
+                  </button>
+                  <button
+                    onClick={handleStatusDeselectAll}
+                    className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                  >
+                    Deselect All
+                  </button>
+                </div>
+                <nav className="space-y-1">
+                  {statusOptions.map((option) => {
+                    const currentStatus = filters.status || [];
+                    const isChecked = currentStatus.includes(option.value);
+                    return (
+                      <label
+                        key={option.value}
+                        className={`
+                          checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
+                          transition-colors pl-8
+                          ${
+                            isChecked
+                              ? 'bg-zinc-50 dark:bg-zinc-900/50'
+                              : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
+                          }
+                        `}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleStatusToggle(option.value)}
+                        />
+                        <div className="control__indicator"></div>
+                        {option.value !== 'all' && (
+                          <StatusIndicatorDot
+                            statusType={getStatusTypeFromString(option.value)}
+                            size="sm"
+                            className="flex-shrink-0"
+                          />
+                        )}
+                        <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
+                      </label>
+                    );
+                  })}
+                </nav>
+              </div>
+            </CollapsibleSection>
+
+            {/* Developer Filter */}
+            <CollapsibleSection
+              title="Developer"
+              icon={<DeveloperIcon />}
+              expanded={developerExpanded}
+              onToggle={() => setDeveloperExpanded(!developerExpanded)}
+            >
+              <div className="mb-4">
+                <div className="flex gap-2 mb-2">
+                  <button
+                    onClick={handleDeveloperSelectAll}
+                    className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                  >
+                    Select All
+                  </button>
+                  <button
+                    onClick={handleDeveloperDeselectAll}
+                    className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                  >
+                    Deselect All
+                  </button>
+                </div>
+                <nav className="space-y-1">
+                  {developerOptions.map((option) => {
+                    const value = option.label === 'All' ? 'all' : option.label;
+                    const currentDeveloper = filters.developer || [];
+                    const isChecked = currentDeveloper.includes(value);
+                    return (
+                      <label
+                        key={option.label}
+                        className={`
+                          checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
+                          transition-colors pl-8
+                          ${
+                            isChecked
+                              ? 'bg-zinc-50 dark:bg-zinc-900/50'
+                              : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
+                          }
+                        `}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleDeveloperToggle(option.label)}
+                        />
+                        <div className="control__indicator"></div>
+                        {option.logo ? (
+                          <>
+                            <Image
+                              src={option.logo}
+                              alt={`${option.label} logo`}
+                              width={16}
+                              height={16}
+                              className="flex-shrink-0"
+                              onError={(e) => {
+                                // Hide logo if it doesn't exist
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                            <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
+                          </>
+                        ) : (
+                          <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
+                        )}
+                      </label>
+                    );
+                  })}
+                </nav>
+              </div>
+            </CollapsibleSection>
+
+            {/* Network Filter */}
+            <CollapsibleSection
+              title="Network"
+              icon={<NetworkIcon />}
+              expanded={networkExpanded}
+              onToggle={() => setNetworkExpanded(!networkExpanded)}
+            >
+              <div className="mb-4">
+                <div className="flex gap-2 mb-2">
+                  <button
+                    onClick={handleNetworkSelectAll}
+                    className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                  >
+                    Select All
+                  </button>
+                  <button
+                    onClick={handleNetworkDeselectAll}
+                    className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                  >
+                    Deselect All
+                  </button>
+                </div>
+                <nav className="space-y-1">
+                  {networkOptions.map((option) => {
+                    const value = option.label === 'All' ? 'all' : option.label;
+                    const currentNetwork = filters.network || [];
+                    const isChecked = currentNetwork.includes(value);
+                    return (
+                      <label
+                        key={option.label}
+                        className={`
+                          checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
+                          transition-colors pl-8
+                          ${
+                            isChecked
+                              ? 'bg-zinc-50 dark:bg-zinc-900/50'
+                              : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
+                          }
+                        `}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleNetworkToggle(option.label)}
+                        />
+                        <div className="control__indicator"></div>
+                        {option.logo ? (
+                          <>
+                            <Image
+                              src={option.logo}
+                              alt={`${option.label} logo`}
+                              width={16}
+                              height={16}
+                              className="flex-shrink-0"
+                              onError={(e) => {
+                                // Hide logo if it doesn't exist
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                            <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
+                          </>
+                        ) : (
+                          <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
+                        )}
+                      </label>
+                    );
+                  })}
+                </nav>
+              </div>
+            </CollapsibleSection>
+          </CollapsibleSection>
         </div>
 
         {/* Sidebar Content */}
@@ -361,75 +571,6 @@ export function Sidebar({
             icon={<CategoriesIcon />}
             expanded={categoriesExpanded}
             onToggle={() => setCategoriesExpanded(!categoriesExpanded)}
-          >
-            <div className="mb-4">
-              <div className="flex gap-2 mb-2">
-                <button
-                  onClick={() => {
-                    const allCategories = categories.map((cat) => cat.id);
-                    onCategoryChange(allCategories);
-                  }}
-                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                >
-                  Select All
-                </button>
-                <button
-                  onClick={() => {
-                    onCategoryChange([]);
-                  }}
-                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                >
-                  Deselect All
-                </button>
-              </div>
-              <nav className="space-y-1">
-                {categories.map((category) => {
-                  const isChecked = selectedCategories.includes(category.id);
-                  const count = categoryCounts[category.id] || 0;
-                  return (
-                    <label
-                      key={category.id}
-                      className={`
-                        checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
-                        transition-colors pl-8
-                        ${
-                          isChecked
-                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
-                        }
-                      `}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => {
-                          const newCategories = isChecked
-                            ? selectedCategories.filter((c) => c !== category.id)
-                            : [...selectedCategories, category.id];
-                          onCategoryChange(newCategories);
-                        }}
-                      />
-                      <div className="control__indicator"></div>
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <span className="text-lg flex-shrink-0">{category.emoji}</span>
-                        <span className="text-sm text-zinc-700 dark:text-zinc-300">{category.name}</span>
-                      </div>
-                      <span className="text-xs px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex-shrink-0">
-                        {count}
-                      </span>
-                    </label>
-                  );
-                })}
-              </nav>
-            </div>
-          </CollapsibleSection>
-
-          {/* Status Filter */}
-          <CollapsibleSection
-            title="Status"
-            icon={<StatusIcon />}
-            expanded={statusExpanded}
-            onToggle={() => setStatusExpanded(!statusExpanded)}
           >
             <div className="mb-4">
               <div className="flex gap-2 mb-2">
@@ -477,148 +618,6 @@ export function Sidebar({
                         />
                       )}
                       <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
-                    </label>
-                  );
-                })}
-              </nav>
-            </div>
-          </CollapsibleSection>
-
-          {/* Developer Filter */}
-          <CollapsibleSection
-            title="Developer"
-            icon={<DeveloperIcon />}
-            expanded={developerExpanded}
-            onToggle={() => setDeveloperExpanded(!developerExpanded)}
-          >
-            <div className="mb-4">
-              <div className="flex gap-2 mb-2">
-                <button
-                  onClick={handleDeveloperSelectAll}
-                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                >
-                  Select All
-                </button>
-                <button
-                  onClick={handleDeveloperDeselectAll}
-                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                >
-                  Deselect All
-                </button>
-              </div>
-              <nav className="space-y-1">
-                {developerOptions.map((option) => {
-                  const value = option.label === 'All' ? 'all' : option.label;
-                  const currentDeveloper = filters.developer || [];
-                  const isChecked = currentDeveloper.includes(value);
-                  return (
-                    <label
-                      key={option.label}
-                      className={`
-                        checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
-                        transition-colors pl-8
-                        ${
-                          isChecked
-                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
-                        }
-                      `}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => handleDeveloperToggle(option.label)}
-                      />
-                      <div className="control__indicator"></div>
-                      {option.logo ? (
-                        <>
-                          <Image
-                            src={option.logo}
-                            alt={`${option.label} logo`}
-                            width={16}
-                            height={16}
-                            className="flex-shrink-0"
-                            onError={(e) => {
-                              // Hide logo if it doesn't exist
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                          />
-                          <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
-                        </>
-                      ) : (
-                        <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
-                      )}
-                    </label>
-                  );
-                })}
-              </nav>
-            </div>
-          </CollapsibleSection>
-
-          {/* Network Filter */}
-          <CollapsibleSection
-            title="Network"
-            icon={<NetworkIcon />}
-            expanded={networkExpanded}
-            onToggle={() => setNetworkExpanded(!networkExpanded)}
-          >
-            <div className="mb-4">
-              <div className="flex gap-2 mb-2">
-                <button
-                  onClick={handleNetworkSelectAll}
-                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                >
-                  Select All
-                </button>
-                <button
-                  onClick={handleNetworkDeselectAll}
-                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                >
-                  Deselect All
-                </button>
-              </div>
-              <nav className="space-y-1">
-                {networkOptions.map((option) => {
-                  const value = option.label === 'All' ? 'all' : option.label;
-                  const currentNetwork = filters.network || [];
-                  const isChecked = currentNetwork.includes(value);
-                  return (
-                    <label
-                      key={option.label}
-                      className={`
-                        checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
-                        transition-colors pl-8
-                        ${
-                          isChecked
-                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
-                        }
-                      `}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => handleNetworkToggle(option.label)}
-                      />
-                      <div className="control__indicator"></div>
-                      {option.logo ? (
-                        <>
-                          <Image
-                            src={option.logo}
-                            alt={`${option.label} logo`}
-                            width={16}
-                            height={16}
-                            className="flex-shrink-0"
-                            onError={(e) => {
-                              // Hide logo if it doesn't exist
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                          />
-                          <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
-                        </>
-                      ) : (
-                        <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
-                      )}
                     </label>
                   );
                 })}

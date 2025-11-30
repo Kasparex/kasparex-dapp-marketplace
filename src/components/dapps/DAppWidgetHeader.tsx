@@ -126,6 +126,25 @@ export function DAppWidgetHeader({
 
   return (
     <>
+      {/* Featured Image Banner - Default or Custom */}
+      {mergedDApp.featuredImage ? (
+        <div className="relative w-full h-32 overflow-hidden border-b border-zinc-200 dark:border-zinc-700">
+          <Image
+            src={mergedDApp.featuredImage}
+            alt={mergedDApp.name}
+            fill
+            className="object-cover"
+            unoptimized
+          />
+        </div>
+      ) : (
+        <div className="relative w-full h-32 bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900 flex items-center justify-center border-b border-zinc-200 dark:border-zinc-700">
+          <svg className="w-12 h-12 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+      )}
+
       <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 relative">
         {/* Status Indicator and Fees Icon - Top Right (clickable on dApp page) */}
         <div className="absolute top-4 right-4 sm:top-5 sm:right-6 z-10 flex items-center gap-2">
@@ -133,22 +152,10 @@ export function DAppWidgetHeader({
           <DAppFeesModal dapp={mergedDApp} tokenTicker={tokenTicker} clickable={true} />
         </div>
 
-        {/* Title Section with Featured Image, Icon, and Info */}
+        {/* Title Section with Icon and Info */}
         <div className="mb-4 relative">
-          {/* Top Row: Featured Image, Logo, Titles */}
+          {/* Top Row: Logo, Titles */}
           <div className="flex items-start gap-4 mb-3">
-            {/* Featured Image */}
-            {mergedDApp.featuredImage && (
-              <div className="relative w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
-                <Image
-                  src={mergedDApp.featuredImage}
-                  alt={mergedDApp.name}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              </div>
-            )}
             
             <DAppIcon
               dAppName={mergedDApp.name}
