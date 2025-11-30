@@ -971,7 +971,7 @@ export default function StyleGuidePage() {
       name: 'Product Card',
       description: 'Card for displaying products or items with dApp image banner',
       example: (
-        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden hover:shadow-lg hover:border-[#02abb8] dark:hover:border-[#02abb8] transition-all shadow-sm">
+        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-sm">
           {/* Default dApp Image Banner */}
           <div className="h-32 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border-b border-zinc-200 dark:border-zinc-700">
             <svg className="w-12 h-12 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -996,7 +996,7 @@ export default function StyleGuidePage() {
       name: 'Profile Card',
       description: 'User profile information card',
       example: (
-        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg hover:border-[#02abb8] dark:hover:border-[#02abb8] transition-all shadow-sm">
+        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-sm">
           <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">John Doe</h3>
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">@johndoe</p>
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">Bio information goes here</p>
@@ -1016,7 +1016,7 @@ export default function StyleGuidePage() {
       name: 'Stats Card',
       description: 'Statistics display card',
       example: (
-        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg hover:border-[#02abb8] dark:hover:border-[#02abb8] transition-all shadow-sm">
+        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-sm">
           <div className="mb-2">
             <span className="text-sm text-zinc-600 dark:text-zinc-400">Total Users</span>
           </div>
@@ -1033,7 +1033,7 @@ export default function StyleGuidePage() {
       name: 'Feature Card',
       description: 'Feature highlight card',
       example: (
-        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg hover:border-[#02abb8] dark:hover:border-[#02abb8] transition-all shadow-sm">
+        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-sm">
           <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Feature Title</h3>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">Feature description and benefits explained here</p>
         </div>
@@ -1234,7 +1234,7 @@ export default function StyleGuidePage() {
       name: 'Standard dApp Card',
       description: 'Standard layout with DAppIcon, title, description, and actions',
       example: (
-        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-4 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
+        <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-sm">
           <div className="flex items-start gap-4 mb-3">
             <DAppIcon
               dAppName="Sample dApp"
@@ -1404,22 +1404,7 @@ export default function StyleGuidePage() {
         >
           {/* Header with Hide Button */}
           <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4 sticky top-0 z-10">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                Style Guide
-              </h3>
-              <button
-                onClick={() => setIsHidden(true)}
-                className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
-                aria-label="Hide sidebar"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-            </div>
-            {/* Back to dApps link */}
-            <div className="mb-4">
+            <div className="flex items-center justify-between">
               <Link
                 href="/"
                 className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium transition-colors text-sm flex items-center gap-1"
@@ -1429,6 +1414,15 @@ export default function StyleGuidePage() {
                 </svg>
                 Back to dApps
               </Link>
+              <button
+                onClick={() => setIsHidden(true)}
+                className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+                aria-label="Hide sidebar"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
             </div>
             {/* All UI Components button */}
             <div className="mb-4">

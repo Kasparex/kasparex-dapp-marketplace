@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { NODEStatusBox } from '../rewards/NODEStatusBox';
 
 interface TableOfContentsSidebarProps {
   items: Array<{
@@ -150,9 +151,15 @@ export function TableOfContentsSidebar({ items }: TableOfContentsSidebarProps) {
         {/* Header with Hide Button and Knowledge Base Link */}
         <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-              Table of Contents
-            </h3>
+            <Link
+              href="/"
+              className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium transition-colors text-sm flex items-center gap-1"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to dApps
+            </Link>
             <button
               onClick={() => setIsHidden(true)}
               className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
@@ -165,7 +172,7 @@ export function TableOfContentsSidebar({ items }: TableOfContentsSidebarProps) {
           </div>
           <Link
             href="/knowledge-base"
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors text-sm"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium transition-colors text-sm"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -174,35 +181,91 @@ export function TableOfContentsSidebar({ items }: TableOfContentsSidebarProps) {
           </Link>
         </div>
 
+        {/* KREX Node Status Box */}
+        {!isHidden && (
+          <div className="px-4 pb-4">
+            <NODEStatusBox />
+          </div>
+        )}
+
         {/* Table of Contents */}
         {!isHidden && (
           <div className="p-4">
             <nav className="space-y-1">
-              {items.map((item) => (
-                <a
-                  key={item.id}
-                  href={`#${item.id}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    const element = document.getElementById(item.id);
-                    if (element) {
-                      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                      // Update URL without scrolling
-                      window.history.pushState(null, '', `#${item.id}`);
-                    }
-                  }}
-                  className={`
-                    block px-3 py-2 text-sm rounded-lg transition-colors
-                    ${
-                      activeId === item.id
-                        ? 'bg-[#02abb8]/10 text-[#02abb8] font-medium'
-                        : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
-                    }
-                  `}
-                >
-                  {item.title}
-                </a>
-              ))}
+              {items.map((item) => {
+                // Get icon based on item title
+                const getIcon = () => {
+                  const title = item.title.toLowerCase();
+                  if (title.includes('api') || title.includes('endpoint')) {
+                    return (
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    );
+                  }
+                  if (title.includes('node') || title.includes('krex')) {
+                    return (
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+                      </svg>
+                    );
+                  }
+                  if (title.includes('reward')) {
+                    return (
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    );
+                  }
+                  if (title.includes('technical') || title.includes('summary')) {
+                    return (
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    );
+                  }
+                  if (title.includes('future') || title.includes('vprog')) {
+                    return (
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    );
+                  }
+                  // Default icon
+                  return (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                  );
+                };
+
+                return (
+                  <a
+                    key={item.id}
+                    href={`#${item.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const element = document.getElementById(item.id);
+                      if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        // Update URL without scrolling
+                        window.history.pushState(null, '', `#${item.id}`);
+                      }
+                    }}
+                    className={`
+                      flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors
+                      ${
+                        activeId === item.id
+                          ? 'bg-[#02abb8]/10 text-[#02abb8] font-medium'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
+                      }
+                    `}
+                  >
+                    {getIcon()}
+                    <span>{item.title}</span>
+                  </a>
+                );
+              })}
             </nav>
           </div>
         )}
