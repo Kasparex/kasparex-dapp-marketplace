@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764535206-84218aa",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix gradientColors scope issue in DAppWidgetHeader (by Kasparex)",
+      "date": "2025-11-30T21:38:36+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764534628-a2fa211",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix duplicate gradientColors declaration (by Kasparex)",
