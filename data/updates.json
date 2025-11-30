@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764534628-a2fa211",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix duplicate gradientColors declaration (by Kasparex)",
+      "date": "2025-11-30T21:27:33+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764532292-6d4ae62",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix sidebar headers, reorganize filters, add plus button dropdown, and update default dApp image gradients to colorful (by Kasparex)",
