@@ -163,7 +163,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
               type="warning"
               title="Confirm Deletion"
               onDismiss={() => setShowDeleteConfirm(false)}
-              actionButton={{
+              action={{
                 label: isDeleting ? 'Deleting...' : 'Delete',
                 onClick: handleDelete,
               }}
