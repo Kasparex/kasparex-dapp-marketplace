@@ -20,8 +20,14 @@ import { formatKaspaAddress } from '@/lib/kaspa/wallet';
 import { getDAppsByDeployer, canEditDApp, getAssignedDApps } from '@/lib/dapps/management';
 import { useMyAssignedDApps } from '@/hooks/useDAppAuthorization';
 import { generateDAppSlug } from '@/lib/utils';
-import { AuthorDashboard } from '@/components/vblog/AuthorDashboard';
+import dynamicImport from 'next/dynamic';
 import Link from 'next/link';
+
+// Dynamically import AuthorDashboard to avoid SSR issues with react-quill
+const AuthorDashboard = dynamicImport(
+  () => import('@/components/vblog/AuthorDashboard').then(mod => ({ default: mod.AuthorDashboard })),
+  { ssr: false }
+);
 
 // Edit functionality removed - profiles are now read-only
 

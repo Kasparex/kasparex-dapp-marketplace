@@ -1,11 +1,26 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import 'react-quill/dist/quill.snow.css';
 
 // Dynamically import react-quill to avoid SSR issues
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+const ReactQuill = dynamic(
+  () => import('react-quill').then((mod) => {
+    // Import CSS only on client side
+    if (typeof window !== 'undefined') {
+      import('react-quill/dist/quill.snow.css');
+    }
+    return mod;
+  }),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-48 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 flex items-center justify-center">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading editor...</p>
+      </div>
+    ),
+  }
+);
 
 interface RichTextEditorProps {
   value: string;
