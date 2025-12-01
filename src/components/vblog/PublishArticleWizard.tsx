@@ -176,7 +176,7 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
       }
       const titleValidation = validateTitle(formData.title, pricing.isPremium);
       if (!titleValidation.valid) {
-        setError(titleValidation.error);
+        setError(titleValidation.error ?? 'Title validation failed');
         return false;
       }
       
@@ -186,7 +186,7 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
       }
       const descValidation = validateDescription(formData.description, pricing.isPremium);
       if (!descValidation.valid) {
-        setError(descValidation.error);
+        setError(descValidation.error ?? 'Description validation failed');
         return false;
       }
       
@@ -196,7 +196,7 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
       }
       const contentValidation = validateContent(formData.content, pricing.isPremium);
       if (!contentValidation.valid) {
-        setError(contentValidation.error);
+        setError(contentValidation.error ?? 'Content validation failed');
         return false;
       }
     }

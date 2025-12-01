@@ -64,7 +64,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
     }
     const titleValidation = validateTitle(title, pricing.isPremium);
     if (!titleValidation.valid) {
-      setError(titleValidation.error);
+      setError(titleValidation.error ?? 'Title validation failed');
       return;
     }
     
@@ -74,7 +74,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
     }
     const descValidation = validateDescription(description, pricing.isPremium);
     if (!descValidation.valid) {
-      setError(descValidation.error);
+      setError(descValidation.error ?? 'Description validation failed');
       return;
     }
     
@@ -84,7 +84,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
     }
     const contentValidation = validateContent(content, pricing.isPremium);
     if (!contentValidation.valid) {
-      setError(contentValidation.error);
+      setError(contentValidation.error ?? 'Content validation failed');
       return;
     }
 
