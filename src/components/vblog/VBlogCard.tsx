@@ -34,18 +34,18 @@ export function VBlogCard({ article }: VBlogCardProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
         )}
-      </div>
-
-      <div className="p-4 relative z-10 flex flex-col flex-1 min-h-0">
-        {/* Status Badge - Top Right */}
-        <div className="absolute top-4 right-4 z-10">
-          <div className="px-3 py-1 text-xs font-medium rounded-lg border border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-300">
+        {/* Status Badge - Top Right Corner of Image */}
+        <div className="absolute top-2 right-2 z-10">
+          <div className="px-2 py-1 text-xs font-medium rounded-lg border border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-300">
             {article.status === 'on-chain-ready' ? 'On-chain ready' : article.status}
           </div>
         </div>
+      </div>
+
+      <div className="p-4 relative z-10 flex flex-col flex-1 min-h-0">
 
         {/* Title */}
-        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2 pr-20 line-clamp-2">
+        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2">
           {article.title}
         </h3>
 

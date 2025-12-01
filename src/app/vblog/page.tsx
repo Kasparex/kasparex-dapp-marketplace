@@ -8,13 +8,17 @@ import { VBlogHeader } from '@/components/vblog/VBlogHeader';
 import { VBlogCard } from '@/components/vblog/VBlogCard';
 import { VBlogExplainer } from '@/components/vblog/VBlogExplainer';
 import { VBlogSidebar } from '@/components/vblog/VBlogSidebar';
+import { PublishArticleWizard } from '@/components/vblog/PublishArticleWizard';
 import { useVBlog } from '@/hooks/useVBlog';
+import { useKaspaWallet } from '@/lib/kaspa/context';
 
 export default function VBlogPage() {
-  const { articles, isLoading } = useVBlog();
+  const { articles, isLoading, loadArticles } = useVBlog();
+  const { state } = useKaspaWallet();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showWizard, setShowWizard] = useState(false);
 
   const filteredArticles = useMemo(() => {
     let filtered = articles;
@@ -72,7 +76,24 @@ export default function VBlogPage() {
           {/* Main Content */}
           <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6">
             <div className="max-w-7xl mx-auto">
-              <VBlogHeader />
+              <div className="mb-6">
+                <div className="flex items-start justify-between gap-4 mb-6">
+                  <div className="flex-1">
+                    <VBlogHeader />
+                  </div>
+                  {state.isConnected && (
+                    <button
+                      onClick={() => setShowWizard(true)}
+                      className="px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors flex items-center gap-2 flex-shrink-0"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Publish Article
+                    </button>
+                  )}
+                </div>
+              </div>
 
               {/* Articles Grid */}
               {isLoading ? (
@@ -110,6 +131,15 @@ export default function VBlogPage() {
       </main>
 
       <Footer />
+
+      {/* Publish Article Wizard */}
+      <PublishArticleWizard
+        isOpen={showWizard}
+        onClose={() => setShowWizard(false)}
+        onComplete={() => {
+          loadArticles();
+        }}
+      />
     </div>
   );
 }
