@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764588447-e9a18b6",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Remove gradient mouse effect from demo cards, show all dApps, keep logo-colored featured images (by Kasparex)",
+      "date": "2025-12-01T12:27:05+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764587846-ae1d865",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update demo-cards: match current layout with featured image, apply logo colors, show 3 cards (by Kasparex)",
