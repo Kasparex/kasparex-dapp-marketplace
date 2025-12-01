@@ -31,10 +31,19 @@ export function RichTextEditor({
   maxLength,
   disabled = false,
 }: RichTextEditorProps) {
-  // Load CSS only on client side
+  // Load CSS only on client side using link tag injection
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      import('react-quill/dist/quill.snow.css');
+      // Check if the CSS is already loaded
+      const existingLink = document.getElementById('react-quill-css');
+      if (!existingLink) {
+        // Use local CSS file from public directory
+        const link = document.createElement('link');
+        link.id = 'react-quill-css';
+        link.rel = 'stylesheet';
+        link.href = '/quill.snow.css';
+        document.head.appendChild(link);
+      }
     }
   }, []);
 
