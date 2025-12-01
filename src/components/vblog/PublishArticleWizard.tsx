@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { useAccount } from 'wagmi';
 import { useVBlog } from '@/hooks/useVBlog';
+import { Alert } from '@/components/Alert';
 
 interface PublishArticleWizardProps {
   isOpen: boolean;
@@ -24,11 +26,13 @@ const CATEGORIES = [
 ];
 
 export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArticleWizardProps) {
-  const { state } = useKaspaWallet();
+  const { state: kaspaState } = useKaspaWallet();
+  const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
   const { createNewArticle } = useVBlog();
   const [currentStep, setCurrentStep] = useState<WizardStep>('content');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -44,11 +48,18 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     cid: string | null;
     isUploading: boolean;
     uploadProgress: number;
+    uploadedFile?: File;
+    uploadedFileName?: string;
   }>({
     cid: null,
     isUploading: false,
     uploadProgress: 0,
   });
+
+  // Determine wallet connection status (Kaspa or EVM)
+  const isWalletConnected = kaspaState.isConnected || isEVMConnected;
+  const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
+  const walletType = kaspaState.isConnected ? 'kaspa' : isEVMConnected ? 'evm' : null;
 
   const steps = [
     { id: 'content' as WizardStep, title: 'Content', number: 1 },
@@ -96,36 +107,46 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     return true;
   };
 
+  const handleFileUpload = async (file: File) => {
+    setIpfsData(prev => ({ ...prev, isUploading: true, uploadProgress: 0, uploadedFile: file, uploadedFileName: file.name }));
+    
+    // Simulate IPFS upload with progress
+    const progressInterval = setInterval(() => {
+      setIpfsData((prev) => {
+        const newProgress = Math.min(prev.uploadProgress + 10, 100);
+        if (newProgress >= 100) {
+          clearInterval(progressInterval);
+          // Generate a mock CID
+          const mockCid = `Qm${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
+          return { ...prev, cid: mockCid, isUploading: false, uploadProgress: 100 };
+        }
+        return { ...prev, uploadProgress: newProgress };
+      });
+    }, 200);
+
+    // Wait for upload to complete
+    setTimeout(() => {
+      clearInterval(progressInterval);
+      const mockCid = `Qm${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
+      setIpfsData(prev => ({ ...prev, cid: mockCid, isUploading: false, uploadProgress: 100 }));
+    }, 2000);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
+
   const handleNext = async () => {
     if (!validateStep(currentStep)) {
       return;
     }
 
     if (currentStep === 'ipfs' && !ipfsData.cid) {
-      // Simulate IPFS upload
-      setIpfsData({ cid: null, isUploading: true, uploadProgress: 0 });
-      
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setIpfsData((prev) => {
-          const newProgress = Math.min(prev.uploadProgress + 10, 100);
-          if (newProgress >= 100) {
-            clearInterval(progressInterval);
-            // Generate a mock CID
-            const mockCid = `Qm${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
-            return { cid: mockCid, isUploading: false, uploadProgress: 100 };
-          }
-          return { ...prev, uploadProgress: newProgress };
-        });
-      }, 200);
-
-      // Wait for upload to complete
-      setTimeout(() => {
-        clearInterval(progressInterval);
-        const mockCid = `Qm${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
-        setIpfsData({ cid: mockCid, isUploading: false, uploadProgress: 100 });
-        setCurrentStep('review');
-      }, 2000);
+      // If no file uploaded yet, show error
+      setError('Please upload content to IPFS first');
       return;
     }
 
@@ -149,10 +170,10 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
   };
 
   const handlePublish = async () => {
-    // Check if wallet is connected - if not, use a mock address for testing
-    let authorAddress: string = state.address || '';
+    // Check if wallet is connected (Kaspa or EVM) - if not, use a mock address for testing
+    let authorAddress: string = walletAddress || '';
     
-    if (!state.isConnected || !state.address) {
+    if (!isWalletConnected || !walletAddress) {
       // For testing purposes, use a mock address if wallet is not connected
       // In production, this should require wallet connection
       authorAddress = 'kaspa:qqq000000000000000000000000000000000000000000000000000000000000000';
@@ -200,8 +221,11 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
       category: CATEGORIES[0],
       tags: '',
     });
-    setIpfsData({ cid: null, isUploading: false, uploadProgress: 0 });
+    setIpfsData({ cid: null, isUploading: false, uploadProgress: 0, uploadedFile: undefined, uploadedFileName: undefined });
     setError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleClose = () => {
@@ -285,8 +309,10 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
           {error && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            <div className="mb-4">
+              <Alert type="error" title="Error" onDismiss={() => setError(null)}>
+                {error}
+              </Alert>
             </div>
           )}
 
@@ -388,10 +414,13 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
                 <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
                   Your article content will be stored on IPFS (InterPlanetary File System) for decentralized storage. This ensures your content is verifiable and censorship-resistant.
                 </p>
+                
                 {ipfsData.isUploading ? (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-zinc-600 dark:text-zinc-400">Uploading to IPFS...</span>
+                      <span className="text-zinc-600 dark:text-zinc-400">
+                        {ipfsData.uploadedFileName ? `Uploading ${ipfsData.uploadedFileName}...` : 'Uploading to IPFS...'}
+                      </span>
                       <span className="text-zinc-900 dark:text-zinc-100 font-medium">{ipfsData.uploadProgress}%</span>
                     </div>
                     <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2">
@@ -402,25 +431,68 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
                     </div>
                   </div>
                 ) : ipfsData.cid ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span>Content uploaded successfully!</span>
-                    </div>
+                  <div className="space-y-3">
+                    <Alert type="success" compact>
+                      Content uploaded successfully!
+                    </Alert>
                     <div className="bg-white dark:bg-zinc-800 rounded-lg p-3 border border-zinc-200 dark:border-zinc-700">
                       <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">IPFS CID:</p>
                       <p className="text-sm font-mono text-zinc-900 dark:text-zinc-100 break-all">{ipfsData.cid}</p>
+                      {ipfsData.uploadedFileName && (
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">File: {ipfsData.uploadedFileName}</p>
+                      )}
                     </div>
+                    <button
+                      onClick={() => {
+                        setIpfsData({ cid: null, isUploading: false, uploadProgress: 0 });
+                        if (fileInputRef.current) {
+                          fileInputRef.current.value = '';
+                        }
+                      }}
+                      className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                    >
+                      Upload Different File
+                    </button>
                   </div>
                 ) : (
-                  <button
-                    onClick={handleNext}
-                    className="w-full px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
-                  >
-                    Upload to IPFS
-                  </button>
+                  <div className="space-y-3">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      onChange={handleFileSelect}
+                      accept=".txt,.md,.json,.html"
+                      className="hidden"
+                      id="ipfs-file-upload"
+                    />
+                    <label
+                      htmlFor="ipfs-file-upload"
+                      className="flex flex-col items-center justify-center w-full px-4 py-8 border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-lg cursor-pointer hover:border-[#02abb8] hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
+                    >
+                      <svg className="w-10 h-10 text-zinc-400 dark:text-zinc-500 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                        Click to upload or drag and drop
+                      </p>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                        Upload your article content file (TXT, MD, JSON, HTML)
+                      </p>
+                    </label>
+                    <div className="text-center">
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400">or</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        // Auto-upload the form content as a file
+                        const contentBlob = new Blob([formData.content], { type: 'text/plain' });
+                        const contentFile = new File([contentBlob], `${formData.title.replace(/[^a-z0-9]/gi, '_')}.txt`, { type: 'text/plain' });
+                        handleFileUpload(contentFile);
+                      }}
+                      className="w-full px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
+                    >
+                      Upload Article Content Automatically
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -459,18 +531,19 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
                 </div>
               </div>
               <div className="space-y-3">
-                {!state.isConnected && (
-                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                    <p className="text-sm text-yellow-800 dark:text-yellow-300">
-                      <strong>Note:</strong> Wallet not connected. Using test mode for demonstration. In production, you&apos;ll need to connect your wallet to publish articles.
-                    </p>
-                  </div>
+                {!isWalletConnected && (
+                  <Alert type="warning" title="Wallet Not Connected">
+                    Using test mode for demonstration. In production, you&apos;ll need to connect your wallet (Kaspa or EVM) to publish articles.
+                  </Alert>
                 )}
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                  <p className="text-sm text-blue-800 dark:text-blue-300">
-                    <strong>Note:</strong> Publishing this article will cost 5 KAS. Make sure you have sufficient balance in your wallet.
-                  </p>
-                </div>
+                {isWalletConnected && walletType && (
+                  <Alert type="info" compact>
+                    Connected with {walletType === 'kaspa' ? 'Kaspa' : 'EVM'} wallet: {walletAddress?.substring(0, 20)}...
+                  </Alert>
+                )}
+                <Alert type="info" title="Publishing Fee">
+                  Publishing this article will cost 5 KAS. Make sure you have sufficient balance in your wallet.
+                </Alert>
               </div>
             </div>
           )}

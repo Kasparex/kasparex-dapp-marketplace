@@ -4,29 +4,37 @@ import { useState } from 'react';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { useAccount } from 'wagmi';
 import { CreateArticleForm } from './CreateArticleForm';
 import { EditArticleForm } from './EditArticleForm';
 import { ArticleList } from './ArticleList';
+import { Alert } from '@/components/Alert';
 
 export function AuthorDashboard() {
-  const { state } = useKaspaWallet();
+  const { state: kaspaState } = useKaspaWallet();
+  const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
+  
+  // Support both Kaspa and EVM wallets
+  const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
+  const isWalletConnected = kaspaState.isConnected || isEVMConnected;
+  
   const { createNewArticle, updateExistingArticle, getAuthorArticles, loadArticles } = useVBlog();
   const [activeTab, setActiveTab] = useState<'create' | 'my-articles'>('create');
   const [editingArticle, setEditingArticle] = useState<VBlogArticle | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const authorArticles = state.address ? getAuthorArticles(state.address) : [];
+  const authorArticles = walletAddress ? getAuthorArticles(walletAddress) : [];
 
   const handleCreateArticle = async (articleData: Omit<VBlogArticle, 'id' | 'slug' | 'publishDate' | 'cid' | 'articleId' | 'txHash' | 'status'>) => {
     // TODO: Get author from wallet connection
     // For now, use the connected address
-    if (!state.address) {
+    if (!walletAddress) {
       throw new Error('Wallet not connected');
     }
 
     const articleWithAuthor = {
       ...articleData,
-      author: state.address,
+      author: walletAddress,
     };
 
     await createNewArticle(articleWithAuthor);
@@ -61,9 +69,9 @@ export function AuthorDashboard() {
     <div className="space-y-6">
       {/* Success Message */}
       {successMessage && (
-        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-          <p className="text-sm text-green-800 dark:text-green-300">{successMessage}</p>
-        </div>
+        <Alert type="success" onDismiss={() => setSuccessMessage(null)}>
+          {successMessage}
+        </Alert>
       )}
 
       {/* Tabs */}

@@ -5,6 +5,8 @@ import { VBlogArticle } from '@/lib/vblog/types';
 import { KASFeeConfirmation } from './KASFeeConfirmation';
 import { KASFeeInfo } from '@/lib/vblog/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { useAccount } from 'wagmi';
+import { Alert } from '@/components/Alert';
 
 interface CreateArticleFormProps {
   onSubmit: (article: Omit<VBlogArticle, 'id' | 'slug' | 'publishDate' | 'cid' | 'articleId' | 'txHash' | 'status'>) => Promise<void>;
@@ -28,7 +30,13 @@ const CREATE_FEE: KASFeeInfo = {
 };
 
 export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps) {
-  const { state } = useKaspaWallet();
+  const { state: kaspaState } = useKaspaWallet();
+  const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
+  
+  // Support both Kaspa and EVM wallets
+  const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
+  const isWalletConnected = kaspaState.isConnected || isEVMConnected;
+  
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [content, setContent] = useState('');
@@ -72,8 +80,8 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
         .map(tag => tag.trim())
         .filter(tag => tag.length > 0);
 
-      if (!state.isConnected || !state.address) {
-        setError('Wallet not connected. Please connect your wallet to create an article.');
+      if (!isWalletConnected || !walletAddress) {
+        setError('Wallet not connected. Please connect your wallet (Kaspa or EVM) to create an article.');
         setIsSubmitting(false);
         return;
       }
@@ -82,7 +90,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
         title: title.trim(),
         description: description.trim(),
         content: content.trim(),
-        author: state.address,
+        author: walletAddress,
         category,
         tags: tagsArray,
         featuredImage: featuredImage.trim() || undefined,
@@ -118,9 +126,9 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
         </div>
 
         {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-            <p className="text-sm text-red-800 dark:text-red-300">{error}</p>
-          </div>
+          <Alert type="error" title="Error" onDismiss={() => setError(null)}>
+            {error}
+          </Alert>
         )}
 
         <div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { KASFeeConfirmation } from './KASFeeConfirmation';
 import { KASFeeInfo } from '@/lib/vblog/types';
+import { Alert } from '@/components/Alert';
 
 interface EditArticleFormProps {
   article: VBlogArticle;
@@ -111,9 +112,9 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
         </div>
 
         {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-            <p className="text-sm text-red-800 dark:text-red-300">{error}</p>
-          </div>
+          <Alert type="error" title="Error" onDismiss={() => setError(null)}>
+            {error}
+          </Alert>
         )}
 
         <div>

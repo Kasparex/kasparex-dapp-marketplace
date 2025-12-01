@@ -5,17 +5,25 @@ import { VBlogComment } from '@/lib/vblog/types';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useCommentCredits } from '@/hooks/useCommentCredits';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { useAccount } from 'wagmi';
 import { formatAddress, formatDateTime } from '@/lib/vblog/utils';
 import { CommentCreditInfo } from './CommentCreditInfo';
+import { Alert } from '@/components/Alert';
 
 interface CommentsSectionProps {
   articleId: string;
 }
 
 export function CommentsSection({ articleId }: CommentsSectionProps) {
-  const { state } = useKaspaWallet();
+  const { state: kaspaState } = useKaspaWallet();
+  const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
   const { getArticleComments, addArticleComment } = useVBlog();
-  const { credits, useCredit: deductCredit, hasCredits, isLoading: creditsLoading } = useCommentCredits(state.address);
+  
+  // Support both Kaspa and EVM wallets
+  const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
+  const isWalletConnected = kaspaState.isConnected || isEVMConnected;
+  
+  const { credits, useCredit: deductCredit, hasCredits, isLoading: creditsLoading } = useCommentCredits(walletAddress);
   const [comments, setComments] = useState<VBlogComment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,8 +39,8 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!state.isConnected || !state.address) {
-      setError('Please connect your wallet to comment');
+    if (!isWalletConnected || !walletAddress) {
+      setError('Please connect your wallet (Kaspa or EVM) to comment');
       return;
     }
 
@@ -64,7 +72,7 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
       // TODO: Replace with actual smart contract call
       const comment = await addArticleComment({
         articleId,
-        author: state.address,
+        author: walletAddress,
         content: newComment.trim(),
       });
 
@@ -145,10 +153,18 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
               disabled={isSubmitting || !hasCredits()}
             />
             {error && (
-              <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
+              <div className="mt-2">
+                <Alert type="error" compact onDismiss={() => setError(null)}>
+                  {error}
+                </Alert>
+              </div>
             )}
             {success && (
-              <p className="mt-2 text-sm text-green-600 dark:text-green-400">Comment added successfully!</p>
+              <div className="mt-2">
+                <Alert type="success" compact>
+                  Comment added successfully!
+                </Alert>
+              </div>
             )}
           </div>
           <div className="flex items-center justify-between">
@@ -169,11 +185,9 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
           </div>
         </form>
       ) : (
-        <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 text-center">
-          <p className="text-base text-zinc-600 dark:text-zinc-400 mb-4">
-            Connect your wallet to add a comment
-          </p>
-        </div>
+        <Alert type="info" title="Wallet Required">
+          Connect your wallet (Kaspa or EVM) to add a comment
+        </Alert>
       )}
     </div>
   );
