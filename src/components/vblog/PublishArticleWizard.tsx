@@ -332,23 +332,6 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
       description: '',
       content: '',
       featuredImage: '',
-      category: CATEGORIES[0],
-      tags: '',
-    });
-    setIpfsData({ cid: null, isUploading: false, uploadProgress: 0, uploadedFile: undefined, uploadedFileName: undefined });
-    setError(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const handleReset = () => {
-    setCurrentStep('content');
-    setFormData({
-      title: '',
-      description: '',
-      content: '',
-      featuredImage: '',
       category: categories[0],
       tags: '',
     });
