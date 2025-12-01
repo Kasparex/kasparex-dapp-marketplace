@@ -19,7 +19,7 @@ export function AuthorDashboard() {
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
   const isWalletConnected = kaspaState.isConnected || isEVMConnected;
   
-  const { createNewArticle, updateExistingArticle, deleteArticle, getAuthorArticles, loadArticles } = useVBlog();
+  const { createNewArticle, updateExistingArticle, deleteExistingArticle, getAuthorArticles, loadArticles } = useVBlog();
   const [activeTab, setActiveTab] = useState<'create' | 'my-articles'>('create');
   const [editingArticle, setEditingArticle] = useState<VBlogArticle | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -72,7 +72,7 @@ export function AuthorDashboard() {
     }
     
     try {
-      await deleteArticle(articleId);
+      await deleteExistingArticle(articleId);
       loadArticles();
       setSuccessMessage('Article deleted successfully!');
       setTimeout(() => {
