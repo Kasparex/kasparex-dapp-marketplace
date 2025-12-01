@@ -117,7 +117,8 @@ export function validateImage(file: File): { valid: boolean; error?: string } {
   }
   
   // Check MIME type first (more reliable)
-  if (!IMAGE_LIMITS.allowedMimeTypes.includes(file.type.toLowerCase())) {
+  const mimeType = file.type.toLowerCase() as typeof IMAGE_LIMITS.allowedMimeTypes[number];
+  if (!IMAGE_LIMITS.allowedMimeTypes.includes(mimeType)) {
     return { valid: false, error: `Image type not allowed. Allowed types: ${IMAGE_LIMITS.allowedTypes.join(', ')}` };
   }
   
