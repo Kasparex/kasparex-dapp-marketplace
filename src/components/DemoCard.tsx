@@ -16,7 +16,6 @@ import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { DAppCardRewards } from './rewards/DAppCardRewards';
 import { DAppFeesModal } from './dapps/DAppFeesModal';
-import { useMouseGradient } from '@/hooks/useMouseGradient';
 
 interface DemoCardProps {
   dapp: DApp;
@@ -26,7 +25,6 @@ interface DemoCardProps {
 
 export function DemoCard({ dapp, gradientColors }: DemoCardProps) {
   const chainId = useChainId();
-  const { cardRef, mousePosition, isHovering } = useMouseGradient<HTMLAnchorElement>();
   
   // Merge localStorage metadata with frontend data
   const mergedDApp = mergeDAppData(null, dapp);
@@ -79,40 +77,17 @@ export function DemoCard({ dapp, gradientColors }: DemoCardProps) {
     action();
   };
 
-  // Calculate gradient position based on mouse position
-  const [color1, color2] = gradientColors;
-  const rgb1 = hexToRgb(color1);
-  const rgb2 = hexToRgb(color2);
-  const gradientStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: '0.5rem',
-    background: isHovering
-      ? `radial-gradient(circle 600px at ${mousePosition.x}px ${mousePosition.y}px, rgba(${rgb1}, 0.12) 0%, rgba(${rgb1}, 0.08) 20%, rgba(${rgb2}, 0.05) 40%, rgba(${rgb2}, 0.02) 60%, transparent 80%)`
-      : 'transparent',
-    pointerEvents: 'none',
-    transition: isHovering ? 'none' : 'opacity 0.4s ease',
-    zIndex: 1,
-    opacity: isHovering ? 1 : 0,
-  };
-
   // Use first gradient color for featured image background and icon
-  const featuredBgColor = color1;
+  const [color1] = gradientColors;
   const featuredIconColor = color1;
   const rgb1ForBg = hexToRgb(color1);
   const featuredBgRgba = `rgba(${rgb1ForBg}, 0.12)`;
 
   return (
     <Link
-      ref={cardRef}
       href={`/dapps/${slug}`}
       className="block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all relative flex flex-col min-h-[280px]"
     >
-      {/* Gradient overlay that follows mouse */}
-      <div style={gradientStyle} />
 
       {/* Default dApp Featured Image Banner - with logo colors */}
       <div 

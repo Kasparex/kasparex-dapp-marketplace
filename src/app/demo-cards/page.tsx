@@ -11,8 +11,8 @@ import { loadDAppLogo } from '@/lib/dapps/contractData';
 export default function DemoCardsPage() {
   const [cardGradients, setCardGradients] = useState<Map<number, [string, string]>>(new Map());
 
-  // Get first 3 dApps for demo
-  const demoDApps = placeholderDApps.slice(0, 3);
+  // Get all dApps for demo
+  const demoDApps = placeholderDApps;
 
   useEffect(() => {
     // Extract colors for each dApp
