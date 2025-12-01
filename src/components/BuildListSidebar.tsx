@@ -65,7 +65,7 @@ export function BuildListSidebar({ title }: BuildListSidebarProps) {
       {/* Mobile Back Button */}
       <div className="lg:hidden px-4 pt-4">
         <Link
-          href="/"
+          href="/hub"
           className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
         >
           <svg
@@ -81,7 +81,7 @@ export function BuildListSidebar({ title }: BuildListSidebarProps) {
               d="M15 19l-7-7 7-7"
             />
           </svg>
-          Back to Categories
+          Go back to Hub
         </Link>
       </div>
 
@@ -89,9 +89,9 @@ export function BuildListSidebar({ title }: BuildListSidebarProps) {
       <aside className="hidden lg:block w-full lg:w-1/4 lg:max-w-xs flex-shrink-0">
         <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800">
           <div className="p-4 lg:p-6">
-            {/* Back to Categories Button */}
+            {/* Back to Hub Button */}
             <Link
-              href="/"
+              href="/hub"
               className="flex items-center gap-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors mb-6 pb-4 border-b border-zinc-200 dark:border-zinc-800"
             >
               <svg
@@ -107,7 +107,7 @@ export function BuildListSidebar({ title }: BuildListSidebarProps) {
                   d="M15 19l-7-7 7-7"
                 />
               </svg>
-              Back to Categories
+              Go back to Hub
             </Link>
 
             {/* Page Title */}

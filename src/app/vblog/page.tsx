@@ -59,17 +59,15 @@ export default function VBlogPage() {
       <main className="flex-1">
         <div className="flex flex-col lg:flex-row">
           {/* Sidebar */}
-          <div className="w-full lg:w-64 lg:flex-shrink-0 p-4 sm:p-6 lg:p-8 lg:pl-6 border-r border-zinc-200 dark:border-zinc-800">
-            <VBlogSidebar
-              articles={articles}
-              selectedCategory={selectedCategory}
-              selectedTags={selectedTags}
-              searchQuery={searchQuery}
-              onCategoryChange={setSelectedCategory}
-              onTagToggle={handleTagToggle}
-              onSearchChange={setSearchQuery}
-            />
-          </div>
+          <VBlogSidebar
+            articles={articles}
+            selectedCategory={selectedCategory}
+            selectedTags={selectedTags}
+            searchQuery={searchQuery}
+            onCategoryChange={setSelectedCategory}
+            onTagToggle={handleTagToggle}
+            onSearchChange={setSearchQuery}
+          />
 
           {/* Main Content */}
           <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6">
