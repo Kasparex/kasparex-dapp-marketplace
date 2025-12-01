@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764554882-aff1c38",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update footer text, match dApp footer background to show header button, adjust scrollbar colors for light/dark modes (by Kasparex)",
+      "date": "2025-12-01T03:07:28+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764546165-c837d07",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update featured image background, footer styling, add copy icon to contract addresses, add back-to-top button (by Kasparex)",
