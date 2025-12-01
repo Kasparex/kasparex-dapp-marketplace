@@ -20,7 +20,6 @@ import { formatKaspaAddress } from '@/lib/kaspa/wallet';
 import { getDAppsByDeployer, canEditDApp, getAssignedDApps } from '@/lib/dapps/management';
 import { useMyAssignedDApps } from '@/hooks/useDAppAuthorization';
 import { generateDAppSlug } from '@/lib/utils';
-import dynamicImport from 'next/dynamic';
 import Link from 'next/link';
 
 // Dynamically import AuthorDashboard to avoid SSR issues with react-quill
