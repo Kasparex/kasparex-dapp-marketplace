@@ -20,6 +20,7 @@ import { formatKaspaAddress } from '@/lib/kaspa/wallet';
 import { getDAppsByDeployer, canEditDApp, getAssignedDApps } from '@/lib/dapps/management';
 import { useMyAssignedDApps } from '@/hooks/useDAppAuthorization';
 import { generateDAppSlug } from '@/lib/utils';
+import { AuthorDashboard } from '@/components/vblog/AuthorDashboard';
 import Link from 'next/link';
 
 // Edit functionality removed - profiles are now read-only
@@ -34,7 +35,7 @@ export default function UserProfilePage() {
   const { state: kaspaState } = useKaspaWallet();
   const walletAddress = params?.['wallet-address'] as string | undefined;
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'activity' | 'dapps' | 'assigned' | 'favorites' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'activity' | 'dapps' | 'assigned' | 'favorites' | 'vblog' | 'settings'>('overview');
   const { getFavoritesForWallet } = useFavorites();
   
   // Get assigned dApps (only if viewing own profile)
@@ -222,6 +223,16 @@ export default function UserProfilePage() {
                 }`}
               >
                 Favorites
+              </button>
+              <button
+                onClick={() => setActiveTab('vblog')}
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  activeTab === 'vblog'
+                    ? 'text-zinc-900 dark:text-zinc-100 border-b-2 border-zinc-900 dark:border-zinc-100'
+                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                }`}
+              >
+                vBlog
               </button>
               {isOwnProfile && (
                 <button
@@ -469,6 +480,12 @@ export default function UserProfilePage() {
                 </div>
               );
             })()}
+
+            {activeTab === 'vblog' && (
+              <div className="mb-8">
+                <AuthorDashboard />
+              </div>
+            )}
 
             {/* Edit functionality removed - profiles are now read-only */}
 

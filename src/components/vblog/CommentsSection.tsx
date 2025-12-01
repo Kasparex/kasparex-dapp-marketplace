@@ -115,7 +115,9 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
                   </div>
                   <div>
                     <Link
-                      href={`/vblog/author/${encodeURIComponent(comment.author)}`}
+                      href={comment.author.startsWith('evm:') 
+                        ? `/user/${comment.author.replace('evm:', '')}`
+                        : `/user/${comment.author.replace('kaspa:', '')}`}
                       className="text-base font-medium text-[#02abb8] hover:text-[#028a94] hover:underline font-mono transition-colors"
                     >
                       {formatAddress(comment.author)}

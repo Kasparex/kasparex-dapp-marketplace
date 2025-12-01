@@ -15,6 +15,7 @@ import {
   CONTENT_LIMITS,
 } from '@/lib/vblog/limits';
 import { Alert } from '@/components/Alert';
+import { RichTextEditor } from './RichTextEditor';
 
 interface CreateArticleFormProps {
   onSubmit: (article: Omit<VBlogArticle, 'id' | 'slug' | 'publishDate' | 'cid' | 'articleId' | 'txHash' | 'status'>) => Promise<void>;
@@ -213,22 +214,12 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
               Main Content <span className="text-red-500">*</span>
             </label>
-            <span className={`text-xs ${
-              getCharacterCount(content) > (pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max)
-                ? 'text-red-500'
-                : 'text-zinc-500 dark:text-zinc-400'
-            }`}>
-              {getCharacterCount(content)} / {pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max}
-            </span>
           </div>
-          <textarea
+          <RichTextEditor
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={setContent}
             placeholder="Write your article content here..."
-            rows={12}
             maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max}
-            className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] resize-none font-mono text-sm"
-            required
             disabled={isSubmitting}
           />
         </div>

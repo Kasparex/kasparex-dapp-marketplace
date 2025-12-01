@@ -11,13 +11,17 @@ import {
   validateDescription, 
   validateContent, 
   validateFile,
+  validateImage,
   getCharacterCount,
+  getFileSizeDisplay,
   CONTENT_LIMITS,
   FILE_LIMITS,
+  IMAGE_LIMITS,
 } from '@/lib/vblog/limits';
 import { Alert } from '@/components/Alert';
 import { KASFeeConfirmation } from './KASFeeConfirmation';
 import { KASFeeInfo } from '@/lib/vblog/types';
+import { RichTextEditor } from './RichTextEditor';
 
 interface PublishArticleWizardProps {
   isOpen: boolean;
@@ -137,9 +141,9 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
   };
 
   const handleFeaturedImageUpload = async (file: File) => {
-    const validation = validateFile(file);
+    const validation = validateImage(file);
     if (!validation.valid) {
-      setError(validation.error || 'Invalid file');
+      setError(validation.error || 'Invalid image file');
       return;
     }
     
@@ -277,6 +281,20 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     }
   };
 
+  const handleStepClick = (stepId: WizardStep, stepIndex: number) => {
+    // Allow clicking on completed steps or the next step (if current step is valid)
+    if (stepIndex <= currentStepIndex) {
+      // Can go back to any previous step
+      setCurrentStep(stepId);
+    } else if (stepIndex === currentStepIndex + 1) {
+      // Can go to next step if current step is valid
+      if (validateStep(currentStep)) {
+        setCurrentStep(stepId);
+      }
+    }
+    // Otherwise, don't allow jumping ahead
+  };
+
   const handlePublishConfirm = async () => {
     setShowFeeConfirmation(false);
     setCurrentStep('publishing');
@@ -394,36 +412,48 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
         {/* Progress Bar */}
         <div className="px-6 py-3 bg-zinc-50 dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center gap-2">
-            {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center flex-1">
-                <div className="flex items-center gap-2 flex-1">
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                      index <= currentStepIndex
-                        ? 'bg-[#02abb8] text-white'
-                        : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
-                    }`}
-                  >
-                    {index < currentStepIndex ? (
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    ) : (
-                      step.number
+            {steps.map((step, index) => {
+              const isClickable = index <= currentStepIndex || (index === currentStepIndex + 1 && validateStep(currentStep));
+              const isActive = index === currentStepIndex;
+              return (
+                <div key={step.id} className="flex items-center flex-1">
+                  <div className="flex items-center gap-2 flex-1">
+                    <button
+                      type="button"
+                      onClick={() => handleStepClick(step.id, index)}
+                      disabled={!isClickable && !isActive}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
+                        index <= currentStepIndex
+                          ? 'bg-[#02abb8] text-white hover:bg-[#028a94]'
+                          : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
+                      } ${
+                        isClickable || isActive
+                          ? 'cursor-pointer hover:scale-110'
+                          : 'cursor-not-allowed opacity-50'
+                      }`}
+                      title={step.title}
+                    >
+                      {index < currentStepIndex ? (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        step.number
+                      )}
+                    </button>
+                    {index < steps.length - 1 && (
+                      <div
+                        className={`flex-1 h-1 rounded transition-colors ${
+                          index < currentStepIndex
+                            ? 'bg-[#02abb8]'
+                            : 'bg-zinc-200 dark:bg-zinc-800'
+                        }`}
+                      />
                     )}
                   </div>
-                  {index < steps.length - 1 && (
-                    <div
-                      className={`flex-1 h-1 rounded transition-colors ${
-                        index < currentStepIndex
-                          ? 'bg-[#02abb8]'
-                          : 'bg-zinc-200 dark:bg-zinc-800'
-                      }`}
-                    />
-                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -492,21 +522,13 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
                   <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
                     Main Content <span className="text-red-500">*</span>
                   </label>
-                  <span className={`text-xs ${
-                    getCharacterCount(formData.content) > (pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max)
-                      ? 'text-red-500'
-                      : 'text-zinc-500 dark:text-zinc-400'
-                  }`}>
-                    {getCharacterCount(formData.content)} / {pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max}
-                  </span>
                 </div>
-                <textarea
+                <RichTextEditor
                   value={formData.content}
-                  onChange={(e) => updateFormData('content', e.target.value)}
+                  onChange={(value) => updateFormData('content', value)}
                   placeholder="Write your article content here..."
-                  rows={10}
                   maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max}
-                  className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] resize-none font-mono text-sm"
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -534,14 +556,10 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
                     <input
                       ref={featuredImageInputRef}
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg,image/jpg,image/png,.jpg,.jpeg,.png"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          if (file.size > FILE_LIMITS.maxSize) {
-                            setError(`File size must be no more than ${FILE_LIMITS.maxSize / (1024 * 1024)} MB`);
-                            return;
-                          }
                           handleFeaturedImageUpload(file);
                         }
                       }}
@@ -557,7 +575,7 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
                       ) : featuredImageIpfs.cid ? (
                         <span className="text-emerald-600 dark:text-emerald-400">✓ Image uploaded to IPFS</span>
                       ) : (
-                        <span className="text-zinc-600 dark:text-zinc-400">Upload Image to IPFS (max {FILE_LIMITS.maxSize / (1024 * 1024)} MB)</span>
+                        <span className="text-zinc-600 dark:text-zinc-400">Upload Image to IPFS (JPG/PNG, max {getFileSizeDisplay(IMAGE_LIMITS.maxSize)})</span>
                       )}
                     </label>
                   </div>

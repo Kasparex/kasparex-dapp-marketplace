@@ -9,6 +9,7 @@ import { VBlogCard } from '@/components/vblog/VBlogCard';
 import { VBlogExplainer } from '@/components/vblog/VBlogExplainer';
 import { VBlogSidebar } from '@/components/vblog/VBlogSidebar';
 import { PublishArticleWizard } from '@/components/vblog/PublishArticleWizard';
+import { PricingTable } from '@/components/vblog/PricingTable';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 
@@ -82,15 +83,6 @@ export default function VBlogPage() {
                     <VBlogHeader />
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <Link
-                      href="/vblog/dashboard"
-                      className="px-4 py-2 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg font-medium transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900 flex items-center gap-2"
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      Dashboard
-                    </Link>
                     <button
                       onClick={() => setShowWizard(true)}
                       className="px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors flex items-center gap-2"
@@ -102,6 +94,11 @@ export default function VBlogPage() {
                       Publish Article
                     </button>
                   </div>
+                </div>
+                
+                {/* Pricing Table */}
+                <div className="mb-8">
+                  <PricingTable />
                 </div>
               </div>
 

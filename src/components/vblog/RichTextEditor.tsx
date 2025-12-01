@@ -1,0 +1,139 @@
+'use client';
+
+import { useMemo } from 'react';
+import dynamic from 'next/dynamic';
+import 'react-quill/dist/quill.snow.css';
+
+// Dynamically import react-quill to avoid SSR issues
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+
+interface RichTextEditorProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  maxLength?: number;
+  disabled?: boolean;
+}
+
+export function RichTextEditor({
+  value,
+  onChange,
+  placeholder = 'Write your content here...',
+  maxLength,
+  disabled = false,
+}: RichTextEditorProps) {
+  const modules = useMemo(
+    () => ({
+      toolbar: [
+        [{ header: [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        [{ align: [] }],
+        ['link', 'blockquote', 'code-block'],
+        ['clean'],
+      ],
+    }),
+    []
+  );
+
+  const formats = [
+    'header',
+    'bold',
+    'italic',
+    'underline',
+    'strike',
+    'list',
+    'bullet',
+    'align',
+    'link',
+    'blockquote',
+    'code-block',
+  ];
+
+  const handleChange = (content: string) => {
+    // Remove HTML tags to count characters
+    const textContent = content.replace(/<[^>]*>/g, '');
+    if (maxLength && textContent.length > maxLength) {
+      return; // Don't update if over limit
+    }
+    onChange(content);
+  };
+
+  // Count characters (without HTML tags)
+  const characterCount = value.replace(/<[^>]*>/g, '').length;
+
+  return (
+    <div className="rich-text-editor">
+      <ReactQuill
+        theme="snow"
+        value={value}
+        onChange={handleChange}
+        modules={modules}
+        formats={formats}
+        placeholder={placeholder}
+        readOnly={disabled}
+        className="bg-white dark:bg-zinc-900"
+      />
+      {maxLength && (
+        <div className={`text-xs mt-2 text-right ${
+          characterCount > maxLength
+            ? 'text-red-500'
+            : 'text-zinc-500 dark:text-zinc-400'
+        }`}>
+          {characterCount} / {maxLength} characters
+        </div>
+      )}
+      <style jsx global>{`
+        .rich-text-editor .ql-container {
+          font-size: 14px;
+          font-family: inherit;
+          min-height: 200px;
+        }
+        .rich-text-editor .ql-editor {
+          min-height: 200px;
+          color: rgb(24 24 27);
+        }
+        .dark .rich-text-editor .ql-editor {
+          color: rgb(244 244 245);
+        }
+        .rich-text-editor .ql-toolbar {
+          border-top-left-radius: 0.5rem;
+          border-top-right-radius: 0.5rem;
+          border-color: rgb(228 228 231);
+          background: rgb(255 255 255);
+        }
+        .dark .rich-text-editor .ql-toolbar {
+          border-color: rgb(39 39 42);
+          background: rgb(24 24 27);
+        }
+        .rich-text-editor .ql-container {
+          border-bottom-left-radius: 0.5rem;
+          border-bottom-right-radius: 0.5rem;
+          border-color: rgb(228 228 231);
+        }
+        .dark .rich-text-editor .ql-container {
+          border-color: rgb(39 39 42);
+        }
+        .rich-text-editor .ql-stroke {
+          stroke: rgb(63 63 70);
+        }
+        .dark .rich-text-editor .ql-stroke {
+          stroke: rgb(161 161 170);
+        }
+        .rich-text-editor .ql-fill {
+          fill: rgb(63 63 70);
+        }
+        .dark .rich-text-editor .ql-fill {
+          fill: rgb(161 161 170);
+        }
+        .rich-text-editor .ql-picker-label {
+          color: rgb(63 63 70);
+        }
+        .dark .rich-text-editor .ql-picker-label {
+          color: rgb(161 161 170);
+        }
+      `}</style>
+    </div>
+  );
+}
+
