@@ -170,7 +170,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-zinc-300 dark:bg-zinc-700 rounded-full;
+  @apply bg-zinc-200 dark:bg-zinc-800 rounded-full;
 }
 
 .kaspa ::-webkit-scrollbar-thumb {
@@ -178,7 +178,7 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-zinc-400 dark:bg-zinc-600;
+  @apply bg-zinc-300 dark:bg-zinc-700;
 }
 
 .kaspa ::-webkit-scrollbar-thumb:hover {
@@ -188,11 +188,11 @@
 /* Firefox scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgb(212 212 216) transparent; /* zinc-300 - lighter for light theme */
+  scrollbar-color: rgb(228 228 231) transparent; /* zinc-200 - lighter for light theme */
 }
 
 .dark * {
-  scrollbar-color: rgb(63 63 70) transparent; /* zinc-700 - darker for dark theme */
+  scrollbar-color: rgb(39 39 42) transparent; /* zinc-800 - darker for dark theme */
 }
 
 .kaspa * {

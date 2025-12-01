@@ -30,7 +30,7 @@ export function DAppWidgetFooter({ contractAddress }: DAppWidgetFooterProps) {
   };
 
   return (
-    <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-black/50 dark:bg-black/50 backdrop-blur-sm">
+    <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         {/* Left: Contract Address - Always visible if available */}
         {contractAddress && contractAddress.startsWith('0x') && explorerUrl ? (

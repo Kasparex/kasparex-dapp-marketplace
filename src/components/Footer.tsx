@@ -248,7 +248,7 @@ export function Footer() {
         {/* Copyright */}
         <div className="mt-8 pt-8 border-t border-zinc-200 dark:border-zinc-800 text-center">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            © {new Date().getFullYear()} Kasparex.com. All rights reserved.
+            © 2025 Kasparex.com | Built with ❤️ by Krex
           </p>
         </div>
       </div>
