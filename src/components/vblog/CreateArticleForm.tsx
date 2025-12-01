@@ -229,7 +229,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
             disabled={isSubmitting}
           />
           <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-            If you've already uploaded your content to IPFS or another decentralized storage, paste the CID here.
+            If you&apos;ve already uploaded your content to IPFS or another decentralized storage, paste the CID here.
           </p>
         </div>
 

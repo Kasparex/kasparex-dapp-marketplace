@@ -18,7 +18,7 @@ export function VBlogExplainer() {
               How the System Works
             </h3>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-              Kasparex vBlog is designed as an on-chain blog platform that combines decentralized storage with blockchain transactions. Each article's content is stored off-chain using a Content Identifier (CID), which allows for verifiable and immutable content storage while keeping on-chain costs low.
+              Kasparex vBlog is designed as an on-chain blog platform that combines decentralized storage with blockchain transactions. Each article&apos;s content is stored off-chain using a Content Identifier (CID), which allows for verifiable and immutable content storage while keeping on-chain costs low.
             </p>
             <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400 ml-4">
               <li className="list-disc">Article content is stored via CID on decentralized storage networks (IPFS, etc.)</li>
@@ -34,7 +34,7 @@ export function VBlogExplainer() {
               <svg className="w-5 h-5 text-[#02abb8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              What's Coming Next
+              What&apos;s Coming Next
             </h3>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
               vBlog will integrate with other Kasparex dApps to create a comprehensive content ecosystem:

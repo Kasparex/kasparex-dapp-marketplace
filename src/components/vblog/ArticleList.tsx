@@ -14,7 +14,7 @@ export function ArticleList({ articles, onEdit }: ArticleListProps) {
     return (
       <div className="text-center py-12">
         <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-          You haven't created any articles yet.
+          You haven&apos;t created any articles yet.
         </p>
       </div>
     );

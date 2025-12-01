@@ -15,7 +15,7 @@ interface CommentsSectionProps {
 export function CommentsSection({ articleId }: CommentsSectionProps) {
   const { state } = useKaspaWallet();
   const { getArticleComments, addArticleComment } = useVBlog();
-  const { credits, useCredit, hasCredits, isLoading: creditsLoading } = useCommentCredits(state.address);
+  const { credits, useCredit: deductCredit, hasCredits, isLoading: creditsLoading } = useCommentCredits(state.address);
   const [comments, setComments] = useState<VBlogComment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,7 +53,7 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
     try {
       // Check and use credit
       // TODO: Replace with actual smart contract call for credit checking
-      const creditUsed = useCredit();
+      const creditUsed = deductCredit();
       if (!creditUsed) {
         setError('Failed to use credit. Please try again.');
         setIsSubmitting(false);
