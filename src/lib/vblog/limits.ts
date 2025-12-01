@@ -90,7 +90,12 @@ export function validateFile(file: File): { valid: boolean; error?: string } {
     return { valid: false, error: `File size must be no more than ${FILE_LIMITS.maxSize / (1024 * 1024)} MB` };
   }
   
-  const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+  const lastDot = file.name.lastIndexOf('.');
+  if (lastDot === -1) {
+    return { valid: false, error: `File type not allowed. Allowed types: ${FILE_LIMITS.allowedTypes.join(', ')}` };
+  }
+  
+  const extension = ('.' + file.name.substring(lastDot + 1).toLowerCase()) as typeof FILE_LIMITS.allowedTypes[number];
   if (!FILE_LIMITS.allowedTypes.includes(extension)) {
     return { valid: false, error: `File type not allowed. Allowed types: ${FILE_LIMITS.allowedTypes.join(', ')}` };
   }
