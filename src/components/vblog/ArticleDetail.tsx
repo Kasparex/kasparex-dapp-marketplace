@@ -33,7 +33,7 @@ export function ArticleDetail({ article }: ArticleDetailProps) {
         </h1>
 
         {/* Meta Information */}
-        <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-600 dark:text-zinc-400 mb-6">
+        <div className="flex flex-wrap items-center gap-4 text-base text-zinc-600 dark:text-zinc-400 mb-6">
           <div className="flex items-center gap-2">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -81,7 +81,7 @@ export function ArticleDetail({ article }: ArticleDetailProps) {
 
       {/* Article Content */}
       <div className="prose prose-zinc dark:prose-invert max-w-none mb-8">
-        <div className="whitespace-pre-wrap text-zinc-900 dark:text-zinc-100 leading-relaxed">
+        <div className="whitespace-pre-wrap text-base text-zinc-900 dark:text-zinc-100 leading-relaxed">
           {article.content}
         </div>
       </div>

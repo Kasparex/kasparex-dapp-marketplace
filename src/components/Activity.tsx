@@ -71,7 +71,7 @@ export function Activity({ walletAddress }: ActivityProps) {
   
   const simplePaymentAddress = getSimplePaymentAddress();
 
-  // Load persisted activities from all networks on mount (runs first, before blockchain fetch)
+  // Load persisted activities from all networks on mount (runs first, before BlockDAG fetch)
   useEffect(() => {
     if (!walletAddress || !walletAddress.startsWith('0x') || walletAddress.length !== 42) {
       return;

@@ -54,9 +54,11 @@ export default function ArticlePage({ params }: PageProps) {
         <div className="flex flex-col lg:flex-row">
           {/* Main Content */}
           <div className="flex-1 min-w-0 p-4 sm:p-6 lg:px-16 lg:py-12">
-            <ArticleDetail article={article} />
-            <ArticleMetadata article={article} />
-            <CommentsSection articleId={article.id} />
+            <div className="max-w-4xl mx-auto">
+              <ArticleDetail article={article} />
+              <ArticleMetadata article={article} />
+              <CommentsSection articleId={article.id} />
+            </div>
           </div>
         </div>
       </main>

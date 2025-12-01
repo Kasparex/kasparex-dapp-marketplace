@@ -82,7 +82,7 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
   };
 
   return (
-    <div className="mt-12 pt-8 border-t border-zinc-200 dark:border-zinc-800">
+    <div className="mt-12 pt-8 border-t border-zinc-200 dark:border-zinc-800 max-w-4xl mx-auto">
       <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
         Comments ({comments.length})
       </h2>
@@ -105,16 +105,16 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 font-mono">
+                    <p className="text-base font-medium text-zinc-900 dark:text-zinc-100 font-mono">
                       {formatAddress(comment.author)}
                     </p>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
                       {formatDateTime(comment.timestamp)}
                     </p>
                   </div>
                 </div>
               </div>
-              <p className="text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
+              <p className="text-base text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
                 {comment.content}
               </p>
             </div>
@@ -122,7 +122,7 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
         </div>
       ) : (
         <div className="text-center py-8 mb-8">
-          <p className="text-zinc-600 dark:text-zinc-400">
+          <p className="text-base text-zinc-600 dark:text-zinc-400">
             No comments yet. Be the first to comment!
           </p>
         </div>
@@ -132,7 +132,7 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
       {state.isConnected ? (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="comment" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+            <label htmlFor="comment" className="block text-base font-medium text-zinc-700 dark:text-zinc-300 mb-2">
               Add a Comment
             </label>
             <textarea
@@ -141,7 +141,7 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Write your comment here..."
               rows={4}
-              className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] resize-none"
+              className="w-full px-3 py-2 text-base border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] resize-none"
               disabled={isSubmitting || !hasCredits()}
             />
             {error && (
@@ -152,7 +152,7 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
             )}
           </div>
           <div className="flex items-center justify-between">
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
               {hasCredits() ? (
                 <>You have {credits?.creditsRemaining || 0} comment credit{credits?.creditsRemaining !== 1 ? 's' : ''} remaining</>
               ) : (
@@ -170,7 +170,7 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
         </form>
       ) : (
         <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 text-center">
-          <p className="text-zinc-600 dark:text-zinc-400 mb-4">
+          <p className="text-base text-zinc-600 dark:text-zinc-400 mb-4">
             Connect your wallet to add a comment
           </p>
         </div>

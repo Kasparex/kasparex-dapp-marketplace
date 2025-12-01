@@ -17,15 +17,35 @@ export function VBlogExplainer() {
               </svg>
               How the System Works
             </h3>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-              Kasparex vBlog is designed as an on-chain blog platform that combines decentralized storage with blockchain transactions. Each article&apos;s content is stored off-chain using a Content Identifier (CID), which allows for verifiable and immutable content storage while keeping on-chain costs low.
+            <p className="text-base text-zinc-600 dark:text-zinc-400 mb-6">
+              Kasparex vBlog is designed as an on-chain blog platform that combines decentralized storage with BlockDAG transactions. Each article&apos;s content is stored off-chain using a Content Identifier (CID), which allows for verifiable and immutable content storage while keeping on-chain costs low.
             </p>
-            <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400 ml-4">
-              <li className="list-disc">Article content is stored via CID on decentralized storage networks (IPFS, etc.)</li>
-              <li className="list-disc">Creating a new article costs KAS (e.g., 5 KAS) to ensure quality and prevent spam</li>
-              <li className="list-disc">Updating an article costs a smaller KAS fee (e.g., 2 KAS) compared to creation</li>
-              <li className="list-disc">Comments use a pre-paid credit system where users purchase batches (e.g., 10 KAS for 10 comments)</li>
-            </ul>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4">
+                <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">CID Storage</h4>
+                <p className="text-base text-zinc-600 dark:text-zinc-400">
+                  Article content is stored via CID on decentralized storage networks (IPFS, etc.)
+                </p>
+              </div>
+              <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4">
+                <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Article Creation</h4>
+                <p className="text-base text-zinc-600 dark:text-zinc-400">
+                  Creating a new article costs KAS (e.g., 5 KAS) to ensure quality and prevent spam
+                </p>
+              </div>
+              <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4">
+                <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Article Updates</h4>
+                <p className="text-base text-zinc-600 dark:text-zinc-400">
+                  Updating an article costs a smaller KAS fee (e.g., 2 KAS) compared to creation
+                </p>
+              </div>
+              <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4">
+                <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Comment Credits</h4>
+                <p className="text-base text-zinc-600 dark:text-zinc-400">
+                  Comments use a pre-paid credit system where users purchase batches (e.g., 10 KAS for 10 comments)
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* What's Coming Next */}
@@ -36,16 +56,41 @@ export function VBlogExplainer() {
               </svg>
               What&apos;s Coming Next
             </h3>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+            <p className="text-base text-zinc-600 dark:text-zinc-400 mb-6">
               vBlog will integrate with other Kasparex dApps to create a comprehensive content ecosystem:
             </p>
-            <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400 ml-4">
-              <li className="list-disc">Premium posts unlocked with NFTs or tokens</li>
-              <li className="list-disc">Special author features and gated categories</li>
-              <li className="list-disc">Reward systems for quality content and engagement</li>
-              <li className="list-disc">Cross-dApp content sharing and discovery</li>
-              <li className="list-disc">Integration with Kasparex rewards, tokens, and subscription systems</li>
-            </ul>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4">
+                <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Premium Content</h4>
+                <p className="text-base text-zinc-600 dark:text-zinc-400">
+                  Premium posts unlocked with NFTs or tokens
+                </p>
+              </div>
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4">
+                <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Author Features</h4>
+                <p className="text-base text-zinc-600 dark:text-zinc-400">
+                  Special author features and gated categories
+                </p>
+              </div>
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4">
+                <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Reward Systems</h4>
+                <p className="text-base text-zinc-600 dark:text-zinc-400">
+                  Reward systems for quality content and engagement
+                </p>
+              </div>
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4">
+                <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Content Sharing</h4>
+                <p className="text-base text-zinc-600 dark:text-zinc-400">
+                  Cross-dApp content sharing and discovery
+                </p>
+              </div>
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4">
+                <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Ecosystem Integration</h4>
+                <p className="text-base text-zinc-600 dark:text-zinc-400">
+                  Integration with Kasparex rewards, tokens, and subscription systems
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Technical Details */}
@@ -56,8 +101,8 @@ export function VBlogExplainer() {
               </svg>
               Technical Details
             </h3>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              This is a front-end prototype version of vBlog. All smart contract interactions and KAS fee logic are currently mocked, but the UX reflects how the final system will behave. The codebase is structured to easily integrate real smart contract calls, IPFS storage, and on-chain transaction handling in future updates.
+            <p className="text-base text-zinc-600 dark:text-zinc-400">
+              This is a front-end prototype version of vBlog. All smart contract interactions and KAS fee logic are currently mocked, but the UX reflects how the final system will behave. The codebase is structured to easily integrate real smart contract calls, IPFS storage, and on-chain BlockDAG transaction handling in future updates.
             </p>
           </div>
         </div>

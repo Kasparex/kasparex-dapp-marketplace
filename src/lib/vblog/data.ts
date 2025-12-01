@@ -169,7 +169,7 @@ function getDefaultArticles(): VBlogArticle[] {
       description: 'An introduction to the on-chain blog system built on Kaspa. Learn how vBlog uses CIDs, KAS fees, and comment credits to create a decentralized content platform.',
       content: `# Welcome to Kasparex vBlog
 
-Kasparex vBlog is an innovative on-chain blog system that combines the power of decentralized storage with blockchain transactions. Each article is linked to a Content Identifier (CID) stored on IPFS or similar decentralized storage networks, while the metadata and ownership are recorded on-chain.
+Kasparex vBlog is an innovative on-chain blog system that combines the power of decentralized storage with BlockDAG transactions. Each article is linked to a Content Identifier (CID) stored on IPFS or similar decentralized storage networks, while the metadata and ownership are recorded on-chain.
 
 ## How It Works
 
@@ -215,7 +215,7 @@ A CID is a unique identifier that represents the content itself, not its locatio
 
 ## How vBlog Uses CIDs
 
-In vBlog, each article's content is stored off-chain using a CID. The CID is then referenced on-chain, creating a link between the blockchain record and the actual content.
+In vBlog, each article's content is stored off-chain using a CID. The CID is then referenced on-chain, creating a link between the BlockDAG record and the actual content.
 
 This approach provides:
 - Lower on-chain storage costs
