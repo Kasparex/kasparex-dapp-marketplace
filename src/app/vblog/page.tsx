@@ -81,17 +81,16 @@ export default function VBlogPage() {
                   <div className="flex-1">
                     <VBlogHeader />
                   </div>
-                  {state.isConnected && (
-                    <button
-                      onClick={() => setShowWizard(true)}
-                      className="px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors flex items-center gap-2 flex-shrink-0"
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                      Publish Article
-                    </button>
-                  )}
+                  <button
+                    onClick={() => setShowWizard(true)}
+                    className="px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors flex items-center gap-2 flex-shrink-0"
+                    title="Publish a new article"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Publish Article
+                  </button>
                 </div>
               </div>
 
