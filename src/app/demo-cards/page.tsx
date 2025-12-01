@@ -11,8 +11,8 @@ import { loadDAppLogo } from '@/lib/dapps/contractData';
 export default function DemoCardsPage() {
   const [cardGradients, setCardGradients] = useState<Map<number, [string, string]>>(new Map());
 
-  // Get first 4 dApps for demo
-  const demoDApps = placeholderDApps.slice(0, 4);
+  // Get first 3 dApps for demo
+  const demoDApps = placeholderDApps.slice(0, 3);
 
   useEffect(() => {
     // Extract colors for each dApp
@@ -69,7 +69,7 @@ export default function DemoCardsPage() {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {demoDApps.map((dapp, index) => {
             const gradient = cardGradients.get(index) || getCategoryGradientColors(dapp.category);
             return (
