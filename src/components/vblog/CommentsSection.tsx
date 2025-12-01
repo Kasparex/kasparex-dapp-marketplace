@@ -137,7 +137,7 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
       )}
 
       {/* Comment Form */}
-      {state.isConnected ? (
+      {isWalletConnected ? (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="comment" className="block text-base font-medium text-zinc-700 dark:text-zinc-300 mb-2">
