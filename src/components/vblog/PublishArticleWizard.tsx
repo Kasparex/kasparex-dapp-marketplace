@@ -150,7 +150,7 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
 
   const handlePublish = async () => {
     // Check if wallet is connected - if not, use a mock address for testing
-    let authorAddress = state.address;
+    let authorAddress: string = state.address || '';
     
     if (!state.isConnected || !state.address) {
       // For testing purposes, use a mock address if wallet is not connected
