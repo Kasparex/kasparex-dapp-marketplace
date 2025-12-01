@@ -39,8 +39,8 @@ export const hubProjects: HubProject[] = [
     name: 'Kasparex vBlog',
     category: 'Publishing',
     description: 'An on-chain blog system where authors publish articles stored via CIDs or IPFS-like storage. Decentralized content creation.',
-    route: '/hub/coming-soon',
-    status: 'coming-soon',
+    route: '/vblog',
+    status: 'beta',
   },
   {
     id: 'kasparex-magazines',
