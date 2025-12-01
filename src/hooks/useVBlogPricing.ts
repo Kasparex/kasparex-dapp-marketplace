@@ -87,44 +87,6 @@ export function useVBlogPricing() {
   
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
   const isWalletConnected = kaspaState.isConnected || isEVMConnected;
-
-  const pricing = useMemo(async (): Promise<PricingInfo> => {
-    if (!walletAddress) {
-      return {
-        createFee: 20,
-        editFee: 5,
-        isPremium: false,
-        tier: {
-          hasKREXDiscount: false,
-          hasNFTPerks: false,
-          nftCollections: [],
-        },
-      };
-    }
-
-    const [krexBalance, nftHoldings] = await Promise.all([
-      getKREXBalance(walletAddress),
-      checkNFTHoldings(walletAddress),
-    ]);
-
-    const hasKREXDiscount = krexBalance >= KREX_DISCOUNT_THRESHOLD;
-    const hasKREXPRIME = nftHoldings.includes(KREXPRIME_NFT_COLLECTION);
-    const hasPIXELKREX = nftHoldings.includes(PIXELKREX_NFT_COLLECTION);
-    const hasNFTPerks = hasKREXPRIME || hasPIXELKREX;
-
-    return {
-      createFee: hasKREXDiscount ? 5 : 20,
-      editFee: hasKREXDiscount ? 1 : 5,
-      isPremium: hasNFTPerks,
-      tier: {
-        hasKREXDiscount,
-        hasNFTPerks,
-        nftCollections: nftHoldings,
-      },
-    };
-  }, [walletAddress, isWalletConnected]);
-
-  // Since useMemo doesn't work with async, we'll use a different approach
   const [pricingInfo, setPricingInfo] = useState<PricingInfo>({
     createFee: 20,
     editFee: 5,
