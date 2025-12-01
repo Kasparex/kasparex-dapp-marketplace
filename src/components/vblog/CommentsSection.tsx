@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { VBlogComment } from '@/lib/vblog/types';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useCommentCredits } from '@/hooks/useCommentCredits';
@@ -113,9 +114,12 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-base font-medium text-zinc-900 dark:text-zinc-100 font-mono">
+                    <Link
+                      href={`/vblog/author/${encodeURIComponent(comment.author)}`}
+                      className="text-base font-medium text-[#02abb8] hover:text-[#028a94] hover:underline font-mono transition-colors"
+                    >
                       {formatAddress(comment.author)}
-                    </p>
+                    </Link>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400">
                       {formatDateTime(comment.timestamp)}
                     </p>

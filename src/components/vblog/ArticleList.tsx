@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { formatDate, getArticleExcerpt } from '@/lib/vblog/utils';
@@ -7,9 +8,30 @@ import { formatDate, getArticleExcerpt } from '@/lib/vblog/utils';
 interface ArticleListProps {
   articles: VBlogArticle[];
   onEdit: (article: VBlogArticle) => void;
+  onDelete?: (articleId: string) => void;
 }
 
-export function ArticleList({ articles, onEdit }: ArticleListProps) {
+export function ArticleList({ articles, onEdit, onDelete }: ArticleListProps) {
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const handleDeleteClick = (articleId: string) => {
+    setConfirmDeleteId(articleId);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmDeleteId || !onDelete) return;
+    
+    setDeletingId(confirmDeleteId);
+    try {
+      await onDelete(confirmDeleteId);
+      setConfirmDeleteId(null);
+    } catch (error) {
+      console.error('Error deleting article:', error);
+    } finally {
+      setDeletingId(null);
+    }
+  };
   if (articles.length === 0) {
     return (
       <div className="text-center py-12">
@@ -71,10 +93,40 @@ export function ArticleList({ articles, onEdit }: ArticleListProps) {
                 </Link>
                 <button
                   onClick={() => onEdit(article)}
-                  className="flex-1 px-3 py-2 text-sm font-medium bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
+                  className="px-3 py-2 text-sm font-medium bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
                 >
                   Edit
                 </button>
+                {onDelete && (
+                  <>
+                    {confirmDeleteId === article.id ? (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={handleConfirmDelete}
+                          disabled={deletingId === article.id}
+                          className="px-3 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          {deletingId === article.id ? 'Deleting...' : 'Confirm'}
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          disabled={deletingId === article.id}
+                          className="px-3 py-2 text-sm font-medium border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors disabled:opacity-50"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleDeleteClick(article.id)}
+                        disabled={deletingId === article.id}
+                        className="px-3 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           </div>

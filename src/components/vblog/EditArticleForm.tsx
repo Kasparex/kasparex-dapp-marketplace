@@ -4,6 +4,14 @@ import { useState, useEffect } from 'react';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { KASFeeConfirmation } from './KASFeeConfirmation';
 import { KASFeeInfo } from '@/lib/vblog/types';
+import { useVBlogPricing } from '@/hooks/useVBlogPricing';
+import { 
+  validateTitle, 
+  validateDescription, 
+  validateContent,
+  getCharacterCount,
+  CONTENT_LIMITS,
+} from '@/lib/vblog/limits';
 import { Alert } from '@/components/Alert';
 
 interface EditArticleFormProps {
@@ -22,13 +30,10 @@ const CATEGORIES = [
   'Other',
 ];
 
-const UPDATE_FEE: KASFeeInfo = {
-  amount: 2,
-  action: 'update',
-  description: 'This action will cost 2 KAS (article update fee).',
-};
+// Fee will be determined by useVBlogPricing hook
 
 export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleFormProps) {
+  const pricing = useVBlogPricing();
   const [title, setTitle] = useState(article.title);
   const [description, setDescription] = useState(article.description);
   const [content, setContent] = useState(article.content);
@@ -54,17 +59,34 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
     e.preventDefault();
     setError(null);
 
-    // Validation
+    // Validation with word limits
     if (!title.trim()) {
       setError('Title is required');
       return;
     }
+    const titleValidation = validateTitle(title, pricing.isPremium);
+    if (!titleValidation.valid) {
+      setError(titleValidation.error);
+      return;
+    }
+    
     if (!description.trim()) {
       setError('Description is required');
       return;
     }
+    const descValidation = validateDescription(description, pricing.isPremium);
+    if (!descValidation.valid) {
+      setError(descValidation.error);
+      return;
+    }
+    
     if (!content.trim()) {
       setError('Content is required');
+      return;
+    }
+    const contentValidation = validateContent(content, pricing.isPremium);
+    if (!contentValidation.valid) {
+      setError(contentValidation.error);
       return;
     }
 
@@ -107,8 +129,13 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
             Edit Article
           </h3>
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
-            Update your article details. Updating an article costs 2 KAS.
+            Update your article details. Updating an article costs {pricing.editFee} KAS{pricing.tier.hasKREXDiscount ? ' (KREX holder discount)' : ''}.
           </p>
+          {pricing.tier.hasNFTPerks && (
+            <Alert type="success" compact className="mb-4">
+              NFT Perks Active: Increased text limits enabled ({pricing.tier.nftCollections.join(', ')})
+            </Alert>
+          )}
         </div>
 
         {error && (
@@ -118,14 +145,24 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
         )}
 
         <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-            Title <span className="text-red-500">*</span>
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Title <span className="text-red-500">*</span>
+            </label>
+            <span className={`text-xs ${
+              getCharacterCount(title) > (pricing.isPremium ? CONTENT_LIMITS.premium.title.max : CONTENT_LIMITS.title.max)
+                ? 'text-red-500'
+                : 'text-zinc-500 dark:text-zinc-400'
+            }`}>
+              {getCharacterCount(title)} / {pricing.isPremium ? CONTENT_LIMITS.premium.title.max : CONTENT_LIMITS.title.max}
+            </span>
+          </div>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Enter article title"
+            maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.title.max : CONTENT_LIMITS.title.max}
             className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
             required
             disabled={isSubmitting}
@@ -133,14 +170,24 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-            Short Description <span className="text-red-500">*</span>
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Short Description <span className="text-red-500">*</span>
+            </label>
+            <span className={`text-xs ${
+              getCharacterCount(description) > (pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max)
+                ? 'text-red-500'
+                : 'text-zinc-500 dark:text-zinc-400'
+            }`}>
+              {getCharacterCount(description)} / {pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max}
+            </span>
+          </div>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Enter a brief description of the article"
             rows={3}
+            maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max}
             className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] resize-none"
             required
             disabled={isSubmitting}
@@ -148,14 +195,24 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-            Main Content <span className="text-red-500">*</span>
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Main Content <span className="text-red-500">*</span>
+            </label>
+            <span className={`text-xs ${
+              getCharacterCount(content) > (pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max)
+                ? 'text-red-500'
+                : 'text-zinc-500 dark:text-zinc-400'
+            }`}>
+              {getCharacterCount(content)} / {pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max}
+            </span>
+          </div>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Write your article content here..."
             rows={12}
+            maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max}
             className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] resize-none font-mono text-sm"
             required
             disabled={isSubmitting}
@@ -166,6 +223,9 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
           <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
             Featured Image URL or CID
           </label>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
+            Recommended size: 1200x630px (1.91:1 aspect ratio) for optimal display
+          </p>
           <input
             type="text"
             value={featuredImage}
@@ -249,7 +309,11 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
         isOpen={showFeeConfirmation}
         onClose={() => setShowFeeConfirmation(false)}
         onConfirm={handleConfirm}
-        feeInfo={UPDATE_FEE}
+        feeInfo={{
+          amount: pricing.editFee,
+          action: 'update',
+          description: `This action will cost ${pricing.editFee} KAS (article update fee)${pricing.tier.hasKREXDiscount ? '. KREX holder discount applied.' : '.'}`,
+        }}
         isProcessing={isSubmitting}
       />
     </>

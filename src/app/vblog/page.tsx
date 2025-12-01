@@ -81,16 +81,27 @@ export default function VBlogPage() {
                   <div className="flex-1">
                     <VBlogHeader />
                   </div>
-                  <button
-                    onClick={() => setShowWizard(true)}
-                    className="px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors flex items-center gap-2 flex-shrink-0"
-                    title="Publish a new article"
-                  >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Publish Article
-                  </button>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <Link
+                      href="/vblog/dashboard"
+                      className="px-4 py-2 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg font-medium transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900 flex items-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      Dashboard
+                    </Link>
+                    <button
+                      onClick={() => setShowWizard(true)}
+                      className="px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                      title="Publish a new article"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Publish Article
+                    </button>
+                  </div>
                 </div>
               </div>
 

@@ -5,7 +5,19 @@ import { VBlogArticle } from '@/lib/vblog/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 import { useVBlog } from '@/hooks/useVBlog';
+import { useVBlogPricing } from '@/hooks/useVBlogPricing';
+import { 
+  validateTitle, 
+  validateDescription, 
+  validateContent, 
+  validateFile,
+  getCharacterCount,
+  CONTENT_LIMITS,
+  FILE_LIMITS,
+} from '@/lib/vblog/limits';
 import { Alert } from '@/components/Alert';
+import { KASFeeConfirmation } from './KASFeeConfirmation';
+import { KASFeeInfo } from '@/lib/vblog/types';
 
 interface PublishArticleWizardProps {
   isOpen: boolean;
@@ -15,7 +27,7 @@ interface PublishArticleWizardProps {
 
 type WizardStep = 'content' | 'metadata' | 'ipfs' | 'review' | 'publishing' | 'complete';
 
-const CATEGORIES = [
+const DEFAULT_CATEGORIES = [
   'Introduction',
   'Technical',
   'Tutorial',
@@ -25,14 +37,34 @@ const CATEGORIES = [
   'Other',
 ];
 
+const STORAGE_KEY_CATEGORIES = 'vblog_custom_categories';
+
 export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArticleWizardProps) {
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
   const { createNewArticle } = useVBlog();
+  const pricing = useVBlogPricing();
   const [currentStep, setCurrentStep] = useState<WizardStep>('content');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showFeeConfirmation, setShowFeeConfirmation] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const featuredImageInputRef = useRef<HTMLInputElement>(null);
+  
+  // Load custom categories from localStorage
+  const [categories, setCategories] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return DEFAULT_CATEGORIES;
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_CATEGORIES);
+      if (stored) {
+        const custom = JSON.parse(stored);
+        return [...DEFAULT_CATEGORIES, ...custom];
+      }
+    } catch {}
+    return DEFAULT_CATEGORIES;
+  });
+  const [newCategory, setNewCategory] = useState('');
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -40,8 +72,19 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     description: '',
     content: '',
     featuredImage: '',
-    category: CATEGORIES[0],
+    category: categories[0],
     tags: '',
+  });
+  
+  const [featuredImageIpfs, setFeaturedImageIpfs] = useState<{
+    cid: string | null;
+    isUploading: boolean;
+    uploadProgress: number;
+    uploadedFile?: File;
+  }>({
+    cid: null,
+    isUploading: false,
+    uploadProgress: 0,
   });
 
   const [ipfsData, setIpfsData] = useState<{
@@ -76,6 +119,54 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const addCustomCategory = () => {
+    if (!newCategory.trim() || categories.includes(newCategory.trim())) {
+      return;
+    }
+    const updated = [...categories, newCategory.trim()];
+    setCategories(updated);
+    setFormData(prev => ({ ...prev, category: newCategory.trim() }));
+    setNewCategory('');
+    setShowNewCategoryInput(false);
+    
+    // Save to localStorage
+    try {
+      const custom = updated.filter(c => !DEFAULT_CATEGORIES.includes(c));
+      localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(custom));
+    } catch {}
+  };
+
+  const handleFeaturedImageUpload = async (file: File) => {
+    const validation = validateFile(file);
+    if (!validation.valid) {
+      setError(validation.error || 'Invalid file');
+      return;
+    }
+    
+    setFeaturedImageIpfs(prev => ({ ...prev, isUploading: true, uploadProgress: 0, uploadedFile: file }));
+    
+    // Simulate IPFS upload
+    const progressInterval = setInterval(() => {
+      setFeaturedImageIpfs((prev) => {
+        const newProgress = Math.min(prev.uploadProgress + 10, 100);
+        if (newProgress >= 100) {
+          clearInterval(progressInterval);
+          const mockCid = `Qm${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
+          setFormData(prev => ({ ...prev, featuredImage: mockCid }));
+          return { ...prev, cid: mockCid, isUploading: false, uploadProgress: 100 };
+        }
+        return { ...prev, uploadProgress: newProgress };
+      });
+    }, 200);
+
+    setTimeout(() => {
+      clearInterval(progressInterval);
+      const mockCid = `Qm${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
+      setFeaturedImageIpfs(prev => ({ ...prev, cid: mockCid, isUploading: false, uploadProgress: 100 }));
+      setFormData(prev => ({ ...prev, featuredImage: mockCid }));
+    }, 2000);
+  };
+
   const validateStep = (step: WizardStep): boolean => {
     setError(null);
     if (step === 'content') {
@@ -83,12 +174,29 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
         setError('Title is required');
         return false;
       }
+      const titleValidation = validateTitle(formData.title, pricing.isPremium);
+      if (!titleValidation.valid) {
+        setError(titleValidation.error);
+        return false;
+      }
+      
       if (!formData.description.trim()) {
         setError('Description is required');
         return false;
       }
+      const descValidation = validateDescription(formData.description, pricing.isPremium);
+      if (!descValidation.valid) {
+        setError(descValidation.error);
+        return false;
+      }
+      
       if (!formData.content.trim()) {
         setError('Content is required');
+        return false;
+      }
+      const contentValidation = validateContent(formData.content, pricing.isPremium);
+      if (!contentValidation.valid) {
+        setError(contentValidation.error);
         return false;
       }
     }
@@ -151,8 +259,8 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     }
 
     if (currentStep === 'review') {
-      setCurrentStep('publishing');
-      await handlePublish();
+      // Show fee confirmation before publishing
+      setShowFeeConfirmation(true);
       return;
     }
 
@@ -167,6 +275,12 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     if (prevIndex >= 0) {
       setCurrentStep(steps[prevIndex].id);
     }
+  };
+
+  const handlePublishConfirm = async () => {
+    setShowFeeConfirmation(false);
+    setCurrentStep('publishing');
+    await handlePublish();
   };
 
   const handlePublish = async () => {
@@ -225,6 +339,30 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     setError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const handleReset = () => {
+    setCurrentStep('content');
+    setFormData({
+      title: '',
+      description: '',
+      content: '',
+      featuredImage: '',
+      category: categories[0],
+      tags: '',
+    });
+    setIpfsData({ cid: null, isUploading: false, uploadProgress: 0, uploadedFile: undefined, uploadedFileName: undefined });
+    setFeaturedImageIpfs({ cid: null, isUploading: false, uploadProgress: 0 });
+    setNewCategory('');
+    setShowNewCategoryInput(false);
+    setError(null);
+    setShowFeeConfirmation(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    if (featuredImageInputRef.current) {
+      featuredImageInputRef.current.value = '';
     }
   };
 
@@ -320,38 +458,71 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
           {currentStep === 'content' && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                  Title <span className="text-red-500">*</span>
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Title <span className="text-red-500">*</span>
+                  </label>
+                  <span className={`text-xs ${
+                    getCharacterCount(formData.title) > (pricing.isPremium ? CONTENT_LIMITS.premium.title.max : CONTENT_LIMITS.title.max)
+                      ? 'text-red-500'
+                      : 'text-zinc-500 dark:text-zinc-400'
+                  }`}>
+                    {getCharacterCount(formData.title)} / {pricing.isPremium ? CONTENT_LIMITS.premium.title.max : CONTENT_LIMITS.title.max}
+                  </span>
+                </div>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => updateFormData('title', e.target.value)}
                   placeholder="Enter article title"
+                  maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.title.max : CONTENT_LIMITS.title.max}
                   className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
                 />
+                {pricing.isPremium && (
+                  <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">Premium limits active (NFT holder)</p>
+                )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                  Short Description <span className="text-red-500">*</span>
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Short Description <span className="text-red-500">*</span>
+                  </label>
+                  <span className={`text-xs ${
+                    getCharacterCount(formData.description) > (pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max)
+                      ? 'text-red-500'
+                      : 'text-zinc-500 dark:text-zinc-400'
+                  }`}>
+                    {getCharacterCount(formData.description)} / {pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max}
+                  </span>
+                </div>
                 <textarea
                   value={formData.description}
                   onChange={(e) => updateFormData('description', e.target.value)}
                   placeholder="Enter a brief description"
                   rows={3}
+                  maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max}
                   className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] resize-none"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                  Main Content <span className="text-red-500">*</span>
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Main Content <span className="text-red-500">*</span>
+                  </label>
+                  <span className={`text-xs ${
+                    getCharacterCount(formData.content) > (pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max)
+                      ? 'text-red-500'
+                      : 'text-zinc-500 dark:text-zinc-400'
+                  }`}>
+                    {getCharacterCount(formData.content)} / {pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max}
+                  </span>
+                </div>
                 <textarea
                   value={formData.content}
                   onChange={(e) => updateFormData('content', e.target.value)}
                   placeholder="Write your article content here..."
                   rows={10}
+                  maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max}
                   className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] resize-none font-mono text-sm"
                 />
               </div>
@@ -365,29 +536,116 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
                 <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
                   Featured Image URL or CID
                 </label>
-                <input
-                  type="text"
-                  value={formData.featuredImage}
-                  onChange={(e) => updateFormData('featuredImage', e.target.value)}
-                  placeholder="Enter image URL or CID"
-                  className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
-                />
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
+                  Recommended size: 1200x630px (1.91:1 aspect ratio) for optimal display
+                </p>
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    value={formData.featuredImage}
+                    onChange={(e) => updateFormData('featuredImage', e.target.value)}
+                    placeholder="Enter image URL or CID"
+                    className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      ref={featuredImageInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          if (file.size > FILE_LIMITS.maxSize) {
+                            setError(`File size must be no more than ${FILE_LIMITS.maxSize / (1024 * 1024)} MB`);
+                            return;
+                          }
+                          handleFeaturedImageUpload(file);
+                        }
+                      }}
+                      className="hidden"
+                      id="featured-image-upload"
+                    />
+                    <label
+                      htmlFor="featured-image-upload"
+                      className="flex-1 px-4 py-2 border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-lg cursor-pointer hover:border-[#02abb8] hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors text-center text-sm"
+                    >
+                      {featuredImageIpfs.isUploading ? (
+                        <span className="text-zinc-600 dark:text-zinc-400">Uploading... {featuredImageIpfs.uploadProgress}%</span>
+                      ) : featuredImageIpfs.cid ? (
+                        <span className="text-emerald-600 dark:text-emerald-400">✓ Image uploaded to IPFS</span>
+                      ) : (
+                        <span className="text-zinc-600 dark:text-zinc-400">Upload Image to IPFS (max {FILE_LIMITS.maxSize / (1024 * 1024)} MB)</span>
+                      )}
+                    </label>
+                  </div>
+                  {featuredImageIpfs.cid && (
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 font-mono break-all">
+                      CID: {featuredImageIpfs.cid}
+                    </p>
+                  )}
+                </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                  Category <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => updateFormData('category', e.target.value)}
-                  className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
-                >
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Category <span className="text-red-500">*</span>
+                  </label>
+                  {!showNewCategoryInput && (
+                    <button
+                      type="button"
+                      onClick={() => setShowNewCategoryInput(true)}
+                      className="text-xs text-[#02abb8] hover:text-[#028a94]"
+                    >
+                      + Add Custom
+                    </button>
+                  )}
+                </div>
+                {showNewCategoryInput ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newCategory}
+                      onChange={(e) => setNewCategory(e.target.value)}
+                      placeholder="Enter new category name"
+                      className="flex-1 px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addCustomCategory();
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={addCustomCategory}
+                      className="px-3 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Add
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowNewCategoryInput(false);
+                        setNewCategory('');
+                      }}
+                      className="px-3 py-2 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <select
+                    value={formData.category}
+                    onChange={(e) => updateFormData('category', e.target.value)}
+                    className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
@@ -413,6 +671,9 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
                 </h3>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
                   Your article content will be stored on IPFS (InterPlanetary File System) for decentralized storage. This ensures your content is verifiable and censorship-resistant.
+                </p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4">
+                  Maximum file size: {FILE_LIMITS.maxSize / (1024 * 1024)} MB. Allowed types: {FILE_LIMITS.allowedTypes.join(', ')}
                 </p>
                 
                 {ipfsData.isUploading ? (
@@ -542,8 +803,13 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
                   </Alert>
                 )}
                 <Alert type="info" title="Publishing Fee">
-                  Publishing this article will cost 5 KAS. Make sure you have sufficient balance in your wallet.
+                  Publishing this article will cost {pricing.createFee} KAS{pricing.tier.hasKREXDiscount ? ' (KREX holder discount applied)' : ''}. Make sure you have sufficient balance in your wallet.
                 </Alert>
+                {pricing.tier.hasNFTPerks && (
+                  <Alert type="success" compact>
+                    NFT Perks Active: Increased text limits enabled ({pricing.tier.nftCollections.join(', ')})
+                  </Alert>
+                )}
               </div>
             </div>
           )}
@@ -606,7 +872,7 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
             </button>
             <button
               onClick={handleNext}
-              disabled={isSubmitting || ipfsData.isUploading}
+              disabled={isSubmitting || ipfsData.isUploading || featuredImageIpfs.isUploading}
               className="px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {currentStep === 'ipfs' && !ipfsData.cid ? 'Upload to IPFS' : currentStep === 'review' ? 'Publish Article' : 'Next'}
@@ -614,6 +880,19 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
           </div>
         )}
       </div>
+
+      {/* Fee Confirmation Modal */}
+      <KASFeeConfirmation
+        isOpen={showFeeConfirmation}
+        onClose={() => setShowFeeConfirmation(false)}
+        onConfirm={handlePublishConfirm}
+        feeInfo={{
+          amount: pricing.createFee,
+          action: 'create',
+          description: `This action will cost ${pricing.createFee} KAS (article creation fee)${pricing.tier.hasKREXDiscount ? '. KREX holder discount applied.' : '.'}`,
+        }}
+        isProcessing={isSubmitting}
+      />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { useAccount } from 'wagmi';
 import { CreateArticleForm } from './CreateArticleForm';
 import { EditArticleForm } from './EditArticleForm';
 import { ArticleList } from './ArticleList';
+import { PricingTable } from './PricingTable';
 import { Alert } from '@/components/Alert';
 
 export function AuthorDashboard() {
@@ -18,7 +19,7 @@ export function AuthorDashboard() {
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
   const isWalletConnected = kaspaState.isConnected || isEVMConnected;
   
-  const { createNewArticle, updateExistingArticle, getAuthorArticles, loadArticles } = useVBlog();
+  const { createNewArticle, updateExistingArticle, deleteArticle, getAuthorArticles, loadArticles } = useVBlog();
   const [activeTab, setActiveTab] = useState<'create' | 'my-articles'>('create');
   const [editingArticle, setEditingArticle] = useState<VBlogArticle | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -65,8 +66,32 @@ export function AuthorDashboard() {
     setEditingArticle(null);
   };
 
+  const handleDeleteArticle = async (articleId: string) => {
+    if (!confirm('Are you sure you want to delete this article? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      await deleteArticle(articleId);
+      loadArticles();
+      setSuccessMessage('Article deleted successfully!');
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 2000);
+    } catch (error) {
+      console.error('Error deleting article:', error);
+      setSuccessMessage('Failed to delete article. Please try again.');
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 3000);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Pricing Table */}
+      <PricingTable />
+
       {/* Success Message */}
       {successMessage && (
         <Alert type="success" onDismiss={() => setSuccessMessage(null)}>
@@ -125,7 +150,7 @@ export function AuthorDashboard() {
             <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
               My Articles
             </h3>
-            <ArticleList articles={authorArticles} onEdit={handleEdit} />
+            <ArticleList articles={authorArticles} onEdit={handleEdit} onDelete={handleDeleteArticle} />
           </div>
         )}
       </div>

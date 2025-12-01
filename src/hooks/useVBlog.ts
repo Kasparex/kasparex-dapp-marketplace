@@ -99,6 +99,20 @@ export function useVBlog() {
     return newComment;
   }, []);
 
+  /**
+   * Delete an article
+   * TODO: Replace with actual smart contract call
+   */
+  const deleteArticle = useCallback(async (articleId: string): Promise<boolean> => {
+    // Import deleteArticle from data
+    const { deleteArticle: deleteArticleData } = await import('@/lib/vblog/data');
+    const deleted = deleteArticleData(articleId);
+    if (deleted) {
+      loadArticles(); // Reload articles
+    }
+    return deleted;
+  }, [loadArticles]);
+
   return {
     articles,
     isLoading,
@@ -107,6 +121,7 @@ export function useVBlog() {
     getAuthorArticles,
     createNewArticle,
     updateExistingArticle,
+    deleteArticle,
     getArticleComments,
     addArticleComment,
   };
