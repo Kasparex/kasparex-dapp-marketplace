@@ -1,17 +1,11 @@
 'use client';
 
-import { useMemo, useEffect, useState } from 'react';
+import { useMemo, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 
 // Dynamically import react-quill to avoid SSR issues
 const ReactQuill = dynamic(
-  () => import('react-quill').then((mod) => {
-    // Import CSS only on client side
-    if (typeof window !== 'undefined') {
-      import('react-quill/dist/quill.snow.css');
-    }
-    return mod;
-  }),
+  () => import('react-quill'),
   { 
     ssr: false,
     loading: () => (
@@ -37,6 +31,13 @@ export function RichTextEditor({
   maxLength,
   disabled = false,
 }: RichTextEditorProps) {
+  // Load CSS only on client side
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      import('react-quill/dist/quill.snow.css');
+    }
+  }, []);
+
   const modules = useMemo(
     () => ({
       toolbar: [
