@@ -21,7 +21,7 @@ import {
 import { Alert } from '@/components/Alert';
 import { KASFeeConfirmation } from './KASFeeConfirmation';
 import { KASFeeInfo } from '@/lib/vblog/types';
-import { RichTextEditor } from './RichTextEditor';
+// RichTextEditor removed - using simple textarea instead to avoid React hooks violations
 
 interface PublishArticleWizardProps {
   isOpen: boolean;
@@ -531,13 +531,22 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
                   <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
                     Main Content <span className="text-red-500">*</span>
                   </label>
+                  <span className={`text-xs ${
+                    getCharacterCount(formData.content) > (pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max)
+                      ? 'text-red-500'
+                      : 'text-zinc-500 dark:text-zinc-400'
+                  }`}>
+                    {getCharacterCount(formData.content)} / {pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max}
+                  </span>
                 </div>
-                <RichTextEditor
+                <textarea
                   value={formData.content}
-                  onChange={(value) => updateFormData('content', value)}
+                  onChange={(e) => updateFormData('content', e.target.value)}
                   placeholder="Write your article content here..."
+                  rows={12}
                   maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max}
                   disabled={isSubmitting}
+                  className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] resize-none font-mono text-sm"
                 />
               </div>
             </div>
