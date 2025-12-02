@@ -357,14 +357,12 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     onClose();
   }, [currentStep, onClose]);
 
-  // NEVER return null - always render the same structure
-  // Use portal to render outside normal flow and prevent hook order issues
-  if (typeof window === 'undefined') {
-    return null; // SSR guard
-  }
-
-  if (!isOpen) {
-    return null; // Don't render when closed - parent handles conditional rendering
+  // CRITICAL: Never return null - always render something to maintain hook order
+  // The parent conditionally renders this component, so when it's rendered, we must always return the same structure
+  if (typeof window === 'undefined' || !isOpen) {
+    // Return empty fragment during SSR or when closed
+    // Parent handles conditional rendering, so this should never be called when closed
+    return <></>;
   }
 
   const modalContent = (
