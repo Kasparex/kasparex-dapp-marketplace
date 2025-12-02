@@ -367,11 +367,10 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     onClose();
   }, [currentStep, onClose]);
 
-  // CRITICAL: Component is ALWAYS mounted - NEVER return null
-  // Always return the same structure to maintain hook order
-  // Use CSS to hide when closed, portal when open
+  // CRITICAL: Component is lazy-loaded, so it's isolated from page hooks
+  // But we still need to ensure consistent hook order within this component
   if (typeof window === 'undefined' || !mounted) {
-    return null; // SSR guard - component won't render on server anyway
+    return null; // SSR guard
   }
 
   // Ensure document.body exists before using portal
@@ -379,20 +378,13 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     return null;
   }
 
-  // CRITICAL: Always render the same structure - never return null based on isOpen
-  // Hide with CSS instead to maintain hook order
+  // Don't render anything when closed - parent handles conditional rendering
+  if (!isOpen) {
+    return null;
+  }
 
   const modalContent = (
-    <div 
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${
-        isOpen ? '' : 'pointer-events-none opacity-0'
-      }`}
-      style={{ 
-        display: isOpen ? 'flex' : 'none',
-        transition: 'opacity 0.2s ease-in-out'
-      }}
-      aria-hidden={!isOpen}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-md"

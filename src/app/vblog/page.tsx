@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Suspense, lazy } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Header } from '@/components/Header';
@@ -14,8 +14,13 @@ import { useVBlog } from '@/hooks/useVBlog';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { ErrorBoundary } from '@/components/vblog/ErrorBoundary';
 
-// Import directly - no dynamic import to avoid hook order issues
-import { PublishArticleWizard } from '@/components/vblog/PublishArticleWizard';
+// Use React.lazy to completely isolate the wizard component
+// This ensures it doesn't affect the page's hook order
+const PublishArticleWizard = lazy(() => 
+  import('@/components/vblog/PublishArticleWizard').then(mod => ({ 
+    default: mod.PublishArticleWizard 
+  }))
+);
 
 export default function VBlogPage() {
   const { articles, isLoading, loadArticles } = useVBlog();
@@ -143,17 +148,21 @@ export default function VBlogPage() {
 
       <Footer />
 
-      {/* Publish Article Wizard - Always render to maintain hook order, controlled by isOpen prop */}
-      <ErrorBoundary>
-        <PublishArticleWizard
-          isOpen={showWizard}
-          onClose={() => setShowWizard(false)}
-          onComplete={() => {
-            loadArticles();
-            setShowWizard(false);
-          }}
-        />
-      </ErrorBoundary>
+      {/* Publish Article Wizard - Lazy loaded and isolated to prevent hook order conflicts */}
+      {showWizard && (
+        <ErrorBoundary>
+          <Suspense fallback={null}>
+            <PublishArticleWizard
+              isOpen={showWizard}
+              onClose={() => setShowWizard(false)}
+              onComplete={() => {
+                loadArticles();
+                setShowWizard(false);
+              }}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      )}
     </div>
   );
 }
