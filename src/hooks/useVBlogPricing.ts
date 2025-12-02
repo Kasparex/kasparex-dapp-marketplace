@@ -123,8 +123,15 @@ export function useVBlogPricing() {
     const loadPricing = async () => {
       try {
         if (!walletAddress) {
-          if (isMounted) {
-            setPricingInfo({
+          // CRITICAL: Only update state if it's different to prevent infinite loops
+          // Check if current state is already the default before setting
+          setPricingInfo(prev => {
+            if (prev.createFee === 20 && prev.editFee === 5 && !prev.isPremium && 
+                !prev.tier.hasKREXDiscount && !prev.tier.hasNFTPerks && 
+                prev.tier.nftCollections.length === 0) {
+              return prev; // Already at default, don't update
+            }
+            return {
               createFee: 20,
               editFee: 5,
               isPremium: false,
@@ -133,8 +140,8 @@ export function useVBlogPricing() {
                 hasNFTPerks: false,
                 nftCollections: [],
               },
-            });
-          }
+            };
+          });
           return;
         }
 
@@ -154,30 +161,52 @@ export function useVBlogPricing() {
             const hasNFTPerks = hasKREXPRIME || hasPIXELKREX;
 
             if (isMounted) {
-              setPricingInfo({
-                createFee: hasKREXDiscount ? 5 : 20,
-                editFee: hasKREXDiscount ? 1 : 5,
-                isPremium: hasNFTPerks,
-                tier: {
-                  hasKREXDiscount,
-                  hasNFTPerks,
-                  nftCollections: nftHoldings,
-                },
+              // CRITICAL: Only update if values actually changed to prevent infinite loops
+              setPricingInfo(prev => {
+                const newCreateFee = hasKREXDiscount ? 5 : 20;
+                const newEditFee = hasKREXDiscount ? 1 : 5;
+                
+                if (prev.createFee === newCreateFee && 
+                    prev.editFee === newEditFee && 
+                    prev.isPremium === hasNFTPerks &&
+                    prev.tier.hasKREXDiscount === hasKREXDiscount &&
+                    prev.tier.hasNFTPerks === hasNFTPerks &&
+                    JSON.stringify(prev.tier.nftCollections.sort()) === JSON.stringify(nftHoldings.sort())) {
+                  return prev; // No changes, don't update
+                }
+                
+                return {
+                  createFee: newCreateFee,
+                  editFee: newEditFee,
+                  isPremium: hasNFTPerks,
+                  tier: {
+                    hasKREXDiscount,
+                    hasNFTPerks,
+                    nftCollections: nftHoldings,
+                  },
+                };
               });
             }
           } catch (error) {
             // Silently fail and use default pricing
             if (isMounted) {
               console.error('Error loading pricing info:', error);
-              setPricingInfo({
-                createFee: 20,
-                editFee: 5,
-                isPremium: false,
-                tier: {
-                  hasKREXDiscount: false,
-                  hasNFTPerks: false,
-                  nftCollections: [],
-                },
+              setPricingInfo(prev => {
+                if (prev.createFee === 20 && prev.editFee === 5 && !prev.isPremium && 
+                    !prev.tier.hasKREXDiscount && !prev.tier.hasNFTPerks && 
+                    prev.tier.nftCollections.length === 0) {
+                  return prev; // Already at default
+                }
+                return {
+                  createFee: 20,
+                  editFee: 5,
+                  isPremium: false,
+                  tier: {
+                    hasKREXDiscount: false,
+                    hasNFTPerks: false,
+                    nftCollections: [],
+                  },
+                };
               });
             }
           }
@@ -185,15 +214,22 @@ export function useVBlogPricing() {
       } catch (error) {
         // Ultimate fallback
         if (isMounted) {
-          setPricingInfo({
-            createFee: 20,
-            editFee: 5,
-            isPremium: false,
-            tier: {
-              hasKREXDiscount: false,
-              hasNFTPerks: false,
-              nftCollections: [],
-            },
+          setPricingInfo(prev => {
+            if (prev.createFee === 20 && prev.editFee === 5 && !prev.isPremium && 
+                !prev.tier.hasKREXDiscount && !prev.tier.hasNFTPerks && 
+                prev.tier.nftCollections.length === 0) {
+              return prev; // Already at default
+            }
+            return {
+              createFee: 20,
+              editFee: 5,
+              isPremium: false,
+              tier: {
+                hasKREXDiscount: false,
+                hasNFTPerks: false,
+                nftCollections: [],
+              },
+            };
           });
         }
       }
