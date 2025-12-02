@@ -381,20 +381,15 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     onClose();
   };
 
-  // CRITICAL: Always render the component structure - never return null or conditionally render
-  // Hide with CSS (pointer-events and opacity) to maintain hook order
+  // CRITICAL: Never return null - always render the same structure
   // This prevents React error #301 (hooks violation)
+  // The component is only rendered when showWizard is true in the parent
+  if (!isOpen) {
+    return <div style={{ display: 'none' }} aria-hidden="true" />;
+  }
+
   return (
-    <div 
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${
-        isOpen ? '' : 'pointer-events-none opacity-0'
-      }`}
-      style={{ 
-        display: isOpen ? 'flex' : 'none',
-        transition: 'opacity 0.2s ease-in-out'
-      }}
-      aria-hidden={!isOpen}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-md"

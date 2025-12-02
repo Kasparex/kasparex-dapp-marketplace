@@ -149,15 +149,17 @@ export default function VBlogPage() {
 
       <Footer />
 
-      {/* Publish Article Wizard - Always render to maintain hook order */}
-      <PublishArticleWizard
-        isOpen={showWizard}
-        onClose={() => setShowWizard(false)}
-        onComplete={() => {
-          loadArticles();
-          setShowWizard(false);
-        }}
-      />
+      {/* Publish Article Wizard - Only render when needed to avoid hooks on page load */}
+      {showWizard && (
+        <PublishArticleWizard
+          isOpen={showWizard}
+          onClose={() => setShowWizard(false)}
+          onComplete={() => {
+            loadArticles();
+            setShowWizard(false);
+          }}
+        />
+      )}
     </div>
   );
 }
