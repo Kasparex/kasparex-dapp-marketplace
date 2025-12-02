@@ -20,10 +20,12 @@ export function useVBlog() {
   const [articles, setArticles] = useState<VBlogArticle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load articles on mount
+  // Load articles on mount - only on client side
   useEffect(() => {
-    loadArticles();
-  }, []);
+    if (typeof window !== 'undefined') {
+      loadArticles();
+    }
+  }, [loadArticles]);
 
   const loadArticles = useCallback(() => {
     setIsLoading(true);
