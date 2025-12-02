@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
@@ -57,18 +57,21 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
   const fileInputRef = useRef<HTMLInputElement>(null);
   const featuredImageInputRef = useRef<HTMLInputElement>(null);
   
-  // Load custom categories from localStorage
-  const [categories, setCategories] = useState<string[]>(() => {
-    if (typeof window === 'undefined') return DEFAULT_CATEGORIES;
+  // Load custom categories from localStorage - use useEffect to avoid SSR issues
+  const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES);
+  
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
     try {
       const stored = localStorage.getItem(STORAGE_KEY_CATEGORIES);
       if (stored) {
         const custom = JSON.parse(stored);
-        return [...DEFAULT_CATEGORIES, ...custom];
+        setCategories([...DEFAULT_CATEGORIES, ...custom]);
       }
-    } catch {}
-    return DEFAULT_CATEGORIES;
-  });
+    } catch (error) {
+      console.warn('Error loading custom categories:', error);
+    }
+  }, []);
   const [newCategory, setNewCategory] = useState('');
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
 
