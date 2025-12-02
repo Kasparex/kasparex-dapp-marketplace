@@ -16,7 +16,10 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 // Dynamically import PublishArticleWizard to avoid SSR issues and hook order problems
 const PublishArticleWizard = dynamic(
   () => import('@/components/vblog/PublishArticleWizard').then(mod => ({ default: mod.PublishArticleWizard })),
-  { ssr: false }
+  { 
+    ssr: false,
+    loading: () => null, // Don't show loading state when modal is closed
+  }
 );
 
 export default function VBlogPage() {
@@ -145,14 +148,17 @@ export default function VBlogPage() {
 
       <Footer />
 
-      {/* Publish Article Wizard */}
-      <PublishArticleWizard
-        isOpen={showWizard}
-        onClose={() => setShowWizard(false)}
-        onComplete={() => {
-          loadArticles();
-        }}
-      />
+      {/* Publish Article Wizard - Only render when open to avoid hook violations */}
+      {showWizard && (
+        <PublishArticleWizard
+          isOpen={showWizard}
+          onClose={() => setShowWizard(false)}
+          onComplete={() => {
+            loadArticles();
+            setShowWizard(false);
+          }}
+        />
+      )}
     </div>
   );
 }
