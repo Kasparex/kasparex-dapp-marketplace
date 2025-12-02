@@ -28,7 +28,7 @@ interface PricingInfo {
  * TODO: Replace with actual NFT checking logic
  */
 async function checkNFTHoldings(walletAddress: string | null): Promise<string[]> {
-  if (!walletAddress) return [];
+  if (!walletAddress || typeof window === 'undefined') return [];
   
   // Mock: Check localStorage for NFT holdings
   // In production, this would query the NFT contracts
@@ -50,24 +50,34 @@ async function checkNFTHoldings(walletAddress: string | null): Promise<string[]>
  * TODO: Replace with actual KREX balance checking
  */
 async function getKREXBalance(walletAddress: string | null): Promise<number> {
-  if (!walletAddress) return 0;
+  if (!walletAddress || typeof window === 'undefined') return 0;
   
   try {
     // Try to get from KasWare if it's a Kaspa wallet
     if (walletAddress.startsWith('kaspa:')) {
-      const tokens = await getKRC20Balance();
-      const krexToken = tokens.find((t: any) => t.tick === KREX_TICKER);
-      if (krexToken) {
-        return typeof krexToken.amount === 'string' 
-          ? parseFloat(krexToken.amount) 
-          : krexToken.amount;
+      try {
+        const tokens = await getKRC20Balance();
+        const krexToken = tokens.find((t: any) => t.tick === KREX_TICKER);
+        if (krexToken) {
+          return typeof krexToken.amount === 'string' 
+            ? parseFloat(krexToken.amount) 
+            : krexToken.amount;
+        }
+      } catch (error) {
+        // Fall through to localStorage check
+        console.warn('Error getting KRC20 balance:', error);
       }
     }
     
     // Mock balance for testing (can be stored in localStorage)
-    const stored = localStorage.getItem(`krex_balance_${walletAddress.toLowerCase()}`);
-    if (stored) {
-      return parseFloat(stored);
+    try {
+      const stored = localStorage.getItem(`krex_balance_${walletAddress.toLowerCase()}`);
+      if (stored) {
+        return parseFloat(stored);
+      }
+    } catch (error) {
+      // localStorage might not be available
+      console.warn('Error accessing localStorage:', error);
     }
     
     // Default mock balance for testing
@@ -99,6 +109,11 @@ export function useVBlogPricing() {
   });
 
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     if (!walletAddress) {
       setPricingInfo({
         createFee: 20,
@@ -113,9 +128,10 @@ export function useVBlogPricing() {
       return;
     }
 
+    // Wrap in try-catch to prevent errors from breaking React
     Promise.all([
-      getKREXBalance(walletAddress),
-      checkNFTHoldings(walletAddress),
+      getKREXBalance(walletAddress).catch(() => 0),
+      checkNFTHoldings(walletAddress).catch(() => []),
     ]).then(([krexBalance, nftHoldings]) => {
       const hasKREXDiscount = krexBalance >= KREX_DISCOUNT_THRESHOLD;
       const hasKREXPRIME = nftHoldings.includes(KREXPRIME_NFT_COLLECTION);
@@ -130,6 +146,19 @@ export function useVBlogPricing() {
           hasKREXDiscount,
           hasNFTPerks,
           nftCollections: nftHoldings,
+        },
+      });
+    }).catch((error) => {
+      // Silently fail and use default pricing
+      console.error('Error loading pricing info:', error);
+      setPricingInfo({
+        createFee: 20,
+        editFee: 5,
+        isPremium: false,
+        tier: {
+          hasKREXDiscount: false,
+          hasNFTPerks: false,
+          nftCollections: [],
         },
       });
     });
