@@ -1,11 +1,19 @@
 'use client';
 
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 
-// Dynamically import react-quill to avoid SSR issues
+// Dynamically import react-quill to avoid SSR issues - only load on client
 const ReactQuill = dynamic(
-  () => import('react-quill'),
+  () => {
+    if (typeof window === 'undefined') {
+      return Promise.resolve({ default: () => null });
+    }
+    return import('react-quill').catch((err) => {
+      console.error('Failed to load react-quill:', err);
+      return { default: () => null };
+    });
+  },
   { 
     ssr: false,
     loading: () => (
@@ -31,9 +39,17 @@ export function RichTextEditor({
   maxLength,
   disabled = false,
 }: RichTextEditorProps) {
+  const [isMounted, setIsMounted] = useState(false);
+  const [cssLoaded, setCssLoaded] = useState(false);
+
+  // Ensure component only renders on client side
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Load CSS only on client side using link tag injection
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && isMounted) {
       // Check if the CSS is already loaded
       const existingLink = document.getElementById('react-quill-css');
       if (!existingLink) {
@@ -42,10 +58,31 @@ export function RichTextEditor({
         link.id = 'react-quill-css';
         link.rel = 'stylesheet';
         link.href = '/quill.snow.css';
+        link.onload = () => setCssLoaded(true);
+        link.onerror = () => {
+          // Fallback to CDN if local file fails
+          const cdnLink = document.createElement('link');
+          cdnLink.id = 'react-quill-css';
+          cdnLink.rel = 'stylesheet';
+          cdnLink.href = 'https://cdn.jsdelivr.net/npm/react-quill@2.0.0/dist/quill.snow.css';
+          cdnLink.onload = () => setCssLoaded(true);
+          document.head.appendChild(cdnLink);
+        };
         document.head.appendChild(link);
+      } else {
+        setCssLoaded(true);
       }
     }
-  }, []);
+  }, [isMounted]);
+
+  // Don't render until mounted on client
+  if (!isMounted) {
+    return (
+      <div className="w-full h-48 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 flex items-center justify-center">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading editor...</p>
+      </div>
+    );
+  }
 
   const modules = useMemo(
     () => ({
@@ -86,6 +123,15 @@ export function RichTextEditor({
 
   // Count characters (without HTML tags)
   const characterCount = value.replace(/<[^>]*>/g, '').length;
+
+  // Fallback to textarea if ReactQuill fails to load
+  if (!isMounted || typeof window === 'undefined') {
+    return (
+      <div className="w-full h-48 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 flex items-center justify-center">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading editor...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="rich-text-editor">
@@ -161,4 +207,5 @@ export function RichTextEditor({
     </div>
   );
 }
+
 
