@@ -46,6 +46,7 @@ const STORAGE_KEY_CATEGORIES = 'vblog_custom_categories';
 export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArticleWizardProps) {
   // All hooks must be called unconditionally before any early returns
   // This ensures React hooks are always called in the same order
+  const [mounted, setMounted] = useState(false);
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
   const { createNewArticle } = useVBlog();
@@ -60,8 +61,13 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
   // Load custom categories from localStorage - use useEffect to avoid SSR issues
   const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES);
   
+  // Ensure component is mounted on client before rendering
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    setMounted(true);
+  }, []);
+  
+  useEffect(() => {
+    if (typeof window === 'undefined' || !mounted) return;
     try {
       const stored = localStorage.getItem(STORAGE_KEY_CATEGORIES);
       if (stored) {
@@ -71,7 +77,7 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     } catch (error) {
       console.warn('Error loading custom categories:', error);
     }
-  }, []);
+  }, [mounted]);
   const [newCategory, setNewCategory] = useState('');
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
 
@@ -380,9 +386,9 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     onClose();
   };
 
-  // Always render to maintain hook order, but hide when closed
+  // Always render to maintain hook order, but hide when closed or not mounted
   // This prevents React hooks violation errors
-  if (!isOpen) {
+  if (!isOpen || !mounted) {
     return null;
   }
 
