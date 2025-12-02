@@ -75,15 +75,7 @@ export function RichTextEditor({
     }
   }, [isMounted]);
 
-  // Don't render until mounted on client
-  if (!isMounted) {
-    return (
-      <div className="w-full h-48 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 flex items-center justify-center">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading editor...</p>
-      </div>
-    );
-  }
-
+  // Hooks must be called before any conditional returns
   const modules = useMemo(
     () => ({
       toolbar: [
@@ -97,6 +89,15 @@ export function RichTextEditor({
     }),
     []
   );
+
+  // Don't render until mounted on client
+  if (!isMounted) {
+    return (
+      <div className="w-full h-48 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 flex items-center justify-center">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading editor...</p>
+      </div>
+    );
+  }
 
   const formats = [
     'header',
