@@ -76,7 +76,7 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     description: '',
     content: '',
     featuredImage: '',
-    category: categories[0],
+    category: categories[0] || DEFAULT_CATEGORIES[0] || 'Other',
     tags: '',
   });
   
@@ -350,7 +350,7 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
       description: '',
       content: '',
       featuredImage: '',
-      category: categories[0],
+      category: categories[0] || DEFAULT_CATEGORIES[0] || 'Other',
       tags: '',
     });
     setIpfsData({ cid: null, isUploading: false, uploadProgress: 0, uploadedFile: undefined, uploadedFileName: undefined });
