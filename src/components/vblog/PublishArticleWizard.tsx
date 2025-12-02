@@ -377,7 +377,7 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     onClose();
   };
 
-  // Always render to maintain hook order, but hide when closed
+  // Early return AFTER all hooks are called - this is correct React pattern
   if (!isOpen) {
     return null;
   }

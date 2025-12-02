@@ -97,6 +97,8 @@ export function useVBlogPricing() {
   
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
   const isWalletConnected = kaspaState.isConnected || isEVMConnected;
+  
+  // Initialize with default values - always return a stable object
   const [pricingInfo, setPricingInfo] = useState<PricingInfo>({
     createFee: 20,
     editFee: 5,
@@ -114,17 +116,22 @@ export function useVBlogPricing() {
       return;
     }
 
+    // Use a flag to prevent state updates if component unmounts
+    let isMounted = true;
+
     if (!walletAddress) {
-      setPricingInfo({
-        createFee: 20,
-        editFee: 5,
-        isPremium: false,
-        tier: {
-          hasKREXDiscount: false,
-          hasNFTPerks: false,
-          nftCollections: [],
-        },
-      });
+      if (isMounted) {
+        setPricingInfo({
+          createFee: 20,
+          editFee: 5,
+          isPremium: false,
+          tier: {
+            hasKREXDiscount: false,
+            hasNFTPerks: false,
+            nftCollections: [],
+          },
+        });
+      }
       return;
     }
 
@@ -133,6 +140,8 @@ export function useVBlogPricing() {
       getKREXBalance(walletAddress).catch(() => 0),
       checkNFTHoldings(walletAddress).catch(() => [] as string[]),
     ]).then(([krexBalance, nftHoldings]: [number, string[]]) => {
+      if (!isMounted) return;
+      
       const hasKREXDiscount = krexBalance >= KREX_DISCOUNT_THRESHOLD;
       const hasKREXPRIME = nftHoldings.includes(KREXPRIME_NFT_COLLECTION);
       const hasPIXELKREX = nftHoldings.includes(PIXELKREX_NFT_COLLECTION);
@@ -150,18 +159,24 @@ export function useVBlogPricing() {
       });
     }).catch((error) => {
       // Silently fail and use default pricing
-      console.error('Error loading pricing info:', error);
-      setPricingInfo({
-        createFee: 20,
-        editFee: 5,
-        isPremium: false,
-        tier: {
-          hasKREXDiscount: false,
-          hasNFTPerks: false,
-          nftCollections: [],
-        },
-      });
+      if (isMounted) {
+        console.error('Error loading pricing info:', error);
+        setPricingInfo({
+          createFee: 20,
+          editFee: 5,
+          isPremium: false,
+          tier: {
+            hasKREXDiscount: false,
+            hasNFTPerks: false,
+            nftCollections: [],
+          },
+        });
+      }
     });
+
+    return () => {
+      isMounted = false;
+    };
   }, [walletAddress, isWalletConnected]);
 
   return pricingInfo;
