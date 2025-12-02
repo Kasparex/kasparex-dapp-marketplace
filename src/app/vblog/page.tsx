@@ -2,16 +2,22 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { VBlogHeader } from '@/components/vblog/VBlogHeader';
 import { VBlogCard } from '@/components/vblog/VBlogCard';
 import { VBlogExplainer } from '@/components/vblog/VBlogExplainer';
 import { VBlogSidebar } from '@/components/vblog/VBlogSidebar';
-import { PublishArticleWizard } from '@/components/vblog/PublishArticleWizard';
 import { PricingTable } from '@/components/vblog/PricingTable';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+
+// Dynamically import PublishArticleWizard to avoid SSR issues and hook order problems
+const PublishArticleWizard = dynamic(
+  () => import('@/components/vblog/PublishArticleWizard').then(mod => ({ default: mod.PublishArticleWizard })),
+  { ssr: false }
+);
 
 export default function VBlogPage() {
   const { articles, isLoading, loadArticles } = useVBlog();
