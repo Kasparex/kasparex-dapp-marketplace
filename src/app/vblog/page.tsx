@@ -14,11 +14,12 @@ import { useVBlog } from '@/hooks/useVBlog';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 
 // Dynamically import PublishArticleWizard to avoid SSR issues and hook order problems
+// Use a wrapper component to ensure it's always mounted
 const PublishArticleWizard = dynamic(
   () => import('@/components/vblog/PublishArticleWizard').then(mod => ({ default: mod.PublishArticleWizard })),
   { 
     ssr: false,
-    loading: () => null, // Don't show loading state when modal is closed
+    loading: () => null,
   }
 );
 

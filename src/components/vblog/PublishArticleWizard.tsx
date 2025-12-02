@@ -386,10 +386,11 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     onClose();
   };
 
-  // Always render to maintain hook order, but hide when closed or not mounted
-  // This prevents React hooks violation errors
+  // CRITICAL: Never return null - always render something to maintain hook order
+  // This prevents React hooks violation errors (#301)
+  // Hide with CSS instead of conditional rendering
   if (!isOpen || !mounted) {
-    return null;
+    return <div style={{ display: 'none' }} aria-hidden="true" />;
   }
 
   return (
