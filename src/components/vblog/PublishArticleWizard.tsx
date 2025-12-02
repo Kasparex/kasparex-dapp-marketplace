@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
@@ -357,12 +358,15 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     onClose();
   }, [currentStep, onClose]);
 
-  // CRITICAL: Never return null - always render something to maintain hook order
-  // The parent conditionally renders this component, so when it's rendered, we must always return the same structure
-  if (typeof window === 'undefined' || !isOpen) {
-    // Return empty fragment during SSR or when closed
-    // Parent handles conditional rendering, so this should never be called when closed
-    return <></>;
+  // CRITICAL: The parent conditionally renders this component
+  // When rendered, we must always return the same structure to maintain hook order
+  // Use portal to render outside normal DOM flow
+  if (typeof window === 'undefined') {
+    return null; // SSR - component won't be rendered anyway
+  }
+
+  if (!isOpen) {
+    return null; // Parent handles conditional rendering - this should only be called when isOpen is true
   }
 
   const modalContent = (
@@ -896,4 +900,8 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
       />
     </div>
   );
+
+  // Use portal to render modal - ensures it's outside normal DOM hierarchy
+  // This prevents React from seeing different component structures
+  return createPortal(modalContent, document.body);
 }
