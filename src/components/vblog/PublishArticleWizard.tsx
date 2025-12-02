@@ -45,28 +45,11 @@ const STORAGE_KEY_CATEGORIES = 'vblog_custom_categories';
 
 export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArticleWizardProps) {
   // All hooks must be called unconditionally before any early returns
+  // This ensures React hooks are always called in the same order
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
   const { createNewArticle } = useVBlog();
-  
-  // Wrap useVBlogPricing in try-catch to prevent errors from breaking hook order
-  let pricing;
-  try {
-    pricing = useVBlogPricing();
-  } catch (error) {
-    // Fallback pricing if hook fails
-    console.error('Error in useVBlogPricing:', error);
-    pricing = {
-      createFee: 20,
-      editFee: 5,
-      isPremium: false,
-      tier: {
-        hasKREXDiscount: false,
-        hasNFTPerks: false,
-        nftCollections: [],
-      },
-    };
-  }
+  const pricing = useVBlogPricing();
   const [currentStep, setCurrentStep] = useState<WizardStep>('content');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -394,7 +377,10 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     onClose();
   };
 
-  if (!isOpen) return null;
+  // Always render to maintain hook order, but hide when closed
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
