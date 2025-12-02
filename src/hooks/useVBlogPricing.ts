@@ -118,64 +118,94 @@ export function useVBlogPricing() {
 
     // Use a flag to prevent state updates if component unmounts
     let isMounted = true;
+    let timeoutId: NodeJS.Timeout | null = null;
 
-    if (!walletAddress) {
-      if (isMounted) {
-        setPricingInfo({
-          createFee: 20,
-          editFee: 5,
-          isPremium: false,
-          tier: {
-            hasKREXDiscount: false,
-            hasNFTPerks: false,
-            nftCollections: [],
-          },
-        });
+    const loadPricing = async () => {
+      try {
+        if (!walletAddress) {
+          if (isMounted) {
+            setPricingInfo({
+              createFee: 20,
+              editFee: 5,
+              isPremium: false,
+              tier: {
+                hasKREXDiscount: false,
+                hasNFTPerks: false,
+                nftCollections: [],
+              },
+            });
+          }
+          return;
+        }
+
+        // Use setTimeout to defer async operations and prevent hook order issues
+        timeoutId = setTimeout(async () => {
+          try {
+            const [krexBalance, nftHoldings] = await Promise.all([
+              getKREXBalance(walletAddress).catch(() => 0),
+              checkNFTHoldings(walletAddress).catch(() => [] as string[]),
+            ]);
+
+            if (!isMounted) return;
+            
+            const hasKREXDiscount = krexBalance >= KREX_DISCOUNT_THRESHOLD;
+            const hasKREXPRIME = nftHoldings.includes(KREXPRIME_NFT_COLLECTION);
+            const hasPIXELKREX = nftHoldings.includes(PIXELKREX_NFT_COLLECTION);
+            const hasNFTPerks = hasKREXPRIME || hasPIXELKREX;
+
+            if (isMounted) {
+              setPricingInfo({
+                createFee: hasKREXDiscount ? 5 : 20,
+                editFee: hasKREXDiscount ? 1 : 5,
+                isPremium: hasNFTPerks,
+                tier: {
+                  hasKREXDiscount,
+                  hasNFTPerks,
+                  nftCollections: nftHoldings,
+                },
+              });
+            }
+          } catch (error) {
+            // Silently fail and use default pricing
+            if (isMounted) {
+              console.error('Error loading pricing info:', error);
+              setPricingInfo({
+                createFee: 20,
+                editFee: 5,
+                isPremium: false,
+                tier: {
+                  hasKREXDiscount: false,
+                  hasNFTPerks: false,
+                  nftCollections: [],
+                },
+              });
+            }
+          }
+        }, 0);
+      } catch (error) {
+        // Ultimate fallback
+        if (isMounted) {
+          setPricingInfo({
+            createFee: 20,
+            editFee: 5,
+            isPremium: false,
+            tier: {
+              hasKREXDiscount: false,
+              hasNFTPerks: false,
+              nftCollections: [],
+            },
+          });
+        }
       }
-      return;
-    }
+    };
 
-    // Wrap in try-catch to prevent errors from breaking React
-    Promise.all([
-      getKREXBalance(walletAddress).catch(() => 0),
-      checkNFTHoldings(walletAddress).catch(() => [] as string[]),
-    ]).then(([krexBalance, nftHoldings]: [number, string[]]) => {
-      if (!isMounted) return;
-      
-      const hasKREXDiscount = krexBalance >= KREX_DISCOUNT_THRESHOLD;
-      const hasKREXPRIME = nftHoldings.includes(KREXPRIME_NFT_COLLECTION);
-      const hasPIXELKREX = nftHoldings.includes(PIXELKREX_NFT_COLLECTION);
-      const hasNFTPerks = hasKREXPRIME || hasPIXELKREX;
-
-      setPricingInfo({
-        createFee: hasKREXDiscount ? 5 : 20,
-        editFee: hasKREXDiscount ? 1 : 5,
-        isPremium: hasNFTPerks,
-        tier: {
-          hasKREXDiscount,
-          hasNFTPerks,
-          nftCollections: nftHoldings,
-        },
-      });
-    }).catch((error) => {
-      // Silently fail and use default pricing
-      if (isMounted) {
-        console.error('Error loading pricing info:', error);
-        setPricingInfo({
-          createFee: 20,
-          editFee: 5,
-          isPremium: false,
-          tier: {
-            hasKREXDiscount: false,
-            hasNFTPerks: false,
-            nftCollections: [],
-          },
-        });
-      }
-    });
+    loadPricing();
 
     return () => {
       isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, [walletAddress, isWalletConnected]);
 

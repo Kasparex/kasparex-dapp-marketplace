@@ -13,15 +13,8 @@ import { PricingTable } from '@/components/vblog/PricingTable';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 
-// Dynamically import PublishArticleWizard to avoid SSR issues and hook order problems
-// Use a wrapper component to ensure it's always mounted
-const PublishArticleWizard = dynamic(
-  () => import('@/components/vblog/PublishArticleWizard').then(mod => ({ default: mod.PublishArticleWizard })),
-  { 
-    ssr: false,
-    loading: () => null,
-  }
-);
+// Import directly - no dynamic import to avoid hook order issues
+import { PublishArticleWizard } from '@/components/vblog/PublishArticleWizard';
 
 export default function VBlogPage() {
   const { articles, isLoading, loadArticles } = useVBlog();

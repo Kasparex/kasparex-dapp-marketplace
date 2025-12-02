@@ -109,9 +109,11 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     }
   }, []);
 
-  // Reset form when modal closes
+  // Reset form when modal closes - use ref to track previous isOpen to avoid dependency issues
+  const prevIsOpenRef = useRef(isOpen);
   useEffect(() => {
-    if (!isOpen) {
+    if (prevIsOpenRef.current && !isOpen) {
+      // Modal just closed - reset everything
       setCurrentStep('content');
       setFormData({
         title: '',
@@ -130,6 +132,7 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
       if (fileInputRef.current) fileInputRef.current.value = '';
       if (featuredImageInputRef.current) featuredImageInputRef.current.value = '';
     }
+    prevIsOpenRef.current = isOpen;
   }, [isOpen, categories]);
 
   // Computed values - after all hooks
