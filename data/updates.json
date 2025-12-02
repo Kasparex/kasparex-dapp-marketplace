@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764693174-e5558c9",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Merge branch 'main' of https://github.com/Kasparex/kasparex-dapp-marketplace (by Kasparex)",
+      "date": "2025-12-02T17:31:11+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764692640-86b5ebd",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Merge branch 'main' of https://github.com/Kasparex/kasparex-dapp-marketplace (by Kasparex)",
