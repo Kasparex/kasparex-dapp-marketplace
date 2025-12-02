@@ -67,9 +67,10 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
   // Check if current user is comment author
   const isCommentAuthor = useCallback((commentAuthor: string): boolean => {
     if (!walletAddress) return false;
-    return commentAuthor.toLowerCase() === walletAddress.toLowerCase() ||
-           commentAuthor.toLowerCase() === `evm:${evmAddress?.toLowerCase()}` ||
-           (kaspaState.address && commentAuthor.toLowerCase() === kaspaState.address.toLowerCase());
+    const lowerCommentAuthor = commentAuthor.toLowerCase();
+    return lowerCommentAuthor === walletAddress.toLowerCase() ||
+           (evmAddress && lowerCommentAuthor === `evm:${evmAddress.toLowerCase()}`) ||
+           (kaspaState.address && lowerCommentAuthor === kaspaState.address.toLowerCase());
   }, [walletAddress, evmAddress, kaspaState.address]);
 
   const handleSubmit = async (e: React.FormEvent) => {
