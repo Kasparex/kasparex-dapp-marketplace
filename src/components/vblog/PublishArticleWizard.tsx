@@ -44,11 +44,15 @@ const DEFAULT_CATEGORIES = [
 const STORAGE_KEY_CATEGORIES = 'vblog_custom_categories';
 
 export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArticleWizardProps) {
+  // CRITICAL: Component is ALWAYS mounted by parent - hooks must be called unconditionally
   // ALL HOOKS MUST BE CALLED UNCONDITIONALLY - SAME ORDER EVERY RENDER
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
   const { createNewArticle } = useVBlog();
   const pricing = useVBlogPricing();
+  
+  // Track mounted state for portal rendering
+  const [mounted, setMounted] = useState(false);
   
   // State hooks - all called unconditionally
   const [currentStep, setCurrentStep] = useState<WizardStep>('content');
@@ -95,6 +99,11 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
   // Refs - all called unconditionally
   const fileInputRef = useRef<HTMLInputElement>(null);
   const featuredImageInputRef = useRef<HTMLInputElement>(null);
+
+  // Set mounted state on client side
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Load categories from localStorage - only on client
   useEffect(() => {
@@ -358,15 +367,16 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     onClose();
   }, [currentStep, onClose]);
 
-  // CRITICAL: The parent conditionally renders this component
-  // When rendered, we must always return the same structure to maintain hook order
-  // Use portal to render outside normal DOM flow
-  if (typeof window === 'undefined') {
-    return null; // SSR - component won't be rendered anyway
+  // CRITICAL: Component is ALWAYS mounted - never return null
+  // Always return the same structure to maintain hook order
+  // Hide with CSS when closed, use portal when open
+  if (typeof window === 'undefined' || !mounted) {
+    return null; // SSR guard - component won't render on server anyway
   }
 
+  // Don't render anything when closed - but component stays mounted
   if (!isOpen) {
-    return null; // Parent handles conditional rendering - this should only be called when isOpen is true
+    return null;
   }
 
   const modalContent = (
