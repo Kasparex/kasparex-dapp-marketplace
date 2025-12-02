@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764638578-50e3dac",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Merge branch 'main' of https://github.com/Kasparex/kasparex-dapp-marketplace (by Kasparex)",
+      "date": "2025-12-02T02:22:04+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764637742-e634dd5",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: Move localStorage access to useEffect and conditionally render wizard to prevent React hooks violation (by Kasparex)",
