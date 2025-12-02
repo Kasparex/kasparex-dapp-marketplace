@@ -68,9 +68,10 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
   const isCommentAuthor = useCallback((commentAuthor: string): boolean => {
     if (!walletAddress) return false;
     const lowerCommentAuthor = commentAuthor.toLowerCase();
-    return lowerCommentAuthor === walletAddress.toLowerCase() ||
-           (evmAddress !== undefined && evmAddress !== null && lowerCommentAuthor === `evm:${evmAddress.toLowerCase()}`) ||
-           (kaspaState.address !== undefined && kaspaState.address !== null && lowerCommentAuthor === kaspaState.address.toLowerCase());
+    const isWalletMatch = lowerCommentAuthor === walletAddress.toLowerCase();
+    const isEVMMatch = evmAddress ? lowerCommentAuthor === `evm:${evmAddress.toLowerCase()}` : false;
+    const isKaspaMatch = kaspaState.address ? lowerCommentAuthor === kaspaState.address.toLowerCase() : false;
+    return isWalletMatch || isEVMMatch || isKaspaMatch;
   }, [walletAddress, evmAddress, kaspaState.address]);
 
   const handleSubmit = async (e: React.FormEvent) => {
