@@ -5,6 +5,9 @@ import { useCommentCredits } from '@/hooks/useCommentCredits';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 import { getKRC20Balance } from '@/lib/kaspa/kasware';
+import { sendKaspa } from '@/lib/kaspa/kasware';
+import { kasToSompis } from '@/lib/kaspa/api';
+import { getErrorMessage } from '@/lib/utils';
 
 const KREX_TICKER = 'KREX';
 const KREX_UNLIMITED_THRESHOLD = 100_000_000; // 100M KREX
@@ -129,6 +132,12 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
   const [krexBalance, setKrexBalance] = useState<number>(0);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [txHash, setTxHash] = useState<string | null>(null);
+  const [isConfirming, setIsConfirming] = useState(false);
+
+  // Treasury address for comment credit purchases
+  // TODO: Replace with actual treasury address from config
+  const COMMENT_CREDITS_TREASURY = 'kaspa:qqd36zqt94yr23cmjj73d34e2lc05ltd9duw582s303m30ux567ps9ljnhp6y';
 
   useEffect(() => {
     if (!isOpen || !walletAddress) return;
@@ -169,21 +178,66 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
       return;
     }
 
+    if (finalPrice <= 0) {
+      setError('Invalid purchase amount');
+      return;
+    }
+
+    // Only allow Kaspa wallet for now (EVM support can be added later)
+    if (!kaspaState.isConnected || !kaspaState.address) {
+      setError('Please connect your Kaspa wallet to purchase credits');
+      return;
+    }
+
     setIsPurchasing(true);
     setError(null);
+    setTxHash(null);
+    setIsConfirming(false);
 
     try {
-      const success = await purchaseCredits(creditsToReceive, finalPrice);
+      // Convert KAS to sompis
+      const sompiAmount = kasToSompis(finalPrice);
+      
+      // Remove 'kaspa:' prefix if present
+      const treasuryAddress = COMMENT_CREDITS_TREASURY.replace(/^kaspa:/, '');
+
+      // Send transaction to treasury
+      setIsConfirming(true);
+      const hash = await sendKaspa(treasuryAddress, sompiAmount, {
+        note: `Comment Credits Purchase: ${creditsToReceive} credits`,
+      });
+
+      setTxHash(hash);
+      
+      // Wait a moment for transaction to be processed
+      // In production, you might want to poll for confirmation
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Update credits after successful transaction
+      const success = await purchaseCredits(creditsToReceive, finalPrice, hash);
       if (success) {
-        onClose();
+        // Close modal after a short delay to show success
+        setTimeout(() => {
+          onClose();
+        }, 1500);
       } else {
-        setError('Failed to purchase credits. Please try again.');
+        setError('Failed to update credits. Transaction succeeded but credit update failed.');
       }
     } catch (err) {
       console.error('Error purchasing credits:', err);
-      setError(err instanceof Error ? err.message : 'Failed to purchase credits');
+      const errorMessage = getErrorMessage(err, 'Failed to purchase credits');
+      
+      // Handle specific error cases
+      if (errorMessage.includes('user rejected') || errorMessage.includes('rejected')) {
+        setError('Transaction was cancelled');
+      } else if (errorMessage.includes('insufficient')) {
+        setError('Insufficient balance. Please check your KAS balance.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setIsPurchasing(false);
+      setIsConfirming(false);
     }
   };
 
@@ -352,6 +406,16 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
                           </span>
                         </div>
                       )}
+                      {txHash && (
+                        <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800">
+                          <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+                            <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Transaction: {txHash.slice(0, 10)}...{txHash.slice(-8)}</span>
+                          </div>
+                        </div>
+                      )}
                       <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800 flex justify-between">
                         <span className="text-zinc-900 dark:text-zinc-100 font-semibold">Total:</span>
                         <span className="text-zinc-900 dark:text-zinc-100 font-bold text-lg">{finalPrice.toFixed(2)} KAS</span>
@@ -381,10 +445,10 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
             </button>
             <button
               onClick={handlePurchase}
-              disabled={isPurchasing}
+              disabled={isPurchasing || isConfirming}
               className="px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isPurchasing ? 'Processing...' : `Purchase for ${finalPrice.toFixed(2)} KAS`}
+              {isConfirming ? 'Confirming Transaction...' : isPurchasing ? 'Sending Transaction...' : `Purchase for ${finalPrice.toFixed(2)} KAS`}
             </button>
           </div>
         )}

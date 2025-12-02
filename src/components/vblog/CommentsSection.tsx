@@ -10,6 +10,7 @@ import { useAccount } from 'wagmi';
 import { formatAddress, formatDateTime } from '@/lib/vblog/utils';
 import { CommentCreditInfo } from './CommentCreditInfo';
 import { CommentCreditsModal } from './CommentCreditsModal';
+import { CommentsInfoModal } from './CommentsInfoModal';
 import { Alert } from '@/components/Alert';
 import { Avatar } from '@/components/Avatar';
 
@@ -38,6 +39,7 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
   const [success, setSuccess] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -97,8 +99,15 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
     setSuccess(false);
 
     try {
-      // Check and use credit
-      // TODO: Replace with actual smart contract call for credit checking
+      // Check if user has credits before submitting
+      if (!hasCredits()) {
+        setError('No credits remaining. Please purchase more credits.');
+        setShowModal(true);
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Use credit first (decrement before submission)
       const creditUsed = deductCredit();
       if (!creditUsed) {
         setError('Failed to use credit. Please try again.');
@@ -107,7 +116,8 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
       }
 
       // Add comment
-      // TODO: Replace with actual smart contract call
+      // TODO: Replace with actual on-chain transaction for comment storage
+      // For now, using local storage - in production, this would be a Kaspa transaction with comment data in notes
       const comment = await addArticleComment({
         articleId,
         author: walletAddress,
@@ -122,7 +132,7 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
 
-      // Refresh credits display
+      // Refresh credits display to ensure UI is in sync
       refreshCredits();
     } catch (err) {
       console.error('Error adding comment:', err);
@@ -165,26 +175,43 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
         onClose={() => setShowModal(false)}
       />
 
+      <CommentsInfoModal
+        isOpen={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+      />
+
       <div className="mt-12 pt-8 border-t border-zinc-200 dark:border-zinc-800 max-w-4xl mx-auto">
-        {/* Header with Collapse */}
+        {/* Header with Collapse and Info */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
             Comments ({commentsCount})
           </h2>
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-            aria-label={isCollapsed ? 'Expand comments' : 'Collapse comments'}
-          >
-            <svg
-              className={`w-5 h-5 transition-transform ${isCollapsed ? '' : 'rotate-180'}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowInfoModal(true)}
+              className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+              aria-label="View comments information"
+              title="Comments Information"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-            </svg>
-          </button>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+              aria-label={isCollapsed ? 'Expand comments' : 'Collapse comments'}
+            >
+              <svg
+                className={`w-5 h-5 transition-transform ${isCollapsed ? '' : 'rotate-180'}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {isCollapsed ? (
@@ -197,7 +224,7 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
 
             {/* Comments List */}
             {displayedComments.length > 0 ? (
-              <div className="space-y-4 mb-8">
+              <div className="space-y-4 mb-8 mt-6">
                 {displayedComments.map((comment) => {
                   const isAuthor = isCommentAuthor(comment.author);
                   const authorDisplay = formatAuthorAddress(comment.author);
@@ -324,9 +351,9 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setShowDeleteConfirm(null)} />
-          <div className="relative bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-md w-full border border-zinc-200 dark:border-zinc-800 p-6">
+          <div className="relative max-w-lg w-full">
             <Alert
-              type="warning"
+              type="warning-violet"
               title="Delete Comment"
               onDismiss={() => setShowDeleteConfirm(null)}
               action={{
@@ -338,12 +365,12 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
                 <p className="text-sm text-zinc-700 dark:text-zinc-300">
                   Are you sure you want to delete this comment?
                 </p>
-                <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                  <p className="text-xs text-yellow-800 dark:text-yellow-300 font-medium mb-1">
+                <div className="p-3 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-lg">
+                  <p className="text-xs text-violet-800 dark:text-violet-300 font-medium mb-1">
                     Important:
                   </p>
-                  <ul className="text-xs text-yellow-700 dark:text-yellow-400 space-y-1 list-disc list-inside">
-                    <li>Deleting a comment does not remove it from the blockchain</li>
+                  <ul className="text-xs text-violet-700 dark:text-violet-400 space-y-1 list-disc list-inside">
+                    <li>Deleting a comment does not remove it from the BlockDAG</li>
                     <li>Deleted comments cannot be refunded</li>
                   </ul>
                 </div>

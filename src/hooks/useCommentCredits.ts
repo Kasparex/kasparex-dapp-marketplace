@@ -84,26 +84,24 @@ export function useCommentCredits(walletAddress: string | null) {
   }, [credits]);
 
   /**
-   * Purchase credits (mocked for now)
-   * TODO: Replace with actual smart contract call
+   * Purchase credits with real Kaspa transaction
+   * This function should be called after a successful on-chain transaction
    */
-  const purchaseCredits = useCallback(async (amount: number, kasAmount: number): Promise<boolean> => {
+  const purchaseCredits = useCallback(async (amount: number, kasAmount: number, txHash?: string): Promise<boolean> => {
     if (!walletAddress) return false;
 
-    // Mock purchase - in real implementation, this would call a smart contract
-    // TODO: Replace with actual smart contract call
+    // Update credits after successful on-chain purchase
     const updatedCredits: CommentCredits = {
       walletAddress,
       creditsRemaining: (credits?.creditsRemaining || 0) + amount,
       totalPurchased: (credits?.totalPurchased || 0) + amount,
       lastPurchaseDate: new Date().toISOString(),
+      lastTransactionHash: txHash,
     };
 
     setCredits(updatedCredits);
     updateCreditsInStorage(updatedCredits);
     
-    // Simulate async operation
-    await new Promise(resolve => setTimeout(resolve, 1000));
     return true;
   }, [walletAddress, credits]);
 

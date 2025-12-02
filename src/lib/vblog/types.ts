@@ -29,6 +29,7 @@ export interface CommentCredits {
   creditsRemaining: number;
   totalPurchased: number;
   lastPurchaseDate?: string;
+  lastTransactionHash?: string;
 }
 
 export interface KASFeeInfo {

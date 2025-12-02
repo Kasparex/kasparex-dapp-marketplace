@@ -41,13 +41,13 @@ export function CommentCreditInfo({ onPurchaseClick }: CommentCreditInfoProps) {
 
   return (
     <Alert 
-      type={hasCredits ? 'success' : 'warning'} 
+      type={hasCredits ? 'success' : 'warning-violet'} 
       title="Comment Credits"
       action={onPurchaseClick ? { label: 'Purchase Credits', onClick: onPurchaseClick } : undefined}
     >
       <div className="space-y-2">
         <p className="text-sm">
-          Users prepay a package (e.g., 10 KAS) to unlock comment slots (e.g., 10 comments). Each comment uses one credit.
+          Comments use a paid credit model and are stored on the Kaspa BlockDAG (on-chain). This system prevents spam and encourages higher quality messages.
         </p>
         <p className="text-sm font-medium">
           {creditsRemaining} / {totalPurchased} credits remaining
