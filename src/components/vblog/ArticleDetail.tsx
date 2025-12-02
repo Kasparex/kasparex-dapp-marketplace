@@ -9,6 +9,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 import { useVBlog } from '@/hooks/useVBlog';
 import { Alert } from '@/components/Alert';
+import { Avatar } from '@/components/Avatar';
 
 interface ArticleDetailProps {
   article: VBlogArticle;
@@ -16,7 +17,6 @@ interface ArticleDetailProps {
 }
 
 export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
-  const authorDisplay = formatAddress(article.author);
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
   const { deleteExistingArticle } = useVBlog();
@@ -31,6 +31,11 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
     article.author.toLowerCase() === `evm:${evmAddress?.toLowerCase()}` ||
     (kaspaState.address && article.author.toLowerCase() === kaspaState.address.toLowerCase())
   );
+
+  // Format author address (last 5 digits)
+  const authorDisplay = formatAddress(article.author);
+  const authorAddress = article.author.replace(/^(evm:|kaspa:)/, '');
+  const authorProfileUrl = `/user/${authorAddress}`;
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -78,14 +83,10 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
         {/* Meta Information */}
         <div className="flex flex-wrap items-center gap-4 text-base text-zinc-600 dark:text-zinc-400 mb-6">
           <div className="flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
+            <Avatar address={authorAddress} size={32} />
             <span className="font-medium">Author:</span>
             <Link
-              href={article.author.startsWith('evm:') 
-                ? `/user/${article.author.replace('evm:', '')}`
-                : `/user/${article.author.replace('kaspa:', '')}`}
+              href={authorProfileUrl}
               className="font-mono text-[#02abb8] hover:text-[#028a94] hover:underline transition-colors"
             >
               {authorDisplay}

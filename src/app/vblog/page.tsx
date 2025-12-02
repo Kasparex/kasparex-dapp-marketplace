@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { VBlogHeader } from '@/components/vblog/VBlogHeader';
@@ -13,19 +12,12 @@ import { PricingTable } from '@/components/vblog/PricingTable';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 
-// Dynamically import wizard to avoid SSR issues
-const PublishArticleWizard = dynamic(
-  () => import('@/components/vblog/PublishArticleWizard').then(mod => ({ default: mod.PublishArticleWizard })),
-  { ssr: false }
-);
-
 export default function VBlogPage() {
   const { articles, isLoading, loadArticles } = useVBlog();
   const { state } = useKaspaWallet();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showWizard, setShowWizard] = useState(false);
 
   const filteredArticles = useMemo(() => {
     let filtered = articles;
@@ -88,18 +80,6 @@ export default function VBlogPage() {
                   <div className="flex-1">
                     <VBlogHeader />
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <button
-                      onClick={() => setShowWizard(true)}
-                      className="px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-                      title="Publish a new article"
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                      Publish Article
-                    </button>
-                  </div>
                 </div>
                 
                 {/* Pricing Table */}
@@ -144,18 +124,6 @@ export default function VBlogPage() {
       </main>
 
       <Footer />
-
-      {/* Publish Article Wizard */}
-      {showWizard && (
-        <PublishArticleWizard
-          isOpen={showWizard}
-          onClose={() => setShowWizard(false)}
-          onComplete={() => {
-            loadArticles();
-            setShowWizard(false);
-          }}
-        />
-      )}
     </div>
   );
 }

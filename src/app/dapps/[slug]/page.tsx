@@ -6,6 +6,7 @@ import { DAppInfoSidebar } from '@/components/dapps/DAppInfoSidebar';
 import { DAppDetail } from '@/components/DAppDetail';
 import { DAppFooter } from '@/components/dapps/DAppFooter';
 import { RelatedDApps } from '@/components/dapps/RelatedDApps';
+import { CommentsSection } from '@/components/vblog/CommentsSection';
 import { placeholderDApps } from '@/lib/dapps';
 import { getDAppBySlug } from '@/lib/utils';
 import { getContractAddress } from '@/lib/contracts/addresses';
@@ -61,6 +62,11 @@ export default async function DAppPage({ params }: PageProps) {
           <div className="flex-1 min-w-0 p-4 sm:p-6 lg:px-16 lg:py-12">
             <DAppDetail dapp={dapp} />
             <DAppFooter contractAddress={contractAddress} />
+            
+            {/* Comments Section */}
+            <div className="mt-8">
+              <CommentsSection articleId={`dapp:${dapp.slug || dapp.id}`} />
+            </div>
           </div>
 
           {/* Right Sidebar - Info & Actions */}

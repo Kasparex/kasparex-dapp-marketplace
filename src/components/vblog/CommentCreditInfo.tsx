@@ -43,7 +43,7 @@ export function CommentCreditInfo({ onPurchaseClick }: CommentCreditInfoProps) {
     <Alert 
       type={hasCredits ? 'success' : 'warning'} 
       title="Comment Credits"
-      action={!hasCredits ? { label: 'Purchase Credits', onClick: onPurchaseClick || (() => {}) } : undefined}
+      action={onPurchaseClick ? { label: 'Purchase Credits', onClick: onPurchaseClick } : undefined}
     >
       <div className="space-y-2">
         <p className="text-sm">

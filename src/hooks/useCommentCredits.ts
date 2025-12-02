@@ -121,6 +121,28 @@ export function useCommentCredits(walletAddress: string | null) {
     return (credits?.creditsRemaining || 0) > 0;
   }, [credits]);
 
+  /**
+   * Refresh credits from storage
+   */
+  const refreshCredits = useCallback(() => {
+    if (!walletAddress) return;
+    
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const allCredits: CommentCredits[] = JSON.parse(stored);
+        const userCredits = allCredits.find(
+          c => c.walletAddress.toLowerCase() === walletAddress.toLowerCase()
+        );
+        if (userCredits) {
+          setCredits(userCredits);
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing comment credits:', error);
+    }
+  }, [walletAddress]);
+
   return {
     credits,
     isLoading,
@@ -128,6 +150,7 @@ export function useCommentCredits(walletAddress: string | null) {
     purchaseCredits,
     getCredits,
     hasCredits,
+    refreshCredits,
   };
 }
 

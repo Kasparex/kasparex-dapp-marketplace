@@ -18,8 +18,11 @@ export function generateArticleSlug(title: string): string {
  */
 export function formatAddress(address: string): string {
   if (!address) return '';
-  if (address.length <= 12) return address;
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  // Remove prefixes if present
+  const cleanAddress = address.replace(/^(evm:|kaspa:)/, '');
+  if (cleanAddress.length <= 5) return cleanAddress;
+  // Show last 5 digits for profile display
+  return cleanAddress.slice(-5);
 }
 
 /**
