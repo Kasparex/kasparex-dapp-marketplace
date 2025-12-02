@@ -20,13 +20,6 @@ export function useVBlog() {
   const [articles, setArticles] = useState<VBlogArticle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load articles on mount - only on client side
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      loadArticles();
-    }
-  }, [loadArticles]);
-
   const loadArticles = useCallback(() => {
     setIsLoading(true);
     try {
@@ -38,6 +31,13 @@ export function useVBlog() {
       setIsLoading(false);
     }
   }, []);
+
+  // Load articles on mount - only on client side
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      loadArticles();
+    }
+  }, [loadArticles]);
 
   /**
    * Get article by slug
