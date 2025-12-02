@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { createPortal } from 'react-dom';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
@@ -51,10 +50,7 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
   const { createNewArticle } = useVBlog();
   const pricing = useVBlogPricing();
   
-  // Track mounted state for portal rendering
-  const [mounted, setMounted] = useState(false);
-  
-  // State hooks - all called unconditionally
+  // State hooks
   const [currentStep, setCurrentStep] = useState<WizardStep>('content');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,14 +92,9 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     uploadProgress: 0,
   });
 
-  // Refs - all called unconditionally
+  // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
   const featuredImageInputRef = useRef<HTMLInputElement>(null);
-
-  // Set mounted state on client side
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Load categories from localStorage - only on client
   useEffect(() => {
@@ -367,23 +358,12 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     onClose();
   }, [currentStep, onClose]);
 
-  // CRITICAL: Component is lazy-loaded, so it's isolated from page hooks
-  // But we still need to ensure consistent hook order within this component
-  if (typeof window === 'undefined' || !mounted) {
-    return null; // SSR guard
-  }
-
-  // Ensure document.body exists before using portal
-  if (!document.body) {
-    return null;
-  }
-
-  // Don't render anything when closed - parent handles conditional rendering
+  // Simple conditional render - only show when open
   if (!isOpen) {
     return null;
   }
 
-  const modalContent = (
+  return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
@@ -914,8 +894,4 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
       />
     </div>
   );
-
-  // Use portal to render modal - ensures it's outside normal DOM hierarchy
-  // This prevents React from seeing different component structures
-  return createPortal(modalContent, document.body);
 }

@@ -13,7 +13,6 @@ import {
   CONTENT_LIMITS,
 } from '@/lib/vblog/limits';
 import { Alert } from '@/components/Alert';
-import { RichTextEditor } from './RichTextEditor';
 
 interface EditArticleFormProps {
   article: VBlogArticle;
@@ -201,12 +200,14 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
               Main Content <span className="text-red-500">*</span>
             </label>
           </div>
-          <RichTextEditor
+          <textarea
             value={content}
-            onChange={setContent}
+            onChange={(e) => setContent(e.target.value)}
             placeholder="Write your article content here..."
             maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max}
             disabled={isSubmitting}
+            rows={10}
+            className="w-full min-h-[200px] px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] resize-y"
           />
         </div>
 
