@@ -358,12 +358,16 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
   }, [currentStep, onClose]);
 
   // NEVER return null - always render the same structure
-  // Hide with CSS when closed to maintain hook order
-  if (!isOpen) {
-    return <div style={{ display: 'none' }} aria-hidden="true" />;
+  // Use portal to render outside normal flow and prevent hook order issues
+  if (typeof window === 'undefined') {
+    return null; // SSR guard
   }
 
-  return (
+  if (!isOpen) {
+    return null; // Don't render when closed - parent handles conditional rendering
+  }
+
+  const modalContent = (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
