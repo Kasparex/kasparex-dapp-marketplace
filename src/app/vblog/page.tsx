@@ -12,6 +12,7 @@ import { VBlogSidebar } from '@/components/vblog/VBlogSidebar';
 import { PricingTable } from '@/components/vblog/PricingTable';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { ErrorBoundary } from '@/components/vblog/ErrorBoundary';
 
 // Import directly - no dynamic import to avoid hook order issues
 import { PublishArticleWizard } from '@/components/vblog/PublishArticleWizard';
@@ -143,14 +144,16 @@ export default function VBlogPage() {
       <Footer />
 
       {/* Publish Article Wizard - Always render to maintain hook order, controlled by isOpen prop */}
-      <PublishArticleWizard
-        isOpen={showWizard}
-        onClose={() => setShowWizard(false)}
-        onComplete={() => {
-          loadArticles();
-          setShowWizard(false);
-        }}
-      />
+      <ErrorBoundary>
+        <PublishArticleWizard
+          isOpen={showWizard}
+          onClose={() => setShowWizard(false)}
+          onComplete={() => {
+            loadArticles();
+            setShowWizard(false);
+          }}
+        />
+      </ErrorBoundary>
     </div>
   );
 }

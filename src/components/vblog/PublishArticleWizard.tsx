@@ -379,6 +379,11 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     return null;
   }
 
+  // Ensure document.body exists before using portal
+  if (!document.body) {
+    return null;
+  }
+
   const modalContent = (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
