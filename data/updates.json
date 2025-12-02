@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764712945-46d4d03",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update comments system: violet warnings, BlockDAG terminology, info modal, real Kaspa wallet transactions (by Kasparex)",
+      "date": "2025-12-02T23:01:33+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764708649-23d7b2d",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: properly handle optional evmAddress in isCommentAuthor (by Kasparex)",
