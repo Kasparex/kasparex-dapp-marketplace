@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
@@ -21,7 +21,6 @@ import {
 import { Alert } from '@/components/Alert';
 import { KASFeeConfirmation } from './KASFeeConfirmation';
 import { KASFeeInfo } from '@/lib/vblog/types';
-// RichTextEditor removed - using simple textarea instead to avoid React hooks violations
 
 interface PublishArticleWizardProps {
   isOpen: boolean;
@@ -44,45 +43,28 @@ const DEFAULT_CATEGORIES = [
 const STORAGE_KEY_CATEGORIES = 'vblog_custom_categories';
 
 export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArticleWizardProps) {
-  // CRITICAL: All hooks MUST be called unconditionally and in the same order every render
-  // This prevents React error #301 (hooks violation)
+  // ALL HOOKS MUST BE CALLED UNCONDITIONALLY - SAME ORDER EVERY RENDER
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
   const { createNewArticle } = useVBlog();
   const pricing = useVBlogPricing();
+  
+  // State hooks - all called unconditionally
   const [currentStep, setCurrentStep] = useState<WizardStep>('content');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showFeeConfirmation, setShowFeeConfirmation] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const featuredImageInputRef = useRef<HTMLInputElement>(null);
-  
-  // Load custom categories from localStorage - use useEffect to avoid SSR issues
   const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES);
-  
-  // Load categories on mount - only on client side
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY_CATEGORIES);
-      if (stored) {
-        const custom = JSON.parse(stored);
-        setCategories([...DEFAULT_CATEGORIES, ...custom]);
-      }
-    } catch (error) {
-      console.warn('Error loading custom categories:', error);
-    }
-  }, []);
   const [newCategory, setNewCategory] = useState('');
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
-
+  
   // Form state
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     content: '',
     featuredImage: '',
-    category: categories[0] || DEFAULT_CATEGORIES[0] || 'Other',
+    category: DEFAULT_CATEGORIES[0],
     tags: '',
   });
   
@@ -109,7 +91,48 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     uploadProgress: 0,
   });
 
-  // Determine wallet connection status (Kaspa or EVM)
+  // Refs - all called unconditionally
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const featuredImageInputRef = useRef<HTMLInputElement>(null);
+
+  // Load categories from localStorage - only on client
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_CATEGORIES);
+      if (stored) {
+        const custom = JSON.parse(stored);
+        setCategories([...DEFAULT_CATEGORIES, ...custom]);
+      }
+    } catch (error) {
+      console.warn('Error loading custom categories:', error);
+    }
+  }, []);
+
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setCurrentStep('content');
+      setFormData({
+        title: '',
+        description: '',
+        content: '',
+        featuredImage: '',
+        category: categories[0] || DEFAULT_CATEGORIES[0],
+        tags: '',
+      });
+      setIpfsData({ cid: null, isUploading: false, uploadProgress: 0 });
+      setFeaturedImageIpfs({ cid: null, isUploading: false, uploadProgress: 0 });
+      setError(null);
+      setShowFeeConfirmation(false);
+      setNewCategory('');
+      setShowNewCategoryInput(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (featuredImageInputRef.current) featuredImageInputRef.current.value = '';
+    }
+  }, [isOpen, categories]);
+
+  // Computed values - after all hooks
   const isWalletConnected = kaspaState.isConnected || isEVMConnected;
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
   const walletType = kaspaState.isConnected ? 'kaspa' : isEVMConnected ? 'evm' : null;
@@ -125,28 +148,25 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
 
   const currentStepIndex = steps.findIndex((s) => s.id === currentStep);
 
-  const updateFormData = (field: string, value: string) => {
+  // Handlers - use useCallback for stability
+  const updateFormData = useCallback((field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  }, []);
 
-  const addCustomCategory = () => {
-    if (!newCategory.trim() || categories.includes(newCategory.trim())) {
-      return;
-    }
+  const addCustomCategory = useCallback(() => {
+    if (!newCategory.trim() || categories.includes(newCategory.trim())) return;
     const updated = [...categories, newCategory.trim()];
     setCategories(updated);
     setFormData(prev => ({ ...prev, category: newCategory.trim() }));
     setNewCategory('');
     setShowNewCategoryInput(false);
-    
-    // Save to localStorage
     try {
       const custom = updated.filter(c => !DEFAULT_CATEGORIES.includes(c));
       localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(custom));
     } catch {}
-  };
+  }, [newCategory, categories]);
 
-  const handleFeaturedImageUpload = async (file: File) => {
+  const handleFeaturedImageUpload = useCallback(async (file: File) => {
     const validation = validateImage(file);
     if (!validation.valid) {
       setError(validation.error || 'Invalid image file');
@@ -175,9 +195,31 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
       setFeaturedImageIpfs(prev => ({ ...prev, cid: mockCid, isUploading: false, uploadProgress: 100 }));
       setFormData(prev => ({ ...prev, featuredImage: mockCid }));
     }, 2000);
-  };
+  }, []);
 
-  const validateStep = (step: WizardStep): boolean => {
+  const handleFileUpload = useCallback(async (file: File) => {
+    setIpfsData(prev => ({ ...prev, isUploading: true, uploadProgress: 0, uploadedFile: file, uploadedFileName: file.name }));
+    
+    const progressInterval = setInterval(() => {
+      setIpfsData((prev) => {
+        const newProgress = Math.min(prev.uploadProgress + 10, 100);
+        if (newProgress >= 100) {
+          clearInterval(progressInterval);
+          const mockCid = `Qm${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
+          return { ...prev, cid: mockCid, isUploading: false, uploadProgress: 100 };
+        }
+        return { ...prev, uploadProgress: newProgress };
+      });
+    }, 200);
+
+    setTimeout(() => {
+      clearInterval(progressInterval);
+      const mockCid = `Qm${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
+      setIpfsData(prev => ({ ...prev, cid: mockCid, isUploading: false, uploadProgress: 100 }));
+    }, 2000);
+  }, []);
+
+  const validateStep = useCallback((step: WizardStep): boolean => {
     setError(null);
     if (step === 'content') {
       if (!formData.title.trim()) {
@@ -223,53 +265,17 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
       }
     }
     return true;
-  };
+  }, [formData, pricing.isPremium, ipfsData.cid]);
 
-  const handleFileUpload = async (file: File) => {
-    setIpfsData(prev => ({ ...prev, isUploading: true, uploadProgress: 0, uploadedFile: file, uploadedFileName: file.name }));
-    
-    // Simulate IPFS upload with progress
-    const progressInterval = setInterval(() => {
-      setIpfsData((prev) => {
-        const newProgress = Math.min(prev.uploadProgress + 10, 100);
-        if (newProgress >= 100) {
-          clearInterval(progressInterval);
-          // Generate a mock CID
-          const mockCid = `Qm${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
-          return { ...prev, cid: mockCid, isUploading: false, uploadProgress: 100 };
-        }
-        return { ...prev, uploadProgress: newProgress };
-      });
-    }, 200);
-
-    // Wait for upload to complete
-    setTimeout(() => {
-      clearInterval(progressInterval);
-      const mockCid = `Qm${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
-      setIpfsData(prev => ({ ...prev, cid: mockCid, isUploading: false, uploadProgress: 100 }));
-    }, 2000);
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileUpload(file);
-    }
-  };
-
-  const handleNext = async () => {
-    if (!validateStep(currentStep)) {
-      return;
-    }
+  const handleNext = useCallback(async () => {
+    if (!validateStep(currentStep)) return;
 
     if (currentStep === 'ipfs' && !ipfsData.cid) {
-      // If no file uploaded yet, show error
       setError('Please upload content to IPFS first');
       return;
     }
 
     if (currentStep === 'review') {
-      // Show fee confirmation before publishing
       setShowFeeConfirmation(true);
       return;
     }
@@ -278,42 +284,35 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     if (nextIndex < steps.length) {
       setCurrentStep(steps[nextIndex].id);
     }
-  };
+  }, [currentStep, currentStepIndex, steps, validateStep, ipfsData.cid]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     const prevIndex = currentStepIndex - 1;
     if (prevIndex >= 0) {
       setCurrentStep(steps[prevIndex].id);
     }
-  };
+  }, [currentStepIndex, steps]);
 
-  const handleStepClick = (stepId: WizardStep, stepIndex: number) => {
-    // Allow clicking on completed steps or the next step (if current step is valid)
+  const handleStepClick = useCallback((stepId: WizardStep, stepIndex: number) => {
     if (stepIndex <= currentStepIndex) {
-      // Can go back to any previous step
       setCurrentStep(stepId);
     } else if (stepIndex === currentStepIndex + 1) {
-      // Can go to next step if current step is valid
       if (validateStep(currentStep)) {
         setCurrentStep(stepId);
       }
     }
-    // Otherwise, don't allow jumping ahead
-  };
+  }, [currentStep, currentStepIndex, validateStep]);
 
-  const handlePublishConfirm = async () => {
+  const handlePublishConfirm = useCallback(async () => {
     setShowFeeConfirmation(false);
     setCurrentStep('publishing');
     await handlePublish();
-  };
+  }, []);
 
-  const handlePublish = async () => {
-    // Check if wallet is connected (Kaspa or EVM) - if not, use a mock address for testing
+  const handlePublish = useCallback(async () => {
     let authorAddress: string = walletAddress || '';
     
     if (!isWalletConnected || !walletAddress) {
-      // For testing purposes, use a mock address if wallet is not connected
-      // In production, this should require wallet connection
       authorAddress = 'kaspa:qqq000000000000000000000000000000000000000000000000000000000000000';
       console.warn('Wallet not connected - using mock address for testing');
     }
@@ -327,7 +326,6 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
         .map(tag => tag.trim())
         .filter(tag => tag.length > 0);
 
-      // Simulate publishing delay
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       await createNewArticle({
@@ -347,43 +345,17 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [walletAddress, isWalletConnected, formData, createNewArticle]);
 
-  const handleReset = () => {
-    setCurrentStep('content');
-    setFormData({
-      title: '',
-      description: '',
-      content: '',
-      featuredImage: '',
-      category: categories[0] || DEFAULT_CATEGORIES[0] || 'Other',
-      tags: '',
-    });
-    setIpfsData({ cid: null, isUploading: false, uploadProgress: 0, uploadedFile: undefined, uploadedFileName: undefined });
-    setFeaturedImageIpfs({ cid: null, isUploading: false, uploadProgress: 0 });
-    setNewCategory('');
-    setShowNewCategoryInput(false);
-    setError(null);
-    setShowFeeConfirmation(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-    if (featuredImageInputRef.current) {
-      featuredImageInputRef.current.value = '';
-    }
-  };
-
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (currentStep === 'complete' || currentStep === 'publishing') {
-      return; // Prevent closing during publishing or after completion
+      return;
     }
-    handleReset();
     onClose();
-  };
+  }, [currentStep, onClose]);
 
-  // CRITICAL: Never return null - always render the same structure
-  // This prevents React error #301 (hooks violation)
-  // The component is only rendered when showWizard is true in the parent
+  // NEVER return null - always render the same structure
+  // Hide with CSS when closed to maintain hook order
   if (!isOpen) {
     return <div style={{ display: 'none' }} aria-hidden="true" />;
   }
@@ -741,7 +713,12 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
                     <input
                       ref={fileInputRef}
                       type="file"
-                      onChange={handleFileSelect}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleFileUpload(file);
+                        }
+                      }}
                       accept=".txt,.md,.json,.html"
                       className="hidden"
                       id="ipfs-file-upload"
@@ -765,7 +742,6 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
                     </div>
                     <button
                       onClick={() => {
-                        // Auto-upload the form content as a file
                         const contentBlob = new Blob([formData.content], { type: 'text/plain' });
                         const contentFile = new File([contentBlob], `${formData.title.replace(/[^a-z0-9]/gi, '_')}.txt`, { type: 'text/plain' });
                         handleFileUpload(contentFile);
@@ -869,7 +845,6 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
               </p>
               <button
                 onClick={() => {
-                  handleReset();
                   onComplete();
                   onClose();
                 }}
@@ -917,4 +892,3 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     </div>
   );
 }
-
