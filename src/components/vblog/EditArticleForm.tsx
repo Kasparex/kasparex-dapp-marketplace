@@ -13,20 +13,7 @@ import {
   CONTENT_LIMITS,
 } from '@/lib/vblog/limits';
 import { Alert } from '@/components/Alert';
-import dynamic from 'next/dynamic';
-
-// Dynamically import RichTextEditor to avoid SSR issues
-const RichTextEditor = dynamic(
-  () => import('./RichTextEditor').then(mod => ({ default: mod.RichTextEditor })),
-  { 
-    ssr: false,
-    loading: () => (
-      <div className="w-full h-48 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 flex items-center justify-center">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading editor...</p>
-      </div>
-    ),
-  }
-);
+import { RichTextEditor } from './RichTextEditor';
 
 interface EditArticleFormProps {
   article: VBlogArticle;
