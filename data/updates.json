@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764686430-9dd70d0",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix: Move loadArticles declaration before useEffect to fix TypeScript error (by Kasparex)",
+      "date": "2025-12-02T15:39:06+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764685845-bfec837",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Merge branch 'main' of https://github.com/Kasparex/kasparex-dapp-marketplace (by Kasparex)",
