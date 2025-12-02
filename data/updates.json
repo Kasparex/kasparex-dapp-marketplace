@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764708370-97a3f13",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error in CommentsSection isCommentAuthor function (by Kasparex)",
+      "date": "2025-12-02T21:45:09+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764696988-59d9f40",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Merge branch 'main' of https://github.com/Kasparex/kasparex-dapp-marketplace (by Kasparex)",
