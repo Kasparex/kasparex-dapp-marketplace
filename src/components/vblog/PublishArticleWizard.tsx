@@ -44,9 +44,8 @@ const DEFAULT_CATEGORIES = [
 const STORAGE_KEY_CATEGORIES = 'vblog_custom_categories';
 
 export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArticleWizardProps) {
-  // All hooks must be called unconditionally before any early returns
-  // This ensures React hooks are always called in the same order
-  const [mounted, setMounted] = useState(false);
+  // CRITICAL: All hooks MUST be called unconditionally and in the same order every render
+  // This prevents React error #301 (hooks violation)
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
   const { createNewArticle } = useVBlog();
@@ -61,13 +60,9 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
   // Load custom categories from localStorage - use useEffect to avoid SSR issues
   const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES);
   
-  // Ensure component is mounted on client before rendering
+  // Load categories on mount - only on client side
   useEffect(() => {
-    setMounted(true);
-  }, []);
-  
-  useEffect(() => {
-    if (typeof window === 'undefined' || !mounted) return;
+    if (typeof window === 'undefined') return;
     try {
       const stored = localStorage.getItem(STORAGE_KEY_CATEGORIES);
       if (stored) {
@@ -77,7 +72,7 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     } catch (error) {
       console.warn('Error loading custom categories:', error);
     }
-  }, [mounted]);
+  }, []);
   const [newCategory, setNewCategory] = useState('');
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
 
@@ -386,15 +381,20 @@ export function PublishArticleWizard({ isOpen, onClose, onComplete }: PublishArt
     onClose();
   };
 
-  // CRITICAL: Never return null - always render something to maintain hook order
-  // This prevents React hooks violation errors (#301)
-  // Hide with CSS instead of conditional rendering
-  if (!isOpen || !mounted) {
-    return <div style={{ display: 'none' }} aria-hidden="true" />;
-  }
-
+  // CRITICAL: Always render the component structure - never return null or conditionally render
+  // Hide with CSS (pointer-events and opacity) to maintain hook order
+  // This prevents React error #301 (hooks violation)
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div 
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${
+        isOpen ? '' : 'pointer-events-none opacity-0'
+      }`}
+      style={{ 
+        display: isOpen ? 'flex' : 'none',
+        transition: 'opacity 0.2s ease-in-out'
+      }}
+      aria-hidden={!isOpen}
+    >
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-md"
