@@ -131,8 +131,8 @@ export function useVBlogPricing() {
     // Wrap in try-catch to prevent errors from breaking React
     Promise.all([
       getKREXBalance(walletAddress).catch(() => 0),
-      checkNFTHoldings(walletAddress).catch(() => []),
-    ]).then(([krexBalance, nftHoldings]) => {
+      checkNFTHoldings(walletAddress).catch(() => [] as string[]),
+    ]).then(([krexBalance, nftHoldings]: [number, string[]]) => {
       const hasKREXDiscount = krexBalance >= KREX_DISCOUNT_THRESHOLD;
       const hasKREXPRIME = nftHoldings.includes(KREXPRIME_NFT_COLLECTION);
       const hasPIXELKREX = nftHoldings.includes(PIXELKREX_NFT_COLLECTION);
