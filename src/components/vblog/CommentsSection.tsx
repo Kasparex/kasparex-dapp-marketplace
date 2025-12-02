@@ -69,8 +69,8 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
     if (!walletAddress) return false;
     const lowerCommentAuthor = commentAuthor.toLowerCase();
     return lowerCommentAuthor === walletAddress.toLowerCase() ||
-           (evmAddress && lowerCommentAuthor === `evm:${evmAddress.toLowerCase()}`) ||
-           (kaspaState.address && lowerCommentAuthor === kaspaState.address.toLowerCase());
+           (evmAddress !== undefined && evmAddress !== null && lowerCommentAuthor === `evm:${evmAddress.toLowerCase()}`) ||
+           (kaspaState.address !== undefined && kaspaState.address !== null && lowerCommentAuthor === kaspaState.address.toLowerCase());
   }, [walletAddress, evmAddress, kaspaState.address]);
 
   const handleSubmit = async (e: React.FormEvent) => {
