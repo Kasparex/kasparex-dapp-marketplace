@@ -3,13 +3,9 @@ const nextConfig = {
   serverExternalPackages: ["pino-pretty"],
   
   // Cloudflare Pages configuration
-  // Use static export for Cloudflare Pages (simpler, but limits dynamic features)
-  // For full Next.js features, use @cloudflare/next-on-pages adapter
-  // Detect Cloudflare Pages environment automatically
-  // Also check for CI environment (Cloudflare Pages runs in CI)
-  // When framework preset is "None", Cloudflare might not set CF_PAGES env vars,
-  // so we also check for the presence of the exclude-api-routes script running
-  output: (process.env.CF_PAGES || process.env.CF_PAGES_BUILD || process.env.CF_PAGES_URL || process.env.CF || process.env.CI === 'true') ? 'export' : undefined,
+  // Force static export for Cloudflare Pages builds
+  // Always enable static export when building (Cloudflare Pages requirement)
+  output: 'export',
   
   // Skip API routes during static export (they need to be moved to Cloudflare Workers)
   // API routes are not supported in static export mode
@@ -17,7 +13,7 @@ const nextConfig = {
   
   // Disable image optimization for static export (Cloudflare handles this)
   images: {
-    unoptimized: process.env.CF_PAGES ? true : false,
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
