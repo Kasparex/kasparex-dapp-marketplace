@@ -233,7 +233,13 @@ export function UserProfileContent() {
                     <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
                       Token Balances
                     </h2>
-                    <TokenBalance walletAddress={displayAddress} />
+                    {isValidAddress ? (
+                      <TokenBalance address={displayAddress as `0x${string}`} />
+                    ) : (
+                      <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                        Token balance display is only available for EVM addresses
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
