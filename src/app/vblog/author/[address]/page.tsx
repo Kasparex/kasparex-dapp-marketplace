@@ -6,10 +6,8 @@ interface PageProps {
   }>;
 }
 
-// Generate static params (empty array - authors are client-side only)
-// For static export, we can't pre-generate all author addresses
 export async function generateStaticParams(): Promise<Array<{ address: string }>> {
-  return []; // Empty array - routes will work client-side
+  return [];
 }
 
 export async function generateMetadata({ params }: PageProps) {
@@ -20,6 +18,6 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function VBlogAuthorPage({ params }: PageProps) {
-  await params; // Await params to ensure proper server component behavior
+  await params;
   return <AuthorPageContent />;
 }
