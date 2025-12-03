@@ -44,9 +44,11 @@ export function UserProfileContent() {
   );
 
   // Check if viewing own profile
-  const isOwnProfile = isConnected && (
-    (connectedAddress?.toLowerCase() === walletAddress?.toLowerCase()) ||
-    (kaspaState.address && kaspaState.address.toLowerCase() === walletAddress?.toLowerCase())
+  const isOwnProfile = Boolean(
+    isConnected && (
+      (connectedAddress?.toLowerCase() === walletAddress?.toLowerCase()) ||
+      (kaspaState.address && kaspaState.address.toLowerCase() === walletAddress?.toLowerCase())
+    )
   );
 
   // Get favorites for this wallet
