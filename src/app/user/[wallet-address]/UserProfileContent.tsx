@@ -106,7 +106,7 @@ export function UserProfileContent() {
 
   const displayAddressFormatted = isValidAddress
     ? `${displayAddress.slice(0, 6)}...${displayAddress.slice(-4)}`
-    : formatKaspaAddress(displayAddress);
+    : formatKaspaAddress(displayAddress).display;
 
   return (
     <div className="flex flex-col min-h-screen">
