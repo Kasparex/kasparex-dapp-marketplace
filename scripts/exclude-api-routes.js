@@ -12,7 +12,26 @@ const API_DIR = path.join(process.cwd(), 'src', 'app', 'api');
 const API_DIR_BACKUP = path.join(process.cwd(), 'api-backup'); // Move outside src/app
 
 // Check if we should exclude API routes (CF_PAGES mode or static export)
-const shouldExclude = process.env.CF_PAGES === '1' || process.env.CF_PAGES === 'true' || process.env.NEXT_OUTPUT === 'export';
+// Also check if next.config.mjs has output: 'export' configured
+let shouldExclude = process.env.CF_PAGES === '1' || process.env.CF_PAGES === 'true' || process.env.NEXT_OUTPUT === 'export';
+
+// If CF_PAGES is not set, check next.config.mjs for static export configuration
+if (!shouldExclude) {
+  try {
+    const nextConfigPath = path.join(process.cwd(), 'next.config.mjs');
+    if (fs.existsSync(nextConfigPath)) {
+      const configContent = fs.readFileSync(nextConfigPath, 'utf8');
+      // Check if output: 'export' is configured (for Cloudflare Pages)
+      // This handles cases where framework preset sets the build command differently
+      if (configContent.includes("output:") && (configContent.includes("'export'") || configContent.includes('"export"'))) {
+        shouldExclude = true;
+        console.log('ℹ Detected static export configuration in next.config.mjs');
+      }
+    }
+  } catch (error) {
+    // If we can't read the config, continue with existing logic
+  }
+}
 
 // Determine action based on current state
 const apiExists = fs.existsSync(API_DIR);
