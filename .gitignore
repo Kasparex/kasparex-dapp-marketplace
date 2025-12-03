@@ -1,50 +1,13 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ... existing content ...
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
+# Cloudflare
+.registry-cid
+wrangler.toml.local
+.wrangler/
 
-# testing
-/coverage
+# IPFS uploads
+public/ipfs-asset-map.json
 
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# local env files
-.env*.local
-.env
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-# Hardhat
-/cache
-/artifacts
-/typechain-types
-/deployments
-/coverage
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# API backup directory (temporary build artifact)
+api-backup/
+node_modules
