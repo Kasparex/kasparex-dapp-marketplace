@@ -2,30 +2,14 @@
 const nextConfig = {
   serverExternalPackages: ["pino-pretty"],
   
-  // IPFS Gateway domains for images
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'gateway.pinata.cloud',
-      },
-      {
-        protocol: 'https',
-        hostname: 'ipfs.io',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cloudflare-ipfs.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'ipfs.fleek.co',
-      },
-    ],
-  },
-  
-  // Exclude Hardhat files from webpack compilation
-  webpack: (config, { isServer, webpack }) => {
+  // Disable webpack cache for Cloudflare Pages (prevents large cache files)
+  // Cache files can exceed Cloudflare's 25 MiB file size limit
+  webpack: (config, { isServer, webpack, dev }) => {
+    // Disable webpack cache in production builds to prevent large cache files
+    // Cloudflare Pages has a 25 MiB file size limit
+    if (!dev) {
+      config.cache = false;
+    }
     // Exclude Hardhat and contract-related files from client bundle
     if (!isServer) {
       config.resolve.fallback = {
@@ -74,6 +58,12 @@ const nextConfig = {
     });
     
     return config;
+  },
+  
+  // Experimental: Optimize for Cloudflare Pages
+  experimental: {
+    // Reduce build output size
+    optimizePackageImports: ['@rainbow-me/rainbowkit', 'wagmi', 'viem'],
   },
 };
 

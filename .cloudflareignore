@@ -1,0 +1,78 @@
+# Cloudflare Pages ignore file
+# Files and directories listed here will be excluded from deployment
+
+# Next.js cache directories
+.next/cache/
+.next/server-production/
+.next/cache/webpack/
+**/cache/webpack/
+**/cache/
+
+# Build artifacts that shouldn't be deployed
+.next/cache/
+.next/trace
+.next/analyze/
+
+# Development files
+.env.local
+.env.development
+.env.test
+
+# Test files
+test/
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+
+# Documentation (not needed in production)
+docs/
+*.md
+!README.md
+
+# Source maps (optional - can reduce bundle size)
+**/*.map
+
+# Hardhat/contract files
+contracts/
+artifacts/
+cache/
+deployments/
+hardhat.config.js
+
+# Scripts
+scripts/
+
+# Node modules (shouldn't be in output anyway)
+node_modules/
+
+# Git files
+.git/
+.gitignore
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Cloudflare specific
+.wrangler/
+wrangler.toml.local
+.registry-cid
+
+# IPFS uploads
+public/ipfs-asset-map.json
+
