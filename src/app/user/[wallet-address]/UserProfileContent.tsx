@@ -119,9 +119,8 @@ export function UserProfileContent() {
             walletAddress={displayAddress}
             profile={profile}
             emoji={emoji}
-            isLoading={profileLoading}
             isOwnProfile={isOwnProfile}
-            onUpdateProfile={updateProfile}
+            onProfileUpdate={updateProfile}
           />
 
           {/* Main Content */}
