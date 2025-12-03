@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "build:cloudflare": "CF_PAGES=1 next build && node scripts/clean-build-cache.js",
+    "build:cloudflare": "node scripts/exclude-api-routes.js && CF_PAGES=1 next build && node scripts/exclude-api-routes.js && node scripts/clean-build-cache.js",
     "pages:build": "npx @cloudflare/next-on-pages",
     "start": "next start",
     "lint": "next lint",

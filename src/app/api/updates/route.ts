@@ -11,9 +11,8 @@ import path from 'path';
 import type { UpdatesData, TimelineEntry, Category } from '@/lib/updates';
 import { generateId } from '@/lib/updates';
 
-// Skip this route during static export
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+// Note: This route is skipped during static export (CF_PAGES mode)
+// Remove dynamic/runtime exports to allow static export to proceed
 
 const updatesFilePath = path.join(process.cwd(), 'data', 'updates.json');
 

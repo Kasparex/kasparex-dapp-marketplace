@@ -11,9 +11,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-// Skip this route during static export
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+// Note: This route is skipped during static export (CF_PAGES mode)
+// Remove dynamic/runtime exports to allow static export to proceed
 
 /**
  * GET /api/kaspa/balance?address=...
