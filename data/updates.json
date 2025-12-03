@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764792621-61ef892",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: BREAKING: Rename [wallet-address] to [walletAddress] for Cloudflare Pages compatibility (by Kasparex)",
+      "date": "2025-12-03T21:09:52+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764789770-8eb9446",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: Remove duplicate await params in vblog slug page (by Kasparex)",
