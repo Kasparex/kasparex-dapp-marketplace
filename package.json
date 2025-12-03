@@ -7,6 +7,7 @@
     "prebuild": "node scripts/exclude-api-routes.js",
     "build": "next build",
     "postbuild": "node scripts/exclude-api-routes.js && node scripts/clean-build-cache.js",
+    "clear-cache": "node scripts/clear-next-cache.js",
     "build:cloudflare": "npm run build",
     "pages:build": "npx @cloudflare/next-on-pages",
     "start": "next start",
