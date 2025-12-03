@@ -23,12 +23,8 @@ import { generateDAppSlug } from '@/lib/utils';
 import Link from 'next/link';
 
 // Edit functionality removed - profiles are now read-only
-
-// Generate static params (empty array - profiles are client-side only)
-// For static export, we can't pre-generate all wallet addresses
-export async function generateStaticParams() {
-  return []; // Empty array - routes will work client-side
-}
+// Note: This is a client component, so generateStaticParams is not used
+// Routes will work client-side with Next.js routing
 
 export default function UserProfilePage() {
   const params = useParams();

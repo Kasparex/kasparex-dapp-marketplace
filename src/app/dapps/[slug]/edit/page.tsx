@@ -4,15 +4,6 @@ import { useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { placeholderDApps } from '@/lib/dapps';
-import { generateDAppSlug } from '@/lib/utils';
-
-// Generate static params for all dApp slugs (required for static export)
-export async function generateStaticParams() {
-  return placeholderDApps.map((dapp) => ({
-    slug: dapp.slug || generateDAppSlug(dapp.name),
-  }));
-}
 
 // Edit functionality removed - dApps are now read-only
 // This page redirects to the dApp detail page

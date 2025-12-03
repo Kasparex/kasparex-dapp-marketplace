@@ -14,12 +14,6 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-// Generate static params (empty array - articles are client-side only)
-// For static export, we can't access localStorage during build
-export async function generateStaticParams() {
-  return []; // Empty array - routes will work client-side
-}
-
 export default function ArticlePage({ params }: PageProps) {
   const [slug, setSlug] = useState<string>('');
   const { getArticle } = useVBlog();
