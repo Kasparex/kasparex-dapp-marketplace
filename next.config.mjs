@@ -5,7 +5,7 @@ const nextConfig = {
   // Cloudflare Pages configuration
   // Use static export for Cloudflare Pages (simpler, but limits dynamic features)
   // For full Next.js features, use @cloudflare/next-on-pages adapter
-  output: process.env.CF_PAGES ? 'export' : undefined,
+  output: (process.env.CF_PAGES || process.env.CF_PAGES_BUILD) ? 'export' : undefined,
   
   // Skip API routes during static export (they need to be moved to Cloudflare Workers)
   // API routes are not supported in static export mode
