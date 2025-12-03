@@ -7,7 +7,15 @@ interface PageProps {
 // Generate static params (empty array - articles are client-side only)
 // For static export, we can't access localStorage during build
 export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
-  return []; // Empty array - routes will work client-side
+  // Return empty array - routes will work client-side
+  return [];
+}
+
+export async function generateMetadata({ params }: PageProps) {
+  const { slug } = await params;
+  return {
+    title: `Article: ${slug} - Kasparex vBlog`,
+  };
 }
 
 export default async function ArticlePage({ params }: PageProps) {
