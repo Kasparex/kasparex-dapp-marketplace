@@ -2,6 +2,34 @@
 const nextConfig = {
   serverExternalPackages: ["pino-pretty"],
   
+  // Cloudflare Pages configuration
+  // Use static export for Cloudflare Pages (simpler, but limits dynamic features)
+  // For full Next.js features, use @cloudflare/next-on-pages adapter
+  output: process.env.CF_PAGES ? 'export' : undefined,
+  
+  // Disable image optimization for static export (Cloudflare handles this)
+  images: {
+    unoptimized: process.env.CF_PAGES ? true : false,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'gateway.pinata.cloud',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ipfs.io',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cloudflare-ipfs.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ipfs.fleek.co',
+      },
+    ],
+  },
+  
   // Disable webpack cache for Cloudflare Pages (prevents large cache files)
   // Cache files can exceed Cloudflare's 25 MiB file size limit
   webpack: (config, { isServer, webpack, dev }) => {
