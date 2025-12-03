@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764789770-8eb9446",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix: Remove duplicate await params in vblog slug page (by Kasparex)",
+      "date": "2025-12-03T20:10:29+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764773380-9518a60",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Trigger Cloudflare Pages deployment with lockfile fix (by Kasparex)",
