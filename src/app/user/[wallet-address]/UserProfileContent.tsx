@@ -132,7 +132,7 @@ export function UserProfileContent() {
                   <Avatar address={displayAddress.replace(/^(evm:|kaspa:)/, '')} size={64} />
                   <div>
                     <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-                      {profile?.name || displayAddressFormatted}
+                      {profile?.displayName || displayAddressFormatted}
                     </h1>
                     <div className="flex items-center gap-3">
                       <p className="text-sm font-mono text-zinc-600 dark:text-zinc-400">
