@@ -18,7 +18,6 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function ArticlePage({ params }: PageProps) {
-  await params; // Await params to ensure proper server component behavior
-  const { slug } = await params;
+  const { slug } = await params; // Await params to ensure proper server component behavior
   return <ArticlePageContent slug={slug} />;
 }
