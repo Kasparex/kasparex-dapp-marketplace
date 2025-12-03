@@ -4,7 +4,14 @@ import { Suspense } from 'react';
 import { useSearchParams, useParams } from 'next/navigation';
 import { DAppWidget } from '@/components/DAppWidget';
 import { placeholderDApps } from '@/lib/dapps';
-import { getDAppBySlug } from '@/lib/utils';
+import { getDAppBySlug, generateDAppSlug } from '@/lib/utils';
+
+// Generate static params for all dApp slugs (required for static export)
+export async function generateStaticParams() {
+  return placeholderDApps.map((dapp) => ({
+    slug: dapp.slug || generateDAppSlug(dapp.name),
+  }));
+}
 
 function EmbedContent() {
   const params = useParams();

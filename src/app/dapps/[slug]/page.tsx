@@ -8,13 +8,20 @@ import { DAppFooter } from '@/components/dapps/DAppFooter';
 import { RelatedDApps } from '@/components/dapps/RelatedDApps';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
 import { placeholderDApps } from '@/lib/dapps';
-import { getDAppBySlug } from '@/lib/utils';
+import { getDAppBySlug, generateDAppSlug } from '@/lib/utils';
 import { getContractAddress } from '@/lib/contracts/addresses';
 
 interface PageProps {
   params: Promise<{
     slug: string;
   }>;
+}
+
+// Generate static params for all dApp slugs
+export async function generateStaticParams() {
+  return placeholderDApps.map((dapp) => ({
+    slug: dapp.slug || generateDAppSlug(dapp.name),
+  }));
 }
 
 export async function generateMetadata({ params }: PageProps) {

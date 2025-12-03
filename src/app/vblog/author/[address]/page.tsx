@@ -9,6 +9,12 @@ import { formatAddress } from '@/lib/vblog/utils';
 import { Alert } from '@/components/Alert';
 import Link from 'next/link';
 
+// Generate static params (empty array - authors are client-side only)
+// For static export, we can't pre-generate all author addresses
+export async function generateStaticParams() {
+  return []; // Empty array - routes will work client-side
+}
+
 export default function VBlogAuthorPage() {
   const params = useParams();
   const address = params?.address as string | undefined;
