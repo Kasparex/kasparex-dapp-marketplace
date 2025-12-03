@@ -13,7 +13,14 @@ const API_DIR_BACKUP = path.join(process.cwd(), 'api-backup'); // Move outside s
 
 // Check if we should exclude API routes (CF_PAGES mode or static export)
 // Also check if next.config.mjs has output: 'export' configured
-let shouldExclude = process.env.CF_PAGES === '1' || process.env.CF_PAGES === 'true' || process.env.NEXT_OUTPUT === 'export';
+// Check multiple Cloudflare environment variables
+let shouldExclude = 
+  process.env.CF_PAGES === '1' || 
+  process.env.CF_PAGES === 'true' || 
+  process.env.CF_PAGES_BUILD === '1' ||
+  process.env.CF_PAGES_URL !== undefined ||
+  process.env.CF !== undefined ||
+  process.env.NEXT_OUTPUT === 'export';
 
 // If CF_PAGES is not set, check next.config.mjs for static export configuration
 if (!shouldExclude) {
@@ -31,6 +38,13 @@ if (!shouldExclude) {
   } catch (error) {
     // If we can't read the config, continue with existing logic
   }
+}
+
+// Always exclude if we're in a Cloudflare Pages build environment
+// Cloudflare Pages sets various environment variables we can detect
+if (!shouldExclude && (process.env.CI === 'true' || process.env.CF_PAGES === '1')) {
+  shouldExclude = true;
+  console.log('ℹ Detected Cloudflare Pages build environment');
 }
 
 // Determine action based on current state
