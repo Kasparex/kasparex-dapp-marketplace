@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764773380-9518a60",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Trigger Cloudflare Pages deployment with lockfile fix (by Kasparex)",
+      "date": "2025-12-03T15:49:18+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764712945-46d4d03",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update comments system: violet warnings, BlockDAG terminology, info modal, real Kaspa wallet transactions (by Kasparex)",
