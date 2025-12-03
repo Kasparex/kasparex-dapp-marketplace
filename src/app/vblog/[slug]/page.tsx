@@ -7,8 +7,7 @@ interface PageProps {
 // Generate static params (empty array - articles are client-side only)
 // For static export, we can't access localStorage during build
 export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
-  // Return empty array - routes will work client-side
-  return [];
+  return []; // Empty array - routes will work client-side
 }
 
 export async function generateMetadata({ params }: PageProps) {
@@ -19,6 +18,7 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function ArticlePage({ params }: PageProps) {
+  await params; // Await params to ensure proper server component behavior
   const { slug } = await params;
   return <ArticlePageContent slug={slug} />;
 }
