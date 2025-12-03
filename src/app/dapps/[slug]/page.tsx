@@ -18,7 +18,7 @@ interface PageProps {
 }
 
 // Generate static params for all dApp slugs
-export async function generateStaticParams() {
+export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
   return placeholderDApps.map((dapp) => ({
     slug: dapp.slug || generateDAppSlug(dapp.name),
   }));

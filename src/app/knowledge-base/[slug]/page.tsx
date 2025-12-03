@@ -12,7 +12,7 @@ interface PageProps {
   }>;
 }
 
-export async function generateStaticParams() {
+export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
   return knowledgeBaseArticles.map((article) => ({
     slug: article.slug,
   }));

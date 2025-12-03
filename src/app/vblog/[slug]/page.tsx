@@ -6,7 +6,7 @@ interface PageProps {
 
 // Generate static params (empty array - articles are client-side only)
 // For static export, we can't access localStorage during build
-export async function generateStaticParams() {
+export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
   return []; // Empty array - routes will work client-side
 }
 
