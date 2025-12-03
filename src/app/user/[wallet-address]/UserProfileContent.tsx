@@ -51,8 +51,11 @@ export function UserProfileContent() {
     )
   );
 
-  // Get favorites for this wallet
-  const favorites = walletAddress ? getFavoritesForWallet(walletAddress) : [];
+  // Get favorites for this wallet (convert IDs to DApp objects)
+  const favoriteIds = walletAddress ? getFavoritesForWallet(walletAddress) : [];
+  const favorites = favoriteIds
+    .map(id => placeholderDApps.find(dapp => dapp.id === id))
+    .filter((dapp): dapp is typeof placeholderDApps[0] => dapp !== undefined);
 
   // Get dApps deployed by this wallet
   const deployedDApps = walletAddress 
