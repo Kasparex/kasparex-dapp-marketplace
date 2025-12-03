@@ -7,6 +7,10 @@ const nextConfig = {
   // For full Next.js features, use @cloudflare/next-on-pages adapter
   output: process.env.CF_PAGES ? 'export' : undefined,
   
+  // Skip API routes during static export (they need to be moved to Cloudflare Workers)
+  // API routes are not supported in static export mode
+  skipTrailingSlashRedirect: true,
+  
   // Disable image optimization for static export (Cloudflare handles this)
   images: {
     unoptimized: process.env.CF_PAGES ? true : false,

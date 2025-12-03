@@ -4,9 +4,16 @@
  * Proxies balance requests to Kaspa REST API server-side
  * Uses official Kaspa REST API: https://api.kaspa.org/docs
  * Based on Integration Guide: https://kaspa.org/wp-content/uploads/2023/03/Integration_Guide_for_Kaspa_BlockDAG.pdf
+ * 
+ * NOTE: This route is not available in static export mode (CF_PAGES).
+ * For Cloudflare Pages, this functionality should be moved to Cloudflare Workers.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+
+// Skip this route during static export
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 /**
  * GET /api/kaspa/balance?address=...
@@ -17,6 +24,17 @@ import { NextRequest, NextResponse } from 'next/server';
  * - Calculate balance from UTXOs (sum of all UTXO amounts)
  */
 export async function GET(request: NextRequest) {
+  // Skip in static export mode
+  if (process.env.CF_PAGES) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'API routes are not available in static export mode. This endpoint should be moved to Cloudflare Workers.',
+      },
+      { status: 503 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const address = searchParams.get('address');
@@ -223,4 +241,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

@@ -1,8 +1,19 @@
+/**
+ * Next.js API Route for Updates/Timeline
+ * 
+ * NOTE: This route is not available in static export mode (CF_PAGES).
+ * For Cloudflare Pages, this functionality should be moved to Cloudflare Workers.
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import type { UpdatesData, TimelineEntry, Category } from '@/lib/updates';
 import { generateId } from '@/lib/updates';
+
+// Skip this route during static export
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 const updatesFilePath = path.join(process.cwd(), 'data', 'updates.json');
 
@@ -94,6 +105,17 @@ async function updateFileViaGitHub(data: UpdatesData): Promise<boolean> {
 
 // GET: Read all updates
 export async function GET() {
+  // Skip in static export mode
+  if (process.env.CF_PAGES) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'API routes are not available in static export mode. This endpoint should be moved to Cloudflare Workers.',
+      },
+      { status: 503 }
+    );
+  }
+
   try {
     const data = await readUpdatesFile();
     return NextResponse.json({ success: true, data });
@@ -108,6 +130,17 @@ export async function GET() {
 
 // POST: Add new entry
 export async function POST(request: NextRequest) {
+  // Skip in static export mode
+  if (process.env.CF_PAGES) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'API routes are not available in static export mode. This endpoint should be moved to Cloudflare Workers.',
+      },
+      { status: 503 }
+    );
+  }
+
   try {
     const body = await request.json();
     const { category, entry } = body;
@@ -193,6 +226,17 @@ export async function POST(request: NextRequest) {
 
 // PUT: Update existing entry
 export async function PUT(request: NextRequest) {
+  // Skip in static export mode
+  if (process.env.CF_PAGES) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'API routes are not available in static export mode. This endpoint should be moved to Cloudflare Workers.',
+      },
+      { status: 503 }
+    );
+  }
+
   try {
     const body = await request.json();
     const { category, id, entry } = body;
@@ -258,6 +302,17 @@ export async function PUT(request: NextRequest) {
 
 // DELETE: Remove entry
 export async function DELETE(request: NextRequest) {
+  // Skip in static export mode
+  if (process.env.CF_PAGES) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'API routes are not available in static export mode. This endpoint should be moved to Cloudflare Workers.',
+      },
+      { status: 503 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
