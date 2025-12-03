@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "prebuild": "node scripts/exclude-api-routes.js",
     "build": "next build",
-    "build:cloudflare": "node scripts/exclude-api-routes.js && next build && node scripts/exclude-api-routes.js && node scripts/clean-build-cache.js",
+    "postbuild": "node scripts/exclude-api-routes.js && node scripts/clean-build-cache.js",
+    "build:cloudflare": "npm run build",
     "pages:build": "npx @cloudflare/next-on-pages",
     "start": "next start",
     "lint": "next lint",

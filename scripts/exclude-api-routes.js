@@ -11,30 +11,38 @@ const path = require('path');
 const API_DIR = path.join(process.cwd(), 'src', 'app', 'api');
 const API_DIR_BACKUP = path.join(process.cwd(), 'src', 'app', 'api.backup');
 
-// Always exclude API routes when this script runs (it's only called from build:cloudflare)
-// This script is called before and after build, so we need to check the state
-const isExcluding = !fs.existsSync(API_DIR_BACKUP) && fs.existsSync(API_DIR);
-const isRestoring = fs.existsSync(API_DIR_BACKUP) && !fs.existsSync(API_DIR);
+// Check if we should exclude API routes (CF_PAGES mode or static export)
+const shouldExclude = process.env.CF_PAGES === '1' || process.env.CF_PAGES === 'true' || process.env.NEXT_OUTPUT === 'export';
 
-if (isExcluding) {
-  // Rename API directory to exclude it from build
+// Determine action based on current state
+const apiExists = fs.existsSync(API_DIR);
+const backupExists = fs.existsSync(API_DIR_BACKUP);
+
+if (shouldExclude && apiExists && !backupExists) {
+  // Exclude: Rename API directory to exclude it from build
   try {
     fs.renameSync(API_DIR, API_DIR_BACKUP);
-    console.log('✓ Temporarily excluded API routes from build');
+    console.log('✓ Temporarily excluded API routes from build (static export mode)');
   } catch (error) {
     console.error('✗ Error excluding API routes:', error.message);
     process.exit(1);
   }
-} else if (isRestoring) {
-  // Restore API directory if it was backed up
+} else if (backupExists && !apiExists) {
+  // Restore: API was excluded, restore it now
   try {
     fs.renameSync(API_DIR_BACKUP, API_DIR);
     console.log('✓ Restored API routes');
   } catch (error) {
     console.error('✗ Error restoring API routes:', error.message);
   }
+} else if (shouldExclude && !apiExists && !backupExists) {
+  // Already excluded (maybe from previous run)
+  console.log('ℹ API routes already excluded');
+} else if (!shouldExclude && apiExists) {
+  // Normal mode, API exists
+  console.log('ℹ API routes in normal state (not excluding)');
 } else {
-  // Neither state - API directory is in normal state
-  console.log('ℹ API routes in normal state');
+  // Unknown state
+  console.log('ℹ API routes state check complete');
 }
 
