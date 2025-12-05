@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1764794793-df1bdd5",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add complete Cloudflare Pages setup guide (by Kasparex)",
+      "date": "2025-12-03T21:46:04+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764792621-61ef892",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: BREAKING: Rename [wallet-address] to [walletAddress] for Cloudflare Pages compatibility (by Kasparex)",
