@@ -70,5 +70,5 @@ const deletedFiles = deleteFilesByPattern(NEXT_DIR, /\.(pack|cache)$/);
 console.log(`\n✅ Cleanup complete!`);
 console.log(`   - Deleted ${deletedDirs} cache directories`);
 console.log(`   - Deleted ${deletedFiles} cache files`);
-console.log(`\n💡 Your build is now ready for Cloudflare Pages deployment!`);
+console.log(`\n💡 Your build is now ready for Vercel deployment!`);
 

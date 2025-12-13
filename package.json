@@ -4,12 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "prebuild": "node scripts/exclude-api-routes.js",
     "build": "next build",
-    "postbuild": "node scripts/exclude-api-routes.js && node scripts/clean-build-cache.js",
-    "clear-cache": "node scripts/clear-next-cache.js",
-    "build:cloudflare": "npm run build",
-    "pages:build": "npx @cloudflare/next-on-pages",
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write .",
@@ -59,7 +54,6 @@
     "wagmi": "^2.19.2"
   },
   "devDependencies": {
-    "@cloudflare/next-on-pages": "^1.13.16",
     "@nomicfoundation/hardhat-toolbox": "^3.0.0",
     "@nomicfoundation/hardhat-verify": "^2.1.3",
     "@typechain/ethers-v6": "^0.4.3",

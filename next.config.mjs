@@ -1,19 +1,15 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   serverExternalPackages: ["pino-pretty"],
   
-  // Cloudflare Pages configuration
-  // Force static export for Cloudflare Pages builds
-  // Always enable static export when building (Cloudflare Pages requirement)
-  output: 'export',
-  
-  // Skip API routes during static export (they need to be moved to Cloudflare Workers)
-  // API routes are not supported in static export mode
-  skipTrailingSlashRedirect: true,
-  
-  // Disable image optimization for static export (Cloudflare handles this)
+  // Enable image optimization for Vercel
   images: {
-    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -31,17 +27,15 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'ipfs.fleek.co',
       },
+      {
+        protocol: 'https',
+        hostname: 'storacha.network',
+      },
     ],
   },
   
-  // Disable webpack cache for Cloudflare Pages (prevents large cache files)
-  // Cache files can exceed Cloudflare's 25 MiB file size limit
-  webpack: (config, { isServer, webpack, dev }) => {
-    // Disable webpack cache in production builds to prevent large cache files
-    // Cloudflare Pages has a 25 MiB file size limit
-    if (!dev) {
-      config.cache = false;
-    }
+  // Webpack configuration for Vercel
+  webpack: (config, { isServer, webpack }) => {
     // Exclude Hardhat and contract-related files from client bundle
     if (!isServer) {
       config.resolve.fallback = {
@@ -66,6 +60,14 @@ const nextConfig = {
         new webpack.DefinePlugin({
           'typeof indexedDB': JSON.stringify('undefined'),
         })
+      );
+      
+      // Mock indexedDB for SSR using NormalModuleReplacementPlugin
+      config.plugins.push(
+        new webpack.NormalModuleReplacementPlugin(
+          /^idb$/,
+          path.resolve(__dirname, 'scripts/indexeddb-polyfill.js')
+        )
       );
     }
     
@@ -92,7 +94,7 @@ const nextConfig = {
     return config;
   },
   
-  // Experimental: Optimize for Cloudflare Pages
+  // Experimental optimizations
   experimental: {
     // Reduce build output size
     optimizePackageImports: ['@rainbow-me/rainbowkit', 'wagmi', 'viem'],

@@ -1,0 +1,53 @@
+# Cloudflare Workers Configuration
+# Documentation: https://developers.cloudflare.com/workers/wrangler/configuration/
+
+name = "kasparex-api"
+main = "workers/index.ts"
+compatibility_date = "2024-01-01"
+
+# KV Namespaces for caching
+[[kv_namespaces]]
+binding = "KASPAREX_CACHE"
+id = "2d35691ad6da46a69d725645273f44ac"
+preview_id = "11f7cf16ec6f45309b57c6a3c7b42b12"
+
+# KV Namespace for rate limiting
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "c4db19a526a344e79109cf4faae746c8"
+preview_id = "c2988fb2cfbf44e2a0a6e00e000997f1"
+
+# D1 Database for dynamic data
+[[d1_databases]]
+binding = "NODES_DB"
+database_name = "kasparex-nodes"
+database_id = "ec15da5c-133a-4735-9cd6-afde1377577a"
+
+# Environment variables (set via wrangler secret put or dashboard)
+# [vars]
+# REGISTRY_CID = "your-registry-cid"
+# PINATA_API_KEY = "your-pinata-key"
+# STORACHA_API_KEY = "your-storacha-key"
+
+# Production environment
+[env.production]
+name = "kasparex-api-production"
+
+# Preview environment
+[env.preview]
+name = "kasparex-api-preview"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
