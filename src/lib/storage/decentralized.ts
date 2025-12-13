@@ -103,26 +103,6 @@ export async function uploadJSONToStoracha(
 import { getKrexNodeUrls, checkAvailability } from './krex-nodes';
 
 /**
- * Check if a URL is available (fast HEAD request)
- */
-export async function checkAvailability(url: string, timeout = 2000): Promise<boolean> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-    const response = await fetch(url, {
-      method: 'HEAD',
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-    return response.ok;
-  } catch {
-    return false;
-  }
-}
-
-/**
  * Resolve asset from decentralized storage with intelligent fallback
  * 
  * Priority order (cost-optimized):
