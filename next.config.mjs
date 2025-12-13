@@ -75,15 +75,16 @@ const nextConfig = {
     config.module = config.module || {};
     config.module.rules = config.module.rules || [];
     
-    // Ignore .sol and .ts files in scripts, contracts, and test directories
+    // Ignore .sol and .ts files in scripts, contracts, test, and kasparex-hub directories
     // BUT NOT src/lib/contracts (which contains our React hooks)
     config.module.rules.push({
-      test: /\.(sol|ts)$/,
+      test: /\.(sol|ts|tsx)$/,
       include: [
         /scripts/,
         /^contracts\//,  // Only match contracts/ at root, not src/lib/contracts
         /test/,
         /hardhat\.config/,
+        /kasparex-hub/,  // Exclude kasparex-hub (separate Remix project)
       ],
       exclude: [
         /src\/lib\/contracts/,  // Explicitly exclude our hooks directory
