@@ -54,20 +54,34 @@ const nextConfig = {
         'indexeddb': false,
       };
       
-      // Provide a mock for indexedDB global during SSR
-      config.plugins = config.plugins || [];
-      config.plugins.push(
-        new webpack.DefinePlugin({
-          'typeof indexedDB': JSON.stringify('undefined'),
-        })
-      );
-      
       // Mock indexedDB for SSR using NormalModuleReplacementPlugin
+      config.plugins = config.plugins || [];
       config.plugins.push(
         new webpack.NormalModuleReplacementPlugin(
           /^idb$/,
           path.resolve(__dirname, 'scripts/indexeddb-polyfill.js')
         )
+      );
+      
+      // Inject indexedDB polyfill globally before any code runs
+      config.plugins.push(
+        new webpack.BannerPlugin({
+          banner: `
+            if (typeof globalThis !== 'undefined' && typeof globalThis.indexedDB === 'undefined') {
+              globalThis.indexedDB = {
+                open: () => ({ onsuccess: null, onerror: null, onupgradeneeded: null, result: null, error: null, transaction: null, readyState: 'done', source: null, abort: () => {}, continue: () => {}, continuePrimaryKey: () => {}, delete: () => {} }),
+                deleteDatabase: () => ({ onsuccess: null, onerror: null, readyState: 'done' }),
+                databases: () => Promise.resolve([]),
+                cmp: () => 0
+              };
+            }
+            if (typeof global !== 'undefined' && typeof global.indexedDB === 'undefined') {
+              global.indexedDB = globalThis.indexedDB;
+            }
+          `,
+          raw: true,
+          entryOnly: false,
+        })
       );
     }
     
