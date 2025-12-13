@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1765634603-84e6de5",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update pnpm-lock.yaml after removing @cloudflare/next-on-pages (by Kasparex)",
+      "date": "2025-12-13T15:02:43+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1764895929-02b9ee2",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Merge branch 'main' of https://github.com/Kasparex/kasparex-dapp-marketplace (by Kasparex)",
