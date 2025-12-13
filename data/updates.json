@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1765635576-aac7fac",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Exclude workers directory from Next.js build (Cloudflare Workers project) (by Kasparex)",
+      "date": "2025-12-13T15:19:10+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1765635294-6a09b45",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix duplicate checkAvailability function in decentralized.ts (by Kasparex)",
