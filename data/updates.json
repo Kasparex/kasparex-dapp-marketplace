@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1765839270-fbec3f1",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: chore: Add .next/ to .gitignore (by Kasparex)",
+      "date": "2025-12-15T23:53:04+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1765839016-96b375e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Update SDK imports to match actual package exports - Replace createAuthMessage with buildMessage from @kluster/kaspa-auth - Replace verifyAuthMessage with verifyMessage/verifySiwk - Update address validation to use KaspaAddress.fromString() - Fix signature verification to use correct API - Update SIWK message creation to include required fields (uri, issuedAt) - Fix chainId format to kaspa:mainnet instead of kaspa-mainnet (by Kasparex)",
