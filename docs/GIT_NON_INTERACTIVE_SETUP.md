@@ -99,3 +99,5 @@ If git commands still freeze:
    GIT_EDITOR=true git commit -m "message"
    ```
 
+
+

@@ -27,3 +27,5 @@ git-commit-safe() {
     git commit -m "$1" --no-verify
 }
 
+
+

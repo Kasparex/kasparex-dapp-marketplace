@@ -11,6 +11,8 @@
  * - Network info
  */
 
+import { isValidKaspaAddress } from './sdk';
+
 const KASPA_API_BASE = 'https://api.kaspa.org';
 
 /**
@@ -33,11 +35,17 @@ export function kasToSompis(kas: number): number {
  * 
  * @param address - Kaspa address (with or without kaspa: prefix)
  * @returns Promise with UTXO entries
+ * @throws Error if address is invalid
  */
 export async function getUtxosByAddress(address: string): Promise<{
   entries?: Array<{ amount: number | string; [key: string]: any }>;
   utxos?: Array<{ amount: number | string; [key: string]: any }>;
 }> {
+  // Validate address using SDK
+  if (!isValidKaspaAddress(address)) {
+    throw new Error(`Invalid Kaspa address: ${address}`);
+  }
+
   const addressWithoutPrefix = address.replace(/^kaspa:/i, '');
   const fullAddress = address.startsWith('kaspa:') ? address : `kaspa:${addressWithoutPrefix}`;
 
@@ -101,8 +109,10 @@ export function calculateBalanceFromUtxos(utxos: {
  * 
  * @param address - Kaspa address (with or without kaspa: prefix)
  * @returns Balance in sompis
+ * @throws Error if address is invalid
  */
 export async function getBalance(address: string): Promise<number> {
+  // Validation happens in getUtxosByAddress
   const utxos = await getUtxosByAddress(address);
   return calculateBalanceFromUtxos(utxos);
 }

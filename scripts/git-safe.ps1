@@ -24,3 +24,5 @@ function Git-Commit-Safe {
     git commit -m $Message --no-verify
 }
 
+
+

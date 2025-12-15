@@ -10,6 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
 
 // Note: This route is skipped during static export (CF_PAGES mode)
 // Remove dynamic/runtime exports to allow static export to proceed
@@ -45,6 +46,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Validate address using SDK
+    if (!isValidKaspaAddress(address)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid Kaspa address format' },
+        { status: 400 }
+      );
+    }
+
+    // Normalize address (ensure kaspa: prefix for API calls)
     const addressWithoutPrefix = address.replace(/^kaspa:/i, '');
     const fullAddress = address.startsWith('kaspa:') ? address : `kaspa:${addressWithoutPrefix}`;
 

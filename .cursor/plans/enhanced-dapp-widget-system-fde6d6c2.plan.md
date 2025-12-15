@@ -1,4 +1,9 @@
-<!-- fde6d6c2-b406-498f-b89f-a0daa6afed7e 12ee5111-775a-44e0-8438-582462c0bd3b -->
+---
+name: Unified Image Upload and Edit System
+overview: ""
+todos: []
+---
+
 # Unified Image Upload and Edit System
 
 ## Overview

@@ -160,8 +160,9 @@ export function KasWareWalletButton() {
         }
 
         // Fallback to API if getBalance() is not available or failed
+        // Use address without prefix for API call (API will handle normalization)
         const addressWithoutPrefix = address.replace(/^kaspa:/i, '');
-        const response = await fetch(`/api/kaspa/balance?address=${encodeURIComponent(addressWithoutPrefix)}`, {
+        const response = await fetch(`/api/kaspa/balance?address=${encodeURIComponent(address)}`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
