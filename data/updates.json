@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1765839016-96b375e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Update SDK imports to match actual package exports - Replace createAuthMessage with buildMessage from @kluster/kaspa-auth - Replace verifyAuthMessage with verifyMessage/verifySiwk - Update address validation to use KaspaAddress.fromString() - Fix signature verification to use correct API - Update SIWK message creation to include required fields (uri, issuedAt) - Fix chainId format to kaspa:mainnet instead of kaspa-mainnet (by Kasparex)",
+      "date": "2025-12-15T23:49:50+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1765814165-3fe5f1d",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Security: Update Next.js to 15.4.10 to fix CVE-2025-66478 (by Kasparex)",
