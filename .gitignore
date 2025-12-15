@@ -11,3 +11,7 @@ public/ipfs-asset-map.json
 # API backup directory (temporary build artifact)
 api-backup/
 node_modules
+
+# Next.js build output
+.next/
+out/
