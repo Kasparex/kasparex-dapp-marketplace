@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1765814165-3fe5f1d",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Security: Update Next.js to 15.4.10 to fix CVE-2025-66478 (by Kasparex)",
+      "date": "2025-12-15T16:55:12+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1765811210-3de373b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix indexedDB SSR polyfill and make dapps/[slug] page dynamic for useSearchParams (by Kasparex)",
