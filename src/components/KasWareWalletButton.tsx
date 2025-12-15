@@ -343,9 +343,11 @@ export function KasWareWalletButton() {
         domain,
         address: normalizedAddress,
         statement: `Welcome to ${appName}!`,
+        uri: typeof window !== 'undefined' ? window.location.origin : `https://${domain}`,
         version: '1',
-        chainId: 'kaspa-mainnet',
+        chainId: 'kaspa:mainnet',
         nonce: crypto.randomUUID(),
+        issuedAt: new Date().toISOString(),
         expirationTime: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(), // 24 hours
       });
 

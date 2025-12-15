@@ -6,11 +6,7 @@
  */
 
 // Address utilities from @kluster/kaspa-address
-import { 
-  isValidAddress as sdkIsValidAddress,
-  encodeAddress as sdkEncodeAddress,
-  decodeAddress as sdkDecodeAddress,
-} from '@kluster/kaspa-address';
+import { KaspaAddress } from '@kluster/kaspa-address';
 
 /**
  * Validate a Kaspa address using SDK
@@ -24,26 +20,27 @@ export function isValidKaspaAddress(address: string): boolean {
       return false;
     }
     
-    // Remove kaspa: prefix for validation
-    const addressWithoutPrefix = address.replace(/^kaspa:/i, '');
-    
-    // Use SDK validation
-    return sdkIsValidAddress(addressWithoutPrefix);
+    // Use SDK validation - KaspaAddress.fromString throws if invalid
+    KaspaAddress.fromString(address);
+    return true;
   } catch (error) {
-    console.error('Error validating Kaspa address:', error);
+    // Address is invalid if fromString throws
     return false;
   }
 }
 
 /**
  * Encode a public key or address to Kaspa format
+ * Note: This function is a placeholder - KaspaAddress.fromString handles parsing
  * 
- * @param input - Public key or address to encode
- * @returns Encoded Kaspa address
+ * @param input - Address string to normalize
+ * @returns Normalized Kaspa address string
  */
-export function encodeKaspaAddress(input: string | Uint8Array): string {
+export function encodeKaspaAddress(input: string): string {
   try {
-    return sdkEncodeAddress(input);
+    // Validate and return normalized address
+    const addr = KaspaAddress.fromString(input);
+    return addr.toString();
   } catch (error) {
     console.error('Error encoding Kaspa address:', error);
     throw new Error(`Failed to encode address: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -54,13 +51,11 @@ export function encodeKaspaAddress(input: string | Uint8Array): string {
  * Decode a Kaspa address
  * 
  * @param address - Address to decode (with or without kaspa: prefix)
- * @returns Decoded address data
+ * @returns KaspaAddress object with parsed address data
  */
-export function decodeKaspaAddress(address: string) {
+export function decodeKaspaAddress(address: string): KaspaAddress {
   try {
-    // Remove kaspa: prefix for decoding
-    const addressWithoutPrefix = address.replace(/^kaspa:/i, '');
-    return sdkDecodeAddress(addressWithoutPrefix);
+    return KaspaAddress.fromString(address);
   } catch (error) {
     console.error('Error decoding Kaspa address:', error);
     throw new Error(`Failed to decode address: ${error instanceof Error ? error.message : 'Unknown error'}`);

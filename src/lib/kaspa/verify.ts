@@ -6,13 +6,14 @@
  */
 
 import { verifySignature } from '@kluster/kaspa-signature';
+import { KaspaAddress } from '@kluster/kaspa-address';
 import type { SIWKAuthResult } from './auth';
 
 /**
  * Verify a Kaspa signature
  * 
  * @param message - Original message that was signed
- * @param signature - Signature to verify
+ * @param signature - Signature to verify (hex string)
  * @param address - Address that signed the message
  * @returns True if signature is valid
  */
@@ -22,11 +23,8 @@ export async function verifyKaspaSignature(
   address: string
 ): Promise<boolean> {
   try {
-    return await verifySignature({
-      message,
-      signature,
-      address,
-    });
+    const kaspaAddress = KaspaAddress.fromString(address);
+    return await verifySignature(message, signature, kaspaAddress);
   } catch (error) {
     console.error('Error verifying signature:', error);
     return false;

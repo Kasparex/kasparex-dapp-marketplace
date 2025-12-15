@@ -4,7 +4,8 @@
  * Implementation using @kluster/kaspa-auth for standardized authentication
  */
 
-import { createAuthMessage, verifyAuthMessage } from '@kluster/kaspa-auth';
+import { buildMessage, verifySiwk, verifyMessage } from '@kluster/kaspa-auth';
+import type { SiwkFields, VerifyResult } from '@kluster/kaspa-auth';
 import type { KaspaWalletProvider } from './types';
 import { signKaspaMessage } from './wallet';
 import { normalizeKaspaAddress } from './sdk';
@@ -19,12 +20,16 @@ export interface SIWKAuthParams {
   address: string;
   /** Statement to display to user */
   statement?: string;
+  /** URI of the service */
+  uri?: string;
   /** Version of SIWK spec */
   version?: string;
-  /** Chain ID (kaspa-mainnet or kaspa-testnet) */
+  /** Chain ID (kaspa:mainnet or kaspa:testnet) */
   chainId?: string;
   /** Nonce for replay protection */
   nonce?: string;
+  /** Issued at time (ISO 8601) */
+  issuedAt?: string;
   /** Expiration time (ISO 8601) */
   expirationTime?: string;
   /** Request ID for tracking */
@@ -61,9 +66,11 @@ export function createSIWKMessage(params: SIWKAuthParams): string {
       domain,
       address,
       statement = 'Sign in to Kasparex dApps',
+      uri,
       version = '1',
-      chainId = 'kaspa-mainnet',
+      chainId = 'kaspa:mainnet',
       nonce = crypto.randomUUID(),
+      issuedAt = new Date().toISOString(),
       expirationTime = new Date(Date.now() + 1000 * 60 * 60).toISOString(), // 1 hour default
       requestId,
     } = params;
@@ -71,17 +78,22 @@ export function createSIWKMessage(params: SIWKAuthParams): string {
     // Normalize address
     const normalizedAddress = normalizeKaspaAddress(address);
 
-    // Create auth message using SDK
-    const message = createAuthMessage({
+    // Build SIWK fields
+    const siwkFields: SiwkFields = {
       domain,
       address: normalizedAddress,
       statement,
+      uri: uri || (typeof window !== 'undefined' ? window.location.origin : `https://${domain}`),
       version,
       chainId,
       nonce,
+      issuedAt,
       expirationTime,
-      requestId,
-    });
+      ...(requestId && { requestId }),
+    };
+
+    // Create auth message using SDK
+    const { message } = buildMessage(siwkFields);
     
     return message;
   } catch (error) {
@@ -105,10 +117,18 @@ export async function signInWithKaspa(
     // Normalize address
     const normalizedAddress = normalizeKaspaAddress(params.address);
 
-    // Create SIWK message
+    // Create SIWK message with full parameters
+    const issuedAt = new Date().toISOString();
+    const expirationTime = params.expirationTime || new Date(Date.now() + 1000 * 60 * 60).toISOString();
+    const nonce = params.nonce || crypto.randomUUID();
+    
     const message = createSIWKMessage({
       ...params,
       address: normalizedAddress,
+      issuedAt,
+      expirationTime,
+      nonce,
+      uri: params.uri || (typeof window !== 'undefined' ? window.location.origin : `https://${params.domain}`),
     });
 
     // Sign message with wallet
@@ -119,8 +139,8 @@ export async function signInWithKaspa(
       message,
       signature,
       provider,
-      expirationTime: params.expirationTime || new Date(Date.now() + 1000 * 60 * 60).toISOString(),
-      nonce: params.nonce || crypto.randomUUID(),
+      expirationTime,
+      nonce,
     };
   } catch (error) {
     console.error('Error signing in with Kaspa:', error);
@@ -136,11 +156,9 @@ export async function signInWithKaspa(
  */
 export async function verifySIWKSignature(authResult: SIWKAuthResult): Promise<boolean> {
   try {
-    return await verifyAuthMessage({
-      message: authResult.message,
-      signature: authResult.signature,
-      address: authResult.address,
-    });
+    // Use verifyMessage for simple message + signature verification
+    await verifyMessage(authResult.message, authResult.address, authResult.signature);
+    return true;
   } catch (error) {
     console.error('Error verifying SIWK signature:', error);
     return false;
