@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1765811210-3de373b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix indexedDB SSR polyfill and make dapps/[slug] page dynamic for useSearchParams (by Kasparex)",
+      "date": "2025-12-13T15:34:47+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1765635576-aac7fac",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Exclude workers directory from Next.js build (Cloudflare Workers project) (by Kasparex)",
