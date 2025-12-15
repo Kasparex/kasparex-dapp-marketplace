@@ -5,10 +5,30 @@
  */
 
 import { buildMessage, verifySiwk, verifyMessage } from '@kluster/kaspa-auth';
-import type { SiwkFields, VerifyResult } from '@kluster/kaspa-auth';
 import type { KaspaWalletProvider } from './types';
 import { signKaspaMessage } from './wallet';
 import { normalizeKaspaAddress } from './sdk';
+
+// Types from @kluster/kaspa-auth (not exported from main entry, so we define them locally)
+export type ISO8601 = string;
+export interface SiwkFields {
+  domain: string;
+  address: string;
+  statement?: string;
+  uri: string;
+  version: '1';
+  chainId: string | number;
+  nonce: string;
+  issuedAt: ISO8601;
+  expirationTime?: ISO8601;
+  notBefore?: ISO8601;
+  requestId?: string;
+  resources?: string[];
+}
+export interface VerifyResult {
+  valid: boolean;
+  reason?: string;
+}
 
 /**
  * SIWK authentication message parameters
@@ -78,17 +98,17 @@ export function createSIWKMessage(params: SIWKAuthParams): string {
     // Normalize address
     const normalizedAddress = normalizeKaspaAddress(address);
 
-    // Build SIWK fields
+    // Build SIWK fields (matching SiwkFields interface)
     const siwkFields: SiwkFields = {
       domain,
       address: normalizedAddress,
       statement,
       uri: uri || (typeof window !== 'undefined' ? window.location.origin : `https://${domain}`),
-      version,
+      version: '1' as const, // Must be literal '1'
       chainId,
       nonce,
       issuedAt,
-      expirationTime,
+      ...(expirationTime && { expirationTime }),
       ...(requestId && { requestId }),
     };
 
