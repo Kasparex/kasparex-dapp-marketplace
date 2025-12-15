@@ -15,6 +15,7 @@ import { SendTransactionModal } from './modals/SendTransactionModal';
 import { KRC20OrderModal } from './modals/KRC20OrderModal';
 import { UtxoViewerModal } from './modals/UtxoViewerModal';
 import { getErrorMessage } from '@/lib/utils';
+import { createSIWKMessage, signInWithKaspa } from '@/lib/kaspa/auth';
 
 interface KasWareWindow {
   kasware?: KasWareAPI;
@@ -332,11 +333,21 @@ export function KasWareWalletButton() {
         ? selectedAddress 
         : `kaspa:${selectedAddress}`;
 
-      // Step 2: Request signature for authentication (triggers signature request modal)
-      // This follows the pattern from KaspaCom - sign in message
+      // Step 2: Request signature for authentication using SIWK format
+      // Uses standardized Sign-In with Kaspa (SIWK) message format
       const domain = typeof window !== 'undefined' ? window.location.hostname : 'kasparex.com';
       const appName = 'Kasparex dApps';
-      const signMessage = `${domain} wants you to sign in with your Kaspa account:\n\n${normalizedAddress}\n\nWelcome to ${appName}!\n\nSigning is the only way we can truly know that you are the owner of the wallet you are connecting. Signing is a safe, gas-less transaction that does not in any way give ${appName} permission to perform any transactions with your wallet.`;
+      
+      // Create SIWK authentication message with full SIWK parameters
+      const signMessage = createSIWKMessage({
+        domain,
+        address: normalizedAddress,
+        statement: `Welcome to ${appName}!`,
+        version: '1',
+        chainId: 'kaspa-mainnet',
+        nonce: crypto.randomUUID(),
+        expirationTime: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(), // 24 hours
+      });
 
       try {
         await kasware.signMessage(signMessage);

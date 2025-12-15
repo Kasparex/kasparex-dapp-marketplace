@@ -22,6 +22,8 @@ import {
   signMessage,
 } from '@/lib/kaspa/kasware';
 import type { KasWareAPI } from '@/lib/kaspa/kasware';
+import { isValidKaspaAddress, normalizeKaspaAddress } from '@/lib/kaspa/sdk';
+import { signInWithKaspa, createSIWKMessage, type SIWKAuthResult } from '@/lib/kaspa/auth';
 
 export interface UseKasWareReturn {
   // Wallet state
@@ -75,6 +77,10 @@ export interface UseKasWareReturn {
   // Message signing
   signMsg: (message: string, type?: string) => Promise<string>;
   
+  // SIWK authentication
+  siwkAuth: SIWKAuthResult | null;
+  signInWithKaspa: (params?: { domain?: string; statement?: string; appName?: string }) => Promise<SIWKAuthResult | null>;
+  
   // Error handling
   error: Error | null;
 }
@@ -112,6 +118,7 @@ export function useKasWare(): UseKasWareReturn {
   const [krc20TokensLoading, setKrc20TokensLoading] = useState(false);
   const [utxoEntries, setUtxoEntries] = useState<Array<{ amount: number | string; [key: string]: any }>>([]);
   const [utxoEntriesLoading, setUtxoEntriesLoading] = useState(false);
+  const [siwkAuth, setSiwkAuth] = useState<SIWKAuthResult | null>(null);
   const [error, setError] = useState<Error | null>(null);
 
   // Initialize wallet connection status
@@ -130,7 +137,16 @@ export function useKasWare(): UseKasWareReturn {
         if (connected && wallet) {
           try {
             const addr = await wallet.getAddress();
-            setAddress(addr);
+            if (addr) {
+              // Validate and normalize address using SDK
+              if (isValidKaspaAddress(addr)) {
+                const normalizedAddr = normalizeKaspaAddress(addr);
+                setAddress(normalizedAddr);
+              } else {
+                console.warn('Invalid address returned from wallet:', addr);
+                setAddress(addr); // Still set it, but log warning
+              }
+            }
             
             // Fetch initial data
             await refreshBalance();
@@ -152,8 +168,18 @@ export function useKasWare(): UseKasWareReturn {
       if (wallet && typeof wallet.on === 'function') {
         const handleAccountsChanged = (accounts: string[]) => {
           if (accounts && accounts.length > 0) {
-            setAddress(accounts[0]);
+            const addr = accounts[0];
+            // Validate and normalize address using SDK
+            if (isValidKaspaAddress(addr)) {
+              const normalizedAddr = normalizeKaspaAddress(addr);
+              setAddress(normalizedAddr);
+            } else {
+              setAddress(addr); // Still set it, but log warning
+              console.warn('Invalid address in accountsChanged:', addr);
+            }
             setIsConnected(true);
+            // Clear SIWK auth when account changes
+            setSiwkAuth(null);
             refreshBalance();
             refreshKRC20Tokens();
             refreshUtxoEntries();
@@ -163,6 +189,7 @@ export function useKasWare(): UseKasWareReturn {
             setBalance(null);
             setKrc20Tokens([]);
             setUtxoEntries([]);
+            setSiwkAuth(null);
           }
         };
 
@@ -350,6 +377,29 @@ export function useKasWare(): UseKasWareReturn {
     return await signMessage(message, type);
   }, [isConnected]);
 
+  const handleSignInWithKaspa = useCallback(async (
+    params?: { domain?: string; statement?: string; appName?: string }
+  ): Promise<SIWKAuthResult | null> => {
+    if (!isConnected || !address) {
+      throw new Error('Wallet must be connected before signing in with Kaspa');
+    }
+    
+    try {
+      const authResult = await signInWithKaspa('kasware', {
+        domain: params?.domain || (typeof window !== 'undefined' ? window.location.hostname : 'kasparex.com'),
+        address,
+        statement: params?.statement || `Welcome to ${params?.appName || 'Kasparex dApps'}!`,
+      });
+      
+      setSiwkAuth(authResult);
+      return authResult;
+    } catch (err) {
+      console.error('Error signing in with Kaspa:', err);
+      setError(err instanceof Error ? err : new Error('Failed to sign in with Kaspa'));
+      return null;
+    }
+  }, [isConnected, address]);
+
   return {
     kasware,
     isInstalled,
@@ -374,6 +424,8 @@ export function useKasWare(): UseKasWareReturn {
     cancelOrder,
     signKRC20Tx,
     signMsg,
+    siwkAuth,
+    signInWithKaspa: handleSignInWithKaspa,
     error,
   };
 }

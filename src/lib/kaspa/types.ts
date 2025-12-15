@@ -26,6 +26,8 @@ export interface KaspaWalletState {
   provider: KaspaWalletProvider | null;
   /** Error message if connection failed */
   error: string | null;
+  /** Optional SIWK authentication result */
+  siwkAuth?: import('./auth').SIWKAuthResult;
 }
 
 /**

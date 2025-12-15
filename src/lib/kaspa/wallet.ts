@@ -14,6 +14,12 @@ import type {
   KaspaTransactionRequest,
   KaspaTransactionResponse,
 } from './types';
+import { 
+  isValidKaspaAddress as sdkIsValidKaspaAddress,
+  normalizeKaspaAddress as sdkNormalizeKaspaAddress,
+  formatKaspaAddress as sdkFormatKaspaAddress,
+} from './sdk';
+import type { SIWKAuthResult } from './auth';
 
 /**
  * List of supported wallet providers with metadata
@@ -131,10 +137,24 @@ export function getWalletProvider(provider: KaspaWalletProvider): KaspaWalletPro
 
 /**
  * Connect to a Kaspa wallet
+ * 
+ * @param provider - Wallet provider to connect to
+ * @param options - Connection options
+ * @param options.enableSIWK - Enable Sign-In with Kaspa authentication (default: false)
+ * @param options.siwkParams - Optional SIWK parameters if enableSIWK is true
+ * @returns Wallet connection state
  */
 export async function connectKaspaWallet(
-  provider: KaspaWalletProvider
-): Promise<KaspaWalletState> {
+  provider: KaspaWalletProvider,
+  options?: {
+    enableSIWK?: boolean;
+    siwkParams?: {
+      domain?: string;
+      statement?: string;
+      appName?: string;
+    };
+  }
+): Promise<KaspaWalletState & { siwkAuth?: SIWKAuthResult }> {
   try {
     if (typeof window === 'undefined') {
       throw new Error('Window is not available');
@@ -213,16 +233,43 @@ export async function connectKaspaWallet(
       throw new Error('Failed to get address from wallet. Please ensure the wallet is unlocked and try again.');
     }
 
-    // Normalize address (ensure kaspa: prefix)
-    const normalizedAddress = address.startsWith('kaspa:') 
-      ? address 
-      : `kaspa:${address}`;
+    // Validate address using SDK
+    if (!sdkIsValidKaspaAddress(address)) {
+      throw new Error('Invalid Kaspa address returned from wallet');
+    }
+
+    // Normalize address using SDK (ensure kaspa: prefix)
+    const normalizedAddress = sdkNormalizeKaspaAddress(address);
+
+    // SIWK authentication (enabled by default)
+    let siwkAuth: SIWKAuthResult | undefined;
+    if (options?.enableSIWK !== false) { // Default to true unless explicitly disabled
+      try {
+        const { signInWithKaspa } = await import('./auth');
+        const domain = options?.siwkParams?.domain || (typeof window !== 'undefined' ? window.location.hostname : 'kasparex.com');
+        const appName = options?.siwkParams?.appName || 'Kasparex dApps';
+        
+        siwkAuth = await signInWithKaspa(provider, {
+          domain,
+          address: normalizedAddress,
+          statement: options?.siwkParams?.statement || `Welcome to ${appName}!`,
+        });
+      } catch (siwkError) {
+        // If SIWK fails, we can either:
+        // 1. Fail the connection (strict mode)
+        // 2. Continue without SIWK (permissive mode - current behavior)
+        // Using permissive mode to not break existing flows
+        console.warn('SIWK authentication failed, continuing with connection:', siwkError);
+        // Don't fail the connection if SIWK fails, just log a warning
+      }
+    }
 
     return {
       isConnected: true,
       address: normalizedAddress,
       provider,
       error: null,
+      ...(siwkAuth && { siwkAuth }),
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -271,8 +318,13 @@ export async function getKaspaAddress(
       return null;
     }
 
-    // Normalize address
-    return address.startsWith('kaspa:') ? address : `kaspa:${address}`;
+    // Validate and normalize address using SDK
+    if (!sdkIsValidKaspaAddress(address)) {
+      console.error('Invalid address returned from wallet');
+      return null;
+    }
+
+    return sdkNormalizeKaspaAddress(address);
   } catch (error) {
     console.error('Error getting address:', error);
     return null;
@@ -281,36 +333,30 @@ export async function getKaspaAddress(
 
 /**
  * Format Kaspa address for display
+ * Uses SDK utilities for consistent formatting
  */
 export function formatKaspaAddress(
   address: string,
   options: { startChars?: number; endChars?: number } = {}
 ): KaspaAddress {
-  const { startChars = 6, endChars = 4 } = options;
+  // Use SDK formatting
+  const formatted = sdkFormatKaspaAddress(address, options);
   
-  // Remove kaspa: prefix for short format
-  const short = address.replace(/^kaspa:/i, '');
-  
-  // Create display format
-  const display = short.length > startChars + endChars
-    ? `${short.substring(0, startChars)}...${short.substring(short.length - endChars)}`
-    : short;
-
   return {
-    full: address.startsWith('kaspa:') ? address : `kaspa:${address}`,
-    short,
-    display,
+    full: formatted.full,
+    short: formatted.short,
+    display: formatted.display,
   };
 }
 
 /**
  * Validate Kaspa address format
+ * Uses SDK validation for standardized checking
+ * 
+ * @deprecated Use isValidKaspaAddress from './sdk' directly for new code
  */
 export function isValidKaspaAddress(address: string): boolean {
-  // Kaspa addresses can be in format: kaspa:... or just the address
-  // Typical length: 34-62 characters after prefix
-  const kaspaAddressRegex = /^(kaspa:)?[a-z0-9]{34,62}$/i;
-  return kaspaAddressRegex.test(address);
+  return sdkIsValidKaspaAddress(address);
 }
 
 /**
