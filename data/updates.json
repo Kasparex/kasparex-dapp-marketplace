@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1765839848-770b865",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Define SiwkFields and VerifyResult types locally - Types are not exported from @kluster/kaspa-auth main entry - Fix version field to be literal '1' type (by Kasparex)",
+      "date": "2025-12-16T00:02:58+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1765839270-fbec3f1",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: chore: Add .next/ to .gitignore (by Kasparex)",
