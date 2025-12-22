@@ -66,6 +66,7 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
   useEffect(() => {
     // Generate preview when traits change
     generatePreview();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTraits, availableTraits]);
 
   const generatePreview = async () => {

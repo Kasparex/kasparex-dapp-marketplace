@@ -29,6 +29,71 @@ export function UserNFTsTab() {
   const l1Address = kaspaState.address;
   const l2Address = evmAddress || null;
 
+  const loadUserNFTs = async () => {
+    if (!l1Address && !l2Address) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const nfts = await queryUserNFTs(l1Address, l2Address);
+      setUserNFTs(nfts);
+
+      // Load collection metadata for accurate rarity calculation
+      const collectionMetadataMap = new Map<string, any[]>();
+      const uniqueCollections = [...new Set(nfts.map((nft) => nft.collection))];
+      
+      for (const collectionId of uniqueCollections) {
+        try {
+          const metadata = await getCollectionMetadata(collectionId);
+          collectionMetadataMap.set(collectionId, metadata);
+        } catch (err) {
+          console.warn(`Error loading collection metadata for ${collectionId}:`, err);
+        }
+      }
+
+      // Load details for each NFT
+      const detailsMap = new Map();
+      for (const nft of nfts) {
+        try {
+          const metadata = await fetchNFTMetadata(nft.collection, nft.tokenId);
+          if (!metadata) continue;
+
+          // Use full collection metadata for accurate rarity
+          const allMetadata = collectionMetadataMap.get(nft.collection) || [metadata];
+          const rarity = calculateNFTRarity(metadata, allMetadata);
+          const rank = await fetchNFTRank(nft.collection, nft.tokenId);
+
+          let imageUrl: string | null = null;
+          if (metadata.image) {
+            if (metadata.image.startsWith('ipfs://')) {
+              const cid = metadata.image.replace('ipfs://', '');
+              imageUrl = getBestGatewayUrl(cid);
+            } else {
+              imageUrl = metadata.image;
+            }
+          }
+
+          detailsMap.set(`${nft.collection}-${nft.tokenId}`, {
+            metadata,
+            rarity,
+            rank,
+            imageUrl,
+          });
+        } catch (err) {
+          console.warn(`Error loading details for ${nft.collection} #${nft.tokenId}:`, err);
+        }
+      }
+
+      setNftDetails(detailsMap);
+    } catch (err) {
+      console.error('Error loading user NFTs:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load NFTs');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (isWalletConnected && (l1Address || l2Address)) {
       loadUserNFTs();
@@ -102,6 +167,16 @@ export function UserNFTsTab() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isWalletConnected && (l1Address || l2Address)) {
+      loadUserNFTs();
+    } else {
+      setUserNFTs([]);
+      setNftDetails(new Map());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isWalletConnected, l1Address, l2Address]);
 
   const filteredNFTs = selectedCollection
     ? userNFTs.filter((nft) => nft.collection === selectedCollection)
@@ -180,7 +255,7 @@ export function UserNFTsTab() {
             No NFTs found
           </p>
           <p className="text-sm text-zinc-500 dark:text-zinc-500">
-            You don't own any NFTs from KREXPRIME or PIXELKREX collections.
+            You don&apos;t own any NFTs from KREXPRIME or PIXELKREX collections.
           </p>
         </div>
       )}
