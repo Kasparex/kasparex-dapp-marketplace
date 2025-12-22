@@ -128,10 +128,14 @@ function createKasWareAdapter(kasware: any): ExtendedWalletProviderInterface {
   const adapter: ExtendedWalletProviderInterface = {
     isConnected: () => {
       if (typeof kasware.isConnected === 'function') {
-        return kasware.isConnected();
+        const connected = kasware.isConnected();
+        console.log('KasWare isConnected check:', connected);
+        return connected;
       }
-      // Fallback: check if we can get address
-      return true; // Assume connected if method doesn't exist
+      // Fallback: try to verify connection by checking if requestAccounts would work
+      // For now, assume connected if method doesn't exist (some wallets don't have isConnected)
+      console.log('KasWare isConnected method not available, assuming connected');
+      return true;
     },
     getAddress: async () => {
       if (typeof kasware.getAddress === 'function') {
