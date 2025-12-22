@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1766433524-3532a04",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Merge branch 'main' of https://github.com/Kasparex/kasparex-dapp-marketplace (by Kasparex)",
+      "date": "2025-12-22T20:57:28+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1765839848-770b865",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Define SiwkFields and VerifyResult types locally - Types are not exported from @kluster/kaspa-auth main entry - Fix version field to be literal '1' type (by Kasparex)",
