@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1766447279-15779e3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix IPFS CORS and improve wallet NFT fetching - Add IPFS proxy API route to bypass CORS for Pinata gateway - Update IPFS gateway functions to use proxy in browser - Improve wallet NFT querying with better error handling and address matching (by Kasparex)",
+      "date": "2025-12-23T00:47:27+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1766446354-c0fd04c",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix CORS issues with KaspaCom API - Add Next.js API proxy route to bypass CORS restrictions - Update all KaspaCom API calls to use proxy in browser, direct API on server (by Kasparex)",
