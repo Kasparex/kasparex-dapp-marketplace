@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1766436773-ad8ce50",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Add logging to wallet connection verification - Add console logs to debug connection state - Improve isConnected check in adapter (by Kasparex)",
+      "date": "2025-12-22T21:52:25+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1766436664-498160a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Improve wallet connection verification and balance fetching - Clear old localStorage keys on mount - Verify wallet is actually connected before loading stored state - Add connection verification after requestAccounts - Add better logging for debugging connection and balance issues - Improve error handling in connect callback (by Kasparex)",
