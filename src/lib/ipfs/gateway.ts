@@ -30,11 +30,33 @@ export function getGatewayUrl(hash: string, gateway?: string): string {
 
 /**
  * Try fetching from multiple gateways with fallback
+ * Uses proxy API route in browser to avoid CORS
  */
 export async function fetchFromGateway(
   hash: string,
   config: GatewayConfig = {}
 ): Promise<Response | null> {
+  // In browser, use proxy API route to avoid CORS
+  if (typeof window !== 'undefined') {
+    try {
+      // Clean hash - remove ipfs:// prefix and /ipfs/ prefix if present
+      const cleanHash = hash.replace(/^\/?ipfs\//, '').replace(/^ipfs:\/\//, '');
+      const proxyUrl = `/api/ipfs?path=${encodeURIComponent(cleanHash)}`;
+      
+      const response = await fetch(proxyUrl, {
+        method: 'GET',
+      });
+
+      if (response.ok) {
+        return response;
+      }
+    } catch (error) {
+      console.warn(`IPFS proxy failed for ${hash}:`, error);
+      // Fall through to try direct gateways as fallback
+    }
+  }
+
+  // Server-side or proxy failed, try direct gateways
   const gateways = [
     config.primary,
     ...(config.fallbacks || []),
@@ -107,9 +129,17 @@ export async function fetchJSON<T = unknown>(
 
 /**
  * Get the best available gateway URL (for direct use in img/src tags)
+ * Uses proxy API route in browser to avoid CORS
  */
 export function getBestGatewayUrl(hash: string): string {
-  // Prefer Pinata gateway first, then fallback to public gateways
+  // In browser, use proxy API route to avoid CORS
+  if (typeof window !== 'undefined') {
+    // Clean hash - remove ipfs:// prefix and /ipfs/ prefix if present
+    const cleanHash = hash.replace(/^\/?ipfs\//, '').replace(/^ipfs:\/\//, '');
+    return `/api/ipfs?path=${encodeURIComponent(cleanHash)}`;
+  }
+  
+  // Server-side, use direct gateway
   return getGatewayUrl(hash, DEFAULT_GATEWAYS[0]);
 }
 

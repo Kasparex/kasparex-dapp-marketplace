@@ -43,28 +43,48 @@ export async function queryL1NFTs(
       try {
         // Fetch collection data from KaspaCom API
         const collectionData = await fetchCollectionByTicker(collectionId);
-        if (!collectionData || !collectionData.holders) {
+        if (!collectionData) {
+          console.warn(`Collection ${collectionId} data not found`);
+          continue;
+        }
+
+        if (!collectionData.holders || collectionData.holders.length === 0) {
+          console.warn(`Collection ${collectionId} has no holders data`);
           continue;
         }
 
         // Find holder matching the address
-        const holder = collectionData.holders.find(
-          (h) => h.walletAddress.replace(/^kaspa:/i, '').toLowerCase() === normalizedAddress
-        );
+        // Try multiple address formats
+        const holder = collectionData.holders.find((h) => {
+          const holderAddress = (h.walletAddress || '').replace(/^kaspa:/i, '').toLowerCase();
+          return holderAddress === normalizedAddress || 
+                 holderAddress === address.toLowerCase() ||
+                 holderAddress === address.replace(/^kaspa:/i, '').toLowerCase();
+        });
 
-        if (holder && holder.tokenIds && holder.tokenIds.length > 0) {
+        if (holder) {
+          if (!holder.tokenIds || holder.tokenIds.length === 0) {
+            console.warn(`Holder found but has no tokenIds for ${collectionId}`);
+            continue;
+          }
+
           // Add all token IDs owned by this address
           holder.tokenIds.forEach((tokenId) => {
-            results.push({
-              tokenId: typeof tokenId === 'number' ? tokenId : parseInt(String(tokenId), 10),
-              collection: collectionId,
-              collectionConfig: collection,
-              network: 'L1',
-            });
+            const tokenIdNum = typeof tokenId === 'number' ? tokenId : parseInt(String(tokenId), 10);
+            if (!isNaN(tokenIdNum)) {
+              results.push({
+                tokenId: tokenIdNum,
+                collection: collectionId,
+                collectionConfig: collection,
+                network: 'L1',
+              });
+            }
           });
+        } else {
+          console.debug(`No holder found for address ${address} in collection ${collectionId}`);
         }
       } catch (error) {
-        console.warn(`Error querying L1 NFTs for ${collectionId}:`, error);
+        console.error(`Error querying L1 NFTs for ${collectionId}:`, error);
       }
     }
 
