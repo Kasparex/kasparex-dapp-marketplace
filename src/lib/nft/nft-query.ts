@@ -139,9 +139,16 @@ export async function queryL2NFTs(
       const collection = collections[collectionId];
       if (!collection) continue;
 
-      // TODO: Get actual contract address for collection on L2
-      // For now, this is a placeholder
-      const contractAddress = '0x0000000000000000000000000000000000000000'; // Placeholder
+      // Check if collection has L2 contract address configured
+      // KREXPRIME and PIXELKREX are L1-only collections (KRC-721), so skip L2 querying
+      // TODO: Add l2ContractAddress to CollectionConfig when L2 collections are available
+      const l2ContractAddress = (collection as any).l2ContractAddress;
+      
+      if (!l2ContractAddress || l2ContractAddress === '0x0000000000000000000000000000000000000000') {
+        // Collection doesn't have L2 contract, skip
+        console.debug(`Collection ${collectionId} is L1-only, skipping L2 query`);
+        continue;
+      }
 
       try {
         // Create public client for contract reads
@@ -153,7 +160,7 @@ export async function queryL2NFTs(
 
         // Get balance
         const balance = await publicClient.readContract({
-          address: contractAddress as Address,
+          address: l2ContractAddress as Address,
           abi: ERC721_ABI,
           functionName: 'balanceOf',
           args: [address as Address],
@@ -176,7 +183,7 @@ export async function queryL2NFTs(
         for (let i = 0; i < balanceNum; i++) {
           try {
             const tokenId = await publicClient.readContract({
-              address: contractAddress as Address,
+              address: l2ContractAddress as Address,
               abi: ERC721_ABI,
               functionName: 'tokenOfOwnerByIndex',
               args: [address as Address, BigInt(i)],
