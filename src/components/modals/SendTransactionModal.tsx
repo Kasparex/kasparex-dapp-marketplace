@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { sendKaspa } from '@/lib/kaspa/kasware';
+import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import { kasToSompis } from '@/lib/kaspa/api';
 import { getErrorMessage } from '@/lib/utils';
+import { useKaspaWallet } from '@/lib/kaspa/context';
 
 interface SendTransactionModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface SendTransactionModalProps {
 }
 
 export function SendTransactionModal({ isOpen, onClose, currentBalance, address }: SendTransactionModalProps) {
+  const { state } = useKaspaWallet();
   const [toAddress, setToAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [priorityFee, setPriorityFee] = useState('');
@@ -55,15 +57,26 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address 
     setError(null);
 
     try {
-      const sompiAmount = kasToSompis(amountNum);
-      const options: Record<string, any> = {};
-      
-      if (priorityFee) {
-        options.priorityFee = parseFloat(priorityFee);
+      if (!state.provider) {
+        throw new Error('Wallet provider not available');
       }
 
-      const hash = await sendKaspa(toAddress.trim(), sompiAmount, options);
-      setTxHash(hash);
+      const sompiAmount = kasToSompis(amountNum);
+      
+      // Use SDK transaction function
+      const transaction = {
+        to: toAddress.trim(),
+        amount: sompiAmount.toString(),
+        ...(priorityFee && { fee: priorityFee }),
+      };
+
+      const result = await sendKaspaTransaction(state.provider, transaction);
+      
+      if (result.status === 'failed') {
+        throw new Error(result.error || 'Transaction failed');
+      }
+
+      setTxHash(result.txHash);
       
       // Reset form after successful send
       setTimeout(() => {

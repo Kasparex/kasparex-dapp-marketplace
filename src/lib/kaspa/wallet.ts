@@ -114,6 +114,117 @@ export function detectKaspaWallets(): KaspaWalletProviderInfo[] {
 /**
  * Get wallet provider interface by provider ID
  */
+/**
+ * Extended wallet provider interface with balance support
+ */
+interface ExtendedWalletProviderInterface extends KaspaWalletProviderInterface {
+  getBalance?: () => Promise<string | number | { balance: string | number } | null>;
+}
+
+/**
+ * Create adapter for KasWare wallet to match SDK interface
+ */
+function createKasWareAdapter(kasware: any): ExtendedWalletProviderInterface {
+  const adapter: ExtendedWalletProviderInterface = {
+    isConnected: () => {
+      if (typeof kasware.isConnected === 'function') {
+        return kasware.isConnected();
+      }
+      // Fallback: check if we can get address
+      return true; // Assume connected if method doesn't exist
+    },
+    getAddress: async () => {
+      if (typeof kasware.getAddress === 'function') {
+        return await kasware.getAddress();
+      }
+      if (typeof kasware.requestAccounts === 'function') {
+        const accounts = await kasware.requestAccounts();
+        return accounts && accounts.length > 0 ? accounts[0] : null;
+      }
+      return null;
+    },
+    requestConnection: async () => {
+      if (typeof kasware.requestAccounts === 'function') {
+        const accounts = await kasware.requestAccounts();
+        if (accounts && accounts.length > 0) {
+          return accounts[0];
+        }
+      }
+      throw new Error('Failed to request connection');
+    },
+    disconnect: async () => {
+      if (typeof kasware.disconnect === 'function') {
+        await kasware.disconnect();
+      }
+    },
+    signMessage: async (message: string) => {
+      if (typeof kasware.signMessage === 'function') {
+        return await kasware.signMessage(message);
+      }
+      throw new Error('signMessage not available');
+    },
+    sendTransaction: async (transaction: any) => {
+      // KasWare uses sendKaspa(toAddress, sompi, options)
+      if (typeof kasware.sendKaspa === 'function') {
+        const toAddress = transaction.to;
+        const sompi = typeof transaction.amount === 'string' ? parseInt(transaction.amount) : transaction.amount;
+        const options: Record<string, any> = {};
+        
+        if (transaction.fee) {
+          options.priorityFee = typeof transaction.fee === 'string' ? parseFloat(transaction.fee) : transaction.fee;
+        }
+        
+        return await kasware.sendKaspa(toAddress, sompi, options);
+      }
+      throw new Error('sendKaspa not available');
+    },
+    on: (event: 'accountsChanged', callback: (accounts: string[]) => void) => {
+      if (typeof kasware.on === 'function') {
+        kasware.on(event, callback);
+      }
+    },
+    removeListener: (event: 'accountsChanged', callback: (accounts: string[]) => void) => {
+      if (typeof kasware.removeListener === 'function') {
+        kasware.removeListener(event, callback);
+      }
+    },
+  };
+
+  // Add getBalance if available
+  if (typeof kasware.getBalance === 'function') {
+    adapter.getBalance = async () => {
+      return await kasware.getBalance();
+    };
+  }
+
+  return adapter;
+}
+
+export function getWalletProvider(provider: KaspaWalletProvider): ExtendedWalletProviderInterface | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const win = getWindow();
+
+  switch (provider) {
+    case 'kasware': {
+      const kasware = win.kasware;
+      if (!kasware) return null;
+      // Create adapter for KasWare to match SDK interface
+      return createKasWareAdapter(kasware);
+    }
+    case 'kaspium':
+      return win.kaspium || null;
+    case 'okx':
+      return win.okx?.kaspa || null;
+    case 'safepal':
+      return win.safepal?.kaspa || null;
+    default:
+      return null;
+  }
+}
+
 export function getWalletProvider(provider: KaspaWalletProvider): KaspaWalletProviderInterface | null {
   if (typeof window === 'undefined') {
     return null;
@@ -122,8 +233,12 @@ export function getWalletProvider(provider: KaspaWalletProvider): KaspaWalletPro
   const win = getWindow();
 
   switch (provider) {
-    case 'kasware':
-      return win.kasware || null;
+    case 'kasware': {
+      const kasware = win.kasware;
+      if (!kasware) return null;
+      // Create adapter for KasWare to match SDK interface
+      return createKasWareAdapter(kasware);
+    }
     case 'kaspium':
       return win.kaspium || null;
     case 'okx':
