@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1766435986-fbc6efc",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Use correct prop names for KRC20OrderModal (krc20Tokens instead of tokens) (by Kasparex)",
+      "date": "2025-12-22T21:39:04+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1766435585-a9f73dd",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Remove utxoEntries prop from UtxoViewerModal - Modal fetches UTXOs internally (by Kasparex)",
