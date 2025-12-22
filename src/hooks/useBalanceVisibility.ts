@@ -1,14 +1,23 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 
 const BALANCE_VISIBILITY_KEY = 'kaspa_wallet_balance_visible';
 
+interface BalanceVisibilityContextType {
+  isVisible: boolean;
+  toggleVisibility: () => void;
+  hideBalance: () => void;
+  showBalance: () => void;
+}
+
+const BalanceVisibilityContext = createContext<BalanceVisibilityContextType | undefined>(undefined);
+
 /**
- * Hook to manage balance visibility state
- * Stores preference in localStorage
+ * Provider component for balance visibility state
+ * Shares state across all components using the context
  */
-export function useBalanceVisibility() {
+export function BalanceVisibilityProvider({ children }: { children: ReactNode }) {
   const [isVisible, setIsVisible] = useState<boolean>(() => {
     if (typeof window === 'undefined') {
       return true; // Default to visible on server
@@ -52,12 +61,30 @@ export function useBalanceVisibility() {
     }
   }, []);
 
-  return {
-    isVisible,
-    toggleVisibility,
-    hideBalance,
-    showBalance,
-  };
+  return (
+    <BalanceVisibilityContext.Provider
+      value={{
+        isVisible,
+        toggleVisibility,
+        hideBalance,
+        showBalance,
+      }}
+    >
+      {children}
+    </BalanceVisibilityContext.Provider>
+  );
+}
+
+/**
+ * Hook to access balance visibility state
+ * Must be used within BalanceVisibilityProvider
+ */
+export function useBalanceVisibility() {
+  const context = useContext(BalanceVisibilityContext);
+  if (context === undefined) {
+    throw new Error('useBalanceVisibility must be used within a BalanceVisibilityProvider');
+  }
+  return context;
 }
 
 /**

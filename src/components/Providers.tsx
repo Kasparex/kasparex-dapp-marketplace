@@ -7,6 +7,7 @@ import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { darkTheme, lightTheme } from '@rainbow-me/rainbowkit';
 import { config } from '@/lib/wagmi';
 import { KaspaWalletProvider } from '@/lib/kaspa/context';
+import { BalanceVisibilityProvider } from '@/hooks/useBalanceVisibility';
 import { getErrorMessage } from '@/lib/utils';
 
 // CRITICAL: Global error handler to intercept React Query's error serialization
@@ -623,11 +624,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <KaspaWalletProvider>
-          <RainbowKitProviderWithTheme>
-            {children}
-          </RainbowKitProviderWithTheme>
-        </KaspaWalletProvider>
+        <BalanceVisibilityProvider>
+          <KaspaWalletProvider>
+            <RainbowKitProviderWithTheme>
+              {children}
+            </RainbowKitProviderWithTheme>
+          </KaspaWalletProvider>
+        </BalanceVisibilityProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );
