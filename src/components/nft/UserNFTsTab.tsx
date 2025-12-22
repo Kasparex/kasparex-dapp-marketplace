@@ -9,6 +9,7 @@ import { calculateNFTRarity } from '@/lib/nft/rarity';
 import { fetchNFTRank } from '@/lib/nft/kaspa-com-api';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { collections } from '@/lib/nft/collections';
+import { getCollectionMetadata } from '@/lib/nft/collection-loader';
 
 export function UserNFTsTab() {
   const { state: kaspaState } = useKaspaWallet();
@@ -47,6 +48,19 @@ export function UserNFTsTab() {
       const nfts = await queryUserNFTs(l1Address, l2Address);
       setUserNFTs(nfts);
 
+      // Load collection metadata for accurate rarity calculation
+      const collectionMetadataMap = new Map<string, any[]>();
+      const uniqueCollections = [...new Set(nfts.map((nft) => nft.collection))];
+      
+      for (const collectionId of uniqueCollections) {
+        try {
+          const metadata = await getCollectionMetadata(collectionId);
+          collectionMetadataMap.set(collectionId, metadata);
+        } catch (err) {
+          console.warn(`Error loading collection metadata for ${collectionId}:`, err);
+        }
+      }
+
       // Load details for each NFT
       const detailsMap = new Map();
       for (const nft of nfts) {
@@ -54,7 +68,9 @@ export function UserNFTsTab() {
           const metadata = await fetchNFTMetadata(nft.collection, nft.tokenId);
           if (!metadata) continue;
 
-          const rarity = calculateNFTRarity(metadata, [metadata]);
+          // Use full collection metadata for accurate rarity
+          const allMetadata = collectionMetadataMap.get(nft.collection) || [metadata];
+          const rarity = calculateNFTRarity(metadata, allMetadata);
           const rank = await fetchNFTRank(nft.collection, nft.tokenId);
 
           let imageUrl: string | null = null;

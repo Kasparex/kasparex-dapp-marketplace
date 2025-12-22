@@ -6,6 +6,7 @@ import { calculateNFTRarity, type NFTRarity } from '@/lib/nft/rarity';
 import { fetchNFTRank } from '@/lib/nft/kaspa-com-api';
 import { getCollectionById } from '@/lib/nft/collections';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { getCollectionMetadata } from '@/lib/nft/collection-loader';
 
 interface RarityCheckerProps {
   collectionId: string;
@@ -14,6 +15,7 @@ interface RarityCheckerProps {
 export function RarityChecker({ collectionId }: RarityCheckerProps) {
   const [tokenId, setTokenId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState<string>('');
   const [rarity, setRarity] = useState<NFTRarity | null>(null);
   const [rank, setRank] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -47,9 +49,10 @@ export function RarityChecker({ collectionId }: RarityCheckerProps) {
     setRarity(null);
     setRank(null);
     setImageUrl(null);
+    setLoadingProgress('Loading NFT metadata...');
 
     try {
-      // Fetch metadata
+      // Fetch metadata for the specific NFT
       const metadata = await getNFTMetadata(collectionId, tokenIdNum);
       if (!metadata) {
         setError(`NFT #${tokenIdNum} not found in ${collection.name} collection`);
@@ -57,10 +60,17 @@ export function RarityChecker({ collectionId }: RarityCheckerProps) {
         return;
       }
 
-      // For rarity calculation, we need all NFTs in the collection
-      // For now, we'll calculate based on the single NFT (this is a limitation)
-      // In a full implementation, you'd pre-load all collection metadata
-      const rarityResult = calculateNFTRarity(metadata, [metadata]);
+      // Load full collection metadata for accurate rarity calculation
+      setLoadingProgress('Loading collection data for rarity calculation...');
+      const allMetadata = await getCollectionMetadata(collectionId);
+      if (allMetadata.length === 0) {
+        setError('Failed to load collection data for rarity calculation');
+        setIsLoading(false);
+        return;
+      }
+
+      // Calculate rarity using full collection data
+      const rarityResult = calculateNFTRarity(metadata, allMetadata);
       
       // Fetch rank from KaspaCom
       const fetchedRank = await fetchNFTRank(collectionId, tokenIdNum);
@@ -76,12 +86,14 @@ export function RarityChecker({ collectionId }: RarityCheckerProps) {
         }
       }
 
+      setLoadingProgress('');
       setRarity(rarityResult);
       setRank(fetchedRank);
       setImageUrl(imgUrl);
     } catch (err) {
       console.error('Error checking rarity:', err);
       setError(err instanceof Error ? err.message : 'Failed to check rarity');
+      setLoadingProgress('');
     } finally {
       setIsLoading(false);
     }
@@ -108,7 +120,7 @@ export function RarityChecker({ collectionId }: RarityCheckerProps) {
           disabled={isLoading || !tokenId}
           className="px-6 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? 'Checking...' : 'Check Rarity'}
+          {isLoading ? (loadingProgress || 'Checking...') : 'Check Rarity'}
         </button>
       </div>
 

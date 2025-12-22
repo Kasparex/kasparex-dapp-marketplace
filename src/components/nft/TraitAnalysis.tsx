@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { calculateTraitFrequencies, type CollectionTraitStats } from '@/lib/nft/traits';
-import { fetchMultipleNFTMetadata } from '@/lib/nft/metadata';
 import { getCollectionById } from '@/lib/nft/collections';
+import { getCollectionMetadata } from '@/lib/nft/collection-loader';
 
 interface TraitAnalysisProps {
   collectionId: string;
@@ -12,6 +12,7 @@ interface TraitAnalysisProps {
 export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
   const [stats, setStats] = useState<CollectionTraitStats | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [selectedTraitType, setSelectedTraitType] = useState<string | null>(null);
 
@@ -31,16 +32,12 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
 
     setIsLoading(true);
     setError(null);
+    setLoadingProgress('Loading collection metadata...');
 
     try {
-      // TODO: In a real implementation, you'd know the total supply
-      // For now, we'll try to fetch a sample (e.g., first 100 NFTs)
-      // This is a limitation - ideally you'd have the total supply
-      const sampleSize = 100;
-      const tokenIds = Array.from({ length: sampleSize }, (_, i) => i + 1);
-      
-      const metadataMap = await fetchMultipleNFTMetadata(collectionId, tokenIds);
-      const metadataList = Array.from(metadataMap.values());
+      // Load full collection metadata for accurate trait analysis
+      const metadataList = await getCollectionMetadata(collectionId);
+      setLoadingProgress('Analyzing traits...');
 
       if (metadataList.length === 0) {
         setError('No metadata found for this collection');
@@ -49,6 +46,7 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
       }
 
       const traitStats = calculateTraitFrequencies(metadataList);
+      setLoadingProgress('');
       setStats(traitStats);
       
       // Select first trait type by default
@@ -58,6 +56,7 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
     } catch (err) {
       console.error('Error loading trait stats:', err);
       setError(err instanceof Error ? err.message : 'Failed to load trait statistics');
+      setLoadingProgress('');
     } finally {
       setIsLoading(false);
     }
@@ -68,13 +67,13 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
       {/* Load Button */}
       {!stats && (
         <div>
-          <button
-            onClick={handleLoadStats}
-            disabled={isLoading}
-            className="px-6 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? 'Loading...' : 'Load Trait Statistics'}
-          </button>
+            <button
+              onClick={handleLoadStats}
+              disabled={isLoading}
+              className="px-6 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (loadingProgress || 'Loading...') : 'Load Trait Statistics'}
+            </button>
         </div>
       )}
 

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { getCollectionById } from '@/lib/nft/collections';
+import { getCollectionMetadata } from '@/lib/nft/collection-loader';
+import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
 
 interface PFPBuilderProps {
   collectionId: string;
@@ -21,15 +23,44 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
   const collection = getCollectionById(collectionId);
 
   useEffect(() => {
-    // Load available traits from public folder
-    // TODO: In a real implementation, you'd scan the traits folder
-    // For now, we'll use placeholder data
-    const traits = new Map<string, string[]>();
-    traits.set('Background', ['Blue', 'Red', 'Green', 'Purple']);
-    traits.set('Body', ['Normal', 'Rare', 'Epic']);
-    traits.set('Eyes', ['Normal', 'Laser', 'Glowing']);
-    traits.set('Accessories', ['None', 'Hat', 'Glasses', 'Crown']);
-    setAvailableTraits(traits);
+    // Load available traits from collection metadata
+    const loadTraits = async () => {
+      try {
+        const metadataList = await getCollectionMetadata(collectionId);
+        
+        // Extract unique trait types and values from all NFTs
+        const traitMap = new Map<string, Set<string | number>>();
+        
+        metadataList.forEach((metadata) => {
+          metadata.traits.forEach((trait) => {
+            const traitType = trait.trait_type;
+            const value = trait.value;
+            
+            if (!traitMap.has(traitType)) {
+              traitMap.set(traitType, new Set());
+            }
+            traitMap.get(traitType)!.add(value);
+          });
+        });
+
+        // Convert to Map<string, string[]>
+        const traits = new Map<string, string[]>();
+        traitMap.forEach((values, traitType) => {
+          const sortedValues = Array.from(values)
+            .map((v) => String(v))
+            .sort();
+          traits.set(traitType, sortedValues);
+        });
+
+        setAvailableTraits(traits);
+      } catch (error) {
+        console.error('Error loading traits:', error);
+        // Fallback to empty traits if loading fails
+        setAvailableTraits(new Map());
+      }
+    };
+
+    loadTraits();
   }, [collectionId]);
 
   useEffect(() => {
@@ -51,8 +82,8 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw trait layers in order
-    const layerOrder = ['Background', 'Body', 'Eyes', 'Accessories'];
+    // Draw trait layers in order (use available trait types)
+    const layerOrder = Array.from(availableTraits.keys());
     
     for (const traitType of layerOrder) {
       const selectedValue = selectedTraits.get(traitType);
