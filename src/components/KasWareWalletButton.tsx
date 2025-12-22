@@ -135,14 +135,25 @@ export function KasWareWalletButton() {
               if (balanceValue !== null && balanceValue !== undefined && balanceValue !== '') {
                 const balanceNum = typeof balanceValue === 'string' ? parseFloat(balanceValue) : balanceValue;
                 if (!isNaN(balanceNum) && balanceNum >= 0) {
-                  // Balance might be in sompis or KAS - check if it's a large number (sompis)
-                  // If > 1 million, likely in sompis, otherwise assume KAS
-                  const kasBalance = balanceNum > 1000000 
-                    ? (balanceNum / 100000000).toFixed(2) 
-                    : balanceNum.toFixed(2);
+                  // KasWare getBalance() returns balance in sompis (smallest unit, standard for Kaspa wallets)
+                  // Convert to KAS: 1 KAS = 10^8 sompis
+                  // Only treat as KAS if it's a very small decimal number (< 0.01) with many decimal places
+                  let kasBalance: string;
+                  const strValue = balanceNum.toString();
+                  const hasDecimals = strValue.includes('.');
+                  const decimalPlaces = hasDecimals ? strValue.split('.')[1]?.length || 0 : 0;
+                  
+                  // If balance < 0.01 and has > 6 decimal places, likely already in KAS
+                  if (balanceNum < 0.01 && decimalPlaces > 6) {
+                    kasBalance = balanceNum.toFixed(8);
+                  } else {
+                    // Otherwise, assume it's in sompis and convert to KAS
+                    kasBalance = (balanceNum / 100000000).toFixed(2);
+                  }
+                  
                   currentBalance = kasBalance;
                   setBalance(kasBalance);
-                  console.log(`✓ KasWare balance from wallet: ${kasBalance} KAS`);
+                  console.log(`✓ KasWare balance from wallet: ${kasBalance} KAS (raw: ${balanceNum} sompis)`);
                   return;
                 } else {
                   console.warn('Invalid balance number:', balanceNum);

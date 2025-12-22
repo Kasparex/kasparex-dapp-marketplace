@@ -224,9 +224,22 @@ export function useKasWare(): UseKasWareReturn {
         
         const balanceNum = typeof balanceValue === 'string' ? parseFloat(balanceValue) : balanceValue;
         if (!isNaN(balanceNum) && balanceNum >= 0) {
-          const kasBalance = balanceNum > 1000000 
-            ? (balanceNum / 100000000).toFixed(2) 
-            : balanceNum.toFixed(2);
+          // KasWare getBalance() returns balance in sompis (smallest unit, standard for Kaspa wallets)
+          // Convert to KAS: 1 KAS = 10^8 sompis
+          // Only treat as KAS if it's a very small decimal number (< 0.01) with many decimal places
+          const strValue = balanceNum.toString();
+          const hasDecimals = strValue.includes('.');
+          const decimalPlaces = hasDecimals ? strValue.split('.')[1]?.length || 0 : 0;
+          
+          let kasBalance: string;
+          // If balance < 0.01 and has > 6 decimal places, likely already in KAS
+          if (balanceNum < 0.01 && decimalPlaces > 6) {
+            kasBalance = balanceNum.toFixed(8);
+          } else {
+            // Otherwise, assume it's in sompis and convert to KAS
+            kasBalance = (balanceNum / 100000000).toFixed(2);
+          }
+          
           setBalance(kasBalance);
         }
       }
