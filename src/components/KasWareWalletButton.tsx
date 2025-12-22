@@ -283,6 +283,8 @@ export function KasWareWalletButton() {
           isOpen={isKRC20ModalOpen}
           onClose={() => setIsKRC20ModalOpen(false)}
           mode={krc20ModalMode}
+          krc20Tokens={krc20Tokens}
+          currentBalance={balance}
         />
       </div>
     );
