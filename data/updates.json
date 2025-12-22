@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1766446354-c0fd04c",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix CORS issues with KaspaCom API - Add Next.js API proxy route to bypass CORS restrictions - Update all KaspaCom API calls to use proxy in browser, direct API on server (by Kasparex)",
+      "date": "2025-12-23T00:32:03+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1766445484-f346677",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix @wagmi/core import error - Replace readContract from @wagmi/core with viem's createPublicClient for server-side contract reads (by Kasparex)",
