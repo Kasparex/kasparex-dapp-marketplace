@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1766440642-b143638",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Rename useBalanceVisibility.ts to .tsx for JSX support (by Kasparex)",
+      "date": "2025-12-22T22:56:55+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1766440335-0271abf",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Make balance visibility toggle update immediately - Convert useBalanceVisibility to context provider - Add BalanceVisibilityProvider to app providers - All components now share same state and update instantly (by Kasparex)",
