@@ -5,8 +5,8 @@
 
 import { collections, type CollectionConfig } from './collections';
 import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
-import { readContract } from '@wagmi/core';
-import { config as wagmiConfig } from '@/lib/wagmi';
+import { createPublicClient, http, type Address } from 'viem';
+import { kasplexL2Testnet, kasplexL2Mainnet } from '@/lib/wagmi';
 import { fetchCollectionByTicker, type Krc721Collection } from './kaspa-com-api';
 
 export interface UserNFT {
@@ -124,28 +124,54 @@ export async function queryL2NFTs(
       const contractAddress = '0x0000000000000000000000000000000000000000'; // Placeholder
 
       try {
-        // Get balance
-        const balance = await readContract(wagmiConfig, {
-          address: contractAddress as `0x${string}`,
-          abi: ERC721_ABI,
-          functionName: 'balanceOf',
-          args: [address as `0x${string}`],
+        // Create public client for contract reads
+        // Use testnet by default, can be made configurable later
+        const publicClient = createPublicClient({
+          chain: kasplexL2Testnet,
+          transport: http(),
         });
 
-        const balanceNum = Number(balance);
+        // Get balance
+        const balance = await publicClient.readContract({
+          address: contractAddress as Address,
+          abi: ERC721_ABI,
+          functionName: 'balanceOf',
+          args: [address as Address],
+        });
+
+        // Handle unknown type from readContract
+        let balanceNum = 0;
+        if (typeof balance === 'bigint') {
+          balanceNum = Number(balance);
+        } else if (typeof balance === 'number') {
+          balanceNum = balance;
+        } else if (typeof balance === 'string') {
+          balanceNum = parseInt(balance, 10);
+        }
+
         if (balanceNum === 0) continue;
 
         // Get token IDs
         const tokenIds: number[] = [];
         for (let i = 0; i < balanceNum; i++) {
           try {
-            const tokenId = await readContract(wagmiConfig, {
-              address: contractAddress as `0x${string}`,
+            const tokenId = await publicClient.readContract({
+              address: contractAddress as Address,
               abi: ERC721_ABI,
               functionName: 'tokenOfOwnerByIndex',
-              args: [address as `0x${string}`, BigInt(i)],
+              args: [address as Address, BigInt(i)],
             });
-            tokenIds.push(Number(tokenId));
+            
+            // Handle unknown type from readContract
+            let tokenIdNum = 0;
+            if (typeof tokenId === 'bigint') {
+              tokenIdNum = Number(tokenId);
+            } else if (typeof tokenId === 'number') {
+              tokenIdNum = tokenId;
+            } else if (typeof tokenId === 'string') {
+              tokenIdNum = parseInt(tokenId, 10);
+            }
+            tokenIds.push(tokenIdNum);
           } catch (error) {
             console.warn(`Error fetching token ${i} for ${collectionId}:`, error);
           }
