@@ -203,17 +203,26 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
         throw new Error(newState.error || 'Connection failed');
       }
       
-      // Verify wallet is actually connected
+      // Verify wallet is actually connected (but don't fail if method doesn't exist)
       const walletProvider = getWalletProvider(provider);
-      if (walletProvider) {
+      if (walletProvider && typeof walletProvider.isConnected === 'function') {
         const isActuallyConnected = walletProvider.isConnected();
+        console.log('Wallet connection verification:', isActuallyConnected);
+        // Don't fail if isConnected returns false - some wallets don't implement this correctly
+        // If requestAccounts() succeeded, we trust the connection
         if (!isActuallyConnected) {
-          throw new Error('Wallet connection verification failed');
+          console.warn('Wallet isConnected() returned false, but requestAccounts() succeeded. Continuing with connection.');
         }
+      } else {
+        console.log('Wallet isConnected() method not available, trusting requestAccounts() result');
       }
       
       setState(newState);
-      console.log('Wallet state updated successfully');
+      console.log('Wallet state updated successfully:', { 
+        isConnected: newState.isConnected, 
+        address: newState.address, 
+        provider: newState.provider 
+      });
     } catch (error) {
       console.error('Error in connect callback:', error);
       setState({

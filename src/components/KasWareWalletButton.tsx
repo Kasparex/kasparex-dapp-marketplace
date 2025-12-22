@@ -49,6 +49,14 @@ export function KasWareWalletButton() {
     return formatted.display;
   };
 
+  // Refresh balance when connection state changes
+  useEffect(() => {
+    if (state.isConnected && state.address && state.provider === 'kasware') {
+      console.log('Connection state changed, refreshing balance...');
+      refreshBalance();
+    }
+  }, [state.isConnected, state.address, state.provider, refreshBalance]);
+
   // Fetch KRC-20 tokens when connected
   useEffect(() => {
     if (!state.isConnected || state.provider !== 'kasware') {

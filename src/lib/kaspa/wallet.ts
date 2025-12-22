@@ -195,10 +195,21 @@ function createKasWareAdapter(kasware: any): ExtendedWalletProviderInterface {
   };
 
   // Add getBalance if available
+  // KasWare API: getBalance() returns Promise<string | number | { balance: string | number } | null>
   if (typeof kasware.getBalance === 'function') {
     adapter.getBalance = async () => {
-      return await kasware.getBalance();
+      try {
+        console.log('Calling kasware.getBalance()...');
+        const result = await kasware.getBalance();
+        console.log('KasWare getBalance() result:', result);
+        return result;
+      } catch (error) {
+        console.error('KasWare getBalance() error:', error);
+        throw error;
+      }
     };
+  } else {
+    console.log('KasWare getBalance() method not available');
   }
 
   return adapter;
@@ -277,13 +288,16 @@ export async function connectKaspaWallet(
             address = accounts[0];
             console.log('Selected address:', address);
             
-            // Verify wallet is connected after requestAccounts
+            // Verify wallet is connected after requestAccounts (but don't fail if method doesn't exist)
             if (typeof kasware.isConnected === 'function') {
               const isConnected = kasware.isConnected();
-              console.log('Wallet isConnected check:', isConnected);
+              console.log('Wallet isConnected check after requestAccounts:', isConnected);
+              // Don't throw error if isConnected returns false - requestAccounts() success is sufficient
               if (!isConnected) {
-                throw new Error('Wallet is not connected after requestAccounts');
+                console.warn('KasWare isConnected() returned false, but requestAccounts() succeeded. Continuing with connection.');
               }
+            } else {
+              console.log('KasWare isConnected() method not available, trusting requestAccounts() result');
             }
           } else {
             throw new Error('No accounts returned from KasWare wallet');
