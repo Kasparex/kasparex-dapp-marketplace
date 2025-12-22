@@ -265,9 +265,22 @@ export async function connectKaspaWallet(
         const kasware = win.kasware as any;
         
         if (typeof kasware.requestAccounts === 'function') {
+          console.log('Calling kasware.requestAccounts()...');
           const accounts = await kasware.requestAccounts();
+          console.log('KasWare requestAccounts() result:', accounts);
+          
           if (Array.isArray(accounts) && accounts.length > 0) {
             address = accounts[0];
+            console.log('Selected address:', address);
+            
+            // Verify wallet is connected after requestAccounts
+            if (typeof kasware.isConnected === 'function') {
+              const isConnected = kasware.isConnected();
+              console.log('Wallet isConnected check:', isConnected);
+              if (!isConnected) {
+                throw new Error('Wallet is not connected after requestAccounts');
+              }
+            }
           } else {
             throw new Error('No accounts returned from KasWare wallet');
           }

@@ -15,6 +15,7 @@ import {
   getKaspaAddress,
   detectKaspaWallets,
   onKaspaAccountChange,
+  getWalletProvider,
 } from './wallet';
 import { isSIWKExpired } from './auth';
 
@@ -39,13 +40,39 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
     // Load from localStorage on mount
     if (typeof window !== 'undefined') {
       try {
+        // Clear old localStorage keys from previous implementation
+        const oldKeys = ['kasware_wallet_state'];
+        oldKeys.forEach(key => {
+          if (localStorage.getItem(key)) {
+            console.log(`Clearing old localStorage key: ${key}`);
+            localStorage.removeItem(key);
+          }
+        });
+
         const stored = localStorage.getItem(STORAGE_KEY);
         const siwkStored = localStorage.getItem(SIWK_STORAGE_KEY);
         
         if (stored) {
           const parsed = JSON.parse(stored);
-          // Validate stored state
+          // Validate stored state and verify wallet is still connected
           if (parsed.isConnected && parsed.address && parsed.provider) {
+            // Verify wallet is still actually connected
+            const walletProvider = getWalletProvider(parsed.provider);
+            const isActuallyConnected = walletProvider?.isConnected?.() ?? false;
+            
+            if (!isActuallyConnected) {
+              // Wallet is not actually connected, clear stored state
+              console.log('Stored wallet state found but wallet is not connected, clearing...');
+              localStorage.removeItem(STORAGE_KEY);
+              localStorage.removeItem(SIWK_STORAGE_KEY);
+              return {
+                isConnected: false,
+                address: null,
+                provider: null,
+                error: null,
+              };
+            }
+
             // Load SIWK auth if available
             let siwkAuth: SIWKAuthResult | undefined;
             if (siwkStored) {
@@ -144,24 +171,59 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
     provider: KaspaWalletProvider,
     options?: { enableSIWK?: boolean; siwkParams?: { domain?: string; statement?: string; appName?: string } }
   ) => {
-    // Enable SIWK by default unless explicitly disabled
-    const enableSIWK = options?.enableSIWK !== false; // Default to true
-    
-    // Default SIWK parameters
-    const domain = typeof window !== 'undefined' ? window.location.hostname : 'kasparex.com';
-    const appName = 'Kasparex dApps';
-    
-    const siwkParams = {
-      domain: options?.siwkParams?.domain || domain,
-      statement: options?.siwkParams?.statement || `Welcome to ${options?.siwkParams?.appName || appName}!`,
-      appName: options?.siwkParams?.appName || appName,
-    };
-    
-    const newState = await connectKaspaWallet(provider, {
-      enableSIWK,
-      siwkParams,
-    });
-    setState(newState);
+    try {
+      // Enable SIWK by default unless explicitly disabled
+      const enableSIWK = options?.enableSIWK !== false; // Default to true
+      
+      // Default SIWK parameters
+      const domain = typeof window !== 'undefined' ? window.location.hostname : 'kasparex.com';
+      const appName = 'Kasparex dApps';
+      
+      const siwkParams = {
+        domain: options?.siwkParams?.domain || domain,
+        statement: options?.siwkParams?.statement || `Welcome to ${options?.siwkParams?.appName || appName}!`,
+        appName: options?.siwkParams?.appName || appName,
+      };
+      
+      console.log('Connecting to wallet:', provider);
+      const newState = await connectKaspaWallet(provider, {
+        enableSIWK,
+        siwkParams,
+      });
+      
+      console.log('Connection result:', { 
+        isConnected: newState.isConnected, 
+        address: newState.address, 
+        provider: newState.provider,
+        error: newState.error 
+      });
+      
+      // Verify connection actually succeeded
+      if (!newState.isConnected || !newState.address) {
+        throw new Error(newState.error || 'Connection failed');
+      }
+      
+      // Verify wallet is actually connected
+      const walletProvider = getWalletProvider(provider);
+      if (walletProvider) {
+        const isActuallyConnected = walletProvider.isConnected();
+        if (!isActuallyConnected) {
+          throw new Error('Wallet connection verification failed');
+        }
+      }
+      
+      setState(newState);
+      console.log('Wallet state updated successfully');
+    } catch (error) {
+      console.error('Error in connect callback:', error);
+      setState({
+        isConnected: false,
+        address: null,
+        provider: null,
+        error: error instanceof Error ? error.message : 'Connection failed',
+      });
+      throw error;
+    }
   }, []);
 
   const disconnect = useCallback(async () => {

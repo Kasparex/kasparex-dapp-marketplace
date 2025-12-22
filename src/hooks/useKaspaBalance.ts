@@ -32,12 +32,18 @@ export function useKaspaBalance(): UseKaspaBalanceReturn {
 
   const fetchBalance = useCallback(async () => {
     if (!state.isConnected || !state.address || !state.provider) {
+      console.log('Balance fetch skipped - not connected:', { 
+        isConnected: state.isConnected, 
+        address: state.address, 
+        provider: state.provider 
+      });
       setBalance(null);
       setBalanceInKas(null);
       setIsLoading(false);
       return;
     }
 
+    console.log('Fetching balance for:', { address: state.address, provider: state.provider });
     setIsLoading(true);
     setError(null);
 
@@ -47,7 +53,9 @@ export function useKaspaBalance(): UseKaspaBalanceReturn {
       
       if (walletProvider && walletProvider.getBalance) {
         try {
+          console.log('Calling walletProvider.getBalance()...');
           const balanceResult = await walletProvider.getBalance();
+          console.log('Balance result from wallet:', balanceResult);
           
           if (balanceResult !== null && balanceResult !== undefined) {
             let balanceValue: string | number | null = null;
@@ -92,6 +100,7 @@ export function useKaspaBalance(): UseKaspaBalanceReturn {
                 setBalance(kasBalance);
                 setBalanceInKas(kasBalanceNum);
                 setIsLoading(false);
+                console.log(`✓ Balance fetched successfully: ${kasBalance} KAS`);
                 return;
               }
             }
@@ -103,10 +112,12 @@ export function useKaspaBalance(): UseKaspaBalanceReturn {
 
       // Fallback to API if wallet method doesn't exist or failed
       if (state.address) {
+        console.log('Using API fallback for balance...');
         const balanceInKasValue = await getBalanceInKas(state.address);
         const balanceStr = balanceInKasValue.toFixed(2);
         setBalance(balanceStr);
         setBalanceInKas(balanceInKasValue);
+        console.log(`✓ Balance fetched from API: ${balanceStr} KAS`);
       }
     } catch (err) {
       console.error('Error fetching balance:', err);
