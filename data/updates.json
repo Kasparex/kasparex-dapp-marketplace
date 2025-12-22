@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1766437294-fba0625",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Improve wallet connection and balance fetching - Make connection verification less strict (trust requestAccounts success) - Add better logging throughout connection flow - Ensure balance refreshes when connection state changes - Improve KasWare adapter getBalance error handling (by Kasparex)",
+      "date": "2025-12-22T22:01:12+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1766436773-ad8ce50",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Add logging to wallet connection verification - Add console logs to debug connection state - Improve isConnected check in adapter (by Kasparex)",
