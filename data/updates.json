@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1766438510-c806d0c",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Improve balance parsing and API endpoint - Add detailed logging to inspect balance object structure - Fix API endpoint to use address without kaspa: prefix - Handle more balance object key variations (total, kas, etc.) - Add better error logging for debugging (by Kasparex)",
+      "date": "2025-12-22T22:21:21+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1766437294-fba0625",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Improve wallet connection and balance fetching - Make connection verification less strict (trust requestAccounts success) - Add better logging throughout connection flow - Ensure balance refreshes when connection state changes - Improve KasWare adapter getBalance error handling (by Kasparex)",
