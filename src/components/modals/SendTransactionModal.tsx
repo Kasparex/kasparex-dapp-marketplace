@@ -6,6 +6,7 @@ import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import { kasToSompis } from '@/lib/kaspa/api';
 import { getErrorMessage } from '@/lib/utils';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { useBalanceVisibility, formatBalanceForDisplay } from '@/hooks/useBalanceVisibility';
 
 interface SendTransactionModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ interface SendTransactionModalProps {
 
 export function SendTransactionModal({ isOpen, onClose, currentBalance, address }: SendTransactionModalProps) {
   const { state } = useKaspaWallet();
+  const { isVisible: isBalanceVisible } = useBalanceVisibility();
   const [toAddress, setToAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [priorityFee, setPriorityFee] = useState('');
@@ -182,7 +184,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address 
                     Amount (KAS)
                   </label>
                   <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                    Balance: {currentBalance || '0.00'} KAS
+                    Balance: {formatBalanceForDisplay(currentBalance, 'KAS', false, isBalanceVisible)}
                   </div>
                 </div>
                 <div className="flex gap-2">
