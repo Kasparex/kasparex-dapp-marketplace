@@ -98,5 +98,13 @@ export const hubProjects: HubProject[] = [
     route: '/points',
     status: 'available',
   },
+  {
+    id: 'kasparex-nft-tools',
+    name: 'Kasparex NFT Tools',
+    category: 'NFTs',
+    description: 'Rarity checker, trait analysis, and PFP builder for KREXPRIME and PIXELKREX collections.',
+    route: '/nft',
+    status: 'beta',
+  },
 ];
 
