@@ -8,6 +8,48 @@
 const KASPACOM_API_BASE = 'https://api.kaspa.com/api';
 const KASPACOM_BASE = 'https://api.kaspa.com';
 
+// Use proxy API route in browser, direct API in server
+const getApiUrl = (endpoint: string) => {
+  // In browser, use Next.js API proxy to avoid CORS
+  if (typeof window !== 'undefined') {
+    return `/api/kaspa-com?endpoint=${encodeURIComponent(endpoint)}`;
+  }
+  // Server-side, use direct API
+  return `${KASPACOM_BASE}${endpoint}`;
+};
+
+const getApiUrlWithRefresh = (endpoint: string, refresh = false) => {
+  if (typeof window !== 'undefined') {
+    return `/api/kaspa-com?endpoint=${encodeURIComponent(endpoint)}${refresh ? '&refresh=true' : ''}`;
+  }
+  return `${KASPACOM_BASE}${endpoint}${refresh ? '?refresh=true' : ''}`;
+};
+
+// Helper for POST requests
+const postToApi = async (endpoint: string, body: any) => {
+  if (typeof window !== 'undefined') {
+    // Use proxy for POST requests in browser
+    const response = await fetch(`/api/kaspa-com?endpoint=${encodeURIComponent(endpoint)}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    return response;
+  }
+  // Server-side, use direct API
+  return fetch(`${KASPACOM_API_BASE}${endpoint}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+};
+
 export interface KaspaComNFTRank {
   tokenId: number;
   rank: number;
@@ -98,7 +140,7 @@ export async function fetchCollectionByTicker(
   }
 
   try {
-    const url = `${KASPACOM_BASE}/krc721/${ticker}${refresh ? '?refresh=true' : ''}`;
+    const url = getApiUrlWithRefresh(`/krc721/${ticker}`, refresh);
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -170,17 +212,10 @@ export async function fetchTokenByID(
   tokenId: number
 ): Promise<Krc721Token | null> {
   try {
-    const response = await fetch(`${KASPACOM_API_BASE}/krc721/tokens`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        ticker: ticker.toUpperCase(),
-        tokenIds: [tokenId],
-        limit: 1,
-      }),
+    const response = await postToApi('/krc721/tokens', {
+      ticker: ticker.toUpperCase(),
+      tokenIds: [tokenId],
+      limit: 1,
     });
 
     if (!response.ok) {
@@ -217,19 +252,12 @@ export async function fetchCollectionRanks(
 
     // Fetch tokens in batches
     while (hasMore && ranks.size < limit) {
-      const response = await fetch(`${KASPACOM_API_BASE}/krc721/tokens`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          ticker: collection.toUpperCase(),
-          sortField: 'rank',
-          sortDirection: 'asc',
-          limit: 100, // Max per request
-          offset,
-        }),
+      const response = await postToApi('/krc721/tokens', {
+        ticker: collection.toUpperCase(),
+        sortField: 'rank',
+        sortDirection: 'asc',
+        limit: 100, // Max per request
+        offset,
       });
 
       if (!response.ok) {
@@ -276,17 +304,10 @@ export async function fetchMultipleNFTRanks(
 
   try {
     // Use filter endpoint to get specific tokens
-    const response = await fetch(`${KASPACOM_API_BASE}/krc721/tokens`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        ticker: collection.toUpperCase(),
-        tokenIds,
-        limit: tokenIds.length,
-      }),
+    const response = await postToApi('/krc721/tokens', {
+      ticker: collection.toUpperCase(),
+      tokenIds,
+      limit: tokenIds.length,
     });
 
     if (!response.ok) {
@@ -321,20 +342,13 @@ export async function filterTokensByTraits(
   offset = 0
 ): Promise<FilterTokensResponse | null> {
   try {
-    const response = await fetch(`${KASPACOM_API_BASE}/krc721/tokens`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        ticker: ticker.toUpperCase(),
-        traits,
-        sortField,
-        sortDirection,
-        limit,
-        offset,
-      }),
+    const response = await postToApi('/krc721/tokens', {
+      ticker: ticker.toUpperCase(),
+      traits,
+      sortField,
+      sortDirection,
+      limit,
+      offset,
     });
 
     if (!response.ok) {
@@ -353,7 +367,8 @@ export async function filterTokensByTraits(
  */
 export async function fetchFloorPrice(ticker: string): Promise<number | null> {
   try {
-    const response = await fetch(`${KASPACOM_API_BASE}/krc721/floor-price?ticker=${ticker.toUpperCase()}`);
+    const url = getApiUrl(`/krc721/floor-price?ticker=${ticker.toUpperCase()}`);
+    const response = await fetch(url);
     
     if (!response.ok) {
       return null;
@@ -377,9 +392,8 @@ export async function fetchTradeStats(
   timeFrame: '30d' | '7d' | '1d' | '6h' | '1h' | '15m' | '12h' = '1d'
 ) {
   try {
-    const response = await fetch(
-      `${KASPACOM_API_BASE}/krc721/trade-stats?timeFrame=${timeFrame}&ticker=${ticker.toUpperCase()}`
-    );
+    const url = getApiUrl(`/krc721/trade-stats?timeFrame=${timeFrame}&ticker=${ticker.toUpperCase()}`);
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`KaspaCom API error: ${response.status} ${response.statusText}`);
@@ -411,7 +425,8 @@ export function clearRankCache(collection?: string): void {
 export async function checkKaspaComAPI(): Promise<boolean> {
   try {
     // Try to fetch a known collection
-    const response = await fetch(`${KASPACOM_BASE}/krc721/KREXPRIME`);
+    const url = getApiUrl('/krc721/KREXPRIME');
+    const response = await fetch(url);
     return response.ok;
   } catch {
     return false;
