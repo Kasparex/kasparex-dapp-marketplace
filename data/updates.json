@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1766435585-a9f73dd",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Remove utxoEntries prop from UtxoViewerModal - Modal fetches UTXOs internally (by Kasparex)",
+      "date": "2025-12-22T21:32:33+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1766435244-874efea",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Remove duplicate getWalletProvider function declaration (by Kasparex)",
