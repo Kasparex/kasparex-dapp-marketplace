@@ -382,6 +382,50 @@ export function KasWareWalletButton() {
         isConnected: true,
         address: normalizedAddress,
       }));
+
+      // Immediately fetch balance after connection
+      try {
+        const balanceResult = await kasware.getBalance();
+        if (balanceResult !== null && balanceResult !== undefined) {
+          let balanceValue: string | number | null = null;
+          
+          if (typeof balanceResult === 'string' || typeof balanceResult === 'number') {
+            balanceValue = balanceResult;
+          } else if (balanceResult && typeof balanceResult === 'object') {
+            const resultObj = balanceResult as Record<string, any>;
+            if ('balance' in resultObj) {
+              balanceValue = resultObj.balance;
+            } else if ('amount' in resultObj) {
+              balanceValue = resultObj.amount;
+            } else if ('value' in resultObj) {
+              balanceValue = resultObj.value;
+            }
+          }
+
+          if (balanceValue !== null && balanceValue !== undefined && balanceValue !== '') {
+            const balanceNum = typeof balanceValue === 'string' ? parseFloat(balanceValue) : balanceValue;
+            if (!isNaN(balanceNum) && balanceNum >= 0) {
+              // Convert from sompis to KAS
+              const strValue = balanceNum.toString();
+              const hasDecimals = strValue.includes('.');
+              const decimalPlaces = hasDecimals ? strValue.split('.')[1]?.length || 0 : 0;
+              
+              let kasBalance: string;
+              if (balanceNum < 0.01 && decimalPlaces > 6) {
+                kasBalance = balanceNum.toFixed(8);
+              } else {
+                kasBalance = (balanceNum / 100000000).toFixed(2);
+              }
+              
+              setBalance(kasBalance);
+              console.log(`✓ Balance fetched on connect: ${kasBalance} KAS (raw: ${balanceNum})`);
+            }
+          }
+        }
+      } catch (balanceError) {
+        console.warn('Failed to fetch balance immediately after connection, will retry:', balanceError);
+        // Balance will be fetched by useEffect hook
+      }
     } catch (err) {
       const errorMessage = getErrorMessage(err, 'Failed to connect to KasWare wallet');
       setError(errorMessage);
@@ -427,7 +471,11 @@ export function KasWareWalletButton() {
     const addressWithoutPrefix = address.replace(/^kaspa:/i, '');
     const displayAddress = formatAddressForDisplay(address);
     // Show balance if available, otherwise show loading state
-    const displayBalance = balance !== null && balance !== undefined ? `${balance} KAS` : 'Loading...';
+    const displayBalance = balance !== null && balance !== undefined && balance !== '' 
+      ? `${balance} KAS` 
+      : balance === null 
+        ? 'Loading...' 
+        : '0.00 KAS';
 
     return (
       <div className="relative" ref={dropdownRef}>
