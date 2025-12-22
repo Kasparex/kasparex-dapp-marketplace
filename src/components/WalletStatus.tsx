@@ -11,10 +11,12 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { formatKaspaAddress } from '@/lib/kaspa/wallet';
 import { formatUnits } from 'viem';
 import { useBalance } from 'wagmi';
+import { useBalanceVisibility, formatBalanceForDisplay } from '@/hooks/useBalanceVisibility';
 
 export function WalletStatus() {
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
   const { state: kaspaState } = useKaspaWallet();
+  const { isVisible: isBalanceVisible } = useBalanceVisibility();
   const { data: evmBalance } = useBalance({
     address: evmAddress,
     query: {
@@ -51,11 +53,12 @@ export function WalletStatus() {
             </div>
             {evmBalance && (
               <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                {parseFloat(formatUnits(evmBalance.value, evmBalance.decimals)).toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 6,
-                })}{' '}
-                {evmBalance.symbol}
+                {formatBalanceForDisplay(
+                  parseFloat(formatUnits(evmBalance.value, evmBalance.decimals)),
+                  evmBalance.symbol,
+                  false,
+                  isBalanceVisible
+                )}
               </div>
             )}
           </div>

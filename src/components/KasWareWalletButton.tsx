@@ -11,6 +11,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Avatar } from './Avatar';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
+import { useBalanceVisibility, formatBalanceForDisplay } from '@/hooks/useBalanceVisibility';
 import { detectKaspaWallets } from '@/lib/kaspa/wallet';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import { kasToSompis } from '@/lib/kaspa/api';
@@ -25,6 +26,7 @@ import type { KaspaTransactionRequest } from '@/lib/kaspa/types';
 export function KasWareWalletButton() {
   const { state, connect, disconnect } = useKaspaWallet();
   const { balance, isLoading: balanceLoading, refresh: refreshBalance } = useKaspaBalance();
+  const { isVisible: isBalanceVisible } = useBalanceVisibility();
   
   const [isConnecting, setIsConnecting] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -156,11 +158,7 @@ export function KasWareWalletButton() {
   if (state.isConnected && state.address && state.provider === 'kasware') {
     const addressWithoutPrefix = state.address.replace(/^kaspa:/i, '');
     const displayAddress = formatAddressForDisplay(state.address);
-    const displayBalance = balance !== null && balance !== undefined && balance !== '' 
-      ? `${balance} KAS` 
-      : balanceLoading 
-        ? 'Loading...' 
-        : '0.00 KAS';
+    const displayBalance = formatBalanceForDisplay(balance, 'KAS', balanceLoading, isBalanceVisible);
 
     return (
       <div className="relative" ref={dropdownRef}>

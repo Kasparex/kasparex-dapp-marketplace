@@ -13,12 +13,14 @@ import { useAccount, useBalance, useDisconnect } from 'wagmi';
 import { ConnectButton, useChainModal } from '@rainbow-me/rainbowkit';
 import { formatUnits } from 'viem';
 import { Avatar } from './Avatar';
+import { useBalanceVisibility, formatBalanceForDisplay } from '@/hooks/useBalanceVisibility';
 
 export function EVMWalletButton() {
   const { address, isConnected } = useAccount();
   const { disconnect } = useDisconnect();
   const { openChainModal } = useChainModal();
   const router = useRouter();
+  const { isVisible: isBalanceVisible } = useBalanceVisibility();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -55,9 +57,15 @@ export function EVMWalletButton() {
 
   // If connected, show button with UserMenu dropdown
   if (isConnected && address) {
-    const displayBalance = balance 
-      ? `${parseFloat(formatUnits(balance.value, balance.decimals)).toFixed(2)} ${balance.symbol}`
-      : '0 KAS';
+    const balanceValue = balance 
+      ? parseFloat(formatUnits(balance.value, balance.decimals))
+      : 0;
+    const displayBalance = formatBalanceForDisplay(
+      balanceValue,
+      balance?.symbol || 'KAS',
+      false,
+      isBalanceVisible
+    );
     const displayAddress = formatAddress(address);
     const shortenedAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
 
