@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1766444368-a0eb6eb",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Improve NFT tool accuracy and UX - Add collection metadata loader for accurate rarity calculations, update all components to use full collection data, load traits from actual metadata in PFP builder, add loading progress indicators (by Kasparex)",
+      "date": "2025-12-22T23:58:50+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1766443892-a9b5cd4",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update KaspaCom API integration with actual endpoints - Implement real API calls for NFT ranks, collection data, and L1 NFT querying using KaspaCom API (by Kasparex)",
