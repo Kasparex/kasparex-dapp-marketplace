@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1766445227-b9aab28",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix duplicate loadUserNFTs declaration in UserNFTsTab - Remove duplicate function and useEffect declarations causing build error (by Kasparex)",
+      "date": "2025-12-23T00:12:50+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1766444662-2036c4b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix ESLint errors in NFT components - Fix unescaped apostrophe and useEffect dependency warnings (by Kasparex)",
