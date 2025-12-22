@@ -225,31 +225,6 @@ export function getWalletProvider(provider: KaspaWalletProvider): ExtendedWallet
   }
 }
 
-export function getWalletProvider(provider: KaspaWalletProvider): KaspaWalletProviderInterface | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  const win = getWindow();
-
-  switch (provider) {
-    case 'kasware': {
-      const kasware = win.kasware;
-      if (!kasware) return null;
-      // Create adapter for KasWare to match SDK interface
-      return createKasWareAdapter(kasware);
-    }
-    case 'kaspium':
-      return win.kaspium || null;
-    case 'okx':
-      return win.okx?.kaspa || null;
-    case 'safepal':
-      return win.safepal?.kaspa || null;
-    default:
-      return null;
-  }
-}
-
 /**
  * Connect to a Kaspa wallet
  * 
