@@ -1,9 +1,12 @@
 /**
  * KaspaCom API Integration
- * Fetches NFT rank data from KaspaCom
+ * Fetches NFT rank data and collection information from KaspaCom
  * 
  * API Documentation: https://docs.google.com/document/d/1Cfk0AcmahhcxsunH1EIudNRs1LpNAqqHswnBXhzKnHE/edit?usp=sharing
  */
+
+const KASPACOM_API_BASE = 'https://api.kaspa.com/api';
+const KASPACOM_BASE = 'https://api.kaspa.com';
 
 export interface KaspaComNFTRank {
   tokenId: number;
@@ -17,16 +20,111 @@ export interface KaspaComCollectionRanks {
   ranks: Map<number, number>; // tokenId -> rank
 }
 
-/**
- * Base URL for KaspaCom API
- * TODO: Update with actual API endpoint from documentation
- */
-const KASPACOM_API_BASE = 'https://api.kaspa.com'; // Placeholder - update based on docs
+export interface Krc721Collection {
+  ticker: string;
+  totalSupply: number;
+  totalMinted: number;
+  totalMintedPercent: number;
+  totalHolders: number;
+  preMintedSupply: number;
+  holders: Array<{
+    walletAddress: string;
+    tokenIds: number[];
+    [key: string]: unknown;
+  }>;
+  state?: string;
+  metadata: {
+    name?: string;
+    description?: string;
+    image?: string;
+    [key: string]: unknown;
+  };
+  volume?: number;
+  price?: number;
+  marketCap?: number;
+  volumeUsd?: number;
+  volume24h?: number;
+  rank?: number;
+  deployer?: string;
+  buri?: string;
+  mintPrice?: number;
+  mintFundsRecipient?: string;
+  creationDate?: number;
+  startMintDate?: number;
+  totalVolume?: number;
+  [key: string]: unknown;
+}
+
+export interface Krc721Token {
+  tokenId: number;
+  ticker: string;
+  image?: string;
+  metadata?: {
+    name?: string;
+    attributes?: Array<{
+      trait_type: string;
+      value: string | number;
+    }>;
+    [key: string]: unknown;
+  };
+  rank?: number;
+  price?: number;
+  [key: string]: unknown;
+}
+
+export interface FilterTokensResponse {
+  items: Krc721Token[];
+  totalCount: number;
+}
 
 /**
  * Cache for rank data
  */
 const rankCache = new Map<string, KaspaComCollectionRanks>();
+const collectionCache = new Map<string, Krc721Collection>();
+
+/**
+ * Fetch collection data by ticker
+ */
+export async function fetchCollectionByTicker(
+  ticker: string,
+  refresh = false
+): Promise<Krc721Collection | null> {
+  const cacheKey = ticker.toUpperCase();
+
+  // Return cached data if available and not refreshing
+  if (!refresh && collectionCache.has(cacheKey)) {
+    return collectionCache.get(cacheKey)!;
+  }
+
+  try {
+    const url = `${KASPACOM_BASE}/krc721/${ticker}${refresh ? '?refresh=true' : ''}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        console.warn(`Collection ${ticker} not found`);
+        return null;
+      }
+      throw new Error(`KaspaCom API error: ${response.status} ${response.statusText}`);
+    }
+
+    const collection = await response.json() as Krc721Collection;
+    
+    // Cache the result
+    collectionCache.set(cacheKey, collection);
+
+    return collection;
+  } catch (error) {
+    console.error(`Error fetching collection ${ticker}:`, error);
+    return null;
+  }
+}
 
 /**
  * Fetch rank for a specific NFT
@@ -37,19 +135,24 @@ export async function fetchNFTRank(
 ): Promise<number | null> {
   try {
     // Try to get from cache first
-    const cacheKey = collection.toLowerCase();
+    const cacheKey = collection.toUpperCase();
     const cached = rankCache.get(cacheKey);
     if (cached?.ranks.has(tokenId)) {
       return cached.ranks.get(tokenId)!;
     }
 
-    // Fetch collection ranks if not cached
-    if (!cached) {
-      await fetchCollectionRanks(collection);
-      const updatedCache = rankCache.get(cacheKey);
-      if (updatedCache?.ranks.has(tokenId)) {
-        return updatedCache.ranks.get(tokenId)!;
+    // Fetch token data using filter endpoint
+    const token = await fetchTokenByID(collection, tokenId);
+    if (token?.rank) {
+      // Update cache
+      if (!cached) {
+        rankCache.set(cacheKey, {
+          collection: collection.toUpperCase(),
+          ranks: new Map(),
+        });
       }
+      rankCache.get(cacheKey)!.ranks.set(tokenId, token.rank);
+      return token.rank;
     }
 
     return null;
@@ -60,13 +163,47 @@ export async function fetchNFTRank(
 }
 
 /**
+ * Fetch a specific token by ID
+ */
+export async function fetchTokenByID(
+  ticker: string,
+  tokenId: number
+): Promise<Krc721Token | null> {
+  try {
+    const response = await fetch(`${KASPACOM_API_BASE}/krc721/tokens`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        ticker: ticker.toUpperCase(),
+        tokenIds: [tokenId],
+        limit: 1,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`KaspaCom API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json() as FilterTokensResponse;
+    return data.items[0] || null;
+  } catch (error) {
+    console.error(`Error fetching token ${ticker} #${tokenId}:`, error);
+    return null;
+  }
+}
+
+/**
  * Fetch ranks for an entire collection
- * TODO: Implement based on actual KaspaCom API documentation
+ * Uses the filter endpoint to get all tokens with ranks
  */
 export async function fetchCollectionRanks(
-  collection: string
+  collection: string,
+  limit = 1000
 ): Promise<KaspaComCollectionRanks | null> {
-  const cacheKey = collection.toLowerCase();
+  const cacheKey = collection.toUpperCase();
 
   // Return cached data if available
   if (rankCache.has(cacheKey)) {
@@ -74,17 +211,47 @@ export async function fetchCollectionRanks(
   }
 
   try {
-    // TODO: Replace with actual API endpoint from documentation
-    // Example structure (to be updated):
-    // const response = await fetch(`${KASPACOM_API_BASE}/nft/collections/${collection}/ranks`);
-    // const data = await response.json();
-    
-    // Placeholder implementation
-    // This will be replaced once we review the actual API documentation
     const ranks = new Map<number, number>();
-    
+    let offset = 0;
+    let hasMore = true;
+
+    // Fetch tokens in batches
+    while (hasMore && ranks.size < limit) {
+      const response = await fetch(`${KASPACOM_API_BASE}/krc721/tokens`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          ticker: collection.toUpperCase(),
+          sortField: 'rank',
+          sortDirection: 'asc',
+          limit: 100, // Max per request
+          offset,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`KaspaCom API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json() as FilterTokensResponse;
+      
+      // Extract ranks
+      data.items.forEach((token) => {
+        if (token.rank !== undefined) {
+          ranks.set(token.tokenId, token.rank);
+        }
+      });
+
+      // Check if there are more items
+      hasMore = data.items.length === 100 && ranks.size < data.totalCount;
+      offset += 100;
+    }
+
     const result: KaspaComCollectionRanks = {
-      collection,
+      collection: collection.toUpperCase(),
       ranks,
     };
 
@@ -107,21 +274,122 @@ export async function fetchMultipleNFTRanks(
 ): Promise<Map<number, number>> {
   const result = new Map<number, number>();
 
-  // Fetch collection ranks first
-  const collectionRanks = await fetchCollectionRanks(collection);
-  if (!collectionRanks) {
+  try {
+    // Use filter endpoint to get specific tokens
+    const response = await fetch(`${KASPACOM_API_BASE}/krc721/tokens`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        ticker: collection.toUpperCase(),
+        tokenIds,
+        limit: tokenIds.length,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`KaspaCom API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json() as FilterTokensResponse;
+    
+    // Extract ranks
+    data.items.forEach((token) => {
+      if (token.rank !== undefined) {
+        result.set(token.tokenId, token.rank);
+      }
+    });
+
+    return result;
+  } catch (error) {
+    console.error(`Error fetching ranks for multiple NFTs:`, error);
     return result;
   }
+}
 
-  // Extract ranks for requested token IDs
-  tokenIds.forEach((tokenId) => {
-    const rank = collectionRanks.ranks.get(tokenId);
-    if (rank !== undefined) {
-      result.set(tokenId, rank);
+/**
+ * Fetch tokens filtered by traits
+ */
+export async function filterTokensByTraits(
+  ticker: string,
+  traits: Record<string, (string | number)[]>,
+  sortField = 'rank',
+  sortDirection: 'asc' | 'desc' = 'asc',
+  limit = 20,
+  offset = 0
+): Promise<FilterTokensResponse | null> {
+  try {
+    const response = await fetch(`${KASPACOM_API_BASE}/krc721/tokens`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        ticker: ticker.toUpperCase(),
+        traits,
+        sortField,
+        sortDirection,
+        limit,
+        offset,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`KaspaCom API error: ${response.status} ${response.statusText}`);
     }
-  });
 
-  return result;
+    return await response.json() as FilterTokensResponse;
+  } catch (error) {
+    console.error(`Error filtering tokens by traits:`, error);
+    return null;
+  }
+}
+
+/**
+ * Fetch collection floor price
+ */
+export async function fetchFloorPrice(ticker: string): Promise<number | null> {
+  try {
+    const response = await fetch(`${KASPACOM_API_BASE}/krc721/floor-price?ticker=${ticker.toUpperCase()}`);
+    
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json() as Array<{ ticker: string; floor_price: number }>;
+    const collection = data.find((item) => item.ticker.toUpperCase() === ticker.toUpperCase());
+    
+    return collection?.floor_price || null;
+  } catch (error) {
+    console.error(`Error fetching floor price for ${ticker}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Fetch collection trade statistics
+ */
+export async function fetchTradeStats(
+  ticker: string,
+  timeFrame: '30d' | '7d' | '1d' | '6h' | '1h' | '15m' | '12h' = '1d'
+) {
+  try {
+    const response = await fetch(
+      `${KASPACOM_API_BASE}/krc721/trade-stats?timeFrame=${timeFrame}&ticker=${ticker.toUpperCase()}`
+    );
+    
+    if (!response.ok) {
+      throw new Error(`KaspaCom API error: ${response.status} ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching trade stats for ${ticker}:`, error);
+    return null;
+  }
 }
 
 /**
@@ -129,9 +397,11 @@ export async function fetchMultipleNFTRanks(
  */
 export function clearRankCache(collection?: string): void {
   if (collection) {
-    rankCache.delete(collection.toLowerCase());
+    rankCache.delete(collection.toUpperCase());
+    collectionCache.delete(collection.toUpperCase());
   } else {
     rankCache.clear();
+    collectionCache.clear();
   }
 }
 
@@ -140,12 +410,10 @@ export function clearRankCache(collection?: string): void {
  */
 export async function checkKaspaComAPI(): Promise<boolean> {
   try {
-    // TODO: Implement health check endpoint once API is known
-    // const response = await fetch(`${KASPACOM_API_BASE}/health`);
-    // return response.ok;
-    return false; // Placeholder - will be updated
+    // Try to fetch a known collection
+    const response = await fetch(`${KASPACOM_BASE}/krc721/KREXPRIME`);
+    return response.ok;
   } catch {
     return false;
   }
 }
-

@@ -7,6 +7,7 @@ import { collections, type CollectionConfig } from './collections';
 import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
 import { readContract } from '@wagmi/core';
 import { config as wagmiConfig } from '@/lib/wagmi';
+import { fetchCollectionByTicker, type Krc721Collection } from './kaspa-com-api';
 
 export interface UserNFT {
   tokenId: number;
@@ -17,8 +18,7 @@ export interface UserNFT {
 
 /**
  * Query NFTs from Kaspa L1 (KRC-721)
- * TODO: Implement actual KRC-721 query logic once API is available
- * This may require querying KaspaCom API or scanning UTXOs for NFT inscriptions
+ * Uses KaspaCom API to fetch collection data and filter by wallet address
  */
 export async function queryL1NFTs(
   address: string,
@@ -32,17 +32,41 @@ export async function queryL1NFTs(
   const results: UserNFT[] = [];
 
   try {
-    // TODO: Implement actual NFT querying
-    // Options:
-    // 1. Query KaspaCom API for NFTs owned by address
-    // 2. Scan UTXOs for NFT inscriptions
-    // 3. Use a Kaspa NFT indexer service
-    
-    // Placeholder - will be implemented based on available APIs
-    // Example structure:
-    // const response = await fetch(`https://api.kaspa.com/nft/owner/${address}`);
-    // const nfts = await response.json();
-    // Filter by collection deployer and return results
+    // Normalize address (remove kaspa: prefix for comparison)
+    const normalizedAddress = address.replace(/^kaspa:/i, '').toLowerCase();
+
+    // Query each collection
+    for (const collectionId of collectionIds) {
+      const collection = collections[collectionId];
+      if (!collection) continue;
+
+      try {
+        // Fetch collection data from KaspaCom API
+        const collectionData = await fetchCollectionByTicker(collectionId);
+        if (!collectionData || !collectionData.holders) {
+          continue;
+        }
+
+        // Find holder matching the address
+        const holder = collectionData.holders.find(
+          (h) => h.walletAddress.replace(/^kaspa:/i, '').toLowerCase() === normalizedAddress
+        );
+
+        if (holder && holder.tokenIds && holder.tokenIds.length > 0) {
+          // Add all token IDs owned by this address
+          holder.tokenIds.forEach((tokenId) => {
+            results.push({
+              tokenId: typeof tokenId === 'number' ? tokenId : parseInt(String(tokenId), 10),
+              collection: collectionId,
+              collectionConfig: collection,
+              network: 'L1',
+            });
+          });
+        }
+      } catch (error) {
+        console.warn(`Error querying L1 NFTs for ${collectionId}:`, error);
+      }
+    }
 
     return results;
   } catch (error) {
