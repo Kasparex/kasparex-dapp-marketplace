@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1766435244-874efea",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Remove duplicate getWalletProvider function declaration (by Kasparex)",
+      "date": "2025-12-22T21:26:09+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1766434909-b34099b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: refactor: Rebuild KasWare integration using L1 Kaspa wallet SDK - Remove old KasWare implementation - Create new KasWareWalletButton using useKaspaWallet hook - Add useKaspaBalance hook for balance fetching through SDK - Create wallet provider adapter to map KasWare API to SDK interface - Update SendTransactionModal to use SDK transaction functions - Ensure balance fetching works through wallet.getBalance() - Ensure transactions work through SDK sendKaspaTransaction (by Kasparex)",
