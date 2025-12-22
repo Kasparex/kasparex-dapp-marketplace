@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1766445484-f346677",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix @wagmi/core import error - Replace readContract from @wagmi/core with viem's createPublicClient for server-side contract reads (by Kasparex)",
+      "date": "2025-12-23T00:17:25+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1766445227-b9aab28",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix duplicate loadUserNFTs declaration in UserNFTsTab - Remove duplicate function and useEffect declarations causing build error (by Kasparex)",
