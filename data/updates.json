@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1766443892-a9b5cd4",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update KaspaCom API integration with actual endpoints - Implement real API calls for NFT ranks, collection data, and L1 NFT querying using KaspaCom API (by Kasparex)",
+      "date": "2025-12-22T23:50:28+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1766443622-cba8ded",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add NFT Rarity & Traits Checker with PFP Builder - Implement comprehensive NFT tool with rarity checker, trait analysis, PFP builder, and wallet integration for KREXPRIME and PIXELKREX collections (by Kasparex)",
