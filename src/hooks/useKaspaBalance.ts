@@ -56,6 +56,11 @@ export function useKaspaBalance(): UseKaspaBalanceReturn {
           console.log('Calling walletProvider.getBalance()...');
           const balanceResult = await walletProvider.getBalance();
           console.log('Balance result from wallet:', balanceResult);
+          console.log('Balance result type:', typeof balanceResult);
+          if (balanceResult && typeof balanceResult === 'object') {
+            console.log('Balance result keys:', Object.keys(balanceResult));
+            console.log('Balance result full object:', JSON.stringify(balanceResult, null, 2));
+          }
           
           if (balanceResult !== null && balanceResult !== undefined) {
             let balanceValue: string | number | null = null;
@@ -63,14 +68,39 @@ export function useKaspaBalance(): UseKaspaBalanceReturn {
             // Handle different response formats
             if (typeof balanceResult === 'string' || typeof balanceResult === 'number') {
               balanceValue = balanceResult;
+              console.log('Balance is primitive:', balanceValue);
             } else if (balanceResult && typeof balanceResult === 'object') {
               const resultObj = balanceResult as Record<string, any>;
+              // Try common keys
               if ('balance' in resultObj) {
                 balanceValue = resultObj.balance;
+                console.log('Found balance key:', balanceValue);
               } else if ('amount' in resultObj) {
                 balanceValue = resultObj.amount;
+                console.log('Found amount key:', balanceValue);
               } else if ('value' in resultObj) {
                 balanceValue = resultObj.value;
+                console.log('Found value key:', balanceValue);
+              } else if ('total' in resultObj) {
+                balanceValue = resultObj.total;
+                console.log('Found total key:', balanceValue);
+              } else if ('kas' in resultObj) {
+                balanceValue = resultObj.kas;
+                console.log('Found kas key:', balanceValue);
+              } else {
+                // Try to get first numeric value from object
+                const keys = Object.keys(resultObj);
+                for (const key of keys) {
+                  const val = resultObj[key];
+                  if (typeof val === 'number' || (typeof val === 'string' && !isNaN(parseFloat(val)))) {
+                    balanceValue = val;
+                    console.log(`Found numeric value in key "${key}":`, balanceValue);
+                    break;
+                  }
+                }
+                if (balanceValue === null) {
+                  console.warn('Could not extract balance from object:', resultObj);
+                }
               }
             }
 

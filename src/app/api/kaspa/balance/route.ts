@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
           'Accept': 'application/json',
         },
         body: JSON.stringify({
-          addresses: [fullAddress],
+          addresses: [addressWithoutPrefix], // API expects address without kaspa: prefix
         }),
         cache: 'no-store',
         signal: AbortSignal.timeout(10000),

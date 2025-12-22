@@ -46,9 +46,10 @@ export async function getUtxosByAddress(address: string): Promise<{
     throw new Error(`Invalid Kaspa address: ${address}`);
   }
 
+  // Remove kaspa: prefix for API call - API expects address without prefix
   const addressWithoutPrefix = address.replace(/^kaspa:/i, '');
-  const fullAddress = address.startsWith('kaspa:') ? address : `kaspa:${addressWithoutPrefix}`;
 
+  console.log('Fetching UTXOs for address:', addressWithoutPrefix);
   const response = await fetch(`${KASPA_API_BASE}/v1/addresses/utxos`, {
     method: 'POST',
     headers: {
@@ -56,11 +57,13 @@ export async function getUtxosByAddress(address: string): Promise<{
       'Accept': 'application/json',
     },
     body: JSON.stringify({
-      addresses: [fullAddress],
+      addresses: [addressWithoutPrefix], // API expects address without kaspa: prefix
     }),
     cache: 'no-store',
     signal: AbortSignal.timeout(10000),
   });
+  
+  console.log('UTXO API response status:', response.status, response.statusText);
 
   if (!response.ok) {
     throw new Error(`Kaspa API error: ${response.status} ${response.statusText}`);
