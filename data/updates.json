@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1766447863-12c03c9",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix L2 NFT querying errors - Skip L2 queries for L1-only collections (KREXPRIME, PIXELKREX) - Only query L2 if collection has l2ContractAddress configured - Prevents errors from calling zero address contracts (by Kasparex)",
+      "date": "2025-12-23T00:57:18+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1766447279-15779e3",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix IPFS CORS and improve wallet NFT fetching - Add IPFS proxy API route to bypass CORS for Pinata gateway - Update IPFS gateway functions to use proxy in browser - Improve wallet NFT querying with better error handling and address matching (by Kasparex)",
