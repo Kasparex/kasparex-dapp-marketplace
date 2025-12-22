@@ -32,7 +32,6 @@ export function KasWareWalletButton() {
   const [copied, setCopied] = useState(false);
   const [krc20Tokens, setKrc20Tokens] = useState<Array<{ tick: string; amount: string | number; [key: string]: any }>>([]);
   const [krc20TokensLoading, setKrc20TokensLoading] = useState(false);
-  const [utxoEntries, setUtxoEntries] = useState<Array<{ amount: number | string; [key: string]: any }>>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   // Modal states
@@ -75,25 +74,6 @@ export function KasWareWalletButton() {
     return () => clearInterval(interval);
   }, [state.isConnected, state.provider]);
 
-  // Fetch UTXO entries when connected
-  useEffect(() => {
-    if (!state.isConnected || state.provider !== 'kasware') {
-      setUtxoEntries([]);
-      return;
-    }
-
-    const fetchUtxos = async () => {
-      try {
-        const utxos = await getUtxoEntries();
-        setUtxoEntries(utxos || []);
-      } catch (err) {
-        console.error('Failed to fetch UTXO entries:', err);
-        setUtxoEntries([]);
-      }
-    };
-
-    fetchUtxos();
-  }, [state.isConnected, state.provider]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -297,7 +277,6 @@ export function KasWareWalletButton() {
         <UtxoViewerModal
           isOpen={isUtxoModalOpen}
           onClose={() => setIsUtxoModalOpen(false)}
-          utxoEntries={utxoEntries}
         />
         
         <KRC20OrderModal
