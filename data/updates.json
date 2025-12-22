@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1766439745-e4c6465",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat: Update SendTransactionModal to respect balance visibility (by Kasparex)",
+      "date": "2025-12-22T22:41:35+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1766438510-c806d0c",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Improve balance parsing and API endpoint - Add detailed logging to inspect balance object structure - Fix API endpoint to use address without kaspa: prefix - Handle more balance object key variations (total, kas, etc.) - Add better error logging for debugging (by Kasparex)",
