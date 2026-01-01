@@ -154,19 +154,43 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
 
   /**
    * Normalize trait value to match file name
-   * Converts spaces and special characters to underscores
+   * Strips trait type suffix and converts spaces/special characters to underscores
    * Examples:
-   *   "Byte Moss" -> "Byte_Moss"
+   *   "Plasma Pop Skin" -> "Plasma_Pop" (removes "Skin")
+   *   "Pixel Drift Mask" -> "Pixel_Drift" (removes "Mask")
+   *   "Snapback Cap Hat" -> "Snapback_Cap" (removes "Hat")
+   *   "Byte Moss" -> "Byte_Moss" (no suffix to remove)
    *   "Binary Soul – emotionless digital stare" -> "Binary_Soul_emotionless_digital_stare"
-   *   "3D Sync – binary signal mode" -> "3D_Sync_binary_signal_mode"
-   *   "Hot Pink" -> "Hot_Pink"
-   *   "Brown Cigarette" -> "Brown_Cigarette"
    */
-  const normalizeTraitValue = (value: string): string => {
+  const normalizeTraitValue = (value: string, traitType: string): string => {
     let normalized = String(value)
+      .trim();
+    
+    // Strip trait type suffix from the value (e.g., "Plasma Pop Skin" -> "Plasma Pop")
+    // This handles cases where metadata includes the trait type in the value
+    const traitTypeLower = traitType.toLowerCase().trim();
+    const traitTypeVariations = [
+      traitTypeLower,
+      'skin', 'mask', 'hat', 'cap', 'diamond', 'nose', 'mouth',
+      'eyewear', 'headphone', 'clothing', 'outfit', 'background'
+    ];
+    
+    // Remove trait type suffix if present (case-insensitive)
+    for (const variation of traitTypeVariations) {
+      // Remove at the end: "Plasma Pop Skin" -> "Plasma Pop"
+      const suffixPattern = new RegExp(`\\s+${variation.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+      normalized = normalized.replace(suffixPattern, '');
+      
+      // Also try removing if it's a separate word: "Mask" at the end
+      if (normalized.toLowerCase().endsWith(` ${variation}`)) {
+        normalized = normalized.slice(0, -(variation.length + 1));
+      }
+    }
+    
+    // Now normalize the remaining value
+    normalized = normalized
       .trim()
       // First, replace em dashes, en dashes, and other dash-like characters with spaces
-      // This ensures "Binary Soul – emotionless" becomes "Binary Soul emotionless" before underscore conversion
       .replace(/[–—――‒―]/g, ' ')
       // Replace other special characters (except hyphens, underscores, dots) with spaces
       .replace(/[^\w\s\-_.]/g, ' ')
@@ -181,6 +205,8 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       // Remove leading/trailing underscores
       .replace(/^_+|_+$/g, '');
     
+    console.log(`[PFP Builder] Normalized trait value: "${value}" (type: "${traitType}") -> "${normalized}"`);
+    
     return normalized;
   };
 
@@ -189,7 +215,7 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
    */
   const getTraitImageUrl = (traitType: string, value: string): string | null => {
     const folderName = mapTraitTypeToFolder(traitType);
-    const normalizedValue = normalizeTraitValue(value);
+    const normalizedValue = normalizeTraitValue(value, traitType);
     
     // Debug logging for troubleshooting (always log for debugging)
     console.log(`[PFP Builder] Getting image URL for trait:`, {
@@ -458,7 +484,7 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             const folderName = mapTraitTypeToFolder(activeTraitTab);
-                            const normalizedValue = normalizeTraitValue(value);
+                            const normalizedValue = normalizeTraitValue(value, activeTraitTab);
                             console.error(`[PFP Builder] Failed to load image:`, {
                               traitType: activeTraitTab,
                               traitValue: value,
