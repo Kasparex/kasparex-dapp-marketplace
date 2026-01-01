@@ -54,13 +54,13 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
         
         // Traits that don't have corresponding image files (remove from display)
         const missingTraitValues = [
-          // Missing Hat traits
+          // Missing Hat traits (confirmed no files exist)
           'Snapback Cap Front Green Pepe',
           'Snapback Cap Back Dark Violet',
           'Snapback Cap Front Cream Pink Panther',
           'Snapback Cap Front White Pink Panther',
           'Snapback Cap Back Green Duck',
-          'Kaspa Winter Hat',
+          'Kaspa Winter Hat', // File doesn't exist, but other "Winter Hat" variants might
           'Rainbow Hair',
           'Headband Scarf Violet',
           'Cherry Hair',
@@ -264,12 +264,35 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       normalized = normalized.replace(/\s+masks?$/i, '');
     } else if (traitTypeLower.includes('hat') || traitTypeLower.includes('hats')) {
       // HATS: Mixed pattern - some files have "Hat"/"Cap", some don't
-      // Files: "Golden_Digger_Hat.png", "Burnt_Rust_Cap.png", "Blue_Byte.png"
-      // Strategy: Always strip trailing "Hat"/"Hats" suffix
-      // If metadata has "Snapback Cap Hat", file is likely "Snapback_Cap.png" (strip "Hat", keep "Cap")
-      // If metadata has "Golden Digger Hat", file might be "Golden_Digger_Hat.png" but metadata probably doesn't have redundant "Hat"
-      // Based on console errors, it seems metadata often has redundant "Hat" suffix that needs stripping
-      normalized = normalized.replace(/\s+hats?$/i, '');
+      // Files: "Golden_Digger_Hat.png", "Burnt_Rust_Cap.png", "Blue_Byte.png", "Winter_Hat.png"
+      // Strategy: 
+      // 1. Keep compound names like "Winter Hat" together (file is "Winter_Hat.png")
+      // 2. Strip standalone "Hat"/"Hats" suffix only if it's not part of a compound name
+      // 3. "Snapback Cap..." traits keep "Cap" but strip trailing "Hat" if present
+      
+      // HATS: Handle different patterns
+      // Pattern 1: "Winter Hat" compound names - keep "Hat" (file: "Winter_Hat.png", "Pink_Winter_Hat.png")
+      // Pattern 2: "Snapback Cap..." - strip trailing "Hat" if present, keep "Cap" (file: "Snapback_Cap_Back_...png")
+      // Pattern 3: Other traits - strip trailing "Hat" (file: "Crown.png", "Bravo_Hair.png")
+      
+      // First, handle "Winter Hat" as a compound name (must come before general "Hat" stripping)
+      // Replace "Winter Hat" with "Winter_Hat" to preserve it through normalization
+      // This handles: "Winter Hat", "Pink Winter Hat", "Dark Green Winter Hat", etc.
+      normalized = normalized.replace(/\b(winter\s+hat)\b/gi, 'Winter_Hat');
+      
+      // For "Snapback Cap..." traits, strip trailing "Hat" but keep "Cap"
+      // These traits don't have "Hat" in the filename, only "Cap"
+      if (normalized.toLowerCase().includes('snapback cap')) {
+        normalized = normalized.replace(/\s+hats?$/i, '');
+      } else {
+        // For other traits, strip trailing "Hat" only if it's not part of "Winter_Hat"
+        // Check if we have "Winter_Hat" (our compound marker) - if so, don't strip anything
+        if (!normalized.includes('Winter_Hat')) {
+          normalized = normalized.replace(/\s+hats?$/i, '');
+        }
+      }
+      
+      console.log(`[PFP Builder] Hat normalization: "${value}" -> "${normalized}"`);
     } else if (traitTypeLower.includes('eyewear')) {
       // EYEWEAR: Files DON'T include "Eyewear" but may include "wear" (e.g., "Synth_Golds_shining_legacy_wear.png")
       // Files use mixed case: main words capitalized, descriptive text after " - " or " – " is lowercase
