@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767283232-c5094b0",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Prepare for cleaned IPFS folder structure - Filter out unnecessary traits (Digital Signature, Created By, NFT Grid, social links) - Update IPFS path to work without 'Pixelkrex traits' parent folder - Update documentation to reflect cleaner folder structure (by Kasparex)",
+      "date": "2026-01-01T17:00:05+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767282241-aefcf5a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add error response logging to IPFS gateway failures (by Kasparex)",
