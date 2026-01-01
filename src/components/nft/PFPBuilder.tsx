@@ -154,36 +154,79 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
 
   /**
    * Normalize trait value to match file name
-   * Strips trait type suffix and converts spaces/special characters to underscores
+   * Strips trait type suffix (when files don't include it) and converts spaces/special characters to underscores
+   * 
+   * File naming patterns observed:
+   * - BASE/SKIN: Files DON'T include "Skin" (e.g., "Plasma_Pop.png") → strip "Skin"
+   * - MASKS: Files DON'T include "Mask" (e.g., "Pixel_Drift.png") → strip "Mask"
+   * - DIAMONDS: Files DO include "Diamond" (e.g., "Aurora_Core_Diamond.png") → keep "Diamond"
+   * - HATS: Mixed - some include "Hat"/"Cap", some don't → try stripping first, files that need it will have it
+   * - EYEWEAR: Files DON'T include "Eyewear" but may include "wear" → strip "Eyewear" but keep "wear"
+   * - MOUTH: Files DON'T include "Mouth" → strip "Mouth"
+   * - NOSES: Files DON'T include "Nose" → strip "Nose"
+   * 
    * Examples:
    *   "Plasma Pop Skin" -> "Plasma_Pop" (removes "Skin")
    *   "Pixel Drift Mask" -> "Pixel_Drift" (removes "Mask")
-   *   "Snapback Cap Hat" -> "Snapback_Cap" (removes "Hat")
-   *   "Byte Moss" -> "Byte_Moss" (no suffix to remove)
+   *   "Aurora Core Diamond" -> "Aurora_Core_Diamond" (keeps "Diamond")
+   *   "Synth Golds Shining Legacy Wear Eyewear" -> "Synth_Golds_shining_legacy_wear" (removes "Eyewear", keeps "wear")
    *   "Binary Soul – emotionless digital stare" -> "Binary_Soul_emotionless_digital_stare"
    */
   const normalizeTraitValue = (value: string, traitType: string): string => {
     let normalized = String(value)
       .trim();
     
-    // Strip trait type suffix from the value (e.g., "Plasma Pop Skin" -> "Plasma Pop")
-    // This handles cases where metadata includes the trait type in the value
     const traitTypeLower = traitType.toLowerCase().trim();
-    const traitTypeVariations = [
-      traitTypeLower,
-      'skin', 'mask', 'hat', 'cap', 'diamond', 'nose', 'mouth',
-      'eyewear', 'headphone', 'clothing', 'outfit', 'background'
-    ];
     
-    // Remove trait type suffix if present (case-insensitive)
-    for (const variation of traitTypeVariations) {
-      // Remove at the end: "Plasma Pop Skin" -> "Plasma Pop"
-      const suffixPattern = new RegExp(`\\s+${variation.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
-      normalized = normalized.replace(suffixPattern, '');
-      
-      // Also try removing if it's a separate word: "Mask" at the end
-      if (normalized.toLowerCase().endsWith(` ${variation}`)) {
-        normalized = normalized.slice(0, -(variation.length + 1));
+    // Trait-specific suffix stripping rules based on actual file naming patterns
+    if (traitTypeLower.includes('diamond')) {
+      // DIAMONDS: Files ALWAYS include "Diamond" (e.g., "Aurora_Core_Diamond.png")
+      // DON'T strip "Diamond" suffix
+      // Example: "Aurora Core Diamond" -> "Aurora_Core_Diamond"
+    } else if (traitTypeLower.includes('skin')) {
+      // BASE/SKIN: Files DON'T include "Skin" (e.g., "Plasma_Pop.png")
+      // ALWAYS strip "Skin" suffix
+      normalized = normalized.replace(/\s+skin$/i, '');
+    } else if (traitTypeLower.includes('mask')) {
+      // MASKS: Files DON'T include "Mask" (e.g., "Pixel_Drift.png", "Bitmask_Blaze.png")
+      // ALWAYS strip "Mask"/"Masks" suffix
+      normalized = normalized.replace(/\s+masks?$/i, '');
+    } else if (traitTypeLower.includes('hat') || traitTypeLower.includes('hats')) {
+      // HATS: Mixed pattern - some files have "Hat"/"Cap", some don't
+      // Files: "Golden_Digger_Hat.png", "Burnt_Rust_Cap.png", "Blue_Byte.png"
+      // Strategy: Always strip trailing "Hat"/"Hats" suffix
+      // If metadata has "Snapback Cap Hat", file is likely "Snapback_Cap.png" (strip "Hat", keep "Cap")
+      // If metadata has "Golden Digger Hat", file might be "Golden_Digger_Hat.png" but metadata probably doesn't have redundant "Hat"
+      // Based on console errors, it seems metadata often has redundant "Hat" suffix that needs stripping
+      normalized = normalized.replace(/\s+hats?$/i, '');
+    } else if (traitTypeLower.includes('eyewear')) {
+      // EYEWEAR: Files DON'T include "Eyewear" but may include "wear" (e.g., "Synth_Golds_shining_legacy_wear.png")
+      // Strip "Eyewear" but keep "wear" if it's part of the name
+      normalized = normalized.replace(/\s+eyewear$/i, '');
+    } else if (traitTypeLower.includes('nose')) {
+      // NOSES: Files DO include "Nose" (e.g., "Krex_Nose.png")
+      // DON'T strip "Nose" suffix - keep it as-is
+      // Example: "Krex Nose" -> "Krex_Nose"
+    } else if (traitTypeLower.includes('mouth')) {
+      // MOUTH: Files DON'T include "Mouth" (e.g., "Binary_Grin.png", "Byte_Beam.png")
+      // ALWAYS strip "Mouth" suffix
+      normalized = normalized.replace(/\s+mouth$/i, '');
+    } else if (traitTypeLower.includes('background')) {
+      // BACKGROUNDS: Files DON'T include "Background" (e.g., "Aqua_Mint.png", "Blue.png")
+      // ALWAYS strip "Background"/"Backgrounds" suffix
+      normalized = normalized.replace(/\s+backgrounds?$/i, '');
+    } else if (traitTypeLower.includes('headphone')) {
+      // HEADPHONES: Files may or may not include "Headphone" - check actual files
+      // File: "Kasparex_Records.png" - doesn't have "Headphone"
+      // Strip "Headphone"/"Headphones" suffix
+      normalized = normalized.replace(/\s+headphones?$/i, '');
+    } else {
+      // For other trait types, try stripping the trait type name if it appears at the end
+      const traitTypeWords = traitTypeLower.split(/\s+/);
+      for (const word of traitTypeWords) {
+        if (word.length > 2) { // Only strip words longer than 2 characters
+          normalized = normalized.replace(new RegExp(`\\s+${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'), '');
+        }
       }
     }
     
