@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767291141-86615e6",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix trait filtering and improve debugging for PFP Builder - Added case-insensitive filtering for Digital Signature and Created By - Improved folder mapping with better logging - Added comprehensive console logging for trait loading and image URLs - Enhanced error messages with full context (by Kasparex)",
+      "date": "2026-01-01T19:11:41+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767289836-4ae3e89",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix PFP Builder trait normalization and improve debugging - Removed Digital Signature and Created By from excluded traits - Fixed SKIN trait mapping to BASE folder (no separate SKIN folder) - Improved normalizeTraitValue to handle em dashes and en dashes correctly - Added comprehensive debug logging for trait image loading - Enhanced error messages with expected file paths (by Kasparex)",
