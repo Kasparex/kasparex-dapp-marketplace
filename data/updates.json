@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767278504-ebe0d1c",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript type error in collection page sidebar - Wrap setActiveTab in arrow function for type compatibility (by Kasparex)",
+      "date": "2026-01-01T15:39:12+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767277932-7a7210a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix missing UserNFTsTab import in NFT listing page (by Kasparex)",
