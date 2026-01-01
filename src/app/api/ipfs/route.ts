@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       });
 
       if (response.ok) {
-        console.log(`[IPFS] Successfully fetched from ${gateway}`);
+        console.log(`[IPFS] ✅ Successfully fetched from ${gateway} for ${decodedPath}`);
         // Get content type from response
         const contentType = response.headers.get('content-type') || 'application/octet-stream';
         
@@ -77,12 +77,18 @@ export async function GET(request: NextRequest) {
         });
       } else {
         const errorText = await response.text().catch(() => '');
-        console.warn(`[IPFS] Gateway ${gateway} returned status ${response.status} for ${url}`);
-        console.warn(`[IPFS] Response: ${errorText.substring(0, 200)}`);
+        console.warn(`[IPFS] ❌ Gateway ${gateway} returned status ${response.status} for ${url}`);
+        console.warn(`[IPFS] Response preview: ${errorText.substring(0, 200)}`);
+        // Log the full URL for debugging
+        console.warn(`[IPFS] Failed URL: ${url}`);
       }
     } catch (error) {
       // Try next gateway
-      console.warn(`[IPFS] Gateway ${gateway} failed for ${decodedPath}:`, error);
+      console.warn(`[IPFS] ❌ Gateway ${gateway} threw error for ${decodedPath}:`, error);
+      if (error instanceof Error) {
+        console.warn(`[IPFS] Error message: ${error.message}`);
+        console.warn(`[IPFS] Error stack: ${error.stack?.substring(0, 300)}`);
+      }
       continue;
     }
   }

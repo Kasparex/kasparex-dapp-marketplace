@@ -80,6 +80,15 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
           'Pink Hat',
           'Blue Hat', // From console errors
           'Play Boy', // From console errors
+          'Red Winter Hat', // From console errors
+          'Snapback Cap Back Yellow Pepe', // From console errors
+          'Neon Green Winter Hat', // From console errors
+          'Snapback Cap Front Gray', // From console errors
+          'Snapback Cap Front Blue Vault Boy', // From console errors
+          'Snapback Cap Back Green', // From console errors
+          'Yellow Winter Hat', // From console errors
+          'Crown', // From console errors
+          'Headband Scarf Orange', // From console errors
           // Add more missing traits as identified
         ];
         
