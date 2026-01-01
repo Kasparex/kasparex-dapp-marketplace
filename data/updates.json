@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767277932-7a7210a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix missing UserNFTsTab import in NFT listing page (by Kasparex)",
+      "date": "2026-01-01T15:31:02+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767277509-d28bd56",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add sidebar navigation to NFT pages and optimize IPFS loading - Create NFTSidebar component with hide/show, resize, and back links - Move tabs to left sidebar on collection and listing pages - Fix IPFS path to include 'Pixelkrex traits' folder name - Optimize IPFS image loading with parallel loading and error handling - Add loading states and error messages to PFP Builder - Add My NFTs tab to sidebar showing wallet holdings - Filter NFTs by collection when on collection page (by Kasparex)",
