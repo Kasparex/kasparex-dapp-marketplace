@@ -178,11 +178,38 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
     
     const traitTypeLower = traitType.toLowerCase().trim();
     
+    // Strip long descriptions that appear after " - " (common in metadata, especially Diamonds)
+    // Only strip if there's a clear description pattern (long text after dash)
+    // Example: "Ecliptic Flame Diamond - A rare diamond glowing..." -> "Ecliptic Flame Diamond"
+    // But DON'T strip short phrases that might be part of the name (e.g., "Synth Golds – Shining legacy wear")
+    if (traitTypeLower.includes('diamond')) {
+      // For Diamonds, strip everything after " - " or " – " as they often have long descriptions
+      const dashIndex = normalized.search(/\s*[–—]\s+/);
+      if (dashIndex > 0) {
+        // Check if what comes after is a long description (more than 20 chars suggests description)
+        const afterDash = normalized.substring(dashIndex).trim();
+        if (afterDash.length > 20) {
+          normalized = normalized.substring(0, dashIndex).trim();
+        }
+      }
+      // Also handle " - " pattern
+      const hyphenIndex = normalized.search(/\s+-\s+/);
+      if (hyphenIndex > 0) {
+        const afterHyphen = normalized.substring(hyphenIndex + 2).trim();
+        if (afterHyphen.length > 20) {
+          normalized = normalized.substring(0, hyphenIndex).trim();
+        }
+      }
+    }
+    
     // Trait-specific suffix stripping rules based on actual file naming patterns
     if (traitTypeLower.includes('diamond')) {
       // DIAMONDS: Files ALWAYS include "Diamond" (e.g., "Aurora_Core_Diamond.png")
-      // DON'T strip "Diamond" suffix
-      // Example: "Aurora Core Diamond" -> "Aurora_Core_Diamond"
+      // Metadata often has: "Ecliptic Flame Diamond - A rare diamond glowing..."
+      // Extract just the name part: "Ecliptic Flame Diamond"
+      // DON'T strip "Diamond" suffix, but strip everything after it if there's a description
+      // Example: "Ecliptic Flame Diamond - A rare diamond..." -> "Ecliptic_Flame_Diamond"
+      // The description stripping above should handle this, but ensure we keep "Diamond"
     } else if (traitTypeLower.includes('skin')) {
       // BASE/SKIN: Files DON'T include "Skin" (e.g., "Plasma_Pop.png")
       // ALWAYS strip "Skin" suffix
@@ -201,7 +228,9 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       normalized = normalized.replace(/\s+hats?$/i, '');
     } else if (traitTypeLower.includes('eyewear')) {
       // EYEWEAR: Files DON'T include "Eyewear" but may include "wear" (e.g., "Synth_Golds_shining_legacy_wear.png")
+      // Files use lowercase for descriptive words: "shining_legacy_wear" not "Shining_Legacy_wear"
       // Strip "Eyewear" but keep "wear" if it's part of the name
+      // Example: "Synth Golds – Shining legacy wear" -> "Synth Golds Shining legacy wear" -> "Synth_Golds_shining_legacy_wear"
       normalized = normalized.replace(/\s+eyewear$/i, '');
     } else if (traitTypeLower.includes('nose')) {
       // NOSES: Files DO include "Nose" (e.g., "Krex_Nose.png")
@@ -240,8 +269,18 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       // Replace multiple spaces with single space
       .replace(/\s+/g, ' ')
       // Trim again after space normalization
-      .trim()
-      // Replace spaces with underscores
+      .trim();
+    
+    // For certain trait types, normalize to lowercase for better matching
+    // This handles cases where files use lowercase (e.g., "shining_legacy" vs "Shining_Legacy")
+    const lowercaseTraitTypes = ['eyewear'];
+    if (lowercaseTraitTypes.some(type => traitTypeLower.includes(type))) {
+      // Convert to lowercase for better matching with actual file names
+      normalized = normalized.toLowerCase();
+    }
+    
+    // Replace spaces with underscores
+    normalized = normalized
       .replace(/\s/g, '_')
       // Replace multiple consecutive underscores with a single underscore
       .replace(/_+/g, '_')
