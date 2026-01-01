@@ -7,10 +7,12 @@ import { Footer } from '@/components/Footer';
 import { RarityChecker } from '@/components/nft/RarityChecker';
 import { TraitAnalysis } from '@/components/nft/TraitAnalysis';
 import { PFPBuilder } from '@/components/nft/PFPBuilder';
+import { UserNFTsTab } from '@/components/nft/UserNFTsTab';
+import { NFTSidebar } from '@/components/nft/NFTSidebar';
 import { getCollectionBySlug, isValidCollection, type CollectionConfig } from '@/lib/nft/collections';
 import Link from 'next/link';
 
-type TabType = 'checker' | 'traits' | 'builder';
+type TabType = 'checker' | 'traits' | 'builder' | 'my-nfts';
 
 export default function CollectionPage() {
   const params = useParams();
@@ -25,11 +27,6 @@ export default function CollectionPage() {
     }
   }, [collection]);
 
-  const tabs: Array<{ id: TabType; label: string }> = [
-    { id: 'checker', label: 'Rarity Checker' },
-    { id: 'traits', label: 'Trait Analysis' },
-    { id: 'builder', label: 'PFP Builder' },
-  ];
 
   if (!collection || !isValidCollection(collection) || !collectionConfig) {
     return (
@@ -62,14 +59,6 @@ export default function CollectionPage() {
         <section className="bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
             <div className="max-w-4xl mx-auto">
-              <div className="mb-4">
-                <Link
-                  href="/nft"
-                  className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                >
-                  ← Back to NFT Tools
-                </Link>
-              </div>
               <h1 className="text-4xl sm:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
                 {collectionConfig.name}
               </h1>
@@ -88,56 +77,56 @@ export default function CollectionPage() {
           </div>
         </section>
 
-        {/* Tabs */}
-        <section className="border-b border-zinc-200 dark:border-zinc-800">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex overflow-x-auto">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-4 font-medium transition-colors border-b-2 ${
-                    activeTab === tab.id
-                      ? 'border-zinc-900 dark:border-zinc-100 text-zinc-900 dark:text-zinc-100'
-                      : 'border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
+        {/* Main Content with Sidebar */}
+        <div className="flex">
+          {/* Sidebar */}
+          <NFTSidebar
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            collectionSlug={collection}
+            collectionName={collectionConfig.name}
+          />
 
-        {/* Tab Content */}
-        <section className="py-8 sm:py-12">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            {activeTab === 'checker' && (
-              <div>
-                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-                  Rarity Checker
-                </h2>
-                <RarityChecker collectionId={collectionConfig.id} />
+          {/* Content */}
+          <main className="flex-1 min-w-0">
+            <section className="py-8 sm:py-12">
+              <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                {activeTab === 'checker' && (
+                  <div>
+                    <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
+                      Rarity Checker
+                    </h2>
+                    <RarityChecker collectionId={collectionConfig.id} />
+                  </div>
+                )}
+                {activeTab === 'traits' && (
+                  <div>
+                    <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
+                      Trait Analysis
+                    </h2>
+                    <TraitAnalysis collectionId={collectionConfig.id} />
+                  </div>
+                )}
+                {activeTab === 'builder' && (
+                  <div>
+                    <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
+                      PFP Builder
+                    </h2>
+                    <PFPBuilder collectionId={collectionConfig.id} />
+                  </div>
+                )}
+                {activeTab === 'my-nfts' && (
+                  <div>
+                    <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
+                      My NFTs
+                    </h2>
+                    <UserNFTsTab collectionId={collectionConfig.id} />
+                  </div>
+                )}
               </div>
-            )}
-            {activeTab === 'traits' && (
-              <div>
-                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-                  Trait Analysis
-                </h2>
-                <TraitAnalysis collectionId={collectionConfig.id} />
-              </div>
-            )}
-            {activeTab === 'builder' && (
-              <div>
-                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-                  PFP Builder
-                </h2>
-                <PFPBuilder collectionId={collectionConfig.id} />
-              </div>
-            )}
-          </div>
-        </section>
+            </section>
+          </main>
+        </div>
       </main>
 
       <Footer />

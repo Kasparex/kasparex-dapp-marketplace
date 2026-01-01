@@ -20,6 +20,8 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
   const [selectedTraits, setSelectedTraits] = useState<Map<string, string>>(new Map());
   const [availableTraits, setAvailableTraits] = useState<Map<string, string[]>>(new Map());
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const [imageLoadErrors, setImageLoadErrors] = useState<Set<string>>(new Set());
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const collection = getCollectionById(collectionId);
 
@@ -129,23 +131,30 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
     // If traitImagesBaseUri is set, use IPFS
     if (collection?.traitImagesBaseUri) {
       const cid = collection.traitImagesBaseUri.replace(/^ipfs:\/\//, '');
-      // IPFS path: {baseUri}/{folderName}/{value}.png
-      // Example: ipfs://bafybe.../traits/BACKGROUNDS/Aqua Mint.png
-      const ipfsPath = `${cid}/${folderName}/${normalizedValue}.png`;
+      // IPFS path: {baseUri}/Pixelkrex traits/{folderName}/{value}.png
+      // The folder was renamed to "Pixelkrex traits" on IPFS
+      // Example: ipfs://bafybe.../Pixelkrex traits/BACKGROUNDS/Aqua Mint.png
+      const ipfsPath = `${cid}/Pixelkrex traits/${folderName}/${normalizedValue}.png`;
       return getBestGatewayUrl(ipfsPath);
     }
     
     // Otherwise, use local public folder (for testing)
-    // Path: /nft/{collectionId}/traits/{folderName}/{value}.png
-    return `/nft/${collectionId}/traits/${folderName}/${encodeURIComponent(normalizedValue)}.png`;
+    // Path: /nft/{collectionId}/Pixelkrex traits/{folderName}/{value}.png
+    return `/nft/${collectionId}/Pixelkrex traits/${folderName}/${encodeURIComponent(normalizedValue)}.png`;
   };
 
   const generatePreview = async () => {
     const canvas = canvasRef.current;
     if (!canvas || !collection) return;
 
+    setIsLoadingPreview(true);
+    setImageLoadErrors(new Set());
+
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      setIsLoadingPreview(false);
+      return;
+    }
 
     // Set canvas size
     canvas.width = 512;
@@ -156,49 +165,70 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
 
     // Draw trait layers in order (use available trait types)
     const layerOrder = Array.from(availableTraits.keys());
+    const errors = new Set<string>();
     
-    for (const traitType of layerOrder) {
+    // Load images in parallel for better performance
+    const imagePromises = layerOrder.map(async (traitType) => {
       const selectedValue = selectedTraits.get(traitType);
-      if (!selectedValue || selectedValue === 'None') continue;
+      if (!selectedValue || selectedValue === 'None') return null;
 
       // Get IPFS URL for trait image
       const imageUrl = getTraitImageUrl(traitType, selectedValue);
-      if (!imageUrl) continue;
+      if (!imageUrl) return null;
       
       try {
         const img = new Image();
         img.crossOrigin = 'anonymous'; // Required for CORS when loading from IPFS
         
-        await new Promise((resolve, reject) => {
+        await new Promise<void>((resolve, reject) => {
           const timeout = setTimeout(() => {
             reject(new Error('Image load timeout'));
-          }, 10000); // 10 second timeout
+          }, 15000); // 15 second timeout
 
           img.onload = () => {
             clearTimeout(timeout);
-            resolve(null);
+            resolve();
           };
           
           img.onerror = (error) => {
             clearTimeout(timeout);
-            console.warn(`Failed to load trait image: ${imageUrl}`, error);
-            resolve(null); // Skip this layer instead of failing
+            const errorKey = `${traitType}:${selectedValue}`;
+            errors.add(errorKey);
+            console.warn(`Failed to load trait image:`, {
+              traitType,
+              value: selectedValue,
+              imageUrl,
+              error,
+            });
+            resolve(); // Skip this layer instead of failing
           };
           
           img.src = imageUrl;
         });
 
-        if (img.complete && img.naturalWidth > 0) {
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        }
+        return { img, traitType };
       } catch (error) {
+        const errorKey = `${traitType}:${selectedValue}`;
+        errors.add(errorKey);
         console.warn(`Error loading trait image for ${traitType}: ${selectedValue}`, error);
-        // Continue with other layers even if one fails
+        return null;
+      }
+    });
+
+    // Wait for all images to load
+    const loadedImages = await Promise.all(imagePromises);
+    setImageLoadErrors(errors);
+
+    // Draw images in order
+    for (const result of loadedImages) {
+      if (result && result.img.complete && result.img.naturalWidth > 0) {
+        ctx.drawImage(result.img, 0, 0, canvas.width, canvas.height);
       }
     }
 
     // Convert to data URL for preview
     setPreviewUrl(canvas.toDataURL('image/png'));
+    setIsLoadingPreview(false);
   };
 
   const handleTraitChange = (traitType: string, value: string) => {
@@ -290,7 +320,12 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
             Preview
           </h3>
-          <div className="aspect-square rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700">
+          <div className="aspect-square rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 relative">
+            {isLoadingPreview && (
+              <div className="absolute inset-0 flex items-center justify-center bg-zinc-100/80 dark:bg-zinc-800/80 z-10">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900 dark:border-zinc-100" />
+              </div>
+            )}
             {previewUrl ? (
               <img
                 src={previewUrl}
@@ -299,7 +334,12 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-zinc-400 dark:text-zinc-600">
-                Select traits to preview
+                {isLoadingPreview ? 'Loading preview...' : 'Select traits to preview'}
+              </div>
+            )}
+            {imageLoadErrors.size > 0 && (
+              <div className="absolute bottom-2 left-2 right-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded text-xs text-yellow-800 dark:text-yellow-200">
+                {imageLoadErrors.size} trait image(s) failed to load
               </div>
             )}
           </div>

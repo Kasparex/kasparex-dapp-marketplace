@@ -11,13 +11,17 @@ import { collections } from '@/lib/nft/collections';
 import { getCollectionMetadata } from '@/lib/nft/collection-loader';
 import { getNFTRarityCached } from '@/lib/nft/rarity-cache';
 
-export function UserNFTsTab() {
+interface UserNFTsTabProps {
+  collectionId?: string; // Optional: filter by specific collection
+}
+
+export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
   const [userNFTs, setUserNFTs] = useState<UserNFT[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+  const [selectedCollection, setSelectedCollection] = useState<string | null>(collectionId || null);
   const [nftDetails, setNftDetails] = useState<Map<string, {
     metadata: any;
     rarity: any;
@@ -36,7 +40,7 @@ export function UserNFTsTab() {
     setError(null);
 
     try {
-      const nfts = await queryUserNFTs(l1Address, l2Address);
+      const nfts = await queryUserNFTs(l1Address, l2Address, collectionId ? [collectionId] : undefined);
       setUserNFTs(nfts);
 
       // Load collection metadata for accurate rarity calculation
