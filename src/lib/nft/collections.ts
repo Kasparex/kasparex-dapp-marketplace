@@ -44,7 +44,7 @@ export const collections: Record<string, CollectionConfig> = {
     baseUri: 'ipfs://bafybeiakbvm7hn6ev23tiorgdxh3hcjkuu7huxdijklybastzmceclycnu',
     kaspaComUrl: 'https://kaspa.com/nft/collections/PIXELKREX',
     description: 'PIXELKREX NFT collection',
-    traitImagesBaseUri: 'ipfs://bafybeigf27jprcgyopw3odqwlswizjb466s43thb6pi2wc7n7byshrqx2u',
+    traitImagesBaseUri: 'ipfs://bafybeig37ikaze6v5rdbjayj6nnztgcbfgeaijh4wbrztcwdbutjl4ihzm',
   },
 };
 

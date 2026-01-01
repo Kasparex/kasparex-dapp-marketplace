@@ -39,6 +39,7 @@
     "upload:registry": "tsx scripts/upload-registry-to-ipfs.ts",
     "upload:traits": "tsx scripts/upload-trait-images-to-ipfs.ts",
     "upload:traits:dry": "tsx scripts/upload-trait-images-to-ipfs.ts --dry-run",
+    "rename:hats": "node scripts/rename-hat-files-auto.js",
     "worker:dev": "cd workers && npm run dev",
     "worker:deploy": "cd workers && npm run deploy",
     "worker:deploy:production": "cd workers && npm run deploy:production"
