@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767287733-61edee3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Normalize trait file names: replace spaces and special characters with underscores (by Kasparex)",
+      "date": "2026-01-01T18:14:45+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767283232-c5094b0",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Prepare for cleaned IPFS folder structure - Filter out unnecessary traits (Digital Signature, Created By, NFT Grid, social links) - Update IPFS path to work without 'Pixelkrex traits' parent folder - Update documentation to reflect cleaner folder structure (by Kasparex)",
