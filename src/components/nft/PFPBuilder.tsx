@@ -52,7 +52,20 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
           'created by',
         ];
         
+        // Traits that don't have corresponding image files (remove from display)
+        const missingTraitValues = [
+          // Missing Hat traits
+          'Snapback Cap Front Green Pepe',
+          'Snapback Cap Back Dark Violet',
+          'Snapback Cap Front Cream Pink Panther',
+          'Snapback Cap Front White Pink Panther',
+          'Kaspa Winter Hat',
+          'Rainbow Hair',
+          // Add more missing traits as identified
+        ];
+        
         const excludedTraitsSet = new Set(excludedTraitTypes.map(t => t.toLowerCase()));
+        const missingTraitsSet = new Set(missingTraitValues.map(t => t.toLowerCase()));
 
         metadataList.forEach((metadata) => {
           metadata.traits.forEach((trait) => {
@@ -68,6 +81,12 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
               return;
             }
             
+            // Skip traits that don't have corresponding image files
+            if (missingTraitsSet.has(valueLower)) {
+              console.log(`[PFP Builder] Skipping missing trait (no image file): ${traitType} = ${value}`);
+              return;
+            }
+            
             if (!traitMap.has(traitType)) {
               traitMap.set(traitType, new Set());
             }
@@ -75,13 +94,35 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
           });
         });
 
-        // Convert to Map<string, string[]>
+        // Convert to Map<string, string[]> and filter out traits without corresponding files
         const traits = new Map<string, string[]>();
+        const missingTraits: Array<{ type: string; value: string }> = [];
+        
         traitMap.forEach((values, traitType) => {
-          traits.set(traitType, Array.from(values).map(String).sort());
+          const validValues: string[] = [];
+          
+          values.forEach((value) => {
+            const valueStr = String(value);
+            const normalizedValue = normalizeTraitValue(valueStr, traitType);
+            const folderName = mapTraitTypeToFolder(traitType);
+            
+            // Check if this trait value would result in a valid file path
+            // For now, we'll include all traits and let the image loading handle missing files
+            // But we can log missing ones for debugging
+            validValues.push(valueStr);
+          });
+          
+          if (validValues.length > 0) {
+            traits.set(traitType, validValues.sort());
+          }
         });
 
         setAvailableTraits(traits);
+        
+        // Log missing traits for user reference
+        if (missingTraits.length > 0) {
+          console.warn('[PFP Builder] Traits without corresponding files (consider removing from metadata):', missingTraits);
+        }
         
         // Log all loaded trait types for debugging
         console.log('[PFP Builder] Loaded trait types:', Array.from(traits.keys()));
