@@ -30,8 +30,8 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
         // Extract unique trait types and values from all NFTs
         const traitMap = new Map<string, Set<string | number>>();
         
-        // Filter out unnecessary traits
-        const excludedTraits = new Set([
+        // Filter out unnecessary traits (case-insensitive)
+        const excludedTraitTypes = [
           'NFT Grid',
           'Twitter (X)',
           'Twitter',
@@ -44,15 +44,27 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
           'TRANSPARENT',
           'Gear',
           'GEAR',
-        ]);
+          'Digital Signature',
+          'Digital signature',
+          'digital signature',
+          'Created By',
+          'Created by',
+          'created by',
+        ];
+        
+        const excludedTraitsSet = new Set(excludedTraitTypes.map(t => t.toLowerCase()));
 
         metadataList.forEach((metadata) => {
           metadata.traits.forEach((trait) => {
             const traitType = trait.trait_type;
             const value = trait.value;
             
-            // Skip excluded traits
-            if (excludedTraits.has(traitType) || excludedTraits.has(String(value))) {
+            // Skip excluded traits (case-insensitive check)
+            const traitTypeLower = traitType.toLowerCase().trim();
+            const valueLower = String(value).toLowerCase().trim();
+            
+            if (excludedTraitsSet.has(traitTypeLower) || excludedTraitsSet.has(valueLower)) {
+              console.log(`[PFP Builder] Skipping excluded trait: ${traitType} = ${value}`);
               return;
             }
             
@@ -70,6 +82,15 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
         });
 
         setAvailableTraits(traits);
+        
+        // Log all loaded trait types for debugging
+        console.log('[PFP Builder] Loaded trait types:', Array.from(traits.keys()));
+        console.log('[PFP Builder] Trait counts:', Array.from(traits.entries()).map(([type, values]) => ({
+          type,
+          count: values.length,
+          sampleValues: values.slice(0, 3)
+        })));
+        
         // Set first trait type as active tab
         const firstTraitType = Array.from(traits.keys())[0];
         if (firstTraitType) {
@@ -95,30 +116,40 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       'clothing': 'CLOTHING',
       'outfits': 'CLOTHING',
       'diamonds': 'DIAMONDS',
+      'diamond': 'DIAMONDS',
       'eyewear': 'EYEWEAR',
       'hats': 'HATS',
       'hat': 'HATS',
       'headphones': 'HEADPHONES',
+      'headphone': 'HEADPHONES',
       'masks': 'MASKS',
+      'mask': 'MASKS',
       'mouth': 'MOUTH',
       'noses': 'NOSES',
       'nose': 'NOSES',
     };
 
     const lowerType = traitType.toLowerCase().trim();
+    
+    // Direct match
     if (typeMap[lowerType]) {
-      return typeMap[lowerType];
+      const folder = typeMap[lowerType];
+      console.log(`[PFP Builder] Mapped "${traitType}" -> "${folder}" (direct match)`);
+      return folder;
     }
 
-    // Try partial match
+    // Try partial match (check if trait type contains any key or vice versa)
     for (const [key, folder] of Object.entries(typeMap)) {
       if (lowerType.includes(key) || key.includes(lowerType)) {
+        console.log(`[PFP Builder] Mapped "${traitType}" -> "${folder}" (partial match with "${key}")`);
         return folder;
       }
     }
 
     // Default: uppercase the trait type and replace spaces with underscores
-    return traitType.toUpperCase().replace(/\s+/g, '_');
+    const defaultFolder = traitType.toUpperCase().replace(/\s+/g, '_');
+    console.warn(`[PFP Builder] No mapping found for "${traitType}", using default: "${defaultFolder}"`);
+    return defaultFolder;
   };
 
   /**
@@ -160,11 +191,14 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
     const folderName = mapTraitTypeToFolder(traitType);
     const normalizedValue = normalizeTraitValue(value);
     
-    // Debug logging for troubleshooting
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[PFP Builder] Trait: ${traitType} = "${value}"`);
-      console.log(`[PFP Builder] Folder: ${folderName}, Normalized: ${normalizedValue}`);
-    }
+    // Debug logging for troubleshooting (always log for debugging)
+    console.log(`[PFP Builder] Getting image URL for trait:`, {
+      traitType,
+      value,
+      folderName,
+      normalizedValue,
+      originalValue: value
+    });
     
     // If traitImagesBaseUri is set, use IPFS
     if (collection?.traitImagesBaseUri) {
@@ -174,16 +208,21 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       const ipfsPath = `${cid}/${folderName}/${normalizedValue}.png`;
       const url = getBestGatewayUrl(ipfsPath);
       
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[PFP Builder] IPFS Path: ${ipfsPath}`);
-        console.log(`[PFP Builder] Gateway URL: ${url}`);
-      }
+      console.log(`[PFP Builder] IPFS details:`, {
+        cid,
+        folderName,
+        normalizedValue,
+        ipfsPath,
+        gatewayUrl: url
+      });
       
       return url;
     }
     
     // Otherwise, use local public folder (for testing)
-    return `/nft/${collectionId}/Pixelkrex traits/${folderName}/${encodeURIComponent(normalizedValue)}.png`;
+    const localPath = `/nft/${collectionId}/Pixelkrex traits/${folderName}/${encodeURIComponent(normalizedValue)}.png`;
+    console.log(`[PFP Builder] Using local path:`, localPath);
+    return localPath;
   };
 
   /**
