@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767291848-f099f1b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix trait value normalization to strip trait type suffix - Updated normalizeTraitValue to remove trait type suffix from values (e.g., 'Plasma Pop Skin' -> 'Plasma_Pop') - Handles variations: Skin, Mask, Hat, Cap, Diamond, etc. - Fixes issue where metadata includes trait type in value but IPFS files don't - Updated all calls to normalizeTraitValue to pass traitType parameter (by Kasparex)",
+      "date": "2026-01-01T19:23:27+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767291141-86615e6",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix trait filtering and improve debugging for PFP Builder - Added case-insensitive filtering for Digital Signature and Created By - Improved folder mapping with better logging - Added comprehensive console logging for trait loading and image URLs - Enhanced error messages with full context (by Kasparex)",
