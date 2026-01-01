@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767309569-8570f77",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add Red Punk to missing Hat traits filter - file doesn't exist in IPFS (by Kasparex)",
+      "date": "2026-01-02T00:18:22+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767308883-584cdd4",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add rename scripts for Hat files (by Kasparex)",
