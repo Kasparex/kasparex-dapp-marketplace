@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767307218-a5f3074",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add upload script and guide for trait images (by Kasparex)",
+      "date": "2026-01-01T23:39:44+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767302737-e0d625a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Improve Hat trait normalization logic to handle Cap, Hat, and no-suffix files (by Kasparex)",
