@@ -163,7 +163,7 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
    * - HATS: Mixed - some include "Hat"/"Cap", some don't → try stripping first, files that need it will have it
    * - EYEWEAR: Files DON'T include "Eyewear" but may include "wear" → strip "Eyewear" but keep "wear"
    * - MOUTH: Files DON'T include "Mouth" → strip "Mouth"
-   * - NOSES: Files DON'T include "Nose" → strip "Nose"
+   * - NOSES: Files DO include "Nose" (e.g., "Krex_Nose.png") → keep "Nose"
    * 
    * Examples:
    *   "Plasma Pop Skin" -> "Plasma_Pop" (removes "Skin")
