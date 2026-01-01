@@ -54,16 +54,19 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
         
         // Traits that don't have corresponding image files (remove from display)
         const missingTraitValues = [
-          // Missing Hat traits (confirmed no files exist)
+          // Missing Hat traits (confirmed no files exist in IPFS)
           'Snapback Cap Front Green Pepe',
           'Snapback Cap Back Dark Violet',
           'Snapback Cap Front Cream Pink Panther',
           'Snapback Cap Front White Pink Panther',
           'Snapback Cap Back Green Duck',
+          'Snapback Cap Back Violet Pink Panther', // From console errors - no file in IPFS
           'Kaspa Winter Hat', // File doesn't exist, but other "Winter Hat" variants might
           'Rainbow Hair',
           'Headband Scarf Violet',
           'Cherry Hair',
+          'Fire Hair', // From console errors - no "Fire_Hair.png" in IPFS list
+          'Pink Hat', // From console errors - no "Pink.png" or "Pink_Hat.png" in IPFS list
           // Add more missing traits as identified
         ];
         
