@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767296642-a780bec",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix Eyewear separator detection and add debug logging - Changed separatorIndex check from > 0 to >= 0 - Added debug logging to track lowercase conversion - Will help identify why descriptive text isn't being lowercased (by Kasparex)",
+      "date": "2026-01-01T20:43:28+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767296443-23c505c",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix Eyewear em dash separator detection and add more missing Hat traits - Fixed em dash matching logic for Eyewear descriptive text lowercase conversion - Added Headband Scarf Violet, Cherry Hair, Snapback Cap Back Green Duck to missing traits filter (by Kasparex)",
