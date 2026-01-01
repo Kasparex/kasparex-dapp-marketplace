@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { fetchNFTMetadata, getNFTMetadata } from '@/lib/nft/metadata';
-import { calculateNFTRarity, type NFTRarity } from '@/lib/nft/rarity';
+import { type NFTRarity } from '@/lib/nft/rarity';
 import { fetchNFTRank } from '@/lib/nft/kaspa-com-api';
 import { getCollectionById } from '@/lib/nft/collections';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { getCollectionMetadata } from '@/lib/nft/collection-loader';
+import { getNFTRarityCached } from '@/lib/nft/rarity-cache';
 
 interface RarityCheckerProps {
   collectionId: string;
@@ -69,8 +70,14 @@ export function RarityChecker({ collectionId }: RarityCheckerProps) {
         return;
       }
 
-      // Calculate rarity using full collection data
-      const rarityResult = calculateNFTRarity(metadata, allMetadata);
+      // Get rarity using cached calculation
+      setLoadingProgress('Calculating rarity score...');
+      const rarityResult = await getNFTRarityCached(collectionId, tokenIdNum, allMetadata);
+      if (!rarityResult) {
+        setError('Failed to calculate rarity score');
+        setIsLoading(false);
+        return;
+      }
       
       // Fetch rank from KaspaCom
       const fetchedRank = await fetchNFTRank(collectionId, tokenIdNum);

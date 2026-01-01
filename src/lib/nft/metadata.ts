@@ -1,10 +1,15 @@
 /**
  * NFT Metadata Fetching Service
  * Handles fetching and parsing NFT metadata from IPFS
+ * Uses IndexedDB cache for faster subsequent loads
  */
 
 import { fetchJSON } from '@/lib/ipfs/gateway';
 import { getCollectionById } from './collections';
+import {
+  getCachedNFTMetadata,
+  setCachedNFTMetadata,
+} from './cache';
 
 export interface NFTTrait {
   trait_type: string;
@@ -58,11 +63,21 @@ function getTokenMetadataUri(baseUri: string, tokenId: number): string {
 
 /**
  * Fetch metadata for a specific NFT
+ * Checks cache first before fetching from IPFS
  */
 export async function fetchNFTMetadata(
   collectionId: string,
-  tokenId: number
+  tokenId: number,
+  useCache = true
 ): Promise<ParsedNFTMetadata | null> {
+  // Check cache first
+  if (useCache) {
+    const cached = await getCachedNFTMetadata<ParsedNFTMetadata>(collectionId, tokenId);
+    if (cached) {
+      return cached;
+    }
+  }
+
   const collection = getCollectionById(collectionId);
   if (!collection) {
     console.error(`Collection ${collectionId} not found`);
@@ -81,7 +96,7 @@ export async function fetchNFTMetadata(
     // Parse traits from attributes or traits field
     const traits: NFTTrait[] = metadata.attributes || metadata.traits || [];
 
-    return {
+    const parsedMetadata: ParsedNFTMetadata = {
       tokenId,
       name: metadata.name || `${collection.name} #${tokenId}`,
       description: metadata.description,
@@ -89,6 +104,13 @@ export async function fetchNFTMetadata(
       traits,
       rawMetadata: metadata,
     };
+
+    // Cache the fetched metadata
+    if (useCache) {
+      setCachedNFTMetadata(collectionId, tokenId, parsedMetadata).catch(console.error);
+    }
+
+    return parsedMetadata;
   } catch (error) {
     console.error(`Error fetching NFT metadata for ${collectionId} #${tokenId}:`, error);
     return null;
@@ -97,17 +119,41 @@ export async function fetchNFTMetadata(
 
 /**
  * Fetch metadata for multiple NFTs
+ * Checks cache first, only fetches missing NFTs
  */
 export async function fetchMultipleNFTMetadata(
   collectionId: string,
-  tokenIds: number[]
+  tokenIds: number[],
+  useCache = true
 ): Promise<Map<number, ParsedNFTMetadata>> {
   const results = new Map<number, ParsedNFTMetadata>();
+  const missingTokenIds: number[] = [];
 
-  // Fetch in parallel with batching to avoid overwhelming the gateway
-  const batchSize = 10;
-  for (let i = 0; i < tokenIds.length; i += batchSize) {
-    const batch = tokenIds.slice(i, i + batchSize);
+  // Check cache first
+  if (useCache) {
+    await Promise.all(
+      tokenIds.map(async (tokenId) => {
+        const cached = await getCachedNFTMetadata<ParsedNFTMetadata>(collectionId, tokenId);
+        if (cached) {
+          results.set(tokenId, cached);
+        } else {
+          missingTokenIds.push(tokenId);
+        }
+      })
+    );
+  } else {
+    missingTokenIds.push(...tokenIds);
+  }
+
+  // If all were cached, return immediately
+  if (missingTokenIds.length === 0) {
+    return results;
+  }
+
+  // Fetch missing metadata in parallel batches
+  const batchSize = 20; // Increased from 10
+  for (let i = 0; i < missingTokenIds.length; i += batchSize) {
+    const batch = missingTokenIds.slice(i, i + batchSize);
     const promises = batch.map((tokenId) =>
       fetchNFTMetadata(collectionId, tokenId).then((metadata) => ({
         tokenId,
@@ -115,10 +161,17 @@ export async function fetchMultipleNFTMetadata(
       }))
     );
 
-    const batchResults = await Promise.all(promises);
-    batchResults.forEach(({ tokenId, metadata }) => {
-      if (metadata) {
+    const batchResults = await Promise.allSettled(promises);
+    batchResults.forEach((result, index) => {
+      if (result.status === 'fulfilled' && result.value.metadata) {
+        const { tokenId, metadata } = result.value;
         results.set(tokenId, metadata);
+        // Cache the fetched metadata
+        if (useCache) {
+          setCachedNFTMetadata(collectionId, tokenId, metadata).catch(console.error);
+        }
+      } else if (result.status === 'rejected') {
+        console.warn(`Failed to fetch metadata for ${collectionId} #${batch[index]}:`, result.reason);
       }
     });
   }
@@ -127,46 +180,27 @@ export async function fetchMultipleNFTMetadata(
 }
 
 /**
- * Cache for metadata (in-memory, could be enhanced with localStorage)
- */
-const metadataCache = new Map<string, ParsedNFTMetadata>();
-
-/**
  * Get cached metadata or fetch if not cached
+ * Uses IndexedDB for persistent caching
  */
 export async function getNFTMetadata(
   collectionId: string,
   tokenId: number,
   useCache = true
 ): Promise<ParsedNFTMetadata | null> {
-  const cacheKey = `${collectionId}-${tokenId}`;
-
-  if (useCache && metadataCache.has(cacheKey)) {
-    return metadataCache.get(cacheKey)!;
-  }
-
-  const metadata = await fetchNFTMetadata(collectionId, tokenId);
-  if (metadata && useCache) {
-    metadataCache.set(cacheKey, metadata);
-  }
-
-  return metadata;
+  return fetchNFTMetadata(collectionId, tokenId, useCache);
 }
 
 /**
  * Clear metadata cache
  */
-export function clearMetadataCache(collectionId?: string): void {
+export async function clearMetadataCache(collectionId?: string): Promise<void> {
   if (collectionId) {
-    const keysToDelete: string[] = [];
-    metadataCache.forEach((_, key) => {
-      if (key.startsWith(`${collectionId}-`)) {
-        keysToDelete.push(key);
-      }
-    });
-    keysToDelete.forEach((key) => metadataCache.delete(key));
+    const { clearCollectionCache } = await import('./cache');
+    await clearCollectionCache(collectionId);
   } else {
-    metadataCache.clear();
+    const { clearAllCaches } = await import('./cache');
+    await clearAllCaches();
   }
 }
 

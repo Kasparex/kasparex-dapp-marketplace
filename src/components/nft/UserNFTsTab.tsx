@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 import { queryUserNFTs, type UserNFT } from '@/lib/nft/nft-query';
-import { fetchNFTMetadata } from '@/lib/nft/metadata';
-import { calculateNFTRarity } from '@/lib/nft/rarity';
+import { getNFTMetadata } from '@/lib/nft/metadata';
 import { fetchNFTRank } from '@/lib/nft/kaspa-com-api';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { collections } from '@/lib/nft/collections';
 import { getCollectionMetadata } from '@/lib/nft/collection-loader';
+import { getNFTRarityCached } from '@/lib/nft/rarity-cache';
 
 export function UserNFTsTab() {
   const { state: kaspaState } = useKaspaWallet();
@@ -52,37 +52,50 @@ export function UserNFTsTab() {
         }
       }
 
-      // Load details for each NFT
+      // Load details for each NFT (use cached data when available)
       const detailsMap = new Map();
-      for (const nft of nfts) {
-        try {
-          const metadata = await fetchNFTMetadata(nft.collection, nft.tokenId);
-          if (!metadata) continue;
+      
+      // Load NFTs in parallel batches for better performance
+      const batchSize = 10;
+      for (let i = 0; i < nfts.length; i += batchSize) {
+        const batch = nfts.slice(i, i + batchSize);
+        await Promise.allSettled(
+          batch.map(async (nft) => {
+            try {
+              // Use cached metadata if available
+              const metadata = await getNFTMetadata(nft.collection, nft.tokenId, true);
+              if (!metadata) return;
 
-          // Use full collection metadata for accurate rarity
-          const allMetadata = collectionMetadataMap.get(nft.collection) || [metadata];
-          const rarity = calculateNFTRarity(metadata, allMetadata);
-          const rank = await fetchNFTRank(nft.collection, nft.tokenId);
+              // Use full collection metadata for accurate rarity (cached)
+              const allMetadata = collectionMetadataMap.get(nft.collection) || [];
+              const rarity = allMetadata.length > 0
+                ? await getNFTRarityCached(nft.collection, nft.tokenId, allMetadata)
+                : null;
+              const rank = await fetchNFTRank(nft.collection, nft.tokenId);
 
-          let imageUrl: string | null = null;
-          if (metadata.image) {
-            if (metadata.image.startsWith('ipfs://')) {
-              const cid = metadata.image.replace('ipfs://', '');
-              imageUrl = getBestGatewayUrl(cid);
-            } else {
-              imageUrl = metadata.image;
+              let imageUrl: string | null = null;
+              if (metadata.image) {
+                if (metadata.image.startsWith('ipfs://')) {
+                  const cid = metadata.image.replace('ipfs://', '');
+                  imageUrl = getBestGatewayUrl(cid);
+                } else {
+                  imageUrl = metadata.image;
+                }
+              }
+
+              detailsMap.set(`${nft.collection}-${nft.tokenId}`, {
+                metadata,
+                rarity,
+                rank,
+                imageUrl,
+              });
+            } catch (err) {
+              console.warn(`Error loading details for ${nft.collection} #${nft.tokenId}:`, err);
             }
-          }
-
-          detailsMap.set(`${nft.collection}-${nft.tokenId}`, {
-            metadata,
-            rarity,
-            rank,
-            imageUrl,
-          });
-        } catch (err) {
-          console.warn(`Error loading details for ${nft.collection} #${nft.tokenId}:`, err);
-        }
+          })
+        );
+        // Update UI progressively
+        setNftDetails(new Map(detailsMap));
       }
 
       setNftDetails(detailsMap);

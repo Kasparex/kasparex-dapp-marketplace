@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { getCollectionById } from '@/lib/nft/collections';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
@@ -25,6 +26,8 @@ export function NFTCard({
   imageUrl,
   network,
 }: NFTCardProps) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const collection = getCollectionById(collectionId);
   const displayImageUrl = imageUrl || (metadata?.image?.startsWith('ipfs://') 
     ? getBestGatewayUrl(metadata.image.replace('ipfs://', ''))
@@ -36,13 +39,28 @@ export function NFTCard({
       className="block bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
     >
       {/* Image */}
-      <div className="aspect-square bg-zinc-100 dark:bg-zinc-800 relative">
-        {displayImageUrl ? (
-          <img
-            src={displayImageUrl}
-            alt={`${collection?.name || collectionId} #${tokenId}`}
-            className="w-full h-full object-cover"
-          />
+      <div className="aspect-square bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden">
+        {displayImageUrl && !imageError ? (
+          <>
+            {!imageLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-400 dark:border-zinc-600" />
+              </div>
+            )}
+            <img
+              src={displayImageUrl}
+              alt={`${collection?.name || collectionId} #${tokenId}`}
+              className={`w-full h-full object-cover transition-opacity duration-300 ${
+                imageLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
+              loading="lazy"
+              onLoad={() => setImageLoaded(true)}
+              onError={() => {
+                setImageError(true);
+                setImageLoaded(true);
+              }}
+            />
+          </>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-zinc-400 dark:text-zinc-600">
             <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">

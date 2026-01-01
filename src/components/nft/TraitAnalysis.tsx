@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { calculateTraitFrequencies, type CollectionTraitStats } from '@/lib/nft/traits';
 import { getCollectionById } from '@/lib/nft/collections';
 import { getCollectionMetadata } from '@/lib/nft/collection-loader';
+import { getCachedTraitStats, setCachedTraitStats } from '@/lib/nft/cache';
 
 interface TraitAnalysisProps {
   collectionId: string;
@@ -24,6 +25,26 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
     setSelectedTraitType(null);
   }, [collectionId]);
 
+  // Background refresh function
+  const loadStatsInBackground = async () => {
+    try {
+      const metadataList = await getCollectionMetadata(collectionId, false); // Force refresh
+      if (metadataList.length > 0) {
+        const traitStats = calculateTraitFrequencies(metadataList);
+        setCachedTraitStats(collectionId, traitStats).catch(console.error);
+        // Update stats if still on same collection
+        setStats((currentStats) => {
+          if (currentStats && currentStats.totalNFTs === traitStats.totalNFTs) {
+            return traitStats;
+          }
+          return currentStats;
+        });
+      }
+    } catch (error) {
+      console.error('Background trait stats refresh failed:', error);
+    }
+  };
+
   const handleLoadStats = async () => {
     if (!collection) {
       setError('Collection not found');
@@ -35,7 +56,26 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
     setLoadingProgress('Loading collection metadata...');
 
     try {
+      // Check cache first
+      setLoadingProgress('Loading trait statistics...');
+      const cachedStats = await getCachedTraitStats<CollectionTraitStats>(collectionId);
+      
+      if (cachedStats) {
+        setLoadingProgress('');
+        setStats(cachedStats);
+        // Select first trait type by default
+        if (cachedStats.traitTypes.length > 0) {
+          setSelectedTraitType(cachedStats.traitTypes[0].traitType);
+        }
+        setIsLoading(false);
+        
+        // Refresh in background
+        loadStatsInBackground();
+        return;
+      }
+
       // Load full collection metadata for accurate trait analysis
+      setLoadingProgress('Loading collection metadata...');
       const metadataList = await getCollectionMetadata(collectionId);
       setLoadingProgress('Analyzing traits...');
 
@@ -46,6 +86,10 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
       }
 
       const traitStats = calculateTraitFrequencies(metadataList);
+      
+      // Cache the trait stats
+      setCachedTraitStats(collectionId, traitStats).catch(console.error);
+      
       setLoadingProgress('');
       setStats(traitStats);
       
