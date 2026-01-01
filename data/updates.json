@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767288918-bad85be",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update PIXELKREX trait images CID and optimize PFP Builder - Updated traitImagesBaseUri to new IPFS CID - Added TRANSPARENT and GEAR to excluded traits - Removed GEAR and TRANSPARENT from folder mapping - Added HEADPHONES folder mapping (by Kasparex)",
+      "date": "2026-01-01T18:34:31+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767287733-61edee3",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Normalize trait file names: replace spaces and special characters with underscores (by Kasparex)",
