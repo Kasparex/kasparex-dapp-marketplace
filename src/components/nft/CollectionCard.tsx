@@ -24,7 +24,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
           setTotalSupply(collectionData.totalSupply || collectionData.totalMinted || 0);
           
           // Try to get collection image (if available in metadata)
-          if (collectionData.image) {
+          if (collectionData.image && typeof collectionData.image === 'string') {
             const imgUrl = collectionData.image.startsWith('ipfs://')
               ? getBestGatewayUrl(collectionData.image.replace('ipfs://', ''))
               : collectionData.image;
