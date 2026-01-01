@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767301107-f1319ca",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add timeout and better error handling to IPFS proxy - Add 10 second timeout to prevent hanging requests - Add User-Agent header - Add placeholder for Pinata gateway token if needed - This should help diagnose 500 errors from gateways (by Kasparex)",
+      "date": "2026-01-01T21:57:26+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767300301-e7187b3",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add more missing Hat traits and improve IPFS proxy error logging - Add Red Winter Hat, Snapback Cap variants, Crown, Headband Scarf Orange - Improve error logging in IPFS proxy to help debug gateway failures - Add detailed error messages for failed gateway requests (by Kasparex)",
