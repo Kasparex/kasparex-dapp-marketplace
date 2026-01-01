@@ -27,15 +27,22 @@ export async function GET(request: NextRequest) {
   // Try each gateway until one works
   for (const gateway of IPFS_GATEWAYS) {
     try {
-      // Ensure path starts with /ipfs/
-      const ipfsPath = decodedPath.startsWith('/ipfs/') ? decodedPath : `/ipfs/${decodedPath}`;
-      // URL encode the full path for the gateway request
-      // Split by / and encode each segment separately to preserve structure
-      const pathSegments = ipfsPath.split('/').filter(Boolean);
-      const encodedPath = '/' + pathSegments.map(segment => encodeURIComponent(segment)).join('/');
-      const url = `${gateway}${encodedPath}`;
+      // Remove /ipfs/ prefix if present
+      let cleanPath = decodedPath.replace(/^\/?ipfs\//, '');
+      
+      // Split path into CID and subpath
+      // CID is typically the first segment (bafybe...)
+      const pathParts = cleanPath.split('/');
+      const cid = pathParts[0]; // First part is the CID
+      const subPath = pathParts.slice(1).join('/'); // Rest is the subpath
+      
+      // Construct URL: gateway/ipfs/CID/subpath
+      // Only encode the subpath, NOT the CID
+      const encodedSubPath = subPath ? '/' + subPath.split('/').map(segment => encodeURIComponent(segment)).join('/') : '';
+      const url = `${gateway}/ipfs/${cid}${encodedSubPath}`;
 
-      console.log(`[IPFS] Trying gateway ${gateway} with path: ${url}`);
+      console.log(`[IPFS] Trying gateway ${gateway} with CID: ${cid}, subpath: ${subPath}`);
+      console.log(`[IPFS] Full URL: ${url}`);
 
       const response = await fetch(url, {
         method: 'GET',
