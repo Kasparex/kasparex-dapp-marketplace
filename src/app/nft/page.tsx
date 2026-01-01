@@ -5,6 +5,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { CollectionCard } from '@/components/nft/CollectionCard';
 import { NFTSidebar } from '@/components/nft/NFTSidebar';
+import { UserNFTsTab } from '@/components/nft/UserNFTsTab';
 import { collections } from '@/lib/nft/collections';
 import { getCollectionMetadata } from '@/lib/nft/collection-loader';
 
