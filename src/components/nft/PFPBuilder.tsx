@@ -263,36 +263,28 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       // ALWAYS strip "Mask"/"Masks" suffix
       normalized = normalized.replace(/\s+masks?$/i, '');
     } else if (traitTypeLower.includes('hat') || traitTypeLower.includes('hats')) {
-      // HATS: Mixed pattern - some files have "Hat"/"Cap", some don't
-      // Files: "Golden_Digger_Hat.png", "Burnt_Rust_Cap.png", "Blue_Byte.png", "Winter_Hat.png"
+      // HATS: Mixed pattern based on actual IPFS files
+      // Files WITH "Hat": "Golden_Digger_Hat.png", "Slime_Trooper_Hat.png", "Toxic_Blob_Hat.png"
+      // Files WITH "Cap": "Burnt_Rust_Cap.png", "Core_Hacker_Cap.png", "Pink_Beam_Cap.png"
+      // Files WITHOUT "Hat"/"Cap": "Blue_Byte.png", "Cherry_Dash.png", "Rainbow_Dome.png"
+      // 
       // Strategy: 
-      // 1. Keep compound names like "Winter Hat" together (file is "Winter_Hat.png")
-      // 2. Strip standalone "Hat"/"Hats" suffix only if it's not part of a compound name
-      // 3. "Snapback Cap..." traits keep "Cap" but strip trailing "Hat" if present
-      
-      // HATS: Handle different patterns
-      // Pattern 1: "Winter Hat" compound names - keep "Hat" (file: "Winter_Hat.png", "Pink_Winter_Hat.png")
-      // Pattern 2: "Snapback Cap..." - strip trailing "Hat" if present, keep "Cap" (file: "Snapback_Cap_Back_...png")
-      // Pattern 3: Other traits - strip trailing "Hat" (file: "Crown.png", "Bravo_Hair.png")
-      
-      // First, handle "Winter Hat" as a compound name (must come before general "Hat" stripping)
-      // Replace "Winter Hat" with "Winter_Hat" to preserve it through normalization
-      // This handles: "Winter Hat", "Pink Winter Hat", "Dark Green Winter Hat", etc.
-      normalized = normalized.replace(/\b(winter\s+hat)\b/gi, 'Winter_Hat');
+      // 1. DEFAULT: Keep "Hat" in the filename (most files include it)
+      // 2. "Snapback Cap..." traits: Strip trailing "Hat", keep "Cap" (files have "Cap" not "Hat")
+      // 3. Some traits might not have "Hat" but we'll try with it first, then without if it fails
       
       // For "Snapback Cap..." traits, strip trailing "Hat" but keep "Cap"
-      // These traits don't have "Hat" in the filename, only "Cap"
+      // These files have "Cap" in the filename, not "Hat"
+      // Example: "Snapback Cap Back Violet Pink Panther" -> "Snapback_Cap_Back_Violet_Pink_Panther.png"
       if (normalized.toLowerCase().includes('snapback cap')) {
         normalized = normalized.replace(/\s+hats?$/i, '');
+        console.log(`[PFP Builder] Hat normalization (Snapback Cap): "${value}" -> "${normalized}"`);
       } else {
-        // For other traits, strip trailing "Hat" only if it's not part of "Winter_Hat"
-        // Check if we have "Winter_Hat" (our compound marker) - if so, don't strip anything
-        if (!normalized.includes('Winter_Hat')) {
-          normalized = normalized.replace(/\s+hats?$/i, '');
-        }
+        // For all other Hat traits, KEEP "Hat" in the filename
+        // Most files include "Hat": "Golden_Digger_Hat.png", "Slime_Trooper_Hat.png", etc.
+        // Don't strip "Hat" - let it be normalized to "Hat" in the filename
+        console.log(`[PFP Builder] Hat normalization (keeping Hat): "${value}" -> "${normalized}" (will become "${normalized.replace(/\s/g, '_')}")`);
       }
-      
-      console.log(`[PFP Builder] Hat normalization: "${value}" -> "${normalized}"`);
     } else if (traitTypeLower.includes('eyewear')) {
       // EYEWEAR: Files DON'T include "Eyewear" but may include "wear" (e.g., "Synth_Golds_shining_legacy_wear.png")
       // Files use mixed case: main words capitalized, descriptive text after " - " or " – " is lowercase
