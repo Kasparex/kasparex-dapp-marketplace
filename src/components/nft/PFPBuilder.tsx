@@ -32,8 +32,6 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
         
         // Filter out unnecessary traits
         const excludedTraits = new Set([
-          'Digital Signature',
-          'Created By',
           'NFT Grid',
           'Twitter (X)',
           'Twitter',
@@ -93,7 +91,7 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       'background': 'BACKGROUNDS',
       'backgrounds': 'BACKGROUNDS',
       'base': 'BASE',
-      'skin': 'SKIN',
+      'skin': 'BASE', // SKIN maps to BASE folder (no separate SKIN folder exists)
       'clothing': 'CLOTHING',
       'outfits': 'CLOTHING',
       'diamonds': 'DIAMONDS',
@@ -107,7 +105,7 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       'nose': 'NOSES',
     };
 
-    const lowerType = traitType.toLowerCase();
+    const lowerType = traitType.toLowerCase().trim();
     if (typeMap[lowerType]) {
       return typeMap[lowerType];
     }
@@ -129,21 +127,30 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
    * Examples:
    *   "Byte Moss" -> "Byte_Moss"
    *   "Binary Soul – emotionless digital stare" -> "Binary_Soul_emotionless_digital_stare"
+   *   "3D Sync – binary signal mode" -> "3D_Sync_binary_signal_mode"
    *   "Hot Pink" -> "Hot_Pink"
+   *   "Brown Cigarette" -> "Brown_Cigarette"
    */
   const normalizeTraitValue = (value: string): string => {
-    return String(value)
+    let normalized = String(value)
+      .trim()
+      // First, replace em dashes, en dashes, and other dash-like characters with spaces
+      // This ensures "Binary Soul – emotionless" becomes "Binary Soul emotionless" before underscore conversion
+      .replace(/[–—――‒―]/g, ' ')
+      // Replace other special characters (except hyphens, underscores, dots) with spaces
+      .replace(/[^\w\s\-_.]/g, ' ')
+      // Replace multiple spaces with single space
+      .replace(/\s+/g, ' ')
+      // Trim again after space normalization
       .trim()
       // Replace spaces with underscores
-      .replace(/\s+/g, '_')
-      // Replace special characters (em dashes, en dashes, etc.) with underscores
-      .replace(/[–—―]/g, '_')
-      // Replace other special characters that might cause issues
-      .replace(/[^\w\-_.]/g, '_')
+      .replace(/\s/g, '_')
       // Replace multiple consecutive underscores with a single underscore
       .replace(/_+/g, '_')
       // Remove leading/trailing underscores
       .replace(/^_+|_+$/g, '');
+    
+    return normalized;
   };
 
   /**
@@ -153,13 +160,26 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
     const folderName = mapTraitTypeToFolder(traitType);
     const normalizedValue = normalizeTraitValue(value);
     
+    // Debug logging for troubleshooting
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[PFP Builder] Trait: ${traitType} = "${value}"`);
+      console.log(`[PFP Builder] Folder: ${folderName}, Normalized: ${normalizedValue}`);
+    }
+    
     // If traitImagesBaseUri is set, use IPFS
     if (collection?.traitImagesBaseUri) {
       const cid = collection.traitImagesBaseUri.replace(/^ipfs:\/\//, '');
       // IPFS path: {baseUri}/{folderName}/{value}.png
       // Updated to work with cleaner folder structure (no "Pixelkrex traits" parent folder)
       const ipfsPath = `${cid}/${folderName}/${normalizedValue}.png`;
-      return getBestGatewayUrl(ipfsPath);
+      const url = getBestGatewayUrl(ipfsPath);
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[PFP Builder] IPFS Path: ${ipfsPath}`);
+        console.log(`[PFP Builder] Gateway URL: ${url}`);
+      }
+      
+      return url;
     }
     
     // Otherwise, use local public folder (for testing)
@@ -398,7 +418,18 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
                           alt={value}
                           className="w-full h-full object-cover"
                           onError={(e) => {
-                            console.error(`Failed to load image for ${activeTraitTab}: ${value}`, imageUrl);
+                            const folderName = mapTraitTypeToFolder(activeTraitTab);
+                            const normalizedValue = normalizeTraitValue(value);
+                            console.error(`[PFP Builder] Failed to load image:`, {
+                              traitType: activeTraitTab,
+                              traitValue: value,
+                              folderName,
+                              normalizedValue,
+                              imageUrl,
+                              expectedPath: collection?.traitImagesBaseUri 
+                                ? `${collection.traitImagesBaseUri.replace(/^ipfs:\/\//, '')}/${folderName}/${normalizedValue}.png`
+                                : `local/${folderName}/${normalizedValue}.png`
+                            });
                             (e.target as HTMLImageElement).style.display = 'none';
                           }}
                           onLoad={() => {
