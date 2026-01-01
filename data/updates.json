@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767301281-fcf865f",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Enable Pinata gateway token support - Add support for PINATA_GATEWAY_TOKEN environment variable - This may be required for custom Pinata gateways to work properly (by Kasparex)",
+      "date": "2026-01-01T22:00:48+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767301107-f1319ca",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add timeout and better error handling to IPFS proxy - Add 10 second timeout to prevent hanging requests - Add User-Agent header - Add placeholder for Pinata gateway token if needed - This should help diagnose 500 errors from gateways (by Kasparex)",
