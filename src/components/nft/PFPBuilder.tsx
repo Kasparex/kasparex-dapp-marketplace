@@ -42,6 +42,10 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
           'Telegram',
           'Website',
           'Kasparex Records',
+          'Transparent',
+          'TRANSPARENT',
+          'Gear',
+          'GEAR',
         ]);
 
         metadataList.forEach((metadata) => {
@@ -94,14 +98,13 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       'outfits': 'CLOTHING',
       'diamonds': 'DIAMONDS',
       'eyewear': 'EYEWEAR',
-      'gear': 'GEAR',
       'hats': 'HATS',
       'hat': 'HATS',
+      'headphones': 'HEADPHONES',
       'masks': 'MASKS',
       'mouth': 'MOUTH',
       'noses': 'NOSES',
       'nose': 'NOSES',
-      'transparent': 'TRANSPARENT',
     };
 
     const lowerType = traitType.toLowerCase();
