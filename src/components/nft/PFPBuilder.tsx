@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getCollectionById } from '@/lib/nft/collections';
 import { getCollectionMetadata } from '@/lib/nft/collection-loader';
+import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
 
 interface PFPBuilderProps {
@@ -69,9 +70,79 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTraits, availableTraits]);
 
+  /**
+   * Map trait type from metadata to folder name
+   * Handles case-insensitive matching and common variations
+   */
+  const mapTraitTypeToFolder = (traitType: string): string => {
+    const typeMap: Record<string, string> = {
+      'background': 'BACKGROUNDS',
+      'backgrounds': 'BACKGROUNDS',
+      'base': 'BASE',
+      'clothing': 'CLOTHING',
+      'diamonds': 'DIAMONDS',
+      'diamond': 'DIAMONDS',
+      'eyewear': 'EYEWEAR',
+      'gear': 'GEAR',
+      'hats': 'HATS',
+      'hat': 'HATS',
+      'masks': 'MASKS',
+      'mask': 'MASKS',
+      'mouth': 'MOUTH',
+      'noses': 'NOSES',
+      'nose': 'NOSES',
+    };
+
+    // Try exact match first (case-insensitive)
+    const lowerType = traitType.toLowerCase().trim();
+    if (typeMap[lowerType]) {
+      return typeMap[lowerType];
+    }
+
+    // Try partial match
+    for (const [key, folder] of Object.entries(typeMap)) {
+      if (lowerType.includes(key) || key.includes(lowerType)) {
+        return folder;
+      }
+    }
+
+    // Default: uppercase the trait type and replace spaces with underscores
+    return traitType.toUpperCase().replace(/\s+/g, '_');
+  };
+
+  /**
+   * Normalize trait value to match file name
+   * Handles spaces, case sensitivity, and special characters
+   */
+  const normalizeTraitValue = (value: string): string => {
+    // Remove leading/trailing spaces
+    return String(value).trim();
+  };
+
+  /**
+   * Get trait image URL (supports both local and IPFS)
+   */
+  const getTraitImageUrl = (traitType: string, value: string): string | null => {
+    const folderName = mapTraitTypeToFolder(traitType);
+    const normalizedValue = normalizeTraitValue(value);
+    
+    // If traitImagesBaseUri is set, use IPFS
+    if (collection?.traitImagesBaseUri) {
+      const cid = collection.traitImagesBaseUri.replace(/^ipfs:\/\//, '');
+      // IPFS path: {baseUri}/{folderName}/{value}.png
+      // Example: ipfs://bafybe.../traits/BACKGROUNDS/Aqua Mint.png
+      const ipfsPath = `${cid}/${folderName}/${normalizedValue}.png`;
+      return getBestGatewayUrl(ipfsPath);
+    }
+    
+    // Otherwise, use local public folder (for testing)
+    // Path: /nft/{collectionId}/traits/{folderName}/{value}.png
+    return `/nft/${collectionId}/traits/${folderName}/${encodeURIComponent(normalizedValue)}.png`;
+  };
+
   const generatePreview = async () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !collection) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -90,25 +161,39 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       const selectedValue = selectedTraits.get(traitType);
       if (!selectedValue || selectedValue === 'None') continue;
 
-      // Construct image path
-      const imagePath = `/nft/${collectionId}/traits/${traitType}_${selectedValue}.png`;
+      // Get IPFS URL for trait image
+      const imageUrl = getTraitImageUrl(traitType, selectedValue);
+      if (!imageUrl) continue;
       
       try {
         const img = new Image();
+        img.crossOrigin = 'anonymous'; // Required for CORS when loading from IPFS
+        
         await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = () => {
-            // If image doesn't exist, skip this layer
+          const timeout = setTimeout(() => {
+            reject(new Error('Image load timeout'));
+          }, 10000); // 10 second timeout
+
+          img.onload = () => {
+            clearTimeout(timeout);
             resolve(null);
           };
-          img.src = imagePath;
+          
+          img.onerror = (error) => {
+            clearTimeout(timeout);
+            console.warn(`Failed to load trait image: ${imageUrl}`, error);
+            resolve(null); // Skip this layer instead of failing
+          };
+          
+          img.src = imageUrl;
         });
 
         if (img.complete && img.naturalWidth > 0) {
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         }
       } catch (error) {
-        console.warn(`Failed to load trait image: ${imagePath}`, error);
+        console.warn(`Error loading trait image for ${traitType}: ${selectedValue}`, error);
+        // Continue with other layers even if one fails
       }
     }
 
@@ -242,10 +327,20 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
 
       {/* Info Note */}
       <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg text-sm text-zinc-600 dark:text-zinc-400">
-        <p>
-          Select traits from different categories to build your custom PFP. Use the Randomize button to generate a random combination.
-          Download your creation as a PNG or save it for later.
-        </p>
+        {collection?.traitImagesBaseUri ? (
+          <p>
+            Select traits from different categories to build your custom PFP. Use the Randomize button to generate a random combination.
+            Download your creation as a PNG or save it for later. Trait images are loaded from IPFS.
+          </p>
+        ) : (
+          <p>
+            Select traits from different categories to build your custom PFP. Use the Randomize button to generate a random combination.
+            Download your creation as a PNG or save it for later. Currently using local trait images from the public folder.
+            <span className="block mt-2 text-xs text-zinc-500 dark:text-zinc-500">
+              To use IPFS, add <code className="bg-zinc-200 dark:bg-zinc-800 px-1 rounded">traitImagesBaseUri</code> to the collection configuration.
+            </span>
+          </p>
+        )}
       </div>
     </div>
   );

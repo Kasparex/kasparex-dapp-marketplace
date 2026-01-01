@@ -10,10 +10,13 @@ import { PFPBuilder } from '@/components/nft/PFPBuilder';
 import { getCollectionBySlug, isValidCollection, type CollectionConfig } from '@/lib/nft/collections';
 import Link from 'next/link';
 
+type TabType = 'checker' | 'traits' | 'builder';
+
 export default function CollectionPage() {
   const params = useParams();
   const collection = params?.collection as string;
   const [collectionConfig, setCollectionConfig] = useState<CollectionConfig | null>(null);
+  const [activeTab, setActiveTab] = useState<TabType>('checker');
 
   useEffect(() => {
     if (collection && isValidCollection(collection)) {
@@ -21,6 +24,12 @@ export default function CollectionPage() {
       setCollectionConfig(config || null);
     }
   }, [collection]);
+
+  const tabs: Array<{ id: TabType; label: string }> = [
+    { id: 'checker', label: 'Rarity Checker' },
+    { id: 'traits', label: 'Trait Analysis' },
+    { id: 'builder', label: 'PFP Builder' },
+  ];
 
   if (!collection || !isValidCollection(collection) || !collectionConfig) {
     return (
@@ -79,30 +88,54 @@ export default function CollectionPage() {
           </div>
         </section>
 
-        {/* Tools Grid */}
+        {/* Tabs */}
+        <section className="border-b border-zinc-200 dark:border-zinc-800">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex overflow-x-auto">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-6 py-4 font-medium transition-colors border-b-2 ${
+                    activeTab === tab.id
+                      ? 'border-zinc-900 dark:border-zinc-100 text-zinc-900 dark:text-zinc-100'
+                      : 'border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Tab Content */}
         <section className="py-8 sm:py-12">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {activeTab === 'checker' && (
               <div>
-                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
+                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
                   Rarity Checker
                 </h2>
                 <RarityChecker collectionId={collectionConfig.id} />
               </div>
+            )}
+            {activeTab === 'traits' && (
               <div>
-                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
+                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
                   Trait Analysis
                 </h2>
                 <TraitAnalysis collectionId={collectionConfig.id} />
               </div>
-            </div>
-            
-            <div className="mt-8">
-              <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-                PFP Builder
-              </h2>
-              <PFPBuilder collectionId={collectionConfig.id} />
-            </div>
+            )}
+            {activeTab === 'builder' && (
+              <div>
+                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
+                  PFP Builder
+                </h2>
+                <PFPBuilder collectionId={collectionConfig.id} />
+              </div>
+            )}
           </div>
         </section>
       </main>

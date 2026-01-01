@@ -11,6 +11,16 @@ export interface CollectionConfig {
   baseUri: string;
   kaspaComUrl: string;
   description?: string;
+  /**
+   * IPFS URI for trait PNG images
+   * Expected structure: {traitImagesBaseUri}/{FolderName}/{TraitValue}.png
+   * Example: ipfs://bafybe.../traits/BACKGROUNDS/Aqua Mint.png
+   * 
+   * Folder names are uppercase (BACKGROUNDS, BASE, CLOTHING, etc.)
+   * File names preserve spaces and original case (e.g., "Aqua Mint.png")
+   * The code automatically maps trait types from metadata to folder names
+   */
+  traitImagesBaseUri?: string;
 }
 
 export const collections: Record<string, CollectionConfig> = {
@@ -31,6 +41,7 @@ export const collections: Record<string, CollectionConfig> = {
     baseUri: 'ipfs://bafybeiakbvm7hn6ev23tiorgdxh3hcjkuu7huxdijklybastzmceclycnu',
     kaspaComUrl: 'https://kaspa.com/nft/collections/PIXELKREX',
     description: 'PIXELKREX NFT collection',
+    traitImagesBaseUri: 'ipfs://bafybeifjk3cyeo7ou7dhmf5wwsvd2a37nnvdycwu3pomoo54xvsh4qzsme',
   },
 };
 
