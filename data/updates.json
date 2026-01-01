@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767289836-4ae3e89",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix PFP Builder trait normalization and improve debugging - Removed Digital Signature and Created By from excluded traits - Fixed SKIN trait mapping to BASE folder (no separate SKIN folder) - Improved normalizeTraitValue to handle em dashes and en dashes correctly - Added comprehensive debug logging for trait image loading - Enhanced error messages with expected file paths (by Kasparex)",
+      "date": "2026-01-01T18:49:49+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767288918-bad85be",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update PIXELKREX trait images CID and optimize PFP Builder - Updated traitImagesBaseUri to new IPFS CID - Added TRANSPARENT and GEAR to excluded traits - Removed GEAR and TRANSPARENT from folder mapping - Added HEADPHONES folder mapping (by Kasparex)",
