@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767278783-b4ef4c6",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: filter out 'collections' tab in collection page callback (by Kasparex)",
+      "date": "2026-01-01T15:45:40+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767278504-ebe0d1c",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript type error in collection page sidebar - Wrap setActiveTab in arrow function for type compatibility (by Kasparex)",
