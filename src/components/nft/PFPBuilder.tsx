@@ -60,13 +60,24 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
           'Snapback Cap Front Cream Pink Panther',
           'Snapback Cap Front White Pink Panther',
           'Snapback Cap Back Green Duck',
-          'Snapback Cap Back Violet Pink Panther', // From console errors - no file in IPFS
+          'Snapback Cap Back Violet Pink Panther',
+          'Snapback Cap Front Green', // From console errors
+          'Snapback Cap Front White Pepe', // From console errors
+          'Snapback Cap Front Red Duck', // From console errors
+          'Snapback Cap Back Green Pikachu', // From console errors
+          'Snapback Cap Back Mint Green Pikachu', // From console errors
+          'Snapback Cap Back Neon Green Pikachu', // From console errors
+          'Snapback Cap Back Lilac Pink Panther', // From console errors
+          'Snapback Cap Front Violet', // From console errors
           'Kaspa Winter Hat', // File doesn't exist, but other "Winter Hat" variants might
           'Rainbow Hair',
           'Headband Scarf Violet',
+          'Headband Scarf Khaki', // From console errors
           'Cherry Hair',
-          'Fire Hair', // From console errors - no "Fire_Hair.png" in IPFS list
-          'Pink Hat', // From console errors - no "Pink.png" or "Pink_Hat.png" in IPFS list
+          'Fire Hair',
+          'Pink Hat',
+          'Blue Hat', // From console errors
+          'Play Boy', // From console errors
           // Add more missing traits as identified
         ];
         
