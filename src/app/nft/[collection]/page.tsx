@@ -82,7 +82,12 @@ export default function CollectionPage() {
           {/* Sidebar */}
           <NFTSidebar
             activeTab={activeTab}
-            onTabChange={(tab) => setActiveTab(tab)}
+            onTabChange={(tab) => {
+              // Filter out 'collections' tab as it's not valid for collection pages
+              if (tab !== 'collections') {
+                setActiveTab(tab);
+              }
+            }}
             collectionSlug={collection}
             collectionName={collectionConfig.name}
           />
