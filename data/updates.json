@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767300301-e7187b3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add more missing Hat traits and improve IPFS proxy error logging - Add Red Winter Hat, Snapback Cap variants, Crown, Headband Scarf Orange - Improve error logging in IPFS proxy to help debug gateway failures - Add detailed error messages for failed gateway requests (by Kasparex)",
+      "date": "2026-01-01T21:43:46+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767299809-d4a7180",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add custom Pinata gateway and missing Hat traits - Add user's custom Pinata gateway (apricot-bizarre-viper-692.mypinata.cloud) as first priority - Add missing Hat traits from console errors (Snapback Cap Front Cream, Snapback Cap Back Black Duck) - This should fix Hat trait loading issues (by Kasparex)",
