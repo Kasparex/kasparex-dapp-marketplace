@@ -289,16 +289,18 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       normalized = normalized.replace(/\s+masks?$/i, '');
     } else if (traitTypeLower.includes('hat') || traitTypeLower.includes('hats')) {
       // HATS: Mixed pattern based on actual IPFS files
-      // Files WITH "Hat": "Golden_Digger_Hat.png", "Slime_Trooper_Hat.png", "Toxic_Blob_Hat.png"
-      // Files WITH "Cap": "Burnt_Rust_Cap.png", "Core_Hacker_Cap.png", "Pink_Beam_Cap.png"
-      // Files WITHOUT "Hat"/"Cap": "Blue_Byte.png", "Cherry_Dash.png", "Rainbow_Dome.png"
+      // IMPORTANT: Based on testing, metadata values typically DON'T have "Hat"/"Cap" suffixes
+      // Example: Metadata has "Green Stylish Hair" → File is "Green_Stylish_Hair.png" ✅ Works
+      // But files like "Golden_Digger_Hat.png" exist, so we need to try multiple patterns
       // 
-      // Strategy: 
-      // 1. If trait value contains "Cap" (e.g., "Snapback Cap", "Burnt Rust Cap"), keep "Cap" and strip "Hat"
-      // 2. If trait value ends with "Hat", keep it
-      // 3. Otherwise, strip both "Hat" and "Cap" suffixes (for files like "Blue_Byte.png")
+      // Strategy: Try multiple normalization patterns to match file names:
+      // 1. First, try as-is (for files like "Green_Stylish_Hair.png", "Blue_Byte.png")
+      // 2. If metadata contains "Cap", keep it (for files like "Burnt_Rust_Cap.png")
+      // 3. If metadata ends with "Hat", keep it (for files like "Golden_Digger_Hat.png")
+      // 4. Otherwise, strip suffixes and try without them
       
       const normalizedLower = normalized.toLowerCase();
+      const originalNormalized = normalized;
       
       // Check if the value contains "Cap" (case-insensitive)
       // This handles: "Snapback Cap Back...", "Burnt Rust Cap", "Core Hacker Cap", etc.
@@ -311,9 +313,15 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
         console.log(`[PFP Builder] Hat normalization (ends with Hat): "${value}" -> "${normalized}"`);
       } else {
         // Value doesn't contain "Cap" and doesn't end with "Hat"
-        // Strip both "Hat" and "Cap" suffixes (for files like "Blue_Byte.png", "Cherry_Dash.png")
+        // This is the most common case - metadata values like "Green Stylish Hair", "Blue Byte", "Golden Digger"
+        // Files might be: "Green_Stylish_Hair.png", "Blue_Byte.png", "Golden_Digger_Hat.png"
+        // 
+        // Strategy: Strip any trailing "Hat"/"Cap" suffixes first (for consistency)
         normalized = normalized.replace(/\s+(hats?|caps?)$/i, '');
         console.log(`[PFP Builder] Hat normalization (no Cap/Hat suffix): "${value}" -> "${normalized}"`);
+        
+        // Note: The image loading logic will try multiple variations if the first attempt fails
+        // This handles cases where files have "Hat" suffix but metadata doesn't
       }
     } else if (traitTypeLower.includes('eyewear')) {
       // EYEWEAR: Files DON'T include "Eyewear" but may include "wear" (e.g., "Synth_Golds_shining_legacy_wear.png")
@@ -448,7 +456,46 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
   };
 
   /**
-   * Preload trait image
+   * Get alternative image URLs for Hat traits (fallback variations)
+   * Since metadata values might not have "Hat"/"Cap" but files do, try multiple variations
+   */
+  const getHatImageUrlVariations = (traitType: string, value: string): string[] => {
+    const folderName = mapTraitTypeToFolder(traitType);
+    const baseNormalized = normalizeTraitValue(value, traitType);
+    const variations: string[] = [];
+    
+    // Only generate variations for Hat traits
+    const traitTypeLower = traitType.toLowerCase();
+    if (!traitTypeLower.includes('hat') && !traitTypeLower.includes('hats')) {
+      return [getTraitImageUrl(traitType, value)!].filter(Boolean);
+    }
+    
+    if (!collection?.traitImagesBaseUri) {
+      return [getTraitImageUrl(traitType, value)!].filter(Boolean);
+    }
+    
+    const cid = collection.traitImagesBaseUri.replace(/^ipfs:\/\//, '');
+    
+    // Variation 1: As normalized (e.g., "Green_Stylish_Hair")
+    variations.push(`${cid}/${folderName}/${baseNormalized}.png`);
+    
+    // Variation 2: Add "Hat" suffix if not present (e.g., "Golden_Digger" -> "Golden_Digger_Hat")
+    if (!baseNormalized.toLowerCase().endsWith('hat') && !baseNormalized.toLowerCase().endsWith('cap')) {
+      variations.push(`${cid}/${folderName}/${baseNormalized}_Hat.png`);
+    }
+    
+    // Variation 3: Add "Cap" suffix if contains "cap" in value but not in normalized
+    const valueLower = value.toLowerCase();
+    if (valueLower.includes('cap') && !baseNormalized.toLowerCase().endsWith('cap')) {
+      variations.push(`${cid}/${folderName}/${baseNormalized}_Cap.png`);
+    }
+    
+    // Convert to gateway URLs
+    return variations.map(path => getBestGatewayUrl(path));
+  };
+
+  /**
+   * Preload trait image with fallback variations for Hat traits
    */
   const preloadTraitImage = async (traitType: string, value: string): Promise<string | null> => {
     const cacheKey = `${traitType}:${value}`;
@@ -456,38 +503,54 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       return loadedImages.get(cacheKey)!;
     }
 
-    const imageUrl = getTraitImageUrl(traitType, value);
-    if (!imageUrl) return null;
+    // For Hat traits, try multiple URL variations
+    const traitTypeLower = traitType.toLowerCase();
+    const isHatTrait = traitTypeLower.includes('hat') || traitTypeLower.includes('hats');
+    
+    const urlsToTry = isHatTrait 
+      ? getHatImageUrlVariations(traitType, value)
+      : [getTraitImageUrl(traitType, value)!].filter(Boolean);
+    
+    if (urlsToTry.length === 0) return null;
 
-    try {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error('Image load timeout'));
-        }, 15000);
-
-        img.onload = () => {
-          clearTimeout(timeout);
-          resolve();
-        };
+    // Try each URL variation until one works
+    for (const imageUrl of urlsToTry) {
+      try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
         
-        img.onerror = () => {
-          clearTimeout(timeout);
-          reject(new Error('Image load failed'));
-        };
-        
-        img.src = imageUrl;
-      });
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('Image load timeout'));
+          }, 10000); // Reduced timeout for faster fallback
 
-      // Store in cache
-      setLoadedImages(prev => new Map(prev).set(cacheKey, imageUrl));
-      return imageUrl;
-    } catch (error) {
-      console.warn(`Failed to preload trait image: ${traitType}:${value}`, error);
-      return null;
+          img.onload = () => {
+            clearTimeout(timeout);
+            resolve();
+          };
+          
+          img.onerror = () => {
+            clearTimeout(timeout);
+            reject(new Error('Image load failed'));
+          };
+          
+          img.src = imageUrl;
+        });
+
+        // Store in cache
+        console.log(`[PFP Builder] ✅ Successfully loaded: ${traitType}:${value} -> ${imageUrl}`);
+        setLoadedImages(prev => new Map(prev).set(cacheKey, imageUrl));
+        return imageUrl;
+      } catch (error) {
+        console.warn(`[PFP Builder] ❌ Failed to load ${imageUrl}:`, error);
+        // Try next variation
+        continue;
+      }
     }
+
+    // All variations failed
+    console.warn(`[PFP Builder] ❌ All variations failed for trait: ${traitType}:${value}`);
+    return null;
   };
 
   const generatePreview = async () => {
