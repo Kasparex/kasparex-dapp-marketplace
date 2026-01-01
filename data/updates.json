@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767296443-23c505c",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix Eyewear em dash separator detection and add more missing Hat traits - Fixed em dash matching logic for Eyewear descriptive text lowercase conversion - Added Headband Scarf Violet, Cherry Hair, Snapback Cap Back Green Duck to missing traits filter (by Kasparex)",
+      "date": "2026-01-01T20:40:15+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767295674-13e37b1",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add missing traits documentation (by Kasparex)",
