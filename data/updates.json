@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767297509-457d39d",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix Hat trait normalization - Handle 'Winter Hat' as compound name (keeps 'Hat' in filename) - Strip trailing 'Hat' for Snapback Cap traits - Preserve 'Winter_Hat' compound through normalization - Add debug logging for Hat normalization (by Kasparex)",
+      "date": "2026-01-01T20:58:05+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767296642-a780bec",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix Eyewear separator detection and add debug logging - Changed separatorIndex check from > 0 to >= 0 - Added debug logging to track lowercase conversion - Will help identify why descriptive text isn't being lowercased (by Kasparex)",
