@@ -37,6 +37,8 @@
     "upload:assets": "tsx scripts/upload-assets-to-ipfs.ts",
     "upload:assets:dry": "tsx scripts/upload-assets-to-ipfs.ts --dry-run",
     "upload:registry": "tsx scripts/upload-registry-to-ipfs.ts",
+    "upload:traits": "tsx scripts/upload-trait-images-to-ipfs.ts",
+    "upload:traits:dry": "tsx scripts/upload-trait-images-to-ipfs.ts --dry-run",
     "worker:dev": "cd workers && npm run dev",
     "worker:deploy": "cd workers && npm run deploy",
     "worker:deploy:production": "cd workers && npm run deploy:production"
