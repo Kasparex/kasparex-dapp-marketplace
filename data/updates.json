@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767292348-c845b8a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Optimize trait value normalization for all trait types - Updated normalization logic with trait-specific rules based on actual file patterns - DIAMONDS: Keep 'Diamond' suffix (files include it) - SKIN: Strip 'Skin' suffix (files don't include it) - MASKS: Strip 'Mask' suffix (files don't include it) - HATS: Strip 'Hat' suffix (handles mixed patterns) - EYEWEAR: Strip 'Eyewear' but keep 'wear' - MOUTH: Strip 'Mouth' suffix - NOSES: Keep 'Nose' suffix (files include it) - BACKGROUNDS: Strip 'Background' suffix - HEADPHONES: Strip 'Headphone' suffix - Added comprehensive comments documenting file naming patterns (by Kasparex)",
+      "date": "2026-01-01T19:31:52+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767291848-f099f1b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix trait value normalization to strip trait type suffix - Updated normalizeTraitValue to remove trait type suffix from values (e.g., 'Plasma Pop Skin' -> 'Plasma_Pop') - Handles variations: Skin, Mask, Hat, Cap, Diamond, etc. - Fixes issue where metadata includes trait type in value but IPFS files don't - Updated all calls to normalizeTraitValue to pass traitType parameter (by Kasparex)",
