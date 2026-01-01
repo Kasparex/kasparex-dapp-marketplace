@@ -531,8 +531,17 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
             resolve();
           };
           
-          img.onerror = () => {
+          img.onerror = (error) => {
             clearTimeout(timeout);
+            // Log but don't show error for missing files - they're filtered out anyway
+            console.warn(`[PFP Builder] Failed to load image:`, {
+              traitType,
+              traitValue: value,
+              normalizedValue: baseNormalized,
+              folderName,
+              imageUrl,
+              expectedPath: `${cid}/${folderName}/${baseNormalized}.png`
+            });
             reject(new Error('Image load failed'));
           };
           
