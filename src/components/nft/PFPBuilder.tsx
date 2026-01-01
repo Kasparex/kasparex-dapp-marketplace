@@ -269,11 +269,20 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       normalized = normalized.replace(/\s+hats?$/i, '');
     } else if (traitTypeLower.includes('eyewear')) {
       // EYEWEAR: Files DON'T include "Eyewear" but may include "wear" (e.g., "Synth_Golds_shining_legacy_wear.png")
-      // Files use mixed case: "Fruit_Hack_Lens_juicy_glitch_remix.png" (capitalize main words, lowercase descriptive)
-      // Strip "Eyewear" but keep "wear" if it's part of the name
-      // Preserve original capitalization from metadata (don't convert to lowercase)
-      // Example: "Fruit Hack Lens - Juicy glitch remix" -> "Fruit_Hack_Lens_juicy_glitch_remix"
+      // Files use mixed case: main words capitalized, descriptive text after " - " is lowercase
+      // Example: "Burnline Scope - Molten techwrap design" -> "Burnline_Scope_molten_techwrap_design"
+      // Example: "Parity Flash - Synced dual-tint lines" -> "Parity_Flash_synced_dual-tint_lines" (preserve hyphen in "dual-tint")
+      // Strip "Eyewear" suffix
       normalized = normalized.replace(/\s+eyewear$/i, '');
+      
+      // For Eyewear, if there's a " - " separator, convert everything after it to lowercase
+      // This matches the file naming pattern where descriptive text is lowercase
+      const separatorIndex = normalized.search(/\s+-\s+/);
+      if (separatorIndex > 0) {
+        const mainPart = normalized.substring(0, separatorIndex);
+        const descPart = normalized.substring(separatorIndex + 3).toLowerCase();
+        normalized = `${mainPart} ${descPart}`;
+      }
     } else if (traitTypeLower.includes('nose')) {
       // NOSES: Files DO include "Nose" (e.g., "Krex_Nose.png")
       // DON'T strip "Nose" suffix - keep it as-is
@@ -302,14 +311,16 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
     }
     
     // Now normalize the remaining value
+    // IMPORTANT: Preserve hyphens that are part of compound words (e.g., "dual-tint", "all-black", "hex-lined")
+    // These hyphens are NOT surrounded by spaces, so they remain intact
     normalized = normalized
       .trim()
       // First, replace em dashes, en dashes, and other dash-like characters with spaces
       .replace(/[–—――‒―]/g, ' ')
-      // Replace hyphens with spaces (files don't use hyphens, they use underscores)
-      .replace(/-/g, ' ')
-      // Replace other special characters (except underscores, dots) with spaces
-      .replace(/[^\w\s_.]/g, ' ')
+      // Replace " - " (hyphen with spaces - separator) with a space
+      .replace(/\s+-\s+/g, ' ')
+      // Replace other special characters (except hyphens, underscores, dots) with spaces
+      .replace(/[^\w\s\-_.]/g, ' ')
       // Replace multiple spaces with single space
       .replace(/\s+/g, ' ')
       // Trim again after space normalization
