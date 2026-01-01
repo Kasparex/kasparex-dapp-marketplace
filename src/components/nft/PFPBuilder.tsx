@@ -30,10 +30,29 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
         // Extract unique trait types and values from all NFTs
         const traitMap = new Map<string, Set<string | number>>();
         
+        // Filter out unnecessary traits
+        const excludedTraits = new Set([
+          'Digital Signature',
+          'Created By',
+          'NFT Grid',
+          'Twitter (X)',
+          'Twitter',
+          'YouTube',
+          'TikTok',
+          'Telegram',
+          'Website',
+          'Kasparex Records',
+        ]);
+
         metadataList.forEach((metadata) => {
           metadata.traits.forEach((trait) => {
             const traitType = trait.trait_type;
             const value = trait.value;
+            
+            // Skip excluded traits
+            if (excludedTraits.has(traitType) || excludedTraits.has(String(value))) {
+              return;
+            }
             
             if (!traitMap.has(traitType)) {
               traitMap.set(traitType, new Set());
@@ -118,8 +137,9 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
     // If traitImagesBaseUri is set, use IPFS
     if (collection?.traitImagesBaseUri) {
       const cid = collection.traitImagesBaseUri.replace(/^ipfs:\/\//, '');
-      // IPFS path: {baseUri}/Pixelkrex traits/{folderName}/{value}.png
-      const ipfsPath = `${cid}/Pixelkrex traits/${folderName}/${normalizedValue}.png`;
+      // IPFS path: {baseUri}/{folderName}/{value}.png
+      // Updated to work with cleaner folder structure (no "Pixelkrex traits" parent folder)
+      const ipfsPath = `${cid}/${folderName}/${normalizedValue}.png`;
       return getBestGatewayUrl(ipfsPath);
     }
     
