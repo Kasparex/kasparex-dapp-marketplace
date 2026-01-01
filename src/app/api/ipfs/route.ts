@@ -53,11 +53,12 @@ export async function GET(request: NextRequest) {
         'User-Agent': 'Mozilla/5.0 (compatible; Kasparex/1.0)',
       };
       
-      // For custom Pinata gateways, you might need authentication
-      // Uncomment and add your gateway token if needed:
-      // if (gateway.includes('mypinata.cloud')) {
-      //   headers['x-pinata-gateway-token'] = process.env.PINATA_GATEWAY_TOKEN || '';
-      // }
+      // For custom Pinata gateways, add gateway token if configured
+      // Set PINATA_GATEWAY_TOKEN in your Vercel environment variables if needed
+      if (gateway.includes('mypinata.cloud') && process.env.PINATA_GATEWAY_TOKEN) {
+        headers['x-pinata-gateway-token'] = process.env.PINATA_GATEWAY_TOKEN;
+        console.log(`[IPFS] Using Pinata gateway token for ${gateway}`);
+      }
       
       const response = await fetch(url, {
         method: 'GET',
