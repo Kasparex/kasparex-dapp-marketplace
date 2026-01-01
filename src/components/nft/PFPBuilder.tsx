@@ -293,10 +293,13 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
         }
       }
       
-      if (separatorIndex > 0) {
+      if (separatorIndex >= 0) {
         const mainPart = normalized.substring(0, separatorIndex);
         const descPart = normalized.substring(separatorIndex + separatorLength).toLowerCase();
         normalized = `${mainPart} ${descPart}`;
+        console.log(`[PFP Builder] Eyewear lowercase conversion: "${value}" -> main: "${mainPart}", desc: "${descPart}" -> "${normalized}"`);
+      } else {
+        console.log(`[PFP Builder] Eyewear no separator found in: "${normalized}"`);
       }
     } else if (traitTypeLower.includes('nose')) {
       // NOSES: Files DO include "Nose" (e.g., "Krex_Nose.png")
