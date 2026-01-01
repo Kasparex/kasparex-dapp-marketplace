@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767308883-584cdd4",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add rename scripts for Hat files (by Kasparex)",
+      "date": "2026-01-02T00:07:12+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767307904-6f34000",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add fallback mechanism for Hat trait image loading - tries multiple filename variations (by Kasparex)",
