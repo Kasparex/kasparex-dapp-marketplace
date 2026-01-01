@@ -228,9 +228,10 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       normalized = normalized.replace(/\s+hats?$/i, '');
     } else if (traitTypeLower.includes('eyewear')) {
       // EYEWEAR: Files DON'T include "Eyewear" but may include "wear" (e.g., "Synth_Golds_shining_legacy_wear.png")
-      // Files use lowercase for descriptive words: "shining_legacy_wear" not "Shining_Legacy_wear"
+      // Files use mixed case: "Fruit_Hack_Lens_juicy_glitch_remix.png" (capitalize main words, lowercase descriptive)
       // Strip "Eyewear" but keep "wear" if it's part of the name
-      // Example: "Synth Golds – Shining legacy wear" -> "Synth Golds Shining legacy wear" -> "Synth_Golds_shining_legacy_wear"
+      // Preserve original capitalization from metadata (don't convert to lowercase)
+      // Example: "Fruit Hack Lens - Juicy glitch remix" -> "Fruit_Hack_Lens_juicy_glitch_remix"
       normalized = normalized.replace(/\s+eyewear$/i, '');
     } else if (traitTypeLower.includes('nose')) {
       // NOSES: Files DO include "Nose" (e.g., "Krex_Nose.png")
@@ -264,20 +265,18 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       .trim()
       // First, replace em dashes, en dashes, and other dash-like characters with spaces
       .replace(/[–—――‒―]/g, ' ')
-      // Replace other special characters (except hyphens, underscores, dots) with spaces
-      .replace(/[^\w\s\-_.]/g, ' ')
+      // Replace hyphens with spaces (files don't use hyphens, they use underscores)
+      .replace(/-/g, ' ')
+      // Replace other special characters (except underscores, dots) with spaces
+      .replace(/[^\w\s_.]/g, ' ')
       // Replace multiple spaces with single space
       .replace(/\s+/g, ' ')
       // Trim again after space normalization
       .trim();
     
-    // For certain trait types, normalize to lowercase for better matching
-    // This handles cases where files use lowercase (e.g., "shining_legacy" vs "Shining_Legacy")
-    const lowercaseTraitTypes = ['eyewear'];
-    if (lowercaseTraitTypes.some(type => traitTypeLower.includes(type))) {
-      // Convert to lowercase for better matching with actual file names
-      normalized = normalized.toLowerCase();
-    }
+    // Note: We DON'T convert to lowercase anymore because IPFS paths are case-sensitive
+    // and files have mixed case (e.g., "Fruit_Hack_Lens" not "fruit_hack_lens")
+    // The normalization preserves the original capitalization from metadata
     
     // Replace spaces with underscores
     normalized = normalized
