@@ -55,8 +55,17 @@ export async function queryL1NFTs(
 
         // Find holder matching the address
         // Try multiple address formats
-        console.log(`Searching for address ${address} (normalized: ${normalizedAddress}) in ${collectionId}`);
-        console.log(`Collection has ${collectionData.holders?.length || 0} holders`);
+        console.log(`[NFT Query] Searching for address ${address} (normalized: ${normalizedAddress}) in ${collectionId}`);
+        console.log(`[NFT Query] Collection has ${collectionData.holders?.length || 0} holders`);
+        
+        // Log first few holder addresses for debugging
+        if (collectionData.holders && collectionData.holders.length > 0) {
+          console.log(`[NFT Query] Sample holder addresses:`, collectionData.holders.slice(0, 5).map(h => ({
+            address: h.walletAddress,
+            tokenCount: h.tokenIds?.length || 0,
+            normalized: (h.walletAddress || '').replace(/^kaspa:/i, '').toLowerCase()
+          })));
+        }
         
         const holder = collectionData.holders.find((h) => {
           const holderAddress = (h.walletAddress || '').replace(/^kaspa:/i, '').toLowerCase();
@@ -64,7 +73,7 @@ export async function queryL1NFTs(
                  holderAddress === address.toLowerCase() ||
                  holderAddress === address.replace(/^kaspa:/i, '').toLowerCase();
           if (matches) {
-            console.log(`Found matching holder: ${h.walletAddress} with ${h.tokenIds?.length || 0} tokens`);
+            console.log(`[NFT Query] ✓ Found matching holder: ${h.walletAddress} with ${h.tokenIds?.length || 0} tokens`);
           }
           return matches;
         });
@@ -75,7 +84,7 @@ export async function queryL1NFTs(
             continue;
           }
 
-          console.log(`Adding ${holder.tokenIds.length} tokens for ${collectionId}`);
+          console.log(`[NFT Query] ✓ Adding ${holder.tokenIds.length} tokens for ${collectionId}`);
           // Add all token IDs owned by this address
           holder.tokenIds.forEach((tokenId) => {
             const tokenIdNum = typeof tokenId === 'number' ? tokenId : parseInt(String(tokenId), 10);
@@ -89,11 +98,8 @@ export async function queryL1NFTs(
             }
           });
         } else {
-          console.log(`No holder found for address ${address} in collection ${collectionId}`);
-          // Log first few holder addresses for debugging
-          if (collectionData.holders && collectionData.holders.length > 0) {
-            console.log('Sample holder addresses:', collectionData.holders.slice(0, 3).map(h => h.walletAddress));
-          }
+          console.log(`[NFT Query] ✗ No holder found for address ${address} in collection ${collectionId}`);
+          console.log(`[NFT Query] Normalized search address: ${normalizedAddress}`);
         }
       } catch (error) {
         console.error(`Error querying L1 NFTs for ${collectionId}:`, error);

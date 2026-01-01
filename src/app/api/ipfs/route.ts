@@ -21,12 +21,21 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // Decode the path parameter (it comes URL encoded)
+  const decodedPath = decodeURIComponent(path);
+  
   // Try each gateway until one works
   for (const gateway of IPFS_GATEWAYS) {
     try {
       // Ensure path starts with /ipfs/
-      const ipfsPath = path.startsWith('/ipfs/') ? path : `/ipfs/${path}`;
-      const url = `${gateway}${ipfsPath}`;
+      const ipfsPath = decodedPath.startsWith('/ipfs/') ? decodedPath : `/ipfs/${decodedPath}`;
+      // URL encode the full path for the gateway request
+      // Split by / and encode each segment separately to preserve structure
+      const pathSegments = ipfsPath.split('/').filter(Boolean);
+      const encodedPath = '/' + pathSegments.map(segment => encodeURIComponent(segment)).join('/');
+      const url = `${gateway}${encodedPath}`;
+
+      console.log(`[IPFS] Trying gateway ${gateway} with path: ${url}`);
 
       const response = await fetch(url, {
         method: 'GET',
@@ -38,6 +47,7 @@ export async function GET(request: NextRequest) {
       });
 
       if (response.ok) {
+        console.log(`[IPFS] Successfully fetched from ${gateway}`);
         // Get content type from response
         const contentType = response.headers.get('content-type') || 'application/octet-stream';
         
@@ -55,17 +65,20 @@ export async function GET(request: NextRequest) {
             'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
           },
         });
+      } else {
+        console.warn(`[IPFS] Gateway ${gateway} returned status ${response.status} for ${url}`);
       }
     } catch (error) {
       // Try next gateway
-      console.warn(`IPFS gateway ${gateway} failed for ${path}:`, error);
+      console.warn(`[IPFS] Gateway ${gateway} failed for ${decodedPath}:`, error);
       continue;
     }
   }
 
   // All gateways failed
+  console.error(`[IPFS] All gateways failed for path: ${decodedPath}`);
   return NextResponse.json(
-    { error: 'Failed to fetch from IPFS gateways' },
+    { error: 'Failed to fetch from IPFS gateways', path: decodedPath },
     { status: 500 }
   );
 }

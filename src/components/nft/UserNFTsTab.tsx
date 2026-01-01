@@ -43,10 +43,14 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
     setError(null);
 
     try {
-      console.log('Loading NFTs for addresses:', { l1Address, l2Address, collectionId });
+      console.log('[UserNFTsTab] Loading NFTs for addresses:', { l1Address, l2Address, collectionId });
       const nfts = await queryUserNFTs(l1Address, l2Address, collectionId ? [collectionId] : undefined);
-      console.log('Fetched NFTs:', nfts);
+      console.log('[UserNFTsTab] ✓ Fetched NFTs:', nfts.length, nfts);
       setUserNFTs(nfts);
+      
+      if (nfts.length === 0) {
+        console.warn('[UserNFTsTab] No NFTs found. Check console for NFT query logs.');
+      }
 
       // Load collection metadata for accurate rarity calculation
       const collectionMetadataMap = new Map<string, any[]>();
