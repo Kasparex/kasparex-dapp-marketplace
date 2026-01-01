@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767282241-aefcf5a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add error response logging to IPFS gateway failures (by Kasparex)",
+      "date": "2026-01-01T16:43:06+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767281541-0b0f9b0",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix IPFS image loading and improve NFT query logging - Fix IPFS API route to properly URL encode paths with spaces - Add comprehensive logging to IPFS gateway requests - Improve NFT query logging with clearer messages and address matching details - Add warning when no NFTs are found to help debug wallet connection issues (by Kasparex)",
