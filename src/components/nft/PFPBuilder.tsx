@@ -59,8 +59,11 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
           'Snapback Cap Back Dark Violet',
           'Snapback Cap Front Cream Pink Panther',
           'Snapback Cap Front White Pink Panther',
+          'Snapback Cap Back Green Duck',
           'Kaspa Winter Hat',
           'Rainbow Hair',
+          'Headband Scarf Violet',
+          'Cherry Hair',
           // Add more missing traits as identified
         ];
         
@@ -269,18 +272,30 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       normalized = normalized.replace(/\s+hats?$/i, '');
     } else if (traitTypeLower.includes('eyewear')) {
       // EYEWEAR: Files DON'T include "Eyewear" but may include "wear" (e.g., "Synth_Golds_shining_legacy_wear.png")
-      // Files use mixed case: main words capitalized, descriptive text after " - " is lowercase
+      // Files use mixed case: main words capitalized, descriptive text after " - " or " – " is lowercase
       // Example: "Burnline Scope - Molten techwrap design" -> "Burnline_Scope_molten_techwrap_design"
       // Example: "Parity Flash - Synced dual-tint lines" -> "Parity_Flash_synced_dual-tint_lines" (preserve hyphen in "dual-tint")
       // Strip "Eyewear" suffix
       normalized = normalized.replace(/\s+eyewear$/i, '');
       
-      // For Eyewear, if there's a " - " separator, convert everything after it to lowercase
+      // For Eyewear, if there's a " - " or " – " separator, convert everything after it to lowercase
       // This matches the file naming pattern where descriptive text is lowercase
-      const separatorIndex = normalized.search(/\s+-\s+/);
+      // Check for both regular hyphen and em dash separators
+      let separatorIndex = normalized.search(/\s+-\s+/);
+      let separatorLength = 3; // Length of " - "
+      
+      if (separatorIndex < 0) {
+        // Try em dash (en dash or em dash)
+        const emDashMatch = normalized.match(/\s+[–—]\s+/);
+        if (emDashMatch && emDashMatch.index !== undefined) {
+          separatorIndex = emDashMatch.index;
+          separatorLength = emDashMatch[0].length;
+        }
+      }
+      
       if (separatorIndex > 0) {
         const mainPart = normalized.substring(0, separatorIndex);
-        const descPart = normalized.substring(separatorIndex + 3).toLowerCase();
+        const descPart = normalized.substring(separatorIndex + separatorLength).toLowerCase();
         normalized = `${mainPart} ${descPart}`;
       }
     } else if (traitTypeLower.includes('nose')) {
