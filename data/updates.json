@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767293106-90275a9",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix trait value normalization for descriptions and case - Strip long descriptions from Diamond traits - Preserve short phrases in trait names - Normalize Eyewear to lowercase for file matching (by Kasparex)",
+      "date": "2026-01-01T19:44:41+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767292534-5e8ffec",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix NOSES comment to reflect actual file pattern (by Kasparex)",
