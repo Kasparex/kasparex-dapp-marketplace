@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767299809-d4a7180",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add custom Pinata gateway and missing Hat traits - Add user's custom Pinata gateway (apricot-bizarre-viper-692.mypinata.cloud) as first priority - Add missing Hat traits from console errors (Snapback Cap Front Cream, Snapback Cap Back Black Duck) - This should fix Hat trait loading issues (by Kasparex)",
+      "date": "2026-01-01T21:36:20+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767299149-8678cf8",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add more missing Hat traits from console errors - Add Snapback Cap variants that don't exist in IPFS - Add Headband Scarf Khaki, Blue Hat, Play Boy - These traits will be filtered out from the UI (by Kasparex)",
