@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767298455-1adb951",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add missing Hat traits from console errors (Fire Hair, Pink Hat, Snapback Cap Back Violet Pink Panther) (by Kasparex)",
+      "date": "2026-01-01T21:13:19+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767298272-5bf7db1",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix Hat trait normalization - Keep 'Hat' suffix by default (most files include it) - Only strip 'Hat' for Snapback Cap traits (they use 'Cap' instead) - Add missing traits from console errors (Fire Hair, Pink Hat, Snapback Cap Back Violet Pink Panther) - This should fix Hat trait loading issues (by Kasparex)",
