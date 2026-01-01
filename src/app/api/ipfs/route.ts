@@ -12,6 +12,7 @@ const IPFS_GATEWAYS = [
 
 /**
  * Proxy route for IPFS gateway to bypass CORS
+ * Supports custom Pinata gateways with authentication via PINATA_GATEWAY_TOKEN
  */
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
