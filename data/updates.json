@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767295478-a0192b4",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix Eyewear normalization for descriptive text and hyphens - Convert descriptive text after ' - ' to lowercase for Eyewear - Preserve hyphens in compound words (dual-tint, all-black, hex-lined) - Fixes case sensitivity issues with long Eyewear trait names (by Kasparex)",
+      "date": "2026-01-01T20:24:08+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767294721-bdcd7c1",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Filter out missing trait values that don't have image files - Added missingTraitValues list for Hat traits without files - Filter these traits out during trait loading - Prevents display of traits that will fail to load (by Kasparex)",
