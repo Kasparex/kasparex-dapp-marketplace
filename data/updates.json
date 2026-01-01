@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767301834-8a588db",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Trigger redeploy - PINATA_GATEWAY_TOKEN should now be configured in Vercel (by Kasparex)",
+      "date": "2026-01-01T22:09:55+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767301281-fcf865f",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Enable Pinata gateway token support - Add support for PINATA_GATEWAY_TOKEN environment variable - This may be required for custom Pinata gateways to work properly (by Kasparex)",
