@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767302737-e0d625a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Improve Hat trait normalization logic to handle Cap, Hat, and no-suffix files (by Kasparex)",
+      "date": "2026-01-01T22:24:57+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767301834-8a588db",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Trigger redeploy - PINATA_GATEWAY_TOKEN should now be configured in Vercel (by Kasparex)",
