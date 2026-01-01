@@ -82,7 +82,7 @@ export default function CollectionPage() {
           {/* Sidebar */}
           <NFTSidebar
             activeTab={activeTab}
-            onTabChange={setActiveTab}
+            onTabChange={(tab) => setActiveTab(tab)}
             collectionSlug={collection}
             collectionName={collectionConfig.name}
           />
