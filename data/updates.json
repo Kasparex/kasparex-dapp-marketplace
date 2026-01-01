@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767268909-acb0d7a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Simplify NFT UI and optimize IPFS performance - Replace /nft page with collection card grid layout - Add IndexedDB persistent caching for metadata, rarity scores, and trait stats - Increase batch sizes and implement parallel batch processing - Optimize image loading with lazy loading and placeholders - Update all components to use cached data for faster loading - Add background refresh to serve cached data immediately while updating in background (by Kasparex)",
+      "date": "2026-01-01T13:01:24+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1766447863-12c03c9",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix L2 NFT querying errors - Skip L2 queries for L1-only collections (KREXPRIME, PIXELKREX) - Only query L2 if collection has l2ContractAddress configured - Prevents errors from calling zero address contracts (by Kasparex)",
