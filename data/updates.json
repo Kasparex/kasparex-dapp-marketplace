@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767311449-d4f727f",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix build error: define baseNormalized, folderName, and cid in preloadTraitImage function (by Kasparex)",
+      "date": "2026-01-02T00:50:05+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767309897-799c201",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Improve error logging for missing Hat trait images (by Kasparex)",
