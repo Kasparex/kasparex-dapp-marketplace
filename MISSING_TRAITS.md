@@ -30,6 +30,18 @@ These Hat trait values should be **removed from your NFT metadata** as they don'
    - Normalized: `Rainbow_Hair.png`
    - Similar files: `Rainbow_Dome.png`
 
+7. **Headband Scarf Violet**
+   - Normalized: `Headband_Scarf_Violet.png`
+   - Similar files: None found
+
+8. **Cherry Hair**
+   - Normalized: `Cherry_Hair.png`
+   - Similar files: `Cherry_Dash.png`, `Cherry_Top.png`
+
+9. **Snapback Cap Back Green Duck**
+   - Normalized: `Snapback_Cap_Back_Green_Duck.png`
+   - Similar files: `Green_Byteblock.png`
+
 ## Action Required
 
 **Option 1 (Recommended):** Remove these trait values from your NFT metadata JSON files on IPFS.
