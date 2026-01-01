@@ -34,13 +34,18 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
   const l2Address = evmAddress || null;
 
   const loadUserNFTs = async () => {
-    if (!l1Address && !l2Address) return;
+    if (!l1Address && !l2Address) {
+      console.log('No wallet addresses available:', { l1Address, l2Address });
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
 
     try {
+      console.log('Loading NFTs for addresses:', { l1Address, l2Address, collectionId });
       const nfts = await queryUserNFTs(l1Address, l2Address, collectionId ? [collectionId] : undefined);
+      console.log('Fetched NFTs:', nfts);
       setUserNFTs(nfts);
 
       // Load collection metadata for accurate rarity calculation

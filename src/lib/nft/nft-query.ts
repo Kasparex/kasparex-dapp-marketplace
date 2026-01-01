@@ -55,11 +55,18 @@ export async function queryL1NFTs(
 
         // Find holder matching the address
         // Try multiple address formats
+        console.log(`Searching for address ${address} (normalized: ${normalizedAddress}) in ${collectionId}`);
+        console.log(`Collection has ${collectionData.holders?.length || 0} holders`);
+        
         const holder = collectionData.holders.find((h) => {
           const holderAddress = (h.walletAddress || '').replace(/^kaspa:/i, '').toLowerCase();
-          return holderAddress === normalizedAddress || 
+          const matches = holderAddress === normalizedAddress || 
                  holderAddress === address.toLowerCase() ||
                  holderAddress === address.replace(/^kaspa:/i, '').toLowerCase();
+          if (matches) {
+            console.log(`Found matching holder: ${h.walletAddress} with ${h.tokenIds?.length || 0} tokens`);
+          }
+          return matches;
         });
 
         if (holder) {
@@ -68,6 +75,7 @@ export async function queryL1NFTs(
             continue;
           }
 
+          console.log(`Adding ${holder.tokenIds.length} tokens for ${collectionId}`);
           // Add all token IDs owned by this address
           holder.tokenIds.forEach((tokenId) => {
             const tokenIdNum = typeof tokenId === 'number' ? tokenId : parseInt(String(tokenId), 10);
@@ -81,7 +89,11 @@ export async function queryL1NFTs(
             }
           });
         } else {
-          console.debug(`No holder found for address ${address} in collection ${collectionId}`);
+          console.log(`No holder found for address ${address} in collection ${collectionId}`);
+          // Log first few holder addresses for debugging
+          if (collectionData.holders && collectionData.holders.length > 0) {
+            console.log('Sample holder addresses:', collectionData.holders.slice(0, 3).map(h => h.walletAddress));
+          }
         }
       } catch (error) {
         console.error(`Error querying L1 NFTs for ${collectionId}:`, error);

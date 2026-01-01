@@ -78,7 +78,7 @@ export default function CollectionPage() {
         </section>
 
         {/* Main Content with Sidebar */}
-        <div className="flex">
+        <div className="flex min-h-[calc(100vh-4rem)]">
           {/* Sidebar */}
           <NFTSidebar
             activeTab={activeTab}
@@ -93,7 +93,7 @@ export default function CollectionPage() {
           />
 
           {/* Content */}
-          <main className="flex-1 min-w-0">
+          <main className="flex-1 min-w-0 min-h-[calc(100vh-4rem)]">
             <section className="py-8 sm:py-12">
               <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 {activeTab === 'checker' && (

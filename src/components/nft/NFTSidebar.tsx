@@ -143,12 +143,13 @@ export function NFTSidebar({
       <aside
         ref={sidebarRef}
         className={`
+          hidden lg:block flex-shrink-0
           fixed lg:sticky top-16 lg:top-0 left-0 z-40
           h-[calc(100vh-4rem)] lg:h-screen
+          overflow-y-auto
           bg-white dark:bg-zinc-950
           border-r border-zinc-200 dark:border-zinc-800
-          transform transition-all duration-300 ease-in-out
-          overflow-y-auto
+          transition-all duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           ${isHidden ? 'lg:translate-x-[-100%]' : ''}
         `}
@@ -224,10 +225,10 @@ export function NFTSidebar({
                   setIsOpen(false); // Close mobile menu on selection
                 }}
                 className={`
-                  w-full text-left px-4 py-3 rounded-lg font-medium transition-colors
+                  w-full text-left px-3 py-2 text-sm rounded-lg transition-colors
                   ${
                     activeTab === tab.id
-                      ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
+                      ? 'bg-[#02abb8]/10 text-[#02abb8] font-medium'
                       : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
                   }
                 `}
