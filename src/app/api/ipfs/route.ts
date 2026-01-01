@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const IPFS_GATEWAYS = [
+  // User's custom Pinata gateway (prioritized)
+  'https://apricot-bizarre-viper-692.mypinata.cloud',
+  // Fallback gateways
   'https://gateway.pinata.cloud',
   'https://ipfs.io',
   'https://cloudflare-ipfs.com',

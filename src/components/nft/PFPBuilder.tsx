@@ -69,6 +69,8 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
           'Snapback Cap Back Neon Green Pikachu', // From console errors
           'Snapback Cap Back Lilac Pink Panther', // From console errors
           'Snapback Cap Front Violet', // From console errors
+          'Snapback Cap Front Cream', // From console errors - no file in IPFS
+          'Snapback Cap Back Black Duck', // From console errors - no file in IPFS
           'Kaspa Winter Hat', // File doesn't exist, but other "Winter Hat" variants might
           'Rainbow Hair',
           'Headband Scarf Violet',
