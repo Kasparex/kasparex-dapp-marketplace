@@ -53,6 +53,7 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
         ];
         
         // Traits that don't have corresponding image files (remove from display)
+        // Based on IPFS directory listing: https://apricot-bizarre-viper-692.mypinata.cloud/ipfs/bafybeig37ikaze6v5rdbjayj6nnztgcbfgeaijh4wbrztcwdbutjl4ihzm/HATS/
         const missingTraitValues = [
           // Missing Hat traits (confirmed no files exist in IPFS)
           'Snapback Cap Front Green Pepe',
@@ -89,7 +90,8 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
           'Yellow Winter Hat', // From console errors
           'Crown', // From console errors
           'Headband Scarf Orange', // From console errors
-          // Add more missing traits as identified
+          'Red Punk', // From console errors - no Red_Punk.png in IPFS
+          // Add more missing traits as identified from console errors
         ];
         
         const excludedTraitsSet = new Set(excludedTraitTypes.map(t => t.toLowerCase()));
