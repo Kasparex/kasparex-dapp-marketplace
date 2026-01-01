@@ -14,11 +14,12 @@ export interface CollectionConfig {
   /**
    * IPFS URI for trait PNG images
    * Expected structure: {traitImagesBaseUri}/{FolderName}/{TraitValue}.png
-   * Example: ipfs://bafybe.../BACKGROUNDS/Aqua Mint.png
+   * Example: ipfs://bafybe.../BACKGROUNDS/Aqua_Mint.png
    * 
    * Folder names are uppercase (BACKGROUNDS, BASE, CLOTHING, etc.)
-   * File names preserve spaces and original case (e.g., "Aqua Mint.png")
-   * The code automatically maps trait types from metadata to folder names
+   * File names use underscores instead of spaces (e.g., "Aqua_Mint.png", "Byte_Moss.png")
+   * Special characters are also converted to underscores
+   * The code automatically maps trait types from metadata to folder names and normalizes file names
    * 
    * Note: Folder structure should be clean - trait folders directly under the CID root
    */

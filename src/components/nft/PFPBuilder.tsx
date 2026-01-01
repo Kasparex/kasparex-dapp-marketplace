@@ -122,9 +122,25 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
 
   /**
    * Normalize trait value to match file name
+   * Converts spaces and special characters to underscores
+   * Examples:
+   *   "Byte Moss" -> "Byte_Moss"
+   *   "Binary Soul – emotionless digital stare" -> "Binary_Soul_emotionless_digital_stare"
+   *   "Hot Pink" -> "Hot_Pink"
    */
   const normalizeTraitValue = (value: string): string => {
-    return String(value).trim();
+    return String(value)
+      .trim()
+      // Replace spaces with underscores
+      .replace(/\s+/g, '_')
+      // Replace special characters (em dashes, en dashes, etc.) with underscores
+      .replace(/[–—―]/g, '_')
+      // Replace other special characters that might cause issues
+      .replace(/[^\w\-_.]/g, '_')
+      // Replace multiple consecutive underscores with a single underscore
+      .replace(/_+/g, '_')
+      // Remove leading/trailing underscores
+      .replace(/^_+|_+$/g, '');
   };
 
   /**
