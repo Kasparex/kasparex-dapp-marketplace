@@ -294,21 +294,26 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       // Files WITHOUT "Hat"/"Cap": "Blue_Byte.png", "Cherry_Dash.png", "Rainbow_Dome.png"
       // 
       // Strategy: 
-      // 1. DEFAULT: Keep "Hat" in the filename (most files include it)
-      // 2. "Snapback Cap..." traits: Strip trailing "Hat", keep "Cap" (files have "Cap" not "Hat")
-      // 3. Some traits might not have "Hat" but we'll try with it first, then without if it fails
+      // 1. If trait value contains "Cap" (e.g., "Snapback Cap", "Burnt Rust Cap"), keep "Cap" and strip "Hat"
+      // 2. If trait value ends with "Hat", keep it
+      // 3. Otherwise, strip both "Hat" and "Cap" suffixes (for files like "Blue_Byte.png")
       
-      // For "Snapback Cap..." traits, strip trailing "Hat" but keep "Cap"
-      // These files have "Cap" in the filename, not "Hat"
-      // Example: "Snapback Cap Back Violet Pink Panther" -> "Snapback_Cap_Back_Violet_Pink_Panther.png"
-      if (normalized.toLowerCase().includes('snapback cap')) {
+      const normalizedLower = normalized.toLowerCase();
+      
+      // Check if the value contains "Cap" (case-insensitive)
+      // This handles: "Snapback Cap Back...", "Burnt Rust Cap", "Core Hacker Cap", etc.
+      if (normalizedLower.includes('cap')) {
+        // Strip trailing "Hat" but keep "Cap"
         normalized = normalized.replace(/\s+hats?$/i, '');
-        console.log(`[PFP Builder] Hat normalization (Snapback Cap): "${value}" -> "${normalized}"`);
+        console.log(`[PFP Builder] Hat normalization (contains Cap): "${value}" -> "${normalized}"`);
+      } else if (normalizedLower.endsWith('hat')) {
+        // Value ends with "Hat" - keep it (e.g., "Golden Digger Hat" -> "Golden_Digger_Hat")
+        console.log(`[PFP Builder] Hat normalization (ends with Hat): "${value}" -> "${normalized}"`);
       } else {
-        // For all other Hat traits, KEEP "Hat" in the filename
-        // Most files include "Hat": "Golden_Digger_Hat.png", "Slime_Trooper_Hat.png", etc.
-        // Don't strip "Hat" - let it be normalized to "Hat" in the filename
-        console.log(`[PFP Builder] Hat normalization (keeping Hat): "${value}" -> "${normalized}" (will become "${normalized.replace(/\s/g, '_')}")`);
+        // Value doesn't contain "Cap" and doesn't end with "Hat"
+        // Strip both "Hat" and "Cap" suffixes (for files like "Blue_Byte.png", "Cherry_Dash.png")
+        normalized = normalized.replace(/\s+(hats?|caps?)$/i, '');
+        console.log(`[PFP Builder] Hat normalization (no Cap/Hat suffix): "${value}" -> "${normalized}"`);
       }
     } else if (traitTypeLower.includes('eyewear')) {
       // EYEWEAR: Files DON'T include "Eyewear" but may include "wear" (e.g., "Synth_Golds_shining_legacy_wear.png")
