@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767295674-13e37b1",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add missing traits documentation (by Kasparex)",
+      "date": "2026-01-01T20:27:02+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767295478-a0192b4",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix Eyewear normalization for descriptive text and hyphens - Convert descriptive text after ' - ' to lowercase for Eyewear - Preserve hyphens in compound words (dual-tint, all-black, hex-lined) - Fixes case sensitivity issues with long Eyewear trait names (by Kasparex)",
