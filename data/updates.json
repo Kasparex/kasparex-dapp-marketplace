@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767281541-0b0f9b0",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix IPFS image loading and improve NFT query logging - Fix IPFS API route to properly URL encode paths with spaces - Add comprehensive logging to IPFS gateway requests - Improve NFT query logging with clearer messages and address matching details - Add warning when no NFTs are found to help debug wallet connection issues (by Kasparex)",
+      "date": "2026-01-01T16:31:41+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767280739-0cdefd6",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix NFT sidebar styling, wallet NFT fetching, and PFP Builder - Update sidebar to match Knowledge Base styling (px-3 py-2 text-sm, full height) - Add comprehensive logging to NFT query functions for debugging - Rewrite PFP Builder with tab-based image selector interface - Add image preloading and caching for better performance - Fix sidebar full-height layout on both listing and collection pages (by Kasparex)",
