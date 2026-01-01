@@ -47,13 +47,25 @@ export async function GET(request: NextRequest) {
       console.log(`[IPFS] Trying gateway ${gateway} with CID: ${cid}, subpath: ${subPath}`);
       console.log(`[IPFS] Full URL: ${url}`);
 
+      // Prepare headers
+      const headers: HeadersInit = {
+        'Accept': '*/*',
+        'User-Agent': 'Mozilla/5.0 (compatible; Kasparex/1.0)',
+      };
+      
+      // For custom Pinata gateways, you might need authentication
+      // Uncomment and add your gateway token if needed:
+      // if (gateway.includes('mypinata.cloud')) {
+      //   headers['x-pinata-gateway-token'] = process.env.PINATA_GATEWAY_TOKEN || '';
+      // }
+      
       const response = await fetch(url, {
         method: 'GET',
-        headers: {
-          'Accept': '*/*',
-        },
+        headers,
         // Don't cache failed requests
         cache: 'no-store',
+        // Add timeout to prevent hanging
+        signal: AbortSignal.timeout(10000), // 10 second timeout
       });
 
       if (response.ok) {
