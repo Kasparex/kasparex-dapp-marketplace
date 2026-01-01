@@ -505,6 +505,11 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       return loadedImages.get(cacheKey)!;
     }
 
+    // Compute normalized value and folder name for error logging
+    const normalizedValue = normalizeTraitValue(value, traitType);
+    const folderName = mapTraitTypeToFolder(traitType);
+    const cid = collection?.traitImagesBaseUri?.replace(/^ipfs:\/\//, '');
+
     // For Hat traits, try multiple URL variations
     const traitTypeLower = traitType.toLowerCase();
     const isHatTrait = traitTypeLower.includes('hat') || traitTypeLower.includes('hats');
@@ -537,10 +542,10 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
             console.warn(`[PFP Builder] Failed to load image:`, {
               traitType,
               traitValue: value,
-              normalizedValue: baseNormalized,
+              normalizedValue,
               folderName,
               imageUrl,
-              expectedPath: `${cid}/${folderName}/${baseNormalized}.png`
+              expectedPath: cid ? `${cid}/${folderName}/${normalizedValue}.png` : undefined
             });
             reject(new Error('Image load failed'));
           };
