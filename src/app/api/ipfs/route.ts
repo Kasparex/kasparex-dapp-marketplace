@@ -73,7 +73,9 @@ export async function GET(request: NextRequest) {
           },
         });
       } else {
+        const errorText = await response.text().catch(() => '');
         console.warn(`[IPFS] Gateway ${gateway} returned status ${response.status} for ${url}`);
+        console.warn(`[IPFS] Response: ${errorText.substring(0, 200)}`);
       }
     } catch (error) {
       // Try next gateway
