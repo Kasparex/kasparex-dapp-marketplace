@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767275953-5708b36",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add IPFS trait images support for PIXELKREX - Add traitImagesBaseUri to PIXELKREX collection config - Update PFP Builder to load trait images from IPFS - Add tab navigation to collection page (Rarity Checker, Trait Analysis, PFP Builder) - Support both local and IPFS trait images with automatic fallback (by Kasparex)",
+      "date": "2026-01-01T14:58:20+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767270477-03ca367",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error in CollectionCard - Add type guard for collectionData.image (by Kasparex)",
