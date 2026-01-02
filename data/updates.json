@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767395249-18b9182",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Remove dynamic imports from client component pages - import content directly (by Kasparex)",
+      "date": "2026-01-03T00:05:54+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767394805-cf3b1f3",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Add Suspense boundaries to listing pages to prevent prerendering errors (by Kasparex)",
