@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767391264-0f176e3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Split listing pages into server wrapper + client content to fix prerender error (by Kasparex)",
+      "date": "2026-01-02T23:00:03+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767390710-36419de",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Add dynamic rendering to listing pages to fix Next.js prerender error (by Kasparex)",
