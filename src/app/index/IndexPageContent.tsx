@@ -150,19 +150,3 @@ export function IndexPageContent() {
   );
 }
 
-export function IndexPageContent() {
-  return (
-    <Suspense fallback={
-      <main className="flex-1">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center text-zinc-600 dark:text-zinc-400">
-            Loading listings...
-          </div>
-        </div>
-      </main>
-    }>
-      <IndexPageContentInner />
-    </Suspense>
-  );
-}
-
