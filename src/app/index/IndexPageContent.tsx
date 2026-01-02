@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ListingCard } from '@/components/listings/ListingCard';
 import { FilterPanel } from '@/components/listings/FilterPanel';
@@ -8,7 +9,9 @@ import { SearchBar } from '@/components/listings/SearchBar';
 import { mockListings } from '@/lib/listings/mockData';
 import { ListingFilters, ListingCategory } from '@/lib/listings/types';
 
-export function IndexPageContent() {
+function IndexPageContentInner() {
+  // Use useSearchParams to force client-side rendering (prevents prerendering)
+  useSearchParams();
   const [filters, setFilters] = useState<ListingFilters>({});
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -144,6 +147,22 @@ export function IndexPageContent() {
         </div>
       </section>
     </main>
+  );
+}
+
+export function IndexPageContent() {
+  return (
+    <Suspense fallback={
+      <main className="flex-1">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center text-zinc-600 dark:text-zinc-400">
+            Loading listings...
+          </div>
+        </div>
+      </main>
+    }>
+      <IndexPageContentInner />
+    </Suspense>
   );
 }
 
