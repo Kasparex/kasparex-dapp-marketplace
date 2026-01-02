@@ -1,7 +1,7 @@
 'use client';
 
 import dynamicImport from 'next/dynamic';
-import { use } from 'react';
+import { use, Suspense } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 
@@ -18,6 +18,10 @@ interface EditListingPageProps {
   params: Promise<{ id: string }>;
 }
 
+function EditListingContentWrapper({ id }: { id: string }) {
+  return <EditListingContent id={id} />;
+}
+
 export default function EditListingPage({ params }: EditListingPageProps) {
   const { id } = use(params);
 
@@ -25,7 +29,15 @@ export default function EditListingPage({ params }: EditListingPageProps) {
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-1">
-        <EditListingContent id={id} />
+        <Suspense fallback={
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="text-center text-zinc-600 dark:text-zinc-400">
+              Loading edit form...
+            </div>
+          </div>
+        }>
+          <EditListingContentWrapper id={id} />
+        </Suspense>
       </main>
       <Footer />
     </div>
