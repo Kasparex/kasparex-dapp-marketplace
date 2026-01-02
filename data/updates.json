@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767375081-6bd56db",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Display All Trait Types and Trait Distribution side by side in Trait Analysis (by Kasparex)",
+      "date": "2026-01-02T18:30:44+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767374662-f6e45eb",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Remove Visit on Kaspa.com button, move NFT Status box under menu on all NFT pages (by Kasparex)",
