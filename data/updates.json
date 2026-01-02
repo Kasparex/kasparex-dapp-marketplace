@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767390195-b1e6311",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Use double cast through unknown for TypeScript compatibility (by Kasparex)",
+      "date": "2026-01-02T22:42:17+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767389828-0fc0ce5",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Cast ListingMetadata to Record for uploadJSONToStoracha compatibility (by Kasparex)",
