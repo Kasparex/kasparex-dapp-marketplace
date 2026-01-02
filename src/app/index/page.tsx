@@ -10,6 +10,9 @@ import { SearchBar } from '@/components/listings/SearchBar';
 import { mockListings } from '@/lib/listings/mockData';
 import { ListingFilters, ListingCategory } from '@/lib/listings/types';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export default function IndexPage() {
   const [filters, setFilters] = useState<ListingFilters>({});
   const [searchQuery, setSearchQuery] = useState('');

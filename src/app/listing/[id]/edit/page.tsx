@@ -8,6 +8,9 @@ import { CreateListingForm } from '@/components/listings/CreateListingForm';
 import { mockListings } from '@/lib/listings/mockData';
 import { CreateListingFormData } from '@/lib/listings/types';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 interface EditListingPageProps {
   params: Promise<{ id: string }>;
 }

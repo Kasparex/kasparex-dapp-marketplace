@@ -6,6 +6,9 @@ import { Footer } from '@/components/Footer';
 import { CreateListingForm } from '@/components/listings/CreateListingForm';
 import { CreateListingFormData } from '@/lib/listings/types';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export default function CreateListingPage() {
   const router = useRouter();
 

@@ -10,6 +10,9 @@ import { resolveAsset } from '@/lib/storage/decentralized';
 import { useIPFSContent } from '@/lib/ipfs/hooks';
 import { ListingMetadata } from '@/lib/listings/types';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 interface ListingDetailPageProps {
   params: Promise<{ id: string }>;
 }
