@@ -1,8 +1,17 @@
 'use client';
 
+import dynamicImport from 'next/dynamic';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { IndexPageContent } from './IndexPageContent';
+
+// Dynamically import IndexPageContent with no SSR to prevent build-time evaluation
+const IndexPageContent = dynamicImport(
+  () => import('./IndexPageContent').then(mod => ({ default: mod.IndexPageContent })),
+  { ssr: false }
+);
+
+// Force dynamic rendering to avoid SSR issues
+export const dynamic = 'force-dynamic';
 
 export default function IndexPage() {
   return (
