@@ -1,9 +1,9 @@
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 
 // Dynamically import EditListingContent with no SSR
-const EditListingContent = dynamic(
+const EditListingContent = dynamicImport(
   () => import('./EditListingContent').then(mod => ({ default: mod.EditListingContent })),
   { ssr: false }
 );

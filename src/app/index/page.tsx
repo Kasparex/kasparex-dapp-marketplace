@@ -1,9 +1,9 @@
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 
 // Dynamically import IndexPageContent with no SSR to prevent build-time evaluation
-const IndexPageContent = dynamic(
+const IndexPageContent = dynamicImport(
   () => import('./IndexPageContent').then(mod => ({ default: mod.IndexPageContent })),
   { ssr: false }
 );
