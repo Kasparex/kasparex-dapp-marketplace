@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767393416-cd4ea78",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Add 'use client' to wrapper pages to allow ssr: false with dynamic imports (by Kasparex)",
+      "date": "2026-01-02T23:36:23+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767392586-68efa0d",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Rename dynamic import to dynamicImport to avoid conflict with export const dynamic (by Kasparex)",
