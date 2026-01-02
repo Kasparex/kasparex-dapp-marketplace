@@ -290,41 +290,14 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       // ALWAYS strip "Mask"/"Masks" suffix
       normalized = normalized.replace(/\s+masks?$/i, '');
     } else if (traitTypeLower.includes('hat') || traitTypeLower.includes('hats')) {
-      // HATS: Mixed pattern based on actual IPFS files
-      // IMPORTANT: Based on testing, metadata values typically DON'T have "Hat"/"Cap" suffixes
-      // Example: Metadata has "Green Stylish Hair" → File is "Green_Stylish_Hair.png" ✅ Works
-      // But files like "Golden_Digger_Hat.png" exist, so we need to try multiple patterns
+      // HATS: Preserve whatever is in the metadata value
+      // Don't strip "Hat" or "Cap" - let the metadata value determine the file name
+      // This ensures consistency: if metadata says "Golden Digger Hat", file should be "Golden_Digger_Hat.png"
+      // If metadata says "Green Stylish Hair", file should be "Green_Stylish_Hair.png"
       // 
-      // Strategy: Try multiple normalization patterns to match file names:
-      // 1. First, try as-is (for files like "Green_Stylish_Hair.png", "Blue_Byte.png")
-      // 2. If metadata contains "Cap", keep it (for files like "Burnt_Rust_Cap.png")
-      // 3. If metadata ends with "Hat", keep it (for files like "Golden_Digger_Hat.png")
-      // 4. Otherwise, strip suffixes and try without them
-      
-      const normalizedLower = normalized.toLowerCase();
-      const originalNormalized = normalized;
-      
-      // Check if the value contains "Cap" (case-insensitive)
-      // This handles: "Snapback Cap Back...", "Burnt Rust Cap", "Core Hacker Cap", etc.
-      if (normalizedLower.includes('cap')) {
-        // Strip trailing "Hat" but keep "Cap"
-        normalized = normalized.replace(/\s+hats?$/i, '');
-        console.log(`[PFP Builder] Hat normalization (contains Cap): "${value}" -> "${normalized}"`);
-      } else if (normalizedLower.endsWith('hat')) {
-        // Value ends with "Hat" - keep it (e.g., "Golden Digger Hat" -> "Golden_Digger_Hat")
-        console.log(`[PFP Builder] Hat normalization (ends with Hat): "${value}" -> "${normalized}"`);
-      } else {
-        // Value doesn't contain "Cap" and doesn't end with "Hat"
-        // This is the most common case - metadata values like "Green Stylish Hair", "Blue Byte", "Golden Digger"
-        // Files might be: "Green_Stylish_Hair.png", "Blue_Byte.png", "Golden_Digger_Hat.png"
-        // 
-        // Strategy: Strip any trailing "Hat"/"Cap" suffixes first (for consistency)
-        normalized = normalized.replace(/\s+(hats?|caps?)$/i, '');
-        console.log(`[PFP Builder] Hat normalization (no Cap/Hat suffix): "${value}" -> "${normalized}"`);
-        
-        // Note: The image loading logic will try multiple variations if the first attempt fails
-        // This handles cases where files have "Hat" suffix but metadata doesn't
-      }
+      // The key is: file names on IPFS must match metadata values exactly (after normalization)
+      // No special suffix handling - just normalize spaces/special chars to underscores
+      // The general normalization below will handle the conversion to underscores
     } else if (traitTypeLower.includes('eyewear')) {
       // EYEWEAR: Files DON'T include "Eyewear" but may include "wear" (e.g., "Synth_Golds_shining_legacy_wear.png")
       // Files use mixed case: main words capitalized, descriptive text after " - " or " – " is lowercase
@@ -510,13 +483,9 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
     const folderName = mapTraitTypeToFolder(traitType);
     const cid = collection?.traitImagesBaseUri?.replace(/^ipfs:\/\//, '');
 
-    // For Hat traits, try multiple URL variations
-    const traitTypeLower = traitType.toLowerCase();
-    const isHatTrait = traitTypeLower.includes('hat') || traitTypeLower.includes('hats');
-    
-    const urlsToTry = isHatTrait 
-      ? getHatImageUrlVariations(traitType, value)
-      : [getTraitImageUrl(traitType, value)!].filter(Boolean);
+    // Use the same simple path construction for all traits (including HATS)
+    // This ensures consistency - if normalization is correct, it will work
+    const urlsToTry = [getTraitImageUrl(traitType, value)!].filter(Boolean);
     
     if (urlsToTry.length === 0) return null;
 
