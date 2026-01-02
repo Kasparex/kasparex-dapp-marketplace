@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767372226-fa90033",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix: Restore main site header, remove hero sections from NFT pages (by Kasparex)",
+      "date": "2026-01-02T17:43:21+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767371649-df8e259",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: UI improvements: Fix HATS/EYEWEAR layer order, remove header from NFT pages, move search and Visit button to sidebar (by Kasparex)",
