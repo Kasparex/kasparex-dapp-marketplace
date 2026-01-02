@@ -12,6 +12,9 @@ import { resolveAsset } from '@/lib/storage/decentralized';
 export async function fetchListingMetadata(cid: string): Promise<ListingMetadata> {
   try {
     const metadata = await fetchJSON<ListingMetadata>(cid);
+    if (!metadata) {
+      throw new Error('Metadata not found');
+    }
     return metadata;
   } catch (error) {
     throw new Error(`Failed to fetch listing metadata from IPFS: ${error instanceof Error ? error.message : 'Unknown error'}`);
