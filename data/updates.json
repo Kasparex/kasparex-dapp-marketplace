@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767396855-a42dbea",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Move Suspense to page level and use direct import matching root page.tsx pattern exactly (by Kasparex)",
+      "date": "2026-01-03T00:33:26+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767396364-a5ef290",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Use useSearchParams with Suspense in IndexPageContent to prevent prerendering (matching root page.tsx pattern) (by Kasparex)",
