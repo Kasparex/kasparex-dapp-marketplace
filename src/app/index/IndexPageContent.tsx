@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, Suspense } from 'react';
+import { useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ListingCard } from '@/components/listings/ListingCard';
@@ -9,7 +9,7 @@ import { SearchBar } from '@/components/listings/SearchBar';
 import { mockListings } from '@/lib/listings/mockData';
 import { ListingFilters, ListingCategory } from '@/lib/listings/types';
 
-function IndexPageContentInner() {
+export function IndexPageContent() {
   // Use useSearchParams to force client-side rendering (prevents prerendering)
   useSearchParams();
   const [filters, setFilters] = useState<ListingFilters>({});
