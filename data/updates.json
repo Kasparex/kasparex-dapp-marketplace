@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767395680-21b2f8b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Use dynamicImport with ssr: false for /index page matching list-dapp pattern (by Kasparex)",
+      "date": "2026-01-03T00:13:54+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767395249-18b9182",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Remove dynamic imports from client component pages - import content directly (by Kasparex)",
