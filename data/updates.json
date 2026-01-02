@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767388752-a50a827",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Move useIPFSContent hook call to top level to fix React Hooks rules violation (by Kasparex)",
+      "date": "2026-01-02T22:18:07+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767375081-6bd56db",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Display All Trait Types and Trait Distribution side by side in Trait Analysis (by Kasparex)",
