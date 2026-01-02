@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767391795-e66ccee",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Clean up server wrapper pages - remove leftover client code and use async/await for params (by Kasparex)",
+      "date": "2026-01-02T23:09:06+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767391264-0f176e3",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Split listing pages into server wrapper + client content to fix prerender error (by Kasparex)",
