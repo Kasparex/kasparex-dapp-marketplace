@@ -14,7 +14,6 @@ interface NFTSidebarProps {
   isListingPage?: boolean;
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
-  kaspaComUrl?: string;
 }
 
 export function NFTSidebar({
@@ -25,7 +24,6 @@ export function NFTSidebar({
   isListingPage = false,
   searchQuery,
   onSearchChange,
-  kaspaComUrl,
 }: NFTSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
@@ -220,25 +218,6 @@ export function NFTSidebar({
             </h2>
           )}
           
-          {/* Visit on Kaspa.com button - only show on collection pages */}
-          {kaspaComUrl && (
-            <a
-              href={kaspaComUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block w-full px-4 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors text-center text-sm mb-4"
-            >
-              Visit on Kaspa.com
-            </a>
-          )}
-          
-          {/* NFT Status Box - only show on collection pages, under Visit button */}
-          {kaspaComUrl && (
-            <div className="mb-4">
-              <NFTStatusBox />
-            </div>
-          )}
-          
           {/* Search field - only show on listing page */}
           {isListingPage && searchQuery !== undefined && onSearchChange && (
             <div className="mb-4">
@@ -292,12 +271,10 @@ export function NFTSidebar({
             ))}
           </nav>
           
-          {/* NFT Status Box - only show on listing page, under menu */}
-          {isListingPage && (
-            <div className="mt-4">
-              <NFTStatusBox />
-            </div>
-          )}
+          {/* NFT Status Box - show on both listing and collection pages, under menu */}
+          <div className="mt-4">
+            <NFTStatusBox />
+          </div>
         </div>
       </aside>
     </>

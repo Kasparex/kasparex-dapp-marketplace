@@ -68,7 +68,6 @@ export default function CollectionPage() {
             }}
             collectionSlug={collection}
             collectionName={collectionConfig.name}
-            kaspaComUrl={collectionConfig.kaspaComUrl}
           />
 
           {/* Content */}
