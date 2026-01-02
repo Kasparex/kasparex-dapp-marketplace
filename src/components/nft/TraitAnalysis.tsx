@@ -159,29 +159,6 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
             </div>
           </div>
 
-          {/* All Trait Types Overview */}
-          <div>
-            <h4 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-              All Trait Types
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {stats.traitTypes.map((traitType) => (
-                <div
-                  key={traitType.traitType}
-                  className="p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
-                  onClick={() => setSelectedTraitType(traitType.traitType)}
-                >
-                  <div className="font-medium text-zinc-900 dark:text-zinc-100 mb-1">
-                    {traitType.traitType}
-                  </div>
-                  <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                    {traitType.uniqueValues} unique values
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Trait Type Selector */}
           {stats.traitTypes.length > 0 && (
             <div>
@@ -202,39 +179,65 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
             </div>
           )}
 
-          {/* Trait Distribution */}
-          {selectedTraitType && stats && (
+          {/* All Trait Types and Trait Distribution Side by Side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* All Trait Types Overview */}
             <div>
               <h4 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                {selectedTraitType} Distribution
+                All Trait Types
               </h4>
-              <div className="space-y-2">
-                {stats.traitTypes
-                  .find((tt) => tt.traitType === selectedTraitType)
-                  ?.frequencies.map((freq, index) => (
-                    <div
-                      key={index}
-                      className="p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {freq.value}
-                        </span>
-                        <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                          {freq.count} ({freq.percentage.toFixed(2)}%)
-                        </span>
-                      </div>
-                      <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2">
-                        <div
-                          className="bg-zinc-900 dark:bg-zinc-100 h-2 rounded-full transition-all"
-                          style={{ width: `${freq.percentage}%` }}
-                        />
-                      </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {stats.traitTypes.map((traitType) => (
+                  <div
+                    key={traitType.traitType}
+                    className="p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
+                    onClick={() => setSelectedTraitType(traitType.traitType)}
+                  >
+                    <div className="font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+                      {traitType.traitType}
                     </div>
-                  ))}
+                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                      {traitType.uniqueValues} unique values
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          )}
+
+            {/* Trait Distribution */}
+            {selectedTraitType && stats && (
+              <div>
+                <h4 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+                  {selectedTraitType} Distribution
+                </h4>
+                <div className="space-y-2">
+                  {stats.traitTypes
+                    .find((tt) => tt.traitType === selectedTraitType)
+                    ?.frequencies.map((freq, index) => (
+                      <div
+                        key={index}
+                        className="p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                            {freq.value}
+                          </span>
+                          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                            {freq.count} ({freq.percentage.toFixed(2)}%)
+                          </span>
+                        </div>
+                        <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2">
+                          <div
+                            className="bg-zinc-900 dark:bg-zinc-100 h-2 rounded-full transition-all"
+                            style={{ width: `${freq.percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
