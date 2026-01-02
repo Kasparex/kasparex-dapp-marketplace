@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767370376-7594b68",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update HATS trait images: new IPFS CID, fix file naming, remove unused code - CID: bafybeichueiciyapedscvqi2lh7h7cb3tnxm6wlfhugn464hacr6hxzheq (by Kasparex)",
+      "date": "2026-01-02T17:12:10+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767368835-e4e8c27",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Simplify HATS trait loading to match other traits - remove special variations logic and fix normalization to preserve Hat/Cap suffixes (by Kasparex)",
