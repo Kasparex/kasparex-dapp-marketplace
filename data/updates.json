@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767397068-aa11715",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Remove duplicate IndexPageContent export function (by Kasparex)",
+      "date": "2026-01-03T00:37:07+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767396855-a42dbea",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Move Suspense to page level and use direct import matching root page.tsx pattern exactly (by Kasparex)",
