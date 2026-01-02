@@ -159,6 +159,29 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
             </div>
           </div>
 
+          {/* All Trait Types Overview */}
+          <div>
+            <h4 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+              All Trait Types
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {stats.traitTypes.map((traitType) => (
+                <div
+                  key={traitType.traitType}
+                  className="p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
+                  onClick={() => setSelectedTraitType(traitType.traitType)}
+                >
+                  <div className="font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+                    {traitType.traitType}
+                  </div>
+                  <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                    {traitType.uniqueValues} unique values
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Trait Type Selector */}
           {stats.traitTypes.length > 0 && (
             <div>
@@ -212,29 +235,6 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
               </div>
             </div>
           )}
-
-          {/* All Trait Types Overview */}
-          <div>
-            <h4 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-              All Trait Types
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {stats.traitTypes.map((traitType) => (
-                <div
-                  key={traitType.traitType}
-                  className="p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
-                  onClick={() => setSelectedTraitType(traitType.traitType)}
-                >
-                  <div className="font-medium text-zinc-900 dark:text-zinc-100 mb-1">
-                    {traitType.traitType}
-                  </div>
-                  <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                    {traitType.uniqueValues} unique values
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       )}
     </div>

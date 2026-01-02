@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { NFTStatusBox } from '@/components/rewards/NFTStatusBox';
 
 type TabType = 'checker' | 'traits' | 'builder' | 'my-nfts' | 'collections';
 
@@ -231,6 +232,13 @@ export function NFTSidebar({
             </a>
           )}
           
+          {/* NFT Status Box - only show on collection pages, under Visit button */}
+          {kaspaComUrl && (
+            <div className="mb-4">
+              <NFTStatusBox />
+            </div>
+          )}
+          
           {/* Search field - only show on listing page */}
           {isListingPage && searchQuery !== undefined && onSearchChange && (
             <div className="mb-4">
@@ -283,6 +291,13 @@ export function NFTSidebar({
               </button>
             ))}
           </nav>
+          
+          {/* NFT Status Box - only show on listing page, under menu */}
+          {isListingPage && (
+            <div className="mt-4">
+              <NFTStatusBox />
+            </div>
+          )}
         </div>
       </aside>
     </>

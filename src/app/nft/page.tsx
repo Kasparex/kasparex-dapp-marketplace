@@ -69,6 +69,20 @@ export default function NFTPage() {
 
           {/* Content */}
           <main className="flex-1 min-w-0 min-h-[calc(100vh-4rem)]">
+            {/* Hero Section - Only in right column */}
+            <section className="bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+              <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+                <div className="max-w-6xl">
+                  <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-3">
+                    NFT Collections
+                  </h1>
+                  <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400">
+                    Explore rarity, analyze traits, and build custom PFPs for Kasparex NFT collections.
+                  </p>
+                </div>
+              </div>
+            </section>
+            
             {activeTab === 'collections' ? (
               <section className="py-8 sm:py-12">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
