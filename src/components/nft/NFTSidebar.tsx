@@ -11,6 +11,9 @@ interface NFTSidebarProps {
   collectionSlug?: string;
   collectionName?: string;
   isListingPage?: boolean;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+  kaspaComUrl?: string;
 }
 
 export function NFTSidebar({
@@ -19,6 +22,9 @@ export function NFTSidebar({
   collectionSlug,
   collectionName,
   isListingPage = false,
+  searchQuery,
+  onSearchChange,
+  kaspaComUrl,
 }: NFTSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
@@ -208,9 +214,49 @@ export function NFTSidebar({
             </button>
           </div>
           {collectionName && (
-            <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-4">
               {collectionName}
             </h2>
+          )}
+          
+          {/* Visit on Kaspa.com button - only show on collection pages */}
+          {kaspaComUrl && (
+            <a
+              href={kaspaComUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block w-full px-4 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors text-center text-sm mb-4"
+            >
+              Visit on Kaspa.com
+            </a>
+          )}
+          
+          {/* Search field - only show on listing page */}
+          {isListingPage && searchQuery !== undefined && onSearchChange && (
+            <div className="mb-4">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  placeholder="Search collections..."
+                  className="w-full px-4 py-2 pl-10 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-500 text-sm"
+                />
+                <svg
+                  className="absolute left-3 top-2.5 w-4 h-4 text-zinc-400 dark:text-zinc-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+            </div>
           )}
         </div>
 

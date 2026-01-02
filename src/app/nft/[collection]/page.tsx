@@ -2,7 +2,6 @@
 
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { RarityChecker } from '@/components/nft/RarityChecker';
 import { TraitAnalysis } from '@/components/nft/TraitAnalysis';
@@ -31,7 +30,6 @@ export default function CollectionPage() {
   if (!collection || !isValidCollection(collection) || !collectionConfig) {
     return (
       <div className="flex flex-col min-h-screen">
-        <Header />
         <main className="flex-1 flex items-center justify-center p-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
@@ -52,8 +50,6 @@ export default function CollectionPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
-      
       <main className="flex-1">
         {/* Hero Section */}
         <section className="bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
@@ -65,14 +61,6 @@ export default function CollectionPage() {
               <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-6">
                 {collectionConfig.description || `Explore ${collectionConfig.name} collection`}
               </p>
-              <a
-                href={collectionConfig.kaspaComUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block px-4 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
-              >
-                View on Kaspa.com
-              </a>
             </div>
           </div>
         </section>
@@ -90,6 +78,7 @@ export default function CollectionPage() {
             }}
             collectionSlug={collection}
             collectionName={collectionConfig.name}
+            kaspaComUrl={collectionConfig.kaspaComUrl}
           />
 
           {/* Content */}

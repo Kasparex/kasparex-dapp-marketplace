@@ -520,7 +520,18 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw trait layers in order (use available trait types)
-    const layerOrder = Array.from(availableTraits.keys());
+    // Sort to ensure proper rendering order: HATS should render before EYEWEAR so EYEWEAR appears on top
+    const layerOrder = Array.from(availableTraits.keys()).sort((a, b) => {
+      const aLower = a.toLowerCase();
+      const bLower = b.toLowerCase();
+      
+      // HATS should come before EYEWEAR
+      if (aLower.includes('hat') && bLower.includes('eyewear')) return -1;
+      if (bLower.includes('hat') && aLower.includes('eyewear')) return 1;
+      
+      // Otherwise maintain original order
+      return 0;
+    });
     const errors = new Set<string>();
     
     // Load images in parallel for better performance

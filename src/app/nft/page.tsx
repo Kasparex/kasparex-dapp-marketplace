@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { CollectionCard } from '@/components/nft/CollectionCard';
 import { NFTSidebar } from '@/components/nft/NFTSidebar';
@@ -47,8 +46,6 @@ export default function NFTPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
-      
       <main className="flex-1">
         {/* Hero Section */}
         <section className="bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
@@ -60,32 +57,6 @@ export default function NFTPage() {
               <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-8">
                 Explore rarity, analyze traits, and build custom PFPs for Kasparex NFT collections.
               </p>
-
-              {/* Search/Filter */}
-              <div className="max-w-md">
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search collections..."
-                    className="w-full px-4 py-2 pl-10 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-500"
-                  />
-                  <svg
-                    className="absolute left-3 top-2.5 w-5 h-5 text-zinc-400 dark:text-zinc-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                </div>
-              </div>
             </div>
           </div>
         </section>
@@ -103,6 +74,8 @@ export default function NFTPage() {
               }
             }}
             isListingPage={true}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
           />
 
           {/* Content */}
