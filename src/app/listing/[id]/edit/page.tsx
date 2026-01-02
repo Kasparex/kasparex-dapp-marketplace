@@ -1,4 +1,7 @@
+'use client';
+
 import dynamicImport from 'next/dynamic';
+import { use } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 
@@ -15,8 +18,8 @@ interface EditListingPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function EditListingPage({ params }: EditListingPageProps) {
-  const { id } = await params;
+export default function EditListingPage({ params }: EditListingPageProps) {
+  const { id } = use(params);
 
   return (
     <div className="flex flex-col min-h-screen">

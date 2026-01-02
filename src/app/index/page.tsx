@@ -1,3 +1,5 @@
+'use client';
+
 import dynamicImport from 'next/dynamic';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
