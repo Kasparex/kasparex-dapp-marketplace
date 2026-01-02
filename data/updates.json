@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767371649-df8e259",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: UI improvements: Fix HATS/EYEWEAR layer order, remove header from NFT pages, move search and Visit button to sidebar (by Kasparex)",
+      "date": "2026-01-02T17:33:27+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767370376-7594b68",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update HATS trait images: new IPFS CID, fix file naming, remove unused code - CID: bafybeichueiciyapedscvqi2lh7h7cb3tnxm6wlfhugn464hacr6hxzheq (by Kasparex)",
