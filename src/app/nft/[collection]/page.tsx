@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { RarityChecker } from '@/components/nft/RarityChecker';
 import { TraitAnalysis } from '@/components/nft/TraitAnalysis';
@@ -30,6 +31,7 @@ export default function CollectionPage() {
   if (!collection || !isValidCollection(collection) || !collectionConfig) {
     return (
       <div className="flex flex-col min-h-screen">
+        <Header />
         <main className="flex-1 flex items-center justify-center p-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
@@ -50,21 +52,9 @@ export default function CollectionPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <Header />
+      
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-4xl sm:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-                {collectionConfig.name}
-              </h1>
-              <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-6">
-                {collectionConfig.description || `Explore ${collectionConfig.name} collection`}
-              </p>
-            </div>
-          </div>
-        </section>
-
         {/* Main Content with Sidebar */}
         <div className="flex min-h-[calc(100vh-4rem)]">
           {/* Sidebar */}

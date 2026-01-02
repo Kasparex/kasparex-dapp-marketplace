@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { CollectionCard } from '@/components/nft/CollectionCard';
 import { NFTSidebar } from '@/components/nft/NFTSidebar';
@@ -46,21 +47,9 @@ export default function NFTPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <Header />
+      
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-            <div className="max-w-6xl mx-auto">
-              <h1 className="text-4xl sm:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-                NFT Collections
-              </h1>
-              <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-8">
-                Explore rarity, analyze traits, and build custom PFPs for Kasparex NFT collections.
-              </p>
-            </div>
-          </div>
-        </section>
-
         {/* Main Content with Sidebar */}
         <div className="flex min-h-[calc(100vh-4rem)]">
           {/* Sidebar */}
