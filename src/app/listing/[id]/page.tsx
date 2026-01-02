@@ -1,14 +1,15 @@
 'use client';
 
+import dynamicImport from 'next/dynamic';
 import { use } from 'react';
-import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { mockListings } from '@/lib/listings/mockData';
-import { useKaspaWallet } from '@/lib/kaspa/context';
-import { resolveAsset } from '@/lib/storage/decentralized';
-import { useIPFSContent } from '@/lib/ipfs/hooks';
-import { ListingMetadata } from '@/lib/listings/types';
+
+// Dynamically import ListingDetailContent with no SSR
+const ListingDetailContent = dynamicImport(
+  () => import('./ListingDetailContent').then(mod => ({ default: mod.ListingDetailContent })),
+  { ssr: false }
+);
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -19,36 +20,15 @@ interface ListingDetailPageProps {
 
 export default function ListingDetailPage({ params }: ListingDetailPageProps) {
   const { id } = use(params);
-  const { state: kaspaState } = useKaspaWallet();
-  
-  const listing = mockListings.find(l => l.id === id);
-  
-  // Always call hooks unconditionally
-  const { data: metadata, isLoading: isLoadingMetadata } = useIPFSContent<ListingMetadata>(
-    listing?.ipfsCid || null
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <ListingDetailContent id={id} />
+      <Footer />
+    </div>
   );
-
-  if (!listing) {
-    return (
-      <div className="flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">Listing Not Found</h1>
-            <Link
-              href="/index"
-              className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-            >
-              Back to Index
-            </Link>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  const isOwner = kaspaState.address === listing.ownerWallet;
+}
 
   // Resolve image URLs (in real implementation, this would use resolveAsset)
   const logoUrl = listing.images.logoCid ? `/api/ipfs?path=${listing.images.logoCid}` : null;

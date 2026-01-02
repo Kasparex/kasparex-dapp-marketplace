@@ -1,19 +1,27 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import Link from 'next/link';
+import dynamicImport from 'next/dynamic';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { ListingCard } from '@/components/listings/ListingCard';
-import { FilterPanel } from '@/components/listings/FilterPanel';
-import { SearchBar } from '@/components/listings/SearchBar';
-import { mockListings } from '@/lib/listings/mockData';
-import { ListingFilters, ListingCategory } from '@/lib/listings/types';
 
-// Force dynamic rendering
+// Dynamically import IndexPageContent with no SSR to prevent build-time evaluation
+const IndexPageContent = dynamicImport(
+  () => import('./IndexPageContent').then(mod => ({ default: mod.IndexPageContent })),
+  { ssr: false }
+);
+
+// Force dynamic rendering to avoid SSR issues
 export const dynamic = 'force-dynamic';
 
 export default function IndexPage() {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <IndexPageContent />
+      <Footer />
+    </div>
+  );
+}
   const [filters, setFilters] = useState<ListingFilters>({});
   const [searchQuery, setSearchQuery] = useState('');
 
