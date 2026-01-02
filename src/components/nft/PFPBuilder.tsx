@@ -53,7 +53,7 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
         ];
         
         // Traits that don't have corresponding image files (remove from display)
-        // Based on IPFS directory listing: https://apricot-bizarre-viper-692.mypinata.cloud/ipfs/bafybeig37ikaze6v5rdbjayj6nnztgcbfgeaijh4wbrztcwdbutjl4ihzm/HATS/
+        // Based on IPFS directory listing: https://apricot-bizarre-viper-692.mypinata.cloud/ipfs/bafybeichueiciyapedscvqi2lh7h7cb3tnxm6wlfhugn464hacr6hxzheq/HATS/
         const missingTraitValues = [
           // Missing Hat traits (confirmed no files exist in IPFS)
           'Snapback Cap Front Green Pepe',
@@ -431,46 +431,7 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
   };
 
   /**
-   * Get alternative image URLs for Hat traits (fallback variations)
-   * Since metadata values might not have "Hat"/"Cap" but files do, try multiple variations
-   */
-  const getHatImageUrlVariations = (traitType: string, value: string): string[] => {
-    const folderName = mapTraitTypeToFolder(traitType);
-    const baseNormalized = normalizeTraitValue(value, traitType);
-    const variations: string[] = [];
-    
-    // Only generate variations for Hat traits
-    const traitTypeLower = traitType.toLowerCase();
-    if (!traitTypeLower.includes('hat') && !traitTypeLower.includes('hats')) {
-      return [getTraitImageUrl(traitType, value)!].filter(Boolean);
-    }
-    
-    if (!collection?.traitImagesBaseUri) {
-      return [getTraitImageUrl(traitType, value)!].filter(Boolean);
-    }
-    
-    const cid = collection.traitImagesBaseUri.replace(/^ipfs:\/\//, '');
-    
-    // Variation 1: As normalized (e.g., "Green_Stylish_Hair")
-    variations.push(`${cid}/${folderName}/${baseNormalized}.png`);
-    
-    // Variation 2: Add "Hat" suffix if not present (e.g., "Golden_Digger" -> "Golden_Digger_Hat")
-    if (!baseNormalized.toLowerCase().endsWith('hat') && !baseNormalized.toLowerCase().endsWith('cap')) {
-      variations.push(`${cid}/${folderName}/${baseNormalized}_Hat.png`);
-    }
-    
-    // Variation 3: Add "Cap" suffix if contains "cap" in value but not in normalized
-    const valueLower = value.toLowerCase();
-    if (valueLower.includes('cap') && !baseNormalized.toLowerCase().endsWith('cap')) {
-      variations.push(`${cid}/${folderName}/${baseNormalized}_Cap.png`);
-    }
-    
-    // Convert to gateway URLs
-    return variations.map(path => getBestGatewayUrl(path));
-  };
-
-  /**
-   * Preload trait image with fallback variations for Hat traits
+   * Preload trait image (works for all trait types including HATS)
    */
   const preloadTraitImage = async (traitType: string, value: string): Promise<string | null> => {
     const cacheKey = `${traitType}:${value}`;
