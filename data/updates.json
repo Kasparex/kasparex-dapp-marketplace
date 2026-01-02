@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767394805-cf3b1f3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Add Suspense boundaries to listing pages to prevent prerendering errors (by Kasparex)",
+      "date": "2026-01-02T23:58:21+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767393416-cd4ea78",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Add 'use client' to wrapper pages to allow ssr: false with dynamic imports (by Kasparex)",
