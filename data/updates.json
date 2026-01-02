@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767368835-e4e8c27",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Simplify HATS trait loading to match other traits - remove special variations logic and fix normalization to preserve Hat/Cap suffixes (by Kasparex)",
+      "date": "2026-01-02T16:46:45+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767311449-d4f727f",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix build error: define baseNormalized, folderName, and cid in preloadTraitImage function (by Kasparex)",
