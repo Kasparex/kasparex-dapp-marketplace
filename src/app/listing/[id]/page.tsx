@@ -19,6 +19,11 @@ export default function ListingDetailPage({ params }: ListingDetailPageProps) {
   const { state: kaspaState } = useKaspaWallet();
   
   const listing = mockListings.find(l => l.id === id);
+  
+  // Always call hooks unconditionally
+  const { data: metadata, isLoading: isLoadingMetadata } = useIPFSContent<ListingMetadata>(
+    listing?.ipfsCid || null
+  );
 
   if (!listing) {
     return (
@@ -41,7 +46,6 @@ export default function ListingDetailPage({ params }: ListingDetailPageProps) {
   }
 
   const isOwner = kaspaState.address === listing.ownerWallet;
-  const { data: metadata, isLoading: isLoadingMetadata } = useIPFSContent<ListingMetadata>(listing.ipfsCid);
 
   // Resolve image URLs (in real implementation, this would use resolveAsset)
   const logoUrl = listing.images.logoCid ? `/api/ipfs?path=${listing.images.logoCid}` : null;
