@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767374662-f6e45eb",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Remove Visit on Kaspa.com button, move NFT Status box under menu on all NFT pages (by Kasparex)",
+      "date": "2026-01-02T18:23:53+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767373466-214ffcb",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: NFT pages improvements: Reorder Trait Analysis sections, add hero sections in right column, add NFT Status box to sidebars (by Kasparex)",
