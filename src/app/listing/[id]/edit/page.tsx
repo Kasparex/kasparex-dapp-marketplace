@@ -1,12 +1,9 @@
-'use client';
-
-import dynamicImport from 'next/dynamic';
-import { use } from 'react';
+import dynamic from 'next/dynamic';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 
 // Dynamically import EditListingContent with no SSR
-const EditListingContent = dynamicImport(
+const EditListingContent = dynamic(
   () => import('./EditListingContent').then(mod => ({ default: mod.EditListingContent })),
   { ssr: false }
 );
@@ -18,13 +15,15 @@ interface EditListingPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function EditListingPage({ params }: EditListingPageProps) {
-  const { id } = use(params);
+export default async function EditListingPage({ params }: EditListingPageProps) {
+  const { id } = await params;
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <EditListingContent id={id} />
+      <main className="flex-1">
+        <EditListingContent id={id} />
+      </main>
       <Footer />
     </div>
   );
