@@ -37,7 +37,8 @@ export async function uploadListingMetadata(
   metadata: ListingMetadata
 ): Promise<string> {
   try {
-    const result = await uploadJSONToStoracha(metadata as Record<string, unknown>, { pin: true });
+    // Cast through unknown first for TypeScript compatibility
+    const result = await uploadJSONToStoracha(metadata as unknown as Record<string, unknown>, { pin: true });
     return result.cid;
   } catch (error) {
     throw new Error(`Failed to upload metadata: ${error instanceof Error ? error.message : 'Unknown error'}`);
