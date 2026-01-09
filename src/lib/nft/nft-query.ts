@@ -60,23 +60,53 @@ export async function queryL1NFTs(
         
         // Log first few holder addresses for debugging
         if (collectionData.holders && collectionData.holders.length > 0) {
-          console.log(`[NFT Query] Sample holder addresses:`, collectionData.holders.slice(0, 5).map(h => ({
+          const sampleHolders = collectionData.holders.slice(0, 10).map(h => ({
             address: h.walletAddress,
             tokenCount: h.tokenIds?.length || 0,
-            normalized: (h.walletAddress || '').replace(/^kaspa:/i, '').toLowerCase()
-          })));
+            normalized: (h.walletAddress || '').replace(/^kaspa:/i, '').toLowerCase(),
+            raw: h.walletAddress
+          }));
+          console.log(`[NFT Query] Sample holder addresses:`, sampleHolders);
+          console.log(`[NFT Query] Looking for normalized: "${normalizedAddress}"`);
+          
+          // Try to find a close match for debugging
+          const closeMatch = sampleHolders.find(h => 
+            h.normalized.includes(normalizedAddress.substring(0, 10)) || 
+            normalizedAddress.includes(h.normalized.substring(0, 10))
+          );
+          if (closeMatch) {
+            console.log(`[NFT Query] Found close match in samples:`, closeMatch);
+          }
         }
         
+        // Normalize address more carefully - handle various formats
+        const normalizeAddress = (addr: string): string => {
+          if (!addr) return '';
+          // Remove kaspa: prefix (case insensitive)
+          let normalized = addr.replace(/^kaspa:/i, '');
+          // Remove any whitespace
+          normalized = normalized.trim();
+          // Convert to lowercase
+          normalized = normalized.toLowerCase();
+          return normalized;
+        };
+        
+        const searchNormalized = normalizeAddress(address);
+        console.log(`[NFT Query] Search normalized address: "${searchNormalized}"`);
+        
         const holder = collectionData.holders.find((h) => {
-          const holderAddress = (h.walletAddress || '').replace(/^kaspa:/i, '').toLowerCase();
-          const matches = holderAddress === normalizedAddress || 
-                 holderAddress === address.toLowerCase() ||
-                 holderAddress === address.replace(/^kaspa:/i, '').toLowerCase();
+          if (!h.walletAddress) return false;
+          
+          const holderNormalized = normalizeAddress(h.walletAddress);
+          const matches = holderNormalized === searchNormalized;
+          
           if (matches) {
-            console.log(`[NFT Query] ✓ Found matching holder: ${h.walletAddress} with ${h.tokenIds?.length || 0} tokens`);
+            console.log(`[NFT Query] ✓ Found matching holder: ${h.walletAddress} (normalized: ${holderNormalized}) with ${h.tokenIds?.length || 0} tokens`);
           }
+          
           return matches;
         });
+        
 
         if (holder) {
           if (!holder.tokenIds || holder.tokenIds.length === 0) {
@@ -99,7 +129,16 @@ export async function queryL1NFTs(
           });
         } else {
           console.log(`[NFT Query] ✗ No holder found for address ${address} in collection ${collectionId}`);
-          console.log(`[NFT Query] Normalized search address: ${normalizedAddress}`);
+          console.log(`[NFT Query] Normalized search address: "${normalizedAddress}"`);
+          console.log(`[NFT Query] Search normalized (new logic): "${searchNormalized}"`);
+          
+          // Debug: Check if address exists but format is different
+          const allHolderAddresses = collectionData.holders.slice(0, 20).map(h => ({
+            raw: h.walletAddress,
+            normalized: normalizeAddress(h.walletAddress || ''),
+            matches: normalizeAddress(h.walletAddress || '') === searchNormalized
+          }));
+          console.log(`[NFT Query] First 20 holder addresses for comparison:`, allHolderAddresses);
         }
       } catch (error) {
         console.error(`Error querying L1 NFTs for ${collectionId}:`, error);
