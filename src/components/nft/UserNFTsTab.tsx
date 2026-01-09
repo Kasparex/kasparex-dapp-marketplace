@@ -35,7 +35,13 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
 
   const loadUserNFTs = async () => {
     if (!l1Address && !l2Address) {
-      console.log('No wallet addresses available:', { l1Address, l2Address });
+      console.log('[UserNFTsTab] No wallet addresses available:', { 
+        l1Address, 
+        l2Address, 
+        kaspaState, 
+        isEVMConnected,
+        isWalletConnected 
+      });
       return;
     }
 
@@ -43,7 +49,16 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
     setError(null);
 
     try {
-      console.log('[UserNFTsTab] Loading NFTs for addresses:', { l1Address, l2Address, collectionId });
+      console.log('[UserNFTsTab] Loading NFTs for addresses:', { 
+        l1Address, 
+        l2Address, 
+        collectionId,
+        kaspaState: {
+          isConnected: kaspaState.isConnected,
+          address: kaspaState.address,
+          provider: kaspaState.provider
+        }
+      });
       const nfts = await queryUserNFTs(l1Address, l2Address, collectionId ? [collectionId] : undefined);
       console.log('[UserNFTsTab] ✓ Fetched NFTs:', nfts.length, nfts);
       setUserNFTs(nfts);
@@ -121,14 +136,27 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
   };
 
   useEffect(() => {
+    console.log('[UserNFTsTab] useEffect triggered:', {
+      isWalletConnected,
+      l1Address,
+      l2Address,
+      kaspaState: {
+        isConnected: kaspaState.isConnected,
+        address: kaspaState.address,
+        provider: kaspaState.provider
+      }
+    });
+    
     if (isWalletConnected && (l1Address || l2Address)) {
+      console.log('[UserNFTsTab] Calling loadUserNFTs...');
       loadUserNFTs();
     } else {
+      console.log('[UserNFTsTab] Wallet not connected or no address, clearing NFTs');
       setUserNFTs([]);
       setNftDetails(new Map());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isWalletConnected, l1Address, l2Address]);
+  }, [isWalletConnected, l1Address, l2Address, collectionId]);
 
   const filteredNFTs = selectedCollection
     ? userNFTs.filter((nft) => nft.collection === selectedCollection)
@@ -148,18 +176,38 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
         <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-4">
           Connect your wallet to view your NFTs
         </p>
-        <p className="text-sm text-zinc-500 dark:text-zinc-500">
+        <p className="text-sm text-zinc-500 dark:text-zinc-500 mb-4">
           Supports both Kaspa L1 and Kasplex L2 wallets
         </p>
+        <div className="text-xs text-zinc-400 dark:text-zinc-600 mt-4">
+          Debug: kaspaState.isConnected={String(kaspaState.isConnected)}, 
+          address={kaspaState.address ? 'present' : 'null'},
+          isEVMConnected={String(isEVMConnected)}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      {/* Debug Info and Refresh Button */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-xs text-zinc-400 dark:text-zinc-600">
+          Wallet: {l1Address ? `L1: ${l1Address.substring(0, 10)}...` : 'None'} 
+          {l2Address ? ` L2: ${l2Address.substring(0, 10)}...` : ''}
+        </div>
+        <button
+          onClick={loadUserNFTs}
+          disabled={isLoading}
+          className="px-4 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isLoading ? 'Loading...' : 'Refresh'}
+        </button>
+      </div>
+
       {/* Collection Filter */}
       {Object.keys(groupedByCollection).length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 mb-4">
           <button
             onClick={() => setSelectedCollection(null)}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
