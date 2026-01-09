@@ -3,6 +3,8 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
 import { ListingCard } from '@/components/listings/ListingCard';
 import { FilterPanel } from '@/components/listings/FilterPanel';
 import { SearchBar } from '@/components/listings/SearchBar';
@@ -61,7 +63,9 @@ export function IndexPageContent() {
   }, [filters, searchQuery]);
 
   return (
-    <main className="flex-1">
+    <>
+      <Header />
+      <main className="flex-1">
       {/* Hero Section */}
       <section className="bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
@@ -147,6 +151,8 @@ export function IndexPageContent() {
         </div>
       </section>
     </main>
+    <Footer />
+  </>
   );
 }
 

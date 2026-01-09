@@ -5,6 +5,9 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { IndexPageContent } from './IndexPageContent';
 
+// Force dynamic rendering to prevent prerendering errors with useSearchParams
+export const dynamic = 'force-dynamic';
+
 export default function IndexPage() {
   return (
     <div className="flex flex-col min-h-screen">
@@ -22,9 +25,7 @@ export default function IndexPage() {
           <Footer />
         </div>
       }>
-        <Header />
         <IndexPageContent />
-        <Footer />
       </Suspense>
     </div>
   );
