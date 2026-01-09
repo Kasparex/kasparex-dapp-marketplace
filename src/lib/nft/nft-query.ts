@@ -8,6 +8,7 @@ import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
 import { createPublicClient, http, type Address } from 'viem';
 import { kasplexL2Testnet, kasplexL2Mainnet } from '@/lib/wagmi';
 import { fetchCollectionByTicker, type Krc721Collection } from './kaspa-com-api';
+import { queryNFTsFromRegistry } from './registry-query';
 
 export interface UserNFT {
   tokenId: number;
@@ -18,7 +19,7 @@ export interface UserNFT {
 
 /**
  * Query NFTs from Kaspa L1 (KRC-721)
- * Uses KaspaCom API to fetch collection data and filter by wallet address
+ * Uses KaspaCom API first, falls back to IPFS registry if available
  */
 export async function queryL1NFTs(
   address: string,
@@ -139,6 +140,21 @@ export async function queryL1NFTs(
             matches: normalizeAddress(h.walletAddress || '') === searchNormalized
           }));
           console.log(`[NFT Query] First 20 holder addresses for comparison:`, allHolderAddresses);
+          
+          // Try IPFS registry as fallback if available
+          const collectionConfig = collections[collectionId];
+          if (collectionConfig?.registryCid) {
+            console.log(`[NFT Query] Trying IPFS registry fallback for ${collectionId}`);
+            try {
+              const registryNFTs = await queryNFTsFromRegistry(address, collectionConfig.registryCid, [collectionId]);
+              if (registryNFTs.length > 0) {
+                console.log(`[NFT Query] ✓ Found ${registryNFTs.length} NFTs via registry for ${collectionId}`);
+                results.push(...registryNFTs);
+              }
+            } catch (registryError) {
+              console.warn(`[NFT Query] Registry fallback failed:`, registryError);
+            }
+          }
         }
       } catch (error) {
         console.error(`Error querying L1 NFTs for ${collectionId}:`, error);
@@ -284,6 +300,7 @@ export async function queryL2NFTs(
 
 /**
  * Query NFTs from both L1 and L2
+ * Falls back to UTXO query if API query returns no results
  */
 export async function queryUserNFTs(
   l1Address: string | null,
@@ -296,6 +313,15 @@ export async function queryUserNFTs(
   if (l1Address) {
     const l1NFTs = await queryL1NFTs(l1Address, collectionIds);
     results.push(...l1NFTs);
+    
+    // If API query returned no results, try UTXO-based query as fallback
+    // Note: UTXO parsing is complex and may not be fully implemented
+    if (l1NFTs.length === 0) {
+      console.log('[NFT Query] API query returned no NFTs, UTXO fallback not yet implemented');
+      // TODO: Implement UTXO-based NFT detection
+      // const utxoNFTs = await queryNFTsFromUtxos(l1Address, collectionIds);
+      // results.push(...utxoNFTs);
+    }
   }
 
   // Query L2 NFTs if address provided

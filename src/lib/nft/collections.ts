@@ -24,6 +24,11 @@ export interface CollectionConfig {
    * Note: Folder structure should be clean - trait folders directly under the CID root
    */
   traitImagesBaseUri?: string;
+  /**
+   * IPFS CID for registry/index file that maps addresses to token IDs
+   * Format: { [collectionId]: { [address]: [tokenIds] } }
+   */
+  registryCid?: string;
 }
 
 export const collections: Record<string, CollectionConfig> = {
