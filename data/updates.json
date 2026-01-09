@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767976089-b37c6b3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add KRC721 Stream API integration as primary NFT query method - replaces KaspaCom API (by Kasparex)",
+      "date": "2026-01-09T17:27:38+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767975413-77950c0",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add IPFS registry fallback for NFT queries - supports registry/index files on IPFS (by Kasparex)",
