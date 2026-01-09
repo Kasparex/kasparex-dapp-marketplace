@@ -9,6 +9,7 @@ import { createPublicClient, http, type Address } from 'viem';
 import { kasplexL2Testnet, kasplexL2Mainnet } from '@/lib/wagmi';
 import { fetchCollectionByTicker, type Krc721Collection } from './kaspa-com-api';
 import { queryNFTsFromRegistry } from './registry-query';
+import { fetchNFTsByAddress, filterNFTsByCollections } from './krc721-stream-api';
 
 export interface UserNFT {
   tokenId: number;
@@ -19,7 +20,7 @@ export interface UserNFT {
 
 /**
  * Query NFTs from Kaspa L1 (KRC-721)
- * Uses KaspaCom API first, falls back to IPFS registry if available
+ * Uses KRC721 Stream API first, falls back to KaspaCom API, then IPFS registry if available
  */
 export async function queryL1NFTs(
   address: string,
@@ -31,6 +32,48 @@ export async function queryL1NFTs(
   }
 
   const results: UserNFT[] = [];
+  
+  // Try KRC721 Stream API first (most reliable)
+  try {
+    console.log('[NFT Query] Trying KRC721 Stream API...');
+    const streamTokens = await fetchNFTsByAddress(address);
+    const filteredTokens = filterNFTsByCollections(streamTokens, collectionIds);
+    
+    if (filteredTokens.length > 0) {
+      console.log(`[NFT Query] ✓ KRC721 Stream API found ${filteredTokens.length} NFTs`);
+      
+      for (const token of filteredTokens) {
+        const collectionId = token.ticker?.toUpperCase();
+        const collection = collectionId ? collections[collectionId] : null;
+        
+        if (collection && token.tokenId !== undefined) {
+          const tokenIdNum = typeof token.tokenId === 'number' 
+            ? token.tokenId 
+            : parseInt(String(token.tokenId), 10);
+          
+          if (!isNaN(tokenIdNum)) {
+            results.push({
+              tokenId: tokenIdNum,
+              collection: collectionId,
+              collectionConfig: collection,
+              network: 'L1',
+            });
+          }
+        }
+      }
+      
+      if (results.length > 0) {
+        console.log(`[NFT Query] ✓ Successfully loaded ${results.length} NFTs from KRC721 Stream API`);
+        return results;
+      }
+    } else {
+      console.log('[NFT Query] KRC721 Stream API returned no NFTs for requested collections');
+    }
+  } catch (error) {
+    console.warn('[NFT Query] KRC721 Stream API failed, trying KaspaCom API fallback:', error);
+  }
+  
+  // Fallback to KaspaCom API
 
   try {
     // Normalize address (remove kaspa: prefix for comparison)
