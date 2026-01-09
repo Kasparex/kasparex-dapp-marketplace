@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767964692-fd14729",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error in useNFTStatus - handle undefined metadata (by Kasparex)",
+      "date": "2026-01-09T14:17:26+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767964445-af5ca12",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Implement Kaspa L1 wallet NFT integration - Add NFT status detection, profile page, and wallet connection features (by Kasparex)",
