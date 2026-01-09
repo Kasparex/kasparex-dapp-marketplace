@@ -22,10 +22,9 @@ const KREXPRIME_DIAMOND_ELEMENTS = [
  * Looks for trait_type containing "diamond"
  */
 function hasDiamondTrait(metadata: ParsedNFTMetadata | null): boolean {
-  if (!metadata) return false;
+  if (!metadata || !metadata.traits) return false;
   
-  const traits = metadata.traits || metadata.attributes || [];
-  return traits.some((trait) => {
+  return metadata.traits.some((trait) => {
     const traitType = String(trait.trait_type || '').toLowerCase();
     return traitType.includes('diamond');
   });
@@ -36,10 +35,9 @@ function hasDiamondTrait(metadata: ParsedNFTMetadata | null): boolean {
  * Looks for ELEMENTS trait type with one of the 5 Diamond element values
  */
 function hasKREXPRIMEDiamondElement(metadata: ParsedNFTMetadata | null): boolean {
-  if (!metadata) return false;
+  if (!metadata || !metadata.traits) return false;
   
-  const traits = metadata.traits || metadata.attributes || [];
-  return traits.some((trait) => {
+  return metadata.traits.some((trait) => {
     const traitType = String(trait.trait_type || '').toUpperCase();
     const traitValue = String(trait.value || '');
     
