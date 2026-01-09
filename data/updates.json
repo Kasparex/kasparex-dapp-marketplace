@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767957144-6c05199",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Match deploy-token pattern exactly - Header/Footer outside Suspense + force-dynamic (by Kasparex)",
+      "date": "2026-01-09T12:10:51+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767956511-bec7d44",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Restructure index page to match root page pattern exactly - Header/Footer inside content + force-dynamic (by Kasparex)",
