@@ -106,13 +106,5 @@ export const hubProjects: HubProject[] = [
     route: '/nft',
     status: 'beta',
   },
-  {
-    id: 'kasparex-index',
-    name: 'Kasparex Index',
-    category: 'Ecosystem',
-    description: 'Permissionless listing platform for the Kaspa ecosystem. List dApps, tokens, NFTs, and tools via wallet-signed transactions.',
-    route: '/index',
-    status: 'beta',
-  },
 ];
 

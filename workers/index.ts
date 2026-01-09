@@ -17,7 +17,6 @@ export interface Env {
   
   // D1 Database for dynamic data
   NODES_DB: D1Database;
-  LISTINGS_DB: D1Database;
   
   // Rate limiting KV (optional)
   RATE_LIMIT?: KVNamespace;
@@ -48,11 +47,6 @@ export default {
 
       if (pathname.startsWith('/kasparex/rewards/')) {
         return handleRewardRequest(request, env);
-      }
-
-      if (pathname.startsWith('/kasparex/listings')) {
-        const { handleListingRequest } = await import('./kasparex-api/listings');
-        return handleListingRequest(request, env);
       }
 
       if (pathname.startsWith('/kasparex/stats') || pathname.startsWith('/kasparex/dapps/availability')) {
