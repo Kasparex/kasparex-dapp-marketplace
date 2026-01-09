@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767979758-874a91d",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add sorting and filtering to My NFTs page - sort by token ID, rarity, rank, collection - filter by Diamond NFTs and Rarest NFTs - add visual badges for Diamond and Rarest NFTs (by Kasparex)",
+      "date": "2026-01-09T18:28:07+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767977666-d0b9709",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix KRC721 Stream API - API requires kaspa: prefix in address (was removing it) (by Kasparex)",
