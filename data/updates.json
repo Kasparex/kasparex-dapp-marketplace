@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767981859-4892aba",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Move sorting/filtering controls to right side inline, add KREXPRIME Diamond detection (ELEMENTS trait), integrate into NFT Status (by Kasparex)",
+      "date": "2026-01-09T19:02:49+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767979875-03d13a7",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix filter badge counts to show correct numbers for Diamond and Rarest filters (by Kasparex)",
