@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767964445-af5ca12",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Implement Kaspa L1 wallet NFT integration - Add NFT status detection, profile page, and wallet connection features (by Kasparex)",
+      "date": "2026-01-09T14:13:18+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767958163-dff84da",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: remove: Remove Kasparex Index project - routes, components, API, and worker files (by Kasparex)",
