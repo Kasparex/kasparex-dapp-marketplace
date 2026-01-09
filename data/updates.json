@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767977037-6bf5893",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix KRC721 Stream API integration - use correct response format (tick, tokenId as string, message/result wrapper) (by Kasparex)",
+      "date": "2026-01-09T17:43:32+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767976089-b37c6b3",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add KRC721 Stream API integration as primary NFT query method - replaces KaspaCom API (by Kasparex)",
