@@ -44,7 +44,7 @@ function computeNFTStatus(
   for (const nft of nfts) {
     const { collection, tokenId } = nft;
     const metadataKey = `${collection}-${tokenId}`;
-    const metadata = metadataMap.get(metadataKey);
+    const metadata = metadataMap.get(metadataKey) || null;
 
     // Check collection ownership
     if (collection === 'KREXPRIME') {
