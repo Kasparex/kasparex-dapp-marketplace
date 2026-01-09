@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767977666-d0b9709",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix KRC721 Stream API - API requires kaspa: prefix in address (was removing it) (by Kasparex)",
+      "date": "2026-01-09T17:53:44+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767977037-6bf5893",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix KRC721 Stream API integration - use correct response format (tick, tokenId as string, message/result wrapper) (by Kasparex)",
