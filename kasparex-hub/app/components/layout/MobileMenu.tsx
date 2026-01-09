@@ -76,6 +76,13 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             >
               Rewards
             </Link>
+            <Link
+              to="/profile"
+              onClick={onClose}
+              className="block px-4 py-3 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium"
+            >
+              Profile
+            </Link>
           </nav>
 
           {/* Wallet Connect Section */}

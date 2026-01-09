@@ -5,21 +5,24 @@ import { useAccount } from 'wagmi';
 import { createPortal } from 'react-dom';
 import { NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_MULTIPLIER, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_MULTIPLIER, RAREST_NFT_FEE_REDUCTION } from '@/lib/rewards/types';
 import { NFTBuyWizard } from './NFTBuyWizard';
-
-// Mock NFT status for simulation
-const mockNFTStatus = {
-  hasKREXPRIME: false,
-  hasPIXELKREX: false,
-  hasDiamondKREXPRIME: false,
-  hasDiamondPIXELKREX: false,
-  hasRarestNFT: false,
-};
+import { useNFTStatus } from '@/hooks/useNFTStatus';
 
 export function NFTStatusBox() {
   const { isConnected } = useAccount();
-  const hasAnyNFT = mockNFTStatus.hasKREXPRIME || mockNFTStatus.hasPIXELKREX;
-  const hasDiamondNFT = mockNFTStatus.hasDiamondKREXPRIME || mockNFTStatus.hasDiamondPIXELKREX;
-  const hasRarestNFT = mockNFTStatus.hasRarestNFT;
+  const { nftStatus, isLoading } = useNFTStatus();
+  
+  // Use real NFT status if available, otherwise use empty status
+  const status = nftStatus || {
+    hasKREXPRIME: false,
+    hasPIXELKREX: false,
+    hasDiamondKREXPRIME: false,
+    hasDiamondPIXELKREX: false,
+    hasRarestNFT: false,
+  };
+  
+  const hasAnyNFT = status.hasKREXPRIME || status.hasPIXELKREX;
+  const hasDiamondNFT = status.hasDiamondKREXPRIME || status.hasDiamondPIXELKREX;
+  const hasRarestNFT = status.hasRarestNFT;
   const [showModal, setShowModal] = useState(false);
   const [showBuyWizard, setShowBuyWizard] = useState(false);
 
@@ -49,18 +52,27 @@ export function NFTStatusBox() {
         </div>
 
       <div className="space-y-1.5">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-zinc-600 dark:text-zinc-400">KREXPRIME:</span>
-          <span className={mockNFTStatus.hasKREXPRIME ? 'text-green-600 dark:text-green-400 font-medium' : 'text-zinc-400'}>
-            {mockNFTStatus.hasKREXPRIME ? '✓ Owned' : 'Not owned'}
-          </span>
-        </div>
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-zinc-600 dark:text-zinc-400">PIXELKREX:</span>
-          <span className={mockNFTStatus.hasPIXELKREX ? 'text-green-600 dark:text-green-400 font-medium' : 'text-zinc-400'}>
-            {mockNFTStatus.hasPIXELKREX ? '✓ Owned' : 'Not owned'}
-          </span>
-        </div>
+        {isLoading && (
+          <div className="text-xs text-zinc-500 dark:text-zinc-400 py-2">
+            Loading NFT status...
+          </div>
+        )}
+        {!isLoading && (
+          <>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-zinc-600 dark:text-zinc-400">KREXPRIME:</span>
+              <span className={status.hasKREXPRIME ? 'text-green-600 dark:text-green-400 font-medium' : 'text-zinc-400'}>
+                {status.hasKREXPRIME ? '✓ Owned' : 'Not owned'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-zinc-600 dark:text-zinc-400">PIXELKREX:</span>
+              <span className={status.hasPIXELKREX ? 'text-green-600 dark:text-green-400 font-medium' : 'text-zinc-400'}>
+                {status.hasPIXELKREX ? '✓ Owned' : 'Not owned'}
+              </span>
+            </div>
+          </>
+        )}
         <div className="flex items-center justify-between text-xs">
           <span className="text-zinc-600 dark:text-zinc-400">💎 Diamond:</span>
           <span className={hasDiamondNFT ? 'text-purple-600 dark:text-purple-400 font-medium' : 'text-zinc-400'}>
