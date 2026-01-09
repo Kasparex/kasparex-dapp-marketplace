@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767958163-dff84da",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: remove: Remove Kasparex Index project - routes, components, API, and worker files (by Kasparex)",
+      "date": "2026-01-09T12:28:27+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767957618-fcdab25",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Remove unused useSearchParams call - force-dynamic should be enough (by Kasparex)",
