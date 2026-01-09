@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767973927-74201a2",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Improve NFT address matching logic with better normalization and debugging (by Kasparex)",
+      "date": "2026-01-09T16:51:14+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767973282-e6e0774",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Improve wallet connection debugging and add refresh button to UserNFTsTab (by Kasparex)",
