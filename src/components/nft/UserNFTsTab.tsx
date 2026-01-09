@@ -10,6 +10,7 @@ import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { collections } from '@/lib/nft/collections';
 import { getCollectionMetadata } from '@/lib/nft/collection-loader';
 import { getNFTRarityCached } from '@/lib/nft/rarity-cache';
+import { isDiamondNFT as checkDiamondNFT } from '@/lib/nft/diamond-detection';
 
 interface UserNFTsTabProps {
   collectionId?: string; // Optional: filter by specific collection
@@ -162,16 +163,7 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isWalletConnected, l1Address, l2Address, collectionId]);
 
-  // Helper functions to detect Diamond and Rarest NFTs
-  const hasDiamondTrait = (metadata: any): boolean => {
-    if (!metadata?.attributes && !metadata?.traits) return false;
-    const traits = metadata.attributes || metadata.traits || [];
-    return traits.some((trait: any) => {
-      const traitType = String(trait.trait_type || '').toLowerCase();
-      return traitType.includes('diamond');
-    });
-  };
-
+  // Helper function to detect Rarest NFTs
   const isRareNFT = (collectionId: string, tokenId: number): boolean => {
     const RARE_NFT_IDS: Record<string, number[]> = {
       KREXPRIME: [345],
@@ -182,7 +174,7 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
   };
 
   const isDiamondNFT = (nft: UserNFT, details: any): boolean => {
-    return hasDiamondTrait(details?.metadata);
+    return checkDiamondNFT(nft.collection, details?.metadata || null);
   };
 
   // Filter NFTs

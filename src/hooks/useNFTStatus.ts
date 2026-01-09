@@ -8,17 +8,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { queryL1NFTs, type UserNFT } from '@/lib/nft/nft-query';
 import { fetchMultipleNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
 import type { NFTStatus } from '@/lib/rewards/types';
-
-// Import status computation functions
-function hasDiamondTrait(metadata: ParsedNFTMetadata | null): boolean {
-  if (!metadata) return false;
-  
-  const traits = metadata.traits || [];
-  return traits.some((trait) => {
-    const traitType = String(trait.trait_type || '').toLowerCase();
-    return traitType.includes('diamond');
-  });
-}
+import { isDiamondNFT } from '@/lib/nft/diamond-detection';
 
 function isRareNFT(collectionId: string, tokenId: number): boolean {
   const RARE_NFT_IDS = {
@@ -53,8 +43,8 @@ function computeNFTStatus(
       status.hasPIXELKREX = true;
     }
 
-    // Check for Diamond NFT (trait-based)
-    const isDiamond = hasDiamondTrait(metadata);
+    // Check for Diamond NFT (uses shared detection logic)
+    const isDiamond = isDiamondNFT(collection, metadata);
     if (isDiamond) {
       if (collection === 'KREXPRIME') {
         status.hasDiamondKREXPRIME = true;
