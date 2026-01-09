@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767973282-e6e0774",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Improve wallet connection debugging and add refresh button to UserNFTsTab (by Kasparex)",
+      "date": "2026-01-09T16:40:25+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767964692-fd14729",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error in useNFTStatus - handle undefined metadata (by Kasparex)",
