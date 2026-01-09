@@ -43,10 +43,11 @@ export async function queryL1NFTs(
       console.log(`[NFT Query] ✓ KRC721 Stream API found ${filteredTokens.length} NFTs`);
       
       for (const token of filteredTokens) {
-        const collectionId = token.ticker?.toUpperCase();
+        const collectionId = token.tick?.toUpperCase(); // API uses "tick" not "ticker"
         const collection = collectionId ? collections[collectionId] : null;
         
         if (collection && token.tokenId !== undefined) {
+          // API returns tokenId as string, convert to number
           const tokenIdNum = typeof token.tokenId === 'number' 
             ? token.tokenId 
             : parseInt(String(token.tokenId), 10);
