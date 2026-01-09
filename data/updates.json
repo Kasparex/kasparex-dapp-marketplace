@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767956511-bec7d44",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Restructure index page to match root page pattern exactly - Header/Footer inside content + force-dynamic (by Kasparex)",
+      "date": "2026-01-09T12:01:07+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767397524-8b75664",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Wrap entire page structure in Suspense matching root page.tsx exactly (by Kasparex)",
