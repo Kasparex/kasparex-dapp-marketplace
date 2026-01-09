@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767957618-fcdab25",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Remove unused useSearchParams call - force-dynamic should be enough (by Kasparex)",
+      "date": "2026-01-09T12:19:20+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767957144-6c05199",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Match deploy-token pattern exactly - Header/Footer outside Suspense + force-dynamic (by Kasparex)",
