@@ -22,6 +22,10 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedCollection, setSelectedCollection] = useState<string | null>(collectionId || null);
+  const [sortBy, setSortBy] = useState<'tokenId' | 'rarity' | 'rank' | 'collection'>('tokenId');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [filterDiamond, setFilterDiamond] = useState(false);
+  const [filterRarest, setFilterRarest] = useState(false);
   const [nftDetails, setNftDetails] = useState<Map<string, {
     metadata: any;
     rarity: any;
@@ -158,9 +162,76 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isWalletConnected, l1Address, l2Address, collectionId]);
 
-  const filteredNFTs = selectedCollection
+  // Helper functions to detect Diamond and Rarest NFTs
+  const hasDiamondTrait = (metadata: any): boolean => {
+    if (!metadata?.attributes && !metadata?.traits) return false;
+    const traits = metadata.attributes || metadata.traits || [];
+    return traits.some((trait: any) => {
+      const traitType = String(trait.trait_type || '').toLowerCase();
+      return traitType.includes('diamond');
+    });
+  };
+
+  const isRareNFT = (collectionId: string, tokenId: number): boolean => {
+    const RARE_NFT_IDS: Record<string, number[]> = {
+      KREXPRIME: [345],
+      PIXELKREX: [515],
+    };
+    const rareIds = RARE_NFT_IDS[collectionId];
+    return rareIds ? rareIds.includes(tokenId) : false;
+  };
+
+  const isDiamondNFT = (nft: UserNFT, details: any): boolean => {
+    return hasDiamondTrait(details?.metadata);
+  };
+
+  // Filter NFTs
+  let filteredNFTs = selectedCollection
     ? userNFTs.filter((nft) => nft.collection === selectedCollection)
     : userNFTs;
+
+  if (filterDiamond) {
+    filteredNFTs = filteredNFTs.filter((nft) => {
+      const key = `${nft.collection}-${nft.tokenId}`;
+      const details = nftDetails.get(key);
+      return isDiamondNFT(nft, details);
+    });
+  }
+
+  if (filterRarest) {
+    filteredNFTs = filteredNFTs.filter((nft) => isRareNFT(nft.collection, nft.tokenId));
+  }
+
+  // Sort NFTs
+  filteredNFTs = [...filteredNFTs].sort((a, b) => {
+    const keyA = `${a.collection}-${a.tokenId}`;
+    const keyB = `${b.collection}-${b.tokenId}`;
+    const detailsA = nftDetails.get(keyA);
+    const detailsB = nftDetails.get(keyB);
+
+    let comparison = 0;
+
+    switch (sortBy) {
+      case 'tokenId':
+        comparison = a.tokenId - b.tokenId;
+        break;
+      case 'rarity':
+        const rarityA = detailsA?.rarity?.totalRarityScore || 0;
+        const rarityB = detailsB?.rarity?.totalRarityScore || 0;
+        comparison = rarityA - rarityB;
+        break;
+      case 'rank':
+        const rankA = detailsA?.rank || Infinity;
+        const rankB = detailsB?.rank || Infinity;
+        comparison = rankA - rankB;
+        break;
+      case 'collection':
+        comparison = a.collection.localeCompare(b.collection);
+        break;
+    }
+
+    return sortOrder === 'asc' ? comparison : -comparison;
+  });
 
   const groupedByCollection = userNFTs.reduce((acc, nft) => {
     if (!acc[nft.collection]) {
@@ -205,32 +276,113 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
         </button>
       </div>
 
-      {/* Collection Filter */}
-      {Object.keys(groupedByCollection).length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
-          <button
-            onClick={() => setSelectedCollection(null)}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              selectedCollection === null
-                ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
-                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-            }`}
-          >
-            All ({userNFTs.length})
-          </button>
-          {Object.entries(groupedByCollection).map(([collection, count]) => (
+      {/* Filters and Sorting Controls */}
+      {userNFTs.length > 0 && (
+        <div className="space-y-4 mb-6">
+          {/* Collection Filter */}
+          {Object.keys(groupedByCollection).length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setSelectedCollection(null)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  selectedCollection === null
+                    ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
+                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                }`}
+              >
+                All ({userNFTs.length})
+              </button>
+              {Object.entries(groupedByCollection).map(([collection, count]) => (
+                <button
+                  key={collection}
+                  onClick={() => setSelectedCollection(collection)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    selectedCollection === collection
+                      ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
+                      : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                  }`}
+                >
+                  {collections[collection]?.name || collection} ({count})
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Special Filters */}
+          <div className="flex flex-wrap gap-2">
             <button
-              key={collection}
-              onClick={() => setSelectedCollection(collection)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                selectedCollection === collection
-                  ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
+              onClick={() => setFilterDiamond(!filterDiamond)}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                filterDiamond
+                  ? 'bg-purple-600 dark:bg-purple-500 text-white'
                   : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
               }`}
             >
-              {collections[collection]?.name || collection} ({count})
+              💎 Diamond
+              {filterDiamond && (
+                <span className="text-xs bg-white/20 px-2 py-0.5 rounded">
+                  {filteredNFTs.filter((nft) => {
+                    const key = `${nft.collection}-${nft.tokenId}`;
+                    const details = nftDetails.get(key);
+                    return isDiamondNFT(nft, details);
+                  }).length}
+                </span>
+              )}
             </button>
-          ))}
+            <button
+              onClick={() => setFilterRarest(!filterRarest)}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                filterRarest
+                  ? 'bg-yellow-600 dark:bg-yellow-500 text-white'
+                  : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+              }`}
+            >
+              ⭐ Rarest
+              {filterRarest && (
+                <span className="text-xs bg-white/20 px-2 py-0.5 rounded">
+                  {userNFTs.filter((nft) => isRareNFT(nft.collection, nft.tokenId)).length}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Sorting Controls */}
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-sm text-zinc-600 dark:text-zinc-400 font-medium">Sort by:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+              className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-zinc-500 dark:focus:ring-zinc-400"
+            >
+              <option value="tokenId">Token ID</option>
+              <option value="rarity">Rarity Score</option>
+              <option value="rank">Rank</option>
+              <option value="collection">Collection</option>
+            </select>
+            <button
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors flex items-center gap-2"
+              title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+            >
+              {sortOrder === 'asc' ? (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              )}
+              {sortOrder === 'asc' ? 'Asc' : 'Desc'}
+            </button>
+          </div>
+
+          {/* Results count */}
+          {(filterDiamond || filterRarest || selectedCollection) && (
+            <div className="text-sm text-zinc-600 dark:text-zinc-400">
+              Showing {filteredNFTs.length} of {userNFTs.length} NFTs
+            </div>
+          )}
         </div>
       )}
 
@@ -299,6 +451,19 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
 
                   {details && (
                     <div className="space-y-1 text-sm">
+                      {/* Badges for Diamond and Rarest */}
+                      <div className="flex gap-1 mb-2">
+                        {isDiamondNFT(nft, details) && (
+                          <span className="px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-medium rounded">
+                            💎 Diamond
+                          </span>
+                        )}
+                        {isRareNFT(nft.collection, nft.tokenId) && (
+                          <span className="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-xs font-medium rounded">
+                            ⭐ Rarest
+                          </span>
+                        )}
+                      </div>
                       {details.rarity && (
                         <div className="flex justify-between">
                           <span className="text-zinc-600 dark:text-zinc-400">Rarity:</span>
