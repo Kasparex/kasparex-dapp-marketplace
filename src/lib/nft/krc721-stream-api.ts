@@ -42,12 +42,14 @@ export async function fetchNFTsByAddress(
   address: string
 ): Promise<KRC721StreamToken[]> {
   try {
-    // Remove kaspa: prefix if present (API expects address without prefix)
-    const addressWithoutPrefix = address.replace(/^kaspa:/i, '');
+    // API requires kaspa: prefix - ensure it's present
+    const normalizedAddress = address.startsWith('kaspa:') 
+      ? address 
+      : `kaspa:${address}`;
     
-    console.log('[KRC721 Stream] Fetching NFTs for address:', addressWithoutPrefix);
+    console.log('[KRC721 Stream] Fetching NFTs for address:', normalizedAddress);
     
-    const url = `${KRC721_STREAM_API_BASE}/address/${encodeURIComponent(addressWithoutPrefix)}`;
+    const url = `${KRC721_STREAM_API_BASE}/address/${encodeURIComponent(normalizedAddress)}`;
     console.log('[KRC721 Stream] API URL:', url);
     
     const response = await fetch(url, {
