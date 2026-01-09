@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767979875-03d13a7",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix filter badge counts to show correct numbers for Diamond and Rarest filters (by Kasparex)",
+      "date": "2026-01-09T18:30:33+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767979758-874a91d",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add sorting and filtering to My NFTs page - sort by token ID, rarity, rank, collection - filter by Diamond NFTs and Rarest NFTs - add visual badges for Diamond and Rarest NFTs (by Kasparex)",
