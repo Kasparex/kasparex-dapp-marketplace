@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1767982339-21749b2",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix diamond detection to use ParsedNFTMetadata.traits array correctly (by Kasparex)",
+      "date": "2026-01-09T19:11:26+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1767981859-4892aba",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Move sorting/filtering controls to right side inline, add KREXPRIME Diamond detection (ELEMENTS trait), integrate into NFT Status (by Kasparex)",
