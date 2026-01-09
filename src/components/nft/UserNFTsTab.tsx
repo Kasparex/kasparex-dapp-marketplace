@@ -338,11 +338,19 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
               }`}
             >
               ⭐ Rarest
-              {filterRarest && (
-                <span className="text-xs bg-white/20 px-2 py-0.5 rounded">
-                  {userNFTs.filter((nft) => isRareNFT(nft.collection, nft.tokenId)).length}
-                </span>
-              )}
+              {(() => {
+                const collectionFiltered = selectedCollection
+                  ? userNFTs.filter((nft) => nft.collection === selectedCollection)
+                  : userNFTs;
+                const rarestCount = collectionFiltered.filter((nft) => isRareNFT(nft.collection, nft.tokenId)).length;
+                return rarestCount > 0 && (
+                  <span className={`text-xs px-2 py-0.5 rounded ${
+                    filterRarest ? 'bg-white/20' : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                  }`}>
+                    {rarestCount}
+                  </span>
+                );
+              })()}
             </button>
           </div>
 
