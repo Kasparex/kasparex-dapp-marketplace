@@ -3,11 +3,7 @@
  * Detects Diamond NFTs for KREXPRIME and PIXELKREX collections
  */
 
-export interface ParsedNFTMetadata {
-  attributes?: Array<{ trait_type?: string; value?: string }>;
-  traits?: Array<{ trait_type?: string; value?: string }>;
-  [key: string]: unknown;
-}
+import type { ParsedNFTMetadata } from './metadata';
 
 /**
  * KREXPRIME Diamond Elements
