@@ -7,6 +7,7 @@ import { NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_MULTIPLIER, DIAMOND_NFT_
 import { NFTBuyWizard } from './NFTBuyWizard';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { calculateNFTPoints, NFT_POINTS } from '@/lib/nft/points';
+import { getPartnerCollections } from '@/lib/nft/collections';
 
 export function NFTStatusBox() {
   const { isConnected } = useAccount();
