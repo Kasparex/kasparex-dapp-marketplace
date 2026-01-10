@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768087268-e26d62d",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add getPartnerCollections function export (by Kasparex)",
+      "date": "2026-01-11T00:20:21+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768086435-b2b3942",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update sidebar link, add points to NFT Status box and modals, integrate partner collections system (by Kasparex)",
