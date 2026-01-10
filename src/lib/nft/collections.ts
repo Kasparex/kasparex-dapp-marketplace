@@ -90,3 +90,10 @@ export function isValidCollection(slug: string): boolean {
   return Object.values(collections).some((collection) => collection.slug.toLowerCase() === slug.toLowerCase());
 }
 
+
+/**
+ * Get all partner/collaboration collections
+ */
+export function getPartnerCollections(): CollectionConfig[] {
+  return Object.values(collections).filter((collection) => collection.isPartnerCollection);
+}
