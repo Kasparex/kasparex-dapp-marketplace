@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768087659-0f9eaa2",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add missing import for getPartnerCollections in NFTStatusBox (by Kasparex)",
+      "date": "2026-01-11T00:26:55+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768087268-e26d62d",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add getPartnerCollections function export (by Kasparex)",
