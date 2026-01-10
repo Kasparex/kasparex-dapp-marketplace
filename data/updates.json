@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768080938-8091533",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add Buy button to My NFTs tab, rewards card, make My NFTs default tab, update NFT icons and text (by Kasparex)",
+      "date": "2026-01-10T22:34:51+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768079427-3324cb1",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add collection images to NFTBuyWizard, update KREXPRIME description, add Regular NFT icon and update status display (by Kasparex)",
