@@ -151,7 +151,7 @@ export function KasWareWalletButton() {
   if (state.isConnected && state.address && state.provider === 'kasware') {
     const addressWithoutPrefix = state.address.replace(/^kaspa:/i, '');
     const displayAddress = formatAddressForDisplay(state.address);
-    const displayBalance = formatBalanceForDisplay(balance, 'KAS', balanceLoading, isBalanceVisible);
+    const displayBalance = formatBalanceForDisplay(balance, 'KAS', false, isBalanceVisible);
 
     return (
       <div className="relative" ref={dropdownRef}>
