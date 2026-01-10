@@ -18,7 +18,7 @@ export default function CollectionPage() {
   const params = useParams();
   const collection = params?.collection as string;
   const [collectionConfig, setCollectionConfig] = useState<CollectionConfig | null>(null);
-  const [activeTab, setActiveTab] = useState<TabType>('checker');
+  const [activeTab, setActiveTab] = useState<TabType>('my-nfts');
 
   useEffect(() => {
     if (collection && isValidCollection(collection)) {

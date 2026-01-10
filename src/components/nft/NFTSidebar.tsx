@@ -84,10 +84,10 @@ export function NFTSidebar({
         { id: 'my-nfts', label: 'My NFTs' },
       ]
     : [
+        { id: 'my-nfts', label: 'My NFTs' },
         { id: 'checker', label: 'Rarity Checker' },
         { id: 'traits', label: 'Trait Analysis' },
         { id: 'builder', label: 'PFP Builder' },
-        { id: 'my-nfts', label: 'My NFTs' },
       ];
 
   return (

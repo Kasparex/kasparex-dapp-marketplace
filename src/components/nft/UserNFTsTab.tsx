@@ -11,6 +11,8 @@ import { collections } from '@/lib/nft/collections';
 import { getCollectionMetadata } from '@/lib/nft/collection-loader';
 import { getNFTRarityCached } from '@/lib/nft/rarity-cache';
 import { isDiamondNFT as checkDiamondNFT } from '@/lib/nft/diamond-detection';
+import { NFTBuyWizard } from '@/components/rewards/NFTBuyWizard';
+import { NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_MULTIPLIER, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_MULTIPLIER, RAREST_NFT_FEE_REDUCTION } from '@/lib/rewards/types';
 
 interface UserNFTsTabProps {
   collectionId?: string; // Optional: filter by specific collection
@@ -33,6 +35,7 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
     rank: number | null;
     imageUrl: string | null;
   }>>(new Map());
+  const [showBuyWizard, setShowBuyWizard] = useState(false);
 
   const isWalletConnected = kaspaState.isConnected || isEVMConnected;
   const l1Address = kaspaState.address;
@@ -410,15 +413,85 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
         </div>
       )}
 
+      {/* NFT Rewards & Benefits Card - Show when no NFTs or always visible */}
+      {userNFTs.length === 0 && !isLoading && !error && (
+        <div className="mb-8 p-6 bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-800 dark:to-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700">
+          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+            NFT Rewards & Benefits
+          </h3>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-zinc-200 dark:border-zinc-700">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">NFT Type</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reward Multiplier</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee Reduction</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-zinc-100 dark:border-zinc-800">
+                  <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                    🖼️ Regular NFT
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                      (KREXPRIME or PIXELKREX)
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
+                    +{NFT_MULTIPLIER}x
+                  </td>
+                  <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                    -{NFT_FEE_REDUCTION}%
+                  </td>
+                </tr>
+                <tr className="border-b border-zinc-100 dark:border-zinc-800">
+                  <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                    💎 Diamond NFT
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                      (Any Diamond from any collection)
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
+                    +{DIAMOND_NFT_MULTIPLIER}x
+                  </td>
+                  <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                    -{DIAMOND_NFT_FEE_REDUCTION}%
+                  </td>
+                </tr>
+                <tr className="border-b border-zinc-100 dark:border-zinc-800">
+                  <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                    ⭐ Rarest NFT
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                      (#515 PIXELKREX or #345 KREXPRIME)
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
+                    +{RAREST_NFT_MULTIPLIER}x
+                  </td>
+                  <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                    -{RAREST_NFT_FEE_REDUCTION}% (Zero Fee)
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Empty State */}
       {!isLoading && !error && filteredNFTs.length === 0 && (
         <div className="text-center py-12">
           <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-2">
             No NFTs found
           </p>
-          <p className="text-sm text-zinc-500 dark:text-zinc-500">
+          <p className="text-sm text-zinc-500 dark:text-zinc-500 mb-6">
             You don&apos;t own any NFTs from KREXPRIME or PIXELKREX collections.
           </p>
+          <button
+            onClick={() => setShowBuyWizard(true)}
+            className="px-6 py-3 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
+          >
+            Buy or Bridge NFTs
+          </button>
         </div>
       )}
 
@@ -504,6 +577,12 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
           })}
         </div>
       )}
+
+      {/* Buy Wizard */}
+      <NFTBuyWizard
+        isOpen={showBuyWizard}
+        onClose={() => setShowBuyWizard(false)}
+      />
     </div>
   );
 }

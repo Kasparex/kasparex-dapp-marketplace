@@ -245,7 +245,7 @@ export function NFTBuyWizard({ isOpen, onClose }: NFTBuyWizardProps) {
                         PIXELKREX
                       </div>
                       <div className="text-xs text-zinc-600 dark:text-zinc-400">
-                        Pixel Art Collection
+                        Pixel Art NFT Collection
                       </div>
                     </div>
                   </div>
