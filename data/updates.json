@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768083794-44eaabc",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix sidebar link to Kasparex Hub, add NFT points calculation system, and partner collection infrastructure (by Kasparex)",
+      "date": "2026-01-10T23:22:33+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768080938-8091533",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add Buy button to My NFTs tab, rewards card, make My NFTs default tab, update NFT icons and text (by Kasparex)",
