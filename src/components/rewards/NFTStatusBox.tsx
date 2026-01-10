@@ -74,9 +74,9 @@ export function NFTStatusBox() {
           </>
         )}
         <div className="flex items-center justify-between text-xs">
-          <span className="text-zinc-600 dark:text-zinc-400">Regular NFT:</span>
-          <span className={hasAnyNFT ? 'text-green-600 dark:text-green-400 font-medium' : 'text-zinc-400'}>
-            {hasAnyNFT ? '✓ +1x, -0.1%' : 'Not owned'}
+          <span className="text-zinc-600 dark:text-zinc-400">🖼️ Regular NFT:</span>
+          <span className={hasAnyNFT ? 'text-blue-600 dark:text-blue-400 font-medium' : 'text-zinc-400'}>
+            {hasAnyNFT ? '✓ Owned' : 'Not owned'}
           </span>
         </div>
         <div className="flex items-center justify-between text-xs">

@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { collections } from '@/lib/nft/collections';
+import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 
 interface NFTBuyWizardProps {
   isOpen: boolean;
@@ -13,6 +15,10 @@ type WizardStep = 'select' | 'buy' | 'bridge' | 'complete';
 export function NFTBuyWizard({ isOpen, onClose }: NFTBuyWizardProps) {
   const [currentStep, setCurrentStep] = useState<WizardStep>('select');
   const [selectedCollection, setSelectedCollection] = useState<'KREXPRIME' | 'PIXELKREX' | null>(null);
+  const [collectionImages, setCollectionImages] = useState<Record<string, string | null>>({
+    KREXPRIME: null,
+    PIXELKREX: null,
+  });
 
   const steps = [
     { id: 'select' as WizardStep, title: 'Select Collection', number: 1 },
@@ -56,6 +62,41 @@ export function NFTBuyWizard({ isOpen, onClose }: NFTBuyWizardProps) {
   };
 
   const bridgeUrl = 'https://nft.katbridge.com/';
+
+  // Load collection images from IPFS
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const loadCollectionImages = async () => {
+      const images: Record<string, string | null> = {};
+
+      for (const [collectionId, collection] of Object.entries(collections)) {
+        if (collectionId !== 'KREXPRIME' && collectionId !== 'PIXELKREX') continue;
+
+        try {
+          // Try to load first NFT image as collection preview
+          const firstMetadataUrl = `${collection.baseUri.replace('ipfs://', '')}/1.json`;
+          const response = await fetch(`/api/ipfs?path=${encodeURIComponent(firstMetadataUrl)}`);
+          if (response.ok) {
+            const metadata = await response.json();
+            if (metadata.image) {
+              const imgUrl = metadata.image.startsWith('ipfs://')
+                ? getBestGatewayUrl(metadata.image.replace('ipfs://', ''))
+                : metadata.image;
+              images[collectionId] = imgUrl;
+            }
+          }
+        } catch (error) {
+          console.warn(`Failed to load collection image for ${collectionId}:`, error);
+          images[collectionId] = null;
+        }
+      }
+
+      setCollectionImages(images);
+    };
+
+    loadCollectionImages();
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -153,13 +194,27 @@ export function NFTBuyWizard({ isOpen, onClose }: NFTBuyWizardProps) {
                       : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
                   }`}
                 >
-                  <div className="text-center">
-                    <div className="text-2xl mb-2">👑</div>
-                    <div className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
-                      KREXPRIME
-                    </div>
-                    <div className="text-xs text-zinc-600 dark:text-zinc-400">
-                      Premium NFT Collection
+                  <div className="flex items-center gap-4">
+                    {collectionImages.KREXPRIME ? (
+                      <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                        <img
+                          src={collectionImages.KREXPRIME}
+                          alt="KREXPRIME"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex-shrink-0 w-16 h-16 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-2xl">
+                        👑
+                      </div>
+                    )}
+                    <div className="text-left flex-1">
+                      <div className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
+                        KREXPRIME
+                      </div>
+                      <div className="text-xs text-zinc-600 dark:text-zinc-400">
+                        Poster-style NFT Collection
+                      </div>
                     </div>
                   </div>
                 </button>
@@ -171,13 +226,27 @@ export function NFTBuyWizard({ isOpen, onClose }: NFTBuyWizardProps) {
                       : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
                   }`}
                 >
-                  <div className="text-center">
-                    <div className="text-2xl mb-2">🎨</div>
-                    <div className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
-                      PIXELKREX
-                    </div>
-                    <div className="text-xs text-zinc-600 dark:text-zinc-400">
-                      Pixel Art Collection
+                  <div className="flex items-center gap-4">
+                    {collectionImages.PIXELKREX ? (
+                      <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                        <img
+                          src={collectionImages.PIXELKREX}
+                          alt="PIXELKREX"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex-shrink-0 w-16 h-16 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-2xl">
+                        🎨
+                      </div>
+                    )}
+                    <div className="text-left flex-1">
+                      <div className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
+                        PIXELKREX
+                      </div>
+                      <div className="text-xs text-zinc-600 dark:text-zinc-400">
+                        Pixel Art Collection
+                      </div>
                     </div>
                   </div>
                 </button>
