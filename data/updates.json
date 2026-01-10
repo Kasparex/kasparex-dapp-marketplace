@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768078244-7f4941c",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Remove loading state from wallet button balance, add Regular NFT status to NFT Status box (by Kasparex)",
+      "date": "2026-01-10T21:50:16+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768077562-c4160c3",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Align Diamond/Rarest filters and Sort controls to right side of page (by Kasparex)",
