@@ -76,7 +76,7 @@ export function NFTBuyWizard({ isOpen, onClose }: NFTBuyWizardProps) {
         <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-              Buy & Bridge NFTs
+              Buy or Bridge NFTs
             </h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
               Follow these simple steps to buy NFTs on L1 and bridge them to L2

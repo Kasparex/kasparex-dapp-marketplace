@@ -107,7 +107,7 @@ export function NFTStatusBox() {
             onClick={() => setShowBuyWizard(true)}
             className="block w-full mt-2 px-3 py-2 text-xs font-medium text-center bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
           >
-            Buy & Bridge NFTs
+            Buy or Bridge NFTs
           </button>
         </div>
       </div>
