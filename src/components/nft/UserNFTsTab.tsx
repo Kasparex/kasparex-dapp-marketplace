@@ -270,8 +270,8 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
 
       {/* Filters and Sorting Controls */}
       {userNFTs.length > 0 && (
-        <div className="space-y-4 mb-6">
-          {/* Collection Filter */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+          {/* Collection Filter - Left Side */}
           {Object.keys(groupedByCollection).length > 0 && (
             <div className="flex flex-wrap gap-2">
               <button
@@ -300,89 +300,99 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
             </div>
           )}
 
-          {/* Special Filters */}
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setFilterDiamond(!filterDiamond)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                filterDiamond
-                  ? 'bg-purple-600 dark:bg-purple-500 text-white'
-                  : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-              }`}
-            >
-              💎 Diamond
-              {filterDiamond && (
-                <span className="text-xs bg-white/20 px-2 py-0.5 rounded">
-                  {filteredNFTs.filter((nft) => {
+          {/* Filters, Sorting, and Results Count - Right Side */}
+          <div className="flex flex-wrap items-center justify-end gap-3 ml-auto">
+            {/* Special Filters */}
+            <div className="flex flex-wrap gap-2 items-center">
+              <button
+                onClick={() => setFilterDiamond(!filterDiamond)}
+                className={`px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-2 text-sm ${
+                  filterDiamond
+                    ? 'bg-purple-600 dark:bg-purple-500 text-white'
+                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                }`}
+              >
+                💎 Diamond
+                {(() => {
+                  const collectionFiltered = selectedCollection
+                    ? userNFTs.filter((nft) => nft.collection === selectedCollection)
+                    : userNFTs;
+                  const diamondCount = collectionFiltered.filter((nft) => {
                     const key = `${nft.collection}-${nft.tokenId}`;
                     const details = nftDetails.get(key);
                     return isDiamondNFT(nft, details);
-                  }).length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setFilterRarest(!filterRarest)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                filterRarest
-                  ? 'bg-yellow-600 dark:bg-yellow-500 text-white'
-                  : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-              }`}
-            >
-              ⭐ Rarest
-              {(() => {
-                const collectionFiltered = selectedCollection
-                  ? userNFTs.filter((nft) => nft.collection === selectedCollection)
-                  : userNFTs;
-                const rarestCount = collectionFiltered.filter((nft) => isRareNFT(nft.collection, nft.tokenId)).length;
-                return rarestCount > 0 && (
-                  <span className={`text-xs px-2 py-0.5 rounded ${
-                    filterRarest ? 'bg-white/20' : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
-                  }`}>
-                    {rarestCount}
-                  </span>
-                );
-              })()}
-            </button>
-          </div>
-
-          {/* Sorting Controls */}
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400 font-medium">Sort by:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-              className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-zinc-500 dark:focus:ring-zinc-400"
-            >
-              <option value="tokenId">Token ID</option>
-              <option value="rarity">Rarity Score</option>
-              <option value="rank">Rank</option>
-              <option value="collection">Collection</option>
-            </select>
-            <button
-              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors flex items-center gap-2"
-              title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
-            >
-              {sortOrder === 'asc' ? (
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                </svg>
-              ) : (
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              )}
-              {sortOrder === 'asc' ? 'Asc' : 'Desc'}
-            </button>
-          </div>
-
-          {/* Results count */}
-          {(filterDiamond || filterRarest || selectedCollection) && (
-            <div className="text-sm text-zinc-600 dark:text-zinc-400">
-              Showing {filteredNFTs.length} of {userNFTs.length} NFTs
+                  }).length;
+                  return diamondCount > 0 && (
+                    <span className={`text-xs px-1.5 py-0.5 rounded ${
+                      filterDiamond ? 'bg-white/20' : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+                    }`}>
+                      {diamondCount}
+                    </span>
+                  );
+                })()}
+              </button>
+              <button
+                onClick={() => setFilterRarest(!filterRarest)}
+                className={`px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-2 text-sm ${
+                  filterRarest
+                    ? 'bg-yellow-600 dark:bg-yellow-500 text-white'
+                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                }`}
+              >
+                ⭐ Rarest
+                {(() => {
+                  const collectionFiltered = selectedCollection
+                    ? userNFTs.filter((nft) => nft.collection === selectedCollection)
+                    : userNFTs;
+                  const rarestCount = collectionFiltered.filter((nft) => isRareNFT(nft.collection, nft.tokenId)).length;
+                  return rarestCount > 0 && (
+                    <span className={`text-xs px-1.5 py-0.5 rounded ${
+                      filterRarest ? 'bg-white/20' : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                    }`}>
+                      {rarestCount}
+                    </span>
+                  );
+                })()}
+              </button>
             </div>
-          )}
+
+            {/* Sorting Controls */}
+            <div className="flex items-center gap-2 border-l border-zinc-200 dark:border-zinc-700 pl-3">
+              <span className="text-sm text-zinc-600 dark:text-zinc-400 font-medium whitespace-nowrap">Sort:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                className="px-2.5 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-zinc-500 dark:focus:ring-zinc-400"
+              >
+                <option value="tokenId">Token ID</option>
+                <option value="rarity">Rarity</option>
+                <option value="rank">Rank</option>
+                <option value="collection">Collection</option>
+              </select>
+              <button
+                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                className="p-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+              >
+                {sortOrder === 'asc' ? (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                )}
+              </button>
+            </div>
+
+            {/* Results count */}
+            {(filterDiamond || filterRarest || selectedCollection) && (
+              <div className="text-sm text-zinc-600 dark:text-zinc-400 whitespace-nowrap border-l border-zinc-200 dark:border-zinc-700 pl-3">
+                {filteredNFTs.length} / {userNFTs.length}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
