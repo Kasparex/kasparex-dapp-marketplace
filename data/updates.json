@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768077213-df16e97",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Align filter/sort controls to right, change 'Buy & Bridge' to 'Buy or Bridge', remove auto-balance refresh from wallet button (by Kasparex)",
+      "date": "2026-01-10T21:32:54+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768075723-e36789f",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix KREXPRIME Diamond detection to handle numeric suffixes (e.g., 'Chrono Shard - 1') (by Kasparex)",
