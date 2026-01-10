@@ -8,6 +8,7 @@ import type { ParsedNFTMetadata } from './metadata';
 /**
  * KREXPRIME Diamond Elements
  * These are the 5 Diamond elements in the ELEMENTS trait type
+ * Values in metadata may have numeric suffixes like "Chrono Shard - 1", "Ecliptic Flame - 2", etc.
  */
 const KREXPRIME_DIAMOND_ELEMENTS = [
   'Chrono Shard',
@@ -16,6 +17,29 @@ const KREXPRIME_DIAMOND_ELEMENTS = [
   'Aurora Core',
   'Eon Core',
 ];
+
+/**
+ * Check if a value matches a Diamond element (handles numeric suffixes)
+ * Examples: "Chrono Shard - 1" matches "Chrono Shard", "Ecliptic Flame - 2" matches "Ecliptic Flame"
+ */
+function matchesDiamondElement(value: string, diamondElement: string): boolean {
+  const normalizedValue = value.toLowerCase().trim();
+  const normalizedElement = diamondElement.toLowerCase().trim();
+  
+  // Exact match
+  if (normalizedValue === normalizedElement) return true;
+  
+  // Match with numeric suffix (e.g., "Chrono Shard - 1" matches "Chrono Shard")
+  const suffixPattern = /^(.+?)\s*-\s*\d+$/;
+  const match = normalizedValue.match(suffixPattern);
+  if (match) {
+    const baseValue = match[1].trim();
+    return baseValue === normalizedElement;
+  }
+  
+  // Match if value starts with the element name (handles any suffix)
+  return normalizedValue.startsWith(normalizedElement + ' -') || normalizedValue.startsWith(normalizedElement + '-');
+}
 
 /**
  * Check if NFT has Diamond trait (for PIXELKREX)
@@ -39,12 +63,12 @@ function hasKREXPRIMEDiamondElement(metadata: ParsedNFTMetadata | null): boolean
   
   return metadata.traits.some((trait) => {
     const traitType = String(trait.trait_type || '').toUpperCase();
-    const traitValue = String(trait.value || '');
+    const traitValue = String(trait.value || '').trim();
     
     // Check if trait type is ELEMENTS and value is one of the Diamond elements
     if (traitType === 'ELEMENTS' || traitType === 'ELEMENT') {
       return KREXPRIME_DIAMOND_ELEMENTS.some(
-        (diamondElement) => diamondElement.toLowerCase() === traitValue.toLowerCase()
+        (diamondElement) => matchesDiamondElement(traitValue, diamondElement)
       );
     }
     
