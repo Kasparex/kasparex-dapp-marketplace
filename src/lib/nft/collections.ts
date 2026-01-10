@@ -29,6 +29,15 @@ export interface CollectionConfig {
    * Format: { [collectionId]: { [address]: [tokenIds] } }
    */
   registryCid?: string;
+  /**
+   * Whether this is a partner/collaboration collection
+   * Partner collections are included in the reward system but may have different rules
+   */
+  isPartnerCollection?: boolean;
+  /**
+   * Partner/collaboration project name (if isPartnerCollection is true)
+   */
+  partnerName?: string;
 }
 
 export const collections: Record<string, CollectionConfig> = {
