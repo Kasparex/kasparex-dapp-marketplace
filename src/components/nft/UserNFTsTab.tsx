@@ -13,6 +13,7 @@ import { getNFTRarityCached } from '@/lib/nft/rarity-cache';
 import { isDiamondNFT as checkDiamondNFT } from '@/lib/nft/diamond-detection';
 import { NFTBuyWizard } from '@/components/rewards/NFTBuyWizard';
 import { NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_MULTIPLIER, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_MULTIPLIER, RAREST_NFT_FEE_REDUCTION } from '@/lib/rewards/types';
+import { NFT_POINTS } from '@/lib/nft/points';
 
 interface UserNFTsTabProps {
   collectionId?: string; // Optional: filter by specific collection
@@ -426,6 +427,7 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
                   <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">NFT Type</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reward Multiplier</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee Reduction</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Points</th>
                 </tr>
               </thead>
               <tbody>
@@ -442,6 +444,9 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
                   <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
                     -{NFT_FEE_REDUCTION}%
                   </td>
+                  <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                    {NFT_POINTS.REGULAR} point
+                  </td>
                 </tr>
                 <tr className="border-b border-zinc-100 dark:border-zinc-800">
                   <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
@@ -456,6 +461,9 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
                   <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
                     -{DIAMOND_NFT_FEE_REDUCTION}%
                   </td>
+                  <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                    {NFT_POINTS.DIAMOND} points
+                  </td>
                 </tr>
                 <tr className="border-b border-zinc-100 dark:border-zinc-800">
                   <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
@@ -469,6 +477,9 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
                   </td>
                   <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
                     -{RAREST_NFT_FEE_REDUCTION}% (Zero Fee)
+                  </td>
+                  <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                    {NFT_POINTS.RAREST} points
                   </td>
                 </tr>
               </tbody>

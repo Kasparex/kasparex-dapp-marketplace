@@ -20,6 +20,16 @@ export interface NFTStatus {
   hasDiamondKREXPRIME: boolean;
   hasDiamondPIXELKREX: boolean;
   hasRarestNFT: boolean; // NFT #515 from PIXELKREX or #345 from KREXPRIME
+  /**
+   * Partner collections ownership status
+   * Key: Collection ID, Value: boolean (has NFT from this collection)
+   */
+  partnerCollections?: Record<string, boolean>;
+  /**
+   * Partner collections with Diamond NFTs
+   * Key: Collection ID, Value: boolean (has Diamond NFT from this collection)
+   */
+  partnerDiamonds?: Record<string, boolean>;
 }
 
 export interface CustomBaseRewards {

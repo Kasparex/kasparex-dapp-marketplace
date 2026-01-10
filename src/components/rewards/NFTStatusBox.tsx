@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom';
 import { NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_MULTIPLIER, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_MULTIPLIER, RAREST_NFT_FEE_REDUCTION } from '@/lib/rewards/types';
 import { NFTBuyWizard } from './NFTBuyWizard';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
+import { calculateNFTPoints, NFT_POINTS } from '@/lib/nft/points';
 
 export function NFTStatusBox() {
   const { isConnected } = useAccount();
@@ -18,11 +19,17 @@ export function NFTStatusBox() {
     hasDiamondKREXPRIME: false,
     hasDiamondPIXELKREX: false,
     hasRarestNFT: false,
+    partnerCollections: {},
+    partnerDiamonds: {},
   };
   
-  const hasAnyNFT = status.hasKREXPRIME || status.hasPIXELKREX;
-  const hasDiamondNFT = status.hasDiamondKREXPRIME || status.hasDiamondPIXELKREX;
+  const hasAnyNFT = status.hasKREXPRIME || status.hasPIXELKREX || 
+    (status.partnerCollections && Object.values(status.partnerCollections).some(v => v));
+  const hasDiamondNFT = status.hasDiamondKREXPRIME || status.hasDiamondPIXELKREX ||
+    (status.partnerDiamonds && Object.values(status.partnerDiamonds).some(v => v));
   const hasRarestNFT = status.hasRarestNFT;
+  const nftPoints = calculateNFTPoints(status);
+  const partnerCollections = getPartnerCollections();
   const [showModal, setShowModal] = useState(false);
   const [showBuyWizard, setShowBuyWizard] = useState(false);
 
@@ -73,6 +80,27 @@ export function NFTStatusBox() {
             </div>
           </>
         )}
+        {/* Partner Collections */}
+        {partnerCollections.length > 0 && status.partnerCollections && (
+          <>
+            {partnerCollections.map((partnerColl) => {
+              const hasPartnerNFT = status.partnerCollections![partnerColl.id] || false;
+              const hasPartnerDiamond = status.partnerDiamonds?.[partnerColl.id] || false;
+              return (
+                <div key={partnerColl.id} className="flex items-center justify-between text-xs">
+                  <span className="text-zinc-600 dark:text-zinc-400">
+                    {partnerColl.partnerName || partnerColl.name}:
+                  </span>
+                  <span className={hasPartnerNFT ? 'text-green-600 dark:text-green-400 font-medium' : 'text-zinc-400'}>
+                    {hasPartnerNFT ? (
+                      hasPartnerDiamond ? '✓ 💎 Diamond' : '✓ Owned'
+                    ) : 'Not owned'}
+                  </span>
+                </div>
+              );
+            })}
+          </>
+        )}
         <div className="flex items-center justify-between text-xs">
           <span className="text-zinc-600 dark:text-zinc-400">🖼️ Regular NFT:</span>
           <span className={hasAnyNFT ? 'text-blue-600 dark:text-blue-400 font-medium' : 'text-zinc-400'}>
@@ -92,18 +120,21 @@ export function NFTStatusBox() {
           </span>
         </div>
         {hasAnyNFT && (
-          <div className="text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-200 dark:border-zinc-700">
+          <div className="text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-200 dark:border-zinc-700 space-y-1">
             {hasRarestNFT ? (
               <>
-                <span className="text-yellow-600 dark:text-yellow-400 font-medium">+5x multiplier, 0.0% fee</span>
+                <div><span className="text-yellow-600 dark:text-yellow-400 font-medium">+5x multiplier, 0.0% fee</span></div>
+                <div><span className="text-yellow-600 dark:text-yellow-400 font-medium">{NFT_POINTS.RAREST} points</span></div>
               </>
             ) : hasDiamondNFT ? (
               <>
-                <span className="text-purple-600 dark:text-purple-400 font-medium">+3x multiplier, -0.2% fee</span>
+                <div><span className="text-purple-600 dark:text-purple-400 font-medium">+3x multiplier, -0.2% fee</span></div>
+                <div><span className="text-purple-600 dark:text-purple-400 font-medium">{NFT_POINTS.DIAMOND} points</span></div>
               </>
             ) : (
               <>
-                <span className="text-green-600 dark:text-green-400 font-medium">+1x multiplier, -0.1% fee</span>
+                <div><span className="text-green-600 dark:text-green-400 font-medium">+1x multiplier, -0.1% fee</span></div>
+                <div><span className="text-green-600 dark:text-green-400 font-medium">{NFT_POINTS.REGULAR} point</span></div>
               </>
             )}
           </div>
@@ -163,6 +194,7 @@ export function NFTStatusBox() {
                       <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">NFT Type</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reward Multiplier</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee Reduction</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Points</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -179,6 +211,9 @@ export function NFTStatusBox() {
                       <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
                         -{NFT_FEE_REDUCTION}%
                       </td>
+                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                        {NFT_POINTS.REGULAR} point
+                      </td>
                     </tr>
                     <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
                       <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
@@ -193,6 +228,9 @@ export function NFTStatusBox() {
                       <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
                         -{DIAMOND_NFT_FEE_REDUCTION}%
                       </td>
+                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                        {NFT_POINTS.DIAMOND} points
+                      </td>
                     </tr>
                     <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
                       <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
@@ -206,6 +244,9 @@ export function NFTStatusBox() {
                       </td>
                       <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
                         -{RAREST_NFT_FEE_REDUCTION}% (Zero Fee)
+                      </td>
+                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                        {NFT_POINTS.RAREST} points
                       </td>
                     </tr>
                   </tbody>

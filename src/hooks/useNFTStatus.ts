@@ -9,6 +9,7 @@ import { queryL1NFTs, type UserNFT } from '@/lib/nft/nft-query';
 import { fetchMultipleNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
 import type { NFTStatus } from '@/lib/rewards/types';
 import { isDiamondNFT } from '@/lib/nft/diamond-detection';
+import { collections, getPartnerCollections } from '@/lib/nft/collections';
 
 function isRareNFT(collectionId: string, tokenId: number): boolean {
   const RARE_NFT_IDS = {
@@ -29,18 +30,31 @@ function computeNFTStatus(
     hasDiamondKREXPRIME: false,
     hasDiamondPIXELKREX: false,
     hasRarestNFT: false,
+    partnerCollections: {},
+    partnerDiamonds: {},
   };
+
+  // Initialize partner collections tracking
+  const partnerCollections = getPartnerCollections();
+  partnerCollections.forEach((coll) => {
+    status.partnerCollections![coll.id] = false;
+    status.partnerDiamonds![coll.id] = false;
+  });
 
   for (const nft of nfts) {
     const { collection, tokenId } = nft;
     const metadataKey = `${collection}-${tokenId}`;
     const metadata = metadataMap.get(metadataKey) || null;
+    const collectionConfig = collections[collection];
 
     // Check collection ownership
     if (collection === 'KREXPRIME') {
       status.hasKREXPRIME = true;
     } else if (collection === 'PIXELKREX') {
       status.hasPIXELKREX = true;
+    } else if (collectionConfig?.isPartnerCollection) {
+      // Partner collection
+      status.partnerCollections![collection] = true;
     }
 
     // Check for Diamond NFT (uses shared detection logic)
@@ -50,10 +64,13 @@ function computeNFTStatus(
         status.hasDiamondKREXPRIME = true;
       } else if (collection === 'PIXELKREX') {
         status.hasDiamondPIXELKREX = true;
+      } else if (collectionConfig?.isPartnerCollection) {
+        // Partner collection Diamond
+        status.partnerDiamonds![collection] = true;
       }
     }
 
-    // Check for Rare NFT
+    // Check for Rare NFT (only for KREXPRIME and PIXELKREX)
     if (isRareNFT(collection, tokenId)) {
       status.hasRarestNFT = true;
     }
@@ -96,19 +113,30 @@ export function useNFTStatus(): UseNFTStatusReturn {
     setError(null);
 
     try {
-      // Query user's NFTs from L1
-      const userNFTs = await queryL1NFTs(address, ['KREXPRIME', 'PIXELKREX']);
+      // Get all collection IDs (main + partner)
+      const allCollectionIds = Object.keys(collections);
+      
+      // Query user's NFTs from L1 (all collections)
+      const userNFTs = await queryL1NFTs(address, allCollectionIds);
       setNfts(userNFTs);
 
       if (userNFTs.length === 0) {
         // No NFTs found, return empty status
-        setNftStatus({
+        const emptyStatus: NFTStatus = {
           hasKREXPRIME: false,
           hasPIXELKREX: false,
           hasDiamondKREXPRIME: false,
           hasDiamondPIXELKREX: false,
           hasRarestNFT: false,
+          partnerCollections: {},
+          partnerDiamonds: {},
+        };
+        // Initialize partner collections
+        getPartnerCollections().forEach((coll) => {
+          emptyStatus.partnerCollections![coll.id] = false;
+          emptyStatus.partnerDiamonds![coll.id] = false;
         });
+        setNftStatus(emptyStatus);
         setIsLoading(false);
         return;
       }
