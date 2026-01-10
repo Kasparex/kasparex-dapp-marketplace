@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768077562-c4160c3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Align Diamond/Rarest filters and Sort controls to right side of page (by Kasparex)",
+      "date": "2026-01-10T21:38:09+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768077213-df16e97",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Align filter/sort controls to right, change 'Buy & Bridge' to 'Buy or Bridge', remove auto-balance refresh from wallet button (by Kasparex)",
