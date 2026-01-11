@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768092446-398afb5",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error in isRareNFT function type inference (by Kasparex)",
+      "date": "2026-01-11T01:46:29+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768092080-a2214e7",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix sidebar link to /hub, fix NFT points calculation to sum all NFTs, align points display, and make NFT Rewards modal wider (by Kasparex)",
