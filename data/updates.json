@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768094937-989320f",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Make Buy or Bridge NFTs modal wider and add Collection Stats NFT tool (by Kasparex)",
+      "date": "2026-01-11T02:28:12+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768092446-398afb5",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error in isRareNFT function type inference (by Kasparex)",
