@@ -6,12 +6,12 @@ import { createPortal } from 'react-dom';
 import { NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_MULTIPLIER, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_MULTIPLIER, RAREST_NFT_FEE_REDUCTION } from '@/lib/rewards/types';
 import { NFTBuyWizard } from './NFTBuyWizard';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
-import { calculateNFTPoints, NFT_POINTS } from '@/lib/nft/points';
+import { NFT_POINTS } from '@/lib/nft/points';
 import { getPartnerCollections } from '@/lib/nft/collections';
 
 export function NFTStatusBox() {
   const { isConnected } = useAccount();
-  const { nftStatus, isLoading } = useNFTStatus();
+  const { nftStatus, nftPoints, isLoading } = useNFTStatus();
   
   // Use real NFT status if available, otherwise use empty status
   const status = nftStatus || {
@@ -29,7 +29,6 @@ export function NFTStatusBox() {
   const hasDiamondNFT = status.hasDiamondKREXPRIME || status.hasDiamondPIXELKREX ||
     (status.partnerDiamonds && Object.values(status.partnerDiamonds).some(v => v));
   const hasRarestNFT = status.hasRarestNFT;
-  const nftPoints = calculateNFTPoints(status);
   const partnerCollections = getPartnerCollections();
   const [showModal, setShowModal] = useState(false);
   const [showBuyWizard, setShowBuyWizard] = useState(false);
@@ -123,20 +122,11 @@ export function NFTStatusBox() {
         {hasAnyNFT && (
           <div className="text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-200 dark:border-zinc-700 space-y-1">
             {hasRarestNFT ? (
-              <>
-                <div><span className="text-yellow-600 dark:text-yellow-400 font-medium">+5x multiplier, 0.0% fee</span></div>
-                <div><span className="text-yellow-600 dark:text-yellow-400 font-medium">{NFT_POINTS.RAREST} points</span></div>
-              </>
+              <div><span className="text-yellow-600 dark:text-yellow-400 font-medium">+5x multiplier, 0.0% fee, +{nftPoints} points</span></div>
             ) : hasDiamondNFT ? (
-              <>
-                <div><span className="text-purple-600 dark:text-purple-400 font-medium">+3x multiplier, -0.2% fee</span></div>
-                <div><span className="text-purple-600 dark:text-purple-400 font-medium">{NFT_POINTS.DIAMOND} points</span></div>
-              </>
+              <div><span className="text-purple-600 dark:text-purple-400 font-medium">+3x multiplier, -0.2% fee, +{nftPoints} points</span></div>
             ) : (
-              <>
-                <div><span className="text-green-600 dark:text-green-400 font-medium">+1x multiplier, -0.1% fee</span></div>
-                <div><span className="text-green-600 dark:text-green-400 font-medium">{NFT_POINTS.REGULAR} point</span></div>
-              </>
+              <div><span className="text-green-600 dark:text-green-400 font-medium">+1x multiplier, -0.1% fee, +{nftPoints} points</span></div>
             )}
           </div>
         )}
@@ -162,7 +152,7 @@ export function NFTStatusBox() {
           
           {/* Modal Content */}
           <div
-            className="relative bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-zinc-200 dark:border-zinc-800"
+            className="relative bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-zinc-200 dark:border-zinc-800"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}

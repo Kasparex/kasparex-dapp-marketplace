@@ -9,7 +9,9 @@
  */
 
 import type { NFTStatus } from '@/lib/rewards/types';
-import { NFT_MULTIPLIER, DIAMOND_NFT_MULTIPLIER, RAREST_NFT_MULTIPLIER } from '@/lib/rewards/types';
+import type { UserNFT } from '@/lib/nft/nft-query';
+import type { ParsedNFTMetadata } from './metadata';
+import { isDiamondNFT } from './diamond-detection';
 
 export const NFT_POINTS = {
   REGULAR: 1,
@@ -18,9 +20,51 @@ export const NFT_POINTS = {
 } as const;
 
 /**
- * Calculate NFT points based on status
- * Uses the highest tier NFT owned (Rarest > Diamond > Regular)
- * Partner collections are treated as regular NFTs for points (or Diamond if they have Diamond NFTs)
+ * Rare NFT IDs (for KREXPRIME and PIXELKREX)
+ */
+const RARE_NFT_IDS = {
+  KREXPRIME: [345],
+  PIXELKREX: [515],
+} as const;
+
+function isRareNFT(collectionId: string, tokenId: number): boolean {
+  const rareIds = RARE_NFT_IDS[collectionId as keyof typeof RARE_NFT_IDS];
+  return rareIds ? rareIds.includes(tokenId) : false;
+}
+
+/**
+ * Calculate total NFT points by summing points from all owned NFTs
+ * Each NFT contributes points based on its tier (Rarest > Diamond > Regular)
+ */
+export function calculateTotalNFTPoints(
+  nfts: UserNFT[],
+  metadataMap: Map<string, ParsedNFTMetadata>
+): number {
+  let totalPoints = 0;
+
+  for (const nft of nfts) {
+    const { collection, tokenId } = nft;
+    const metadataKey = `${collection}-${tokenId}`;
+    const metadata = metadataMap.get(metadataKey) || null;
+
+    // Check for Rarest NFT first (highest tier)
+    if (isRareNFT(collection, tokenId)) {
+      totalPoints += NFT_POINTS.RAREST;
+    } else if (isDiamondNFT(collection, metadata)) {
+      // Check for Diamond NFT
+      totalPoints += NFT_POINTS.DIAMOND;
+    } else {
+      // Regular NFT
+      totalPoints += NFT_POINTS.REGULAR;
+    }
+  }
+
+  return totalPoints;
+}
+
+/**
+ * Calculate NFT points based on status (legacy function - uses highest tier only)
+ * @deprecated Use calculateTotalNFTPoints instead for accurate point calculation
  */
 export function calculateNFTPoints(nftStatus: NFTStatus): number {
   if (nftStatus.hasRarestNFT) {

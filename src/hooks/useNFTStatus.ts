@@ -10,6 +10,7 @@ import { fetchMultipleNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/meta
 import type { NFTStatus } from '@/lib/rewards/types';
 import { isDiamondNFT } from '@/lib/nft/diamond-detection';
 import { collections, getPartnerCollections } from '@/lib/nft/collections';
+import { calculateTotalNFTPoints } from '@/lib/nft/points';
 
 function isRareNFT(collectionId: string, tokenId: number): boolean {
   const RARE_NFT_IDS = {
@@ -82,6 +83,7 @@ function computeNFTStatus(
 export interface UseNFTStatusReturn {
   nftStatus: NFTStatus | null;
   nfts: UserNFT[];
+  nftPoints: number;
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -97,6 +99,7 @@ export function useNFTStatus(): UseNFTStatusReturn {
   
   const [nftStatus, setNftStatus] = useState<NFTStatus | null>(null);
   const [nfts, setNfts] = useState<UserNFT[]>([]);
+  const [nftPoints, setNftPoints] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -104,6 +107,7 @@ export function useNFTStatus(): UseNFTStatusReturn {
     if (!isConnected || !address) {
       setNftStatus(null);
       setNfts([]);
+      setNftPoints(0);
       setIsLoading(false);
       setError(null);
       return;
@@ -137,6 +141,7 @@ export function useNFTStatus(): UseNFTStatusReturn {
           emptyStatus.partnerDiamonds![coll.id] = false;
         });
         setNftStatus(emptyStatus);
+        setNftPoints(0);
         setIsLoading(false);
         return;
       }
@@ -164,6 +169,10 @@ export function useNFTStatus(): UseNFTStatusReturn {
       // Compute NFT status
       const status = computeNFTStatus(userNFTs, metadataMap);
       setNftStatus(status);
+
+      // Calculate total points from all NFTs
+      const totalPoints = calculateTotalNFTPoints(userNFTs, metadataMap);
+      setNftPoints(totalPoints);
     } catch (err) {
       console.error('Error fetching NFT status:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch NFT status');
@@ -180,6 +189,7 @@ export function useNFTStatus(): UseNFTStatusReturn {
   return {
     nftStatus,
     nfts,
+    nftPoints,
     isLoading,
     error,
     refetch: fetchNFTStatus,
