@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768096645-def619a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Make Collection Stats more minimalistic with discrete colors and move tab under PFP Builder (by Kasparex)",
+      "date": "2026-01-11T02:56:03+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768094937-989320f",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Make Buy or Bridge NFTs modal wider and add Collection Stats NFT tool (by Kasparex)",
