@@ -29,7 +29,7 @@ const RARE_NFT_IDS = {
 
 function isRareNFT(collectionId: string, tokenId: number): boolean {
   const rareIds = RARE_NFT_IDS[collectionId as keyof typeof RARE_NFT_IDS];
-  return rareIds ? rareIds.includes(tokenId) : false;
+  return rareIds ? (rareIds as readonly number[]).includes(tokenId) : false;
 }
 
 /**
