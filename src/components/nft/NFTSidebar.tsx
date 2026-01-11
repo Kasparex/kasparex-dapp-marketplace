@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { NFTStatusBox } from '@/components/rewards/NFTStatusBox';
 
-type TabType = 'checker' | 'traits' | 'builder' | 'my-nfts' | 'collections';
+type TabType = 'checker' | 'traits' | 'builder' | 'my-nfts' | 'collections' | 'stats';
 
 interface NFTSidebarProps {
   activeTab: TabType;
@@ -85,6 +85,7 @@ export function NFTSidebar({
       ]
     : [
         { id: 'my-nfts', label: 'My NFTs' },
+        { id: 'stats', label: 'Collection Stats' },
         { id: 'checker', label: 'Rarity Checker' },
         { id: 'traits', label: 'Trait Analysis' },
         { id: 'builder', label: 'PFP Builder' },

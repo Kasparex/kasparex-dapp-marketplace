@@ -8,11 +8,12 @@ import { RarityChecker } from '@/components/nft/RarityChecker';
 import { TraitAnalysis } from '@/components/nft/TraitAnalysis';
 import { PFPBuilder } from '@/components/nft/PFPBuilder';
 import { UserNFTsTab } from '@/components/nft/UserNFTsTab';
+import { CollectionStats } from '@/components/nft/CollectionStats';
 import { NFTSidebar } from '@/components/nft/NFTSidebar';
 import { getCollectionBySlug, isValidCollection, type CollectionConfig } from '@/lib/nft/collections';
 import Link from 'next/link';
 
-type TabType = 'checker' | 'traits' | 'builder' | 'my-nfts';
+type TabType = 'checker' | 'traits' | 'builder' | 'my-nfts' | 'stats';
 
 export default function CollectionPage() {
   const params = useParams();
@@ -118,6 +119,14 @@ export default function CollectionPage() {
                       My NFTs
                     </h2>
                     <UserNFTsTab collectionId={collectionConfig.id} />
+                  </div>
+                )}
+                {activeTab === 'stats' && (
+                  <div>
+                    <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
+                      Collection Statistics
+                    </h2>
+                    <CollectionStats collectionId={collectionConfig.id} />
                   </div>
                 )}
               </div>

@@ -110,7 +110,7 @@ export function NFTBuyWizard({ isOpen, onClose }: NFTBuyWizardProps) {
       
       {/* Modal Content */}
       <div
-        className="relative bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-zinc-200 dark:border-zinc-800"
+            className="relative bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-zinc-200 dark:border-zinc-800"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
