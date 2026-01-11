@@ -200,37 +200,37 @@ export function CollectionStats({ collectionId }: CollectionStatsProps) {
     <div className="space-y-6">
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <div className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-1">Total NFTs</div>
-          <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">{stats.totalNFTs}</div>
+        <div className="p-6 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+          <div className="text-sm text-zinc-600 dark:text-zinc-400 font-medium mb-2">Total NFTs</div>
+          <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{stats.totalNFTs}</div>
         </div>
 
-        <div className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg border border-purple-200 dark:border-purple-800">
-          <div className="text-sm text-purple-600 dark:text-purple-400 font-medium mb-1">Total Points</div>
-          <div className="text-3xl font-bold text-purple-900 dark:text-purple-100">{stats.totalPoints}</div>
+        <div className="p-6 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+          <div className="text-sm text-zinc-600 dark:text-zinc-400 font-medium mb-2">Total Points</div>
+          <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{stats.totalPoints}</div>
         </div>
 
-        <div className="p-6 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg border border-green-200 dark:border-green-800">
-          <div className="text-sm text-green-600 dark:text-green-400 font-medium mb-1">L1 NFTs</div>
-          <div className="text-3xl font-bold text-green-900 dark:text-green-100">{stats.networkBreakdown.l1}</div>
+        <div className="p-6 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+          <div className="text-sm text-zinc-600 dark:text-zinc-400 font-medium mb-2">L1 NFTs</div>
+          <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{stats.networkBreakdown.l1}</div>
         </div>
 
-        <div className="p-6 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg border border-orange-200 dark:border-orange-800">
-          <div className="text-sm text-orange-600 dark:text-orange-400 font-medium mb-1">L2 NFTs</div>
-          <div className="text-3xl font-bold text-orange-900 dark:text-orange-100">{stats.networkBreakdown.l2}</div>
+        <div className="p-6 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+          <div className="text-sm text-zinc-600 dark:text-zinc-400 font-medium mb-2">L2 NFTs</div>
+          <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{stats.networkBreakdown.l2}</div>
         </div>
       </div>
 
       {/* Collection Breakdown */}
-      <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+      <div className="p-6 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
         <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Collection Breakdown</h3>
-        <div className="space-y-3">
+        <div className="space-y-4">
           {Object.entries(stats.collections).map(([collectionId, count]) => {
             const collection = collections[collectionId];
             const percentage = stats.totalNFTs > 0 ? ((count / stats.totalNFTs) * 100).toFixed(1) : 0;
             return (
               <div key={collectionId}>
-                <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                     {collection?.name || collectionId}
                   </span>
@@ -238,9 +238,9 @@ export function CollectionStats({ collectionId }: CollectionStatsProps) {
                     {count} ({percentage}%)
                   </span>
                 </div>
-                <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2">
+                <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-1.5">
                   <div
-                    className="bg-[#02abb8] h-2 rounded-full transition-all"
+                    className="bg-zinc-400 dark:bg-zinc-600 h-1.5 rounded-full transition-all"
                     style={{ width: `${percentage}%` }}
                   />
                 </div>
@@ -251,15 +251,15 @@ export function CollectionStats({ collectionId }: CollectionStatsProps) {
       </div>
 
       {/* Rarity Distribution */}
-      <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+      <div className="p-6 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
         <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Rarity Distribution</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+          <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-700">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xl">🖼️</span>
               <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Regular NFT</span>
             </div>
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+            <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
               {stats.rarity.regular}
             </div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -267,12 +267,12 @@ export function CollectionStats({ collectionId }: CollectionStatsProps) {
             </div>
           </div>
 
-          <div className="p-4 bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+          <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-700">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xl">💎</span>
               <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Diamond NFT</span>
             </div>
-            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-1">
+            <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
               {stats.rarity.diamond}
             </div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -280,12 +280,12 @@ export function CollectionStats({ collectionId }: CollectionStatsProps) {
             </div>
           </div>
 
-          <div className="p-4 bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+          <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-700">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xl">⭐</span>
               <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Rarest NFT</span>
             </div>
-            <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-1">
+            <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
               {stats.rarity.rarest}
             </div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -297,34 +297,34 @@ export function CollectionStats({ collectionId }: CollectionStatsProps) {
 
       {/* Points Breakdown */}
       {stats.totalPoints > 0 && (
-        <div className="p-6 bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
-          <h3 className="text-lg font-semibold text-indigo-900 dark:text-indigo-100 mb-4">Points Breakdown</h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-indigo-700 dark:text-indigo-300">Regular NFTs:</span>
-              <span className="font-medium text-indigo-900 dark:text-indigo-100">
-                {stats.rarity.regular} × {NFT_POINTS.REGULAR} = {stats.rarity.regular * NFT_POINTS.REGULAR} points
+        <div className="p-6 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Points Breakdown</h3>
+          <div className="space-y-3 text-sm">
+            <div className="flex items-center justify-between py-2 border-b border-zinc-100 dark:border-zinc-800">
+              <span className="text-zinc-600 dark:text-zinc-400">Regular NFTs:</span>
+              <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                {stats.rarity.regular} × {NFT_POINTS.REGULAR} = {stats.rarity.regular * NFT_POINTS.REGULAR}
               </span>
             </div>
             {stats.rarity.diamond > 0 && (
-              <div className="flex items-center justify-between">
-                <span className="text-indigo-700 dark:text-indigo-300">Diamond NFTs:</span>
-                <span className="font-medium text-indigo-900 dark:text-indigo-100">
-                  {stats.rarity.diamond} × {NFT_POINTS.DIAMOND} = {stats.rarity.diamond * NFT_POINTS.DIAMOND} points
+              <div className="flex items-center justify-between py-2 border-b border-zinc-100 dark:border-zinc-800">
+                <span className="text-zinc-600 dark:text-zinc-400">Diamond NFTs:</span>
+                <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                  {stats.rarity.diamond} × {NFT_POINTS.DIAMOND} = {stats.rarity.diamond * NFT_POINTS.DIAMOND}
                 </span>
               </div>
             )}
             {stats.rarity.rarest > 0 && (
-              <div className="flex items-center justify-between">
-                <span className="text-indigo-700 dark:text-indigo-300">Rarest NFTs:</span>
-                <span className="font-medium text-indigo-900 dark:text-indigo-100">
-                  {stats.rarity.rarest} × {NFT_POINTS.RAREST} = {stats.rarity.rarest * NFT_POINTS.RAREST} points
+              <div className="flex items-center justify-between py-2 border-b border-zinc-100 dark:border-zinc-800">
+                <span className="text-zinc-600 dark:text-zinc-400">Rarest NFTs:</span>
+                <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                  {stats.rarity.rarest} × {NFT_POINTS.RAREST} = {stats.rarity.rarest * NFT_POINTS.RAREST}
                 </span>
               </div>
             )}
-            <div className="pt-2 mt-2 border-t border-indigo-200 dark:border-indigo-700 flex items-center justify-between font-semibold">
-              <span className="text-indigo-900 dark:text-indigo-100">Total Points:</span>
-              <span className="text-lg text-indigo-900 dark:text-indigo-100">{stats.totalPoints}</span>
+            <div className="pt-2 mt-2 flex items-center justify-between font-semibold">
+              <span className="text-zinc-900 dark:text-zinc-100">Total Points:</span>
+              <span className="text-lg text-zinc-900 dark:text-zinc-100">{stats.totalPoints}</span>
             </div>
           </div>
         </div>
