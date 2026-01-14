@@ -3,32 +3,15 @@
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { createPortal } from 'react-dom';
-import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
+import { KREX_TIERS } from '@/lib/rewards/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { KREXBuyWizard } from './KREXBuyWizard';
-
-// Mock KREX balance to determine tier (for simulation)
-function getMockKREXBalance(address: string | undefined): number {
-  if (!address) return 0;
-  // Generate consistent mock balance based on address
-  const hash = address.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  // Return a balance that could be in any tier for testing
-  const tierOptions = [0, 5_000_000, 25_000_000, 75_000_000, 150_000_000];
-  return tierOptions[hash % tierOptions.length];
-}
-
-function getKREXTierFromBalance(balance: number): KREXTier {
-  if (balance >= 100_000_000) return 'Tier3';
-  if (balance >= 50_000_000) return 'Tier2';
-  if (balance >= 10_000_000) return 'Tier1';
-  return 'Tier0';
-}
+import { useKREXBalance } from '@/hooks/useKREXBalance';
 
 export function KREXStatusBox() {
-  const { address, isConnected } = useAccount();
-  const mockKREXBalance = getMockKREXBalance(address);
-  const krexTier = getKREXTierFromBalance(mockKREXBalance);
-  const tierConfig = KREX_TIERS[krexTier];
+  const { isConnected } = useAccount();
+  const { balance, tier, isLoading, error } = useKREXBalance();
+  const tierConfig = KREX_TIERS[tier];
   const [showModal, setShowModal] = useState(false);
   const [showBuyWizard, setShowBuyWizard] = useState(false);
 
@@ -51,38 +34,60 @@ export function KREXStatusBox() {
         </div>
 
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-zinc-600 dark:text-zinc-400">
-            Current Tier
-          </span>
-          <span className="text-sm font-bold text-[#02abb8]">
-            {tierConfig.label}
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-zinc-600 dark:text-zinc-400">
-            Multiplier
-          </span>
-          <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-            {tierConfig.multiplier}x
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-zinc-600 dark:text-zinc-400">
-            Fee
-          </span>
-          <span className="text-xs text-zinc-500 dark:text-zinc-400">
-            {tierConfig.feePercent}%
-          </span>
-        </div>
-        <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
-          <button
-            onClick={() => setShowBuyWizard(true)}
-            className="block w-full mt-2 px-3 py-2 text-xs font-medium text-center bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
-          >
-            Buy & Bridge KREX
-          </button>
-        </div>
+        {isLoading && (
+          <div className="text-xs text-zinc-500 dark:text-zinc-400 py-2">
+            Loading KREX balance...
+          </div>
+        )}
+        {error && (
+          <div className="text-xs text-red-500 dark:text-red-400 py-2">
+            Error: {error}
+          </div>
+        )}
+        {!isLoading && !error && (
+          <>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-zinc-600 dark:text-zinc-400">
+                Current Tier
+              </span>
+              <span className="text-sm font-bold text-[#02abb8]">
+                {tierConfig.label}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-zinc-600 dark:text-zinc-400">
+                KREX Balance
+              </span>
+              <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                {formatLargeNumber(balance)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-zinc-600 dark:text-zinc-400">
+                Multiplier
+              </span>
+              <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                {tierConfig.multiplier}x
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-zinc-600 dark:text-zinc-400">
+                Fee
+              </span>
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                {tierConfig.feePercent}%
+              </span>
+            </div>
+            <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
+              <button
+                onClick={() => setShowBuyWizard(true)}
+                className="block w-full mt-2 px-3 py-2 text-xs font-medium text-center bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
+              >
+                Buy & Bridge KREX
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       </div>
@@ -187,7 +192,7 @@ export function KREXStatusBox() {
                       Your KREX Balance
                     </div>
                     <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                      {isConnected ? formatLargeNumber(mockKREXBalance) : '—'}
+                      {isConnected ? (isLoading ? 'Loading...' : formatLargeNumber(balance)) : '—'}
                     </div>
                   </div>
                 </div>

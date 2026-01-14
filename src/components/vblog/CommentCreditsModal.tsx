@@ -4,12 +4,10 @@ import { useState, useEffect } from 'react';
 import { useCommentCredits } from '@/hooks/useCommentCredits';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
-import { getKRC20Balance } from '@/lib/kaspa/kasware';
 import { sendKaspa } from '@/lib/kaspa/kasware';
 import { kasToSompis } from '@/lib/kaspa/api';
 import { getErrorMessage } from '@/lib/utils';
-
-const KREX_TICKER = 'KREX';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
 const KREX_UNLIMITED_THRESHOLD = 100_000_000; // 100M KREX
 const KREXPRIME_NFT_COLLECTION = 'KREXPRIME';
 const PIXELKREX_NFT_COLLECTION = 'PIXELKREX';
@@ -78,42 +76,6 @@ async function checkNFTStatus(walletAddress: string | null): Promise<NFTStatus> 
   }
 }
 
-/**
- * Get KREX balance
- */
-async function getKREXBalance(walletAddress: string | null): Promise<number> {
-  if (!walletAddress || typeof window === 'undefined') return 0;
-
-  try {
-    if (walletAddress.startsWith('kaspa:')) {
-      try {
-        const tokens = await getKRC20Balance();
-        const krexToken = tokens.find((t: any) => t.tick === KREX_TICKER);
-        if (krexToken) {
-          return typeof krexToken.amount === 'string'
-            ? parseFloat(krexToken.amount)
-            : krexToken.amount;
-        }
-      } catch (error) {
-        console.warn('Error getting KRC20 balance:', error);
-      }
-    }
-
-    try {
-      const stored = localStorage.getItem(`krex_balance_${walletAddress.toLowerCase()}`);
-      if (stored) {
-        return parseFloat(stored);
-      }
-    } catch (error) {
-      console.warn('Error accessing localStorage:', error);
-    }
-
-    return 0;
-  } catch (error) {
-    console.error('Error getting KREX balance:', error);
-    return 0;
-  }
-}
 
 export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProps) {
   const { state: kaspaState } = useKaspaWallet();
@@ -129,7 +91,9 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
     hasRareNFT: false,
     collections: [],
   });
-  const [krexBalance, setKrexBalance] = useState<number>(0);
+  
+  // Get real KREX balance from hook
+  const { balance: krexBalance } = useKREXBalance();
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -143,12 +107,8 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
     if (!isOpen || !walletAddress) return;
 
     const loadStatus = async () => {
-      const [nft, balance] = await Promise.all([
-        checkNFTStatus(walletAddress),
-        getKREXBalance(walletAddress),
-      ]);
+      const nft = await checkNFTStatus(walletAddress);
       setNftStatus(nft);
-      setKrexBalance(balance);
     };
 
     loadStatus();

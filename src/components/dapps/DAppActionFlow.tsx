@@ -5,26 +5,12 @@ import { useAccount } from 'wagmi';
 import { DApp } from '@/lib/dapps';
 import { getDefaultRewardsBreakdown, getMockWalletHoldings } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
-import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
+import { KREX_TIERS } from '@/lib/rewards/types';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
 
 interface DAppActionFlowProps {
   dapp: DApp;
   tokenTicker?: string | null;
-}
-
-// Mock KREX balance to determine tier (for simulation)
-function getMockKREXBalance(address: string | undefined): number {
-  if (!address) return 0;
-  const hash = address.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const tierOptions = [0, 5_000_000, 25_000_000, 75_000_000, 150_000_000];
-  return tierOptions[hash % tierOptions.length];
-}
-
-function getKREXTierFromBalance(balance: number): KREXTier {
-  if (balance >= 100_000_000) return 'Tier3';
-  if (balance >= 50_000_000) return 'Tier2';
-  if (balance >= 10_000_000) return 'Tier1';
-  return 'Tier0';
 }
 
 // Get dApp-specific actions and fees
@@ -176,10 +162,9 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
   const displayTokenTicker = tokenTicker || rewards.tokenTicker;
   const actions = getDAppActions(dapp, displayTokenTicker);
   
-  // Get KREX tier and multipliers
-  const mockKREXBalance = getMockKREXBalance(address);
-  const krexTier = getKREXTierFromBalance(mockKREXBalance);
-  const tierConfig = KREX_TIERS[krexTier];
+  // Get KREX tier and multipliers from real balance
+  const { tier, isLoading: isKREXLoading } = useKREXBalance();
+  const tierConfig = KREX_TIERS[tier];
   const multiplier = tierConfig.multiplier;
   // feePercent is already a percentage (1.0 = 1%), so calculate reduction from base 1%
   const baseFee = 1.0; // Base fee is 1%

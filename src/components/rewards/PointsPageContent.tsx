@@ -5,22 +5,8 @@ import { getMockWalletHoldings } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import Link from 'next/link';
 import { BadgesDisplay } from './BadgesDisplay';
-import { KREX_TIERS, type KREXTier, type NFTStatus, type NodeProviderStatus } from '@/lib/rewards/types';
-
-// Mock helper functions (same as in KREXStatusBox)
-function getMockKREXBalance(address: string | undefined): number {
-  if (!address) return 0;
-  const hash = address.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const tierOptions = [0, 5_000_000, 25_000_000, 75_000_000, 150_000_000];
-  return tierOptions[hash % tierOptions.length];
-}
-
-function getKREXTierFromBalance(balance: number): KREXTier {
-  if (balance >= 100_000_000) return 'Tier3';
-  if (balance >= 50_000_000) return 'Tier2';
-  if (balance >= 10_000_000) return 'Tier1';
-  return 'Tier0';
-}
+import { type NFTStatus, type NodeProviderStatus } from '@/lib/rewards/types';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
 
 interface PointsPageContentProps {
   filters: {
@@ -109,9 +95,8 @@ export function PointsPageContent({ filters }: PointsPageContentProps) {
   const holdings = isConnected && address ? getMockWalletHoldings(address) : null;
   const currentXP = holdings?.xp || 0;
 
-  // Mock badge status (for simulation)
-  const mockKREXBalance = getMockKREXBalance(address);
-  const krexTier = getKREXTierFromBalance(mockKREXBalance);
+  // Get real KREX balance and tier
+  const { tier: krexTier } = useKREXBalance();
   const mockNFTStatus: NFTStatus = {
     hasKREXPRIME: false,
     hasPIXELKREX: false,
