@@ -12,6 +12,7 @@ import { XPPointsBox } from './rewards/XPPointsBox';
 import { KREXStatusBox } from './rewards/KREXStatusBox';
 import { NFTStatusBox } from './rewards/NFTStatusBox';
 import { NODEStatusBox } from './rewards/NODEStatusBox';
+import { UnifiedStatusBox } from './rewards/UnifiedStatusBox';
 import { QuickGuideWizard } from './rewards/QuickGuideWizard';
 
 interface SidebarProps {
@@ -643,7 +644,10 @@ export function Sidebar({
             </button>
           </div>
 
-          {/* Rewards Info Boxes */}
+          {/* Unified Status Box (New) */}
+          <UnifiedStatusBox />
+          
+          {/* Individual Status Boxes (Legacy - can be removed later) */}
           <KREXStatusBox />
           <NFTStatusBox />
           <NODEStatusBox />
