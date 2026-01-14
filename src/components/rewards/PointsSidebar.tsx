@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { XPPointsBox } from './XPPointsBox';
 import { KREXStatusBox } from './KREXStatusBox';
 import { NFTStatusBox } from './NFTStatusBox';
+import { UnifiedStatusBox } from './UnifiedStatusBox';
 
 interface PointsSidebarProps {
   filters: {
@@ -282,7 +283,10 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
         </div>
 
         <div className={`p-4 lg:p-6 ${isHidden ? 'lg:hidden' : ''}`}>
-          {/* Rewards Info Boxes */}
+          {/* Unified Status Box (New) */}
+          <UnifiedStatusBox />
+          
+          {/* Individual Status Boxes (Legacy - can be removed later) */}
           <XPPointsBox />
           <KREXStatusBox />
           <NFTStatusBox />
