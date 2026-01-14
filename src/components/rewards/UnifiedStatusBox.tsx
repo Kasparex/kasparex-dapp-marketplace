@@ -55,23 +55,23 @@ export function UnifiedStatusBox() {
   const krexTierConfig = KREX_TIERS[krexTier];
   const krexMultiplier = krexTierConfig.multiplier;
 
-  // NFT multiplier calculation
-  let nftMultiplier = 1;
+  // NFT multiplier calculation (additive, not multiplicative)
+  let nftMultiplierAdd = 0;
   if (hasRarestNFT) {
-    nftMultiplier += RAREST_NFT_MULTIPLIER; // +5x
+    nftMultiplierAdd = RAREST_NFT_MULTIPLIER; // +5x
   } else if (hasDiamondNFT) {
-    nftMultiplier += DIAMOND_NFT_MULTIPLIER; // +3x
+    nftMultiplierAdd = DIAMOND_NFT_MULTIPLIER; // +3x
   } else if (hasAnyNFT) {
-    nftMultiplier += NFT_MULTIPLIER; // +1x
+    nftMultiplierAdd = NFT_MULTIPLIER; // +1x
   }
 
-  // Node multiplier
+  // Node multiplier (additive, not multiplicative)
   const activeNodeType = mockNodeStatus.hasMirrorNode ? 'mirror' : mockNodeStatus.hasLightNode ? 'light' : null;
   const nodeConfig = activeNodeType ? NODE_TYPES[activeNodeType] : null;
-  const nodeMultiplier = nodeConfig?.multiplier || 1;
+  const nodeMultiplierAdd = nodeConfig ? (nodeConfig.multiplier - 1) : 0; // e.g., 4x becomes +3x
 
-  // Total multiplier
-  const totalMultiplier = krexMultiplier * nftMultiplier * nodeMultiplier;
+  // Total multiplier (additive: KREX base + NFT bonus + Node bonus)
+  const totalMultiplier = krexMultiplier + nftMultiplierAdd + nodeMultiplierAdd;
 
   // Fee calculation with base fee
   const baseFee = 1.0; // Default base fee
@@ -118,22 +118,11 @@ export function UnifiedStatusBox() {
           <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
             Rewards Status
           </h3>
-          <div className="flex items-center gap-2">
-            {isConnected && !isLoading && (
-              <span className="text-xs px-2 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full">
-                Active
-              </span>
-            )}
-            <button
-              onClick={() => setShowRewardsModal(true)}
-              className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
-              aria-label="View rewards details"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </button>
-          </div>
+          {isConnected && !isLoading && (
+            <span className="text-xs px-2 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full">
+              Active
+            </span>
+          )}
         </div>
 
         {isLoading ? (
@@ -144,14 +133,10 @@ export function UnifiedStatusBox() {
           <div className="space-y-4">
             {/* Summary Section with Points merged */}
             <div className="pb-4 border-b border-zinc-200 dark:border-zinc-700">
-              <div className="grid grid-cols-3 gap-4 mb-2">
+              <div className="grid grid-cols-2 gap-4 mb-2">
                 <div>
                   <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">Total Multiplier</div>
                   <div className="text-lg font-bold text-[#02abb8]">{totalMultiplier}x</div>
-                </div>
-                <div>
-                  <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">Fee</div>
-                  <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{feePercent.toFixed(2)}%</div>
                 </div>
                 <div>
                   <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">XP Points</div>
@@ -159,11 +144,6 @@ export function UnifiedStatusBox() {
                     {holdings ? formatLargeNumber(holdings.xp) : '—'}
                   </div>
                 </div>
-              </div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                KREX {krexMultiplier}x
-                {nftMultiplier > 1 && ` × NFT +${nftMultiplier - 1}x`}
-                {nodeMultiplier > 1 && ` × Node +${nodeMultiplier - 1}x`}
               </div>
               <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-between text-xs">
                 <span className="text-zinc-600 dark:text-zinc-400">Current Fee</span>
@@ -177,6 +157,14 @@ export function UnifiedStatusBox() {
                     `${feePercent.toFixed(2)}%`
                   )}
                 </span>
+              </div>
+              <div className="mt-3">
+                <button
+                  onClick={() => setShowRewardsModal(true)}
+                  className="w-full px-4 py-2 text-sm font-medium bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-lg transition-colors"
+                >
+                  View Rewards Details
+                </button>
               </div>
             </div>
 
