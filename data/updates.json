@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768407099-b711a8f",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Merge branch 'main' of https://github.com/Kasparex/kasparex-dapp-marketplace (by Kasparex)",
+      "date": "2026-01-14T17:10:53+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768096645-def619a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Make Collection Stats more minimalistic with discrete colors and move tab under PFP Builder (by Kasparex)",
