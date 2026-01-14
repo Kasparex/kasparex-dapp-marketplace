@@ -10,7 +10,7 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 
 export function KREXStatusBox() {
   const { isConnected } = useAccount();
-  const { balance, tier: krexTier, isLoading, error } = useKREXBalance();
+  const { balance, l1Balance, l2Balance, tier: krexTier, isLoading, error } = useKREXBalance();
   const tierConfig = KREX_TIERS[krexTier];
   const [showModal, setShowModal] = useState(false);
   const [showBuyWizard, setShowBuyWizard] = useState(false);
@@ -56,11 +56,29 @@ export function KREXStatusBox() {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-zinc-600 dark:text-zinc-400">
-                KREX Balance
+                KREX L1 (Kaspa)
               </span>
               <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                {formatLargeNumber(balance)}
+                {formatLargeNumber(l1Balance)}
               </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-zinc-600 dark:text-zinc-400">
+                KREX L2 (Kasplex)
+              </span>
+              <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                {formatLargeNumber(l2Balance)}
+              </span>
+            </div>
+            <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  Total KREX
+                </span>
+                <span className="text-sm font-bold text-[#02abb8]">
+                  {formatLargeNumber(balance)}
+                </span>
+              </div>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-zinc-600 dark:text-zinc-400">
