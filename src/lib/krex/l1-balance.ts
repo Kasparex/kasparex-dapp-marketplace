@@ -1,6 +1,7 @@
 /**
  * L1 KREX Balance Query
  * Fetches KREX token balance from Kaspa L1 (KRC-20) using Kasplex Indexer API
+ * Falls back to KasWare wallet's getKRC20Balance() if available
  */
 
 const KASPLEX_INDEXER_API_BASE = 'https://api.kasplex.org';
@@ -16,7 +17,54 @@ function normalizeKaspaAddress(address: string): string {
 }
 
 /**
+ * Get API URL - use proxy in browser, direct API on server
+ */
+function getApiUrl(endpoint: string): string {
+  // In browser, use Next.js API proxy to avoid CORS
+  if (typeof window !== 'undefined') {
+    return `/api/kasplex-indexer?endpoint=${encodeURIComponent(endpoint)}`;
+  }
+  // Server-side, use direct API
+  return `${KASPLEX_INDEXER_API_BASE}${endpoint}`;
+}
+
+/**
+ * Try to get KREX balance from KasWare wallet if available
+ */
+async function tryKasWareBalance(address: string): Promise<number | null> {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    // Check if KasWare is available
+    const win = window as any;
+    if (!win.kasware || typeof win.kasware.getKRC20Balance !== 'function') {
+      return null;
+    }
+
+    const tokens = await win.kasware.getKRC20Balance();
+    const krexToken = tokens.find((t: any) => t.tick === KREX_TICKER || t.tick?.toUpperCase() === KREX_TICKER);
+    
+    if (krexToken && krexToken.amount !== undefined) {
+      const balance = typeof krexToken.amount === 'string' 
+        ? parseFloat(krexToken.amount) 
+        : Number(krexToken.amount);
+      
+      if (!isNaN(balance)) {
+        console.log(`[KREX L1] ✓ Balance from KasWare: ${balance}`);
+        return balance;
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    console.warn('[KREX L1] KasWare balance check failed:', error);
+    return null;
+  }
+}
+
+/**
  * Query KREX balance from L1 (Kaspa KRC-20) using Kasplex Indexer API
+ * Falls back to KasWare wallet if available
  * 
  * @param address - Kaspa address (with or without kaspa: prefix)
  * @returns KREX balance as number, or 0 if error/invalid address
@@ -25,6 +73,16 @@ export async function queryL1KREXBalance(address: string): Promise<number> {
   if (!address || typeof address !== 'string') {
     console.warn('[KREX L1] Invalid address provided');
     return 0;
+  }
+
+  // Try KasWare first (if available and address matches)
+  try {
+    const kaswareBalance = await tryKasWareBalance(address);
+    if (kaswareBalance !== null) {
+      return kaswareBalance;
+    }
+  } catch (error) {
+    console.warn('[KREX L1] KasWare fallback failed, trying API:', error);
   }
 
   try {
@@ -36,12 +94,13 @@ export async function queryL1KREXBalance(address: string): Promise<number> {
       return 0;
     }
 
-    // Build API URL
-    const apiUrl = `${KASPLEX_INDEXER_API_BASE}/v1/krc20/address/${encodeURIComponent(normalizedAddress)}/token/${KREX_TICKER}`;
+    // Build API endpoint
+    const endpoint = `/v1/krc20/address/${encodeURIComponent(normalizedAddress)}/token/${KREX_TICKER}`;
+    const apiUrl = getApiUrl(endpoint);
     
     console.log('[KREX L1] Fetching balance from:', apiUrl);
 
-    // Fetch balance from Kasplex Indexer API
+    // Fetch balance from Kasplex Indexer API (via proxy in browser)
     const response = await fetch(apiUrl, {
       method: 'GET',
       headers: {
