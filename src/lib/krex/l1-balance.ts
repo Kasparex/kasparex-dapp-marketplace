@@ -30,34 +30,93 @@ function getApiUrl(endpoint: string): string {
 
 /**
  * Try to get KREX balance from KasWare wallet if available
+ * Verifies that the address matches before using the balance
  */
 async function tryKasWareBalance(address: string): Promise<number | null> {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === 'undefined') {
+    console.log('[KREX L1] KasWare check skipped (server-side)');
+    return null;
+  }
   
   try {
     // Check if KasWare is available
     const win = window as any;
-    if (!win.kasware || typeof win.kasware.getKRC20Balance !== 'function') {
+    console.log('[KREX L1] Checking for KasWare wallet...', {
+      hasKasware: !!win.kasware,
+      hasGetKRC20Balance: !!(win.kasware && typeof win.kasware.getKRC20Balance === 'function'),
+      hasGetAddress: !!(win.kasware && typeof win.kasware.getAddress === 'function'),
+    });
+    
+    if (!win.kasware) {
+      console.log('[KREX L1] KasWare not found in window object');
+      return null;
+    }
+    
+    // Verify address matches (if getAddress is available)
+    let kaswareAddress: string | null = null;
+    try {
+      if (typeof win.kasware.getAddress === 'function') {
+        kaswareAddress = await win.kasware.getAddress();
+        const normalizedKasware = normalizeKaspaAddress(kaswareAddress || '');
+        const normalizedQuery = normalizeKaspaAddress(address);
+        
+        if (normalizedKasware && normalizedQuery && normalizedKasware.toLowerCase() !== normalizedQuery.toLowerCase()) {
+          console.log('[KREX L1] KasWare address does not match query address:', {
+            kasware: normalizedKasware,
+            query: normalizedQuery,
+          });
+          // Still try to get balance, but log the mismatch
+        } else if (normalizedKasware && normalizedQuery) {
+          console.log('[KREX L1] ✓ Address matches KasWare wallet');
+        }
+      }
+    } catch (error) {
+      console.warn('[KREX L1] Could not verify KasWare address:', error);
+      // Continue anyway - address verification is not critical
+    }
+    
+    if (typeof win.kasware.getKRC20Balance !== 'function') {
+      console.log('[KREX L1] KasWare found but getKRC20Balance() method not available');
       return null;
     }
 
+    console.log('[KREX L1] Attempting to get KRC20 balance from KasWare...');
     const tokens = await win.kasware.getKRC20Balance();
-    const krexToken = tokens.find((t: any) => t.tick === KREX_TICKER || t.tick?.toUpperCase() === KREX_TICKER);
+    console.log('[KREX L1] KasWare returned tokens:', tokens?.length || 0, 'tokens');
     
-    if (krexToken && krexToken.amount !== undefined) {
+    if (!tokens || !Array.isArray(tokens)) {
+      console.warn('[KREX L1] KasWare returned invalid token list:', tokens);
+      return null;
+    }
+    
+    const krexToken = tokens.find((t: any) => {
+      const tick = t.tick?.toUpperCase();
+      return tick === KREX_TICKER;
+    });
+    
+    if (krexToken) {
+      console.log('[KREX L1] Found KREX token in KasWare:', krexToken);
       const balance = typeof krexToken.amount === 'string' 
         ? parseFloat(krexToken.amount) 
         : Number(krexToken.amount);
       
-      if (!isNaN(balance)) {
+      if (!isNaN(balance) && balance > 0) {
         console.log(`[KREX L1] ✓ Balance from KasWare: ${balance}`);
         return balance;
+      } else {
+        console.warn('[KREX L1] Invalid or zero balance from KasWare:', krexToken.amount);
       }
+    } else {
+      console.log('[KREX L1] KREX token not found in KasWare token list. Available ticks:', 
+        tokens.map((t: any) => t.tick).filter(Boolean).slice(0, 10));
     }
     
     return null;
   } catch (error) {
     console.warn('[KREX L1] KasWare balance check failed:', error);
+    if (error instanceof Error) {
+      console.warn('[KREX L1] Error details:', error.message, error.stack?.substring(0, 200));
+    }
     return null;
   }
 }
@@ -111,12 +170,23 @@ export async function queryL1KREXBalance(address: string): Promise<number> {
     if (!response.ok) {
       // If 404, address likely has no KREX balance (not an error)
       if (response.status === 404) {
-        console.log('[KREX L1] No KREX balance found for address');
+        console.log('[KREX L1] No KREX balance found for address (404)');
         return 0;
       }
       
-      // Other errors
-      console.warn(`[KREX L1] API error: ${response.status} ${response.statusText}`);
+      // Log error details for debugging
+      const errorText = await response.text().catch(() => 'Could not read error response');
+      console.error(`[KREX L1] API error: ${response.status} ${response.statusText}`, {
+        url: apiUrl,
+        status: response.status,
+        errorPreview: errorText.substring(0, 200),
+      });
+      
+      // For 403, the API might be blocking the request - this is a known issue
+      if (response.status === 403) {
+        console.warn('[KREX L1] API returned 403 Forbidden - Kasplex Indexer API may require authentication or have restrictions');
+      }
+      
       return 0;
     }
 

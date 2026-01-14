@@ -32,6 +32,12 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'Unknown error');
+      console.error(`[Kasplex Indexer Proxy] API returned ${response.status}:`, {
+        url,
+        status: response.status,
+        statusText: response.statusText,
+        errorText: errorText.substring(0, 500), // Limit log size
+      });
       return NextResponse.json(
         { error: `Kasplex Indexer API error: ${response.status} ${response.statusText}`, details: errorText },
         { status: response.status }
