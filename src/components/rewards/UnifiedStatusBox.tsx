@@ -8,6 +8,8 @@ import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { KREX_TIERS, NFT_MULTIPLIER, DIAMOND_NFT_MULTIPLIER, RAREST_NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION } from '@/lib/rewards/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { getMockWalletHoldings } from '@/lib/rewards/mockData';
+import { getPartnerCollections } from '@/lib/nft/collections';
+import { NFT_POINTS } from '@/lib/nft/points';
 import { KREXBuyWizard } from './KREXBuyWizard';
 import { NFTBuyWizard } from './NFTBuyWizard';
 
@@ -20,8 +22,8 @@ const mockNodeStatus = {
 };
 
 const NODE_TYPES = {
-  light: { name: 'Light Node', multiplier: 4.0, feeReduction: 0.1 },
-  mirror: { name: 'Mirror Node', multiplier: 5.0, feeReduction: 0.2 },
+  light: { name: 'Light Node', multiplier: 4, feeReduction: 0.1 },
+  mirror: { name: 'Mirror Node', multiplier: 5, feeReduction: 0.2 },
 };
 
 export function UnifiedStatusBox() {
@@ -30,21 +32,35 @@ export function UnifiedStatusBox() {
   const { nftStatus, nftPoints, isLoading: isNFTLoading } = useNFTStatus();
   const holdings = isConnected && address ? getMockWalletHoldings(address) : null;
 
+  // Use real NFT status if available, otherwise use empty status
+  const status = nftStatus || {
+    hasKREXPRIME: false,
+    hasPIXELKREX: false,
+    hasDiamondKREXPRIME: false,
+    hasDiamondPIXELKREX: false,
+    hasRarestNFT: false,
+    partnerCollections: {},
+    partnerDiamonds: {},
+  };
+
+  const hasAnyNFT = status.hasKREXPRIME || status.hasPIXELKREX || 
+    (status.partnerCollections && Object.values(status.partnerCollections).some(v => v));
+  const hasDiamondNFT = status.hasDiamondKREXPRIME || status.hasDiamondPIXELKREX ||
+    (status.partnerDiamonds && Object.values(status.partnerDiamonds).some(v => v));
+  const hasRarestNFT = status.hasRarestNFT;
+  const partnerCollections = getPartnerCollections();
+
   // Calculate multipliers
   const krexTierConfig = KREX_TIERS[krexTier];
   const krexMultiplier = krexTierConfig.multiplier;
 
   // NFT multiplier calculation
-  const hasRegularNFT = nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX || false;
-  const hasDiamondNFT = nftStatus?.hasDiamondKREXPRIME || nftStatus?.hasDiamondPIXELKREX || false;
-  const hasRarestNFT = nftStatus?.hasRarestNFT || false;
-  
   let nftMultiplier = 1;
   if (hasRarestNFT) {
     nftMultiplier += RAREST_NFT_MULTIPLIER; // +5x
   } else if (hasDiamondNFT) {
     nftMultiplier += DIAMOND_NFT_MULTIPLIER; // +3x
-  } else if (hasRegularNFT) {
+  } else if (hasAnyNFT) {
     nftMultiplier += NFT_MULTIPLIER; // +1x
   }
 
@@ -62,7 +78,7 @@ export function UnifiedStatusBox() {
     feePercent = Math.max(0, feePercent - RAREST_NFT_FEE_REDUCTION); // Zero fee
   } else if (hasDiamondNFT) {
     feePercent = Math.max(0, feePercent - DIAMOND_NFT_FEE_REDUCTION);
-  } else if (hasRegularNFT) {
+  } else if (hasAnyNFT) {
     feePercent = Math.max(0, feePercent - NFT_FEE_REDUCTION);
   }
   if (nodeConfig) {
@@ -80,19 +96,17 @@ export function UnifiedStatusBox() {
 
   return (
     <>
-      <div className="mb-6 p-4 bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-950 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm">
+      <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
             Rewards Status
           </h3>
-          <div className="flex items-center gap-2">
-            {isConnected && !isLoading && (
-              <span className="text-xs px-2 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full font-medium">
-                Active
-              </span>
-            )}
-          </div>
+          {isConnected && !isLoading && (
+            <span className="text-xs px-2 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full">
+              Active
+            </span>
+          )}
         </div>
 
         {isLoading ? (
@@ -100,149 +114,195 @@ export function UnifiedStatusBox() {
             Loading status...
           </div>
         ) : (
-          <>
+          <div className="space-y-4">
             {/* Summary Section */}
-            <div className="mb-4 p-3 bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
-              <div className="grid grid-cols-2 gap-3 mb-3">
+            <div className="pb-4 border-b border-zinc-200 dark:border-zinc-700">
+              <div className="grid grid-cols-2 gap-4 mb-2">
                 <div>
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">Total Multiplier</div>
-                  <div className="text-lg font-bold text-[#02abb8]">{totalMultiplier.toFixed(1)}x</div>
+                  <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">Total Multiplier</div>
+                  <div className="text-lg font-bold text-[#02abb8]">{totalMultiplier}x</div>
                 </div>
                 <div>
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">Fee</div>
+                  <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">Fee</div>
                   <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{feePercent.toFixed(2)}%</div>
                 </div>
               </div>
-              <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
-                <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Breakdown: KREX {krexMultiplier}x
-                  {nftMultiplier > 1 && ` × NFT ${nftMultiplier.toFixed(1)}x`}
-                  {nodeMultiplier > 1 && ` × Node ${nodeMultiplier.toFixed(1)}x`}
-                </div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                KREX {krexMultiplier}x
+                {nftMultiplier > 1 && ` × NFT +${nftMultiplier - 1}x`}
+                {nodeMultiplier > 1 && ` × Node +${nodeMultiplier - 1}x`}
               </div>
             </div>
 
             {/* KREX Section */}
-            <div className="mb-3 p-3 bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">KREX</span>
-                  <span className="text-xs px-1.5 py-0.5 bg-[#02abb8]/10 text-[#02abb8] rounded">
-                    {krexTierConfig.label}
-                  </span>
-                </div>
+            <div className="pb-4 border-b border-zinc-200 dark:border-zinc-700">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">KREX Status</h4>
                 <button
                   onClick={() => setShowKREXModal(true)}
-                  className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded transition-colors"
+                  className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
                   aria-label="View KREX details"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </button>
               </div>
-              <div className="space-y-1 text-xs">
+              <div className="space-y-1.5 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-zinc-600 dark:text-zinc-400">L1 (Kaspa)</span>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">{formatLargeNumber(l1Balance)}</span>
+                  <span className="text-zinc-600 dark:text-zinc-400">Current Tier</span>
+                  <span className="font-bold text-[#02abb8]">{krexTierConfig.label}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-zinc-600 dark:text-zinc-400">L2 (Kasplex)</span>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">{formatLargeNumber(l2Balance)}</span>
+                  <span className="text-zinc-600 dark:text-zinc-400">KREX L1 (Kaspa)</span>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formatLargeNumber(l1Balance)}</span>
                 </div>
-                <div className="pt-1 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
-                  <span className="font-semibold text-zinc-700 dark:text-zinc-300">Total</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-600 dark:text-zinc-400">KREX L2 (Kasplex)</span>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formatLargeNumber(l2Balance)}</span>
+                </div>
+                <div className="pt-1.5 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
+                  <span className="font-semibold text-zinc-700 dark:text-zinc-300">Total KREX</span>
                   <span className="font-bold text-[#02abb8]">{formatLargeNumber(balance)}</span>
                 </div>
-                <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400">
-                  <span>Multiplier</span>
-                  <span>{krexMultiplier}x</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-600 dark:text-zinc-400">Multiplier</span>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">{krexMultiplier}x</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-600 dark:text-zinc-400">Fee</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">{krexTierConfig.feePercent}%</span>
                 </div>
               </div>
             </div>
 
-            {/* NFT Section */}
-            <div className="mb-3 p-3 bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
-              <div className="flex items-center justify-between mb-2">
+            {/* NFT Section - Match existing NFTStatusBox exactly */}
+            <div className="pb-4 border-b border-zinc-200 dark:border-zinc-700">
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">NFT</span>
-                  {hasRarestNFT && (
-                    <span className="text-xs px-1.5 py-0.5 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded">
-                      ⭐ Rarest
-                    </span>
-                  )}
-                  {!hasRarestNFT && hasDiamondNFT && (
-                    <span className="text-xs px-1.5 py-0.5 bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded">
-                      💎 Diamond
-                    </span>
-                  )}
-                  {!hasRarestNFT && !hasDiamondNFT && hasRegularNFT && (
-                    <span className="text-xs px-1.5 py-0.5 bg-green-500/10 text-green-600 dark:text-green-400 rounded">
-                      🖼️ Active
+                  <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">NFT Status</h4>
+                  {hasAnyNFT && (
+                    <span className="text-xs px-2 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full">
+                      Active
                     </span>
                   )}
                 </div>
                 <button
                   onClick={() => setShowNFTModal(true)}
-                  className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded transition-colors"
+                  className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
                   aria-label="View NFT details"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </button>
               </div>
-              <div className="space-y-1 text-xs">
+              <div className="space-y-1.5 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-zinc-600 dark:text-zinc-400">KREXPRIME</span>
-                  <span className={nftStatus?.hasKREXPRIME ? 'text-green-600 dark:text-green-400 font-medium' : 'text-zinc-400'}>
-                    {nftStatus?.hasKREXPRIME ? '✓' : '—'}
+                  <span className="text-zinc-600 dark:text-zinc-400">KREXPRIME:</span>
+                  <span className={status.hasKREXPRIME ? 'text-green-600 dark:text-green-400 font-medium' : 'text-zinc-400'}>
+                    {status.hasKREXPRIME ? '✓ Owned' : 'Not owned'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-zinc-600 dark:text-zinc-400">PIXELKREX</span>
-                  <span className={nftStatus?.hasPIXELKREX ? 'text-green-600 dark:text-green-400 font-medium' : 'text-zinc-400'}>
-                    {nftStatus?.hasPIXELKREX ? '✓' : '—'}
+                  <span className="text-zinc-600 dark:text-zinc-400">PIXELKREX:</span>
+                  <span className={status.hasPIXELKREX ? 'text-green-600 dark:text-green-400 font-medium' : 'text-zinc-400'}>
+                    {status.hasPIXELKREX ? '✓ Owned' : 'Not owned'}
                   </span>
                 </div>
-                <div className="pt-1 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
-                  <span className="text-zinc-600 dark:text-zinc-400">Multiplier</span>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">{nftMultiplier.toFixed(1)}x</span>
+                {/* Partner Collections */}
+                {partnerCollections.length > 0 && status.partnerCollections && (
+                  <>
+                    {partnerCollections.map((partnerColl) => {
+                      const hasPartnerNFT = status.partnerCollections![partnerColl.id] || false;
+                      const hasPartnerDiamond = status.partnerDiamonds?.[partnerColl.id] || false;
+                      return (
+                        <div key={partnerColl.id} className="flex items-center justify-between">
+                          <span className="text-zinc-600 dark:text-zinc-400">
+                            {partnerColl.partnerName || partnerColl.name}:
+                          </span>
+                          <span className={hasPartnerNFT ? 'text-green-600 dark:text-green-400 font-medium' : 'text-zinc-400'}>
+                            {hasPartnerNFT ? (
+                              hasPartnerDiamond ? '✓ 💎 Diamond' : '✓ Owned'
+                            ) : 'Not owned'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-600 dark:text-zinc-400">🖼️ Regular NFT:</span>
+                  <span className={hasAnyNFT ? 'text-blue-600 dark:text-blue-400 font-medium' : 'text-zinc-400'}>
+                    {hasAnyNFT ? '✓ Owned' : 'Not owned'}
+                  </span>
                 </div>
-                <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400">
-                  <span>Points</span>
-                  <span>{nftPoints}</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-600 dark:text-zinc-400">💎 Diamond:</span>
+                  <span className={hasDiamondNFT ? 'text-purple-600 dark:text-purple-400 font-medium' : 'text-zinc-400'}>
+                    {hasDiamondNFT ? '✓ Owned' : 'Not owned'}
+                  </span>
                 </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-600 dark:text-zinc-400">⭐ Rarest:</span>
+                  <span className={hasRarestNFT ? 'text-yellow-600 dark:text-yellow-400 font-medium' : 'text-zinc-400'}>
+                    {hasRarestNFT ? '✓ Owned' : 'Not owned'}
+                  </span>
+                </div>
+                {hasAnyNFT && (
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-200 dark:border-zinc-700 space-y-1">
+                    {hasRarestNFT ? (
+                      <div><span className="text-yellow-600 dark:text-yellow-400 font-medium">+{RAREST_NFT_MULTIPLIER}x multiplier, 0.0% fee, +{nftPoints} points</span></div>
+                    ) : hasDiamondNFT ? (
+                      <div><span className="text-purple-600 dark:text-purple-400 font-medium">+{DIAMOND_NFT_MULTIPLIER}x multiplier, -{DIAMOND_NFT_FEE_REDUCTION}% fee, +{nftPoints} points</span></div>
+                    ) : (
+                      <div><span className="text-green-600 dark:text-green-400 font-medium">+{NFT_MULTIPLIER}x multiplier, -{NFT_FEE_REDUCTION}% fee, +{nftPoints} points</span></div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Node Section */}
-            <div className="mb-3 p-3 bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
-              <div className="flex items-center justify-between mb-2">
+            <div className="pb-4 border-b border-zinc-200 dark:border-zinc-700">
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Node</span>
-                  {activeNodeType && (
-                    <span className="text-xs px-1.5 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded">
-                      {nodeConfig?.name}
+                  <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">NODE Status</h4>
+                  {activeNodeType && (activeNodeType === 'mirror' ? mockNodeStatus.mirrorNodeConnected : mockNodeStatus.lightNodeConnected) && (
+                    <span className="text-xs px-2 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full">
+                      Active
+                    </span>
+                  )}
+                  {activeNodeType && !(activeNodeType === 'mirror' ? mockNodeStatus.mirrorNodeConnected : mockNodeStatus.lightNodeConnected) && (
+                    <span className="text-xs px-2 py-1 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded-full">
+                      Disconnected
                     </span>
                   )}
                 </div>
                 <button
                   onClick={() => setShowNodeModal(true)}
-                  className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded transition-colors"
+                  className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
                   aria-label="View Node details"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </button>
               </div>
-              <div className="space-y-1 text-xs">
-                {activeNodeType ? (
+              <div className="space-y-1.5 text-xs">
+                {activeNodeType && nodeConfig ? (
                   <>
                     <div className="flex items-center justify-between">
-                      <span className="text-zinc-600 dark:text-zinc-400">Type</span>
-                      <span className="font-medium text-zinc-900 dark:text-zinc-100">{nodeConfig?.name}</span>
+                      <span className="text-zinc-600 dark:text-zinc-400">Node Type</span>
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">{nodeConfig.name}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-600 dark:text-zinc-400">Multiplier</span>
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">+{nodeConfig.multiplier - 1}x</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-600 dark:text-zinc-400">Fee Reduction</span>
+                      <span className="text-zinc-500 dark:text-zinc-400">{nodeConfig.feeReduction}%</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-zinc-600 dark:text-zinc-400">Status</span>
@@ -254,13 +314,9 @@ export function UnifiedStatusBox() {
                         {(activeNodeType === 'mirror' ? mockNodeStatus.mirrorNodeConnected : mockNodeStatus.lightNodeConnected) ? 'Connected' : 'Disconnected'}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400">
-                      <span>Multiplier</span>
-                      <span>{nodeMultiplier.toFixed(1)}x</span>
-                    </div>
                   </>
                 ) : (
-                  <div className="text-zinc-500 dark:text-zinc-400 text-center py-1">
+                  <div className="text-zinc-500 dark:text-zinc-400">
                     No active node
                   </div>
                 )}
@@ -268,40 +324,37 @@ export function UnifiedStatusBox() {
             </div>
 
             {/* Points Section */}
-            <div className="p-3 bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Points</span>
-              </div>
-              <div className="space-y-1 text-xs">
+            <div>
+              <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Points</h4>
+              <div className="space-y-1.5 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-zinc-600 dark:text-zinc-400">XP Balance</span>
-                  <span className="text-lg font-bold text-[#02abb8]">
+                  <span className="text-zinc-600 dark:text-zinc-400">Current Balance</span>
+                  <span className="text-xl font-bold text-[#02abb8]">
                     {holdings ? formatLargeNumber(holdings.xp) : '—'}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400">
-                  <span>NFT Points</span>
-                  <span>{nftPoints}</span>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-200 dark:border-zinc-700">
+                  Earn 100 XP per 1 KAS spent
                 </div>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="mt-4 grid grid-cols-2 gap-2">
+            <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700 grid grid-cols-2 gap-2">
               <button
                 onClick={() => setShowKREXBuyWizard(true)}
                 className="px-3 py-2 text-xs font-medium text-center bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
               >
-                Buy KREX
+                Buy & Bridge KREX
               </button>
               <button
                 onClick={() => setShowNFTBuyWizard(true)}
                 className="px-3 py-2 text-xs font-medium text-center bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
               >
-                Buy NFT
+                Buy or Bridge NFTs
               </button>
             </div>
-          </>
+          </div>
         )}
       </div>
 
@@ -335,10 +388,11 @@ export function UnifiedStatusBox() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-zinc-200 dark:border-zinc-700">
-                      <th className="text-left py-3 px-4 text-sm font-semibold">Tier</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold">Requirement</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold">Multiplier</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold">Fee</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Tier</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Requirement</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reward Multiplier</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Points Multiplier</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -347,19 +401,20 @@ export function UnifiedStatusBox() {
                       return (
                         <tr
                           key={tier.tier}
-                          className={`border-b border-zinc-100 dark:border-zinc-800 ${
+                          className={`border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${
                             isUserTier ? 'bg-[#02abb8]/10 dark:bg-[#02abb8]/20' : ''
                           }`}
                         >
-                          <td className="py-3 px-4 text-sm font-medium">
+                          <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
                             {tier.label}
-                            {isUserTier && <span className="ml-2 text-xs text-[#02abb8]">(Current)</span>}
+                            {isUserTier && <span className="ml-2 text-xs text-[#02abb8] font-medium">(Current)</span>}
                           </td>
                           <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
                             {tier.minKREX === 0 ? '< 10M' : `≥ ${formatLargeNumber(tier.minKREX)}`}
                           </td>
-                          <td className="py-3 px-4 text-sm">{tier.multiplier}x</td>
+                          <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">{tier.multiplier}x</td>
                           <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">{tier.feePercent}%</td>
+                          <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">{tier.pointsMultiplier}x</td>
                         </tr>
                       );
                     })}
@@ -386,7 +441,7 @@ export function UnifiedStatusBox() {
             <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">NFT Rewards</h2>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">NFT holders unlock additional rewards</p>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">KREXPRIME and PIXELKREX NFT holders unlock additional rewards</p>
               </div>
               <button
                 onClick={() => setShowNFTModal(false)}
@@ -402,26 +457,63 @@ export function UnifiedStatusBox() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-zinc-200 dark:border-zinc-700">
-                      <th className="text-left py-3 px-4 text-sm font-semibold">NFT Type</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold">Multiplier</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold">Fee Reduction</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">NFT Type</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reward Multiplier</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee Reduction</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Points</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="border-b border-zinc-100 dark:border-zinc-800">
-                      <td className="py-3 px-4 text-sm font-medium">🖼️ Regular NFT</td>
-                      <td className="py-3 px-4 text-sm">+{NFT_MULTIPLIER}x</td>
-                      <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">-{NFT_FEE_REDUCTION}%</td>
+                    <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                        🖼️ Regular NFT
+                        <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                          (KREXPRIME or PIXELKREX)
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
+                        +{NFT_MULTIPLIER}x
+                      </td>
+                      <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                        -{NFT_FEE_REDUCTION}%
+                      </td>
+                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                        {NFT_POINTS.REGULAR} point
+                      </td>
                     </tr>
-                    <tr className="border-b border-zinc-100 dark:border-zinc-800">
-                      <td className="py-3 px-4 text-sm font-medium">💎 Diamond NFT</td>
-                      <td className="py-3 px-4 text-sm">+{DIAMOND_NFT_MULTIPLIER}x</td>
-                      <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">-{DIAMOND_NFT_FEE_REDUCTION}%</td>
+                    <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                        💎 Diamond NFT
+                        <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                          (Any Diamond from any collection)
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
+                        +{DIAMOND_NFT_MULTIPLIER}x
+                      </td>
+                      <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                        -{DIAMOND_NFT_FEE_REDUCTION}%
+                      </td>
+                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                        {NFT_POINTS.DIAMOND} points
+                      </td>
                     </tr>
-                    <tr className="border-b border-zinc-100 dark:border-zinc-800">
-                      <td className="py-3 px-4 text-sm font-medium">⭐ Rarest NFT</td>
-                      <td className="py-3 px-4 text-sm">+{RAREST_NFT_MULTIPLIER}x</td>
-                      <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">-{RAREST_NFT_FEE_REDUCTION}% (Zero Fee)</td>
+                    <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                        ⭐ Rarest NFT
+                        <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                          (#515 PIXELKREX or #345 KREXPRIME)
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
+                        +{RAREST_NFT_MULTIPLIER}x
+                      </td>
+                      <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                        -{RAREST_NFT_FEE_REDUCTION}% (Zero Fee)
+                      </td>
+                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                        {NFT_POINTS.RAREST} points
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -445,8 +537,8 @@ export function UnifiedStatusBox() {
           >
             <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Node Requirements</h2>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">Run a KREX Node to unlock additional rewards</p>
+                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">KREX Node Requirements</h2>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">Run a KREX Node to unlock additional rewards and support the Kasparex Mesh</p>
               </div>
               <button
                 onClick={() => setShowNodeModal(false)}
@@ -462,19 +554,38 @@ export function UnifiedStatusBox() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-zinc-200 dark:border-zinc-700">
-                      <th className="text-left py-3 px-4 text-sm font-semibold">Node Type</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold">Multiplier</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold">Fee Reduction</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Node Type</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Requirements</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reward Multiplier</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee Reduction</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {Object.entries(NODE_TYPES).map(([key, node]) => (
-                      <tr key={key} className="border-b border-zinc-100 dark:border-zinc-800">
-                        <td className="py-3 px-4 text-sm font-medium">{node.name}</td>
-                        <td className="py-3 px-4 text-sm">{node.multiplier}x</td>
-                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">{node.feeReduction}%</td>
-                      </tr>
-                    ))}
+                    {Object.entries(NODE_TYPES).map(([key, node]) => {
+                      const isUserNode = activeNodeType === key;
+                      return (
+                        <tr
+                          key={key}
+                          className={`border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${
+                            isUserNode ? 'bg-[#02abb8]/10 dark:bg-[#02abb8]/20' : ''
+                          }`}
+                        >
+                          <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                            {node.name}
+                            {isUserNode && <span className="ml-2 text-xs text-[#02abb8] font-medium">(Active)</span>}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                            Run a {node.name}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
+                            +{node.multiplier - 1}x
+                          </td>
+                          <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                            {node.feeReduction}%
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
