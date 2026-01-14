@@ -86,9 +86,7 @@ export function UnifiedStatusBox() {
   }
 
   // Modal states
-  const [showKREXModal, setShowKREXModal] = useState(false);
-  const [showNFTModal, setShowNFTModal] = useState(false);
-  const [showNodeModal, setShowNodeModal] = useState(false);
+  const [showRewardsModal, setShowRewardsModal] = useState(false);
   const [showKREXBuyWizard, setShowKREXBuyWizard] = useState(false);
   const [showNFTBuyWizard, setShowNFTBuyWizard] = useState(false);
 
@@ -102,11 +100,22 @@ export function UnifiedStatusBox() {
           <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
             Rewards Status
           </h3>
-          {isConnected && !isLoading && (
-            <span className="text-xs px-2 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full">
-              Active
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {isConnected && !isLoading && (
+              <span className="text-xs px-2 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full">
+                Active
+              </span>
+            )}
+            <button
+              onClick={() => setShowRewardsModal(true)}
+              className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+              aria-label="View rewards details"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {isLoading ? (
@@ -115,9 +124,9 @@ export function UnifiedStatusBox() {
           </div>
         ) : (
           <div className="space-y-4">
-            {/* Summary Section */}
+            {/* Summary Section with Points merged */}
             <div className="pb-4 border-b border-zinc-200 dark:border-zinc-700">
-              <div className="grid grid-cols-2 gap-4 mb-2">
+              <div className="grid grid-cols-3 gap-4 mb-2">
                 <div>
                   <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">Total Multiplier</div>
                   <div className="text-lg font-bold text-[#02abb8]">{totalMultiplier}x</div>
@@ -125,6 +134,12 @@ export function UnifiedStatusBox() {
                 <div>
                   <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">Fee</div>
                   <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{feePercent.toFixed(2)}%</div>
+                </div>
+                <div>
+                  <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">XP Points</div>
+                  <div className="text-lg font-bold text-[#02abb8]">
+                    {holdings ? formatLargeNumber(holdings.xp) : '—'}
+                  </div>
                 </div>
               </div>
               <div className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -137,22 +152,14 @@ export function UnifiedStatusBox() {
             {/* KREX Section */}
             <div className="pb-4 border-b border-zinc-200 dark:border-zinc-700">
               <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">KREX Status</h4>
-                <button
-                  onClick={() => setShowKREXModal(true)}
-                  className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
-                  aria-label="View KREX details"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </button>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">KREX Status</h4>
+                  <span className="text-xs px-1.5 py-0.5 bg-[#02abb8]/10 text-[#02abb8] rounded">
+                    {krexTierConfig.label}
+                  </span>
+                </div>
               </div>
               <div className="space-y-1.5 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-zinc-600 dark:text-zinc-400">Current Tier</span>
-                  <span className="font-bold text-[#02abb8]">{krexTierConfig.label}</span>
-                </div>
                 <div className="flex items-center justify-between">
                   <span className="text-zinc-600 dark:text-zinc-400">KREX L1 (Kaspa)</span>
                   <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formatLargeNumber(l1Balance)}</span>
@@ -187,15 +194,6 @@ export function UnifiedStatusBox() {
                     </span>
                   )}
                 </div>
-                <button
-                  onClick={() => setShowNFTModal(true)}
-                  className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
-                  aria-label="View NFT details"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </button>
               </div>
               <div className="space-y-1.5 text-xs">
                 <div className="flex items-center justify-between">
@@ -279,15 +277,6 @@ export function UnifiedStatusBox() {
                     </span>
                   )}
                 </div>
-                <button
-                  onClick={() => setShowNodeModal(true)}
-                  className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
-                  aria-label="View Node details"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </button>
               </div>
               <div className="space-y-1.5 text-xs">
                 {activeNodeType && nodeConfig ? (
@@ -323,59 +312,43 @@ export function UnifiedStatusBox() {
               </div>
             </div>
 
-            {/* Points Section */}
-            <div>
-              <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Points</h4>
-              <div className="space-y-1.5 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-zinc-600 dark:text-zinc-400">Current Balance</span>
-                  <span className="text-xl font-bold text-[#02abb8]">
-                    {holdings ? formatLargeNumber(holdings.xp) : '—'}
-                  </span>
-                </div>
-                <div className="text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-200 dark:border-zinc-700">
-                  Earn 100 XP per 1 KAS spent
-                </div>
-              </div>
-            </div>
-
             {/* Action Buttons */}
             <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700 grid grid-cols-2 gap-2">
               <button
                 onClick={() => setShowKREXBuyWizard(true)}
                 className="px-3 py-2 text-xs font-medium text-center bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
               >
-                Buy & Bridge KREX
+                Buy KREX
               </button>
               <button
                 onClick={() => setShowNFTBuyWizard(true)}
                 className="px-3 py-2 text-xs font-medium text-center bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
               >
-                Buy or Bridge NFTs
+                Buy NFT
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* KREX Details Modal */}
-      {showKREXModal && typeof window !== 'undefined' && createPortal(
+      {/* Unified Rewards Modal */}
+      {showRewardsModal && typeof window !== 'undefined' && createPortal(
         <div
           className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
-          onClick={() => setShowKREXModal(false)}
+          onClick={() => setShowRewardsModal(false)}
         >
           <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
           <div
-            className="relative bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-zinc-200 dark:border-zinc-800"
+            className="relative bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-zinc-200 dark:border-zinc-800"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">KREX Requirements</h2>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">KREX holders unlock tiered rewards</p>
+                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Rewards</h2>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">Complete overview of all reward tiers and multipliers</p>
               </div>
               <button
-                onClick={() => setShowKREXModal(false)}
+                onClick={() => setShowRewardsModal(false)}
                 className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -383,211 +356,190 @@ export function UnifiedStatusBox() {
                 </svg>
               </button>
             </div>
-            <div className="p-6">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-zinc-200 dark:border-zinc-700">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Tier</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Requirement</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reward Multiplier</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Points Multiplier</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.values(KREX_TIERS).map((tier) => {
-                      const isUserTier = tier.tier === krexTier;
-                      return (
-                        <tr
-                          key={tier.tier}
-                          className={`border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${
-                            isUserTier ? 'bg-[#02abb8]/10 dark:bg-[#02abb8]/20' : ''
-                          }`}
-                        >
-                          <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                            {tier.label}
-                            {isUserTier && <span className="ml-2 text-xs text-[#02abb8] font-medium">(Current)</span>}
-                          </td>
-                          <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                            {tier.minKREX === 0 ? '< 10M' : `≥ ${formatLargeNumber(tier.minKREX)}`}
-                          </td>
-                          <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">{tier.multiplier}x</td>
-                          <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">{tier.feePercent}%</td>
-                          <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">{tier.pointsMultiplier}x</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+            <div className="p-6 space-y-8">
+              {/* KREX Tier Rewards Table */}
+              <div>
+                <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">KREX Tier Rewards</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-zinc-200 dark:border-zinc-700">
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Tier</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Requirement</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reward Multiplier</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Points Multiplier</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.values(KREX_TIERS).map((tier) => {
+                        const isUserTier = tier.tier === krexTier;
+                        return (
+                          <tr
+                            key={tier.tier}
+                            className={`border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${
+                              isUserTier ? 'bg-[#02abb8]/10 dark:bg-[#02abb8]/20' : ''
+                            }`}
+                          >
+                            <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                              {tier.label}
+                              {isUserTier && <span className="ml-2 text-xs text-[#02abb8] font-medium">(Current)</span>}
+                            </td>
+                            <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                              {tier.minKREX === 0 ? '< 10M' : `≥ ${formatLargeNumber(tier.minKREX)}`}
+                            </td>
+                            <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">{tier.multiplier}x</td>
+                            <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">{tier.feePercent}%</td>
+                            <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">{tier.pointsMultiplier}x</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
 
-      {/* NFT Details Modal */}
-      {showNFTModal && typeof window !== 'undefined' && createPortal(
-        <div
-          className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
-          onClick={() => setShowNFTModal(false)}
-        >
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
-          <div
-            className="relative bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-zinc-200 dark:border-zinc-800"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex items-center justify-between">
+              {/* NFT Rewards Table */}
               <div>
-                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">NFT Rewards</h2>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">KREXPRIME and PIXELKREX NFT holders unlock additional rewards</p>
+                <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">NFT Rewards</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-zinc-200 dark:border-zinc-700">
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">NFT Type</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reward Multiplier</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee Reduction</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Points</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                          🖼️ Regular NFT
+                          <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                            (KREXPRIME or PIXELKREX)
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
+                          +{NFT_MULTIPLIER}x
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                          -{NFT_FEE_REDUCTION}%
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                          {NFT_POINTS.REGULAR} point
+                        </td>
+                      </tr>
+                      <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                          💎 Diamond NFT
+                          <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                            (Any Diamond from any collection)
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
+                          +{DIAMOND_NFT_MULTIPLIER}x
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                          -{DIAMOND_NFT_FEE_REDUCTION}%
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                          {NFT_POINTS.DIAMOND} points
+                        </td>
+                      </tr>
+                      <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                          ⭐ Rarest NFT
+                          <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                            (#515 PIXELKREX or #345 KREXPRIME)
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
+                          +{RAREST_NFT_MULTIPLIER}x
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                          -{RAREST_NFT_FEE_REDUCTION}% (Zero Fee)
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                          {NFT_POINTS.RAREST} points
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              <button
-                onClick={() => setShowNFTModal(false)}
-                className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="p-6">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-zinc-200 dark:border-zinc-700">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">NFT Type</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reward Multiplier</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee Reduction</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Points</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                        🖼️ Regular NFT
-                        <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                          (KREXPRIME or PIXELKREX)
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
-                        +{NFT_MULTIPLIER}x
-                      </td>
-                      <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                        -{NFT_FEE_REDUCTION}%
-                      </td>
-                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                        {NFT_POINTS.REGULAR} point
-                      </td>
-                    </tr>
-                    <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                        💎 Diamond NFT
-                        <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                          (Any Diamond from any collection)
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
-                        +{DIAMOND_NFT_MULTIPLIER}x
-                      </td>
-                      <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                        -{DIAMOND_NFT_FEE_REDUCTION}%
-                      </td>
-                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                        {NFT_POINTS.DIAMOND} points
-                      </td>
-                    </tr>
-                    <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                        ⭐ Rarest NFT
-                        <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                          (#515 PIXELKREX or #345 KREXPRIME)
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
-                        +{RAREST_NFT_MULTIPLIER}x
-                      </td>
-                      <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                        -{RAREST_NFT_FEE_REDUCTION}% (Zero Fee)
-                      </td>
-                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                        {NFT_POINTS.RAREST} points
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
 
-      {/* Node Details Modal */}
-      {showNodeModal && typeof window !== 'undefined' && createPortal(
-        <div
-          className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
-          onClick={() => setShowNodeModal(false)}
-        >
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
-          <div
-            className="relative bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-zinc-200 dark:border-zinc-800"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex items-center justify-between">
+              {/* Node Rewards Table */}
               <div>
-                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">KREX Node Requirements</h2>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">Run a KREX Node to unlock additional rewards and support the Kasparex Mesh</p>
+                <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Node Rewards</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-zinc-200 dark:border-zinc-700">
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Node Type</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Requirements</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reward Multiplier</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee Reduction</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(NODE_TYPES).map(([key, node]) => {
+                        const isUserNode = activeNodeType === key;
+                        return (
+                          <tr
+                            key={key}
+                            className={`border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${
+                              isUserNode ? 'bg-[#02abb8]/10 dark:bg-[#02abb8]/20' : ''
+                            }`}
+                          >
+                            <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                              {node.name}
+                              {isUserNode && <span className="ml-2 text-xs text-[#02abb8] font-medium">(Active)</span>}
+                            </td>
+                            <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                              Run a {node.name}
+                            </td>
+                            <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
+                              +{node.multiplier - 1}x
+                            </td>
+                            <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                              {node.feeReduction}%
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              <button
-                onClick={() => setShowNodeModal(false)}
-                className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="p-6">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-zinc-200 dark:border-zinc-700">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Node Type</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Requirements</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reward Multiplier</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee Reduction</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.entries(NODE_TYPES).map(([key, node]) => {
-                      const isUserNode = activeNodeType === key;
-                      return (
-                        <tr
-                          key={key}
-                          className={`border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${
-                            isUserNode ? 'bg-[#02abb8]/10 dark:bg-[#02abb8]/20' : ''
-                          }`}
-                        >
-                          <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                            {node.name}
-                            {isUserNode && <span className="ml-2 text-xs text-[#02abb8] font-medium">(Active)</span>}
-                          </td>
-                          <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                            Run a {node.name}
-                          </td>
-                          <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
-                            +{node.multiplier - 1}x
-                          </td>
-                          <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                            {node.feeReduction}%
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+
+              {/* XP Points Table */}
+              <div>
+                <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">XP Points</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-zinc-200 dark:border-zinc-700">
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Activity</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Points Earned</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                          dApp Usage
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                          100 XP
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                          Per 1 KAS spent on dApp transactions
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
