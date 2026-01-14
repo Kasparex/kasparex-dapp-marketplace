@@ -163,7 +163,7 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
   const actions = getDAppActions(dapp, displayTokenTicker);
   
   // Get KREX tier and multipliers from real balance
-  const { tier, isLoading: isKREXLoading } = useKREXBalance();
+  const { balance: krexBalance, tier, isLoading: isKREXLoading } = useKREXBalance();
   const tierConfig = KREX_TIERS[tier];
   const multiplier = tierConfig.multiplier;
   // feePercent is already a percentage (1.0 = 1%), so calculate reduction from base 1%
@@ -201,7 +201,7 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
             <div className="flex items-center justify-between text-xs">
               <span className="text-zinc-600 dark:text-zinc-400">KREX</span>
               <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                {formatLargeNumber(mockKREXBalance)}
+                {isKREXLoading ? 'Loading...' : formatLargeNumber(krexBalance)}
               </span>
             </div>
             <div className="flex items-center justify-between text-xs">
