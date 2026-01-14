@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768432107-365147e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Enhance Rewards modal: add fee inline in status, update labels, add user status inline, add action buttons with balance display, highlight owned NFT rows, add owned column (by Kasparex)",
+      "date": "2026-01-15T00:07:45+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768428569-52974a7",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Merge branch 'main' of https://github.com/Kasparex/kasparex-dapp-marketplace (by Kasparex)",
