@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768433961-e4faaee",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update Rewards Status: remove multiplier breakdown, remove redundant fee from top, replace info icon with button, change multipliers from multiplicative to additive (by Kasparex)",
+      "date": "2026-01-15T00:38:39+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768432107-365147e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Enhance Rewards modal: add fee inline in status, update labels, add user status inline, add action buttons with balance display, highlight owned NFT rows, add owned column (by Kasparex)",
