@@ -96,15 +96,36 @@ async function tryKasWareBalance(address: string): Promise<number | null> {
     
     if (krexToken) {
       console.log('[KREX L1] Found KREX token in KasWare:', krexToken);
-      const balance = typeof krexToken.amount === 'string' 
-        ? parseFloat(krexToken.amount) 
-        : Number(krexToken.amount);
       
-      if (!isNaN(balance) && balance > 0) {
-        console.log(`[KREX L1] ✓ Balance from KasWare: ${balance}`);
+      // KasWare returns balance in smallest unit, need to account for decimals
+      // Check for 'balance' property first (KasWare format), then 'amount' as fallback
+      const rawBalance = krexToken.balance ?? krexToken.amount;
+      const decimals = krexToken.dec !== undefined ? Number(krexToken.dec) : 8; // Default to 8 if not specified
+      
+      if (rawBalance === undefined || rawBalance === null) {
+        console.warn('[KREX L1] No balance/amount property found in KasWare token:', krexToken);
+        return null;
+      }
+      
+      // Convert from string/number to number
+      const rawBalanceNum = typeof rawBalance === 'string' 
+        ? parseFloat(rawBalance) 
+        : Number(rawBalance);
+      
+      if (isNaN(rawBalanceNum)) {
+        console.warn('[KREX L1] Invalid balance format from KasWare:', rawBalance);
+        return null;
+      }
+      
+      // Convert from smallest unit to actual balance (divide by 10^decimals)
+      const balance = rawBalanceNum / Math.pow(10, decimals);
+      
+      if (balance > 0) {
+        console.log(`[KREX L1] ✓ Balance from KasWare: ${balance} (raw: ${rawBalanceNum}, decimals: ${decimals})`);
         return balance;
       } else {
-        console.warn('[KREX L1] Invalid or zero balance from KasWare:', krexToken.amount);
+        console.log('[KREX L1] Zero balance from KasWare');
+        return 0;
       }
     } else {
       console.log('[KREX L1] KREX token not found in KasWare token list. Available ticks:', 
