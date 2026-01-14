@@ -10,8 +10,8 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 
 export function KREXStatusBox() {
   const { isConnected } = useAccount();
-  const { balance, tier, isLoading, error } = useKREXBalance();
-  const tierConfig = KREX_TIERS[tier];
+  const { balance, tier: krexTier, isLoading, error } = useKREXBalance();
+  const tierConfig = KREX_TIERS[krexTier];
   const [showModal, setShowModal] = useState(false);
   const [showBuyWizard, setShowBuyWizard] = useState(false);
 
