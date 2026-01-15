@@ -5,7 +5,7 @@ import { useAccount } from 'wagmi';
 import { DApp } from '@/lib/dapps';
 import { getDefaultRewardsBreakdown, getMockWalletHoldings } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
-import { KREX_TIERS, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION } from '@/lib/rewards/types';
+import { KREX_TIERS, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION, LIGHT_NODE_COST_REDUCTION, MIRROR_NODE_COST_REDUCTION } from '@/lib/rewards/types';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 
@@ -195,13 +195,41 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
   
   // Calculate total fee reduction for display
   const totalFeeReduction = baseFee - feePercent;
+  
+  // Calculate transaction cost reduction (stacks with fee reduction)
+  let costReductionPercent = 0;
+  if (krexBalance > 0) {
+    costReductionPercent = tierConfig.costReduction;
+  }
+  
+  // Apply NFT cost reductions (stack with tier reduction)
+  if (hasRarestNFT) {
+    costReductionPercent += RAREST_NFT_COST_REDUCTION;
+  } else if (hasDiamondNFT) {
+    costReductionPercent += DIAMOND_NFT_COST_REDUCTION;
+  } else if (hasAnyNFT) {
+    costReductionPercent += NFT_COST_REDUCTION;
+  }
+  
+  // Apply node cost reductions (mock node status for now - same as UnifiedStatusBox)
+  const mockNodeStatus = { hasLightNode: false, hasMirrorNode: false };
+  if (mockNodeStatus.hasMirrorNode) {
+    costReductionPercent += MIRROR_NODE_COST_REDUCTION;
+  } else if (mockNodeStatus.hasLightNode) {
+    costReductionPercent += LIGHT_NODE_COST_REDUCTION;
+  }
+  
+  // Cap cost reduction at 50% maximum
+  costReductionPercent = Math.min(costReductionPercent, 50);
 
   // Calculate total predicted rewards if user completes all actions
   const totalPredicted = actions.reduce(
     (acc, action) => {
-      // Calculate fee amount based on feePercent
-      const feeAmount = (action.costKAS * feePercent) / 100;
-      const totalCostWithFee = action.costKAS + feeAmount;
+      // Apply cost reduction to base cost
+      const reducedCost = action.costKAS * (1 - costReductionPercent / 100);
+      // Calculate fee amount based on feePercent (fee is calculated on reduced cost)
+      const feeAmount = (reducedCost * feePercent) / 100;
+      const totalCostWithFee = reducedCost + feeAmount;
       
       return {
         grid: acc.grid + action.baseRewards.grid * multiplier,
@@ -261,6 +289,14 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
                   {tierConfig.label} ({multiplier}x)
                 </span>
               </div>
+              {costReductionPercent > 0 && (
+                <div className="flex items-center justify-between text-xs mt-1.5">
+                  <span className="text-zinc-600 dark:text-zinc-400">Cost Reduction</span>
+                  <span className="font-semibold text-green-600 dark:text-green-400">
+                    -{costReductionPercent.toFixed(0)}%
+                  </span>
+                </div>
+              )}
               {totalFeeReduction > 0 && (
                 <div className="flex items-center justify-between text-xs mt-1.5">
                   <span className="text-zinc-600 dark:text-zinc-400">Fee Reduction</span>
@@ -290,9 +326,11 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
             token: action.baseRewards.token * multiplier,
             xp: action.baseRewards.xp * multiplier,
           };
-          // Calculate cost with fee: base cost + fee amount
-          const feeAmount = (action.costKAS * feePercent) / 100;
-          const totalCostWithFee = action.costKAS + feeAmount;
+          // Apply cost reduction to base cost
+          const reducedCost = action.costKAS * (1 - costReductionPercent / 100);
+          // Calculate fee amount based on feePercent (fee is calculated on reduced cost)
+          const feeAmount = (reducedCost * feePercent) / 100;
+          const totalCostWithFee = reducedCost + feeAmount;
 
           return (
             <div key={action.step} className="relative">
@@ -317,13 +355,16 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-xs text-zinc-600 dark:text-zinc-400">
                         Cost: <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {feePercent < baseFee ? (
+                          {costReductionPercent > 0 || feePercent < baseFee ? (
                             <>
                               <span className="line-through text-zinc-400">
                                 {action.costKAS.toFixed(2)} KAS + {baseFee.toFixed(2)}% fee
                               </span>
                               <span className="ml-1 text-green-600 dark:text-green-400">
-                                {totalCostWithFee.toFixed(2)} KAS ({feePercent.toFixed(2)}% fee)
+                                {totalCostWithFee.toFixed(2)} KAS
+                                {costReductionPercent > 0 && ` (-${costReductionPercent.toFixed(0)}% cost`}
+                                {feePercent < baseFee && `, ${feePercent.toFixed(2)}% fee`}
+                                {costReductionPercent > 0 || feePercent < baseFee ? ')' : ''}
                               </span>
                             </>
                           ) : (

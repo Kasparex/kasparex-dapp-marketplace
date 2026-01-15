@@ -9,6 +9,7 @@ export interface KREXTierConfig {
   minKREX: number;
   multiplier: number;
   feeReduction: number; // Fee reduction from base fee (in percentage points, e.g., 0.1 = -0.1%)
+  costReduction: number; // Transaction cost reduction (as percentage, e.g., 0 = 0%, 2 = 2%, 5 = 5%)
   pointsMultiplier: number;
   label: string;
   description: string;
@@ -162,14 +163,19 @@ export const BASE_REWARDS = {
 // NFT multipliers and fee reductions
 export const NFT_MULTIPLIER = 1; // +1x multiplier if holding at least 1 NFT from KREXPRIME or PIXELKREX collections
 export const NFT_FEE_REDUCTION = 0.1; // 0.1% fee reduction
+export const NFT_COST_REDUCTION = 1; // 1% transaction cost reduction
 export const DIAMOND_NFT_MULTIPLIER = 3; // +3x multiplier for any Diamond NFT from any collection
 export const DIAMOND_NFT_FEE_REDUCTION = 0.2; // 0.2% fee reduction for Diamond NFTs
+export const DIAMOND_NFT_COST_REDUCTION = 3; // 3% transaction cost reduction
 export const RAREST_NFT_MULTIPLIER = 5; // +5x multiplier for rarest NFT (#515 PIXELKREX or #345 KREXPRIME)
 export const RAREST_NFT_FEE_REDUCTION = 100; // 100% fee reduction = zero-fee mode
+export const RAREST_NFT_COST_REDUCTION = 5; // 5% transaction cost reduction
 
 // Node provider defaults
 export const DEFAULT_NODE_MULTIPLIER = 5; // 5x multiplier for node providers
 export const DEFAULT_NODE_FEE_REDUCTION = 0.1; // 0.1% fee reduction for node providers
+export const LIGHT_NODE_COST_REDUCTION = 2; // 2% transaction cost reduction for Light Node
+export const MIRROR_NODE_COST_REDUCTION = 5; // 5% transaction cost reduction for Mirror Node
 
 // Default fee distribution percentages
 export const DEFAULT_FEE_DISTRIBUTION = {
