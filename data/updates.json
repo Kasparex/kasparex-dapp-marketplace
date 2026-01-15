@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768504829-1cedb46",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix Fees & Points box title and add fee info, fix DAppActionFlow to apply NFT fee reductions correctly (by Kasparex)",
+      "date": "2026-01-15T20:19:25+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768502860-a8e0383",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix multipliers to 0x when no KREX/NFTs, update titles, replace sidebar filters with scroll-to menu (by Kasparex)",
