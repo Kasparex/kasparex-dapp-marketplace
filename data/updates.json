@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768495700-99f36e8",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add consistent tier badges, tooltips, Setup Node button, mobile responsiveness, and remove Total Owned column (by Kasparex)",
+      "date": "2026-01-15T17:47:21+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768493513-2e75dfc",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error in NFTRewardsTable count comparison (by Kasparex)",
