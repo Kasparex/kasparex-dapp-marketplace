@@ -149,10 +149,10 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
       case 'tierBadge':
         return true; // All tiers have badges now
       case 'benefit1':
-        // Early Access for Tier 3+
+        // vBlog Premium for Tier 3+
         return tier.minKREX >= KREX_TIERS.Tier3.minKREX;
       case 'benefit2':
-        // Analytics Dashboard for Tier 4
+        // Unlimited Comments for Tier 4
         return tier.minKREX >= KREX_TIERS.Tier4.minKREX;
       default:
         return false;
