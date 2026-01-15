@@ -250,11 +250,11 @@ export function getUserRewardStatus(
   const allRewards = getAllRewards();
   const { krexTier, krexBalance, nftStatus, hasNode, nodeType } = userStatus;
 
-  const hasAnyNFT = nftStatus.hasKREXPRIME || nftStatus.hasPIXELKREX ||
-    (nftStatus.partnerCollections && Object.values(nftStatus.partnerCollections).some(v => v));
-  const hasDiamondNFT = nftStatus.hasDiamondKREXPRIME || nftStatus.hasDiamondPIXELKREX ||
-    (nftStatus.partnerDiamonds && Object.values(nftStatus.partnerDiamonds).some(v => v));
-  const hasRarestNFT = nftStatus.hasRarestNFT;
+  const hasAnyNFT = !!(nftStatus.hasKREXPRIME || nftStatus.hasPIXELKREX ||
+    (nftStatus.partnerCollections && Object.values(nftStatus.partnerCollections).some(v => v)));
+  const hasDiamondNFT = !!(nftStatus.hasDiamondKREXPRIME || nftStatus.hasDiamondPIXELKREX ||
+    (nftStatus.partnerDiamonds && Object.values(nftStatus.partnerDiamonds).some(v => v)));
+  const hasRarestNFT = !!nftStatus.hasRarestNFT;
 
   return allRewards.map((reward) => {
     let isUnlocked = false;
@@ -281,7 +281,7 @@ export function getUserRewardStatus(
           isUnlocked = hasDiamondNFT && !hasRarestNFT;
           if (isUnlocked) userStatusText = 'You have this';
         } else if (reward.id === 'nft-rarest') {
-          isUnlocked = hasRarestNFT;
+          isUnlocked = !!hasRarestNFT;
           if (isUnlocked) userStatusText = 'You have this';
         }
         break;
