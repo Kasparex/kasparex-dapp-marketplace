@@ -140,7 +140,6 @@ export function calculateRewards(
   
   // Apply tier-based fee reductions from the base fee (like NFT fee reductions)
   // All tiers now use fee reduction system
-  const tierConfig = KREX_TIERS[krexTier];
   feePercent = Math.max(0, feePercent - tierConfig.feeReduction);
   
   // Apply NFT fee reductions (stack with tier reduction)
