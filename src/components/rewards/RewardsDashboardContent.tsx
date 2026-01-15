@@ -71,7 +71,7 @@ export function RewardsDashboardContent({
             </h3>
             {isKREXLoading ? (
               <div className="text-sm text-zinc-500 dark:text-zinc-400">Loading...</div>
-            ) : isConnected ? (
+            ) : (
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-zinc-600 dark:text-zinc-400">L1 Balance</span>
@@ -91,16 +91,14 @@ export function RewardsDashboardContent({
                     {formatLargeNumber(krexBalance || 0)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-zinc-600 dark:text-zinc-400">Current Tier</span>
-                  <span className="text-xs px-2 py-1 bg-[#02abb8]/10 text-[#02abb8] rounded font-medium">
-                    {krexTier.replace('Tier', 'Tier ')}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                Connect wallet to view balance
+                {krexBalance > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-600 dark:text-zinc-400">Current Tier</span>
+                    <span className="text-xs px-2 py-1 bg-[#02abb8]/10 text-[#02abb8] rounded font-medium">
+                      {krexTier.replace('Tier', 'Tier ')}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -112,7 +110,7 @@ export function RewardsDashboardContent({
             </h3>
             {isGRIDLoading ? (
               <div className="text-sm text-zinc-500 dark:text-zinc-400">Loading...</div>
-            ) : isConnected ? (
+            ) : (
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-zinc-600 dark:text-zinc-400">Balance</span>
@@ -120,24 +118,6 @@ export function RewardsDashboardContent({
                     {gridFormattedBalance || '0'}
                   </span>
                 </div>
-                <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-600 dark:text-zinc-400">XP Rewards</span>
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                      {holdings ? formatLargeNumber(holdings.xp) : '0'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-zinc-600 dark:text-zinc-400">NFT Points</span>
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                      {isNFTLoading ? 'Loading...' : formatLargeNumber(nftPoints || 0)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                Connect wallet to view balance
               </div>
             )}
           </div>
@@ -246,6 +226,7 @@ export function RewardsDashboardContent({
             ) : (
               <NFTRewardsTable
                 nftStatus={nftStatus || defaultNFTStatus}
+                nftPoints={nftPoints || 0}
               />
             )}
           </div>

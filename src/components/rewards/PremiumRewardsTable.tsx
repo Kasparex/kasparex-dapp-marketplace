@@ -69,17 +69,17 @@ export function PremiumRewardsTable({ krexTier, nftStatus }: PremiumRewardsTable
   };
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
       <table className="w-full border-collapse">
         <thead>
           <tr className="bg-zinc-100 dark:bg-zinc-800">
-            <th className="border border-zinc-300 dark:border-zinc-700 py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100 text-left">
+            <th className="border-b border-zinc-200 dark:border-zinc-700 py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100 text-left">
               Rewards
             </th>
             {premiumFeatures.map((feature) => (
               <th
                 key={feature.id}
-                className={`border border-zinc-300 dark:border-zinc-700 py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100 text-center ${
+                className={`border-b border-zinc-200 dark:border-zinc-700 py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100 text-center ${
                   feature.isUnlocked ? 'bg-[#02abb8]/10 dark:bg-[#02abb8]/20' : ''
                 }`}
               >
@@ -97,8 +97,8 @@ export function PremiumRewardsTable({ krexTier, nftStatus }: PremiumRewardsTable
         </thead>
         <tbody>
           {benefitRows.map((row) => (
-            <tr key={row.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-              <td className="border border-zinc-300 dark:border-zinc-700 py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100 bg-zinc-50 dark:bg-zinc-900">
+            <tr key={row.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors border-b border-zinc-100 dark:border-zinc-800 last:border-b-0">
+              <td className="border-r border-zinc-200 dark:border-zinc-700 py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100 bg-zinc-50 dark:bg-zinc-900">
                 {row.label}
               </td>
               {premiumFeatures.map((feature) => {
@@ -107,7 +107,7 @@ export function PremiumRewardsTable({ krexTier, nftStatus }: PremiumRewardsTable
                 return (
                   <td
                     key={feature.id}
-                    className={`border border-zinc-300 dark:border-zinc-700 py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 text-center ${
+                    className={`border-r border-zinc-200 dark:border-zinc-700 py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 text-center last:border-r-0 ${
                       feature.isUnlocked ? 'bg-[#02abb8]/5 dark:bg-[#02abb8]/10' : ''
                     }`}
                   >
