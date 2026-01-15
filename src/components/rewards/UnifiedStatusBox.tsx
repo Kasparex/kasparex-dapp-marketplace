@@ -111,17 +111,33 @@ export function UnifiedStatusBox() {
     ...getPartnerCollections().map(coll => ({ id: coll.id, name: coll.partnerName || coll.name, isPartner: true })),
   ];
 
-  // Calculate diamond counts per collection
+  // Calculate diamond, regular, and rarest counts per collection
   const [diamondCountsByCollection, setDiamondCountsByCollection] = useState<Record<string, number>>({});
+  const [regularCountsByCollection, setRegularCountsByCollection] = useState<Record<string, number>>({});
+  const [rarestCountsByCollection, setRarestCountsByCollection] = useState<Record<string, number>>({});
+  
+  // Helper function to check if NFT is rarest
+  const isRareNFT = (collectionId: string, tokenId: number): boolean => {
+    const RARE_NFT_IDS: Record<string, number[]> = {
+      KREXPRIME: [345],
+      PIXELKREX: [515],
+    };
+    const rareIds = RARE_NFT_IDS[collectionId];
+    return rareIds ? rareIds.includes(tokenId) : false;
+  };
   
   useEffect(() => {
     if (!nfts || nfts.length === 0) {
       setDiamondCountsByCollection({});
+      setRegularCountsByCollection({});
+      setRarestCountsByCollection({});
       return;
     }
 
-    const calculateDiamondCounts = async () => {
-      const counts: Record<string, number> = {};
+    const calculateCounts = async () => {
+      const diamondCounts: Record<string, number> = {};
+      const regularCounts: Record<string, number> = {};
+      const rarestCounts: Record<string, number> = {};
       const metadataMap = new Map<string, ParsedNFTMetadata>();
       
       // Group NFTs by collection
@@ -142,19 +158,28 @@ export function UnifiedStatusBox() {
         });
       }
 
-      // Count diamonds per collection
+      // Count diamonds, regular, and rarest per collection
       nfts.forEach((nft) => {
         const metadataKey = `${nft.collection}-${nft.tokenId}`;
         const metadata = metadataMap.get(metadataKey) || null;
-        if (isDiamondNFT(nft.collection, metadata)) {
-          counts[nft.collection] = (counts[nft.collection] || 0) + 1;
+        const isDiamond = isDiamondNFT(nft.collection, metadata);
+        const isRarest = isRareNFT(nft.collection, nft.tokenId);
+        
+        if (isRarest) {
+          rarestCounts[nft.collection] = (rarestCounts[nft.collection] || 0) + 1;
+        } else if (isDiamond) {
+          diamondCounts[nft.collection] = (diamondCounts[nft.collection] || 0) + 1;
+        } else {
+          regularCounts[nft.collection] = (regularCounts[nft.collection] || 0) + 1;
         }
       });
 
-      setDiamondCountsByCollection(counts);
+      setDiamondCountsByCollection(diamondCounts);
+      setRegularCountsByCollection(regularCounts);
+      setRarestCountsByCollection(rarestCounts);
     };
 
-    calculateDiamondCounts();
+    calculateCounts();
   }, [nfts]);
 
   // Modal states
@@ -546,6 +571,82 @@ export function UnifiedStatusBox() {
                 </div>
               </div>
 
+              {/* NFT Rewards Table */}
+              <div>
+                <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">NFT Rewards</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-zinc-200 dark:border-zinc-700">
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">NFT Type</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reward Multiplier</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee Reduction</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Points</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className={`border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${
+                        hasAnyNFT && !hasDiamondNFT && !hasRarestNFT ? 'bg-[#02abb8]/10 dark:bg-[#02abb8]/20' : ''
+                      }`}>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                          🖼️ Regular NFT
+                          <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                            (KREXPRIME or PIXELKREX)
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
+                          +{NFT_MULTIPLIER}x
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                          -{NFT_FEE_REDUCTION}%
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                          {NFT_POINTS.REGULAR} point
+                        </td>
+                      </tr>
+                      <tr className={`border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${
+                        hasDiamondNFT && !hasRarestNFT ? 'bg-[#02abb8]/10 dark:bg-[#02abb8]/20' : ''
+                      }`}>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                          💎 Diamond NFT
+                          <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                            (Any Diamond from any collection)
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
+                          +{DIAMOND_NFT_MULTIPLIER}x
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                          -{DIAMOND_NFT_FEE_REDUCTION}%
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                          {NFT_POINTS.DIAMOND} points
+                        </td>
+                      </tr>
+                      <tr className={`border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${
+                        hasRarestNFT ? 'bg-[#02abb8]/10 dark:bg-[#02abb8]/20' : ''
+                      }`}>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                          ⭐ Rarest NFT
+                          <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                            (#515 PIXELKREX or #345 KREXPRIME)
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
+                          +{RAREST_NFT_MULTIPLIER}x
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                          -{RAREST_NFT_FEE_REDUCTION}% (Zero Fee)
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                          {NFT_POINTS.RAREST} points
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
               {/* NFT Status Table - Detailed per Collection */}
               <div>
                 <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">NFT Status</h3>
@@ -554,18 +655,18 @@ export function UnifiedStatusBox() {
                     <thead>
                       <tr className="border-b border-zinc-200 dark:border-zinc-700">
                         <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Collection</th>
-                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Total Owned</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Regular</th>
                         <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Diamonds</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Rarest</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Owned</th>
                       </tr>
                     </thead>
                     <tbody>
                       {allCollections.map((coll) => {
                         const count = nftCountsByCollection[coll.id] || 0;
-                        const hasDiamonds = coll.id === 'KREXPRIME' 
-                          ? status.hasDiamondKREXPRIME
-                          : coll.id === 'PIXELKREX'
-                          ? status.hasDiamondPIXELKREX
-                          : status.partnerDiamonds?.[coll.id] || false;
+                        const regularCount = regularCountsByCollection[coll.id] || 0;
+                        const diamondCount = diamondCountsByCollection[coll.id] || 0;
+                        const rarestCount = rarestCountsByCollection[coll.id] || 0;
                         const hasNFTs = count > 0;
                         
                         return (
@@ -582,18 +683,36 @@ export function UnifiedStatusBox() {
                               )}
                             </td>
                             <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
-                              {hasNFTs ? (
+                              {regularCount > 0 ? (
                                 <span className="text-green-600 dark:text-green-400 font-medium">
-                                  {count} NFT{count !== 1 ? 's' : ''}
+                                  {regularCount}
                                 </span>
                               ) : (
                                 <span className="text-zinc-400">—</span>
                               )}
                             </td>
                             <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
-                              {hasDiamonds ? (
+                              {diamondCount > 0 ? (
                                 <span className="text-purple-600 dark:text-purple-400 font-medium">
-                                  💎 Yes {diamondCountsByCollection[coll.id] ? `(${diamondCountsByCollection[coll.id]})` : ''}
+                                  💎 {diamondCount}
+                                </span>
+                              ) : (
+                                <span className="text-zinc-400">—</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
+                              {rarestCount > 0 ? (
+                                <span className="text-yellow-600 dark:text-yellow-400 font-medium">
+                                  ⭐ {rarestCount}
+                                </span>
+                              ) : (
+                                <span className="text-zinc-400">—</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
+                              {hasNFTs ? (
+                                <span className="text-green-600 dark:text-green-400 font-medium">
+                                  {count} NFT{count !== 1 ? 's' : ''}
                                 </span>
                               ) : (
                                 <span className="text-zinc-400">—</span>
@@ -625,110 +744,6 @@ export function UnifiedStatusBox() {
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-
-              {/* NFT Rewards Table */}
-              <div>
-                <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">NFT Rewards</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-zinc-200 dark:border-zinc-700">
-                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">NFT Type</th>
-                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reward Multiplier</th>
-                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee Reduction</th>
-                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Points</th>
-                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Owned</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className={`border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${
-                        hasAnyNFT && !hasDiamondNFT && !hasRarestNFT ? 'bg-[#02abb8]/10 dark:bg-[#02abb8]/20' : ''
-                      }`}>
-                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                          🖼️ Regular NFT
-                          <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                            (KREXPRIME or PIXELKREX)
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
-                          +{NFT_MULTIPLIER}x
-                        </td>
-                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                          -{NFT_FEE_REDUCTION}%
-                        </td>
-                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                          {NFT_POINTS.REGULAR} point
-                        </td>
-                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
-                          {hasAnyNFT && !hasDiamondNFT && !hasRarestNFT ? (
-                            <span className="text-green-600 dark:text-green-400 font-medium">
-                              {regularNFTCount} NFT{regularNFTCount !== 1 ? 's' : ''}
-                            </span>
-                          ) : (
-                            <span className="text-zinc-400">—</span>
-                          )}
-                        </td>
-                      </tr>
-                      <tr className={`border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${
-                        hasDiamondNFT && !hasRarestNFT ? 'bg-[#02abb8]/10 dark:bg-[#02abb8]/20' : ''
-                      }`}>
-                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                          💎 Diamond NFT
-                          <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                            (Any Diamond from any collection)
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
-                          +{DIAMOND_NFT_MULTIPLIER}x
-                        </td>
-                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                          -{DIAMOND_NFT_FEE_REDUCTION}%
-                        </td>
-                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                          {NFT_POINTS.DIAMOND} points
-                        </td>
-                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
-                          {hasDiamondNFT && !hasRarestNFT ? (
-                            <span className="text-green-600 dark:text-green-400 font-medium">
-                              {totalNFTCount} NFT{totalNFTCount !== 1 ? 's' : ''}
-                            </span>
-                          ) : (
-                            <span className="text-zinc-400">—</span>
-                          )}
-                        </td>
-                      </tr>
-                      <tr className={`border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${
-                        hasRarestNFT ? 'bg-[#02abb8]/10 dark:bg-[#02abb8]/20' : ''
-                      }`}>
-                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                          ⭐ Rarest NFT
-                          <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                            (#515 PIXELKREX or #345 KREXPRIME)
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
-                          +{RAREST_NFT_MULTIPLIER}x
-                        </td>
-                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                          -{RAREST_NFT_FEE_REDUCTION}% (Zero Fee)
-                        </td>
-                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                          {NFT_POINTS.RAREST} points
-                        </td>
-                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
-                          {hasRarestNFT ? (
-                            <span className="text-green-600 dark:text-green-400 font-medium">
-                              1 NFT
-                            </span>
-                          ) : (
-                            <span className="text-zinc-400">—</span>
-                          )}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
                 </div>
               </div>
 
