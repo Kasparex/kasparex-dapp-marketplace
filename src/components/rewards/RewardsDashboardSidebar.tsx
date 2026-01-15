@@ -61,8 +61,7 @@ export function RewardsDashboardSidebar({
   onSearchChange,
 }: RewardsDashboardSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [typesExpanded, setTypesExpanded] = useState(true);
-  const [statusExpanded, setStatusExpanded] = useState(true);
+  const [menuExpanded, setMenuExpanded] = useState(true);
   
   // Sidebar hide/show and resize state
   const [isHidden, setIsHidden] = useState(false);
@@ -113,38 +112,21 @@ export function RewardsDashboardSidebar({
     };
   }, [isResizing]);
 
-  const handleFilterToggle = (category: 'types' | 'status', value: string) => {
-    const currentFilters = filters[category] as string[];
-    const newFilters = currentFilters.includes(value)
-      ? currentFilters.filter((f) => f !== value)
-      : [...currentFilters, value];
-    
-    onFilterChange({
-      ...filters,
-      [category]: newFilters as any,
-    });
-  };
-
-  const handleSelectAll = (category: 'types' | 'status') => {
-    if (category === 'types') {
-      onFilterChange({
-        ...filters,
-        types: ['krex-tier', 'nft', 'node', 'premium'],
-      });
-    } else {
-      onFilterChange({
-        ...filters,
-        status: ['unlocked', 'locked'],
-      });
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Close mobile menu after clicking
+      setIsOpen(false);
     }
   };
 
-  const handleDeselectAll = (category: 'types' | 'status') => {
-    onFilterChange({
-      ...filters,
-      [category]: [],
-    });
-  };
+  const rewardTypes = [
+    { id: 'krex-tier-rewards', label: 'KREX Tier Rewards' },
+    { id: 'nft-rewards', label: 'NFT Rewards' },
+    { id: 'node-rewards', label: 'Node Rewards' },
+    { id: 'premium-features', label: 'Premium Features' },
+  ];
 
   return (
     <>
@@ -262,114 +244,28 @@ export function RewardsDashboardSidebar({
         </div>
 
         <div className={`p-4 lg:p-6 ${isHidden ? 'lg:hidden' : ''}`}>
-          {/* Reward Type Filter */}
+          {/* Reward Types Menu */}
           <CollapsibleSection
-            title="Reward Type"
+            title="Reward Types"
             icon={
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             }
-            expanded={typesExpanded}
-            onToggle={() => setTypesExpanded(!typesExpanded)}
+            expanded={menuExpanded}
+            onToggle={() => setMenuExpanded(!menuExpanded)}
           >
-            <div className="mb-4">
-              <div className="flex gap-2 mb-2">
+            <nav className="space-y-1">
+              {rewardTypes.map((type) => (
                 <button
-                  onClick={() => handleSelectAll('types')}
-                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                  key={type.id}
+                  onClick={() => scrollToSection(type.id)}
+                  className="w-full text-left px-4 py-2 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
                 >
-                  Select All
+                  {type.label}
                 </button>
-                <button
-                  onClick={() => handleDeselectAll('types')}
-                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                >
-                  Deselect All
-                </button>
-              </div>
-              <nav className="space-y-1">
-                {(['krex-tier', 'nft', 'node', 'premium'] as const).map((type) => (
-                  <label
-                    key={type}
-                    className={`
-                      checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
-                      transition-colors pl-8
-                      ${
-                        filters.types.includes(type)
-                          ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                          : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
-                      }
-                    `}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={filters.types.includes(type)}
-                      onChange={() => handleFilterToggle('types', type)}
-                    />
-                    <div className="control__indicator"></div>
-                    <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1 capitalize">
-                      {type === 'krex-tier' ? 'KREX Tiers' : type === 'nft' ? 'NFT Rewards' : type === 'node' ? 'Node Rewards' : 'Premium Features'}
-                    </span>
-                  </label>
-                ))}
-              </nav>
-            </div>
-          </CollapsibleSection>
-
-          {/* Status Filter */}
-          <CollapsibleSection
-            title="Status"
-            icon={
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            }
-            expanded={statusExpanded}
-            onToggle={() => setStatusExpanded(!statusExpanded)}
-          >
-            <div className="mb-4">
-              <div className="flex gap-2 mb-2">
-                <button
-                  onClick={() => handleSelectAll('status')}
-                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                >
-                  Select All
-                </button>
-                <button
-                  onClick={() => handleDeselectAll('status')}
-                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                >
-                  Deselect All
-                </button>
-              </div>
-              <nav className="space-y-1">
-                {(['unlocked', 'locked'] as const).map((status) => (
-                  <label
-                    key={status}
-                    className={`
-                      checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
-                      transition-colors pl-8
-                      ${
-                        filters.status.includes(status)
-                          ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                          : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
-                      }
-                    `}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={filters.status.includes(status)}
-                      onChange={() => handleFilterToggle('status', status)}
-                    />
-                    <div className="control__indicator"></div>
-                    <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1 capitalize">
-                      {status}
-                    </span>
-                  </label>
-                ))}
-              </nav>
-            </div>
+              ))}
+            </nav>
           </CollapsibleSection>
         </div>
       </aside>

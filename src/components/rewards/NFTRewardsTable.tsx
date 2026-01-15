@@ -118,7 +118,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
       id: 'diamond',
       name: 'Diamond NFT',
       icon: '💎',
-      requirement: '1+ Diamond NFT (any collection)',
+      requirement: '1+ Diamond NFT',
       multiplier: DIAMOND_NFT_MULTIPLIER,
       feeReduction: DIAMOND_NFT_FEE_REDUCTION,
       points: NFT_POINTS.DIAMOND,

@@ -131,7 +131,8 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
       case 'requirements':
         return tier.minKREX === 0 ? '< 10M KREX' : `≥ ${formatLargeNumber(tier.minKREX)} KREX`;
       case 'multiplier':
-        return `${tier.multiplier}x`;
+        // If user doesn't have KREX, multiplier is 0x
+        return krexBalance >= tier.minKREX ? `${tier.multiplier}x` : '0x';
       case 'feeReduction':
         const actualFee = calculateActualFee(tier);
         const hasReduction = actualFee < baseFee;
@@ -145,7 +146,8 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
         }
         return `${baseFee.toFixed(2)}%`;
       case 'pointsMultiplier':
-        return `${tier.pointsMultiplier}x`;
+        // If user doesn't have KREX, points multiplier is 0x
+        return krexBalance >= tier.minKREX ? `${tier.pointsMultiplier}x` : '0x';
       case 'tierBadge':
         return true; // All tiers have badges now
       case 'benefit1':

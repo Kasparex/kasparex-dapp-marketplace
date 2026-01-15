@@ -10,7 +10,7 @@ import { getAllDApps } from '@/lib/dapps';
 import { getMockWalletHoldings } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { type UserRewardStatus } from '@/lib/rewards/dashboard-data';
-import { KREX_TIERS, NFT_MULTIPLIER, DIAMOND_NFT_MULTIPLIER, RAREST_NFT_MULTIPLIER } from '@/lib/rewards/types';
+import { KREX_TIERS, NFT_MULTIPLIER, DIAMOND_NFT_MULTIPLIER, RAREST_NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION } from '@/lib/rewards/types';
 import { TierRewardsTable } from './TierRewardsTable';
 import { NFTRewardsTable } from './NFTRewardsTable';
 import { NodeRewardsTable } from './NodeRewardsTable';
@@ -59,10 +59,10 @@ export function RewardsDashboardContent({
 
   return (
     <div className="space-y-8">
-      {/* Token Balances Dashboard */}
+      {/* Dashboard & Rewards */}
       <div>
         <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-6">
-          Token Balances
+          Dashboard & Rewards
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
@@ -110,8 +110,10 @@ export function RewardsDashboardContent({
             </h3>
             <div className="space-y-2 text-sm">
               {(() => {
+                // If no KREX, multiplier is 0x
+                const hasKREX = krexBalance > 0;
                 const krexTierConfig = KREX_TIERS[krexTier];
-                const krexMultiplier = krexTierConfig.multiplier;
+                const krexMultiplier = hasKREX ? krexTierConfig.multiplier : 0;
                 
                 // Calculate NFT multiplier
                 const hasAnyNFT = !!(nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX ||
@@ -251,7 +253,7 @@ export function RewardsDashboardContent({
       <div className="space-y-8">
         {/* KREX Tier Rewards Table */}
         {(!filters.types.length || filters.types.includes('krex-tier')) && (
-          <div>
+          <div id="krex-tier-rewards">
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
               KREX Tier Rewards
             </h2>
@@ -270,9 +272,9 @@ export function RewardsDashboardContent({
 
         {/* NFT Rewards Table */}
         {(!filters.types.length || filters.types.includes('nft')) && (
-          <div>
+          <div id="nft-rewards">
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-              NFT Rewards
+              NFT Rewards (PIXELKREX and KREXPRIME)
             </h2>
             {isLoading ? (
               <div className="p-8 text-center text-zinc-500 dark:text-zinc-400">
@@ -289,7 +291,7 @@ export function RewardsDashboardContent({
 
         {/* Node Rewards Table */}
         {(!filters.types.length || filters.types.includes('node')) && (
-          <div>
+          <div id="node-rewards">
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
               Node Rewards
             </h2>
