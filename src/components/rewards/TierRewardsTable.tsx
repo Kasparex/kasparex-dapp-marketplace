@@ -9,6 +9,8 @@ import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { KREXBuyWizard } from './KREXBuyWizard';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
+import { TierBadge } from './TierBadge';
+import { RewardTooltip } from './RewardTooltip';
 
 interface TierRewardsTableProps {
   currentTier: KREXTier;
@@ -126,51 +128,11 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
     return krexBalance >= tier.minKREX;
   };
 
-  const getTierBadge = (tier: typeof tiers[0]) => {
-    const isUnlocked = isTierUnlocked(tier);
-    const tierColors: Record<string, { bg: string; text: string; darkBg: string; darkText: string }> = {
-      Tier1: {
-        bg: 'bg-blue-100 dark:bg-blue-900/30',
-        text: 'text-blue-700 dark:text-blue-300',
-        darkBg: 'dark:bg-blue-900/30',
-        darkText: 'dark:text-blue-300',
-      },
-      Tier2: {
-        bg: 'bg-green-100 dark:bg-green-900/30',
-        text: 'text-green-700 dark:text-green-300',
-        darkBg: 'dark:bg-green-900/30',
-        darkText: 'dark:text-green-300',
-      },
-      Tier3: {
-        bg: 'bg-purple-100 dark:bg-purple-900/30',
-        text: 'text-purple-700 dark:text-purple-300',
-        darkBg: 'dark:bg-purple-900/30',
-        darkText: 'dark:text-purple-300',
-      },
-      Tier4: {
-        bg: 'bg-yellow-100 dark:bg-yellow-900/30',
-        text: 'text-yellow-700 dark:text-yellow-300',
-        darkBg: 'dark:bg-yellow-900/30',
-        darkText: 'dark:text-yellow-300',
-      },
-    };
-    const colors = tierColors[tier.tier] || tierColors.Tier1;
-    
-    return (
-      <span className={`px-2 py-1 text-xs font-medium rounded ${
-        isUnlocked 
-          ? `${colors.bg} ${colors.text}` 
-          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'
-      }`}>
-        {tier.label}
-      </span>
-    );
-  };
 
   return (
     <>
       <div className="overflow-x-auto rounded-lg border border-zinc-200/50 dark:border-zinc-800/50">
-        <table className="w-full border-collapse">
+        <table className="w-full border-collapse min-w-[600px]">
           <thead>
             <tr className="bg-zinc-50/30 dark:bg-zinc-900/30">
               <th className="border-b border-zinc-200/50 dark:border-zinc-700/50 py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100 text-left">
@@ -200,10 +162,12 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
             {benefitRows.map((row) => (
               <tr key={row.id} className="hover:bg-zinc-50/30 dark:hover:bg-zinc-800/30 transition-colors border-b border-zinc-100/50 dark:border-zinc-800/50 last:border-b-0">
                 <td className="border-r border-zinc-200/50 dark:border-zinc-700/50 py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100 bg-zinc-50/20 dark:bg-zinc-900/20">
-                  <div className="flex items-center gap-2">
-                    <span className="text-zinc-500 dark:text-zinc-400">{row.icon}</span>
-                    <span>{row.label}</span>
-                  </div>
+                  <RewardTooltip description={row.tooltip}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-zinc-500 dark:text-zinc-400">{row.icon}</span>
+                      <span>{row.label}</span>
+                    </div>
+                  </RewardTooltip>
                 </td>
                 {tiers.map((tier) => {
                   const value = getCellValue(tier, row.id);
@@ -219,7 +183,7 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
                     >
                       {row.id === 'tierBadge' ? (
                         <div className="flex justify-center">
-                          {getTierBadge(tier)}
+                          <TierBadge tier={tier.tier} isUnlocked={isUnlocked} />
                         </div>
                       ) : row.id === 'feeReduction' ? (
                         typeof value === 'string' ? (

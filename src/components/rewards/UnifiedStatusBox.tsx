@@ -14,6 +14,7 @@ import { isDiamondNFT } from '@/lib/nft/diamond-detection';
 import { fetchMultipleNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { KREXBuyWizard } from './KREXBuyWizard';
 import { NFTBuyWizard } from './NFTBuyWizard';
+import { TierBadge } from './TierBadge';
 import Link from 'next/link';
 
 // Mock node status (replace with real hook when available)
@@ -257,9 +258,7 @@ export function UnifiedStatusBox() {
             <div className="pb-4 border-b border-zinc-200 dark:border-zinc-700">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">KREX Status</h4>
-                <span className="text-xs px-1.5 py-0.5 bg-[#02abb8]/10 text-[#02abb8] rounded">
-                  {krexTierConfig.label}
-                </span>
+                <TierBadge tier={krexTier} isUnlocked={balance > 0} />
               </div>
               <div className="space-y-1.5 text-xs">
                 <div className="flex items-center justify-between">

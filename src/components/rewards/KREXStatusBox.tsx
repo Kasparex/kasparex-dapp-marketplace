@@ -7,6 +7,7 @@ import { KREX_TIERS } from '@/lib/rewards/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { KREXBuyWizard } from './KREXBuyWizard';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { TierBadge } from './TierBadge';
 
 export function KREXStatusBox() {
   const { isConnected } = useAccount();
@@ -50,9 +51,7 @@ export function KREXStatusBox() {
               <span className="text-xs text-zinc-600 dark:text-zinc-400">
                 Current Tier
               </span>
-              <span className="text-sm font-bold text-[#02abb8]">
-                {tierConfig.label}
-              </span>
+              <TierBadge tier={krexTier} isUnlocked={balance > 0} />
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-zinc-600 dark:text-zinc-400">

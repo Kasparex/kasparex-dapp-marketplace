@@ -11,6 +11,7 @@ import { NFTBuyWizard } from './NFTBuyWizard';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { isDiamondNFT } from '@/lib/nft/diamond-detection';
 import { fetchMultipleNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
+import { RewardTooltip } from './RewardTooltip';
 
 interface NFTRewardsTableProps {
   nftStatus: NFTStatus;
@@ -150,31 +151,56 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
   ];
 
   const benefitRows = [
-    { id: 'count', label: 'Owned', icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-      </svg>
-    )},
-    { id: 'requirements', label: 'Requirements', icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    )},
-    { id: 'multiplier', label: 'Multiplier', icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-      </svg>
-    )},
-    { id: 'feeReduction', label: 'Fee Reduction', icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    )},
-    { id: 'points', label: 'Points', icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-      </svg>
-    )},
+    { 
+      id: 'count', 
+      label: 'Owned', 
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+        </svg>
+      ),
+      tooltip: 'Number of NFTs you currently own in this category. Higher counts unlock additional benefits and rewards.',
+    },
+    { 
+      id: 'requirements', 
+      label: 'Requirements', 
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      tooltip: 'Minimum NFT ownership requirements needed to unlock this reward tier and its associated benefits.',
+    },
+    { 
+      id: 'multiplier', 
+      label: 'Multiplier', 
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        </svg>
+      ),
+      tooltip: 'Reward multiplier that increases your GRID and dApp token earnings. Rarer NFTs provide higher multipliers.',
+    },
+    { 
+      id: 'feeReduction', 
+      label: 'Fee Reduction', 
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      tooltip: 'Percentage reduction applied to transaction fees. Rarer NFTs provide greater fee savings on all dApp interactions.',
+    },
+    { 
+      id: 'points', 
+      label: 'Points', 
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+        </svg>
+      ),
+      tooltip: 'NFT points earned per NFT owned. These points contribute to your overall XP and help you level up in the ecosystem.',
+    },
   ];
 
   const getCellValue = (nftType: typeof nftTypes[0], rowId: string) => {
@@ -213,7 +239,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
   return (
     <>
       <div className="overflow-x-auto rounded-lg border border-zinc-200/50 dark:border-zinc-800/50">
-        <table className="w-full border-collapse">
+        <table className="w-full border-collapse min-w-[600px]">
           <thead>
             <tr className="bg-zinc-50/30 dark:bg-zinc-900/30">
               <th className="border-b border-zinc-200/50 dark:border-zinc-700/50 py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100 text-left">
@@ -278,20 +304,6 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
                     </td>
                   );
                 })}
-                {row.id === 'count' && (
-                  <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 text-center font-semibold">
-                    {totalCount > 0 ? (
-                      <span className="font-medium">{totalCount}</span>
-                    ) : (
-                      <span className="text-zinc-400">0</span>
-                    )}
-                  </td>
-                )}
-                {row.id !== 'count' && (
-                  <td className="py-3 px-4 text-sm text-zinc-400 text-center">
-                    —
-                  </td>
-                )}
               </tr>
             ))}
           </tbody>
