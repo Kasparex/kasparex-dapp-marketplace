@@ -492,7 +492,7 @@ export function UnifiedStatusBox() {
                     <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                       {hasFeeReduction ? (
                         <>
-                          <span className="line-through text-zinc-400 mr-2">{krexTierConfig.feePercent}%</span>
+                          <span className="line-through text-zinc-400 mr-2">{baseFee.toFixed(2)}%</span>
                           <span className="text-green-600 dark:text-green-400">{feePercent.toFixed(2)}%</span>
                         </>
                       ) : (
