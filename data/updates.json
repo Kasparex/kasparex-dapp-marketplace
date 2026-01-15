@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768501010-385af7d",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Replace Early Access with vBlog Premium and Analytics Dashboard with Unlimited Comments (by Kasparex)",
+      "date": "2026-01-15T19:16:11+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768499971-a23d328",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Shorten NFT Requirements text, replace GRID box with Multiplier box, align Node Rewards text right (by Kasparex)",
