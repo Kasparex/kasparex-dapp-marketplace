@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768486475-d328789",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix UnifiedStatusBox: replace remaining feePercent reference with baseFee (by Kasparex)",
+      "date": "2026-01-15T15:13:51+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768486154-11e2da5",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix UnifiedStatusBox: replace feePercent with feeReduction (by Kasparex)",
