@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768484623-149b674",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Refactor rewards dashboard: new table layout with tiers horizontally, update tier naming (Tier0->Tier1), implement fee reduction system, add XP and NFT Points to token balances (by Kasparex)",
+      "date": "2026-01-15T14:42:39+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768480374-4deee5a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: ensure boolean values are always boolean (by Kasparex)",
