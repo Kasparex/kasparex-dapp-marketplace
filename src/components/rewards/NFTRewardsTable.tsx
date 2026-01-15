@@ -106,11 +106,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
     {
       id: 'regular',
       name: 'Regular NFT',
-      icon: (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-      ),
+      icon: '🖼️',
       requirement: '1+ Regular NFT (KREXPRIME or PIXELKREX)',
       multiplier: NFT_MULTIPLIER,
       feeReduction: NFT_FEE_REDUCTION,
@@ -121,11 +117,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
     {
       id: 'diamond',
       name: 'Diamond NFT',
-      icon: (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-        </svg>
-      ),
+      icon: '💎',
       requirement: '1+ Diamond NFT (any collection)',
       multiplier: DIAMOND_NFT_MULTIPLIER,
       feeReduction: DIAMOND_NFT_FEE_REDUCTION,
@@ -136,11 +128,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
     {
       id: 'rarest',
       name: 'Rarest NFT',
-      icon: (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-        </svg>
-      ),
+      icon: '⭐',
       requirement: 'Rarest NFT (#515 PIXELKREX or #345 KREXPRIME)',
       multiplier: RAREST_NFT_MULTIPLIER,
       feeReduction: RAREST_NFT_FEE_REDUCTION,
@@ -290,17 +278,25 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
                         shouldHighlight ? 'bg-[#02abb8]/3 dark:bg-[#02abb8]/5' : ''
                       }`}
                     >
-                      <span className={shouldHighlight ? '' : 'text-zinc-400'}>
-                        {row.id === 'count' ? (
-                          (typeof value === 'number' && value > 0) ? (
-                            <span className="font-medium">{value}</span>
-                          ) : (
-                            '0'
-                          )
+                      {row.id === 'count' ? (
+                        (typeof value === 'number' && value > 0) ? (
+                          <span className={`font-medium ${
+                            nftType.id === 'regular' ? 'text-green-600 dark:text-green-400' :
+                            nftType.id === 'diamond' ? 'text-purple-600 dark:text-purple-400' :
+                            nftType.id === 'rarest' ? 'text-yellow-600 dark:text-yellow-400' :
+                            ''
+                          }`}>
+                            {nftType.id === 'diamond' && '💎 '}
+                            {value}
+                          </span>
                         ) : (
-                          value
-                        )}
-                      </span>
+                          <span className="text-zinc-400">0</span>
+                        )
+                      ) : (
+                        <span className={shouldHighlight ? '' : 'text-zinc-400'}>
+                          {value}
+                        </span>
+                      )}
                     </td>
                   );
                 })}

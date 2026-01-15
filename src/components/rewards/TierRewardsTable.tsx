@@ -248,10 +248,10 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
 
       {/* Action Buttons Section */}
       <div className="mt-6 p-4 bg-zinc-50/30 dark:bg-zinc-900/30 rounded-lg border border-zinc-200/50 dark:border-zinc-800/50">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <button
             onClick={() => setShowKREXBuyWizard(true)}
-            className="px-2 py-2 w-auto bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors text-sm"
+            className="px-4 py-2 w-auto max-w-[150px] bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors text-sm"
           >
             Buy KREX
           </button>

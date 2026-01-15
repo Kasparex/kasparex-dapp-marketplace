@@ -15,6 +15,7 @@ import { NFTRewardsTable } from './NFTRewardsTable';
 import { NodeRewardsTable } from './NodeRewardsTable';
 import { PremiumRewardsTable } from './PremiumRewardsTable';
 import { DAppTokenBalanceRow } from './DAppTokenBalanceRow';
+import { TierBadge } from './TierBadge';
 
 interface RewardsDashboardContentProps {
   filters: {
@@ -94,9 +95,7 @@ export function RewardsDashboardContent({
                 {krexBalance > 0 && (
                   <div className="flex items-center justify-between">
                     <span className="text-zinc-600 dark:text-zinc-400">Current Tier</span>
-                    <span className="text-xs px-2 py-1 bg-[#02abb8]/10 text-[#02abb8] rounded font-medium">
-                      {krexTier.replace('Tier', 'Tier ')}
-                    </span>
+                    <TierBadge tier={krexTier} isUnlocked={krexBalance > 0} />
                   </div>
                 )}
               </div>

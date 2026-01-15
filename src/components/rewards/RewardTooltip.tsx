@@ -15,29 +15,41 @@ export function RewardTooltip({ description, children }: RewardTooltipProps) {
   const tooltipRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!showTooltip || !triggerRef.current) return;
+    if (!showTooltip) return;
 
-    const updatePosition = () => {
-      if (!triggerRef.current) return;
+    const handleMouseMove = (e: MouseEvent) => {
+      const padding = 16; // Padding from viewport edges
+      const tooltipWidth = 280; // Approximate tooltip width
+      const tooltipHeight = 80; // Approximate tooltip height
+      const offset = 12; // Offset from cursor
 
-      const rect = triggerRef.current.getBoundingClientRect();
-      const scrollY = window.scrollY;
-      const scrollX = window.scrollX;
-      
-      // Position tooltip above the element, centered
-      const top = rect.top + scrollY - 8;
-      const left = rect.left + scrollX + rect.width / 2;
+      let left = e.clientX + offset;
+      let top = e.clientY + offset;
+
+      // Adjust horizontal position if tooltip would go off-screen
+      if (left + tooltipWidth > window.innerWidth - padding) {
+        left = e.clientX - tooltipWidth - offset;
+      }
+      if (left < padding) {
+        left = padding;
+      }
+
+      // Adjust vertical position if tooltip would go off-screen
+      if (top + tooltipHeight > window.innerHeight - padding) {
+        top = e.clientY - tooltipHeight - offset;
+      }
+      if (top < padding) {
+        top = padding;
+      }
 
       setTooltipPosition({ top, left });
     };
 
-    updatePosition();
-    window.addEventListener('scroll', updatePosition, true);
-    window.addEventListener('resize', updatePosition);
+    window.addEventListener('mousemove', handleMouseMove);
+    handleMouseMove({ clientX: 0, clientY: 0 } as MouseEvent); // Initial position
 
     return () => {
-      window.removeEventListener('scroll', updatePosition, true);
-      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('mousemove', handleMouseMove);
     };
   }, [showTooltip]);
 
@@ -72,8 +84,6 @@ export function RewardTooltip({ description, children }: RewardTooltipProps) {
           style={{
             top: `${tooltipPosition.top}px`,
             left: `${tooltipPosition.left}px`,
-            transform: 'translateX(-50%) translateY(-100%)',
-            marginTop: '-8px',
           }}
         >
           <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed">
