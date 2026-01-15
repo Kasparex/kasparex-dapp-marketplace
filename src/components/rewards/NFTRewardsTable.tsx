@@ -114,7 +114,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
       multiplier: NFT_MULTIPLIER,
       feeReduction: NFT_FEE_REDUCTION,
       points: NFT_POINTS.REGULAR,
-      isUnlocked: hasAnyNFT && !hasDiamondNFT && !hasRarestNFT,
+      isUnlocked: regularCount > 0,
       count: regularCount,
     },
     {
@@ -129,7 +129,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
       multiplier: DIAMOND_NFT_MULTIPLIER,
       feeReduction: DIAMOND_NFT_FEE_REDUCTION,
       points: NFT_POINTS.DIAMOND,
-      isUnlocked: hasDiamondNFT && !hasRarestNFT,
+      isUnlocked: diamondCount > 0,
       count: diamondCount,
     },
     {
@@ -195,13 +195,17 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
   };
 
   // Determine which columns to highlight based on ownership
+  // Users can own multiple types, so highlight all that apply
   const shouldHighlightColumn = (nftType: typeof nftTypes[0]) => {
     if (nftType.id === 'regular') {
-      return hasAnyNFT && !hasDiamondNFT && !hasRarestNFT;
+      // Highlight if user has regular NFTs (even if they also have diamond/rarest)
+      return regularCount > 0;
     } else if (nftType.id === 'diamond') {
-      return hasDiamondNFT && !hasRarestNFT;
+      // Highlight if user has diamond NFTs (even if they also have rarest)
+      return diamondCount > 0;
     } else if (nftType.id === 'rarest') {
-      return hasRarestNFT;
+      // Highlight if user has rarest NFT
+      return rarestCount > 0;
     }
     return false;
   };
