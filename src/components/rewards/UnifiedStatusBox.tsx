@@ -235,7 +235,7 @@ export function UnifiedStatusBox() {
                 <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                   {hasFeeReduction ? (
                     <>
-                      <span className="line-through text-zinc-400 mr-2">{krexTierConfig.feePercent}%</span>
+                      <span className="line-through text-zinc-400 mr-2">{baseFee.toFixed(2)}%</span>
                       <span className="text-green-600 dark:text-green-400">{feePercent.toFixed(2)}%</span>
                     </>
                   ) : (
@@ -280,7 +280,7 @@ export function UnifiedStatusBox() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-zinc-600 dark:text-zinc-400">Fee</span>
-                  <span className="text-zinc-500 dark:text-zinc-400">{krexTierConfig.feePercent}%</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">-{krexTierConfig.feeReduction}%</span>
                 </div>
               </div>
             </div>
