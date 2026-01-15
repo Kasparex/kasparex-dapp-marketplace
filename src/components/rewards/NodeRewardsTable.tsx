@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { NodeSetupWizard } from './NodeSetupWizard';
 import { RewardTooltip } from './RewardTooltip';
+import { LIGHT_NODE_COST_REDUCTION, MIRROR_NODE_COST_REDUCTION } from '@/lib/rewards/types';
 
 interface NodeRewardsTableProps {
   hasNode: boolean;
@@ -11,8 +12,8 @@ interface NodeRewardsTableProps {
 }
 
 const NODE_TYPES = {
-  light: { name: 'Light Node', multiplier: 4, feeReduction: 0.1 },
-  mirror: { name: 'Mirror Node', multiplier: 5, feeReduction: 0.2 },
+  light: { name: 'Light Node', multiplier: 4, feeReduction: 0.1, costReduction: LIGHT_NODE_COST_REDUCTION },
+  mirror: { name: 'Mirror Node', multiplier: 5, feeReduction: 0.2, costReduction: MIRROR_NODE_COST_REDUCTION },
 };
 
 export function NodeRewardsTable({ hasNode, nodeType }: NodeRewardsTableProps) {
@@ -71,6 +72,16 @@ export function NodeRewardsTable({ hasNode, nodeType }: NodeRewardsTableProps) {
       ),
       tooltip: 'Percentage reduction applied to transaction fees. Node providers receive additional fee savings on all dApp interactions.',
     },
+    { 
+      id: 'costReduction', 
+      label: 'Cost Reduction', 
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      tooltip: 'Percentage reduction applied to transaction costs (base KAS amount). Node providers receive additional cost savings on all dApp interactions.',
+    },
   ];
 
   const getCellValue = (nodeType: typeof nodeTypes[0], rowId: string) => {
@@ -81,6 +92,8 @@ export function NodeRewardsTable({ hasNode, nodeType }: NodeRewardsTableProps) {
         return `${nodeType.multiplier}x`;
       case 'feeReduction':
         return `-${nodeType.feeReduction}%`;
+      case 'costReduction':
+        return `-${nodeType.costReduction}%`;
       default:
         return '—';
     }

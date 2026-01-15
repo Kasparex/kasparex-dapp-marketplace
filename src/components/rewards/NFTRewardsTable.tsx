@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { createPortal } from 'react-dom';
-import { NFT_MULTIPLIER, DIAMOND_NFT_MULTIPLIER, RAREST_NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION } from '@/lib/rewards/types';
+import { NFT_MULTIPLIER, DIAMOND_NFT_MULTIPLIER, RAREST_NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION } from '@/lib/rewards/types';
 import { NFT_POINTS } from '@/lib/nft/points';
 import type { NFTStatus } from '@/lib/rewards/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
@@ -110,6 +110,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
       requirement: '1+ Regular NFT',
       multiplier: NFT_MULTIPLIER,
       feeReduction: NFT_FEE_REDUCTION,
+      costReduction: NFT_COST_REDUCTION,
       points: NFT_POINTS.REGULAR,
       isUnlocked: regularCount > 0,
       count: regularCount,
@@ -121,6 +122,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
       requirement: '1+ Diamond NFT',
       multiplier: DIAMOND_NFT_MULTIPLIER,
       feeReduction: DIAMOND_NFT_FEE_REDUCTION,
+      costReduction: DIAMOND_NFT_COST_REDUCTION,
       points: NFT_POINTS.DIAMOND,
       isUnlocked: diamondCount > 0,
       count: diamondCount,
@@ -132,6 +134,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
       requirement: 'Rarest NFT',
       multiplier: RAREST_NFT_MULTIPLIER,
       feeReduction: RAREST_NFT_FEE_REDUCTION,
+      costReduction: RAREST_NFT_COST_REDUCTION,
       points: NFT_POINTS.RAREST,
       isUnlocked: hasRarestNFT,
       count: rarestCount,
@@ -201,6 +204,8 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
         return `+${nftType.multiplier}x`;
       case 'feeReduction':
         return nftType.feeReduction === 100 ? 'Zero Fee' : `-${nftType.feeReduction}%`;
+      case 'costReduction':
+        return `-${nftType.costReduction}%`;
       case 'points':
         return `${nftType.points} ${nftType.points === 1 ? 'point' : 'points'}`;
       default:

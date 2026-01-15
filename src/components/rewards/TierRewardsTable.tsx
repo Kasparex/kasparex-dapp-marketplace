@@ -148,6 +148,9 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
       case 'pointsMultiplier':
         // If user doesn't have KREX, points multiplier is 0x
         return krexBalance >= tier.minKREX ? `${tier.pointsMultiplier}x` : '0x';
+      case 'costReduction':
+        // If user doesn't have KREX, cost reduction is 0%
+        return krexBalance >= tier.minKREX ? `-${tier.costReduction}%` : '0%';
       case 'tierBadge':
         return true; // All tiers have badges now
       case 'benefit1':

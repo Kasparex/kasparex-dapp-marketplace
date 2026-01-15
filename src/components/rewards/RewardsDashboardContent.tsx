@@ -10,7 +10,7 @@ import { getAllDApps } from '@/lib/dapps';
 import { getMockWalletHoldings } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { type UserRewardStatus } from '@/lib/rewards/dashboard-data';
-import { KREX_TIERS, NFT_MULTIPLIER, DIAMOND_NFT_MULTIPLIER, RAREST_NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION } from '@/lib/rewards/types';
+import { KREX_TIERS, NFT_MULTIPLIER, DIAMOND_NFT_MULTIPLIER, RAREST_NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION, LIGHT_NODE_COST_REDUCTION, MIRROR_NODE_COST_REDUCTION } from '@/lib/rewards/types';
 import { TierRewardsTable } from './TierRewardsTable';
 import { NFTRewardsTable } from './NFTRewardsTable';
 import { NodeRewardsTable } from './NodeRewardsTable';
@@ -212,12 +212,39 @@ export function RewardsDashboardContent({
                   fee = Math.max(0, fee - NFT_FEE_REDUCTION);
                 }
                 
+                // Calculate cost reduction
+                let costReductionPercent = krexBalance > 0 ? krexTierConfig.costReduction : 0;
+                if (hasRarestNFT) {
+                  costReductionPercent += RAREST_NFT_COST_REDUCTION;
+                } else if (hasDiamondNFT) {
+                  costReductionPercent += DIAMOND_NFT_COST_REDUCTION;
+                } else if (hasAnyNFT) {
+                  costReductionPercent += NFT_COST_REDUCTION;
+                }
+                // Mock node status (same as multiplier calculation)
+                const mockNodeStatus = { hasLightNode: false, hasMirrorNode: false };
+                const activeNodeType = mockNodeStatus.hasMirrorNode ? 'mirror' : mockNodeStatus.hasLightNode ? 'light' : null;
+                if (activeNodeType) {
+                  costReductionPercent += (activeNodeType === 'mirror' ? MIRROR_NODE_COST_REDUCTION : LIGHT_NODE_COST_REDUCTION);
+                }
+                costReductionPercent = Math.min(50, costReductionPercent);
+                
                 return (
                   <>
                     <div className="flex items-center justify-between">
                       <span className="text-zinc-600 dark:text-zinc-400">Current Fee</span>
                       <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                         {fee.toFixed(2)}%
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-600 dark:text-zinc-400">Cost Reduction</span>
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                        {costReductionPercent > 0 ? (
+                          <span className="text-green-600 dark:text-green-400">-{costReductionPercent}%</span>
+                        ) : (
+                          '0%'
+                        )}
                       </span>
                     </div>
                     <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">

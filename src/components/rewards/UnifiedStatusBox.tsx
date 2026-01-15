@@ -5,7 +5,7 @@ import { useAccount } from 'wagmi';
 import { createPortal } from 'react-dom';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
-import { KREX_TIERS, NFT_MULTIPLIER, DIAMOND_NFT_MULTIPLIER, RAREST_NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION } from '@/lib/rewards/types';
+import { KREX_TIERS, NFT_MULTIPLIER, DIAMOND_NFT_MULTIPLIER, RAREST_NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION, LIGHT_NODE_COST_REDUCTION, MIRROR_NODE_COST_REDUCTION } from '@/lib/rewards/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { getMockWalletHoldings } from '@/lib/rewards/mockData';
 import { getPartnerCollections } from '@/lib/nft/collections';
@@ -26,8 +26,8 @@ const mockNodeStatus = {
 };
 
 const NODE_TYPES = {
-  light: { name: 'Light Node', multiplier: 4, feeReduction: 0.1 },
-  mirror: { name: 'Mirror Node', multiplier: 5, feeReduction: 0.2 },
+  light: { name: 'Light Node', multiplier: 4, feeReduction: 0.1, costReduction: LIGHT_NODE_COST_REDUCTION },
+  mirror: { name: 'Mirror Node', multiplier: 5, feeReduction: 0.2, costReduction: MIRROR_NODE_COST_REDUCTION },
 };
 
 export function UnifiedStatusBox() {
@@ -241,6 +241,16 @@ export function UnifiedStatusBox() {
                     </>
                   ) : (
                     `${feePercent.toFixed(2)}%`
+                  )}
+                </span>
+              </div>
+              <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-between text-xs">
+                <span className="text-zinc-600 dark:text-zinc-400">Cost Reduction</span>
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                  {costReductionPercent > 0 ? (
+                    <span className="text-green-600 dark:text-green-400">-{costReductionPercent}%</span>
+                  ) : (
+                    '0%'
                   )}
                 </span>
               </div>
@@ -513,6 +523,7 @@ export function UnifiedStatusBox() {
                         <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Requirement</th>
                         <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reward Multiplier</th>
                         <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Cost Reduction</th>
                         <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Points Multiplier</th>
                       </tr>
                     </thead>
@@ -537,6 +548,9 @@ export function UnifiedStatusBox() {
                             <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">{tier.multiplier}x</td>
                             <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
                               -{tier.feeReduction}%
+                            </td>
+                            <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                              -{tier.costReduction}%
                             </td>
                             <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">{tier.pointsMultiplier}x</td>
                           </tr>
@@ -597,6 +611,9 @@ export function UnifiedStatusBox() {
                         <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
                           -{NFT_FEE_REDUCTION}%
                         </td>
+                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                          -{NFT_COST_REDUCTION}%
+                        </td>
                         <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
                           {NFT_POINTS.REGULAR} point
                         </td>
@@ -634,6 +651,9 @@ export function UnifiedStatusBox() {
                         </td>
                         <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
                           -{RAREST_NFT_FEE_REDUCTION}% (Zero Fee)
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                          -{RAREST_NFT_COST_REDUCTION}%
                         </td>
                         <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
                           {NFT_POINTS.RAREST} points
@@ -779,6 +799,9 @@ export function UnifiedStatusBox() {
                             </td>
                             <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
                               {node.feeReduction}%
+                            </td>
+                            <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                              -{node.costReduction}%
                             </td>
                           </tr>
                         );
