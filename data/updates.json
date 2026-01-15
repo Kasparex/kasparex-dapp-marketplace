@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768509514-c93881e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix: Add missing costReductionPercent calculation in UnifiedStatusBox (by Kasparex)",
+      "date": "2026-01-15T21:38:03+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768508194-438ad92",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix build error: add costReduction property to all tier objects (by Kasparex)",
