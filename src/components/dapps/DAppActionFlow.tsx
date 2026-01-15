@@ -5,8 +5,9 @@ import { useAccount } from 'wagmi';
 import { DApp } from '@/lib/dapps';
 import { getDefaultRewardsBreakdown, getMockWalletHoldings } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
-import { KREX_TIERS } from '@/lib/rewards/types';
+import { KREX_TIERS, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION } from '@/lib/rewards/types';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useNFTStatus } from '@/hooks/useNFTStatus';
 
 interface DAppActionFlowProps {
   dapp: DApp;
@@ -164,20 +165,51 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
   
   // Get KREX tier and multipliers from real balance
   const { balance: krexBalance, tier, isLoading: isKREXLoading } = useKREXBalance();
+  const { nftStatus } = useNFTStatus();
   const tierConfig = KREX_TIERS[tier];
   const multiplier = tierConfig.multiplier;
-  // Fee reduction system - tier fee reduction is applied directly from base fee
+  
+  // Fee calculation with reductions (same logic as calculator.ts and UnifiedStatusBox)
   const baseFee = 1.0; // Base fee is 1%
-  const feeReduction = tierConfig.feeReduction; // Direct fee reduction percentage
+  let feePercent = baseFee;
+  
+  // Apply tier-based fee reduction from base fee
+  if (krexBalance > 0) {
+    feePercent = Math.max(0, feePercent - tierConfig.feeReduction);
+  }
+  
+  // Apply NFT fee reductions (stack with tier reduction)
+  const hasAnyNFT = !!(nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX ||
+    (nftStatus?.partnerCollections && Object.values(nftStatus.partnerCollections || {}).some(v => v)));
+  const hasDiamondNFT = !!(nftStatus?.hasDiamondKREXPRIME || nftStatus?.hasDiamondPIXELKREX ||
+    (nftStatus?.partnerDiamonds && Object.values(nftStatus.partnerDiamonds || {}).some(v => v)));
+  const hasRarestNFT = !!nftStatus?.hasRarestNFT;
+  
+  if (hasRarestNFT) {
+    feePercent = 0; // Zero fee
+  } else if (hasDiamondNFT) {
+    feePercent = Math.max(0, feePercent - DIAMOND_NFT_FEE_REDUCTION);
+  } else if (hasAnyNFT) {
+    feePercent = Math.max(0, feePercent - NFT_FEE_REDUCTION);
+  }
+  
+  // Calculate total fee reduction for display
+  const totalFeeReduction = baseFee - feePercent;
 
   // Calculate total predicted rewards if user completes all actions
   const totalPredicted = actions.reduce(
-    (acc, action) => ({
-      grid: acc.grid + action.baseRewards.grid * multiplier,
-      token: acc.token + action.baseRewards.token * multiplier,
-      xp: acc.xp + action.baseRewards.xp * multiplier,
-      totalCost: acc.totalCost + action.costKAS * (1 - feeReduction / 100),
-    }),
+    (acc, action) => {
+      // Calculate fee amount based on feePercent
+      const feeAmount = (action.costKAS * feePercent) / 100;
+      const totalCostWithFee = action.costKAS + feeAmount;
+      
+      return {
+        grid: acc.grid + action.baseRewards.grid * multiplier,
+        token: acc.token + action.baseRewards.token * multiplier,
+        xp: acc.xp + action.baseRewards.xp * multiplier,
+        totalCost: acc.totalCost + totalCostWithFee,
+      };
+    },
     { grid: 0, token: 0, xp: 0, totalCost: 0 }
   );
 
@@ -229,11 +261,19 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
                   {tierConfig.label} ({multiplier}x)
                 </span>
               </div>
-              {feeReduction > 0 && (
+              {totalFeeReduction > 0 && (
                 <div className="flex items-center justify-between text-xs mt-1.5">
                   <span className="text-zinc-600 dark:text-zinc-400">Fee Reduction</span>
                   <span className="font-semibold text-green-600 dark:text-green-400">
-                    -{feeReduction.toFixed(1)}%
+                    -{totalFeeReduction.toFixed(2)}%
+                  </span>
+                </div>
+              )}
+              {feePercent < baseFee && (
+                <div className="flex items-center justify-between text-xs mt-1.5">
+                  <span className="text-zinc-600 dark:text-zinc-400">Current Fee</span>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                    {feePercent.toFixed(2)}%
                   </span>
                 </div>
               )}
@@ -278,15 +318,17 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-xs text-zinc-600 dark:text-zinc-400">
                         Cost: <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {feeReduction > 0 ? (
+                          {feePercent < baseFee ? (
                             <>
-                              <span className="line-through text-zinc-400">{action.cost}</span>
+                              <span className="line-through text-zinc-400">
+                                {action.costKAS.toFixed(2)} KAS + {baseFee.toFixed(2)}% fee
+                              </span>
                               <span className="ml-1 text-green-600 dark:text-green-400">
-                                {adjustedCost.toFixed(2)} KAS
+                                {totalCostWithFee.toFixed(2)} KAS ({feePercent.toFixed(2)}% fee)
                               </span>
                             </>
                           ) : (
-                            action.cost
+                            `${totalCostWithFee.toFixed(2)} KAS (${feePercent.toFixed(2)}% fee)`
                           )}
                         </span>
                       </span>

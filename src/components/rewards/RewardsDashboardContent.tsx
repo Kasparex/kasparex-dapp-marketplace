@@ -179,32 +179,70 @@ export function RewardsDashboardContent({
             </div>
           </div>
 
-          {/* XP Points Card */}
+          {/* Fees and Points Card */}
           <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
             <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-              XP Points
+              Fees & Points
             </h3>
             <div className="space-y-2 text-sm">
               <div className="flex items-center justify-between">
-                <span className="text-zinc-600 dark:text-zinc-400">Total XP</span>
-                <span className="font-bold text-[#02abb8] text-lg">
-                  {holdings ? formatLargeNumber(holdings.xp) : '0'}
+                <span className="text-zinc-600 dark:text-zinc-400">Base Fee</span>
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                  1.00%
                 </span>
               </div>
-              <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
-                <div className="flex items-center justify-between">
-                  <span className="text-zinc-600 dark:text-zinc-400">XP Rewards</span>
-                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                    {holdings ? formatLargeNumber(holdings.xp) : '0'}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between mt-1">
-                  <span className="text-zinc-600 dark:text-zinc-400">NFT Points</span>
-                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                    {isNFTLoading ? 'Loading...' : formatLargeNumber(nftPoints || 0)}
-                  </span>
-                </div>
-              </div>
+              {(() => {
+                const baseFee = 1.0;
+                const krexTierConfig = KREX_TIERS[krexTier];
+                let fee = baseFee;
+                if (krexBalance > 0) {
+                  fee = Math.max(0, fee - krexTierConfig.feeReduction);
+                }
+                const hasAnyNFT = !!(nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX ||
+                  (nftStatus?.partnerCollections && Object.values(nftStatus.partnerCollections || {}).some(v => v)));
+                const hasDiamondNFT = !!(nftStatus?.hasDiamondKREXPRIME || nftStatus?.hasDiamondPIXELKREX ||
+                  (nftStatus?.partnerDiamonds && Object.values(nftStatus.partnerDiamonds || {}).some(v => v)));
+                const hasRarestNFT = !!nftStatus?.hasRarestNFT;
+                
+                if (hasRarestNFT) {
+                  fee = 0;
+                } else if (hasDiamondNFT) {
+                  fee = Math.max(0, fee - DIAMOND_NFT_FEE_REDUCTION);
+                } else if (hasAnyNFT) {
+                  fee = Math.max(0, fee - NFT_FEE_REDUCTION);
+                }
+                
+                return (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-600 dark:text-zinc-400">Current Fee</span>
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                        {fee.toFixed(2)}%
+                      </span>
+                    </div>
+                    <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
+                      <div className="flex items-center justify-between">
+                        <span className="text-zinc-600 dark:text-zinc-400">Total XP</span>
+                        <span className="font-bold text-[#02abb8] text-lg">
+                          {holdings ? formatLargeNumber(holdings.xp) : '0'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-zinc-600 dark:text-zinc-400">XP Rewards</span>
+                        <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                          {holdings ? formatLargeNumber(holdings.xp) : '0'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-zinc-600 dark:text-zinc-400">NFT Points</span>
+                        <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                          {isNFTLoading ? 'Loading...' : formatLargeNumber(nftPoints || 0)}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           </div>
         </div>
