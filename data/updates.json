@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768436359-05e3567",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update Rewards Status: align XP Points to right, expand NFT table to show per-collection details with diamond status, add NFT balance summary (by Kasparex)",
+      "date": "2026-01-15T01:18:34+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768433961-e4faaee",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update Rewards Status: remove multiplier breakdown, remove redundant fee from top, replace info icon with button, change multipliers from multiplicative to additive (by Kasparex)",
