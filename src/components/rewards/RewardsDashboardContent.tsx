@@ -105,6 +105,20 @@ export function RewardsDashboardContent({
                     <TierBadge tier={krexTier} isUnlocked={krexBalance > 0} />
                   </div>
                 )}
+                <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700 flex items-center gap-2">
+                  <button
+                    onClick={() => setShowKREXBuyWizard(true)}
+                    className="flex-1 px-3 py-1.5 text-xs bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
+                  >
+                    Buy KREX
+                  </button>
+                  <button
+                    onClick={() => setShowNFTBuyWizard(true)}
+                    className="flex-1 px-3 py-1.5 text-xs bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
+                  >
+                    Buy NFT
+                  </button>
+                </div>
               </div>
             )}
           </div>

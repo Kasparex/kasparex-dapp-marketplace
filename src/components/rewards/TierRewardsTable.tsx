@@ -141,8 +141,8 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
       case 'requirements':
         return tier.minKREX === 0 ? '< 10M KREX' : `≥ ${formatLargeNumber(tier.minKREX)} KREX`;
       case 'multiplier':
-        // If user doesn't have KREX, multiplier is 0x
-        return krexBalance >= tier.minKREX ? `${tier.multiplier}x` : '0x';
+        // Always show the tier's multiplier value, regardless of wallet connection
+        return `${tier.multiplier}x`;
       case 'feeReduction':
         const actualFee = calculateActualFee(tier);
         const hasReduction = actualFee < baseFee;
@@ -156,11 +156,11 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
         }
         return `${baseFee.toFixed(2)}%`;
       case 'pointsMultiplier':
-        // If user doesn't have KREX, points multiplier is 0x
-        return krexBalance >= tier.minKREX ? `${tier.pointsMultiplier}x` : '0x';
+        // Always show the tier's points multiplier value, regardless of wallet connection
+        return `${tier.pointsMultiplier}x`;
       case 'costReduction':
-        // If user doesn't have KREX, cost reduction is 0%
-        return krexBalance >= tier.minKREX ? `-${tier.costReduction}%` : '0%';
+        // Always show the tier's cost reduction value, regardless of wallet connection
+        return tier.costReduction > 0 ? `-${tier.costReduction}%` : '0%';
       case 'tierBadge':
         return true; // All tiers have badges now
       case 'benefit1':
@@ -222,14 +222,11 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
                 {tiers.map((tier) => {
                   const value = getCellValue(tier, row.id);
                   const isUnlocked = isTierUnlocked(tier);
-                  const isCurrentTier = hasKREX && tier.tier === effectiveTier;
                   
                   return (
                     <td
                       key={tier.tier}
-                      className={`border-r border-zinc-200/50 dark:border-zinc-700/50 py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 text-center last:border-r-0 ${
-                        isCurrentTier ? 'bg-[#02abb8]/3 dark:bg-[#02abb8]/5' : ''
-                      }`}
+                      className="border-r border-zinc-200/50 dark:border-zinc-700/50 py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 text-center last:border-r-0"
                     >
                       {row.id === 'tierBadge' ? (
                         <div className="flex justify-center">
