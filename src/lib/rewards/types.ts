@@ -120,6 +120,7 @@ export const KREX_TIERS: Record<KREXTier, KREXTierConfig> = {
     minKREX: 0,
     multiplier: 1,
     feeReduction: 0.1, // -0.1% from base fee
+    costReduction: 0, // 0% transaction cost reduction
     pointsMultiplier: 1,
     label: 'Tier 1',
     description: '< 10M KREX',
@@ -129,6 +130,7 @@ export const KREX_TIERS: Record<KREXTier, KREXTierConfig> = {
     minKREX: 10_000_000,
     multiplier: 2,
     feeReduction: 0.2, // -0.2% from base fee
+    costReduction: 2, // 2% transaction cost reduction
     pointsMultiplier: 2,
     label: 'Tier 2',
     description: '≥ 10M KREX',
@@ -138,6 +140,7 @@ export const KREX_TIERS: Record<KREXTier, KREXTierConfig> = {
     minKREX: 50_000_000,
     multiplier: 5,
     feeReduction: 0.3, // -0.3% from base fee
+    costReduction: 3, // 3% transaction cost reduction
     pointsMultiplier: 5,
     label: 'Tier 3',
     description: '≥ 50M KREX',
@@ -147,6 +150,7 @@ export const KREX_TIERS: Record<KREXTier, KREXTierConfig> = {
     minKREX: 100_000_000,
     multiplier: 10,
     feeReduction: 0.5, // -0.5% from base fee
+    costReduction: 5, // 5% transaction cost reduction
     pointsMultiplier: 10,
     label: 'Tier 4',
     description: '≥ 100M KREX',
