@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768511792-040b2a3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add Cost Reduction rows to tables, Buy buttons to KREX box, NODE Bonus to Multipliers, remove XP Rewards, update sidebar menu (by Kasparex)",
+      "date": "2026-01-15T22:15:29+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768509514-c93881e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: Add missing costReductionPercent calculation in UnifiedStatusBox (by Kasparex)",
