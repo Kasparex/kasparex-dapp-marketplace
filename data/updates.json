@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768493001-69aa986",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add Total Owned column to NFT Rewards table (by Kasparex)",
+      "date": "2026-01-15T17:02:28+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768491046-ec33b6d",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Refine rewards dashboard: discrete table styling, indicator badges, SVG icons, balance fixes, header link, and modal button (by Kasparex)",
