@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768505107-898397b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix build error: remove leftover feeReduction reference (by Kasparex)",
+      "date": "2026-01-15T20:24:20+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768504829-1cedb46",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix Fees & Points box title and add fee info, fix DAppActionFlow to apply NFT fee reductions correctly (by Kasparex)",
