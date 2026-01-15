@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768493513-2e75dfc",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error in NFTRewardsTable count comparison (by Kasparex)",
+      "date": "2026-01-15T17:10:54+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768493204-23b3e69",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix NFT column highlighting to show all owned types (by Kasparex)",
