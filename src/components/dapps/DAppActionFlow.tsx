@@ -290,10 +290,9 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
             token: action.baseRewards.token * multiplier,
             xp: action.baseRewards.xp * multiplier,
           };
-          // Calculate adjusted cost: if feeReduction is 20%, cost is reduced by 20%
-          const adjustedCost = feeReduction > 0 
-            ? action.costKAS * (1 - feeReduction / 100)
-            : action.costKAS;
+          // Calculate cost with fee: base cost + fee amount
+          const feeAmount = (action.costKAS * feePercent) / 100;
+          const totalCostWithFee = action.costKAS + feeAmount;
 
           return (
             <div key={action.step} className="relative">
