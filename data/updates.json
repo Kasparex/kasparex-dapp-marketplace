@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768438449-f6b1a47",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update NFT tables: add Regular/Rarest columns to Status table, remove Owned from Rewards table, reorder sections (by Kasparex)",
+      "date": "2026-01-15T01:53:18+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768437373-781dbef",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add NFT Rewards table back with multipliers/fee/points, add diamond count per collection (by Kasparex)",
