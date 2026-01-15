@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768485533-aa6cb9e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix RewardCalculator: update all Tier0 references to Tier1 (by Kasparex)",
+      "date": "2026-01-15T14:57:44+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768485065-f726646",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix duplicate tierConfig declaration in calculator.ts (by Kasparex)",
