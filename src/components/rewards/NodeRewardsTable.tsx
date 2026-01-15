@@ -152,14 +152,14 @@ export function NodeRewardsTable({ hasNode, nodeType }: NodeRewardsTableProps) {
 
       {/* Action Buttons Section */}
       <div className="mt-6 p-4 bg-zinc-50/30 dark:bg-zinc-900/30 rounded-lg border border-zinc-200/50 dark:border-zinc-800/50">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <button
             onClick={() => setShowNodeWizard(true)}
             className="px-4 py-2 w-auto max-w-[150px] bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors text-sm"
           >
             Setup Node
           </button>
-          <div className="text-sm text-zinc-600 dark:text-zinc-400">
+          <div className="text-sm text-zinc-600 dark:text-zinc-400 text-right">
             Connect your node to activate rewards. Visit the node setup page for more information.
           </div>
         </div>

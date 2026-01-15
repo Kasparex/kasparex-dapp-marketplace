@@ -10,6 +10,7 @@ import { getAllDApps } from '@/lib/dapps';
 import { getMockWalletHoldings } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { type UserRewardStatus } from '@/lib/rewards/dashboard-data';
+import { KREX_TIERS, NFT_MULTIPLIER, DIAMOND_NFT_MULTIPLIER, RAREST_NFT_MULTIPLIER } from '@/lib/rewards/types';
 import { TierRewardsTable } from './TierRewardsTable';
 import { NFTRewardsTable } from './NFTRewardsTable';
 import { NodeRewardsTable } from './NodeRewardsTable';
@@ -102,23 +103,78 @@ export function RewardsDashboardContent({
             )}
           </div>
 
-          {/* GRID Balance Card */}
+          {/* Multiplier Box */}
           <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
             <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-              GRID Token
+              Multipliers
             </h3>
-            {isGRIDLoading ? (
-              <div className="text-sm text-zinc-500 dark:text-zinc-400">Loading...</div>
-            ) : (
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-zinc-600 dark:text-zinc-400">Balance</span>
-                  <span className="font-bold text-[#02abb8] text-lg">
-                    {gridFormattedBalance || '0'}
-                  </span>
-                </div>
-              </div>
-            )}
+            <div className="space-y-2 text-sm">
+              {(() => {
+                const krexTierConfig = KREX_TIERS[krexTier];
+                const krexMultiplier = krexTierConfig.multiplier;
+                
+                // Calculate NFT multiplier
+                const hasAnyNFT = !!(nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX ||
+                  (nftStatus?.partnerCollections && Object.values(nftStatus.partnerCollections || {}).some(v => v)));
+                const hasDiamondNFT = !!(nftStatus?.hasDiamondKREXPRIME || nftStatus?.hasDiamondPIXELKREX ||
+                  (nftStatus?.partnerDiamonds && Object.values(nftStatus.partnerDiamonds || {}).some(v => v)));
+                const hasRarestNFT = !!nftStatus?.hasRarestNFT;
+                
+                let nftMultiplierAdd = 0;
+                if (hasRarestNFT) {
+                  nftMultiplierAdd = RAREST_NFT_MULTIPLIER;
+                } else if (hasDiamondNFT) {
+                  nftMultiplierAdd = DIAMOND_NFT_MULTIPLIER;
+                } else if (hasAnyNFT) {
+                  nftMultiplierAdd = NFT_MULTIPLIER;
+                }
+                
+                // Mock node status (same as UnifiedStatusBox)
+                const mockNodeStatus = { hasLightNode: false, hasMirrorNode: false };
+                const NODE_TYPES = {
+                  light: { multiplier: 4 },
+                  mirror: { multiplier: 5 },
+                };
+                const activeNodeType = mockNodeStatus.hasMirrorNode ? 'mirror' : mockNodeStatus.hasLightNode ? 'light' : null;
+                const nodeConfig = activeNodeType ? NODE_TYPES[activeNodeType] : null;
+                const nodeMultiplierAdd = nodeConfig ? (nodeConfig.multiplier - 1) : 0;
+                
+                const totalMultiplier = krexMultiplier + nftMultiplierAdd + nodeMultiplierAdd;
+                
+                return (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-600 dark:text-zinc-400">KREX Tier</span>
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                        {krexMultiplier}x
+                      </span>
+                    </div>
+                    {nftMultiplierAdd > 0 && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-zinc-600 dark:text-zinc-400">NFT Bonus</span>
+                        <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                          +{nftMultiplierAdd}x
+                        </span>
+                      </div>
+                    )}
+                    {nodeMultiplierAdd > 0 && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-zinc-600 dark:text-zinc-400">Node Bonus</span>
+                        <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                          +{nodeMultiplierAdd}x
+                        </span>
+                      </div>
+                    )}
+                    <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
+                      <span className="font-semibold text-zinc-700 dark:text-zinc-300">Total</span>
+                      <span className="font-bold text-[#02abb8] text-lg">
+                        {totalMultiplier}x
+                      </span>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
           </div>
 
           {/* XP Points Card */}
