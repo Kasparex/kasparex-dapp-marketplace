@@ -256,7 +256,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
                   return (
                     <td
                       key={nftType.id}
-                      className={`border-r border-zinc-200/50 dark:border-zinc-700/50 py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 text-center last:border-r-0 ${
+                      className={`border-r border-zinc-200/50 dark:border-zinc-700/50 py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 text-center ${
                         shouldHighlight ? 'bg-[#02abb8]/3 dark:bg-[#02abb8]/5' : ''
                       }`}
                     >
@@ -274,6 +274,20 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
                     </td>
                   );
                 })}
+                {row.id === 'count' && (
+                  <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 text-center font-semibold">
+                    {totalCount > 0 ? (
+                      <span className="font-medium">{totalCount}</span>
+                    ) : (
+                      <span className="text-zinc-400">0</span>
+                    )}
+                  </td>
+                )}
+                {row.id !== 'count' && (
+                  <td className="py-3 px-4 text-sm text-zinc-400 text-center">
+                    —
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
