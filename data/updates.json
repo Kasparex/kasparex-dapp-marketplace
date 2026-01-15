@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768489058-a188e7b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update rewards dashboard: unified table styling, tier logic fixes, action buttons, icons, and token balance improvements (by Kasparex)",
+      "date": "2026-01-15T15:56:08+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768486475-d328789",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix UnifiedStatusBox: replace remaining feePercent reference with baseFee (by Kasparex)",
