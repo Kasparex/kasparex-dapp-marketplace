@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768485871-121fe78",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix RewardCalculator: correct tier labels and descriptions (by Kasparex)",
+      "date": "2026-01-15T15:03:19+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768485533-aa6cb9e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix RewardCalculator: update all Tier0 references to Tier1 (by Kasparex)",
