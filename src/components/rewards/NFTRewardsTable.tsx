@@ -266,7 +266,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
                     >
                       <span className={shouldHighlight ? '' : 'text-zinc-400'}>
                         {row.id === 'count' ? (
-                          value > 0 ? (
+                          (typeof value === 'number' && value > 0) ? (
                             <span className="font-medium">{value}</span>
                           ) : (
                             '0'
