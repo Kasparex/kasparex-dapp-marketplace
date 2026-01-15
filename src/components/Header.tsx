@@ -270,6 +270,26 @@ export function Header() {
         {/* Right side: Wallet Connect and Theme Toggle - no padding, flush to right */}
         <div className="flex items-center gap-2 sm:gap-3 pr-2 sm:pr-4 lg:pr-6">
           <AdminLink />
+          <Link
+            href="/dashboard"
+            className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
+            aria-label="Rewards Dashboard"
+            title="Rewards Dashboard"
+          >
+            <svg
+              className="h-5 w-5 text-zinc-600 dark:text-zinc-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
+            </svg>
+          </Link>
           <button
             onClick={toggleBalanceVisibility}
             className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
