@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768480080-6b8809b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add rewards dashboard page with filterable table and token balances (by Kasparex)",
+      "date": "2026-01-15T13:26:42+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768438449-f6b1a47",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update NFT tables: add Regular/Rarest columns to Status table, remove Owned from Rewards table, reorder sections (by Kasparex)",
