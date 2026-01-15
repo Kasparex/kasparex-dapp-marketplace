@@ -261,15 +261,15 @@ export function RewardCalculator() {
                       }`}
                     >
                       <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                        {tier === 'Tier1' ? 'Tier 0' : tier === 'Tier1' ? 'Tier 1' : tier === 'Tier2' ? 'Tier 2' : 'Tier 3'}
+                        {tier === 'Tier1' ? 'Tier 1' : tier === 'Tier2' ? 'Tier 2' : tier === 'Tier3' ? 'Tier 3' : 'Tier 4'}
                       </div>
                       <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                         {tier === 'Tier1'
-                          ? '< 1M KREX'
-                          : tier === 'Tier1'
-                          ? '≥ 1M KREX'
+                          ? '< 10M KREX'
                           : tier === 'Tier2'
                           ? '≥ 10M KREX'
+                          : tier === 'Tier3'
+                          ? '≥ 50M KREX'
                           : '≥ 100M KREX'}
                       </div>
                     </button>
