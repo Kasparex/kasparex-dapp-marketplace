@@ -16,7 +16,7 @@ import { EcosystemPerks } from './EcosystemPerks';
 
 export function RewardCalculator() {
   const [kasAmount, setKasAmount] = useState<number>(10);
-  const [krexTier, setKrexTier] = useState<KREXTier>('Tier0');
+  const [krexTier, setKrexTier] = useState<KREXTier>('Tier1');
   const [nftStatus, setNftStatus] = useState<NFTStatus>({
     hasKREXPRIME: false,
     hasPIXELKREX: false,
