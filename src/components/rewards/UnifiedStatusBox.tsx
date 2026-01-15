@@ -98,6 +98,23 @@ export function UnifiedStatusBox() {
   // Calculate fee reduction for display
   const hasFeeReduction = feePercent < baseFee;
 
+  // Calculate cost reduction (transaction cost reduction)
+  let costReductionPercent = krexTierConfig.costReduction;
+  // Stack NFT cost reductions
+  if (hasRarestNFT) {
+    costReductionPercent += RAREST_NFT_COST_REDUCTION;
+  } else if (hasDiamondNFT) {
+    costReductionPercent += DIAMOND_NFT_COST_REDUCTION;
+  } else if (hasAnyNFT) {
+    costReductionPercent += NFT_COST_REDUCTION;
+  }
+  // Stack node cost reductions
+  if (nodeConfig) {
+    costReductionPercent += (activeNodeType === 'mirror' ? MIRROR_NODE_COST_REDUCTION : LIGHT_NODE_COST_REDUCTION);
+  }
+  // Cap at 50%
+  costReductionPercent = Math.min(50, costReductionPercent);
+
   // Calculate NFT counts per collection
   const nftCountsByCollection = nfts?.reduce((acc, nft) => {
     acc[nft.collection] = (acc[nft.collection] || 0) + 1;
