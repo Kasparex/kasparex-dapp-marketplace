@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768513542-a74c75f",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix: Always show tier reward values, remove column highlighting, add Buy buttons to KREX box, ensure NODE Bonus always visible (by Kasparex)",
+      "date": "2026-01-15T22:44:57+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768511792-040b2a3",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add Cost Reduction rows to tables, Buy buttons to KREX box, NODE Bonus to Multipliers, remove XP Rewards, update sidebar menu (by Kasparex)",
