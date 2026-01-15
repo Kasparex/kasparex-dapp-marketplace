@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768437373-781dbef",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add NFT Rewards table back with multipliers/fee/points, add diamond count per collection (by Kasparex)",
+      "date": "2026-01-15T01:35:38+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768436359-05e3567",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update Rewards Status: align XP Points to right, expand NFT table to show per-collection details with diamond status, add NFT balance summary (by Kasparex)",
