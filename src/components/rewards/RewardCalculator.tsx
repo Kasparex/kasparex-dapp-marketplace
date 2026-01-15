@@ -249,7 +249,7 @@ export function RewardCalculator() {
                   KREX Tier
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                  {(['Tier0', 'Tier1', 'Tier2', 'Tier3'] as KREXTier[]).map((tier) => (
+                  {(['Tier1', 'Tier2', 'Tier3', 'Tier4'] as KREXTier[]).map((tier) => (
                     <button
                       key={tier}
                       type="button"
@@ -261,10 +261,10 @@ export function RewardCalculator() {
                       }`}
                     >
                       <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                        {tier === 'Tier0' ? 'Tier 0' : tier === 'Tier1' ? 'Tier 1' : tier === 'Tier2' ? 'Tier 2' : 'Tier 3'}
+                        {tier === 'Tier1' ? 'Tier 0' : tier === 'Tier1' ? 'Tier 1' : tier === 'Tier2' ? 'Tier 2' : 'Tier 3'}
                       </div>
                       <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                        {tier === 'Tier0'
+                        {tier === 'Tier1'
                           ? '< 1M KREX'
                           : tier === 'Tier1'
                           ? '≥ 1M KREX'
