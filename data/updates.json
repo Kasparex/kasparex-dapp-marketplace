@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768491046-ec33b6d",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Refine rewards dashboard: discrete table styling, indicator badges, SVG icons, balance fixes, header link, and modal button (by Kasparex)",
+      "date": "2026-01-15T16:29:58+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768489058-a188e7b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update rewards dashboard: unified table styling, tier logic fixes, action buttons, icons, and token balance improvements (by Kasparex)",
