@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { createPortal } from 'react-dom';
 import { NFT_MULTIPLIER, DIAMOND_NFT_MULTIPLIER, RAREST_NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION } from '@/lib/rewards/types';
@@ -9,21 +9,97 @@ import type { NFTStatus } from '@/lib/rewards/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { NFTBuyWizard } from './NFTBuyWizard';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
+import { isDiamondNFT } from '@/lib/nft/diamond-detection';
+import { fetchMultipleNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
 
 interface NFTRewardsTableProps {
   nftStatus: NFTStatus;
   nftPoints?: number;
 }
 
+function isRareNFT(collectionId: string, tokenId: number): boolean {
+  const RARE_NFT_IDS: Record<string, number[]> = {
+    KREXPRIME: [345],
+    PIXELKREX: [515],
+  };
+  const rareIds = RARE_NFT_IDS[collectionId];
+  return rareIds ? rareIds.includes(tokenId) : false;
+}
+
 export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTableProps) {
   const { isConnected } = useAccount();
-  const { nftPoints: actualNFTPoints } = useNFTStatus();
+  const { nftPoints: actualNFTPoints, nfts } = useNFTStatus();
   const [showNFTBuyWizard, setShowNFTBuyWizard] = useState(false);
+  const [regularCount, setRegularCount] = useState(0);
+  const [diamondCount, setDiamondCount] = useState(0);
+  const [rarestCount, setRarestCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+
   const hasAnyNFT = !!(nftStatus.hasKREXPRIME || nftStatus.hasPIXELKREX ||
     (nftStatus.partnerCollections && Object.values(nftStatus.partnerCollections).some(v => v)));
   const hasDiamondNFT = !!(nftStatus.hasDiamondKREXPRIME || nftStatus.hasDiamondPIXELKREX ||
     (nftStatus.partnerDiamonds && Object.values(nftStatus.partnerDiamonds).some(v => v)));
   const hasRarestNFT = !!nftStatus.hasRarestNFT;
+
+  // Calculate NFT counts
+  useEffect(() => {
+    if (!nfts || nfts.length === 0) {
+      setRegularCount(0);
+      setDiamondCount(0);
+      setRarestCount(0);
+      setTotalCount(0);
+      return;
+    }
+
+    const calculateCounts = async () => {
+      const metadataMap = new Map<string, ParsedNFTMetadata>();
+      
+      // Group NFTs by collection
+      const nftsByCollection = new Map<string, typeof nfts>();
+      nfts.forEach((nft) => {
+        if (!nftsByCollection.has(nft.collection)) {
+          nftsByCollection.set(nft.collection, []);
+        }
+        nftsByCollection.get(nft.collection)!.push(nft);
+      });
+
+      // Fetch metadata for each collection
+      for (const [collectionId, collectionNFTs] of nftsByCollection.entries()) {
+        const tokenIds = collectionNFTs.map(nft => nft.tokenId);
+        const collectionMetadata = await fetchMultipleNFTMetadata(collectionId, tokenIds);
+        collectionMetadata.forEach((metadata, tokenId) => {
+          metadataMap.set(`${collectionId}-${tokenId}`, metadata);
+        });
+      }
+
+      // Count diamonds, regular, and rarest
+      let regular = 0;
+      let diamond = 0;
+      let rarest = 0;
+
+      nfts.forEach((nft) => {
+        const metadataKey = `${nft.collection}-${nft.tokenId}`;
+        const metadata = metadataMap.get(metadataKey) || null;
+        const isDiamond = isDiamondNFT(nft.collection, metadata);
+        const isRarest = isRareNFT(nft.collection, nft.tokenId);
+        
+        if (isRarest) {
+          rarest++;
+        } else if (isDiamond) {
+          diamond++;
+        } else {
+          regular++;
+        }
+      });
+
+      setRegularCount(regular);
+      setDiamondCount(diamond);
+      setRarestCount(rarest);
+      setTotalCount(nfts.length);
+    };
+
+    calculateCounts();
+  }, [nfts]);
 
   const nftTypes = [
     {
@@ -39,6 +115,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
       feeReduction: NFT_FEE_REDUCTION,
       points: NFT_POINTS.REGULAR,
       isUnlocked: hasAnyNFT && !hasDiamondNFT && !hasRarestNFT,
+      count: regularCount,
     },
     {
       id: 'diamond',
@@ -53,6 +130,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
       feeReduction: DIAMOND_NFT_FEE_REDUCTION,
       points: NFT_POINTS.DIAMOND,
       isUnlocked: hasDiamondNFT && !hasRarestNFT,
+      count: diamondCount,
     },
     {
       id: 'rarest',
@@ -67,10 +145,16 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
       feeReduction: RAREST_NFT_FEE_REDUCTION,
       points: NFT_POINTS.RAREST,
       isUnlocked: hasRarestNFT,
+      count: rarestCount,
     },
   ];
 
   const benefitRows = [
+    { id: 'count', label: 'Owned', icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+      </svg>
+    )},
     { id: 'requirements', label: 'Requirements', icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -95,6 +179,8 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
 
   const getCellValue = (nftType: typeof nftTypes[0], rowId: string) => {
     switch (rowId) {
+      case 'count':
+        return nftType.count;
       case 'requirements':
         return nftType.requirement;
       case 'multiplier':
@@ -108,6 +194,18 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
     }
   };
 
+  // Determine which columns to highlight based on ownership
+  const shouldHighlightColumn = (nftType: typeof nftTypes[0]) => {
+    if (nftType.id === 'regular') {
+      return hasAnyNFT && !hasDiamondNFT && !hasRarestNFT;
+    } else if (nftType.id === 'diamond') {
+      return hasDiamondNFT && !hasRarestNFT;
+    } else if (nftType.id === 'rarest') {
+      return hasRarestNFT;
+    }
+    return false;
+  };
+
   return (
     <>
       <div className="overflow-x-auto rounded-lg border border-zinc-200/50 dark:border-zinc-800/50">
@@ -117,26 +215,29 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
               <th className="border-b border-zinc-200/50 dark:border-zinc-700/50 py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100 text-left">
                 Rewards
               </th>
-              {nftTypes.map((nftType) => (
-                <th
-                  key={nftType.id}
-                  className={`border-b border-zinc-200/50 dark:border-zinc-700/50 py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100 text-center ${
-                    nftType.isUnlocked ? 'bg-[#02abb8]/5 dark:bg-[#02abb8]/10' : ''
-                  }`}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="text-zinc-500 dark:text-zinc-400">{nftType.icon}</span>
-                    <span>{nftType.name}</span>
-                  </div>
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 font-normal">
-                    {nftType.isUnlocked ? (
-                      <span className="text-green-600 dark:text-green-400">Owned</span>
-                    ) : (
-                      <span className="text-zinc-400">Not Owned</span>
-                    )}
-                  </div>
-                </th>
-              ))}
+              {nftTypes.map((nftType) => {
+                const shouldHighlight = shouldHighlightColumn(nftType);
+                return (
+                  <th
+                    key={nftType.id}
+                    className={`border-b border-zinc-200/50 dark:border-zinc-700/50 py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100 text-center ${
+                      shouldHighlight ? 'bg-[#02abb8]/5 dark:bg-[#02abb8]/10' : ''
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-zinc-500 dark:text-zinc-400">{nftType.icon}</span>
+                      <span>{nftType.name}</span>
+                    </div>
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 font-normal">
+                      {shouldHighlight ? (
+                        <span className="text-green-600 dark:text-green-400">Owned</span>
+                      ) : (
+                        <span className="text-zinc-400">Not Owned</span>
+                      )}
+                    </div>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
@@ -150,16 +251,25 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
                 </td>
                 {nftTypes.map((nftType) => {
                   const value = getCellValue(nftType, row.id);
+                  const shouldHighlight = shouldHighlightColumn(nftType);
                   
                   return (
                     <td
                       key={nftType.id}
                       className={`border-r border-zinc-200/50 dark:border-zinc-700/50 py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 text-center last:border-r-0 ${
-                        nftType.isUnlocked ? 'bg-[#02abb8]/3 dark:bg-[#02abb8]/5' : ''
+                        shouldHighlight ? 'bg-[#02abb8]/3 dark:bg-[#02abb8]/5' : ''
                       }`}
                     >
-                      <span className={nftType.isUnlocked ? '' : 'text-zinc-400'}>
-                        {value}
+                      <span className={shouldHighlight ? '' : 'text-zinc-400'}>
+                        {row.id === 'count' ? (
+                          value > 0 ? (
+                            <span className="font-medium">{value}</span>
+                          ) : (
+                            '0'
+                          )
+                        ) : (
+                          value
+                        )}
                       </span>
                     </td>
                   );
@@ -175,17 +285,17 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
         <div className="grid grid-cols-2 gap-4">
           <button
             onClick={() => setShowNFTBuyWizard(true)}
-            className="px-4 py-2 w-auto bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
+            className="px-2 py-2 w-auto bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors text-sm"
           >
             Buy NFT
           </button>
           <div className="flex items-center justify-end">
             <div className="text-right">
               <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
-                Your NFT Points
+                Your NFT Balance
               </div>
               <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                {actualNFTPoints > 0 ? formatLargeNumber(actualNFTPoints) : '—'}
+                {totalCount > 0 ? `${totalCount} NFT${totalCount !== 1 ? 's' : ''}` : '—'}
               </div>
             </div>
           </div>

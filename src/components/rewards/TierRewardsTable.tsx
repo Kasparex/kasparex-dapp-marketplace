@@ -4,10 +4,11 @@ import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
+import { KREX_TIERS, type KREXTier, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION } from '@/lib/rewards/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { KREXBuyWizard } from './KREXBuyWizard';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useNFTStatus } from '@/hooks/useNFTStatus';
 
 interface TierRewardsTableProps {
   currentTier: KREXTier;
@@ -17,12 +18,37 @@ interface TierRewardsTableProps {
 export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableProps) {
   const { isConnected } = useAccount();
   const { balance: totalKREX, l1Balance, l2Balance } = useKREXBalance();
+  const { nftStatus } = useNFTStatus();
   const [showKREXBuyWizard, setShowKREXBuyWizard] = useState(false);
   const tiers = Object.values(KREX_TIERS);
 
   // Only highlight tier if user actually has KREX (balance > 0)
   const hasKREX = krexBalance > 0;
   const effectiveTier = hasKREX ? currentTier : null;
+
+  // Calculate NFT status for fee reduction
+  const hasAnyNFT = !!(nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX ||
+    (nftStatus?.partnerCollections && Object.values(nftStatus.partnerCollections).some(v => v)));
+  const hasDiamondNFT = !!(nftStatus?.hasDiamondKREXPRIME || nftStatus?.hasDiamondPIXELKREX ||
+    (nftStatus?.partnerDiamonds && Object.values(nftStatus.partnerDiamonds).some(v => v)));
+  const hasRarestNFT = !!nftStatus?.hasRarestNFT;
+
+  // Calculate actual fee with reductions
+  const baseFee = 1.0;
+  const calculateActualFee = (tier: typeof tiers[0]) => {
+    let fee = baseFee;
+    // Apply tier reduction
+    fee = Math.max(0, fee - tier.feeReduction);
+    // Apply NFT reductions (stack with tier reduction)
+    if (hasRarestNFT) {
+      fee = 0; // Zero fee
+    } else if (hasDiamondNFT) {
+      fee = Math.max(0, fee - DIAMOND_NFT_FEE_REDUCTION);
+    } else if (hasAnyNFT) {
+      fee = Math.max(0, fee - NFT_FEE_REDUCTION);
+    }
+    return fee;
+  };
 
   // Define benefit rows with icons
   const benefitRows = [
@@ -70,11 +96,21 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
       case 'multiplier':
         return `${tier.multiplier}x`;
       case 'feeReduction':
-        return `-${tier.feeReduction}%`;
+        const actualFee = calculateActualFee(tier);
+        const hasReduction = actualFee < baseFee;
+        if (hasReduction) {
+          return (
+            <div className="flex items-center justify-center gap-2">
+              <span className="line-through text-zinc-400">{baseFee.toFixed(2)}%</span>
+              <span className="text-green-600 dark:text-green-400">{actualFee.toFixed(2)}%</span>
+            </div>
+          );
+        }
+        return `${baseFee.toFixed(2)}%`;
       case 'pointsMultiplier':
         return `${tier.pointsMultiplier}x`;
       case 'tierBadge':
-        return tier.tier !== 'Tier1';
+        return true; // All tiers have badges now
       case 'benefit1':
         // Early Access for Tier 3+
         return tier.minKREX >= KREX_TIERS.Tier3.minKREX;
@@ -91,12 +127,39 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
   };
 
   const getTierBadge = (tier: typeof tiers[0]) => {
-    if (tier.tier === 'Tier1') return null;
     const isUnlocked = isTierUnlocked(tier);
+    const tierColors: Record<string, { bg: string; text: string; darkBg: string; darkText: string }> = {
+      Tier1: {
+        bg: 'bg-blue-100 dark:bg-blue-900/30',
+        text: 'text-blue-700 dark:text-blue-300',
+        darkBg: 'dark:bg-blue-900/30',
+        darkText: 'dark:text-blue-300',
+      },
+      Tier2: {
+        bg: 'bg-green-100 dark:bg-green-900/30',
+        text: 'text-green-700 dark:text-green-300',
+        darkBg: 'dark:bg-green-900/30',
+        darkText: 'dark:text-green-300',
+      },
+      Tier3: {
+        bg: 'bg-purple-100 dark:bg-purple-900/30',
+        text: 'text-purple-700 dark:text-purple-300',
+        darkBg: 'dark:bg-purple-900/30',
+        darkText: 'dark:text-purple-300',
+      },
+      Tier4: {
+        bg: 'bg-yellow-100 dark:bg-yellow-900/30',
+        text: 'text-yellow-700 dark:text-yellow-300',
+        darkBg: 'dark:bg-yellow-900/30',
+        darkText: 'dark:text-yellow-300',
+      },
+    };
+    const colors = tierColors[tier.tier] || tierColors.Tier1;
+    
     return (
       <span className={`px-2 py-1 text-xs font-medium rounded ${
         isUnlocked 
-          ? 'bg-[#02abb8]/10 dark:bg-[#02abb8]/20 text-[#02abb8] dark:text-[#02abb8]' 
+          ? `${colors.bg} ${colors.text}` 
           : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'
       }`}>
         {tier.label}
@@ -156,8 +219,16 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
                     >
                       {row.id === 'tierBadge' ? (
                         <div className="flex justify-center">
-                          {getTierBadge(tier) || <span className="text-zinc-400">—</span>}
+                          {getTierBadge(tier)}
                         </div>
+                      ) : row.id === 'feeReduction' ? (
+                        typeof value === 'string' ? (
+                          <span className={isUnlocked ? '' : 'text-zinc-400'}>
+                            {value}
+                          </span>
+                        ) : (
+                          value
+                        )
                       ) : row.id.startsWith('benefit') ? (
                         <span className={value ? 'text-green-600 dark:text-green-400 text-lg' : 'text-red-500 dark:text-red-400 text-lg'}>
                           {value ? '✓' : '✗'}
@@ -181,7 +252,7 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
         <div className="grid grid-cols-2 gap-4">
           <button
             onClick={() => setShowKREXBuyWizard(true)}
-            className="px-4 py-2 w-auto bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
+            className="px-2 py-2 w-auto bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors text-sm"
           >
             Buy KREX
           </button>

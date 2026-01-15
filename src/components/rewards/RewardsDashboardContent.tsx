@@ -127,28 +127,28 @@ export function RewardsDashboardContent({
             <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
               XP Points
             </h3>
-            {isConnected && holdings ? (
-              <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-zinc-600 dark:text-zinc-400">Total XP</span>
+                <span className="font-bold text-[#02abb8] text-lg">
+                  {holdings ? formatLargeNumber(holdings.xp) : '0'}
+                </span>
+              </div>
+              <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
                 <div className="flex items-center justify-between">
-                  <span className="text-zinc-600 dark:text-zinc-400">Total XP</span>
-                  <span className="font-bold text-[#02abb8] text-lg">
-                    {formatLargeNumber(holdings.xp)}
+                  <span className="text-zinc-600 dark:text-zinc-400">XP Rewards</span>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                    {holdings ? formatLargeNumber(holdings.xp) : '0'}
                   </span>
                 </div>
-                <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-600 dark:text-zinc-400">XP Rewards</span>
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                      {formatLargeNumber(holdings.xp)}
-                    </span>
-                  </div>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-zinc-600 dark:text-zinc-400">NFT Points</span>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                    {isNFTLoading ? 'Loading...' : formatLargeNumber(nftPoints || 0)}
+                  </span>
                 </div>
               </div>
-            ) : (
-              <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                Connect wallet to view balance
-              </div>
-            )}
+            </div>
           </div>
         </div>
 
