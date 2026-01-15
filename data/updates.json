@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768493204-23b3e69",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix NFT column highlighting to show all owned types (by Kasparex)",
+      "date": "2026-01-15T17:05:55+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768493001-69aa986",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add Total Owned column to NFT Rewards table (by Kasparex)",
