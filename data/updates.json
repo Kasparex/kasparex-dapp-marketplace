@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768497974-bef01c3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix tooltip positioning, update benefits, add emoji icons, colors, and styling improvements (by Kasparex)",
+      "date": "2026-01-15T18:25:25+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768496253-3e4f31c",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: add tooltip property to benefitRows (by Kasparex)",
