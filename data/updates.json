@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768480374-4deee5a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: ensure boolean values are always boolean (by Kasparex)",
+      "date": "2026-01-15T13:32:28+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768480080-6b8809b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add rewards dashboard page with filterable table and token balances (by Kasparex)",
