@@ -17,6 +17,10 @@ import { NodeRewardsTable } from './NodeRewardsTable';
 import { PremiumRewardsTable } from './PremiumRewardsTable';
 import { DAppTokenBalanceRow } from './DAppTokenBalanceRow';
 import { TierBadge } from './TierBadge';
+import { KREXBuyWizard } from './KREXBuyWizard';
+import { NFTBuyWizard } from './NFTBuyWizard';
+import { useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface RewardsDashboardContentProps {
   filters: {
@@ -35,6 +39,8 @@ export function RewardsDashboardContent({
   const { balance: krexBalance, l1Balance, l2Balance, tier: krexTier, isLoading: isKREXLoading } = useKREXBalance();
   const { nftStatus, nftPoints, isLoading: isNFTLoading } = useNFTStatus();
   const holdings = isConnected && address ? getMockWalletHoldings(address) : null;
+  const [showKREXBuyWizard, setShowKREXBuyWizard] = useState(false);
+  const [showNFTBuyWizard, setShowNFTBuyWizard] = useState(false);
 
   // Get GRID token address and balance
   const gridTokenAddress = getContractAddress(chainId, 'GRIDToken') || null;
@@ -159,14 +165,12 @@ export function RewardsDashboardContent({
                         </span>
                       </div>
                     )}
-                    {nodeMultiplierAdd > 0 && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-zinc-600 dark:text-zinc-400">Node Bonus</span>
-                        <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                          +{nodeMultiplierAdd}x
-                        </span>
-                      </div>
-                    )}
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-600 dark:text-zinc-400">NODE Bonus</span>
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                        {nodeMultiplierAdd > 0 ? `+${nodeMultiplierAdd}x` : '0x'}
+                      </span>
+                    </div>
                     <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
                       <span className="font-semibold text-zinc-700 dark:text-zinc-300">Total</span>
                       <span className="font-bold text-[#02abb8] text-lg">
@@ -251,12 +255,6 @@ export function RewardsDashboardContent({
                       <div className="flex items-center justify-between">
                         <span className="text-zinc-600 dark:text-zinc-400">Total XP</span>
                         <span className="font-bold text-[#02abb8] text-lg">
-                          {holdings ? formatLargeNumber(holdings.xp) : '0'}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between mt-1">
-                        <span className="text-zinc-600 dark:text-zinc-400">XP Rewards</span>
-                        <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                           {holdings ? formatLargeNumber(holdings.xp) : '0'}
                         </span>
                       </div>
@@ -375,7 +373,7 @@ export function RewardsDashboardContent({
 
         {/* Premium Features Table */}
         {(!filters.types.length || filters.types.includes('premium')) && (
-          <div>
+          <div id="premium-features">
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
               Premium Features
             </h2>

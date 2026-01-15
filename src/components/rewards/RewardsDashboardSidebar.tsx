@@ -13,47 +13,6 @@ interface RewardsDashboardSidebarProps {
   onSearchChange: (query: string) => void;
 }
 
-const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
-  <svg
-    className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`}
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-  </svg>
-);
-
-const CollapsibleSection = ({
-  title,
-  icon,
-  expanded,
-  onToggle,
-  children,
-}: {
-  title: string;
-  icon?: React.ReactNode;
-  expanded: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-}) => (
-  <div className="mb-4">
-    <button
-      onClick={onToggle}
-      className="w-full flex items-center justify-between text-sm font-semibold text-zinc-700 dark:text-white opacity-80 uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-white hover:opacity-100 transition-all"
-    >
-      <div className="flex items-center gap-2">
-        {icon && (
-          <span className="text-zinc-700 dark:text-white opacity-80">{icon}</span>
-        )}
-        <span>{title}</span>
-      </div>
-      <ChevronIcon expanded={expanded} />
-    </button>
-    {expanded && <div>{children}</div>}
-  </div>
-);
-
 export function RewardsDashboardSidebar({
   filters,
   searchQuery,
@@ -244,29 +203,23 @@ export function RewardsDashboardSidebar({
         </div>
 
         <div className={`p-4 lg:p-6 ${isHidden ? 'lg:hidden' : ''}`}>
-          {/* Reward Types Menu */}
-          <CollapsibleSection
-            title="Reward Types"
-            icon={
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            }
-            expanded={menuExpanded}
-            onToggle={() => setMenuExpanded(!menuExpanded)}
-          >
+          {/* Reward Types Menu - Non-collapsible buttons like Knowledge Base */}
+          <div className="mb-4">
+            <h3 className="text-sm font-semibold text-zinc-700 dark:text-white opacity-80 uppercase tracking-wider mb-3">
+              Reward Types
+            </h3>
             <nav className="space-y-1">
               {rewardTypes.map((type) => (
                 <button
                   key={type.id}
                   onClick={() => scrollToSection(type.id)}
-                  className="w-full text-left px-4 py-2 rounded-lg text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
+                  className="w-full text-left px-3 py-2 text-sm rounded-lg transition-colors text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100"
                 >
                   {type.label}
                 </button>
               ))}
             </nav>
-          </CollapsibleSection>
+          </div>
         </div>
       </aside>
     </>
