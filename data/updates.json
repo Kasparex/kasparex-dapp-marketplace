@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768507927-de69681",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Implement transaction cost reduction system: Tier 1-4 (0%, 2%, 3%, 5%), NFTs (+1%, +3%, +5%), Nodes (+2%, +5%) (by Kasparex)",
+      "date": "2026-01-15T21:11:39+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768505107-898397b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix build error: remove leftover feeReduction reference (by Kasparex)",
