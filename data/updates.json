@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768498751-b93870f",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix benefits labels, add Setup Node button, fix Buy NFT button size, and add tooltips to NFT Rewards (by Kasparex)",
+      "date": "2026-01-15T18:38:34+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768497974-bef01c3",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix tooltip positioning, update benefits, add emoji icons, colors, and styling improvements (by Kasparex)",
