@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768499971-a23d328",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Shorten NFT Requirements text, replace GRID box with Multiplier box, align Node Rewards text right (by Kasparex)",
+      "date": "2026-01-15T18:57:08+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768498751-b93870f",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix benefits labels, add Setup Node button, fix Buy NFT button size, and add tooltips to NFT Rewards (by Kasparex)",
