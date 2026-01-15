@@ -54,7 +54,7 @@ export function MultiplierDisplay({
               {tierConfig.description}
             </div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400">
-              Fee: {tierConfig.feePercent}%
+              Fee Reduction: -{tierConfig.feeReduction}%
             </div>
           </div>
         </div>

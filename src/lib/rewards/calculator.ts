@@ -134,22 +134,14 @@ export function calculateRewards(
   const finalXP = baseXP * pointsMultiplier;
 
   // Calculate fee
-  // Use custom base fee if provided, otherwise use tier's default fee
+  // Use custom base fee if provided, otherwise use default
   const baseFee = inputs.feeSettings.baseFeePercent;
   let feePercent = baseFee;
   
-  // Apply tier-based fee reductions from the base fee
-  // Tier0: base fee (no reduction)
-  // Tier1: 0.8% of base (20% reduction)
-  // Tier2: 0.7% of base (30% reduction)
-  // Tier3: 0.5% of base (50% reduction)
-  if (krexTier === 'Tier1') {
-    feePercent = baseFee * 0.8;
-  } else if (krexTier === 'Tier2') {
-    feePercent = baseFee * 0.7;
-  } else if (krexTier === 'Tier3') {
-    feePercent = baseFee * 0.5;
-  }
+  // Apply tier-based fee reductions from the base fee (like NFT fee reductions)
+  // All tiers now use fee reduction system
+  const tierConfig = KREX_TIERS[krexTier];
+  feePercent = Math.max(0, feePercent - tierConfig.feeReduction);
   
   // Apply NFT fee reductions (stack with tier reduction)
   // Rarest NFT: 100% reduction = zero-fee mode (highest priority)

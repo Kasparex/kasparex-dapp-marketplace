@@ -110,7 +110,7 @@ export function PointsPageContent({ filters }: PointsPageContentProps) {
     nodeFeeReduction: 0.1,
   };
 
-  const hasAnyBadge = krexTier !== 'Tier0' || mockNFTStatus.hasKREXPRIME || mockNFTStatus.hasPIXELKREX || 
+  const hasAnyBadge = krexTier !== 'Tier1' || mockNFTStatus.hasKREXPRIME || mockNFTStatus.hasPIXELKREX || 
     mockNFTStatus.hasDiamondKREXPRIME || mockNFTStatus.hasDiamondPIXELKREX || 
     mockNFTStatus.hasRarestNFT || mockNodeProvider.isNodeProvider;
 

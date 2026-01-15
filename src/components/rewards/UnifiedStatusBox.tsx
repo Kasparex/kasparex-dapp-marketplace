@@ -77,9 +77,14 @@ export function UnifiedStatusBox() {
 
   // Fee calculation with base fee
   const baseFee = 1.0; // Default base fee
-  let feePercent = krexTierConfig.feePercent;
+  let feePercent = baseFee;
+  
+  // Apply tier-based fee reduction (like NFT fee reductions)
+  feePercent = Math.max(0, feePercent - krexTierConfig.feeReduction);
+  
+  // Apply NFT fee reductions (stack with tier reduction)
   if (hasRarestNFT) {
-    feePercent = Math.max(0, feePercent - RAREST_NFT_FEE_REDUCTION); // Zero fee
+    feePercent = 0; // Zero fee
   } else if (hasDiamondNFT) {
     feePercent = Math.max(0, feePercent - DIAMOND_NFT_FEE_REDUCTION);
   } else if (hasAnyNFT) {
@@ -90,7 +95,7 @@ export function UnifiedStatusBox() {
   }
   
   // Calculate fee reduction for display
-  const hasFeeReduction = feePercent < krexTierConfig.feePercent;
+  const hasFeeReduction = feePercent < baseFee;
 
   // Calculate NFT counts per collection
   const nftCountsByCollection = nfts?.reduce((acc, nft) => {
@@ -532,14 +537,7 @@ export function UnifiedStatusBox() {
                             </td>
                             <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">{tier.multiplier}x</td>
                             <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                              {tierHasFeeReduction ? (
-                                <>
-                                  <span className="line-through text-zinc-400">{tier.feePercent}%</span>
-                                  <span className="ml-2 text-green-600 dark:text-green-400">{feePercent.toFixed(2)}%</span>
-                                </>
-                              ) : (
-                                `${tier.feePercent}%`
-                              )}
+                              -{tier.feeReduction}%
                             </td>
                             <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">{tier.pointsMultiplier}x</td>
                           </tr>

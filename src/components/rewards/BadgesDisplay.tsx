@@ -20,7 +20,7 @@ export function BadgesDisplay({
   const hasRegularNFT = nftStatus.hasKREXPRIME || nftStatus.hasPIXELKREX;
   const hasDiamondNFT = nftStatus.hasDiamondKREXPRIME || nftStatus.hasDiamondPIXELKREX;
   const hasRarestNFT = nftStatus.hasRarestNFT;
-  const hasAnyBadge = krexTier !== 'Tier0' || hasRegularNFT || hasDiamondNFT || hasRarestNFT || nodeProvider.isNodeProvider;
+  const hasAnyBadge = krexTier !== 'Tier1' || hasRegularNFT || hasDiamondNFT || hasRarestNFT || nodeProvider.isNodeProvider;
 
   if (!hasAnyBadge) {
     return null;
@@ -37,7 +37,7 @@ export function BadgesDisplay({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* KREX Tier Badges */}
-        {krexTier !== 'Tier0' && (
+        {krexTier !== 'Tier1' && (
           <div className="p-4 bg-gradient-to-br from-[#02abb8]/10 to-[#02abb8]/5 rounded-lg border-2 border-[#02abb8]/30">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-[#02abb8]/20 flex items-center justify-center">
@@ -54,7 +54,7 @@ export function BadgesDisplay({
             </div>
             <div className="mt-3 pt-3 border-t border-zinc-200 dark:border-zinc-700">
               <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                {tierConfig.multiplier}x multiplier • {tierConfig.feePercent}% fee
+                {tierConfig.multiplier}x multiplier • -{tierConfig.feeReduction}% fee reduction
               </div>
             </div>
           </div>

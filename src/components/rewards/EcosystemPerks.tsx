@@ -34,7 +34,7 @@ export function EcosystemPerks({
   }> = [];
 
   // Tier-based perks
-  if (krexTier === 'Tier3') {
+  if (krexTier === 'Tier4') {
     perks.push({
       title: 'Premium dApp Access',
       description: 'Unlock access to exclusive premium dApps',
@@ -43,7 +43,7 @@ export function EcosystemPerks({
       color: 'text-[#02abb8]',
     });
   }
-  if (krexTier === 'Tier2' || krexTier === 'Tier3') {
+  if (krexTier === 'Tier3' || krexTier === 'Tier4') {
     perks.push({
       title: 'Special Airdrops',
       description: 'Eligible for exclusive token airdrops',
@@ -52,7 +52,7 @@ export function EcosystemPerks({
       color: 'text-[#02abb8]',
     });
   }
-  if (krexTier !== 'Tier0') {
+  if (krexTier !== 'Tier1') {
     perks.push({
       title: 'Alpha News Access',
       description: 'Early access to ecosystem updates and news',
@@ -117,16 +117,16 @@ export function EcosystemPerks({
   }
 
   // Locked perks (for lower tiers)
-  if (krexTier === 'Tier0') {
+  if (krexTier === 'Tier1') {
     perks.push({
       title: 'Premium dApp Access',
-      description: 'Unlock at Tier 3',
+      description: 'Unlock at Tier 4',
       unlocked: false,
       icon: '🚀',
       color: 'text-zinc-400',
     });
   }
-  if (krexTier === 'Tier0' || krexTier === 'Tier1') {
+  if (krexTier === 'Tier1' || krexTier === 'Tier2') {
     perks.push({
       title: 'Special Airdrops',
       description: 'Unlock at Tier 2',

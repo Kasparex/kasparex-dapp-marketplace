@@ -9,8 +9,11 @@ import { getContractAddress } from '@/lib/contracts/addresses';
 import { getAllDApps } from '@/lib/dapps';
 import { getMockWalletHoldings } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
-import { getUserRewardStatus, filterRewards, type UserRewardStatus } from '@/lib/rewards/dashboard-data';
-import { RewardsTable } from './RewardsTable';
+import { type UserRewardStatus } from '@/lib/rewards/dashboard-data';
+import { TierRewardsTable } from './TierRewardsTable';
+import { NFTRewardsTable } from './NFTRewardsTable';
+import { NodeRewardsTable } from './NodeRewardsTable';
+import { PremiumRewardsTable } from './PremiumRewardsTable';
 import { DAppTokenBalanceRow } from './DAppTokenBalanceRow';
 
 interface RewardsDashboardContentProps {
@@ -28,7 +31,7 @@ export function RewardsDashboardContent({
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const { balance: krexBalance, l1Balance, l2Balance, tier: krexTier, isLoading: isKREXLoading } = useKREXBalance();
-  const { nftStatus, isLoading: isNFTLoading } = useNFTStatus();
+  const { nftStatus, nftPoints, isLoading: isNFTLoading } = useNFTStatus();
   const holdings = isConnected && address ? getMockWalletHoldings(address) : null;
 
   // Get GRID token address and balance
@@ -40,40 +43,17 @@ export function RewardsDashboardContent({
   const dAppsWithTokens = dApps.filter((dapp) => dapp.contractAddress);
 
 
-  // Get user reward status
-  const userStatus: UserRewardStatus = useMemo(() => {
-    return {
-      krexTier,
-      krexBalance: krexBalance || 0,
-      nftStatus: nftStatus || {
-        hasKREXPRIME: false,
-        hasPIXELKREX: false,
-        hasDiamondKREXPRIME: false,
-        hasDiamondPIXELKREX: false,
-        hasRarestNFT: false,
-        partnerCollections: {},
-        partnerDiamonds: {},
-      },
-      hasNode: false, // TODO: Implement node status detection
-      nodeType: undefined,
-    };
-  }, [krexTier, krexBalance, nftStatus]);
-
-  // Get all rewards with user status
-  const allRewards = useMemo(() => {
-    return getUserRewardStatus(userStatus);
-  }, [userStatus]);
-
-  // Filter rewards
-  const filteredRewards = useMemo(() => {
-    return filterRewards(allRewards, {
-      types: filters.types.length > 0 ? filters.types : undefined,
-      status: filters.status.length > 0 ? filters.status : undefined,
-      searchQuery: searchQuery.trim() || undefined,
-    });
-  }, [allRewards, filters, searchQuery]);
-
   const isLoading = isKREXLoading || isNFTLoading || isGRIDLoading;
+  
+  const defaultNFTStatus = {
+    hasKREXPRIME: false,
+    hasPIXELKREX: false,
+    hasDiamondKREXPRIME: false,
+    hasDiamondPIXELKREX: false,
+    hasRarestNFT: false,
+    partnerCollections: {},
+    partnerDiamonds: {},
+  };
 
   return (
     <div className="space-y-8">
@@ -140,6 +120,20 @@ export function RewardsDashboardContent({
                     {gridFormattedBalance || '0'}
                   </span>
                 </div>
+                <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-600 dark:text-zinc-400">XP Rewards</span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                      {holdings ? formatLargeNumber(holdings.xp) : '0'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-zinc-600 dark:text-zinc-400">NFT Points</span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                      {isNFTLoading ? 'Loading...' : formatLargeNumber(nftPoints || 0)}
+                    </span>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -160,6 +154,14 @@ export function RewardsDashboardContent({
                   <span className="font-bold text-[#02abb8] text-lg">
                     {formatLargeNumber(holdings.xp)}
                   </span>
+                </div>
+                <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-600 dark:text-zinc-400">XP Rewards</span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                      {formatLargeNumber(holdings.xp)}
+                    </span>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -210,27 +212,81 @@ export function RewardsDashboardContent({
         )}
       </div>
 
-      {/* Rewards Table */}
-      <div>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-            All Rewards & Benefits
-          </h2>
-          <div className="text-sm text-zinc-600 dark:text-zinc-400">
-            {filteredRewards.length} of {allRewards.length} rewards
+      {/* Rewards Tables */}
+      <div className="space-y-8">
+        {/* KREX Tier Rewards Table */}
+        {(!filters.types.length || filters.types.includes('krex-tier')) && (
+          <div>
+            <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+              KREX Tier Rewards
+            </h2>
+            {isLoading ? (
+              <div className="p-8 text-center text-zinc-500 dark:text-zinc-400">
+                Loading rewards...
+              </div>
+            ) : (
+              <TierRewardsTable
+                currentTier={krexTier}
+                krexBalance={krexBalance || 0}
+              />
+            )}
           </div>
-        </div>
+        )}
 
-        {isLoading ? (
-          <div className="p-8 text-center text-zinc-500 dark:text-zinc-400">
-            Loading rewards...
+        {/* NFT Rewards Table */}
+        {(!filters.types.length || filters.types.includes('nft')) && (
+          <div>
+            <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+              NFT Rewards
+            </h2>
+            {isLoading ? (
+              <div className="p-8 text-center text-zinc-500 dark:text-zinc-400">
+                Loading rewards...
+              </div>
+            ) : (
+              <NFTRewardsTable
+                nftStatus={nftStatus || defaultNFTStatus}
+              />
+            )}
           </div>
-        ) : (
-          <RewardsTable
-            rewards={filteredRewards}
-            searchQuery={searchQuery}
-            userStatus={{ krexTier }}
-          />
+        )}
+
+        {/* Node Rewards Table */}
+        {(!filters.types.length || filters.types.includes('node')) && (
+          <div>
+            <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+              Node Rewards
+            </h2>
+            {isLoading ? (
+              <div className="p-8 text-center text-zinc-500 dark:text-zinc-400">
+                Loading rewards...
+              </div>
+            ) : (
+              <NodeRewardsTable
+                hasNode={false} // TODO: Implement node status detection
+                nodeType={undefined}
+              />
+            )}
+          </div>
+        )}
+
+        {/* Premium Features Table */}
+        {(!filters.types.length || filters.types.includes('premium')) && (
+          <div>
+            <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+              Premium Features
+            </h2>
+            {isLoading ? (
+              <div className="p-8 text-center text-zinc-500 dark:text-zinc-400">
+                Loading rewards...
+              </div>
+            ) : (
+              <PremiumRewardsTable
+                krexTier={krexTier}
+                nftStatus={nftStatus || defaultNFTStatus}
+              />
+            )}
+          </div>
         )}
       </div>
     </div>

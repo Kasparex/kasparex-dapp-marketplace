@@ -166,9 +166,9 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
   const { balance: krexBalance, tier, isLoading: isKREXLoading } = useKREXBalance();
   const tierConfig = KREX_TIERS[tier];
   const multiplier = tierConfig.multiplier;
-  // feePercent is already a percentage (1.0 = 1%), so calculate reduction from base 1%
+  // Fee reduction system - tier fee reduction is applied directly from base fee
   const baseFee = 1.0; // Base fee is 1%
-  const feeReduction = baseFee > tierConfig.feePercent ? ((baseFee - tierConfig.feePercent) / baseFee) * 100 : 0;
+  const feeReduction = tierConfig.feeReduction; // Direct fee reduction percentage
 
   // Calculate total predicted rewards if user completes all actions
   const totalPredicted = actions.reduce(

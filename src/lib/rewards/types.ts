@@ -2,13 +2,13 @@
  * Types for the Reward Calculator
  */
 
-export type KREXTier = 'Tier0' | 'Tier1' | 'Tier2' | 'Tier3';
+export type KREXTier = 'Tier1' | 'Tier2' | 'Tier3' | 'Tier4';
 
 export interface KREXTierConfig {
   tier: KREXTier;
   minKREX: number;
   multiplier: number;
-  feePercent: number;
+  feeReduction: number; // Fee reduction from base fee (in percentage points, e.g., 0.1 = -0.1%)
   pointsMultiplier: number;
   label: string;
   description: string;
@@ -114,40 +114,40 @@ export interface RewardResult {
 }
 
 export const KREX_TIERS: Record<KREXTier, KREXTierConfig> = {
-  Tier0: {
-    tier: 'Tier0',
-    minKREX: 0,
-    multiplier: 1,
-    feePercent: 1.0,
-    pointsMultiplier: 1,
-    label: 'Tier 0',
-    description: '< 10M KREX',
-  },
   Tier1: {
     tier: 'Tier1',
-    minKREX: 10_000_000,
-    multiplier: 2,
-    feePercent: 0.8,
-    pointsMultiplier: 2,
+    minKREX: 0,
+    multiplier: 1,
+    feeReduction: 0.1, // -0.1% from base fee
+    pointsMultiplier: 1,
     label: 'Tier 1',
-    description: '≥ 10M KREX',
+    description: '< 10M KREX',
   },
   Tier2: {
     tier: 'Tier2',
-    minKREX: 50_000_000,
-    multiplier: 5,
-    feePercent: 0.7,
-    pointsMultiplier: 5,
+    minKREX: 10_000_000,
+    multiplier: 2,
+    feeReduction: 0.2, // -0.2% from base fee
+    pointsMultiplier: 2,
     label: 'Tier 2',
-    description: '≥ 50M KREX',
+    description: '≥ 10M KREX',
   },
   Tier3: {
     tier: 'Tier3',
+    minKREX: 50_000_000,
+    multiplier: 5,
+    feeReduction: 0.3, // -0.3% from base fee
+    pointsMultiplier: 5,
+    label: 'Tier 3',
+    description: '≥ 50M KREX',
+  },
+  Tier4: {
+    tier: 'Tier4',
     minKREX: 100_000_000,
     multiplier: 10,
-    feePercent: 0.5,
+    feeReduction: 0.5, // -0.5% from base fee
     pointsMultiplier: 10,
-    label: 'Tier 3',
+    label: 'Tier 4',
     description: '≥ 100M KREX',
   },
 };

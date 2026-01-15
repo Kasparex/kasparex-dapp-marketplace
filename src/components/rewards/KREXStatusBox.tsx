@@ -93,7 +93,7 @@ export function KREXStatusBox() {
                 Fee
               </span>
               <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                {tierConfig.feePercent}%
+                -{tierConfig.feeReduction}%
               </span>
             </div>
             <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
@@ -181,7 +181,7 @@ export function KREXStatusBox() {
                             {tier.multiplier}x
                           </td>
                           <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                            {tier.feePercent}%
+                            -{tier.feeReduction}%
                           </td>
                           <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
                             {tier.pointsMultiplier}x

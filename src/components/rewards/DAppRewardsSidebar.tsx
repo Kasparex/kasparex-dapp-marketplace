@@ -23,7 +23,7 @@ export function DAppRewardsSidebar({ tokenTicker, dappName }: DAppRewardsSidebar
   const grtMetrics = getMockGRTSupplyMetrics();
   
   // Mock user status (for simulation)
-  const mockKrexTier = 'Tier0'; // Default tier
+  const mockKrexTier = 'Tier1'; // Default tier
   const mockKrexMultiplier = 1;
   const mockNftMultiplier = 1;
   const mockNodeMultiplier = 1;
