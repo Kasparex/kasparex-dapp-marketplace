@@ -92,12 +92,8 @@ export function loadTokenLogo(tokenId: string): string | null {
     const key = `token_${tokenId}_logoCid`;
     const stored = localStorage.getItem(key);
     if (stored) {
-      // Check if it's a URL or CID
-      if (stored.startsWith('http://') || stored.startsWith('https://')) {
-        return stored;
-      }
-      // It's a CID, get IPFS URL
-      return getTokenImageUrl(stored);
+      // Return the raw stored value (CID or URL) - let loadTokenLogoUrl handle conversion
+      return stored;
     }
   } catch (err) {
     console.error('Error loading token logo:', err);
@@ -116,12 +112,8 @@ export function loadTokenFeaturedImage(tokenId: string): string | null {
     const key = `token_${tokenId}_featuredImageCid`;
     const stored = localStorage.getItem(key);
     if (stored) {
-      // Check if it's a URL or CID
-      if (stored.startsWith('http://') || stored.startsWith('https://')) {
-        return stored;
-      }
-      // It's a CID, get IPFS URL
-      return getTokenImageUrl(stored);
+      // Return the raw stored value (CID or URL) - let loadTokenFeaturedImageUrl handle conversion
+      return stored;
     }
   } catch (err) {
     console.error('Error loading token featured image:', err);
