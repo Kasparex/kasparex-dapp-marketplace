@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768573983-b7b6360",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat: Reduce transaction fee to 0.0001 KAS, make token symbols immutable after deployment, make dApp logos/images clickable, add KAS token to registry (by Kasparex)",
+      "date": "2026-01-16T15:32:18+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768573159-dd739f5",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: feat: Add edit button to TokenSidebar and create upload guide (by Kasparex)",
