@@ -313,7 +313,7 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
           <CollapsibleSection
             title="Basic Information"
             isOpen={basicInfoOpen}
-            onToggle={setBasicInfoOpen}
+            onToggle={() => setBasicInfoOpen(!basicInfoOpen)}
           >
             <div className="space-y-4">
               <div>
@@ -430,7 +430,7 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
           <CollapsibleSection
             title="Media"
             isOpen={mediaOpen}
-            onToggle={setMediaOpen}
+            onToggle={() => setMediaOpen(!mediaOpen)}
           >
             <div className="space-y-6">
               <ImageUpload
@@ -475,7 +475,7 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
           <CollapsibleSection
             title="Tokenomics"
             isOpen={tokenomicsOpen}
-            onToggle={setTokenomicsOpen}
+            onToggle={() => setTokenomicsOpen(!tokenomicsOpen)}
           >
             <div className="space-y-4">
               <div className="grid grid-cols-3 gap-4">
