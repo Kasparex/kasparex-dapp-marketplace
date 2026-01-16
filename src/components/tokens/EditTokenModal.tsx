@@ -161,23 +161,121 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
 
   const handleSave = async () => {
     setError(null);
+    setIsSaving(true);
 
     // Validate required fields
     if (!name.trim()) {
       setError('Token name is required');
+      setIsSaving(false);
       return;
     }
     if (!symbol.trim()) {
       setError('Token symbol is required');
+      setIsSaving(false);
       return;
     }
 
-    // Trigger payment
-    await pay();
+    try {
+      // Upload files to IPFS if they were selected
+      let finalLogoUrl = logoUrl.trim();
+      let finalFeaturedImageUrl = featuredImageUrl.trim();
+
+      // Upload logo file if one was selected
+      if (logoFile) {
+        const logoCid = await uploadTokenLogo(token.id, logoFile);
+        if (logoCid) {
+          finalLogoUrl = logoCid;
+          // Clean up preview URL
+          if (logoPreviewUrl) {
+            URL.revokeObjectURL(logoPreviewUrl);
+            setLogoPreviewUrl('');
+          }
+          setLogoFile(null);
+        } else {
+          throw new Error('Failed to upload logo to IPFS');
+        }
+      }
+
+      // Upload featured image file if one was selected
+      if (featuredImageFile) {
+        const featuredCid = await uploadTokenFeaturedImage(token.id, featuredImageFile);
+        if (featuredCid) {
+          finalFeaturedImageUrl = featuredCid;
+          // Clean up preview URL
+          if (featuredImagePreviewUrl) {
+            URL.revokeObjectURL(featuredImagePreviewUrl);
+            setFeaturedImagePreviewUrl('');
+          }
+          setFeaturedImageFile(null);
+        } else {
+          throw new Error('Failed to upload featured image to IPFS');
+        }
+      }
+
+      // Save metadata
+      const metadata = {
+        name: name.trim() || token.name,
+        symbol: symbol.trim().toUpperCase() || token.symbol,
+        description: description.trim(),
+        network,
+        contractAddress: contractAddress.trim(),
+        type: tokenType,
+        decimals: parseInt(decimals) || 18,
+        totalSupply: totalSupply ? BigInt(totalSupply) : undefined,
+        maxSupply: maxSupply ? BigInt(maxSupply) : undefined,
+        circulatingSupply: circulatingSupply ? BigInt(circulatingSupply) : undefined,
+        links,
+        roadmap,
+      };
+
+      const metadataKey = `token_${token.id}_metadata`;
+      localStorage.setItem(metadataKey, JSON.stringify(metadata));
+
+      // Save images (using final URLs after IPFS upload)
+      if (finalLogoUrl) {
+        saveTokenLogo(token.id, finalLogoUrl);
+      } else {
+        deleteTokenLogo(token.id);
+      }
+
+      if (finalFeaturedImageUrl) {
+        saveTokenFeaturedImage(token.id, finalFeaturedImageUrl);
+      } else {
+        deleteTokenFeaturedImage(token.id);
+      }
+
+      // Sync dApp logo if this is a local token
+      if (token.parentDAppId || token.relatedDAppIds) {
+        syncDAppLogoOnTokenUpdate({ ...token, logoCid: finalLogoUrl });
+      }
+
+      // Clear draft
+      localStorage.removeItem(`token_${token.id}_draft`);
+
+      setSuccess(true);
+      setTimeout(() => {
+        onClose();
+        window.location.reload();
+      }, 1500);
+    } catch (err) {
+      console.error('Error saving token data:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save changes';
+      setError(errorMessage);
+      // Clean up preview URLs on error
+      if (logoPreviewUrl) {
+        URL.revokeObjectURL(logoPreviewUrl);
+        setLogoPreviewUrl('');
+      }
+      if (featuredImagePreviewUrl) {
+        URL.revokeObjectURL(featuredImagePreviewUrl);
+        setFeaturedImagePreviewUrl('');
+      }
+      setIsSaving(false);
+    }
   };
 
-  const isLoading = isPaying || isConfirming;
-  const canSave = canEdit && isTreasuryAvailable && !isLoading;
+  const isLoading = isSaving;
+  const canSave = canEdit && !isLoading;
 
   // Cleanup preview URLs on unmount
   useEffect(() => {
