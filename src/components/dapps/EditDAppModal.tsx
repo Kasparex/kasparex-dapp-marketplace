@@ -58,6 +58,12 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
   const [logoUrl, setLogoUrl] = useState('');
   const [featuredImageError, setFeaturedImageError] = useState(false);
   const [logoError, setLogoError] = useState(false);
+  // Store files temporarily for upload after transaction
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [featuredImageFile, setFeaturedImageFile] = useState<File | null>(null);
+  // Preview URLs for local files
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string>('');
+  const [featuredImagePreviewUrl, setFeaturedImagePreviewUrl] = useState<string>('');
 
   // Get deployer address from contract data
   // Admin address is the default deployer for all dApps
@@ -80,9 +86,45 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
     isTreasuryAvailable,
   } = useTreasuryPayment({
     amount: '10',
-    onSuccess: (txHash) => {
+    onSuccess: async (txHash) => {
       // Save all data to localStorage
       try {
+        // Upload files to IPFS if they were selected
+        let finalLogoUrl = logoUrl.trim();
+        let finalFeaturedImageUrl = featuredImageUrl.trim();
+
+        // Upload logo file if one was selected
+        if (logoFile) {
+          const logoCid = await uploadDAppLogo(dapp.id, logoFile);
+          if (logoCid) {
+            finalLogoUrl = logoCid;
+            // Clean up preview URL
+            if (logoPreviewUrl) {
+              URL.revokeObjectURL(logoPreviewUrl);
+              setLogoPreviewUrl('');
+            }
+            setLogoFile(null);
+          } else {
+            throw new Error('Failed to upload logo to IPFS');
+          }
+        }
+
+        // Upload featured image file if one was selected
+        if (featuredImageFile) {
+          const featuredCid = await uploadDAppFeaturedImage(dapp.id, featuredImageFile);
+          if (featuredCid) {
+            finalFeaturedImageUrl = featuredCid;
+            // Clean up preview URL
+            if (featuredImagePreviewUrl) {
+              URL.revokeObjectURL(featuredImagePreviewUrl);
+              setFeaturedImagePreviewUrl('');
+            }
+            setFeaturedImageFile(null);
+          } else {
+            throw new Error('Failed to upload featured image to IPFS');
+          }
+        }
+
         // Save metadata
         const frontendData = {
           name: name.trim() || dapp.name,
@@ -104,15 +146,15 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
         const metadataKey = `dapp_${dapp.id}_metadata`;
         localStorage.setItem(metadataKey, JSON.stringify(frontendData));
 
-        // Save images
-        if (featuredImageUrl.trim()) {
-          localStorage.setItem(`dapp_${dapp.id}_featuredImage`, featuredImageUrl.trim());
+        // Save images (using final URLs after IPFS upload)
+        if (finalFeaturedImageUrl) {
+          localStorage.setItem(`dapp_${dapp.id}_featuredImage`, finalFeaturedImageUrl);
         } else {
           localStorage.removeItem(`dapp_${dapp.id}_featuredImage`);
         }
 
-        if (logoUrl.trim()) {
-          localStorage.setItem(`dapp_${dapp.id}_logo`, logoUrl.trim());
+        if (finalLogoUrl) {
+          localStorage.setItem(`dapp_${dapp.id}_logo`, finalLogoUrl);
         } else {
           localStorage.removeItem(`dapp_${dapp.id}_logo`);
         }
@@ -127,7 +169,17 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
         }, 1500);
       } catch (err) {
         console.error('Error saving data:', err);
-        setError('Failed to save changes');
+        const errorMessage = err instanceof Error ? err.message : 'Failed to save changes';
+        setError(errorMessage);
+        // Clean up preview URLs on error
+        if (logoPreviewUrl) {
+          URL.revokeObjectURL(logoPreviewUrl);
+          setLogoPreviewUrl('');
+        }
+        if (featuredImagePreviewUrl) {
+          URL.revokeObjectURL(featuredImagePreviewUrl);
+          setFeaturedImagePreviewUrl('');
+        }
       }
     },
     onError: (err) => {
@@ -316,6 +368,18 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
   };
 
   const isLoading = isPaying || isConfirming;
+
+  // Cleanup preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (logoPreviewUrl) {
+        URL.revokeObjectURL(logoPreviewUrl);
+      }
+      if (featuredImagePreviewUrl) {
+        URL.revokeObjectURL(featuredImagePreviewUrl);
+      }
+    };
+  }, [logoPreviewUrl, featuredImagePreviewUrl]);
   // Safely convert errors to strings immediately
   const safePaymentError = useSafeError(paymentError);
   const displayError = error || safePaymentError;
@@ -642,14 +706,34 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
               {/* Image Upload Component for Logo */}
               <ImageUpload
                 label=""
-                value={logoUrl}
-                onChange={setLogoUrl}
+                value={logoPreviewUrl || logoUrl}
+                onChange={(url) => {
+                  // If it's a URL (not a file), update directly
+                  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('ipfs://') || /^(Qm|bafy|bafk)/i.test(url)) {
+                    setLogoUrl(url);
+                    setLogoFile(null);
+                    if (logoPreviewUrl) {
+                      URL.revokeObjectURL(logoPreviewUrl);
+                      setLogoPreviewUrl('');
+                    }
+                  }
+                }}
                 onFileSelect={async (file) => {
-                  const cid = await uploadDAppLogo(dapp.id, file);
-                  return cid;
+                  // Store file for later upload, create preview URL
+                  setLogoFile(file);
+                  const previewUrl = URL.createObjectURL(file);
+                  setLogoPreviewUrl(previewUrl);
+                  // Clear the URL input since we're using a file
+                  setLogoUrl('');
+                  return previewUrl; // Return preview URL for immediate display
                 }}
                 onDelete={() => {
                   setLogoUrl('');
+                  if (logoPreviewUrl) {
+                    URL.revokeObjectURL(logoPreviewUrl);
+                    setLogoPreviewUrl('');
+                  }
+                  setLogoFile(null);
                   localStorage.removeItem(`dapp_${dapp.id}_logo`);
                 }}
                 aspectRatio="square"
