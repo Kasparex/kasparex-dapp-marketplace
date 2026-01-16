@@ -2,6 +2,7 @@
 
 import { useState, Suspense, useRef, useEffect } from 'react';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { useChainModal } from '@rainbow-me/rainbowkit';
 import { useAccount, useChainId } from 'wagmi';
 import { useTheme } from './ThemeProvider';
@@ -12,21 +13,7 @@ import { EVMWalletButton } from './EVMWalletButton';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useBalanceVisibility } from '@/hooks/useBalanceVisibility';
 import Link from 'next/link';
-
-interface ProjectLink {
-  name: string;
-  subdomain: string;
-  comingSoon?: boolean;
-}
-
-const projectLinks: ProjectLink[] = [
-  { name: 'Tokens', subdomain: 'tokens.kasparex.com', comingSoon: false },
-  { name: 'DeFi', subdomain: 'defi.kasparex.com', comingSoon: true },
-  { name: 'Records', subdomain: 'records.kasparex.com', comingSoon: true },
-  { name: 'Music', subdomain: 'music.kasparex.com', comingSoon: true },
-  { name: 'Movies', subdomain: 'movies.kasparex.com', comingSoon: true },
-  { name: 'Magazines', subdomain: 'magazines.kasparex.com', comingSoon: true },
-];
+import { hubProjects, type HubProject } from '@/lib/hubProjects';
 
 function AdminLink() {
   const { isAdmin } = useAdmin();
@@ -114,15 +101,68 @@ function NetworkSwitcher() {
 }
 
 
+// Function to get current section title based on pathname
+function getCurrentSectionTitle(pathname: string): string {
+  if (pathname === '/' || pathname.startsWith('/dapps')) {
+    return 'dApps';
+  }
+  if (pathname.startsWith('/tokens')) {
+    return 'Tokens';
+  }
+  if (pathname.startsWith('/vblog')) {
+    return 'vBlog';
+  }
+  if (pathname.startsWith('/points') || pathname.startsWith('/dashboard')) {
+    return 'Rewards';
+  }
+  if (pathname.startsWith('/nft')) {
+    return 'NFT Tools';
+  }
+  if (pathname.startsWith('/hub')) {
+    return 'Hub';
+  }
+  // Default to dApps
+  return 'dApps';
+}
+
+// Function to get status badge component
+function getStatusBadge(status: HubProject['status']) {
+  switch (status) {
+    case 'demo':
+      return (
+        <span className="px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded">
+          Demo
+        </span>
+      );
+    case 'beta':
+      return (
+        <span className="px-2 py-1 text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 rounded">
+          Beta
+        </span>
+      );
+    case 'coming-soon':
+      return (
+        <span className="px-2 py-1 text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 rounded">
+          Coming Soon
+        </span>
+      );
+    default:
+      return null;
+  }
+}
+
 export function Header() {
+  const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const { isConnected } = useAccount();
   const { isVisible: isBalanceVisible, toggleVisibility: toggleBalanceVisibility } = useBalanceVisibility();
   const [logoError, setLogoError] = useState(false);
-  const [dAppsDropdownOpen, setDAppsDropdownOpen] = useState(false);
+  const [megaMenuOpen, setMegaMenuOpen] = useState(false);
   const [hasNewUpdates, setHasNewUpdates] = useState(false);
   const [updateCount, setUpdateCount] = useState(0);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  const currentSectionTitle = getCurrentSectionTitle(pathname);
 
   useEffect(() => {
     return () => {
@@ -206,11 +246,11 @@ export function Header() {
                   clearTimeout(hoverTimeoutRef.current);
                   hoverTimeoutRef.current = null;
                 }
-                setDAppsDropdownOpen(true);
+                setMegaMenuOpen(true);
               }}
               onMouseLeave={() => {
                 hoverTimeoutRef.current = setTimeout(() => {
-                  setDAppsDropdownOpen(false);
+                  setMegaMenuOpen(false);
                 }, 500);
               }}
               className="inline-flex items-center gap-2 cursor-pointer"
@@ -218,70 +258,90 @@ export function Header() {
               <button
                 className="text-zinc-900 dark:text-zinc-100 hover:text-[#02abb8] transition-colors"
               >
-                dApps
+                {currentSectionTitle}
               </button>
-                <svg
-                  className="w-4 h-4 text-zinc-900 dark:text-zinc-100"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+              <svg
+                className="w-4 h-4 text-zinc-900 dark:text-zinc-100"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+              {megaMenuOpen && (
+                <div
+                  onMouseEnter={() => {
+                    if (hoverTimeoutRef.current) {
+                      clearTimeout(hoverTimeoutRef.current);
+                      hoverTimeoutRef.current = null;
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    hoverTimeoutRef.current = setTimeout(() => {
+                      setMegaMenuOpen(false);
+                    }, 500);
+                  }}
+                  className="absolute top-full left-0 mt-2 w-[90vw] max-w-[600px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl z-[9999] overflow-hidden"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-                {dAppsDropdownOpen && (
-                  <div
-                    onMouseEnter={() => {
-                      if (hoverTimeoutRef.current) {
-                        clearTimeout(hoverTimeoutRef.current);
-                        hoverTimeoutRef.current = null;
-                      }
-                    }}
-                    onMouseLeave={() => {
-                      hoverTimeoutRef.current = setTimeout(() => {
-                        setDAppsDropdownOpen(false);
-                      }, 500);
-                    }}
-                    className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-[9999] overflow-hidden"
-                  >
-                    {projectLinks.map((project) => {
-                      // Use Next.js Link for Tokens (internal route)
-                      if (project.name === 'Tokens' && !project.comingSoon) {
+                  <div className="p-4 sm:p-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      {hubProjects.map((project) => {
+                        const statusBadge = getStatusBadge(project.status);
+                        const isExternal = project.route.startsWith('http');
+                        
+                        const linkContent = (
+                          <div className="p-4 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all h-full flex flex-col">
+                            <div className="flex items-start justify-between mb-2">
+                              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                                {project.name}
+                              </h3>
+                              {statusBadge && (
+                                <div className="flex-shrink-0 ml-2">
+                                  {statusBadge}
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2 flex-grow">
+                              {project.description}
+                            </p>
+                            <div className="mt-3">
+                              <div className="inline-flex items-center px-2 py-1 text-xs font-medium rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
+                                {project.category}
+                              </div>
+                            </div>
+                          </div>
+                        );
+
+                        if (isExternal) {
+                          return (
+                            <a
+                              key={project.id}
+                              href={project.route}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block"
+                            >
+                              {linkContent}
+                            </a>
+                          );
+                        }
+
                         return (
                           <Link
-                            key={project.subdomain}
-                            href="/tokens"
-                            className="block px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                            key={project.id}
+                            href={project.route}
+                            className="block"
                           >
-                            <div className="flex items-center justify-between">
-                              <span>{project.name}</span>
-                            </div>
+                            {linkContent}
                           </Link>
                         );
-                      }
-                      // External links for other projects
-                      return (
-                        <a
-                          key={project.subdomain}
-                          href={`https://${project.subdomain}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span>{project.name}</span>
-                            {project.comingSoon && (
-                              <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                                Coming Soon
-                              </span>
-                            )}
-                          </div>
-                        </a>
-                      );
-                    })}
+                      })}
+                    </div>
                   </div>
-                )}
-              </div>
-            </span>
+                </div>
+              )}
+            </div>
+          </span>
         </div>
 
         {/* Right side: Wallet Connect and Theme Toggle - no padding, flush to right */}
