@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768565260-85466cc",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update token pages: standard sidebar with drag resize, featured image hero, minting progress bar, trading section, and listing page sidebar (by Kasparex)",
+      "date": "2026-01-16T13:06:54+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768563823-2e4369f",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update Kasparex Tokens card in Hub: link to /tokens and change status to Beta (by Kasparex)",
