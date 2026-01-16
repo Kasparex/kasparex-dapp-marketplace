@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768588227-8ac485d",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update token logo CIDs and add logos to status boxes and KAS payment displays (by Kasparex)",
+      "date": "2026-01-16T19:29:40+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768583481-2f3d7f5",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Remove remaining EditTokenModal import and usage (by Kasparex)",
