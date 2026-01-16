@@ -20,7 +20,7 @@ interface ProjectLink {
 }
 
 const projectLinks: ProjectLink[] = [
-  { name: 'Tokens', subdomain: 'tokens.kasparex.com', comingSoon: true },
+  { name: 'Tokens', subdomain: 'tokens.kasparex.com', comingSoon: false },
   { name: 'DeFi', subdomain: 'defi.kasparex.com', comingSoon: true },
   { name: 'Records', subdomain: 'records.kasparex.com', comingSoon: true },
   { name: 'Music', subdomain: 'music.kasparex.com', comingSoon: true },
@@ -243,24 +243,41 @@ export function Header() {
                     }}
                     className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-[9999] overflow-hidden"
                   >
-                    {projectLinks.map((project) => (
-                      <a
-                        key={project.subdomain}
-                        href={`https://${project.subdomain}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span>{project.name}</span>
-                          {project.comingSoon && (
-                            <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                              Coming Soon
-                            </span>
-                          )}
-                        </div>
-                      </a>
-                    ))}
+                    {projectLinks.map((project) => {
+                      // Use Next.js Link for Tokens (internal route)
+                      if (project.name === 'Tokens' && !project.comingSoon) {
+                        return (
+                          <Link
+                            key={project.subdomain}
+                            href="/tokens"
+                            className="block px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span>{project.name}</span>
+                            </div>
+                          </Link>
+                        );
+                      }
+                      // External links for other projects
+                      return (
+                        <a
+                          key={project.subdomain}
+                          href={`https://${project.subdomain}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span>{project.name}</span>
+                            {project.comingSoon && (
+                              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                                Coming Soon
+                              </span>
+                            )}
+                          </div>
+                        </a>
+                      );
+                    })}
                   </div>
                 )}
               </div>
