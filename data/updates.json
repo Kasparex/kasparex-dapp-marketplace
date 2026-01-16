@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768572522-fdbbfde",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Use valid size value (24) for TokenLogo in TokenBalanceDisplay (by Kasparex)",
+      "date": "2026-01-16T15:07:44+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768572161-0b53eda",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Wrap state setters in functions for CollapsibleSection onToggle prop (by Kasparex)",
