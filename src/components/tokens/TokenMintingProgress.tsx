@@ -57,11 +57,6 @@ export function TokenMintingProgress({ token }: TokenMintingProgressProps) {
 
   const metrics = calculateMintingProgress(token);
 
-  // Don't show if no supply data
-  if (metrics.maxSupply === 0) {
-    return null;
-  }
-
   useEffect(() => {
     if (showTooltip && tooltipRef.current && mousePosition) {
       const tooltipWidth = 280;
@@ -95,6 +90,11 @@ export function TokenMintingProgress({ token }: TokenMintingProgressProps) {
   const handleMouseMove = (e: React.MouseEvent) => {
     setMousePosition({ x: e.clientX, y: e.clientY });
   };
+
+  // Don't show if no supply data
+  if (metrics.maxSupply === 0) {
+    return null;
+  }
 
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-lg p-6 border border-zinc-200 dark:border-zinc-800">
