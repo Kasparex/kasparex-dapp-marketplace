@@ -144,7 +144,34 @@ function getCurrentProject(pathname: string): HubProject | null {
 }
 
 // Function to get status badge component
-function getStatusBadge(status: HubProject['status']) {
+function getStatusBadge(status: HubProject['status'], isActive: boolean = false) {
+  if (isActive) {
+    // Active state badges with white text for better contrast
+    switch (status) {
+      case 'demo':
+        return (
+          <span className="px-2 py-1 text-xs font-medium bg-white/20 text-white rounded">
+            Demo
+          </span>
+        );
+      case 'beta':
+        return (
+          <span className="px-2 py-1 text-xs font-medium bg-white/20 text-white rounded">
+            Beta
+          </span>
+        );
+      case 'coming-soon':
+        return (
+          <span className="px-2 py-1 text-xs font-medium bg-white/20 text-white rounded">
+            Coming Soon
+          </span>
+        );
+      default:
+        return null;
+    }
+  }
+  
+  // Default state badges
   switch (status) {
     case 'demo':
       return (
