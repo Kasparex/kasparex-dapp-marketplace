@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768603367-955bcef",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: add isActive parameter to getStatusBadge function (by Kasparex)",
+      "date": "2026-01-16T23:42:11+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768603018-10ccd15",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: add missing currentProjectStatus variable (by Kasparex)",
