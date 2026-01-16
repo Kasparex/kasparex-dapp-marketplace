@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768563146-709a847",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix syntax error in TokenListingTable - remove duplicate div wrapper (by Kasparex)",
+      "date": "2026-01-16T12:32:00+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768562957-fe22c0a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Implement Kasparex Tokens listing system with individual landing pages, filtering, sorting, and wallet integration (by Kasparex)",
