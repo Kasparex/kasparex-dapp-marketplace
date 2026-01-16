@@ -125,6 +125,24 @@ function getCurrentSectionTitle(pathname: string): string {
   return 'dApps';
 }
 
+// Function to get current project based on pathname
+function getCurrentProject(pathname: string): HubProject | null {
+  // Normalize pathname for matching
+  const normalizedPath = pathname === '/' ? '/' : pathname;
+  
+  // Find matching project
+  return hubProjects.find(project => {
+    if (project.route === normalizedPath) {
+      return true;
+    }
+    // Handle routes that start with the project route
+    if (normalizedPath.startsWith(project.route) && project.route !== '/') {
+      return true;
+    }
+    return false;
+  }) || null;
+}
+
 // Function to get status badge component
 function getStatusBadge(status: HubProject['status']) {
   switch (status) {
@@ -255,11 +273,14 @@ export function Header() {
               }}
               className="inline-flex items-center gap-2 cursor-pointer"
             >
-              <button
-                className="text-zinc-900 dark:text-zinc-100 hover:text-[#02abb8] transition-colors"
-              >
-                {currentSectionTitle}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  className="text-zinc-900 dark:text-zinc-100 hover:text-[#02abb8] transition-colors"
+                >
+                  {currentSectionTitle}
+                </button>
+                {currentProjectStatus && getStatusBadge(currentProjectStatus)}
+              </div>
               <svg
                 className="w-4 h-4 text-zinc-900 dark:text-zinc-100"
                 fill="none"
@@ -281,35 +302,39 @@ export function Header() {
                       setMegaMenuOpen(false);
                     }, 500);
                   }}
-                  className="absolute top-full left-0 mt-2 w-[90vw] max-w-[600px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl z-[9999] overflow-hidden"
+                  className="absolute top-full left-0 mt-2 w-[90vw] max-w-[800px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl z-[9999] overflow-hidden"
                 >
-                  <div className="p-4 sm:p-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="p-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
                       {hubProjects.map((project) => {
-                        const statusBadge = getStatusBadge(project.status);
                         const isExternal = project.route.startsWith('http');
                         
+                        // Check if this is the current page
+                        const isCurrentPage = currentProject?.id === project.id;
+                        
+                        // Normalize pathname for matching
+                        const normalizedPath = pathname === '/' ? '/' : pathname;
+                        const matchesRoute = project.route === normalizedPath || 
+                          (normalizedPath.startsWith(project.route) && project.route !== '/');
+                        
+                        const isActive = isCurrentPage || matchesRoute;
+                        const statusBadge = getStatusBadge(project.status, isActive);
+                        
+                        const linkClassName = `flex items-center justify-between gap-2 px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 rounded-lg transition-colors ${
+                          isActive
+                            ? 'bg-[#02abb8] text-white dark:bg-[#02abb8] dark:text-white'
+                            : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                        }`;
+
                         const linkContent = (
-                          <div className="p-4 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all h-full flex flex-col">
-                            <div className="flex items-start justify-between mb-2">
-                              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                                {project.name}
-                              </h3>
-                              {statusBadge && (
-                                <div className="flex-shrink-0 ml-2">
-                                  {statusBadge}
-                                </div>
-                              )}
-                            </div>
-                            <p className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2 flex-grow">
-                              {project.description}
-                            </p>
-                            <div className="mt-3">
-                              <div className="inline-flex items-center px-2 py-1 text-xs font-medium rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
-                                {project.category}
+                          <>
+                            <span className="font-medium">{project.name}</span>
+                            {statusBadge && (
+                              <div className="flex-shrink-0">
+                                {statusBadge}
                               </div>
-                            </div>
-                          </div>
+                            )}
+                          </>
                         );
 
                         if (isExternal) {
@@ -319,7 +344,7 @@ export function Header() {
                               href={project.route}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="block"
+                              className={linkClassName}
                             >
                               {linkContent}
                             </a>
@@ -330,7 +355,7 @@ export function Header() {
                           <Link
                             key={project.id}
                             href={project.route}
-                            className="block"
+                            className={linkClassName}
                           >
                             {linkContent}
                           </Link>
