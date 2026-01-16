@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768565511-a1befa4",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix React Hooks error: move useEffect before early return in TokenMintingProgress (by Kasparex)",
+      "date": "2026-01-16T13:11:10+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768565260-85466cc",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update token pages: standard sidebar with drag resize, featured image hero, minting progress bar, trading section, and listing page sidebar (by Kasparex)",
