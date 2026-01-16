@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768589483-4b1de84",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Add missing TokenLogoImage import in CommentCreditsModal (by Kasparex)",
+      "date": "2026-01-16T19:50:56+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768588492-ed238c4",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add KAS logo to Rewards Status header (by Kasparex)",
