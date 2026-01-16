@@ -198,6 +198,15 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
       }
     },
     onError: (err) => {
+      // Clean up preview URLs on error
+      if (logoPreviewUrl) {
+        URL.revokeObjectURL(logoPreviewUrl);
+        setLogoPreviewUrl('');
+      }
+      if (featuredImagePreviewUrl) {
+        URL.revokeObjectURL(featuredImagePreviewUrl);
+        setFeaturedImagePreviewUrl('');
+      }
       try {
         const errorMessage = getErrorMessage(err, 'Payment failed');
         setError(errorMessage);
@@ -315,11 +324,11 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
       name.trim(),
       symbol.trim(),
       description.trim(),
-      logoUrl.trim(),
+      logoPreviewUrl || logoUrl.trim(),
     ];
     const filled = fields.filter(Boolean).length;
     return { filled, total: fields.length };
-  }, [name, symbol, description, logoUrl]);
+  }, [name, symbol, description, logoUrl, logoPreviewUrl]);
 
   const progressStages: Array<{ id: ProgressStage; label: string; progress: number }> = [
     { id: 'ready', label: 'Ready', progress: 0 },
