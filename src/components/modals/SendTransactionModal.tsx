@@ -7,6 +7,7 @@ import { kasToSompis } from '@/lib/kaspa/api';
 import { getErrorMessage } from '@/lib/utils';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useBalanceVisibility, formatBalanceForDisplay } from '@/hooks/useBalanceVisibility';
+import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
 
 interface SendTransactionModalProps {
   isOpen: boolean;
@@ -180,8 +181,8 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address 
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Amount (KAS)
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
+                    Amount (<TokenLogoImage tokenId="kas" size={16} /> KAS)
                   </label>
                   <div className="text-xs text-zinc-500 dark:text-zinc-400">
                     Balance: {formatBalanceForDisplay(currentBalance, 'KAS', false, isBalanceVisible)}

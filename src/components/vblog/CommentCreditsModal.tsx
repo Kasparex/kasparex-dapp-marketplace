@@ -356,13 +356,19 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
                       </div>
                       <div className="flex justify-between">
                         <span className="text-zinc-600 dark:text-zinc-400">Base Price:</span>
-                        <span className="text-zinc-900 dark:text-zinc-100">{selectedPackage.basePrice.toFixed(2)} KAS</span>
+                        <span className="text-zinc-900 dark:text-zinc-100 flex items-center gap-1">
+                          <TokenLogoImage tokenId="kas" size={14} />
+                          {selectedPackage.basePrice.toFixed(2)} KAS
+                        </span>
                       </div>
                       {discount > 0 && (
                         <div className="flex justify-between">
                           <span className="text-zinc-600 dark:text-zinc-400">Discount ({discount}%):</span>
                           <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                            -{(selectedPackage.basePrice * discount / 100).toFixed(2)} KAS
+                            <span className="flex items-center gap-1">
+                              <TokenLogoImage tokenId="kas" size={14} />
+                              -{(selectedPackage.basePrice * discount / 100).toFixed(2)} KAS
+                            </span>
                           </span>
                         </div>
                       )}
