@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768606403-1473c9e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Make mega menu left-aligned, prevent overflow, black background, responsive wrapping (by Kasparex)",
+      "date": "2026-01-17T00:32:20+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768605437-6ff9f5a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update mega menu: 3 columns only, fix light theme styling, replace emojis with SVG icons (by Kasparex)",
