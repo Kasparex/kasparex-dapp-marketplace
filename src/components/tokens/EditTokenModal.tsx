@@ -61,6 +61,12 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
   // Images
   const [logoUrl, setLogoUrl] = useState('');
   const [featuredImageUrl, setFeaturedImageUrl] = useState('');
+  // Store files temporarily for upload after transaction
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [featuredImageFile, setFeaturedImageFile] = useState<File | null>(null);
+  // Preview URLs for local files
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string>('');
+  const [featuredImagePreviewUrl, setFeaturedImagePreviewUrl] = useState<string>('');
 
   // Links
   const [links, setLinks] = useState<TokenLink[]>(token.links || []);
@@ -95,6 +101,42 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
     amount: '0.0001', // Minimal fee just enough to register on Kaspa BlockDAG
     onSuccess: async (txHash) => {
       try {
+        // Upload files to IPFS if they were selected
+        let finalLogoUrl = logoUrl.trim();
+        let finalFeaturedImageUrl = featuredImageUrl.trim();
+
+        // Upload logo file if one was selected
+        if (logoFile) {
+          const logoCid = await uploadTokenLogo(token.id, logoFile);
+          if (logoCid) {
+            finalLogoUrl = logoCid;
+            // Clean up preview URL
+            if (logoPreviewUrl) {
+              URL.revokeObjectURL(logoPreviewUrl);
+              setLogoPreviewUrl('');
+            }
+            setLogoFile(null);
+          } else {
+            throw new Error('Failed to upload logo to IPFS');
+          }
+        }
+
+        // Upload featured image file if one was selected
+        if (featuredImageFile) {
+          const featuredCid = await uploadTokenFeaturedImage(token.id, featuredImageFile);
+          if (featuredCid) {
+            finalFeaturedImageUrl = featuredCid;
+            // Clean up preview URL
+            if (featuredImagePreviewUrl) {
+              URL.revokeObjectURL(featuredImagePreviewUrl);
+              setFeaturedImagePreviewUrl('');
+            }
+            setFeaturedImageFile(null);
+          } else {
+            throw new Error('Failed to upload featured image to IPFS');
+          }
+        }
+
         // Save metadata
         const metadata = {
           name: name.trim() || token.name,
@@ -114,22 +156,22 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
         const metadataKey = `token_${token.id}_metadata`;
         localStorage.setItem(metadataKey, JSON.stringify(metadata));
 
-        // Save images
-        if (logoUrl.trim()) {
-          saveTokenLogo(token.id, logoUrl.trim());
+        // Save images (using final URLs after IPFS upload)
+        if (finalLogoUrl) {
+          saveTokenLogo(token.id, finalLogoUrl);
         } else {
           deleteTokenLogo(token.id);
         }
 
-        if (featuredImageUrl.trim()) {
-          saveTokenFeaturedImage(token.id, featuredImageUrl.trim());
+        if (finalFeaturedImageUrl) {
+          saveTokenFeaturedImage(token.id, finalFeaturedImageUrl);
         } else {
           deleteTokenFeaturedImage(token.id);
         }
 
         // Sync dApp logo if this is a local token
         if (token.parentDAppId || token.relatedDAppIds) {
-          syncDAppLogoOnTokenUpdate({ ...token, logoCid: logoUrl });
+          syncDAppLogoOnTokenUpdate({ ...token, logoCid: finalLogoUrl });
         }
 
         // Clear draft
@@ -142,7 +184,17 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
         }, 1500);
       } catch (err) {
         console.error('Error saving token data:', err);
-        setError('Failed to save changes');
+        const errorMessage = err instanceof Error ? err.message : 'Failed to save changes';
+        setError(errorMessage);
+        // Clean up preview URLs on error
+        if (logoPreviewUrl) {
+          URL.revokeObjectURL(logoPreviewUrl);
+          setLogoPreviewUrl('');
+        }
+        if (featuredImagePreviewUrl) {
+          URL.revokeObjectURL(featuredImagePreviewUrl);
+          setFeaturedImagePreviewUrl('');
+        }
       }
     },
     onError: (err) => {
@@ -244,6 +296,18 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
 
   const isLoading = isPaying || isConfirming;
   const canSave = canEdit && isTreasuryAvailable && !isLoading;
+
+  // Cleanup preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (logoPreviewUrl) {
+        URL.revokeObjectURL(logoPreviewUrl);
+      }
+      if (featuredImagePreviewUrl) {
+        URL.revokeObjectURL(featuredImagePreviewUrl);
+      }
+    };
+  }, [logoPreviewUrl, featuredImagePreviewUrl]);
 
   // Form completion calculation
   const formCompletion = useMemo(() => {
@@ -468,14 +532,34 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
             <div className="space-y-6">
               <ImageUpload
                 label="Logo"
-                value={logoUrl}
-                onChange={setLogoUrl}
+                value={logoPreviewUrl || logoUrl}
+                onChange={(url) => {
+                  // If it's a URL (not a file), update directly
+                  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('ipfs://') || /^(Qm|bafy|bafk)/i.test(url)) {
+                    setLogoUrl(url);
+                    setLogoFile(null);
+                    if (logoPreviewUrl) {
+                      URL.revokeObjectURL(logoPreviewUrl);
+                      setLogoPreviewUrl('');
+                    }
+                  }
+                }}
                 onFileSelect={async (file) => {
-                  const cid = await uploadTokenLogo(token.id, file);
-                  return cid;
+                  // Store file for later upload, create preview URL
+                  setLogoFile(file);
+                  const previewUrl = URL.createObjectURL(file);
+                  setLogoPreviewUrl(previewUrl);
+                  // Clear the URL input since we're using a file
+                  setLogoUrl('');
+                  return previewUrl; // Return preview URL for immediate display
                 }}
                 onDelete={() => {
                   setLogoUrl('');
+                  if (logoPreviewUrl) {
+                    URL.revokeObjectURL(logoPreviewUrl);
+                    setLogoPreviewUrl('');
+                  }
+                  setLogoFile(null);
                   deleteTokenLogo(token.id);
                 }}
                 aspectRatio="square"
@@ -486,14 +570,34 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
 
               <ImageUpload
                 label="Featured Image"
-                value={featuredImageUrl}
-                onChange={setFeaturedImageUrl}
+                value={featuredImagePreviewUrl || featuredImageUrl}
+                onChange={(url) => {
+                  // If it's a URL (not a file), update directly
+                  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('ipfs://') || /^(Qm|bafy|bafk)/i.test(url)) {
+                    setFeaturedImageUrl(url);
+                    setFeaturedImageFile(null);
+                    if (featuredImagePreviewUrl) {
+                      URL.revokeObjectURL(featuredImagePreviewUrl);
+                      setFeaturedImagePreviewUrl('');
+                    }
+                  }
+                }}
                 onFileSelect={async (file) => {
-                  const cid = await uploadTokenFeaturedImage(token.id, file);
-                  return cid;
+                  // Store file for later upload, create preview URL
+                  setFeaturedImageFile(file);
+                  const previewUrl = URL.createObjectURL(file);
+                  setFeaturedImagePreviewUrl(previewUrl);
+                  // Clear the URL input since we're using a file
+                  setFeaturedImageUrl('');
+                  return previewUrl; // Return preview URL for immediate display
                 }}
                 onDelete={() => {
                   setFeaturedImageUrl('');
+                  if (featuredImagePreviewUrl) {
+                    URL.revokeObjectURL(featuredImagePreviewUrl);
+                    setFeaturedImagePreviewUrl('');
+                  }
+                  setFeaturedImageFile(null);
                   deleteTokenFeaturedImage(token.id);
                 }}
                 aspectRatio="video"
