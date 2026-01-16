@@ -374,12 +374,18 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
                   <select
                     value={network}
                     onChange={(e) => setNetwork(e.target.value as 'L1' | 'L2')}
-                    disabled={isLoading}
-                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50"
+                    disabled={isLoading || !!token.contractAddress}
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={token.contractAddress ? 'Network cannot be changed after deployment' : ''}
                   >
                     <option value="L1">L1 (Kaspa)</option>
                     <option value="L2">L2 (Kasplex)</option>
                   </select>
+                  {token.contractAddress && (
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                      Network cannot be changed after deployment
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -389,13 +395,19 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
                   <select
                     value={tokenType}
                     onChange={(e) => setTokenType(e.target.value as 'global' | 'local' | 'collab')}
-                    disabled={isLoading}
-                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50"
+                    disabled={isLoading || !!token.contractAddress}
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={token.contractAddress ? 'Token type cannot be changed after deployment' : ''}
                   >
                     <option value="global">Global</option>
                     <option value="local">Local</option>
                     <option value="collab">Collab</option>
                   </select>
+                  {token.contractAddress && (
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                      Token type cannot be changed after deployment
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -408,10 +420,17 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
                     type="text"
                     value={contractAddress}
                     onChange={(e) => setContractAddress(e.target.value)}
-                    disabled={isLoading}
-                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50 font-mono text-sm"
+                    disabled={isLoading || !!token.contractAddress}
+                    readOnly={!!token.contractAddress}
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50 disabled:cursor-not-allowed font-mono text-sm"
                     placeholder="0x..."
+                    title={token.contractAddress ? 'Contract address cannot be changed after deployment' : ''}
                   />
+                  {token.contractAddress && (
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                      Contract address cannot be changed after deployment
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -422,12 +441,19 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
                     type="number"
                     value={decimals}
                     onChange={(e) => setDecimals(e.target.value)}
-                    disabled={isLoading}
+                    disabled={isLoading || !!token.contractAddress}
+                    readOnly={!!token.contractAddress}
                     min="0"
                     max="18"
-                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50"
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="18"
+                    title={token.contractAddress ? 'Decimals cannot be changed after deployment' : ''}
                   />
+                  {token.contractAddress && (
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                      Decimals cannot be changed after deployment
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -485,6 +511,13 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
             onToggle={() => setTokenomicsOpen(!tokenomicsOpen)}
           >
             <div className="space-y-4">
+              {token.contractAddress && (
+                <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                    ⚠️ Tokenomics cannot be changed after deployment. These fields are read-only.
+                  </p>
+                </div>
+              )}
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
@@ -494,9 +527,11 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
                     type="text"
                     value={totalSupply}
                     onChange={(e) => setTotalSupply(e.target.value)}
-                    disabled={isLoading}
-                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50"
+                    disabled={isLoading || !!token.contractAddress}
+                    readOnly={!!token.contractAddress}
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="0"
+                    title={token.contractAddress ? 'Tokenomics cannot be changed after deployment' : ''}
                   />
                 </div>
 
@@ -508,9 +543,11 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
                     type="text"
                     value={maxSupply}
                     onChange={(e) => setMaxSupply(e.target.value)}
-                    disabled={isLoading}
-                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50"
+                    disabled={isLoading || !!token.contractAddress}
+                    readOnly={!!token.contractAddress}
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="0"
+                    title={token.contractAddress ? 'Tokenomics cannot be changed after deployment' : ''}
                   />
                 </div>
 
@@ -522,9 +559,11 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
                     type="text"
                     value={circulatingSupply}
                     onChange={(e) => setCirculatingSupply(e.target.value)}
-                    disabled={isLoading}
-                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50"
+                    disabled={isLoading || !!token.contractAddress}
+                    readOnly={!!token.contractAddress}
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="0"
+                    title={token.contractAddress ? 'Tokenomics cannot be changed after deployment' : ''}
                   />
                 </div>
               </div>

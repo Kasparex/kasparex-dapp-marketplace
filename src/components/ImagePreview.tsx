@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 
 interface ImagePreviewProps {
   imageUrl: string;
@@ -9,6 +10,43 @@ interface ImagePreviewProps {
   className?: string;
   onError?: () => void;
   onLoad?: () => void;
+}
+
+/**
+ * Check if a string is an IPFS CID (starts with Qm or bafy)
+ */
+function isIPFSCID(str: string): boolean {
+  if (!str) return false;
+  // Remove common prefixes
+  const clean = str.replace(/^ipfs:\/\//, '').replace(/^\/?ipfs\//, '');
+  // Check if it looks like a CID (starts with Qm for v0 or bafy for v1)
+  return /^(Qm|bafy|bafk)/i.test(clean) && clean.length > 20;
+}
+
+/**
+ * Convert IPFS CID or URL to a displayable URL
+ */
+function normalizeImageUrl(url: string): string {
+  if (!url) return url;
+  
+  // If it's already a full URL, return as-is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  // If it's an IPFS CID, convert to gateway URL
+  if (isIPFSCID(url)) {
+    return getBestGatewayUrl(url);
+  }
+  
+  // If it starts with ipfs://, convert it
+  if (url.startsWith('ipfs://')) {
+    const cid = url.replace(/^ipfs:\/\//, '');
+    return getBestGatewayUrl(cid);
+  }
+  
+  // Otherwise return as-is (might be a relative path)
+  return url;
 }
 
 export function ImagePreview({
@@ -21,14 +59,14 @@ export function ImagePreview({
 }: ImagePreviewProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const [debouncedUrl, setDebouncedUrl] = useState(imageUrl);
+  const [debouncedUrl, setDebouncedUrl] = useState(normalizeImageUrl(imageUrl));
 
-  // Debounce URL changes
+  // Debounce URL changes and normalize IPFS CIDs
   useEffect(() => {
     setIsLoading(true);
     setHasError(false);
     const timer = setTimeout(() => {
-      setDebouncedUrl(imageUrl);
+      setDebouncedUrl(normalizeImageUrl(imageUrl));
     }, 300);
 
     return () => clearTimeout(timer);
