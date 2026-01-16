@@ -8,6 +8,7 @@ import { sendKaspa } from '@/lib/kaspa/kasware';
 import { kasToSompis } from '@/lib/kaspa/api';
 import { getErrorMessage } from '@/lib/utils';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
 const KREX_UNLIMITED_THRESHOLD = 100_000_000; // 100M KREX
 const KREXPRIME_NFT_COLLECTION = 'KREXPRIME';
 const PIXELKREX_NFT_COLLECTION = 'PIXELKREX';
