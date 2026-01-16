@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768583158-e87e39e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Remove remaining EditDAppModal reference (by Kasparex)",
+      "date": "2026-01-16T18:04:48+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768581302-53de882",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Convert BigInt to strings before localStorage serialization (by Kasparex)",
