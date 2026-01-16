@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768562957-fe22c0a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Implement Kasparex Tokens listing system with individual landing pages, filtering, sorting, and wallet integration (by Kasparex)",
+      "date": "2026-01-16T12:28:20+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768513542-a74c75f",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: Always show tier reward values, remove column highlighting, add Buy buttons to KREX box, ensure NODE Bonus always visible (by Kasparex)",
