@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768576859-97ed783",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Apply same IPFS upload delay pattern to EditDAppModal, add cleanup (by Kasparex)",
+      "date": "2026-01-16T16:20:31+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768576307-fe45485",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Add error cleanup for preview URLs in payment error handler (by Kasparex)",
