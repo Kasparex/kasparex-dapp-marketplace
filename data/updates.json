@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768578874-46ffd53",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Remove recursive handleSave call and fix build error (by Kasparex)",
+      "date": "2026-01-16T16:53:37+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768578461-d213f50",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Remove progressStages definition (by Kasparex)",
