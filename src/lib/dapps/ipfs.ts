@@ -123,7 +123,8 @@ export async function uploadDAppLogo(dappId: string, file: File | Blob): Promise
   try {
     const client = getIPFSClient();
     
-    const filename = `dapps/${dappId}/logo.png`;
+    // Organize in "dApp Images" folder structure
+    const filename = `dApp Images/dapps/${dappId}/logo.png`;
     const cid = await client.uploadFile(file, { 
       filename,
       pin: true 
@@ -144,7 +145,8 @@ export async function uploadDAppFeaturedImage(dappId: string, file: File | Blob)
   try {
     const client = getIPFSClient();
     
-    const filename = `dapps/${dappId}/featured.png`;
+    // Organize in "dApp Images" folder structure
+    const filename = `dApp Images/dapps/${dappId}/featured.png`;
     const cid = await client.uploadFile(file, { 
       filename,
       pin: true 

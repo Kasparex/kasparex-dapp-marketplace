@@ -11,7 +11,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAccount } from 'wagmi';
 import type { Token } from '@/lib/tokens/types';
-import { getTokenImageUrl } from '@/lib/tokens/metadata';
+import { loadTokenLogoUrl, loadTokenFeaturedImageUrl } from '@/lib/tokens/metadata';
 import { TokenLogo } from './TokenLogo';
 import { EditTokenModal } from './EditTokenModal';
 import { isAdminAddress } from '@/lib/admin';
@@ -134,12 +134,8 @@ export function TokenSidebar({ token }: TokenSidebarProps) {
     }
   };
 
-  const logoUrl = token.logoCid
-    ? getTokenImageUrl(token.logoCid)
-    : token.logo || null;
-  const featuredImageUrl = token.featuredImageCid
-    ? getTokenImageUrl(token.featuredImageCid)
-    : token.featuredImage || null;
+  const logoUrl = loadTokenLogoUrl(token);
+  const featuredImageUrl = loadTokenFeaturedImageUrl(token);
 
   const price = token.price?.current;
   const priceChange24h = token.price?.change24h;

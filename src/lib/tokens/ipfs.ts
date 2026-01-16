@@ -15,8 +15,8 @@ export async function uploadTokenLogo(tokenId: string, file: File | Blob): Promi
   try {
     const client = getIPFSClient();
     
-    // Use tokenId in filename to maintain folder structure
-    const filename = `tokens/${tokenId}/logo.png`;
+    // Organize in "Token Images" folder structure
+    const filename = `Token Images/tokens/${tokenId}/logo.png`;
     const cid = await client.uploadFile(file, { 
       filename,
       pin: true 
@@ -37,7 +37,8 @@ export async function uploadTokenFeaturedImage(tokenId: string, file: File | Blo
   try {
     const client = getIPFSClient();
     
-    const filename = `tokens/${tokenId}/featured.png`;
+    // Organize in "Token Images" folder structure
+    const filename = `Token Images/tokens/${tokenId}/featured.png`;
     const cid = await client.uploadFile(file, { 
       filename,
       pin: true 

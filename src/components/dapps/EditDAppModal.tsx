@@ -4,14 +4,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useAccount, useChainId } from 'wagmi';
 import { DApp } from '@/lib/dapps';
-import { useTreasuryPayment } from '@/hooks/useTreasuryPayment';
 import { isDeployer } from '@/lib/dapps/deployer';
 import { isAdminAddress } from '@/lib/admin';
 import { getCategoryById } from '@/lib/categories';
 import { getErrorMessage } from '@/lib/utils';
-import { useSafeError } from '@/hooks/useSafeError';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
-import { ProgressBar, type ProgressStage } from '@/components/ui/ProgressBar';
 import { FormCompletionIndicator } from '@/components/ui/FormCompletionIndicator';
 import { ImagePreview } from '@/components/ImagePreview';
 import { ImageUpload } from '@/components/ui/ImageUpload';
@@ -75,125 +72,108 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
 
   const category = getCategoryById(dapp.category);
 
-  // Treasury payment hook
-  const {
-    pay,
-    isPaying,
-    isConfirming,
-    isSuccess: paymentSuccess,
-    error: paymentError,
-    treasuryAddress,
-    isTreasuryAvailable,
-  } = useTreasuryPayment({
-    amount: '10',
-    onSuccess: async (txHash) => {
-      // Save all data to localStorage
-      try {
-        // Upload files to IPFS if they were selected
-        let finalLogoUrl = logoUrl.trim();
-        let finalFeaturedImageUrl = featuredImageUrl.trim();
+  // Simple save state (no transaction required)
+  const [isSaving, setIsSaving] = useState(false);
 
-        // Upload logo file if one was selected
-        if (logoFile) {
-          const logoCid = await uploadDAppLogo(dapp.id, logoFile);
-          if (logoCid) {
-            finalLogoUrl = logoCid;
-            // Clean up preview URL
-            if (logoPreviewUrl) {
-              URL.revokeObjectURL(logoPreviewUrl);
-              setLogoPreviewUrl('');
-            }
-            setLogoFile(null);
-          } else {
-            throw new Error('Failed to upload logo to IPFS');
+  const handleSave = async () => {
+    setError(null);
+    setIsSaving(true);
+
+    try {
+      // Upload files to IPFS if they were selected
+      let finalLogoUrl = logoUrl.trim();
+      let finalFeaturedImageUrl = featuredImageUrl.trim();
+
+      // Upload logo file if one was selected
+      if (logoFile) {
+        const logoCid = await uploadDAppLogo(dapp.id, logoFile);
+        if (logoCid) {
+          finalLogoUrl = logoCid;
+          // Clean up preview URL
+          if (logoPreviewUrl) {
+            URL.revokeObjectURL(logoPreviewUrl);
+            setLogoPreviewUrl('');
           }
-        }
-
-        // Upload featured image file if one was selected
-        if (featuredImageFile) {
-          const featuredCid = await uploadDAppFeaturedImage(dapp.id, featuredImageFile);
-          if (featuredCid) {
-            finalFeaturedImageUrl = featuredCid;
-            // Clean up preview URL
-            if (featuredImagePreviewUrl) {
-              URL.revokeObjectURL(featuredImagePreviewUrl);
-              setFeaturedImagePreviewUrl('');
-            }
-            setFeaturedImageFile(null);
-          } else {
-            throw new Error('Failed to upload featured image to IPFS');
-          }
-        }
-
-        // Save metadata
-        const frontendData = {
-          name: name.trim() || dapp.name,
-          version: version.trim() || dapp.version || '',
-          description: description.trim(),
-          utility: utility.trim(),
-          process: process.trim(),
-          benefits: benefits.trim(),
-          url: url.trim(),
-          security: security.trim(),
-          roadmap: roadmap.trim(),
-          developerLinks: [
-            website.trim() && { label: 'Website', url: website.trim() },
-            twitter.trim() && { label: 'Twitter', url: twitter.trim() },
-            telegram.trim() && { label: 'Telegram', url: telegram.trim() },
-          ].filter(Boolean) as { label: string; url: string }[],
-        };
-
-        const metadataKey = `dapp_${dapp.id}_metadata`;
-        localStorage.setItem(metadataKey, JSON.stringify(frontendData));
-
-        // Save images (using final URLs after IPFS upload)
-        if (finalFeaturedImageUrl) {
-          localStorage.setItem(`dapp_${dapp.id}_featuredImage`, finalFeaturedImageUrl);
+          setLogoFile(null);
         } else {
-          localStorage.removeItem(`dapp_${dapp.id}_featuredImage`);
-        }
-
-        if (finalLogoUrl) {
-          localStorage.setItem(`dapp_${dapp.id}_logo`, finalLogoUrl);
-        } else {
-          localStorage.removeItem(`dapp_${dapp.id}_logo`);
-        }
-
-        // Clear draft after successful save
-        localStorage.removeItem(`dapp_${dapp.id}_draft`);
-
-        setSuccess(true);
-        setTimeout(() => {
-          onClose();
-          window.location.reload();
-        }, 1500);
-      } catch (err) {
-        console.error('Error saving data:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Failed to save changes';
-        setError(errorMessage);
-        // Clean up preview URLs on error
-        if (logoPreviewUrl) {
-          URL.revokeObjectURL(logoPreviewUrl);
-          setLogoPreviewUrl('');
-        }
-        if (featuredImagePreviewUrl) {
-          URL.revokeObjectURL(featuredImagePreviewUrl);
-          setFeaturedImagePreviewUrl('');
+          throw new Error('Failed to upload logo to IPFS');
         }
       }
-    },
-    onError: (err) => {
-      // Convert error to string immediately to prevent 'in' operator issues
-      // err is already an Error object from useTreasuryPayment, but we convert it safely
-      try {
-        const errorMessage = getErrorMessage(err, 'Payment failed');
-        setError(errorMessage);
-      } catch {
-        // Fallback if error conversion fails
-        setError('Payment failed');
+
+      // Upload featured image file if one was selected
+      if (featuredImageFile) {
+        const featuredCid = await uploadDAppFeaturedImage(dapp.id, featuredImageFile);
+        if (featuredCid) {
+          finalFeaturedImageUrl = featuredCid;
+          // Clean up preview URL
+          if (featuredImagePreviewUrl) {
+            URL.revokeObjectURL(featuredImagePreviewUrl);
+            setFeaturedImagePreviewUrl('');
+          }
+          setFeaturedImageFile(null);
+        } else {
+          throw new Error('Failed to upload featured image to IPFS');
+        }
       }
-    },
-  });
+
+      // Save metadata
+      const frontendData = {
+        name: name.trim() || dapp.name,
+        version: version.trim() || dapp.version || '',
+        description: description.trim(),
+        utility: utility.trim(),
+        process: process.trim(),
+        benefits: benefits.trim(),
+        url: url.trim(),
+        security: security.trim(),
+        roadmap: roadmap.trim(),
+        developerLinks: [
+          website.trim() && { label: 'Website', url: website.trim() },
+          twitter.trim() && { label: 'Twitter', url: twitter.trim() },
+          telegram.trim() && { label: 'Telegram', url: telegram.trim() },
+        ].filter(Boolean) as { label: string; url: string }[],
+      };
+
+      const metadataKey = `dapp_${dapp.id}_metadata`;
+      localStorage.setItem(metadataKey, JSON.stringify(frontendData));
+
+      // Save images (using final URLs after IPFS upload)
+      if (finalFeaturedImageUrl) {
+        localStorage.setItem(`dapp_${dapp.id}_featuredImage`, finalFeaturedImageUrl);
+      } else {
+        localStorage.removeItem(`dapp_${dapp.id}_featuredImage`);
+      }
+
+      if (finalLogoUrl) {
+        localStorage.setItem(`dapp_${dapp.id}_logo`, finalLogoUrl);
+      } else {
+        localStorage.removeItem(`dapp_${dapp.id}_logo`);
+      }
+
+      // Clear draft after successful save
+      localStorage.removeItem(`dapp_${dapp.id}_draft`);
+
+      setSuccess(true);
+      setTimeout(() => {
+        onClose();
+        window.location.reload();
+      }, 1500);
+    } catch (err) {
+      console.error('Error saving data:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save changes';
+      setError(errorMessage);
+      // Clean up preview URLs on error
+      if (logoPreviewUrl) {
+        URL.revokeObjectURL(logoPreviewUrl);
+        setLogoPreviewUrl('');
+      }
+      if (featuredImagePreviewUrl) {
+        URL.revokeObjectURL(featuredImagePreviewUrl);
+        setFeaturedImagePreviewUrl('');
+      }
+      setIsSaving(false);
+    }
+  };
 
   // Load existing images and draft
   useEffect(() => {
@@ -276,46 +256,6 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
     return { filled, total: fields.length };
   }, [name, description, utility, process, benefits, url, website, twitter, telegram, security, roadmap, featuredImageUrl, logoUrl]);
 
-  // Get payment progress stage
-  const getPaymentStage = (): ProgressStage => {
-    if (paymentSuccess) return 'complete';
-    if (isConfirming) return 'confirming';
-    if (isPaying) return 'processing';
-    return 'ready';
-  };
-
-  const handleSave = async () => {
-    setError(null);
-
-    if (!isConnected || !connectedAddress) {
-      setError('Please connect your wallet');
-      return;
-    }
-
-    if (!isDeployerUser) {
-      setError('Only the dApp deployer can edit this dApp');
-      return;
-    }
-
-    // Validate image URLs
-    if (featuredImageUrl.trim() && !validateImageUrl(featuredImageUrl)) {
-      setError('Featured image URL is invalid. Must be http:// or https://');
-      return;
-    }
-
-    if (logoUrl.trim() && !validateImageUrl(logoUrl)) {
-      setError('Logo URL is invalid. Must be http:// or https://');
-      return;
-    }
-
-    if (!isTreasuryAvailable) {
-      setError('Treasury address not available for this network');
-      return;
-    }
-
-    // Make payment
-    await pay();
-  };
 
   const handleDeleteFeaturedImage = () => {
     setFeaturedImageUrl('');
@@ -358,16 +298,7 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
     }
   };
 
-  // Get button disabled reasons
-  const getButtonDisabledReasons = () => {
-    const reasons: string[] = [];
-    if (!isConnected) reasons.push('Connect your wallet');
-    if (!isDeployerUser) reasons.push('Only the deployer can edit this dApp');
-    if (!isTreasuryAvailable) reasons.push('Treasury not available on this network');
-    return reasons;
-  };
-
-  const isLoading = isPaying || isConfirming;
+  const isLoading = isSaving;
 
   // Cleanup preview URLs on unmount
   useEffect(() => {
@@ -380,30 +311,19 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
       }
     };
   }, [logoPreviewUrl, featuredImagePreviewUrl]);
-  // Safely convert errors to strings immediately
-  const safePaymentError = useSafeError(paymentError);
-  const displayError = error || safePaymentError;
-
-  const buttonDisabledReasons = getButtonDisabledReasons();
-  const isSaveButtonDisabled = isLoading || !isConnected || !isDeployerUser || !isTreasuryAvailable;
+  const displayError = error;
+  const isSaveButtonDisabled = isLoading || !isDeployerUser;
 
   // Close on Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !isPaying && !isConfirming) {
+      if (e.key === 'Escape' && !isLoading) {
         onClose();
       }
     };
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
-  }, [onClose, isPaying, isConfirming]);
-
-  const progressStages = [
-    { id: 'ready' as ProgressStage, label: 'Ready', progress: 0 },
-    { id: 'processing' as ProgressStage, label: 'Processing', progress: 33 },
-    { id: 'confirming' as ProgressStage, label: 'Confirming', progress: 66 },
-    { id: 'complete' as ProgressStage, label: 'Complete', progress: 100 },
-  ];
+  }, [onClose, isLoading]);
 
   const modalContent = (
     <div
@@ -471,32 +391,6 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
             </div>
           )}
 
-          {/* Button disabled reasons */}
-          {isSaveButtonDisabled && buttonDisabledReasons.length > 0 && (
-            <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-              <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-2">
-                To save & pay, you need:
-              </p>
-              <ul className="text-sm text-yellow-700 dark:text-yellow-400 space-y-1 list-disc list-inside">
-                {buttonDisabledReasons.map((reason, index) => (
-                  <li key={index}>{reason}</li>
-                ))}
-              </ul>
-              <p className="text-xs text-yellow-600 dark:text-yellow-500 mt-2">
-                💡 Tip: You can save a draft without payment to continue later.
-              </p>
-            </div>
-          )}
-
-          {/* Progress Bar (shown during payment) */}
-          {(isPaying || isConfirming || paymentSuccess) && (
-            <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-800">
-              <ProgressBar
-                stages={progressStages}
-                currentStage={getPaymentStage()}
-              />
-            </div>
-          )}
 
           {/* Basic Info Section */}
           <CollapsibleSection
@@ -894,20 +788,6 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
                       </p>
                     </div>
                   )}
-                  <div className="flex items-center justify-between p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
-                    <span className="text-sm text-zinc-700 dark:text-zinc-300">Treasury Available:</span>
-                    <span className={`text-sm font-medium ${isTreasuryAvailable ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                      {isTreasuryAvailable ? '✓ Available' : '✗ Not Available'}
-                    </span>
-                  </div>
-                  {treasuryAddress && (
-                    <div className="p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
-                      <span className="text-xs text-zinc-600 dark:text-zinc-400">Treasury Address:</span>
-                      <p className="text-xs font-mono text-zinc-900 dark:text-zinc-100 break-all mt-1">
-                        {treasuryAddress}
-                      </p>
-                    </div>
-                  )}
                   <div className="p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
                     <span className="text-xs text-zinc-600 dark:text-zinc-400">Network Chain ID:</span>
                     <p className="text-xs font-mono text-zinc-900 dark:text-zinc-100 mt-1">
@@ -920,22 +800,11 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
               {/* Steps to Success */}
               <div>
                 <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-                  Steps to Complete Transaction
+                  Steps to Save Changes
                 </h4>
                 <ol className="space-y-2 text-sm text-zinc-700 dark:text-zinc-300">
-                  <li className={`flex items-start gap-2 ${isConnected ? 'text-green-600 dark:text-green-400' : ''}`}>
-                    <span className="font-semibold">1.</span>
-                    <span>
-                      {isConnected ? '✓ ' : ''}Connect your EVM wallet (MetaMask, RainbowKit, etc.)
-                      {!isConnected && (
-                        <span className="block text-xs text-zinc-500 dark:text-zinc-400 mt-1 ml-4">
-                          Click the wallet connect button in the header
-                        </span>
-                      )}
-                    </span>
-                  </li>
                   <li className={`flex items-start gap-2 ${isDeployerUser ? 'text-green-600 dark:text-green-400' : ''}`}>
-                    <span className="font-semibold">2.</span>
+                    <span className="font-semibold">1.</span>
                     <span>
                       {isDeployerUser ? '✓ ' : ''}Ensure you are the dApp deployer
                       {!isDeployerUser && (
@@ -945,35 +814,16 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
                       )}
                     </span>
                   </li>
-                  <li className={`flex items-start gap-2 ${isTreasuryAvailable ? 'text-green-600 dark:text-green-400' : ''}`}>
-                    <span className="font-semibold">3.</span>
-                    <span>
-                      {isTreasuryAvailable ? '✓ ' : ''}Ensure Treasury is available on your network
-                      {!isTreasuryAvailable && (
-                        <span className="block text-xs text-zinc-500 dark:text-zinc-400 mt-1 ml-4">
-                          Switch to Kasplex L2 Testnet (167012) or Mainnet (202555)
-                        </span>
-                      )}
-                    </span>
-                  </li>
                   <li className="flex items-start gap-2">
-                    <span className="font-semibold">4.</span>
+                    <span className="font-semibold">2.</span>
                     <span>Fill in the form fields (all fields are optional except Name and Description)</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="font-semibold">5.</span>
-                    <span>Click &quot;Save &amp; Pay 10 KAS&quot; button</span>
+                    <span className="font-semibold">3.</span>
+                    <span>Click &quot;Save Changes&quot; button</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="font-semibold">6.</span>
-                    <span>Approve the transaction in your wallet</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="font-semibold">7.</span>
-                    <span>Wait for transaction confirmation</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="font-semibold">8.</span>
+                    <span className="font-semibold">4.</span>
                     <span>Page will reload automatically after successful save</span>
                   </li>
                 </ol>
@@ -988,22 +838,12 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
                   <p>
                     <strong className="text-zinc-900 dark:text-zinc-100">Button still disabled?</strong>
                     <br />
-                    Check the yellow info box above for specific requirements. All three conditions (wallet connected, deployer status, treasury available) must be met.
+                    Only the deployer can edit this dApp. Make sure your connected wallet matches the deployer address.
                   </p>
                   <p>
                     <strong className="text-zinc-900 dark:text-zinc-100">Not the deployer?</strong>
                     <br />
                     Only the wallet address that deployed this dApp can edit it. Check the deployer address above.
-                  </p>
-                  <p>
-                    <strong className="text-zinc-900 dark:text-zinc-100">Treasury not available?</strong>
-                    <br />
-                    Make sure you&apos;re connected to Kasplex L2 Testnet or Mainnet. Treasury contract must be deployed on your current network.
-                  </p>
-                  <p>
-                    <strong className="text-zinc-900 dark:text-zinc-100">Transaction failed?</strong>
-                    <br />
-                    Ensure you have at least 10 KAS in your wallet for the payment. Check your wallet balance and network connection.
                   </p>
                 </div>
               </div>
