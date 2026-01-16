@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768603018-10ccd15",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: add missing currentProjectStatus variable (by Kasparex)",
+      "date": "2026-01-16T23:36:29+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768602724-04cdefa",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Simplify mega menu to button links with 4-column layout and add status badge to current section (by Kasparex)",
