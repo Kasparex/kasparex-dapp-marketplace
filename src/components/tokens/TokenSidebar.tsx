@@ -9,9 +9,12 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useAccount } from 'wagmi';
 import type { Token } from '@/lib/tokens/types';
 import { getTokenImageUrl } from '@/lib/tokens/metadata';
 import { TokenLogo } from './TokenLogo';
+import { EditTokenModal } from './EditTokenModal';
+import { isAdminAddress } from '@/lib/admin';
 
 interface TokenSidebarProps {
   token: Token;
@@ -28,12 +31,16 @@ const SECTIONS = [
 ] as const;
 
 export function TokenSidebar({ token }: TokenSidebarProps) {
+  const { address: connectedAddress, isConnected } = useAccount();
   const [activeSection, setActiveSection] = useState<string>('info');
   const [isHidden, setIsHidden] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(256); // Default 256px (w-64)
   const [isResizing, setIsResizing] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  
+  const isAdmin = connectedAddress ? isAdminAddress(connectedAddress) : false;
 
   // Load sidebar state from localStorage
   useEffect(() => {
@@ -237,7 +244,21 @@ export function TokenSidebar({ token }: TokenSidebarProps) {
               </div>
             )}
 
-            <TokenLogo token={token} size={48} showName={true} showSymbol={true} />
+            <div className="flex items-center justify-between gap-2">
+              <TokenLogo token={token} size={48} showName={true} showSymbol={true} />
+              {isAdmin && isConnected && (
+                <button
+                  onClick={() => setShowEditModal(true)}
+                  className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                  title="Edit token"
+                  aria-label="Edit token"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+              )}
+            </div>
 
             {/* Network Badge */}
             <div className="flex items-center gap-2">
@@ -315,6 +336,14 @@ export function TokenSidebar({ token }: TokenSidebarProps) {
           </nav>
         </div>
       </aside>
+      
+      {/* Edit Token Modal */}
+      {showEditModal && (
+        <EditTokenModal
+          token={token}
+          onClose={() => setShowEditModal(false)}
+        />
+      )}
     </>
   );
 }
