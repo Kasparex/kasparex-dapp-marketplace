@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768571804-cb5f456",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Update currentStage to use valid ProgressStage values (by Kasparex)",
+      "date": "2026-01-16T14:55:36+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768571363-99393c2",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Add type assertion for IPFS upload functions to resolve TypeScript build error (by Kasparex)",
