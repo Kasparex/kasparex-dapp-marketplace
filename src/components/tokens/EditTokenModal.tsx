@@ -550,7 +550,7 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
           {/* Progress Bar */}
           {isLoading && (
             <div className="space-y-2">
-              <ProgressBar stages={progressStages} currentStage={isPaying ? 'start' : 'complete'} />
+              <ProgressBar stages={progressStages} currentStage={isPaying ? 'processing' : isConfirming ? 'confirming' : 'complete'} />
               <p className="text-sm text-zinc-600 dark:text-zinc-400 text-center">
                 {isPaying ? 'Waiting for transaction...' : isConfirming ? 'Confirming transaction...' : 'Processing...'}
               </p>
