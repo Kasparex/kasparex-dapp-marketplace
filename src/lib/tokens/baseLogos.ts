@@ -21,26 +21,17 @@ export const baseTokenLogos: Record<string, BaseTokenLogo> = {
   kas: {
     tokenId: 'kas',
     symbol: 'KAS',
-    // TODO: Add KAS logo URL or IPFS CID when provided
-    // logoUrl: '/img/tokens/kas-logo.png',
-    // or
-    // logoCid: 'Qm...',
+    logoCid: 'bafkreihdalme24eunumt5hocfagndfrqu6orfxu6r6vv5trgppaxiola7m',
   },
   krex: {
     tokenId: 'krex',
     symbol: 'KREX',
-    // TODO: Add KREX logo URL or IPFS CID when provided
-    // logoUrl: '/img/tokens/krex-logo.png',
-    // or
-    // logoCid: 'Qm...',
+    logoCid: 'bafybeih5exs5c6ustgrryfz76omytnwfl3gw43vbg5pv2rswvjxmt2remq',
   },
   grid: {
     tokenId: 'grid',
     symbol: 'GRID',
-    // TODO: Add GRID logo URL or IPFS CID when provided
-    // logoUrl: '/img/tokens/grid-logo.png',
-    // or
-    // logoCid: 'Qm...',
+    logoCid: 'bafkreifdvxewmxvfcn2ffmkndrudr2f6bqub4m35mzmvsjck4eamkdkpvu',
   },
 };
 
