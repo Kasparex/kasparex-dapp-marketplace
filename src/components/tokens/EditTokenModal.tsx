@@ -579,16 +579,6 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
             </div>
           )}
 
-          {/* Progress Bar */}
-          {isLoading && (
-            <div className="space-y-2">
-              <ProgressBar stages={progressStages} currentStage={isPaying ? 'processing' : isConfirming ? 'confirming' : 'complete'} />
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 text-center">
-                {isPaying ? 'Waiting for transaction...' : isConfirming ? 'Confirming transaction...' : 'Processing...'}
-              </p>
-            </div>
-          )}
-
           {/* Action Buttons */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
             <button
@@ -600,10 +590,10 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
             </button>
             <button
               onClick={handleSave}
-              disabled={!canSave}
+              disabled={!canSave || isLoading}
               className="px-4 py-2 text-sm font-medium text-white bg-[#02abb8] rounded-lg hover:bg-[#0299a6] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Processing...' : `Save Changes (0.0001 KAS)`}
+              {isLoading ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </div>
