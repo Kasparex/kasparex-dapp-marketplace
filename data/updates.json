@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768578461-d213f50",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Remove progressStages definition (by Kasparex)",
+      "date": "2026-01-16T16:46:24+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768576859-97ed783",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Apply same IPFS upload delay pattern to EditDAppModal, add cleanup (by Kasparex)",
