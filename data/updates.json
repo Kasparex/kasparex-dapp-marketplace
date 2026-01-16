@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768602724-04cdefa",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Simplify mega menu to button links with 4-column layout and add status badge to current section (by Kasparex)",
+      "date": "2026-01-16T23:31:14+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768601760-1d0f67d",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update dApps table styling to match Tokens page and rebuild header dropdown as mega menu (by Kasparex)",
