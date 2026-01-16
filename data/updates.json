@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768606851-a7e4bee",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Replace mega menu with compact dropdown menu in 3 columns, keeping icons and status badges (by Kasparex)",
+      "date": "2026-01-17T00:40:28+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768606403-1473c9e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Make mega menu left-aligned, prevent overflow, black background, responsive wrapping (by Kasparex)",
