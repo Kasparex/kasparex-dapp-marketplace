@@ -8,6 +8,7 @@
 import Image from 'next/image';
 import type { Token } from '@/lib/tokens/types';
 import { getTokenImageUrl } from '@/lib/tokens/metadata';
+import { TokenLogo } from './TokenLogo';
 
 interface TokenHeroSectionProps {
   token: Token;
@@ -56,11 +57,8 @@ export function TokenHeroSection({ token }: TokenHeroSectionProps) {
                 </span>
               </div>
             )}
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100">
-                {token.name}
-              </h1>
-              <p className="text-lg text-zinc-600 dark:text-zinc-400 mt-2">{token.symbol}</p>
+            <div className="flex flex-col items-center gap-2">
+              <TokenLogo token={token} size={48} showName={true} showSymbol={true} className="flex-col" />
             </div>
           </div>
         </div>

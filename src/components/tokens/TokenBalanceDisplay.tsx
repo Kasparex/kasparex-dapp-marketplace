@@ -7,6 +7,7 @@
 
 import { useAccount } from 'wagmi';
 import type { Token } from '@/lib/tokens/types';
+import { TokenLogo } from './TokenLogo';
 import { useTokenBalance } from '@/hooks/useTokenBalance';
 import { useKaspaTokenBalance } from '@/hooks/useKaspaTokenBalance';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -67,7 +68,9 @@ export function TokenBalanceDisplay({ token }: TokenBalanceDisplayProps) {
             <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
               {formatLargeNumber(displayBalance)}
             </div>
-            <div className="text-sm text-zinc-500 dark:text-zinc-400">{token.symbol}</div>
+            <div className="flex items-center justify-center gap-2">
+              <TokenLogo token={token} size={20} showSymbol={true} showName={false} />
+            </div>
           </div>
         )}
       </div>

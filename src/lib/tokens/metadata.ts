@@ -6,6 +6,8 @@
 import { getIPFSClient } from '@/lib/ipfs/client';
 import { getBestGatewayUrl, fetchJSON } from '@/lib/ipfs/gateway';
 import type { Token, TokenIPFSMetadata } from './types';
+import { loadTokenLogo, loadTokenFeaturedImage } from './ipfs';
+import { getBaseTokenLogoUrl, getBaseTokenFeaturedImageUrl } from './baseLogos';
 
 // Cache for loaded metadata
 const metadataCache = new Map<string, TokenIPFSMetadata | null>();
@@ -81,13 +83,121 @@ export function mergeTokenMetadata(
 }
 
 /**
+ * Load token logo with priority chain
+ * Priority: localStorage > baseLogos config > token.logoCid > token.logo > placeholder
+ */
+export function loadTokenLogoUrl(token: Token): string | null {
+  // 1. Check localStorage (highest priority)
+  const localStorageLogo = loadTokenLogo(token.id);
+  if (localStorageLogo) {
+    // If it's a CID, resolve it
+    if (!localStorageLogo.startsWith('http://') && !localStorageLogo.startsWith('https://')) {
+      return getTokenImageUrl(localStorageLogo);
+    }
+    return localStorageLogo;
+  }
+
+  // 2. Check base token logos config (for KAS, KREX, GRID)
+  const baseLogo = getBaseTokenLogoUrl(token.id);
+  if (baseLogo) {
+    // If it's a CID, resolve it
+    if (!baseLogo.startsWith('http://') && !baseLogo.startsWith('https://')) {
+      return getTokenImageUrl(baseLogo);
+    }
+    return baseLogo;
+  }
+
+  // 3. Check token.logoCid
+  if (token.logoCid) {
+    return getTokenImageUrl(token.logoCid);
+  }
+
+  // 4. Check token.logo (direct URL)
+  if (token.logo) {
+    return token.logo;
+  }
+
+  return null;
+}
+
+/**
+ * Load token featured image with priority chain
+ * Priority: localStorage > baseLogos config > token.featuredImageCid > token.featuredImage > null
+ */
+export function loadTokenFeaturedImageUrl(token: Token): string | null {
+  // 1. Check localStorage (highest priority)
+  const localStorageFeatured = loadTokenFeaturedImage(token.id);
+  if (localStorageFeatured) {
+    if (!localStorageFeatured.startsWith('http://') && !localStorageFeatured.startsWith('https://')) {
+      return getTokenImageUrl(localStorageFeatured);
+    }
+    return localStorageFeatured;
+  }
+
+  // 2. Check base token logos config
+  const baseFeatured = getBaseTokenFeaturedImageUrl(token.id);
+  if (baseFeatured) {
+    if (!baseFeatured.startsWith('http://') && !baseFeatured.startsWith('https://')) {
+      return getTokenImageUrl(baseFeatured);
+    }
+    return baseFeatured;
+  }
+
+  // 3. Check token.featuredImageCid
+  if (token.featuredImageCid) {
+    return getTokenImageUrl(token.featuredImageCid);
+  }
+
+  // 4. Check token.featuredImage (direct URL)
+  if (token.featuredImage) {
+    return token.featuredImage;
+  }
+
+  return null;
+}
+
+/**
  * Load and merge token metadata from IPFS
+ * Also loads logos from localStorage and base config
  */
 export async function loadTokenWithMetadata(token: Token): Promise<Token> {
-  if (!token.metadataCid) return token;
+  let mergedToken = token;
 
-  const ipfsMetadata = await loadTokenMetadataFromIPFS(token.metadataCid);
-  return mergeTokenMetadata(token, ipfsMetadata);
+  // Load IPFS metadata if available
+  if (token.metadataCid) {
+    const ipfsMetadata = await loadTokenMetadataFromIPFS(token.metadataCid);
+    mergedToken = mergeTokenMetadata(mergedToken, ipfsMetadata);
+  }
+
+  // Load logos from localStorage/base config (override IPFS metadata)
+  const logoUrl = loadTokenLogoUrl(mergedToken);
+  const featuredImageUrl = loadTokenFeaturedImageUrl(mergedToken);
+
+  // Update token with loaded images
+  if (logoUrl) {
+    // If it's an IPFS URL, extract CID; otherwise use as URL
+    const cidMatch = logoUrl.match(/\/ipfs\/([^/?#]+)/);
+    if (cidMatch) {
+      mergedToken = { ...mergedToken, logoCid: cidMatch[1] };
+    } else if (!logoUrl.startsWith('http://') && !logoUrl.startsWith('https://')) {
+      mergedToken = { ...mergedToken, logoCid: logoUrl };
+    } else {
+      mergedToken = { ...mergedToken, logo: logoUrl };
+    }
+  }
+
+  if (featuredImageUrl) {
+    const cidMatch = featuredImageUrl.match(/\/ipfs\/([^/?#]+)/);
+    if (cidMatch) {
+      mergedToken = { ...mergedToken, featuredImageCid: cidMatch[1] };
+    } else if (!featuredImageUrl.startsWith('http://') && !featuredImageUrl.startsWith('https://')) {
+      mergedToken = { ...mergedToken, featuredImageCid: featuredImageUrl };
+    } else {
+      mergedToken = { ...mergedToken, featuredImage: featuredImageUrl };
+    }
+  }
+
+  return mergedToken;
 }
 
 /**

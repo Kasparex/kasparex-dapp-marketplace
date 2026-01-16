@@ -6,6 +6,7 @@
 'use client';
 
 import type { Token } from '@/lib/tokens/types';
+import { TokenLogo } from './TokenLogo';
 
 interface TokenTradingSectionProps {
   token: Token;
@@ -69,7 +70,10 @@ export function TokenTradingSection({ token }: TokenTradingSectionProps) {
 
   return (
     <section id="trading" className="space-y-6">
-      <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Trade {token.symbol}</h2>
+      <div className="flex items-center gap-3">
+        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Trade</h2>
+        <TokenLogo token={token} size={32} showSymbol={true} showName={false} />
+      </div>
 
       {/* L2 Trading Options */}
       {(token.network === 'L2' || hasL1AndL2) && (

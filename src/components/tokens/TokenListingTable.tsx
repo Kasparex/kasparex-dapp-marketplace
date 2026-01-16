@@ -14,6 +14,7 @@ import { useTokenBalance } from '@/hooks/useTokenBalance';
 import { useKaspaTokenBalance } from '@/hooks/useKaspaTokenBalance';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { getTokenImageUrl } from '@/lib/tokens/metadata';
+import { TokenLogo } from './TokenLogo';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 
 interface TokenListingTableProps {
@@ -303,29 +304,7 @@ function TokenTableRow({ token, isConnected, krexBalance }: TokenTableRowProps) 
     <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
       <td className="py-4 px-4">
         <Link href={`/tokens/${token.slug}`} className="flex items-center gap-3">
-          {logoUrl ? (
-            <div className="relative w-10 h-10 rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 flex-shrink-0">
-              <Image
-                src={logoUrl}
-                alt={token.name}
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            </div>
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center flex-shrink-0">
-              <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">
-                {token.symbol.substring(0, 2).toUpperCase()}
-              </span>
-            </div>
-          )}
-          <div>
-            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-              {token.name}
-            </div>
-            <div className="text-xs text-zinc-500 dark:text-zinc-400">{token.symbol}</div>
-          </div>
+          <TokenLogo token={token} size={40} showName={true} showSymbol={true} />
         </Link>
       </td>
       <td className="py-4 px-4">

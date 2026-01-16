@@ -14,7 +14,9 @@ import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { ProgressBar, type ProgressStage } from '@/components/ui/ProgressBar';
 import { FormCompletionIndicator } from '@/components/ui/FormCompletionIndicator';
 import { ImagePreview } from '@/components/ImagePreview';
+import { ImageUpload } from '@/components/ui/ImageUpload';
 import { loadDAppFeaturedImage, loadDAppLogo } from '@/lib/dapps/contractData';
+import { uploadDAppLogo, uploadDAppFeaturedImage } from '@/lib/dapps/ipfs';
 
 interface EditDAppModalProps {
   dapp: DApp;
@@ -574,6 +576,26 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
                 )}
               </div>
 
+              {/* Image Upload Component for Featured Image */}
+              <ImageUpload
+                label=""
+                value={featuredImageUrl}
+                onChange={setFeaturedImageUrl}
+                onFileSelect={async (file) => {
+                  const cid = await uploadDAppFeaturedImage(dapp.id, file);
+                  return cid;
+                }}
+                onDelete={() => {
+                  setFeaturedImageUrl('');
+                  localStorage.removeItem(`dapp_${dapp.id}_featuredImage`);
+                }}
+                aspectRatio="video"
+                showUrlInput={false}
+                showFileUpload={true}
+                disabled={isLoading}
+                className="mt-3"
+              />
+
               {/* Logo/Avatar */}
               <div>
                 <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
@@ -617,18 +639,25 @@ export function EditDAppModal({ dapp, contractAddress, contractData, onClose }: 
                 )}
               </div>
 
-              {/* Future file upload placeholder */}
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-800">
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 italic">
-                  File upload functionality coming soon. For now, please use image URLs.
-                </p>
-                {/* <input
-                  type="file"
-                  accept="image/*"
-                  disabled
-                  className="mt-2 text-sm text-zinc-500 dark:text-zinc-400"
-                /> */}
-              </div>
+              {/* Image Upload Component for Logo */}
+              <ImageUpload
+                label=""
+                value={logoUrl}
+                onChange={setLogoUrl}
+                onFileSelect={async (file) => {
+                  const cid = await uploadDAppLogo(dapp.id, file);
+                  return cid;
+                }}
+                onDelete={() => {
+                  setLogoUrl('');
+                  localStorage.removeItem(`dapp_${dapp.id}_logo`);
+                }}
+                aspectRatio="square"
+                showUrlInput={false}
+                showFileUpload={true}
+                disabled={isLoading}
+                className="mt-3"
+              />
             </div>
           </CollapsibleSection>
 

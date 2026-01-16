@@ -11,6 +11,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { Token } from '@/lib/tokens/types';
 import { getTokenImageUrl } from '@/lib/tokens/metadata';
+import { TokenLogo } from './TokenLogo';
 
 interface TokenSidebarProps {
   token: Token;
@@ -236,31 +237,7 @@ export function TokenSidebar({ token }: TokenSidebarProps) {
               </div>
             )}
 
-            <div className="flex items-center gap-3">
-              {logoUrl ? (
-                <div className="relative w-12 h-12 rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 flex-shrink-0">
-                  <Image
-                    src={logoUrl}
-                    alt={token.name}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                </div>
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center flex-shrink-0">
-                  <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">
-                    {token.symbol.substring(0, 2).toUpperCase()}
-                  </span>
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 truncate">
-                  {token.name}
-                </h1>
-                <div className="text-sm text-zinc-500 dark:text-zinc-400">{token.symbol}</div>
-              </div>
-            </div>
+            <TokenLogo token={token} size={48} showName={true} showSymbol={true} />
 
             {/* Network Badge */}
             <div className="flex items-center gap-2">

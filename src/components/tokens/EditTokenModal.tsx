@@ -1,0 +1,585 @@
+'use client';
+
+import { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
+import { useAccount, useChainId } from 'wagmi';
+import type { Token, TokenAllocation, RoadmapEvent, TokenLink } from '@/lib/tokens/types';
+import { useTreasuryPayment } from '@/hooks/useTreasuryPayment';
+import { isAdminAddress } from '@/lib/admin';
+import { getErrorMessage } from '@/lib/utils';
+import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
+import { ProgressBar, type ProgressStage } from '@/components/ui/ProgressBar';
+import { FormCompletionIndicator } from '@/components/ui/FormCompletionIndicator';
+import { ImageUpload } from '@/components/ui/ImageUpload';
+import { 
+  uploadTokenLogo, 
+  uploadTokenFeaturedImage, 
+  saveTokenLogo, 
+  saveTokenFeaturedImage,
+  deleteTokenLogo,
+  deleteTokenFeaturedImage,
+  loadTokenLogo,
+  loadTokenFeaturedImage,
+} from '@/lib/tokens/ipfs';
+import { syncDAppLogoOnTokenUpdate } from '@/lib/tokens/sync';
+import { getTokensByDAppId } from '@/lib/tokens/registry';
+import { isDeployer } from '@/lib/dapps/deployer';
+
+interface EditTokenModalProps {
+  token: Token;
+  onClose: () => void;
+}
+
+export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
+  const { address: connectedAddress, isConnected } = useAccount();
+  const chainId = useChainId();
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
+
+  // Section states
+  const [basicInfoOpen, setBasicInfoOpen] = useState(true);
+  const [mediaOpen, setMediaOpen] = useState(false);
+  const [tokenomicsOpen, setTokenomicsOpen] = useState(false);
+  const [linksOpen, setLinksOpen] = useState(false);
+  const [roadmapOpen, setRoadmapOpen] = useState(false);
+
+  // Form state
+  const [name, setName] = useState(token.name || '');
+  const [symbol, setSymbol] = useState(token.symbol || '');
+  const [description, setDescription] = useState(token.description || '');
+  const [network, setNetwork] = useState<'L1' | 'L2'>(token.network || 'L2');
+  const [contractAddress, setContractAddress] = useState(token.contractAddress || '');
+  const [tokenType, setTokenType] = useState<'global' | 'local' | 'collab'>(token.type || 'global');
+  const [decimals, setDecimals] = useState(token.decimals?.toString() || '18');
+  
+  // Tokenomics
+  const [totalSupply, setTotalSupply] = useState(token.totalSupply?.toString() || '');
+  const [maxSupply, setMaxSupply] = useState(token.maxSupply?.toString() || '');
+  const [circulatingSupply, setCirculatingSupply] = useState(token.circulatingSupply?.toString() || '');
+  
+  // Images
+  const [logoUrl, setLogoUrl] = useState('');
+  const [featuredImageUrl, setFeaturedImageUrl] = useState('');
+
+  // Links
+  const [links, setLinks] = useState<TokenLink[]>(token.links || []);
+
+  // Roadmap
+  const [roadmap, setRoadmap] = useState<RoadmapEvent[]>(token.roadmap || []);
+
+  // Check if user is admin or token creator
+  const isAdmin = connectedAddress ? isAdminAddress(connectedAddress) : false;
+  
+  // For local tokens, check if user is dApp deployer
+  const relatedTokens = token.parentDAppId ? getTokensByDAppId(token.parentDAppId) : [];
+  const isTokenCreator = useMemo(() => {
+    if (!connectedAddress || !isAdmin) return false;
+    // Admin can edit all tokens
+    // For local tokens, could also check dApp deployer status
+    return true;
+  }, [connectedAddress, isAdmin]);
+
+  const canEdit = isAdmin || isTokenCreator;
+
+  // Treasury payment hook
+  const {
+    pay,
+    isPaying,
+    isConfirming,
+    isSuccess: paymentSuccess,
+    error: paymentError,
+    treasuryAddress,
+    isTreasuryAvailable,
+  } = useTreasuryPayment({
+    amount: '10',
+    onSuccess: async (txHash) => {
+      try {
+        // Save metadata
+        const metadata = {
+          name: name.trim() || token.name,
+          symbol: symbol.trim().toUpperCase() || token.symbol,
+          description: description.trim(),
+          network,
+          contractAddress: contractAddress.trim(),
+          type: tokenType,
+          decimals: parseInt(decimals) || 18,
+          totalSupply: totalSupply ? BigInt(totalSupply) : undefined,
+          maxSupply: maxSupply ? BigInt(maxSupply) : undefined,
+          circulatingSupply: circulatingSupply ? BigInt(circulatingSupply) : undefined,
+          links,
+          roadmap,
+        };
+
+        const metadataKey = `token_${token.id}_metadata`;
+        localStorage.setItem(metadataKey, JSON.stringify(metadata));
+
+        // Save images
+        if (logoUrl.trim()) {
+          saveTokenLogo(token.id, logoUrl.trim());
+        } else {
+          deleteTokenLogo(token.id);
+        }
+
+        if (featuredImageUrl.trim()) {
+          saveTokenFeaturedImage(token.id, featuredImageUrl.trim());
+        } else {
+          deleteTokenFeaturedImage(token.id);
+        }
+
+        // Sync dApp logo if this is a local token
+        if (token.parentDAppId || token.relatedDAppIds) {
+          syncDAppLogoOnTokenUpdate({ ...token, logoCid: logoUrl });
+        }
+
+        // Clear draft
+        localStorage.removeItem(`token_${token.id}_draft`);
+
+        setSuccess(true);
+        setTimeout(() => {
+          onClose();
+          window.location.reload();
+        }, 1500);
+      } catch (err) {
+        console.error('Error saving token data:', err);
+        setError('Failed to save changes');
+      }
+    },
+    onError: (err) => {
+      try {
+        const errorMessage = getErrorMessage(err, 'Payment failed');
+        setError(errorMessage);
+      } catch {
+        setError('Payment failed');
+      }
+    },
+  });
+
+  // Load existing data
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedLogo = loadTokenLogo(token.id);
+        const savedFeatured = loadTokenFeaturedImage(token.id);
+        
+        if (savedLogo) {
+          setLogoUrl(savedLogo);
+        } else if (token.logoCid) {
+          setLogoUrl(token.logoCid);
+        } else if (token.logo) {
+          setLogoUrl(token.logo);
+        }
+
+        if (savedFeatured) {
+          setFeaturedImageUrl(savedFeatured);
+        } else if (token.featuredImageCid) {
+          setFeaturedImageUrl(token.featuredImageCid);
+        } else if (token.featuredImage) {
+          setFeaturedImageUrl(token.featuredImage);
+        }
+
+        // Load draft if exists
+        const draftKey = `token_${token.id}_draft`;
+        const draft = localStorage.getItem(draftKey);
+        if (draft) {
+          try {
+            const draftData = JSON.parse(draft);
+            if (draftData.name) setName(draftData.name);
+            if (draftData.symbol) setSymbol(draftData.symbol);
+            if (draftData.description) setDescription(draftData.description);
+            if (draftData.logoUrl) setLogoUrl(draftData.logoUrl);
+            if (draftData.featuredImageUrl) setFeaturedImageUrl(draftData.featuredImageUrl);
+          } catch (err) {
+            console.error('Error loading draft:', err);
+          }
+        }
+      } catch (err) {
+        console.error('Error loading token data:', err);
+      }
+    }
+  }, [token]);
+
+  // Auto-save draft
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const draftKey = `token_${token.id}_draft`;
+    const draft = {
+      name,
+      symbol,
+      description,
+      logoUrl,
+      featuredImageUrl,
+    };
+
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(draftKey, JSON.stringify(draft));
+        setDraftSaved(true);
+        setTimeout(() => setDraftSaved(false), 2000);
+      } catch (err) {
+        console.error('Error saving draft:', err);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [name, symbol, description, logoUrl, featuredImageUrl, token.id]);
+
+  const handleSave = async () => {
+    setError(null);
+
+    // Validate required fields
+    if (!name.trim()) {
+      setError('Token name is required');
+      return;
+    }
+    if (!symbol.trim()) {
+      setError('Token symbol is required');
+      return;
+    }
+
+    // Trigger payment
+    await pay();
+  };
+
+  const isLoading = isPaying || isConfirming;
+  const canSave = canEdit && isTreasuryAvailable && !isLoading;
+
+  // Form completion calculation
+  const formCompletion = useMemo(() => {
+    const fields = [
+      name.trim(),
+      symbol.trim(),
+      description.trim(),
+      logoUrl.trim(),
+    ];
+    const filled = fields.filter(Boolean).length;
+    return { filled, total: fields.length };
+  }, [name, symbol, description, logoUrl]);
+
+  const progressStages: Array<{ id: ProgressStage; label: string; progress: number }> = [
+    { id: 'start', label: 'Start', progress: 0 },
+    { id: 'complete', label: 'Complete', progress: 100 },
+  ];
+
+  if (!canEdit) {
+    return null; // Don't render if user can't edit
+  }
+
+  const modalContent = (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-md"
+      onClick={!isLoading ? onClose : undefined}
+    >
+      <div
+        className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg max-w-4xl w-full max-h-[95vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 z-10 p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                Edit {token.name}
+              </h2>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                Update token information and images
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              disabled={isLoading}
+              className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors disabled:opacity-50"
+              aria-label="Close modal"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <FormCompletionIndicator
+            filled={formCompletion.filled}
+            total={formCompletion.total}
+            type="linear"
+          />
+        </div>
+
+        {/* Content */}
+        <div className="p-4 sm:p-6 space-y-4">
+          {/* Basic Info Section */}
+          <CollapsibleSection
+            title="Basic Information"
+            isOpen={basicInfoOpen}
+            onToggle={setBasicInfoOpen}
+          >
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+                  Token Name *
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={isLoading}
+                  className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50"
+                  placeholder="e.g., Kasparex Token"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+                  Token Symbol *
+                </label>
+                <input
+                  type="text"
+                  value={symbol}
+                  onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+                  disabled={isLoading}
+                  className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50"
+                  placeholder="e.g., KREX"
+                  maxLength={10}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  disabled={isLoading}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50"
+                  placeholder="Describe your token..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+                    Network
+                  </label>
+                  <select
+                    value={network}
+                    onChange={(e) => setNetwork(e.target.value as 'L1' | 'L2')}
+                    disabled={isLoading}
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50"
+                  >
+                    <option value="L1">L1 (Kaspa)</option>
+                    <option value="L2">L2 (Kasplex)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+                    Token Type
+                  </label>
+                  <select
+                    value={tokenType}
+                    onChange={(e) => setTokenType(e.target.value as 'global' | 'local' | 'collab')}
+                    disabled={isLoading}
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50"
+                  >
+                    <option value="global">Global</option>
+                    <option value="local">Local</option>
+                    <option value="collab">Collab</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+                    Contract Address
+                  </label>
+                  <input
+                    type="text"
+                    value={contractAddress}
+                    onChange={(e) => setContractAddress(e.target.value)}
+                    disabled={isLoading}
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50 font-mono text-sm"
+                    placeholder="0x..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+                    Decimals
+                  </label>
+                  <input
+                    type="number"
+                    value={decimals}
+                    onChange={(e) => setDecimals(e.target.value)}
+                    disabled={isLoading}
+                    min="0"
+                    max="18"
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50"
+                    placeholder="18"
+                  />
+                </div>
+              </div>
+            </div>
+          </CollapsibleSection>
+
+          {/* Media Section */}
+          <CollapsibleSection
+            title="Media"
+            isOpen={mediaOpen}
+            onToggle={setMediaOpen}
+          >
+            <div className="space-y-6">
+              <ImageUpload
+                label="Logo"
+                value={logoUrl}
+                onChange={setLogoUrl}
+                onFileSelect={async (file) => {
+                  const cid = await uploadTokenLogo(token.id, file);
+                  return cid;
+                }}
+                onDelete={() => {
+                  setLogoUrl('');
+                  deleteTokenLogo(token.id);
+                }}
+                aspectRatio="square"
+                showUrlInput={true}
+                showFileUpload={true}
+                disabled={isLoading}
+              />
+
+              <ImageUpload
+                label="Featured Image"
+                value={featuredImageUrl}
+                onChange={setFeaturedImageUrl}
+                onFileSelect={async (file) => {
+                  const cid = await uploadTokenFeaturedImage(token.id, file);
+                  return cid;
+                }}
+                onDelete={() => {
+                  setFeaturedImageUrl('');
+                  deleteTokenFeaturedImage(token.id);
+                }}
+                aspectRatio="video"
+                showUrlInput={true}
+                showFileUpload={true}
+                disabled={isLoading}
+              />
+            </div>
+          </CollapsibleSection>
+
+          {/* Tokenomics Section */}
+          <CollapsibleSection
+            title="Tokenomics"
+            isOpen={tokenomicsOpen}
+            onToggle={setTokenomicsOpen}
+          >
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+                    Total Supply
+                  </label>
+                  <input
+                    type="text"
+                    value={totalSupply}
+                    onChange={(e) => setTotalSupply(e.target.value)}
+                    disabled={isLoading}
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50"
+                    placeholder="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+                    Max Supply
+                  </label>
+                  <input
+                    type="text"
+                    value={maxSupply}
+                    onChange={(e) => setMaxSupply(e.target.value)}
+                    disabled={isLoading}
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50"
+                    placeholder="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+                    Circulating Supply
+                  </label>
+                  <input
+                    type="text"
+                    value={circulatingSupply}
+                    onChange={(e) => setCirculatingSupply(e.target.value)}
+                    disabled={isLoading}
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50"
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+            </div>
+          </CollapsibleSection>
+
+          {/* Error Message */}
+          {error && (
+            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            </div>
+          )}
+
+          {/* Success Message */}
+          {success && (
+            <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+              <p className="text-sm text-green-600 dark:text-green-400">
+                Token updated successfully! Reloading...
+              </p>
+            </div>
+          )}
+
+          {/* Draft Saved Indicator */}
+          {draftSaved && (
+            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <p className="text-xs text-blue-600 dark:text-blue-400">Draft saved</p>
+            </div>
+          )}
+
+          {/* Progress Bar */}
+          {isLoading && (
+            <div className="space-y-2">
+              <ProgressBar stages={progressStages} currentStage={isPaying ? 'start' : 'complete'} />
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 text-center">
+                {isPaying ? 'Waiting for transaction...' : isConfirming ? 'Confirming transaction...' : 'Processing...'}
+              </p>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+            <button
+              onClick={onClose}
+              disabled={isLoading}
+              className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={!canSave}
+              className="px-4 py-2 text-sm font-medium text-white bg-[#02abb8] rounded-lg hover:bg-[#0299a6] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? 'Processing...' : `Save Changes (10 KAS)`}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  return createPortal(modalContent, document.body);
+}
