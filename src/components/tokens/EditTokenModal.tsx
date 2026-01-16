@@ -212,7 +212,7 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
         }
       }
 
-      // Save metadata
+      // Save metadata (convert BigInt to strings for JSON serialization)
       const metadata = {
         name: name.trim() || token.name,
         symbol: symbol.trim().toUpperCase() || token.symbol,
@@ -221,9 +221,9 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
         contractAddress: contractAddress.trim(),
         type: tokenType,
         decimals: parseInt(decimals) || 18,
-        totalSupply: totalSupply ? BigInt(totalSupply) : undefined,
-        maxSupply: maxSupply ? BigInt(maxSupply) : undefined,
-        circulatingSupply: circulatingSupply ? BigInt(circulatingSupply) : undefined,
+        totalSupply: totalSupply || undefined, // Keep as string for localStorage
+        maxSupply: maxSupply || undefined, // Keep as string for localStorage
+        circulatingSupply: circulatingSupply || undefined, // Keep as string for localStorage
         links,
         roadmap,
       };
