@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768580282-218f9f7",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Remove remaining payment references in EditDAppModal (by Kasparex)",
+      "date": "2026-01-16T17:17:16+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768578874-46ffd53",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Remove recursive handleSave call and fix build error (by Kasparex)",
