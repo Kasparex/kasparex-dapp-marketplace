@@ -145,24 +145,27 @@ function getCurrentProject(pathname: string): HubProject | null {
 
 // Function to get status badge component
 function getStatusBadge(status: HubProject['status'], isActive: boolean = false) {
+  // Smaller badge styling
+  const baseClasses = "px-1.5 py-0.5 text-[10px] font-medium rounded";
+  
   if (isActive) {
-    // Active state badges with white text for better contrast
+    // Active state badges with subtle styling
     switch (status) {
       case 'demo':
         return (
-          <span className="px-2 py-1 text-xs font-medium bg-white/20 text-white rounded">
+          <span className={`${baseClasses} bg-blue-100/80 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300`}>
             Demo
           </span>
         );
       case 'beta':
         return (
-          <span className="px-2 py-1 text-xs font-medium bg-white/20 text-white rounded">
+          <span className={`${baseClasses} bg-purple-100/80 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300`}>
             Beta
           </span>
         );
       case 'coming-soon':
         return (
-          <span className="px-2 py-1 text-xs font-medium bg-white/20 text-white rounded">
+          <span className={`${baseClasses} bg-yellow-100/80 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300`}>
             Coming Soon
           </span>
         );
@@ -175,19 +178,19 @@ function getStatusBadge(status: HubProject['status'], isActive: boolean = false)
   switch (status) {
     case 'demo':
       return (
-        <span className="px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded">
+        <span className={`${baseClasses} bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300`}>
           Demo
         </span>
       );
     case 'beta':
       return (
-        <span className="px-2 py-1 text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 rounded">
+        <span className={`${baseClasses} bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300`}>
           Beta
         </span>
       );
     case 'coming-soon':
       return (
-        <span className="px-2 py-1 text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 rounded">
+        <span className={`${baseClasses} bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300`}>
           Coming Soon
         </span>
       );
@@ -331,10 +334,10 @@ export function Header() {
                       setMegaMenuOpen(false);
                     }, 500);
                   }}
-                  className="absolute top-full left-0 mt-2 w-[90vw] max-w-[800px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl z-[9999] overflow-hidden"
+                  className="absolute top-full left-0 mt-2 w-[90vw] max-w-[1200px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl z-[9999] overflow-hidden"
                 >
-                  <div className="p-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                  <div className="p-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                       {hubProjects.map((project) => {
                         const isExternal = project.route.startsWith('http');
                         
@@ -349,10 +352,10 @@ export function Header() {
                         const isActive = isCurrentPage || matchesRoute;
                         const statusBadge = getStatusBadge(project.status, isActive);
                         
-                        const linkClassName = `flex items-center justify-between gap-2 px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 rounded-lg transition-colors ${
+                        const linkClassName = `flex items-center justify-between gap-3 px-5 py-3 text-sm text-zinc-700 dark:text-zinc-300 rounded-lg transition-all whitespace-nowrap ${
                           isActive
-                            ? 'bg-[#02abb8] text-white dark:bg-[#02abb8] dark:text-white'
-                            : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                            ? 'bg-[#02abb8]/10 dark:bg-[#02abb8]/20 text-zinc-900 dark:text-zinc-100 border border-[#02abb8]/30 dark:border-[#02abb8]/40'
+                            : 'bg-zinc-50/50 dark:bg-zinc-800/30 border border-zinc-200/50 dark:border-zinc-700/50 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:border-zinc-300 dark:hover:border-zinc-600'
                         }`;
 
                         const linkContent = (
