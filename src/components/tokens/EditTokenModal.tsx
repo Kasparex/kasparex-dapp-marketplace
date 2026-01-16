@@ -258,7 +258,9 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
   }, [name, symbol, description, logoUrl]);
 
   const progressStages: Array<{ id: ProgressStage; label: string; progress: number }> = [
-    { id: 'start', label: 'Start', progress: 0 },
+    { id: 'ready', label: 'Ready', progress: 0 },
+    { id: 'processing', label: 'Processing', progress: 50 },
+    { id: 'confirming', label: 'Confirming', progress: 75 },
     { id: 'complete', label: 'Complete', progress: 100 },
   ];
 
