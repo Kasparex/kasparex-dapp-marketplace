@@ -115,3 +115,76 @@ export function extractCIDFromURL(url: string): string | null {
   return null;
 }
 
+/**
+ * Upload dApp logo to IPFS
+ * Stores in folder structure: dapps/{dappId}/logo.png
+ */
+export async function uploadDAppLogo(dappId: string, file: File | Blob): Promise<string | null> {
+  try {
+    const client = getIPFSClient();
+    
+    const filename = `dapps/${dappId}/logo.png`;
+    const cid = await client.uploadFile(file, { 
+      filename,
+      pin: true 
+    } as any);
+    
+    return cid;
+  } catch (error) {
+    console.error('Failed to upload dApp logo to IPFS:', error);
+    return null;
+  }
+}
+
+/**
+ * Upload dApp featured image to IPFS
+ * Stores in folder structure: dapps/{dappId}/featured.png
+ */
+export async function uploadDAppFeaturedImage(dappId: string, file: File | Blob): Promise<string | null> {
+  try {
+    const client = getIPFSClient();
+    
+    const filename = `dapps/${dappId}/featured.png`;
+    const cid = await client.uploadFile(file, { 
+      filename,
+      pin: true 
+    } as any);
+    
+    return cid;
+  } catch (error) {
+    console.error('Failed to upload dApp featured image to IPFS:', error);
+    return null;
+  }
+}
+
+/**
+ * Get IPFS path for dApp logo
+ */
+export function getDAppLogoPath(dappId: string, cid?: string): string | null {
+  if (!cid) return null;
+  
+  // If base CID is set, construct full path
+  const baseCid = process.env.NEXT_PUBLIC_IPFS_BASE_CID;
+  if (baseCid) {
+    return getBestGatewayUrl(`${baseCid}/dapps/${dappId}/logo.png`);
+  }
+  
+  // Otherwise, use direct CID
+  return getIPFSImageUrl(cid);
+}
+
+/**
+ * Get IPFS path for dApp featured image
+ */
+export function getDAppFeaturedImagePath(dappId: string, cid?: string): string | null {
+  if (!cid) return null;
+  
+  // If base CID is set, construct full path
+  const baseCid = process.env.NEXT_PUBLIC_IPFS_BASE_CID;
+  if (baseCid) {
+    return getBestGatewayUrl(`${baseCid}/dapps/${dappId}/featured.png`);
+  }
+  
+  // Otherwise, use direct CID
+  return getIPFSImageUrl(cid);
+}
