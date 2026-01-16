@@ -143,6 +143,26 @@ function getCurrentProject(pathname: string): HubProject | null {
   }) || null;
 }
 
+// Function to get icon for project
+function getProjectIcon(projectId: string): string {
+  const iconMap: Record<string, string> = {
+    'kasparex-dapps': '⚡',
+    'kasparex-records': '🎵',
+    'kasparex-tokens': '🪙',
+    'kasparex-games': '🎮',
+    'kasparex-vblog': '📝',
+    'kasparex-magazines': '📰',
+    'kasparex-movies': '🎬',
+    'kasparex-defi': '💹',
+    'kasparex-studio': '🎨',
+    'krex-nodes': '🖥️',
+    'kasparex-rewards': '🎁',
+    'kasparex-nft-tools': '🖼️',
+  };
+  
+  return iconMap[projectId] || '⚡';
+}
+
 // Function to get status badge component
 function getStatusBadge(status: HubProject['status'], isActive: boolean = false) {
   // Smaller badge styling
@@ -334,10 +354,10 @@ export function Header() {
                       setMegaMenuOpen(false);
                     }, 500);
                   }}
-                  className="absolute top-full left-0 mt-2 w-[90vw] max-w-[1200px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl z-[9999] overflow-hidden"
+                  className="absolute top-full left-0 mt-2 w-[90vw] max-w-[1200px] bg-zinc-800 dark:bg-zinc-950 border border-zinc-700 dark:border-zinc-800 rounded-lg shadow-xl z-[9999] overflow-hidden"
                 >
                   <div className="p-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                       {hubProjects.map((project) => {
                         const isExternal = project.route.startsWith('http');
                         
@@ -351,16 +371,20 @@ export function Header() {
                         
                         const isActive = isCurrentPage || matchesRoute;
                         const statusBadge = getStatusBadge(project.status, isActive);
+                        const projectIcon = getProjectIcon(project.id);
                         
-                        const linkClassName = `flex items-center justify-between gap-3 px-5 py-3 text-sm text-zinc-700 dark:text-zinc-300 rounded-lg transition-all whitespace-nowrap ${
+                        const linkClassName = `flex items-center justify-between gap-3 px-5 py-3 text-sm rounded-lg transition-all whitespace-nowrap ${
                           isActive
-                            ? 'bg-[#02abb8]/10 dark:bg-[#02abb8]/20 text-zinc-900 dark:text-zinc-100 border border-[#02abb8]/30 dark:border-[#02abb8]/40'
-                            : 'bg-zinc-50/50 dark:bg-zinc-800/30 border border-zinc-200/50 dark:border-zinc-700/50 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:border-zinc-300 dark:hover:border-zinc-600'
+                            ? 'bg-zinc-700/50 dark:bg-zinc-800/50 text-zinc-100 dark:text-zinc-100 border border-zinc-600/50 dark:border-zinc-700/50'
+                            : 'bg-zinc-700/30 dark:bg-zinc-900/50 border border-zinc-600/30 dark:border-zinc-800/50 text-zinc-300 dark:text-zinc-400 hover:bg-zinc-700/40 dark:hover:bg-zinc-800/60 hover:border-zinc-600/50 dark:hover:border-zinc-700/50'
                         }`;
 
                         const linkContent = (
                           <>
-                            <span className="font-medium">{project.name}</span>
+                            <div className="flex items-center gap-2.5">
+                              <span className="text-base flex-shrink-0">{projectIcon}</span>
+                              <span className="font-medium">{project.name}</span>
+                            </div>
                             {statusBadge && (
                               <div className="flex-shrink-0">
                                 {statusBadge}
