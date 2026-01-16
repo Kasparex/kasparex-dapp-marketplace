@@ -143,24 +143,73 @@ function getCurrentProject(pathname: string): HubProject | null {
   }) || null;
 }
 
-// Function to get icon for project
-function getProjectIcon(projectId: string): string {
-  const iconMap: Record<string, string> = {
-    'kasparex-dapps': '⚡',
-    'kasparex-records': '🎵',
-    'kasparex-tokens': '🪙',
-    'kasparex-games': '🎮',
-    'kasparex-vblog': '📝',
-    'kasparex-magazines': '📰',
-    'kasparex-movies': '🎬',
-    'kasparex-defi': '💹',
-    'kasparex-studio': '🎨',
-    'krex-nodes': '🖥️',
-    'kasparex-rewards': '🎁',
-    'kasparex-nft-tools': '🖼️',
+// Function to get icon component for project
+function getProjectIcon(projectId: string) {
+  const iconMap: Record<string, (props: { className?: string }) => React.ReactElement> = {
+    'kasparex-dapps': ({ className = 'w-4 h-4' }) => (
+      <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    ),
+    'kasparex-records': ({ className = 'w-4 h-4' }) => (
+      <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+      </svg>
+    ),
+    'kasparex-tokens': ({ className = 'w-4 h-4' }) => (
+      <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    'kasparex-games': ({ className = 'w-4 h-4' }) => (
+      <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    'kasparex-vblog': ({ className = 'w-4 h-4' }) => (
+      <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      </svg>
+    ),
+    'kasparex-magazines': ({ className = 'w-4 h-4' }) => (
+      <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+      </svg>
+    ),
+    'kasparex-movies': ({ className = 'w-4 h-4' }) => (
+      <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+      </svg>
+    ),
+    'kasparex-defi': ({ className = 'w-4 h-4' }) => (
+      <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+      </svg>
+    ),
+    'kasparex-studio': ({ className = 'w-4 h-4' }) => (
+      <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+      </svg>
+    ),
+    'krex-nodes': ({ className = 'w-4 h-4' }) => (
+      <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+      </svg>
+    ),
+    'kasparex-rewards': ({ className = 'w-4 h-4' }) => (
+      <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+      </svg>
+    ),
+    'kasparex-nft-tools': ({ className = 'w-4 h-4' }) => (
+      <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+    ),
   };
   
-  return iconMap[projectId] || '⚡';
+  return iconMap[projectId] || iconMap['kasparex-dapps'];
 }
 
 // Function to get status badge component
@@ -354,10 +403,10 @@ export function Header() {
                       setMegaMenuOpen(false);
                     }, 500);
                   }}
-                  className="absolute top-full left-0 mt-2 w-[90vw] max-w-[1200px] bg-zinc-800 dark:bg-zinc-950 border border-zinc-700 dark:border-zinc-800 rounded-lg shadow-xl z-[9999] overflow-hidden"
+                  className="absolute top-full left-0 mt-2 w-[90vw] max-w-[1200px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl z-[9999] overflow-hidden"
                 >
                   <div className="p-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       {hubProjects.map((project) => {
                         const isExternal = project.route.startsWith('http');
                         
@@ -371,18 +420,18 @@ export function Header() {
                         
                         const isActive = isCurrentPage || matchesRoute;
                         const statusBadge = getStatusBadge(project.status, isActive);
-                        const projectIcon = getProjectIcon(project.id);
+                        const ProjectIcon = getProjectIcon(project.id);
                         
                         const linkClassName = `flex items-center justify-between gap-3 px-5 py-3 text-sm rounded-lg transition-all whitespace-nowrap ${
                           isActive
-                            ? 'bg-zinc-700/50 dark:bg-zinc-800/50 text-zinc-100 dark:text-zinc-100 border border-zinc-600/50 dark:border-zinc-700/50'
-                            : 'bg-zinc-700/30 dark:bg-zinc-900/50 border border-zinc-600/30 dark:border-zinc-800/50 text-zinc-300 dark:text-zinc-400 hover:bg-zinc-700/40 dark:hover:bg-zinc-800/60 hover:border-zinc-600/50 dark:hover:border-zinc-700/50'
+                            ? 'bg-zinc-100 dark:bg-zinc-800/50 text-zinc-900 dark:text-zinc-100 border border-zinc-300/50 dark:border-zinc-700/50'
+                            : 'bg-zinc-50/50 dark:bg-zinc-800/30 border border-zinc-200/50 dark:border-zinc-700/50 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:border-zinc-300 dark:hover:border-zinc-600/50'
                         }`;
 
                         const linkContent = (
                           <>
                             <div className="flex items-center gap-2.5">
-                              <span className="text-base flex-shrink-0">{projectIcon}</span>
+                              <ProjectIcon className="w-4 h-4 flex-shrink-0 text-zinc-600 dark:text-zinc-400" />
                               <span className="font-medium">{project.name}</span>
                             </div>
                             {statusBadge && (
