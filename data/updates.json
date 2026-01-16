@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768601760-1d0f67d",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update dApps table styling to match Tokens page and rebuild header dropdown as mega menu (by Kasparex)",
+      "date": "2026-01-16T23:15:08+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768589483-4b1de84",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Add missing TokenLogoImage import in CommentCreditsModal (by Kasparex)",
