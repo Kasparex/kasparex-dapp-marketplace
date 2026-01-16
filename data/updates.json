@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768607812-55c701b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Make dropdown wider with horizontal layout and restore previous background color (by Kasparex)",
+      "date": "2026-01-17T00:56:05+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768607264-086f292",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Make dropdown menu wider and set background to black (by Kasparex)",
