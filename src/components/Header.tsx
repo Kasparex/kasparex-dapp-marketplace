@@ -403,7 +403,7 @@ export function Header() {
                       setMegaMenuOpen(false);
                     }, 500);
                   }}
-                  className="absolute top-full left-0 mt-2 w-[600px] bg-black dark:bg-black border border-zinc-800 dark:border-zinc-800 rounded-lg shadow-lg z-[9999] overflow-hidden"
+                  className="absolute top-full left-0 mt-2 w-[800px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-[9999] overflow-hidden"
                 >
                   <div className="p-2">
                     <div className="grid grid-cols-3 gap-1">
@@ -422,16 +422,18 @@ export function Header() {
                         const statusBadge = getStatusBadge(project.status, isActive);
                         const ProjectIcon = getProjectIcon(project.id);
                         
-                        const linkClassName = `flex flex-col items-center justify-center gap-1.5 px-3 py-2.5 text-xs rounded transition-all whitespace-nowrap ${
+                        const linkClassName = `flex items-center justify-between gap-2 px-3 py-2.5 text-sm rounded transition-all whitespace-nowrap ${
                           isActive
-                            ? 'bg-zinc-900 dark:bg-zinc-900 text-zinc-100 dark:text-zinc-100'
-                            : 'text-zinc-300 dark:text-zinc-300 hover:bg-zinc-900 dark:hover:bg-zinc-900'
+                            ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
+                            : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
                         }`;
 
                         const linkContent = (
                           <>
-                            <ProjectIcon className="w-4 h-4 flex-shrink-0 text-zinc-400 dark:text-zinc-400" />
-                            <span className="font-medium text-center leading-tight">{project.name}</span>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <ProjectIcon className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+                              <span className="font-medium">{project.name}</span>
+                            </div>
                             {statusBadge && (
                               <div className="flex-shrink-0">
                                 {statusBadge}
