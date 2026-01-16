@@ -181,6 +181,8 @@ export function Header() {
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const currentSectionTitle = getCurrentSectionTitle(pathname);
+  const currentProject = getCurrentProject(pathname);
+  const currentProjectStatus = currentProject?.status || null;
 
   useEffect(() => {
     return () => {
