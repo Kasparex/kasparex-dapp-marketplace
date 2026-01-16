@@ -5,6 +5,7 @@
 
 'use client';
 
+import Link from 'next/link';
 import type { Token } from '@/lib/tokens/types';
 import { TokenSidebar } from './TokenSidebar';
 import { TokenInfoSection } from './TokenInfoSection';
@@ -38,9 +39,9 @@ export function TokenLandingPage({ token }: TokenLandingPageProps) {
           {/* Hero Section */}
           <section className="space-y-4">
             <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-              <a href="/tokens" className="hover:text-zinc-900 dark:hover:text-zinc-100">
+              <Link href="/tokens" className="hover:text-zinc-900 dark:hover:text-zinc-100">
                 Tokens
-              </a>
+              </Link>
               <span>/</span>
               <span className="text-zinc-900 dark:text-zinc-100">{token.name}</span>
             </div>
