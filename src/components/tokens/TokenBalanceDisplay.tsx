@@ -69,7 +69,7 @@ export function TokenBalanceDisplay({ token }: TokenBalanceDisplayProps) {
               {formatLargeNumber(displayBalance)}
             </div>
             <div className="flex items-center justify-center gap-2">
-              <TokenLogo token={token} size={20} showSymbol={true} showName={false} />
+              <TokenLogo token={token} size={24} showSymbol={true} showName={false} />
             </div>
           </div>
         )}
