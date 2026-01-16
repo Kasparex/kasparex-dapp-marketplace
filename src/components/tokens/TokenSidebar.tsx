@@ -13,7 +13,6 @@ import { useAccount } from 'wagmi';
 import type { Token } from '@/lib/tokens/types';
 import { loadTokenLogoUrl, loadTokenFeaturedImageUrl } from '@/lib/tokens/metadata';
 import { TokenLogo } from './TokenLogo';
-import { EditTokenModal } from './EditTokenModal';
 import { isAdminAddress } from '@/lib/admin';
 
 interface TokenSidebarProps {
@@ -319,14 +318,6 @@ export function TokenSidebar({ token }: TokenSidebarProps) {
           </nav>
         </div>
       </aside>
-      
-      {/* Edit Token Modal */}
-      {showEditModal && (
-        <EditTokenModal
-          token={token}
-          onClose={() => setShowEditModal(false)}
-        />
-      )}
     </>
   );
 }
