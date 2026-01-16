@@ -203,12 +203,6 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
     return { filled, total: fields.length };
   }, [name, symbol, description, logoUrl, logoPreviewUrl]);
 
-  const progressStages: Array<{ id: ProgressStage; label: string; progress: number }> = [
-    { id: 'ready', label: 'Ready', progress: 0 },
-    { id: 'processing', label: 'Processing', progress: 50 },
-    { id: 'confirming', label: 'Confirming', progress: 75 },
-    { id: 'complete', label: 'Complete', progress: 100 },
-  ];
 
   if (!canEdit) {
     return null; // Don't render if user can't edit
