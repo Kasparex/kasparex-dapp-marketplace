@@ -4,6 +4,7 @@ import { useAccount } from 'wagmi';
 import Link from 'next/link';
 import { getMockWalletHoldings, getMockGRTSupplyMetrics } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
+import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
 
 export function GRIDHoldingsBox() {
   const { address, isConnected } = useAccount();
@@ -12,9 +13,12 @@ export function GRIDHoldingsBox() {
 
   return (
     <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-      <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-        GRID (GRT) Token
-      </h3>
+      <div className="flex items-center gap-2 mb-3">
+        <TokenLogoImage tokenId="grid" size={20} />
+        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+          GRID (GRT) Token
+        </h3>
+      </div>
       
       <div className="space-y-3">
         {/* Progress Bar Metrics */}

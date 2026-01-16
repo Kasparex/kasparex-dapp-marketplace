@@ -5,6 +5,7 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadCont
 import { parseEther, formatEther } from 'viem';
 import { SIMPLE_PAYMENT_ABI as SIMPLE_PAYMENT_ABI_IMPORT, SUBSCRIPTION_MANAGER_ABI } from '@/lib/contracts/abis';
 import { calculateFee, calculatePaymentAmount, formatKAS, parseKAS } from '@/lib/revenue/feeCalculator';
+import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
 import { CONTRACT_ADDRESSES, getContractAddress } from '@/lib/contracts/addresses';
 // Temporarily disable subscriptions to fix errors
 // import { SubscriptionStatus } from '@/components/subscriptions/SubscriptionStatus';
@@ -430,8 +431,8 @@ export function SimplePaymentWidget() {
 
           {/* Amount Input */}
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              Amount (KAS)
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2 flex items-center gap-2">
+              Amount (<TokenLogoImage tokenId="kas" size={16} /> KAS)
             </label>
             <input
               type="text"
@@ -456,21 +457,24 @@ export function SimplePaymentWidget() {
                 Payment Breakdown
               </h3>
               <div className="space-y-1 text-sm">
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-zinc-600 dark:text-zinc-400">Total Amount:</span>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1">
+                    <TokenLogoImage tokenId="kas" size={16} />
                     {formatKAS(amountBigInt)} KAS
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-zinc-600 dark:text-zinc-400">Fee ({feePercentageNum / 100}%):</span>
-                  <span className="font-medium text-red-600 dark:text-red-400">
+                  <span className="font-medium text-red-600 dark:text-red-400 flex items-center gap-1">
+                    <TokenLogoImage tokenId="kas" size={16} />
                     -{formatKAS(feeAmount)} KAS
                   </span>
                 </div>
-                <div className="flex justify-between pt-2 border-t border-zinc-200 dark:border-zinc-800">
+                <div className="flex justify-between items-center pt-2 border-t border-zinc-200 dark:border-zinc-800">
                   <span className="font-semibold text-zinc-900 dark:text-zinc-100">Recipient Receives:</span>
-                  <span className="font-semibold text-green-600 dark:text-green-400">
+                  <span className="font-semibold text-green-600 dark:text-green-400 flex items-center gap-1">
+                    <TokenLogoImage tokenId="kas" size={16} />
                     {formatKAS(paymentAmount)} KAS
                   </span>
                 </div>

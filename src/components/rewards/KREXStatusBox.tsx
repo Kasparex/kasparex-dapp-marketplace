@@ -8,6 +8,7 @@ import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { KREXBuyWizard } from './KREXBuyWizard';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { TierBadge } from './TierBadge';
+import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
 
 export function KREXStatusBox() {
   const { isConnected } = useAccount();
@@ -20,9 +21,12 @@ export function KREXStatusBox() {
     <>
       <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-            KREX Status
-          </h3>
+          <div className="flex items-center gap-2">
+            <TokenLogoImage tokenId="krex" size={20} />
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+              KREX Status
+            </h3>
+          </div>
           <button
             className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
             onClick={() => setShowModal(true)}

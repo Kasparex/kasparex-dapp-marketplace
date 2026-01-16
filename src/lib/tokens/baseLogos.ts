@@ -21,17 +21,17 @@ export const baseTokenLogos: Record<string, BaseTokenLogo> = {
   kas: {
     tokenId: 'kas',
     symbol: 'KAS',
-    logoCid: 'bafkreihdalme24eunumt5hocfagndfrqu6orfxu6r6vv5trgppaxiola7m',
+    logoCid: 'bafkreic47gu2dsvtxxpucuokfzti2ax5b6k2jcr5xzncianhyasexr4mki',
   },
   krex: {
     tokenId: 'krex',
     symbol: 'KREX',
-    logoCid: 'bafybeih5exs5c6ustgrryfz76omytnwfl3gw43vbg5pv2rswvjxmt2remq',
+    logoCid: 'bafybeiayxmg22jnhh3ekdscsrcglczhe6xra632xhvophe3opn77smvily',
   },
   grid: {
     tokenId: 'grid',
     symbol: 'GRID',
-    logoCid: 'bafkreifdvxewmxvfcn2ffmkndrudr2f6bqub4m35mzmvsjck4eamkdkpvu',
+    logoCid: 'bafkreidmvhcok2nffrz7no5da5g2qskwzwqivspw2ndzuv76nmama7egh4',
   },
 };
 

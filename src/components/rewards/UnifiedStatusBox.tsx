@@ -16,6 +16,7 @@ import { KREXBuyWizard } from './KREXBuyWizard';
 import { NFTBuyWizard } from './NFTBuyWizard';
 import { TierBadge } from './TierBadge';
 import Link from 'next/link';
+import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
 
 // Mock node status (replace with real hook when available)
 const mockNodeStatus = {
@@ -284,7 +285,10 @@ export function UnifiedStatusBox() {
             {/* KREX Section */}
             <div className="pb-4 border-b border-zinc-200 dark:border-zinc-700">
               <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">KREX Status</h4>
+                <div className="flex items-center gap-2">
+                  <TokenLogoImage tokenId="krex" size={18} />
+                  <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">KREX Status</h4>
+                </div>
                 <TierBadge tier={krexTier} isUnlocked={balance > 0} />
               </div>
               <div className="space-y-1.5 text-xs">

@@ -2,6 +2,7 @@
 
 import type { RewardResult } from '@/lib/rewards/types';
 import { formatNumber } from '@/lib/rewards/calculator';
+import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
 
 interface FeeDistributionProps {
   result: RewardResult;
@@ -34,11 +35,12 @@ export function FeeDistribution({
           <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
             Transaction Fee
           </span>
-          <span className="text-sm text-zinc-500 dark:text-zinc-400">
-            {feePercent.toFixed(2)}% of {formatNumber(kasAmount, 2)} KAS
+          <span className="text-sm text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
+            {feePercent.toFixed(2)}% of {formatNumber(kasAmount, 2)} <TokenLogoImage tokenId="kas" size={14} /> KAS
           </span>
         </div>
-        <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+        <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+          <TokenLogoImage tokenId="kas" size={28} />
           {formatNumber(feeAmount, 4)} KAS
         </div>
       </div>
@@ -83,7 +85,8 @@ export function FeeDistribution({
             <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
               Kasparex Treasury
             </div>
-            <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+            <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1">
+              <TokenLogoImage tokenId="kas" size={14} />
               {formatNumber(feeDistribution.kasparex, 4)} KAS
             </div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
@@ -95,7 +98,8 @@ export function FeeDistribution({
             <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
               GRT Treasury
             </div>
-            <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+            <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1">
+              <TokenLogoImage tokenId="kas" size={14} />
               {formatNumber(feeDistribution.grtTreasury, 4)} KAS
             </div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
@@ -107,7 +111,8 @@ export function FeeDistribution({
             <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
               LRT Treasury
             </div>
-            <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+            <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1">
+              <TokenLogoImage tokenId="kas" size={14} />
               {formatNumber(feeDistribution.lrtTreasury, 4)} KAS
             </div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
