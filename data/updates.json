@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768573159-dd739f5",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat: Add edit button to TokenSidebar and create upload guide (by Kasparex)",
+      "date": "2026-01-16T15:18:30+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768572522-fdbbfde",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Use valid size value (24) for TokenLogo in TokenBalanceDisplay (by Kasparex)",
