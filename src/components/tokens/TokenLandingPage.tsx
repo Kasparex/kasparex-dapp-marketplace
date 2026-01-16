@@ -8,17 +8,26 @@
 import Link from 'next/link';
 import type { Token } from '@/lib/tokens/types';
 import { TokenSidebar } from './TokenSidebar';
+import { TokenHeroSection } from './TokenHeroSection';
 import { TokenInfoSection } from './TokenInfoSection';
 import { TokenomicsSection } from './TokenomicsSection';
 import { RoadmapSection } from './RoadmapSection';
 import { DAppRelationSection } from './DAppRelationSection';
 import { PriceSection } from './PriceSection';
 import { TokenBalanceDisplay } from './TokenBalanceDisplay';
+import { TokenMintingProgress } from './TokenMintingProgress';
+import { TokenTradingSection } from './TokenTradingSection';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { useChainId } from 'wagmi';
 
 interface TokenLandingPageProps {
   token: Token;
+}
+
+// Calculate if token is fully minted
+function isFullyMinted(token: Token): boolean {
+  if (!token.maxSupply || !token.circulatingSupply) return false;
+  return token.circulatingSupply >= token.maxSupply;
 }
 
 export function TokenLandingPage({ token }: TokenLandingPageProps) {
@@ -28,6 +37,10 @@ export function TokenLandingPage({ token }: TokenLandingPageProps) {
     ? getExplorerUrl(token.contractAddress, chainId)
     : null;
 
+  const fullyMinted = isFullyMinted(token);
+  const showMintingProgress = token.maxSupply && token.circulatingSupply !== undefined && !fullyMinted;
+  const showTrading = fullyMinted || token.id === 'krex' || token.type === 'global';
+
   return (
     <div className="flex flex-col lg:flex-row min-h-screen">
       {/* Sidebar */}
@@ -36,16 +49,21 @@ export function TokenLandingPage({ token }: TokenLandingPageProps) {
       {/* Main Content */}
       <main className="flex-1 min-w-0">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
-          {/* Hero Section */}
-          <section className="space-y-4">
-            <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-              <Link href="/tokens" className="hover:text-zinc-900 dark:hover:text-zinc-100">
-                Tokens
-              </Link>
-              <span>/</span>
-              <span className="text-zinc-900 dark:text-zinc-100">{token.name}</span>
-            </div>
-          </section>
+          {/* Breadcrumb */}
+          <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+            <Link href="/tokens" className="hover:text-zinc-900 dark:hover:text-zinc-100">
+              Tokens
+            </Link>
+            <span>/</span>
+            <span className="text-zinc-900 dark:text-zinc-100">{token.name}</span>
+          </div>
+
+          {/* Hero Section with Featured Image */}
+          <TokenHeroSection token={token} />
+
+          {/* Minting Progress or Trading Section */}
+          {showMintingProgress && <TokenMintingProgress token={token} />}
+          {showTrading && <TokenTradingSection token={token} />}
 
           {/* Token Info */}
           <TokenInfoSection token={token} />

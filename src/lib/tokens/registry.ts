@@ -26,10 +26,12 @@ export const baseTokens: Token[] = [
     network: 'L2', // Primary network (also available on L1)
     chainId: 202555, // Kasplex L2 Mainnet
     contractAddress: KREX_L2_ADDRESS,
+    l1Address: undefined, // KREX exists on L1 as KRC20 token (ticker: KREX)
     l2Address: KREX_L2_ADDRESS,
     type: 'global',
     totalSupply: 21_000_000_000,
     maxSupply: 21_000_000_000,
+    circulatingSupply: 21_000_000_000, // Fully minted
     decimals: 18,
     allocations: [
       { category: 'Circulating', percentage: 100, description: 'Fixed supply of 21B tokens' },
