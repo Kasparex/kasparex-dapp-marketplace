@@ -219,9 +219,12 @@ export function UnifiedStatusBox() {
       <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-            Rewards Status
-          </h3>
+          <div className="flex items-center gap-2">
+            <TokenLogoImage tokenId="kas" size={18} />
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+              Rewards Status
+            </h3>
+          </div>
           {isConnected && !isLoading && (
             <span className="text-xs px-2 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full">
               Active
