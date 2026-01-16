@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768604034-f355e18",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Improve mega menu UX: wider layout, better spacing, subtle button styling, smaller badges, and subtle active highlight (by Kasparex)",
+      "date": "2026-01-16T23:52:52+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768603367-955bcef",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: add isActive parameter to getStatusBadge function (by Kasparex)",
