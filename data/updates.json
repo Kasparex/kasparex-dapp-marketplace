@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768583481-2f3d7f5",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Remove remaining EditTokenModal import and usage (by Kasparex)",
+      "date": "2026-01-16T18:10:31+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768583158-e87e39e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Remove remaining EditDAppModal reference (by Kasparex)",
