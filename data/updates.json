@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768604735-8fea324",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Improve mega menu: darker background, responsive 3-column layout, add icons, subtle gray active highlight (by Kasparex)",
+      "date": "2026-01-17T00:04:18+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768604034-f355e18",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Improve mega menu UX: wider layout, better spacing, subtle button styling, smaller badges, and subtle active highlight (by Kasparex)",
