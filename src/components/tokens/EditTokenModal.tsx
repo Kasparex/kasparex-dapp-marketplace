@@ -92,7 +92,7 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
     treasuryAddress,
     isTreasuryAvailable,
   } = useTreasuryPayment({
-    amount: '10',
+    amount: '0.0001', // Minimal fee just enough to register on Kaspa BlockDAG
     onSuccess: async (txHash) => {
       try {
         // Save metadata
@@ -338,11 +338,18 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
                   type="text"
                   value={symbol}
                   onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-                  disabled={isLoading}
-                  className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50"
+                  disabled={isLoading || !!token.contractAddress}
+                  readOnly={!!token.contractAddress}
+                  className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="e.g., KREX"
                   maxLength={10}
+                  title={token.contractAddress ? 'Token symbol cannot be changed after deployment' : ''}
                 />
+                {token.contractAddress && (
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                    Token symbol cannot be changed after deployment
+                  </p>
+                )}
               </div>
 
               <div>
@@ -571,7 +578,7 @@ export function EditTokenModal({ token, onClose }: EditTokenModalProps) {
               disabled={!canSave}
               className="px-4 py-2 text-sm font-medium text-white bg-[#02abb8] rounded-lg hover:bg-[#0299a6] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Processing...' : `Save Changes (10 KAS)`}
+              {isLoading ? 'Processing...' : `Save Changes (0.0001 KAS)`}
             </button>
           </div>
         </div>

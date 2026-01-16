@@ -17,6 +17,19 @@ const KREX_L2_ADDRESS = '0x0FD8d408cE707f4E4f8E54193c4C55a3b969834B';
  */
 export const baseTokens: Token[] = [
   {
+    id: 'kas',
+    slug: 'kas',
+    name: 'Kaspa',
+    symbol: 'KAS',
+    description: 'Kaspa is a proof-of-work cryptocurrency implementing the GHOSTDAG protocol. Unlike traditional blockchains, Kaspa uses a blockDAG structure, allowing for high block rates while maintaining the security guarantees of proof-of-work.',
+    shortDescription: 'Native cryptocurrency of the Kaspa network',
+    network: 'L1',
+    chainId: undefined, // KAS is native to Kaspa L1
+    contractAddress: undefined, // KAS is the native token, not a contract
+    type: 'global',
+    decimals: 8,
+  },
+  {
     id: 'krex',
     slug: 'krex',
     name: 'Kasparex Token',

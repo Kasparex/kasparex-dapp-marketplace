@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useChainId } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
 import Image from 'next/image';
 import Link from 'next/link';
 import { DAppIcon } from './DAppIcon';
@@ -19,6 +19,9 @@ import { DAppFeesModal } from './DAppFeesModal';
 import { DAppCardRewards } from '../rewards/DAppCardRewards';
 import { DAppEmbed } from './DAppEmbed';
 import { DAppReferralModal } from './DAppReferralModal';
+import { EditDAppModal } from './EditDAppModal';
+import { isDeployer } from '@/lib/dapps/deployer';
+import { isAdminAddress } from '@/lib/admin';
 
 interface DAppWidgetHeaderProps {
   dapp: DApp;
@@ -41,6 +44,7 @@ export function DAppWidgetHeader({
   hideEmbed = false,
   accentColor = '#02abb8',
 }: DAppWidgetHeaderProps) {
+  const { address: connectedAddress, isConnected } = useAccount();
   const chainId = useChainId();
   const isEmbeddedPage = isEmbedded();
   
@@ -99,9 +103,16 @@ export function DAppWidgetHeader({
   // Modal state
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [copiedDAppAddress, setCopiedDAppAddress] = useState(false);
   const [copiedTokenAddress, setCopiedTokenAddress] = useState(false);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
+  
+  // Check if user can edit (admin or deployer)
+  const deployerAddress = contractData?.deployerAddress || dapp.deployerAddress || '';
+  const isDeployerUser = isDeployer(connectedAddress, deployerAddress);
+  const isAdmin = connectedAddress ? isAdminAddress(connectedAddress) : false;
+  const canEdit = (isAdmin || isDeployerUser) && isConnected;
 
   const handleIconClick = (e: React.MouseEvent, action: () => void) => {
     e.preventDefault();
@@ -145,13 +156,35 @@ export function DAppWidgetHeader({
       {/* Featured Image Banner - Default or Custom */}
       {mergedDApp.featuredImage ? (
         <div className="relative w-full h-32 overflow-hidden border-b border-zinc-200 dark:border-zinc-700">
-          <Image
-            src={mergedDApp.featuredImage}
-            alt={mergedDApp.name}
-            fill
-            className="object-cover"
-            unoptimized
-          />
+          {canEdit ? (
+            <button
+              onClick={() => setShowEditModal(true)}
+              className="absolute inset-0 w-full h-full cursor-pointer group"
+              title="Click to edit featured image"
+              aria-label="Edit featured image"
+            >
+              <Image
+                src={mergedDApp.featuredImage}
+                alt={mergedDApp.name}
+                fill
+                className="object-cover group-hover:opacity-80 transition-opacity"
+                unoptimized
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <svg className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </div>
+            </button>
+          ) : (
+            <Image
+              src={mergedDApp.featuredImage}
+              alt={mergedDApp.name}
+              fill
+              className="object-cover"
+              unoptimized
+            />
+          )}
           {/* Collapse Button */}
           <button
             onClick={() => setIsHeaderCollapsed(true)}
@@ -194,13 +227,33 @@ export function DAppWidgetHeader({
         <div className="mb-4 relative">
           {/* Top Row: Logo, Titles */}
           <div className="flex items-start gap-4 mb-3">
-            
-            <DAppIcon
-              dAppName={mergedDApp.name}
-              category={mergedDApp.category}
-              size={64}
-              className="flex-shrink-0"
-            />
+            {canEdit ? (
+              <button
+                onClick={() => setShowEditModal(true)}
+                className="flex-shrink-0 group relative"
+                title="Click to edit logo"
+                aria-label="Edit logo"
+              >
+                <DAppIcon
+                  dAppName={mergedDApp.name}
+                  category={mergedDApp.category}
+                  size={64}
+                  className="flex-shrink-0 group-hover:opacity-80 transition-opacity"
+                />
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <svg className="w-5 h-5 text-zinc-600 dark:text-zinc-400 bg-white/90 dark:bg-zinc-800/90 rounded p-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </div>
+              </button>
+            ) : (
+              <DAppIcon
+                dAppName={mergedDApp.name}
+                category={mergedDApp.category}
+                size={64}
+                className="flex-shrink-0"
+              />
+            )}
             
             {/* Dapp and Token Title Rows - Next to logo, aligned to bottom */}
             <div className="space-y-1.5 flex-1 min-w-0 flex items-end pr-24">
@@ -441,6 +494,16 @@ export function DAppWidgetHeader({
         <DAppEmbed
           dapp={mergedDApp}
           onClose={() => setShowEmbedModal(false)}
+        />
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && (
+        <EditDAppModal
+          dapp={mergedDApp}
+          contractAddress={resolvedContractAddress}
+          contractData={contractData}
+          onClose={() => setShowEditModal(false)}
         />
       )}
     </>
