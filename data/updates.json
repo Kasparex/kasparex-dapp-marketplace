@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768607264-086f292",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Make dropdown menu wider and set background to black (by Kasparex)",
+      "date": "2026-01-17T00:47:17+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768606851-a7e4bee",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Replace mega menu with compact dropdown menu in 3 columns, keeping icons and status badges (by Kasparex)",
