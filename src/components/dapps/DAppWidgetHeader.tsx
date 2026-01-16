@@ -445,15 +445,6 @@ export function DAppWidgetHeader({
         />
       )}
 
-      {/* Edit Modal */}
-      {showEditModal && (
-        <EditDAppModal
-          dapp={mergedDApp}
-          contractAddress={resolvedContractAddress}
-          contractData={contractData}
-          onClose={() => setShowEditModal(false)}
-        />
-      )}
     </>
   );
 }
