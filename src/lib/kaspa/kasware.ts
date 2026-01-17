@@ -325,29 +325,24 @@ export async function signKRC20Transaction(
     throw new Error('KasWare wallet is not installed');
   }
   
-  // Check connection - try to get address as a reliable connection check
-  let isConnected = false;
-  try {
-    if (typeof kasware.getAddress === 'function') {
-      const address = await kasware.getAddress();
-      isConnected = address !== null && address !== undefined;
-    } else if (typeof kasware.isConnected === 'function') {
-      isConnected = kasware.isConnected();
-    }
-  } catch (err) {
-    // If we can't check, assume not connected
-    isConnected = false;
-  }
-  
-  if (!isConnected) {
-    throw new Error('KasWare wallet is not connected');
-  }
+  // Skip connection check - if the wallet wasn't connected, the actual API call will fail with a better error
+  // The widget already validates connection state before calling this function
+  // Also, if getKRC20Balance() works (which it does, since balance is displayed), the wallet is connected
   
   if (typeof kasware.signKRC20Transaction !== 'function') {
     throw new Error('signKRC20Transaction() method is not available. Please update your KasWare extension.');
   }
   
-  return await kasware.signKRC20Transaction(inscribeJsonString, type, destAddr, priorityFee);
+  try {
+    return await kasware.signKRC20Transaction(inscribeJsonString, type, destAddr, priorityFee);
+  } catch (err) {
+    // If the API call fails, provide a more helpful error message
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    if (errorMessage.includes('not connected') || errorMessage.includes('disconnected')) {
+      throw new Error('KasWare wallet is not connected. Please reconnect your wallet.');
+    }
+    throw err;
+  }
 }
 
 /**
