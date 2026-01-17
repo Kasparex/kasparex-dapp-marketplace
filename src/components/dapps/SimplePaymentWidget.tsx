@@ -404,7 +404,7 @@ export function SimplePaymentWidget() {
   }
 
   return (
-    <div className="px-6 py-4 space-y-4">
+    <div className="px-6 py-4 space-y-4 bg-zinc-900 dark:bg-zinc-950">
 
       {!isConnected ? (
         <div className="text-center py-8">
@@ -416,7 +416,7 @@ export function SimplePaymentWidget() {
         <div className="space-y-4">
           {/* Recipient Address Input */}
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+            <label className="block text-sm font-medium text-zinc-300 dark:text-zinc-300 mb-2">
               Recipient Address
             </label>
             <input
@@ -424,7 +424,7 @@ export function SimplePaymentWidget() {
               value={recipientAddress}
               onChange={(e) => setRecipientAddress(e.target.value)}
               placeholder="0x..."
-              className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-zinc-700 dark:border-zinc-700 rounded-lg bg-zinc-800 dark:bg-zinc-800 text-white dark:text-zinc-100 focus:ring-2 focus:ring-[#02abb8] focus:border-transparent"
               disabled={isLoading}
             />
           </div>
@@ -445,7 +445,7 @@ export function SimplePaymentWidget() {
                 }
               }}
               placeholder="0.0"
-              className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-zinc-700 dark:border-zinc-700 rounded-lg bg-zinc-800 dark:bg-zinc-800 text-white dark:text-zinc-100 focus:ring-2 focus:ring-[#02abb8] focus:border-transparent"
               disabled={isLoading}
             />
           </div>
@@ -541,7 +541,7 @@ export function SimplePaymentWidget() {
               onClick={handleSendPayment}
               disabled={isLoading || !recipientAddress || !amount || amountBigInt === 0n || !contractAddress}
               className="flex-1 px-4 py-2 text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-              style={{ backgroundColor: '#0097b2' }}
+              style={{ backgroundColor: '#02abb8' }}
             >
             {isLoading ? (
               <span className="flex items-center justify-center">

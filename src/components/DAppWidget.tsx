@@ -225,7 +225,14 @@ export function DAppWidget({
             className="mb-4"
           />
         )}
-        <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
+        <div className={`w-full bg-zinc-900 dark:bg-zinc-950 rounded-xl shadow-xl border border-zinc-800 dark:border-zinc-700 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
+          {/* Big dApp Title */}
+          <div className="px-6 py-4 border-b border-zinc-800 dark:border-zinc-700">
+            <h1 className="text-3xl font-bold text-white dark:text-zinc-100">
+              {dapp.name}
+            </h1>
+          </div>
+          
           {!hideHeader && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
               <DAppWidgetHeader 
@@ -240,7 +247,7 @@ export function DAppWidget({
               />
             </div>
           )}
-          <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
+          <div className={`bg-zinc-900 dark:bg-zinc-950 ${!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}`}>
             <SendKASWidget />
           </div>
           {!hideFooter && (
@@ -358,7 +365,14 @@ export function DAppWidget({
           className="mb-4"
         />
       )}
-        <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
+        <div className={`w-full bg-zinc-900 dark:bg-zinc-950 rounded-xl shadow-xl border border-zinc-800 dark:border-zinc-700 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
+          {/* Big dApp Title */}
+          <div className="px-6 py-4 border-b border-zinc-800 dark:border-zinc-700">
+            <h1 className="text-3xl font-bold text-white dark:text-zinc-100">
+              {dapp.name}
+            </h1>
+          </div>
+          
           {!hideHeader && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
               <DAppWidgetHeader 
@@ -374,7 +388,7 @@ export function DAppWidget({
             </div>
           )}
           <div 
-            className={`relative w-full overflow-hidden ${!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}`}
+            className={`relative w-full overflow-hidden bg-zinc-900 dark:bg-zinc-950 ${!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}`}
             style={{ minHeight: '600px' }}
             onClick={handleInteraction}
           >

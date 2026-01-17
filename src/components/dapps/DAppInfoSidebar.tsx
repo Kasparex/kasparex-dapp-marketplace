@@ -299,11 +299,6 @@ export function DAppInfoSidebar({
                 </Link>
               )}
 
-              {/* GRID Token Box */}
-              <GRIDHoldingsBox />
-
-              {/* dApp Token Box */}
-              <DAppTokenBox dapp={mergedDApp} />
             </div>
         </div>
       </aside>

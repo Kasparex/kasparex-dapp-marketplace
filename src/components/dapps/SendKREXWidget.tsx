@@ -244,9 +244,9 @@ export function SendKREXWidget() {
   }
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="p-6 space-y-4 bg-zinc-900 dark:bg-zinc-950">
       {/* Wallet Info */}
-      <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-4 space-y-2">
+      <div className="bg-zinc-800 dark:bg-zinc-800/50 rounded-lg p-4 space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-sm text-zinc-600 dark:text-zinc-400">Connected Address:</span>
           <span className="text-sm font-mono text-zinc-900 dark:text-zinc-100">
@@ -263,7 +263,7 @@ export function SendKREXWidget() {
 
       {/* Recipient Address */}
       <div>
-        <label htmlFor="toAddress" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+        <label htmlFor="toAddress" className="block text-sm font-medium text-zinc-300 dark:text-zinc-300 mb-2">
           Recipient Address
         </label>
         <input
@@ -272,14 +272,14 @@ export function SendKREXWidget() {
           value={toAddress}
           onChange={(e) => setToAddress(e.target.value)}
           placeholder="kaspa:..."
-          className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+          className="w-full px-3 py-2 border border-zinc-700 dark:border-zinc-700 rounded-lg bg-zinc-800 dark:bg-zinc-800 text-white dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
           disabled={isSending}
         />
       </div>
 
       {/* Amount */}
       <div>
-        <label htmlFor="amount" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+        <label htmlFor="amount" className="block text-sm font-medium text-zinc-300 dark:text-zinc-300 mb-2">
           Amount (KREX)
         </label>
         <div className="flex gap-2">
@@ -297,7 +297,7 @@ export function SendKREXWidget() {
           <button
             type="button"
             onClick={handleMaxAmount}
-            className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-medium text-white dark:text-zinc-300 bg-zinc-700 dark:bg-zinc-700 hover:bg-zinc-600 dark:hover:bg-zinc-600 rounded-lg transition-colors"
             disabled={isSending || krexBalance <= 0}
           >
             Max

@@ -147,18 +147,18 @@ export function DAOVotingWidget() {
   }
 
   return (
-    <div className="px-6 py-4 space-y-6">
+    <div className="px-6 py-4 space-y-6 bg-zinc-900 dark:bg-zinc-950">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">DAO Voting</h2>
+          <h2 className="text-3xl font-bold text-white dark:text-zinc-100">DAO Voting</h2>
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
             Submit and vote on future dApp ideas for marketplace integration
           </p>
         </div>
         <button
           onClick={() => setShowSubmitForm(!showSubmitForm)}
-          className="px-4 py-2 bg-[#0097b2] text-white rounded-lg hover:bg-[#007a91] transition-colors"
+          className="px-4 py-2 bg-[#02abb8] text-white rounded-lg hover:bg-[#028a94] transition-colors"
         >
           {showSubmitForm ? 'Cancel' : 'Submit Proposal'}
         </button>
@@ -166,24 +166,24 @@ export function DAOVotingWidget() {
 
       {/* Fee Info */}
       {submissionFee && voteFee && (
-        <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+        <div className="p-4 bg-zinc-800 dark:bg-zinc-800 rounded-lg border border-zinc-700 dark:border-zinc-700">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="text-zinc-600 dark:text-zinc-400">Submission Fee:</span>
-              <span className="ml-2 font-semibold text-zinc-900 dark:text-zinc-100">
+              <span className="text-zinc-300 dark:text-zinc-400">Submission Fee:</span>
+              <span className="ml-2 font-semibold text-white dark:text-zinc-100">
                 {formatEther(submissionFee)} KAS
               </span>
             </div>
             <div>
-              <span className="text-zinc-600 dark:text-zinc-400">Vote Fee:</span>
-              <span className="ml-2 font-semibold text-zinc-900 dark:text-zinc-100">
+              <span className="text-zinc-300 dark:text-zinc-400">Vote Fee:</span>
+              <span className="ml-2 font-semibold text-white dark:text-zinc-100">
                 {formatEther(voteFee)} KAS
               </span>
             </div>
             {flagThreshold && (
               <div className="col-span-2">
-                <span className="text-zinc-600 dark:text-zinc-400">Flag Threshold:</span>
-                <span className="ml-2 font-semibold text-zinc-900 dark:text-zinc-100">
+                <span className="text-zinc-300 dark:text-zinc-400">Flag Threshold:</span>
+                <span className="ml-2 font-semibold text-white dark:text-zinc-100">
                   {flagThreshold.toString()} yes votes
                 </span>
               </div>
@@ -194,13 +194,13 @@ export function DAOVotingWidget() {
 
       {/* Submit Proposal Form */}
       {showSubmitForm && (
-        <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+        <div className="p-4 bg-zinc-800 dark:bg-zinc-800 rounded-lg border border-zinc-700 dark:border-zinc-700">
+          <h3 className="text-lg font-semibold text-white dark:text-zinc-100 mb-4">
             Submit New Proposal
           </h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+              <label className="block text-sm font-medium text-zinc-300 dark:text-zinc-300 mb-2">
                 Title (max 200 characters)
               </label>
               <input
@@ -209,14 +209,14 @@ export function DAOVotingWidget() {
                 onChange={(e) => setTitle(e.target.value)}
                 maxLength={200}
                 placeholder="Enter proposal title"
-                className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-zinc-700 dark:border-zinc-700 rounded-lg bg-zinc-800 dark:bg-zinc-800 text-white dark:text-zinc-100 focus:ring-2 focus:ring-[#02abb8] focus:border-transparent"
               />
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+              <p className="text-xs text-zinc-400 dark:text-zinc-400 mt-1">
                 {title.length}/200 characters
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+              <label className="block text-sm font-medium text-zinc-300 dark:text-zinc-300 mb-2">
                 Description (max 2000 characters)
               </label>
               <textarea
@@ -225,15 +225,15 @@ export function DAOVotingWidget() {
                 maxLength={2000}
                 rows={6}
                 placeholder="Describe your dApp idea or concept..."
-                className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-zinc-700 dark:border-zinc-700 rounded-lg bg-zinc-800 dark:bg-zinc-800 text-white dark:text-zinc-100 focus:ring-2 focus:ring-[#02abb8] focus:border-transparent"
               />
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+              <p className="text-xs text-zinc-400 dark:text-zinc-400 mt-1">
                 {description.length}/2000 characters
               </p>
             </div>
             {submissionFee && (
-              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <p className="text-sm text-blue-700 dark:text-blue-400">
+              <div className="p-3 bg-blue-900/30 dark:bg-blue-900/20 rounded-lg border border-blue-800/50 dark:border-blue-800">
+                <p className="text-sm text-blue-300 dark:text-blue-400">
                   Submission fee: {formatEther(submissionFee)} KAS
                 </p>
               </div>
@@ -241,7 +241,7 @@ export function DAOVotingWidget() {
             <button
               onClick={handleSubmitProposal}
               disabled={isLoading || !title.trim() || !description.trim()}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full px-4 py-2 bg-[#02abb8] text-white rounded-lg hover:bg-[#028a94] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isLoading ? 'Submitting...' : `Submit Proposal (${submissionFee ? formatEther(submissionFee) : '10'} KAS)`}
             </button>
@@ -292,7 +292,7 @@ export function DAOVotingWidget() {
                 return (
                   <div
                     key={proposal.id.toString()}
-                    className="p-4 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800"
+                    className="p-4 bg-zinc-800 dark:bg-zinc-800 rounded-lg border border-zinc-700 dark:border-zinc-700"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
@@ -306,10 +306,10 @@ export function DAOVotingWidget() {
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
+                        <p className="text-sm text-zinc-300 dark:text-zinc-400 mb-2">
                           {proposal.description}
                         </p>
-                        <div className="flex items-center gap-4 text-xs text-zinc-500 dark:text-zinc-400">
+                        <div className="flex items-center gap-4 text-xs text-zinc-400 dark:text-zinc-400">
                           <span>Proposer: {formatAddress(proposal.proposer)}</span>
                           <span>Created: {formatDate(proposal.createdAt)}</span>
                         </div>
@@ -361,7 +361,7 @@ export function DAOVotingWidget() {
                       </button>
                     </div>
                     {voteFee && (
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                      <p className="text-xs text-zinc-400 dark:text-zinc-400 mt-2">
                         Vote fee: {formatEther(voteFee)} KAS
                         {hasVoted && ' (changing vote)'}
                       </p>

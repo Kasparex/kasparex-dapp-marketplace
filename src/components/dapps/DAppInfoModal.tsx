@@ -6,10 +6,53 @@ import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { useDeployerProfile, formatDeployerName, getDeployerProfileUrl } from '@/lib/dapps/deployer';
 import { Avatar } from '@/components/Avatar';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
-import { useChainId } from 'wagmi';
+import { useChainId, useAccount } from 'wagmi';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { SocialIcons } from './SocialIcons';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useNFTStatus } from '@/hooks/useNFTStatus';
+import { KREX_TIERS, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION } from '@/lib/rewards/types';
+import { getDefaultRewardsBreakdown } from '@/lib/rewards/mockData';
+import { formatLargeNumber } from '@/lib/rewards/calculator';
+
+// Get dApp-specific actions and fees (duplicated from DAppActionFlow for modal use)
+function getDAppActionsForModal(dapp: DApp, tokenTicker: string): Array<{
+  action: string;
+  costKAS: number;
+}> {
+  const name = dapp.name.toLowerCase();
+  const category = dapp.category.toLowerCase();
+  const rewards = getDefaultRewardsBreakdown(tokenTicker);
+
+  // DAO Voting specific actions
+  if (name.includes('dao') || name.includes('voting')) {
+    return [
+      { action: 'Submit Proposal', costKAS: 10 },
+      { action: 'Cast Vote', costKAS: 1 },
+    ];
+  }
+
+  // Subscription specific actions
+  if (category === 'subscription' || name.includes('subscription')) {
+    return [
+      { action: 'Subscribe', costKAS: 5 },
+      { action: 'Renew Subscription', costKAS: 5 },
+    ];
+  }
+
+  // Payment specific actions
+  if (category === 'payment' || name.includes('payment')) {
+    return [
+      { action: 'Send Payment', costKAS: 1 },
+    ];
+  }
+
+  // Default actions for other dApps
+  return [
+    { action: 'Use dApp', costKAS: 1 },
+  ];
+}
 
 interface DAppInfoModalProps {
   dapp: DApp;
@@ -19,6 +62,7 @@ interface DAppInfoModalProps {
 
 export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalProps) {
   const chainId = useChainId();
+  const { address, isConnected } = useAccount();
   const [showDeveloperDropdown, setShowDeveloperDropdown] = useState(false);
   const isL1DApp = getDAppNetworkType(dapp) === 'L1';
   
@@ -27,6 +71,49 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
     !isL1DApp && contractAddress && contractAddress.startsWith('0x') ? contractAddress : undefined,
     chainId
   );
+  
+  // Get KREX tier and NFT status for fee calculations
+  const { balance: krexBalance, tier } = useKREXBalance();
+  const { nftStatus } = useNFTStatus();
+  const tierConfig = KREX_TIERS[tier];
+  
+  // Calculate fees with reductions
+  const baseFee = 1.0;
+  let feePercent = baseFee;
+  if (krexBalance > 0) {
+    feePercent = Math.max(0, feePercent - tierConfig.feeReduction);
+  }
+  
+  const hasAnyNFT = !!(nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX ||
+    (nftStatus?.partnerCollections && Object.values(nftStatus.partnerCollections || {}).some(v => v)));
+  const hasDiamondNFT = !!(nftStatus?.hasDiamondKREXPRIME || nftStatus?.hasDiamondPIXELKREX ||
+    (nftStatus?.partnerDiamonds && Object.values(nftStatus.partnerDiamonds || {}).some(v => v)));
+  const hasRarestNFT = !!nftStatus?.hasRarestNFT;
+  
+  if (hasRarestNFT) {
+    feePercent = 0;
+  } else if (hasDiamondNFT) {
+    feePercent = Math.max(0, feePercent - DIAMOND_NFT_FEE_REDUCTION);
+  } else if (hasAnyNFT) {
+    feePercent = Math.max(0, feePercent - NFT_FEE_REDUCTION);
+  }
+  
+  // Calculate cost reduction
+  let costReductionPercent = krexBalance > 0 ? tierConfig.costReduction : 0;
+  if (hasRarestNFT) {
+    costReductionPercent += RAREST_NFT_COST_REDUCTION;
+  } else if (hasDiamondNFT) {
+    costReductionPercent += DIAMOND_NFT_COST_REDUCTION;
+  } else if (hasAnyNFT) {
+    costReductionPercent += NFT_COST_REDUCTION;
+  }
+  costReductionPercent = Math.min(costReductionPercent, 50);
+  
+  // Get dApp actions for fees table
+  const tokenTicker = contractData?.ticker || null;
+  const rewards = getDefaultRewardsBreakdown(tokenTicker || undefined);
+  const displayTokenTicker = tokenTicker || rewards.tokenTicker;
+  const actions = getDAppActionsForModal(dapp, displayTokenTicker);
 
   // Get deployer info
   const DEFAULT_DEPLOYER = '0x658420Fd88dbd610249a88384f9B1aD387F797c7';
@@ -161,11 +248,11 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
           </button>
         </div>
 
-        {/* Content - 2 Column Layout */}
+        {/* Content - 3 Column Layout */}
         <div className="flex-1 overflow-y-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 p-8">
-            {/* Left Column - Main Content (2/3 width) */}
-            <div className="lg:col-span-2 space-y-6">
+            {/* Left Column - Main Content (1/3 width) */}
+            <div className="lg:col-span-1 space-y-6">
               {/* Description */}
               {dapp.description && (
                 <div>
@@ -240,6 +327,87 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
                   </p>
                 </div>
               )}
+            </div>
+
+            {/* Middle Column - Fees and Costs Table (1/3 width) */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-8">
+                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Fees & Costs
+                </h3>
+                <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-zinc-100 dark:bg-zinc-900/50 border-b border-zinc-200 dark:border-zinc-800">
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Action</th>
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Cost</th>
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee</th>
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {actions.map((action, index) => {
+                        const reducedCost = action.costKAS * (1 - costReductionPercent / 100);
+                        const feeAmount = (reducedCost * feePercent) / 100;
+                        const totalCost = reducedCost + feeAmount;
+                        return (
+                          <tr
+                            key={index}
+                            className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
+                          >
+                            <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                              {action.action}
+                            </td>
+                            <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400 text-right">
+                              {costReductionPercent > 0 ? (
+                                <>
+                                  <span className="line-through text-zinc-400 dark:text-zinc-600 mr-1">
+                                    {action.costKAS.toFixed(2)}
+                                  </span>
+                                  <span className="text-green-600 dark:text-green-400">
+                                    {reducedCost.toFixed(2)} KAS
+                                  </span>
+                                </>
+                              ) : (
+                                `${action.costKAS.toFixed(2)} KAS`
+                              )}
+                            </td>
+                            <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400 text-right">
+                              {feePercent < baseFee ? (
+                                <>
+                                  <span className="line-through text-zinc-400 dark:text-zinc-600 mr-1">
+                                    {((action.costKAS * baseFee) / 100).toFixed(2)}
+                                  </span>
+                                  <span className="text-green-600 dark:text-green-400">
+                                    {feeAmount.toFixed(2)} KAS
+                                  </span>
+                                </>
+                              ) : (
+                                `${feeAmount.toFixed(2)} KAS`
+                              )}
+                            </td>
+                            <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-semibold text-right">
+                              {totalCost.toFixed(2)} KAS
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  {(costReductionPercent > 0 || feePercent < baseFee) && (
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border-t border-zinc-200 dark:border-zinc-700">
+                      <p className="text-xs text-blue-700 dark:text-blue-300">
+                        {costReductionPercent > 0 && `Cost reduction: -${costReductionPercent}% `}
+                        {feePercent < baseFee && `Fee reduction: -${(baseFee - feePercent).toFixed(2)}%`}
+                        {isConnected && krexBalance > 0 && ` (Tier ${tier})`}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Right Column - Info Timeline (1/3 width) */}

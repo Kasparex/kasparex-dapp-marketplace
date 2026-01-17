@@ -13,6 +13,9 @@ import { ProofOfUtility } from './dapps/ProofOfUtility';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { NetworkInfoMessage } from './NetworkInfoMessage';
 import { getDAppNetworkType } from '@/lib/dapps';
+import { GRIDHoldingsBox } from './rewards/GRIDHoldingsBox';
+import { DAppTokenBox } from './rewards/DAppTokenBox';
+import { mergeDAppData } from '@/lib/dapps/contractData';
 
 interface DAppDetailProps {
   dapp: DApp;
@@ -36,6 +39,7 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
   
   // Use contract data as-is
   const mergedContractData = contractData;
+  const mergedDApp = mergeDAppData(contractData, dapp);
 
   // Get contract addresses for token components (only for L2 dApps)
   const isL1DApp = getDAppNetworkType(dapp) === 'L1';
@@ -52,6 +56,15 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
 
       {/* dApp Widget */}
       <DAppWidget dapp={dapp} />
+
+      {/* Token Boxes Panel - Moved from right sidebar */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* GRID Token Box */}
+        <GRIDHoldingsBox />
+
+        {/* dApp Token Box */}
+        <DAppTokenBox dapp={mergedDApp} />
+      </div>
 
       {/* Token Information - Only show for L2 dApps */}
       {!isL1DApp && mergedContractData?.tokenAddress && mergedContractData.ticker && (
