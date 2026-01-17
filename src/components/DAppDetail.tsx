@@ -20,6 +20,7 @@ interface DAppDetailProps {
 export function DAppDetail({ dapp }: DAppDetailProps) {
   const [showCompatibilityModal, setShowCompatibilityModal] = useState(false);
   const compatibility = useNetworkCompatibility(dapp);
+  const networkWallet = useNetworkAwareWallet(dapp);
   const chainId = useChainId();
   
   // Get contract data to check for token
