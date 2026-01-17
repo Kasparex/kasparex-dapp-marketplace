@@ -11,11 +11,9 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { DAppInfoModal } from './dapps/DAppInfoModal';
 import { mergeDAppData, useDAppFromContract } from '@/lib/dapps/contractData';
 import { DAppIcon } from './dapps/DAppIcon';
-import { StatusIndicator } from './dapps/StatusIndicator';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { DAppCardRewards } from './rewards/DAppCardRewards';
-import { DAppFeesModal } from './dapps/DAppFeesModal';
 
 interface DAppCardProps {
   dapp: DApp;
@@ -67,10 +65,10 @@ export function DAppCard({ dapp }: DAppCardProps) {
   const tokenAddress = contractData?.tokenAddress || (tokenTicker ? generateSimulatedAddress(`${mergedDApp.id}-token`) : null);
   const dAppContractAddress = contractData?.contractAddress || mergedDApp.contractAddress || generateSimulatedAddress(mergedDApp.id);
   
-  // Format addresses for display
+  // Format addresses for display - shortened format
   const formatAddress = (address: string | null) => {
     if (!address || !address.startsWith('0x')) return null;
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    return `${address.slice(0, 2)}...${address.slice(-4)}`;
   };
   
   // Get explorer URLs
@@ -100,24 +98,17 @@ export function DAppCard({ dapp }: DAppCardProps) {
         <svg className="w-12 h-12 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
+        {/* Network Badge - Top Left */}
+        <span
+          className={`absolute top-2 left-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium backdrop-blur-sm ${networkBadgeColor} z-20`}
+          title={`${mergedDApp.name} is deployed on ${networkType === 'L1' ? 'Kaspa Layer 1' : 'Kasplex Layer 2'} network`}
+          aria-label={`Network type: ${networkType}`}
+        >
+          {networkType}
+        </span>
       </div>
 
       <div className="p-4 relative z-10 flex flex-col flex-1 min-h-0">
-        {/* Status Indicator, Network Badge, and Fees Icon - Top Right (non-clickable on cards) */}
-        <div className="absolute top-4 right-4 z-10 flex items-center gap-2 pointer-events-none">
-          <div className="pointer-events-auto">
-            <StatusIndicator dapp={mergedDApp} size="md" clickable={false} />
-          </div>
-          {/* Network Badge */}
-          <span
-            className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${networkBadgeColor} pointer-events-none`}
-          >
-            {networkType}
-          </span>
-          <div className="pointer-events-none">
-            <DAppFeesModal dapp={mergedDApp} tokenTicker={tokenTicker} />
-          </div>
-        </div>
         {/* Top Row: Logo, Titles, and Status Indicator */}
         <div className="flex items-start gap-4 mb-3">
         <DAppIcon
@@ -135,7 +126,13 @@ export function DAppCard({ dapp }: DAppCardProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
               <span className="text-zinc-500 dark:text-zinc-500 font-medium">Dapp:</span>
-              <span className="text-zinc-900 dark:text-zinc-100 font-bold truncate">{mergedDApp.name}</span>
+              <span 
+                className="text-zinc-900 dark:text-zinc-100 font-bold truncate"
+                title={`${mergedDApp.name} - ${mergedDApp.utility || mergedDApp.description || mergedDApp.process || 'Decentralized application on Kasparex'}`}
+                aria-label={`dApp name: ${mergedDApp.name}`}
+              >
+                {mergedDApp.name}
+              </span>
             </div>
             
             {/* Token Row */}

@@ -9,7 +9,6 @@ import { DApp, generateSimulatedTicker, generateSimulatedAddress, getDAppNetwork
 import { useDAppFromContract, mergeDAppData } from '@/lib/dapps/contractData';
 import { CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 import { isEmbedded } from '@/lib/utils';
-import { StatusIndicator } from './StatusIndicator';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { getCategoryById } from '@/lib/categories';
 import { DAppInfoModal } from './DAppInfoModal';
@@ -181,10 +180,6 @@ export function DAppWidgetHeader({
       )}
 
       <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 relative">
-        {/* Status Indicator - Top Right (clickable on dApp page) */}
-        <div className="absolute top-4 right-4 sm:top-5 sm:right-6 z-10">
-          <StatusIndicator dapp={mergedDApp} size="md" clickable={true} />
-        </div>
 
         {/* Title Section with Icon and Info */}
         <div className="mb-4 relative">
@@ -226,7 +221,8 @@ export function DAppWidgetHeader({
                             handleCopyAddress(dAppContractAddress, 'dapp');
                           }}
                           className="ml-1 p-0.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
-                          title="Copy address"
+                          title={`Copy: ${dAppContractAddress}`}
+                          aria-label={`Copy dApp contract address: ${dAppContractAddress}`}
                         >
                           {copiedDAppAddress ? (
                             <svg className="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -276,7 +272,7 @@ export function DAppWidgetHeader({
                             handleCopyAddress(tokenAddress, 'token');
                           }}
                           className="ml-1 p-0.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
-                          title={`Copy address: ${tokenAddress}`}
+                          title={`Copy: ${tokenAddress}`}
                           aria-label={`Copy token contract address: ${tokenAddress}`}
                         >
                           {copiedTokenAddress ? (

@@ -109,10 +109,10 @@ export function DAppWidgetFooter({
   return (
     <>
       <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 relative">
-        {/* Collapse Button - Centered */}
+        {/* Collapse Button - Right */}
         <button
           onClick={() => setIsFooterCollapsed(true)}
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors z-10"
+          className="absolute top-4 right-4 p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors z-10"
           aria-label="Collapse footer"
           title="Collapse footer"
         >
@@ -235,8 +235,8 @@ export function DAppWidgetFooter({
             )}
           </div>
 
-          {/* Footer Text - Aligned Right */}
-          <div className="text-xs text-zinc-500 dark:text-zinc-500 text-right">
+          {/* Footer Text - Aligned Left */}
+          <div className="text-xs text-zinc-500 dark:text-zinc-500 text-left">
             <Link
               href="/"
               className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors"
