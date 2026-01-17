@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768608137-aa01899",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Remove status badges from dropdown menu (by Kasparex)",
+      "date": "2026-01-17T01:01:54+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768607812-55c701b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Make dropdown wider with horizontal layout and restore previous background color (by Kasparex)",
