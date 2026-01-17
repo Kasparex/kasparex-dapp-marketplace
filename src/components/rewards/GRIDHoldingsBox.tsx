@@ -16,7 +16,7 @@ export function GRIDHoldingsBox() {
       <div className="flex items-center gap-2 mb-3">
         <TokenLogoImage tokenId="grid" size={20} />
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-          GRID (GRT) Token
+          GRID Token
         </h3>
       </div>
       
@@ -65,13 +65,13 @@ export function GRIDHoldingsBox() {
           </div>
         ) : null}
 
-        {/* Rewards Calculator Button */}
+        {/* Token Landing Page Button */}
         <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
           <Link
-            href="/rewards-calculator"
+            href="/tokens/grid"
             className="block w-full mt-2 px-3 py-2 text-xs font-medium text-center bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors"
           >
-            Rewards Calculator
+            View Token Page
           </Link>
         </div>
       </div>

@@ -10,7 +10,6 @@ import { NetworkInfoMessage } from './NetworkInfoMessage';
 import { SimplePaymentWidget } from './dapps/SimplePaymentWidget';
 import { getDAppNetworkType } from '@/lib/dapps';
 import { DAOVotingWidget } from './dapps/DAOVotingWidget';
-import { QuizToEarnWidget } from './dapps/QuizToEarnWidget';
 import { SendKASWidget } from './dapps/SendKASWidget';
 import { SendKREXWidget } from './dapps/SendKREXWidget';
 import { DAppWidgetHeader } from './dapps/DAppWidgetHeader';
@@ -254,49 +253,6 @@ export function DAppWidget({
     );
   }
 
-  // Render QuizToEarn widget if it's the Quiz-to-Earn dApp
-  if (dapp.slug === 'quiz-to-earn') {
-    return (
-      <>
-        <NetworkCompatibilityModal
-          dapp={dapp}
-          isOpen={showModal}
-          onClose={handleModalClose}
-        />
-        {!networkWallet.isCorrectWalletConnected && (
-          <NetworkInfoMessage 
-            networkType={networkWallet.networkType}
-            message={networkWallet.message}
-            className="mb-4"
-          />
-        )}
-        <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
-          {!hideHeader && (
-            <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
-              <DAppWidgetHeader 
-                dapp={dapp} 
-                contractAddress={contractAddress}
-                hideIcons={hideIcons}
-                hideStar={hideStar}
-                hideHeart={hideHeart}
-                hideInfo={hideInfo}
-                hideEmbed={hideEmbed}
-                accentColor={accentColor}
-              />
-            </div>
-          )}
-          <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-            <QuizToEarnWidget />
-          </div>
-          {!hideFooter && (
-            <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-              <DAppWidgetFooter contractAddress={isL1DApp ? undefined : contractAddress} />
-            </div>
-          )}
-        </div>
-      </>
-    );
-  }
 
   if (!dapp.widgetUrl) {
     return (

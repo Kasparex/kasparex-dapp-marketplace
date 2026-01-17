@@ -49,15 +49,10 @@ export function DAppCard({ dapp }: DAppCardProps) {
   const [showInfoModal, setShowInfoModal] = useState(false);
 
   // Get token information
-  // For Quiz-to-Earn, ensure contract address is shown
-  const quizToEarnContractAddress = mergedDApp.slug === 'quiz-to-earn' 
-    ? getContractAddress(chainId, 'QuizToEarn') 
-    : null;
-  
   const rawTicker = contractData?.ticker || generateSimulatedTicker(mergedDApp.name);
   const tokenTicker = rawTicker ? rawTicker.substring(0, 6) : null;
   const tokenAddress = contractData?.tokenAddress || (tokenTicker ? generateSimulatedAddress(`${mergedDApp.id}-token`) : null);
-  const dAppContractAddress = contractData?.contractAddress || mergedDApp.contractAddress || quizToEarnContractAddress || generateSimulatedAddress(mergedDApp.id);
+  const dAppContractAddress = contractData?.contractAddress || mergedDApp.contractAddress || generateSimulatedAddress(mergedDApp.id);
   
   // Format addresses for display
   const formatAddress = (address: string | null) => {
