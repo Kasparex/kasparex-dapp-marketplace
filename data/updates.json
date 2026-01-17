@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768673473-705d048",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Remove ticker mappings for deleted dApps and disable Quiz-to-Earn action flow (by Kasparex)",
+      "date": "2026-01-17T19:09:52+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768666806-75158fa",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Remove status boxes from sidebars, show dApp title for L1 dApps, add network badge to widgets (by Kasparex)",
