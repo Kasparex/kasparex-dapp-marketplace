@@ -12,7 +12,6 @@ import { isEmbedded } from '@/lib/utils';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { getCategoryById } from '@/lib/categories';
 import { DAppInfoModal } from './DAppInfoModal';
-import { DAppFeesModal } from './DAppFeesModal';
 
 interface DAppWidgetHeaderProps {
   dapp: DApp;
@@ -166,10 +165,10 @@ export function DAppWidgetHeader({
               </span>
             );
           })()}
-          {/* Collapse Button - Centered */}
+          {/* Collapse Button - Top Right */}
           <button
             onClick={() => setIsHeaderCollapsed(true)}
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors z-10"
+            className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors z-10"
             aria-label="Collapse header"
             title="Collapse header"
           >
@@ -192,7 +191,7 @@ export function DAppWidgetHeader({
                 : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300';
             return (
               <span
-                className={`absolute top-2 left-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium ${networkBadgeColor} z-20`}
+                className={`absolute top-3 left-3 inline-flex items-center px-2 py-1 rounded text-xs font-medium ${networkBadgeColor} z-20`}
                 title={`${mergedDApp.name} is deployed on ${networkType === 'L1' ? 'Kaspa Layer 1' : 'Kasplex Layer 2'} network`}
                 aria-label={`Network type: ${networkType}`}
               >
@@ -200,10 +199,10 @@ export function DAppWidgetHeader({
               </span>
             );
           })()}
-          {/* Collapse Button - Centered */}
+          {/* Collapse Button - Top Right */}
           <button
             onClick={() => setIsHeaderCollapsed(true)}
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors z-10"
+            className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors z-10"
             aria-label="Collapse header"
             title="Collapse header"
           >
@@ -215,11 +214,6 @@ export function DAppWidgetHeader({
       )}
 
       <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 relative">
-        {/* Fees Info Icon - Top Right */}
-        <div className="absolute top-4 right-4 sm:top-5 sm:right-6 z-10">
-          <DAppFeesModal dapp={mergedDApp} tokenTicker={tokenTicker} clickable={true} />
-        </div>
-
         {/* Title Section with Icon and Info */}
         <div className="mb-4 relative">
           {/* Top Row: Logo, Titles */}
@@ -240,7 +234,7 @@ export function DAppWidgetHeader({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
                   <span className="text-zinc-500 dark:text-zinc-500 font-medium">Dapp:</span>
-                  <span className="text-zinc-900 dark:text-zinc-100 font-bold truncate text-xl">{mergedDApp.name}</span>
+                  <span className="text-zinc-900 dark:text-zinc-100 font-bold truncate">{mergedDApp.name}</span>
                     {dAppExplorerUrl && dAppContractAddress && (
                       <>
                         <span className="text-zinc-400 dark:text-zinc-600">—</span>

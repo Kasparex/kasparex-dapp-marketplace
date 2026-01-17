@@ -1,6 +1,6 @@
 'use client';
 
-import { useAccount } from 'wagmi';
+import { useAccount, useBalance } from 'wagmi';
 import Link from 'next/link';
 import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { useDAppFromContract, mergeDAppData } from '@/lib/dapps/contractData';
@@ -128,7 +128,7 @@ export function DAppTokenBox({ dapp }: DAppTokenBoxProps) {
           </div>
         )}
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-          {tokenTicker} Token
+          {tokenTicker === 'KAS' ? tokenTicker : `${tokenTicker} Token`}
         </h3>
       </div>
       
@@ -166,18 +166,45 @@ export function DAppTokenBox({ dapp }: DAppTokenBoxProps) {
         {/* Balance (if connected) */}
         {isWalletConnected && tokenTicker && (
           <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-zinc-600 dark:text-zinc-400">
-                Your Balance
-              </span>
-              <span className="text-xl font-bold text-[#02abb8]">
-                {tokenTicker === 'KAS' 
-                  ? formatLargeNumber(kasBalance || 0)
-                  : tokenTicker === 'KREX'
-                  ? formatLargeNumber(krexBalance || 0)
-                  : '—'}
-              </span>
-            </div>
+            {tokenTicker === 'KAS' ? (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-zinc-600 dark:text-zinc-400">
+                    L1 Balance
+                  </span>
+                  <span className="text-sm font-semibold text-[#02abb8]">
+                    {formatLargeNumber(kasL1Balance || 0)} KAS
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-zinc-600 dark:text-zinc-400">
+                    L2 Balance
+                  </span>
+                  <span className="text-sm font-semibold text-[#02abb8]">
+                    {formatLargeNumber(kasL2Balance)} KAS
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-1 border-t border-zinc-200 dark:border-zinc-700">
+                  <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    Total
+                  </span>
+                  <span className="text-xl font-bold text-[#02abb8]">
+                    {formatLargeNumber(totalKasBalance)} KAS
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-zinc-600 dark:text-zinc-400">
+                  Your Balance
+                </span>
+                <span className="text-xl font-bold text-[#02abb8]">
+                  {tokenTicker === 'KREX'
+                    ? formatLargeNumber(krexBalance || 0)
+                    : '—'}
+                </span>
+              </div>
+            )}
           </div>
         )}
         

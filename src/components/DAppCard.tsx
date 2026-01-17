@@ -101,7 +101,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
         </svg>
         {/* Network Badge - Top Left */}
         <span
-          className={`absolute top-2 left-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium backdrop-blur-sm ${networkBadgeColor} z-20`}
+          className={`absolute top-3 left-3 inline-flex items-center px-2 py-1 rounded text-xs font-medium backdrop-blur-sm ${networkBadgeColor} z-20`}
           title={`${mergedDApp.name} is deployed on ${networkType === 'L1' ? 'Kaspa Layer 1' : 'Kasplex Layer 2'} network`}
           aria-label={`Network type: ${networkType}`}
         >
@@ -190,10 +190,8 @@ export function DAppCard({ dapp }: DAppCardProps) {
               </span>
             </div>
 
-            {/* Right: Fees Icon, Star/Heart Icons */}
+            {/* Right: Star/Heart Icons */}
             <div className="flex items-center gap-1">
-            {/* Fees Info Icon */}
-            <DAppFeesModal dapp={mergedDApp} tokenTicker={tokenTicker} clickable={true} />
             {/* Star Button (Favorites) */}
             <button
               onClick={(e) => handleIconClick(e, () => {

@@ -110,8 +110,8 @@ export function DAppWidgetFooter({
     <>
       <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         <div className="flex flex-col gap-4">
-          {/* Token Progress Bar Section */}
-          {tokenTicker && (
+          {/* Token Progress Bar Section - Skip for KAS (native coin, not a reward token) */}
+          {tokenTicker && tokenTicker !== 'KAS' && (
             <div>
               <DAppCardRewards tokenTicker={tokenTicker} />
             </div>
