@@ -108,11 +108,11 @@ export function DAppWidgetFooter({
 
   return (
     <>
-      <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 relative">
-        {/* Collapse Button */}
+      <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 relative">
+        {/* Collapse Button - Centered */}
         <button
           onClick={() => setIsFooterCollapsed(true)}
-          className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors z-10"
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors z-10"
           aria-label="Collapse footer"
           title="Collapse footer"
         >
@@ -235,16 +235,16 @@ export function DAppWidgetFooter({
             )}
           </div>
 
-          {/* Footer Text */}
-          <div className="text-xs text-zinc-500 dark:text-zinc-500 text-center">
+          {/* Footer Text - Aligned Right */}
+          <div className="text-xs text-zinc-500 dark:text-zinc-500 text-right">
             <Link
               href="/"
               className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors"
               title="The Largest dApp Marketplace on Kaspa. Explore, Build, and Earn Today."
             >
-              Kasparex dApps
+              Kasparex Hub
             </Link>
-            {' '}| Built with ❤️ by{' '}
+            {' '}| Built with love by{' '}
             <Link
               href="https://bio.kasparex.com"
               target="_blank"

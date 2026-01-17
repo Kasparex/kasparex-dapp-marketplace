@@ -13,7 +13,6 @@ import { StatusIndicator } from './StatusIndicator';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { getCategoryById } from '@/lib/categories';
 import { DAppInfoModal } from './DAppInfoModal';
-import { DAppFeesModal } from './DAppFeesModal';
 
 interface DAppWidgetHeaderProps {
   dapp: DApp;
@@ -91,10 +90,10 @@ export function DAppWidgetHeader({
   const tokenAddress = !isL1DApp ? (contractData?.tokenAddress || (tokenTicker ? generateSimulatedAddress(`${mergedDApp.id}-token`) : null)) : null;
   const dAppContractAddress = !isL1DApp ? (contractData?.contractAddress || resolvedContractAddress || generateSimulatedAddress(mergedDApp.id)) : null;
   
-  // Format addresses for display
+  // Format addresses for display - shortened format
   const formatAddress = (address: string | null) => {
     if (!address || !address.startsWith('0x')) return null;
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    return `${address.slice(0, 2)}...${address.slice(-4)}`;
   };
   
   // Get explorer URLs
@@ -182,25 +181,9 @@ export function DAppWidgetHeader({
       )}
 
       <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 relative">
-        {/* Status Indicator, Network Badge, and Fees Icon - Top Right (clickable on dApp page) */}
-        <div className="absolute top-4 right-4 sm:top-5 sm:right-6 z-10 flex items-center gap-2">
+        {/* Status Indicator - Top Right (clickable on dApp page) */}
+        <div className="absolute top-4 right-4 sm:top-5 sm:right-6 z-10">
           <StatusIndicator dapp={mergedDApp} size="md" clickable={true} />
-          {/* Network Badge */}
-          {(() => {
-            const networkType = getDAppNetworkType(mergedDApp);
-            const networkBadgeColor =
-              networkType === 'L1'
-                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300';
-            return (
-              <span
-                className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${networkBadgeColor}`}
-              >
-                {networkType}
-              </span>
-            );
-          })()}
-          <DAppFeesModal dapp={mergedDApp} tokenTicker={tokenTicker} clickable={true} />
         </div>
 
         {/* Title Section with Icon and Info */}
@@ -223,7 +206,7 @@ export function DAppWidgetHeader({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
                   <span className="text-zinc-500 dark:text-zinc-500 font-medium">Dapp:</span>
-                  <span className="text-zinc-900 dark:text-zinc-100 font-bold truncate">{mergedDApp.name}</span>
+                  <span className="text-zinc-900 dark:text-zinc-100 font-bold truncate text-xl">{mergedDApp.name}</span>
                     {dAppExplorerUrl && dAppContractAddress && (
                       <>
                         <span className="text-zinc-400 dark:text-zinc-600">—</span>
@@ -266,9 +249,14 @@ export function DAppWidgetHeader({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span className="text-zinc-500 dark:text-zinc-500 font-medium">Token:</span>
-                    <span className="text-zinc-900 dark:text-zinc-100 font-bold truncate">
+                    <Link
+                      href={`/tokens/${tokenTicker.toLowerCase()}`}
+                      className="text-zinc-900 dark:text-zinc-100 font-bold truncate hover:text-[#02abb8] dark:hover:text-[#02abb8] transition-colors"
+                      title={`View ${tokenTicker} token page - trading, supply, and rewards information`}
+                      aria-label={`Navigate to ${tokenTicker} token landing page`}
+                    >
                       {tokenTicker}
-                    </span>
+                    </Link>
                     {tokenAddress && tokenExplorerUrl && (
                       <>
                         <span className="text-zinc-400 dark:text-zinc-600">—</span>
@@ -288,7 +276,8 @@ export function DAppWidgetHeader({
                             handleCopyAddress(tokenAddress, 'token');
                           }}
                           className="ml-1 p-0.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
-                          title="Copy address"
+                          title={`Copy address: ${tokenAddress}`}
+                          aria-label={`Copy token contract address: ${tokenAddress}`}
                         >
                           {copiedTokenAddress ? (
                             <svg className="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -316,7 +305,8 @@ export function DAppWidgetHeader({
                 className="text-left w-full"
               >
                 <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-                  {shortDescription}
+                  {shortDescription}{' '}
+                  <span className="text-[#02abb8] font-medium">... read more →</span>
                 </p>
               </button>
             </div>
