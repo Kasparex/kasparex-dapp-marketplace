@@ -119,7 +119,7 @@ export function DAppFeesModal({ dapp, tokenTicker, clickable = true }: DAppFeesM
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-zinc-200 dark:border-zinc-700">
+                    <tr className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-200 dark:border-zinc-800">
                       <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Action</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Cost</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Rewards</th>

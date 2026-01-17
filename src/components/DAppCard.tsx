@@ -14,6 +14,7 @@ import { DAppIcon } from './dapps/DAppIcon';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { DAppCardRewards } from './rewards/DAppCardRewards';
+import { DAppFeesModal } from './dapps/DAppFeesModal';
 
 interface DAppCardProps {
   dapp: DApp;
@@ -189,8 +190,10 @@ export function DAppCard({ dapp }: DAppCardProps) {
               </span>
             </div>
 
-            {/* Right: Star/Heart Icons */}
+            {/* Right: Fees Icon, Star/Heart Icons */}
             <div className="flex items-center gap-1">
+            {/* Fees Info Icon */}
+            <DAppFeesModal dapp={mergedDApp} tokenTicker={tokenTicker} clickable={true} />
             {/* Star Button (Favorites) */}
             <button
               onClick={(e) => handleIconClick(e, () => {

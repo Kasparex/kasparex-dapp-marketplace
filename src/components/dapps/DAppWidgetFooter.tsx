@@ -108,19 +108,7 @@ export function DAppWidgetFooter({
 
   return (
     <>
-      <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 relative">
-        {/* Collapse Button - Right */}
-        <button
-          onClick={() => setIsFooterCollapsed(true)}
-          className="absolute top-4 right-4 p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors z-10"
-          aria-label="Collapse footer"
-          title="Collapse footer"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-
+      <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         <div className="flex flex-col gap-4">
           {/* Token Progress Bar Section */}
           {tokenTicker && (
@@ -235,27 +223,42 @@ export function DAppWidgetFooter({
             )}
           </div>
 
-          {/* Footer Text - Aligned Left */}
-          <div className="text-xs text-zinc-500 dark:text-zinc-500 text-left">
-            <Link
-              href="/"
-              className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors"
-              title="The Largest dApp Marketplace on Kaspa. Explore, Build, and Earn Today."
-            >
-              Kasparex Hub
-            </Link>
-            {' '}| Built with love by{' '}
-            <Link
-              href="https://bio.kasparex.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors"
-              title="Symbol of intelligence, resilience, and purpose. Fair-launched, community-owned KRC-20 and L2 token on the Kaspa network.
+          {/* Footer Text and Collapse Button Row */}
+          <div className="flex items-center justify-between">
+            {/* Footer Text - Aligned Left */}
+            <div className="text-xs text-zinc-500 dark:text-zinc-500 text-left">
+              <Link
+                href="/"
+                className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors"
+                title="The Largest dApp Marketplace on Kaspa. Explore, Build, and Earn Today."
+              >
+                Kasparex Hub
+              </Link>
+              {' '}| Built with love by{' '}
+              <Link
+                href="https://bio.kasparex.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors"
+                title="Symbol of intelligence, resilience, and purpose. Fair-launched, community-owned KRC-20 and L2 token on the Kaspa network.
 
 Est. 2024 🔥"
+              >
+                Krex
+              </Link>
+            </div>
+            
+            {/* Collapse Button - Right (under star/heart icons) */}
+            <button
+              onClick={() => setIsFooterCollapsed(true)}
+              className="p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors"
+              aria-label="Collapse footer"
+              title="Collapse footer"
             >
-              Krex
-            </Link>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
