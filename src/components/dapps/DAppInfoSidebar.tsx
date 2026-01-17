@@ -106,30 +106,36 @@ export function DAppInfoSidebar({
     };
   }, [isResizing]);
   
+  // Check if this is an L1 dApp
+  const isL1DApp = getDAppNetworkType(dapp) === 'L1';
+
   // Get chain info
   const chain = chainId ? getChainById(chainId) : null;
   const isTestnet = chain?.testnet ?? false;
   const isMainnet = !isTestnet;
   
-  // Get contract address if not provided
-  let resolvedContractAddress = contractAddress || dapp.contractAddress || '';
-  if (!resolvedContractAddress && dapp.slug === 'simple-payment') {
-    try {
-      if (CONTRACT_ADDRESSES) {
-        resolvedContractAddress = chainId === 202555
-          ? (CONTRACT_ADDRESSES.kasplexL2Mainnet?.SimplePayment || '')
-          : chainId === 167012
-          ? (CONTRACT_ADDRESSES.kasplexL2Testnet?.SimplePayment || '')
-          : '';
+  // Get contract address if not provided (only for L2 dApps)
+  let resolvedContractAddress = '';
+  if (!isL1DApp) {
+    resolvedContractAddress = contractAddress || dapp.contractAddress || '';
+    if (!resolvedContractAddress && dapp.slug === 'simple-payment') {
+      try {
+        if (CONTRACT_ADDRESSES) {
+          resolvedContractAddress = chainId === 202555
+            ? (CONTRACT_ADDRESSES.kasplexL2Mainnet?.SimplePayment || '')
+            : chainId === 167012
+            ? (CONTRACT_ADDRESSES.kasplexL2Testnet?.SimplePayment || '')
+            : '';
+        }
+      } catch (e) {
+        console.warn('Could not get SimplePayment contract address');
       }
-    } catch (e) {
-      console.warn('Could not get SimplePayment contract address');
     }
   }
   
-  // Fetch contract data
+  // Fetch contract data (only for L2 dApps)
   const { data: contractData } = useDAppFromContract(
-    resolvedContractAddress && resolvedContractAddress.startsWith('0x') ? resolvedContractAddress : undefined,
+    !isL1DApp && resolvedContractAddress && resolvedContractAddress.startsWith('0x') ? resolvedContractAddress : undefined,
     chainId
   );
 
