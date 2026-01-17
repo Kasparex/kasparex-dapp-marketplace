@@ -419,10 +419,9 @@ export function Header() {
                           (normalizedPath.startsWith(project.route) && project.route !== '/');
                         
                         const isActive = isCurrentPage || matchesRoute;
-                        const statusBadge = getStatusBadge(project.status, isActive);
                         const ProjectIcon = getProjectIcon(project.id);
                         
-                        const linkClassName = `flex items-center justify-between gap-2 px-3 py-2.5 text-sm rounded transition-all whitespace-nowrap ${
+                        const linkClassName = `flex items-center gap-2 px-3 py-2.5 text-sm rounded transition-all whitespace-nowrap ${
                           isActive
                             ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
                             : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
@@ -430,15 +429,8 @@ export function Header() {
 
                         const linkContent = (
                           <>
-                            <div className="flex items-center gap-2 flex-shrink-0">
-                              <ProjectIcon className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
-                              <span className="font-medium">{project.name}</span>
-                            </div>
-                            {statusBadge && (
-                              <div className="flex-shrink-0">
-                                {statusBadge}
-                              </div>
-                            )}
+                            <ProjectIcon className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+                            <span className="font-medium">{project.name}</span>
                           </>
                         );
 
