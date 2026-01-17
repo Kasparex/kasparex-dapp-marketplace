@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768656871-00e2300",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix missing isL1DApp variable in DAppInfoSidebar (by Kasparex)",
+      "date": "2026-01-17T14:33:48+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768656609-072d386",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix missing isL1DApp variable in DAppInfoModal (by Kasparex)",
