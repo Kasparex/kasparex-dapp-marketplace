@@ -70,9 +70,18 @@ export function DAppTokenBox({ dapp }: DAppTokenBoxProps) {
   const token = tokenSlug ? getTokenBySlug(tokenSlug) : null;
   
   // Get actual balances for KAS and KREX
-  const { balanceInKas: kasBalance } = useKaspaBalance();
+  const { balanceInKas: kasL1Balance } = useKaspaBalance();
   const { balance: krexBalance } = useKREXBalance();
   const { state: kaspaState } = useKaspaWallet();
+  
+  // Get L2 KAS balance (native ETH balance on L2)
+  const { data: l2BalanceData } = useBalance({
+    address: address || undefined,
+  });
+  const kasL2Balance = l2BalanceData ? parseFloat(l2BalanceData.formatted) : 0;
+  
+  // Calculate total KAS balance (L1 + L2)
+  const totalKasBalance = (kasL1Balance || 0) + kasL2Balance;
   
   // Determine if wallet is connected (EVM or Kaspa)
   const isWalletConnected = isConnected || (kaspaState.isConnected && kaspaState.provider === 'kasware');
