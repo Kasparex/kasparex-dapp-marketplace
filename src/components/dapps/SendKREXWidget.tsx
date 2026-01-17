@@ -11,6 +11,7 @@ export function SendKREXWidget() {
   const [toAddress, setToAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [krexBalance, setKrexBalance] = useState<number>(0);
+  const [krexDecimals, setKrexDecimals] = useState<number>(8); // Default to 8 decimals for KRC-20
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -30,6 +31,9 @@ export function SendKREXWidget() {
               // Handle balance/amount property and decimals like other balance hooks
               const rawBalance = krexToken.balance ?? krexToken.amount;
               const decimals = krexToken.dec !== undefined ? Number(krexToken.dec) : 8;
+              
+              // Store decimals for use in transfers
+              setKrexDecimals(decimals);
               
               if (rawBalance !== undefined && rawBalance !== null) {
                 const rawBalanceNum = typeof rawBalance === 'string' 
@@ -100,17 +104,27 @@ export function SendKREXWidget() {
     setTxHash(null);
 
     try {
+      // Convert amount from whole tokens to smallest unit (multiply by 10^decimals)
+      // KRC-20 transfers require amount in smallest unit, not whole tokens
+      // Example: 10000 KREX with 8 decimals = 10000 * 10^8 = 1000000000000
+      const amountInSmallestUnit = Math.floor(amountNum * Math.pow(10, krexDecimals));
+      
+      // Ensure recipient address is properly formatted (keep kaspa: prefix as per KasWare API)
+      const recipientAddress = toAddress.trim();
+      
       // Create transfer inscription JSON for KRC-20 transfer
-      // According to KasWare API: type should be number (4=transfer)
-      // The inscription JSON should include the transfer details
+      // According to KasWare API documentation, the JSON should include the 'to' field
+      // Note: 'amt' must be in smallest unit (like satoshis), not whole tokens
       const inscribeJson = {
         p: 'krc-20',
         op: 'transfer',
         tick: 'KREX',
-        amt: amountNum.toString(),
+        amt: amountInSmallestUnit.toString(), // Amount in smallest unit
+        to: recipientAddress, // Include recipient address in JSON (per KasWare API example)
       };
 
       const inscribeJsonString = JSON.stringify(inscribeJson);
+      
       // Type: 2=deploy, 3=mint, 4=transfer (as number per KasWare API)
       // Priority fee: 0.001 KAS to ensure transaction is processed (in KAS units)
       // Note: The wallet will automatically calculate the base network fee for the KRC-20 transfer
@@ -118,7 +132,7 @@ export function SendKREXWidget() {
       const txHash = await signKRC20Transaction(
         inscribeJsonString,
         4, // Transfer type as number (4 = transfer)
-        toAddress.trim(),
+        recipientAddress, // Recipient address (with kaspa: prefix as per KasWare API)
         priorityFeeKAS // Priority fee in KAS (optional, helps with transaction priority)
       );
 
@@ -135,6 +149,9 @@ export function SendKREXWidget() {
           if (krexToken) {
             const rawBalance = krexToken.balance ?? krexToken.amount;
             const decimals = krexToken.dec !== undefined ? Number(krexToken.dec) : 8;
+            
+            // Update decimals if changed
+            setKrexDecimals(decimals);
             
             if (rawBalance !== undefined && rawBalance !== null) {
               const rawBalanceNum = typeof rawBalance === 'string' 
