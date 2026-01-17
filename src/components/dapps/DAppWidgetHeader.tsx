@@ -5,7 +5,7 @@ import { useAccount, useChainId } from 'wagmi';
 import Image from 'next/image';
 import Link from 'next/link';
 import { DAppIcon } from './DAppIcon';
-import { DApp, generateSimulatedTicker, generateSimulatedAddress } from '@/lib/dapps';
+import { DApp, generateSimulatedTicker, generateSimulatedAddress, getDAppNetworkType } from '@/lib/dapps';
 import { useDAppFromContract, mergeDAppData } from '@/lib/dapps/contractData';
 import { CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 import { isEmbedded } from '@/lib/utils';
@@ -74,11 +74,14 @@ export function DAppWidgetHeader({
   // Short description - priority: description > utility > process (from merged data)
   const shortDescription = mergedDApp.description || mergedDApp.utility || mergedDApp.process || '';
 
-  // Get token information
-  const rawTicker = contractData?.ticker || generateSimulatedTicker(mergedDApp.name);
+  // Check if this is an L1 dApp
+  const isL1DApp = getDAppNetworkType(mergedDApp) === 'L1';
+
+  // Get token information (only for L2 dApps)
+  const rawTicker = !isL1DApp ? (contractData?.ticker || generateSimulatedTicker(mergedDApp.name)) : null;
   const tokenTicker = rawTicker ? rawTicker.substring(0, 6) : null;
-  const tokenAddress = contractData?.tokenAddress || (tokenTicker ? generateSimulatedAddress(`${mergedDApp.id}-token`) : null);
-  const dAppContractAddress = contractData?.contractAddress || resolvedContractAddress || generateSimulatedAddress(mergedDApp.id);
+  const tokenAddress = !isL1DApp ? (contractData?.tokenAddress || (tokenTicker ? generateSimulatedAddress(`${mergedDApp.id}-token`) : null)) : null;
+  const dAppContractAddress = !isL1DApp ? (contractData?.contractAddress || resolvedContractAddress || generateSimulatedAddress(mergedDApp.id)) : null;
   
   // Format addresses for display
   const formatAddress = (address: string | null) => {

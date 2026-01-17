@@ -10,24 +10,13 @@ import { NetworkInfoMessage } from '@/components/NetworkInfoMessage';
 
 export function SendKASWidget() {
   const { state, connect } = useKaspaWallet();
+  const { balance: kasBalance, balanceInKas, isLoading: isBalanceLoading, refresh: refreshBalance } = useKaspaBalance();
   const [toAddress, setToAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
-  const [balance, setBalance] = useState<string | null>(null);
-
-  // Fetch balance when connected
-  useEffect(() => {
-    if (state.isConnected && state.address) {
-      // Balance should be available from wallet state
-      // For now, we'll show a placeholder
-      setBalance(null);
-    } else {
-      setBalance(null);
-    }
-  }, [state.isConnected, state.address]);
 
   const handleSend = async () => {
     if (!state.isConnected || !state.provider) {
@@ -75,6 +64,9 @@ export function SendKASWidget() {
       setToAddress('');
       setAmount('');
 
+      // Refresh balance after successful transaction
+      await refreshBalance();
+
       // Clear success message after 5 seconds
       setTimeout(() => {
         setSuccess(false);
@@ -97,10 +89,6 @@ export function SendKASWidget() {
   if (!state.isConnected) {
     return (
       <div className="p-6 space-y-4">
-        <NetworkInfoMessage 
-          networkType="L1"
-          message="This dApp runs on L1 (Kaspa network). Please connect your Kaspa wallet to send KAS."
-        />
         <button
           onClick={() => connect('kasware')}
           className="w-full px-4 py-3 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
@@ -114,11 +102,17 @@ export function SendKASWidget() {
   return (
     <div className="p-6 space-y-4">
       {/* Wallet Info */}
-      <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-4">
+      <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-4 space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-sm text-zinc-600 dark:text-zinc-400">Connected Address:</span>
           <span className="text-sm font-mono text-zinc-900 dark:text-zinc-100">
             {state.address ? `${state.address.slice(0, 8)}...${state.address.slice(-8)}` : 'N/A'}
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">KAS Balance:</span>
+          <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+            {isBalanceLoading ? 'Loading...' : kasBalance || '0.00'} KAS
           </span>
         </div>
       </div>
@@ -160,7 +154,7 @@ export function SendKASWidget() {
             type="button"
             onClick={handleMaxAmount}
             className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
-            disabled={isSending}
+            disabled={isSending || isBalanceLoading || !balanceInKas || balanceInKas <= 0}
           >
             Max
           </button>

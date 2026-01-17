@@ -8,6 +8,7 @@ import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
 import { useNetworkAwareWallet } from '@/hooks/useNetworkAwareWallet';
 import { NetworkInfoMessage } from './NetworkInfoMessage';
 import { SimplePaymentWidget } from './dapps/SimplePaymentWidget';
+import { getDAppNetworkType } from '@/lib/dapps';
 import { DAOVotingWidget } from './dapps/DAOVotingWidget';
 import { QuizToEarnWidget } from './dapps/QuizToEarnWidget';
 import { SendKASWidget } from './dapps/SendKASWidget';
@@ -44,6 +45,7 @@ export function DAppWidget({
   const chainId = useChainId();
   const compatibility = useNetworkCompatibility(dapp);
   const networkWallet = useNetworkAwareWallet(dapp);
+  const isL1DApp = getDAppNetworkType(dapp) === 'L1';
 
   const handleModalClose = () => {
     setShowModal(false);
@@ -56,20 +58,23 @@ export function DAppWidget({
     }
   };
 
-  // Get contract address
-  let contractAddress = dapp.contractAddress || '';
-  if (!contractAddress && dapp.slug === 'simple-payment') {
-    try {
-      contractAddress = getContractAddress(chainId, 'SimplePayment') || '';
-    } catch (e) {
-      console.warn('Could not get SimplePayment contract address');
+  // Get contract address (only for L2 dApps)
+  let contractAddress = '';
+  if (!isL1DApp) {
+    contractAddress = dapp.contractAddress || '';
+    if (!contractAddress && dapp.slug === 'simple-payment') {
+      try {
+        contractAddress = getContractAddress(chainId, 'SimplePayment') || '';
+      } catch (e) {
+        console.warn('Could not get SimplePayment contract address');
+      }
     }
-  }
-  if (!contractAddress && dapp.slug === 'dao-voting') {
-    try {
-      contractAddress = getContractAddress(chainId, 'DAOVoting') || '';
-    } catch (e) {
-      console.warn('Could not get DAOVoting contract address');
+    if (!contractAddress && dapp.slug === 'dao-voting') {
+      try {
+        contractAddress = getContractAddress(chainId, 'DAOVoting') || '';
+      } catch (e) {
+        console.warn('Could not get DAOVoting contract address');
+      }
     }
   }
 
@@ -109,7 +114,7 @@ export function DAppWidget({
           </div>
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-              <DAppWidgetFooter contractAddress={contractAddress} />
+              <DAppWidgetFooter contractAddress={isL1DApp ? undefined : contractAddress} />
             </div>
           )}
         </div>
@@ -153,7 +158,7 @@ export function DAppWidget({
           </div>
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-              <DAppWidgetFooter contractAddress={contractAddress} />
+              <DAppWidgetFooter contractAddress={isL1DApp ? undefined : contractAddress} />
             </div>
           )}
         </div>
@@ -197,7 +202,7 @@ export function DAppWidget({
           </div>
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-              <DAppWidgetFooter contractAddress={contractAddress} />
+              <DAppWidgetFooter contractAddress={isL1DApp ? undefined : contractAddress} />
             </div>
           )}
         </div>
@@ -241,7 +246,7 @@ export function DAppWidget({
           </div>
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-              <DAppWidgetFooter contractAddress={contractAddress} />
+              <DAppWidgetFooter contractAddress={isL1DApp ? undefined : contractAddress} />
             </div>
           )}
         </div>
@@ -285,7 +290,7 @@ export function DAppWidget({
           </div>
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-              <DAppWidgetFooter contractAddress={contractAddress} />
+              <DAppWidgetFooter contractAddress={isL1DApp ? undefined : contractAddress} />
             </div>
           )}
         </div>

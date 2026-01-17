@@ -163,21 +163,19 @@ function HomeContent() {
           <div>
             <div className="mb-6 flex items-start justify-between gap-4">
               <div className="lg:pl-0 pl-12 flex-1">
-                <div className="flex items-center gap-4 mb-2 flex-wrap">
-                  <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                    Available dApps
-                  </h2>
-                  <NetworkSwitcher 
-                    value={networkFilter} 
-                    onChange={setNetworkFilter}
-                  />
-                </div>
+                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+                  Available dApps
+                </h2>
                 <p className="text-zinc-600 dark:text-zinc-400">
                   {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
                 </p>
               </div>
               {/* Action Buttons and Sort Filters - Positioned in top right */}
               <div className="flex items-center gap-2 flex-shrink-0">
+                <NetworkSwitcher 
+                  value={networkFilter} 
+                  onChange={setNetworkFilter}
+                />
                 <SortFilters 
                   sortBy={sortBy} 
                   onSortChange={setSortBy}

@@ -14,6 +14,7 @@ import { DAppRewardsSidebar } from './rewards/DAppRewardsSidebar';
 import { DAppActionFlow } from './dapps/DAppActionFlow';
 import { NetworkAvailabilityBox } from './dapps/NetworkAvailabilityBox';
 import { SeasonalBoostersBox } from './rewards/SeasonalBoostersBox';
+import { getDAppNetworkType } from '@/lib/dapps';
 
 interface DAppSidebarProps {
   dapp: DApp;
@@ -258,17 +259,19 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
             {/* Network Availability */}
             <NetworkAvailabilityBox dapp={mergedDApp} />
 
-            {/* Action Flow */}
+            {/* Action Flow - Show for all dApps, but tokenTicker will be null for L1 */}
             <DAppActionFlow dapp={mergedDApp} tokenTicker={tokenTicker} />
 
-            {/* Rewards Sidebar */}
-            <DAppRewardsSidebar 
-              tokenTicker={tokenTicker}
-              dappName={mergedDApp.name}
-            />
+            {/* Rewards Sidebar - Only show for L2 dApps with token ticker */}
+            {!isL1DApp && tokenTicker && (
+              <DAppRewardsSidebar 
+                tokenTicker={tokenTicker}
+                dappName={mergedDApp.name}
+              />
+            )}
 
-            {/* Seasonal Boosters */}
-            <SeasonalBoostersBox />
+            {/* Seasonal Boosters - Only show for L2 dApps */}
+            {!isL1DApp && <SeasonalBoostersBox />}
         </div>
       </aside>
 

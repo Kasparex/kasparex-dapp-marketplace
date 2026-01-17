@@ -25,20 +25,42 @@ export function SendKREXWidget() {
         setIsLoadingBalance(true);
         try {
           const tokens = await getKRC20Balance();
-          const krexToken = tokens.find((token) => token.tick?.toUpperCase() === 'KREX');
-          if (krexToken) {
-            setKrexBalance(krexToken.amount);
+          if (tokens && Array.isArray(tokens)) {
+            const krexToken = tokens.find((token) => token.tick?.toUpperCase() === 'KREX');
+            if (krexToken) {
+              // Handle balance/amount property and decimals like other balance hooks
+              const rawBalance = krexToken.balance ?? krexToken.amount;
+              const decimals = krexToken.dec !== undefined ? Number(krexToken.dec) : 8;
+              
+              if (rawBalance !== undefined && rawBalance !== null) {
+                const rawBalanceNum = typeof rawBalance === 'string' 
+                  ? parseFloat(rawBalance) 
+                  : Number(rawBalance);
+                
+                if (!isNaN(rawBalanceNum)) {
+                  // Convert from smallest unit to actual balance (divide by 10^decimals)
+                  const balance = rawBalanceNum / Math.pow(10, decimals);
+                  setKrexBalance(balance);
+                } else {
+                  setKrexBalance(0);
+                }
+              } else {
+                setKrexBalance(0);
+              }
+            } else {
+              setKrexBalance(0);
+            }
           } else {
-            setKrexBalance('0');
+            setKrexBalance(0);
           }
         } catch (err) {
           console.error('Error fetching KREX balance:', err);
-          setKrexBalance(null);
+          setKrexBalance(0);
         } finally {
           setIsLoadingBalance(false);
         }
       } else {
-        setKrexBalance(null);
+        setKrexBalance(0);
       }
     };
 
@@ -67,9 +89,8 @@ export function SendKREXWidget() {
     }
 
     const amountNum = parseFloat(amount);
-    const balanceNum = typeof krexBalance === 'string' ? parseFloat(krexBalance) : (krexBalance || 0);
     
-    if (amountNum > balanceNum) {
+    if (amountNum > krexBalance) {
       setError('Insufficient KREX balance');
       return;
     }
@@ -131,10 +152,6 @@ export function SendKREXWidget() {
   if (!state.isConnected) {
     return (
       <div className="p-6 space-y-4">
-        <NetworkInfoMessage 
-          networkType="L1"
-          message="This dApp runs on L1 (Kaspa network). Please connect your Kaspa wallet to send KREX."
-        />
         <button
           onClick={() => connect('kasware')}
           className="w-full px-4 py-3 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
@@ -158,7 +175,7 @@ export function SendKREXWidget() {
         <div className="flex items-center justify-between">
           <span className="text-sm text-zinc-600 dark:text-zinc-400">KREX Balance:</span>
           <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-            {isLoadingBalance ? 'Loading...' : krexBalance !== null ? krexBalance.toString() : 'N/A'}
+            {isLoadingBalance ? 'Loading...' : krexBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 })}
           </span>
         </div>
       </div>
@@ -200,7 +217,7 @@ export function SendKREXWidget() {
             type="button"
             onClick={handleMaxAmount}
             className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
-            disabled={isSending || !krexBalance}
+            disabled={isSending || krexBalance <= 0}
           >
             Max
           </button>

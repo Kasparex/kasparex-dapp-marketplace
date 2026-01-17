@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { DApp } from '@/lib/dapps';
+import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { useDeployerProfile, formatDeployerName, getDeployerProfileUrl } from '@/lib/dapps/deployer';
 import { Avatar } from '@/components/Avatar';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
@@ -64,14 +64,14 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
     }
   }, [showDeveloperDropdown]);
 
-  // Get contract addresses for ecosystem components
-  const gridTokenAddress = getContractAddress(chainId, 'GRIDToken') || undefined;
-  const proofOfUtilityAddress = getContractAddress(chainId, 'ProofOfUtility') || undefined;
-  const feeHandlerAddress = getContractAddress(chainId, 'FeeHandler') || undefined;
-  const rewardManagerAddress = getContractAddress(chainId, 'RewardManager') || undefined;
+  // Get contract addresses for ecosystem components (only for L2 dApps)
+  const gridTokenAddress = !isL1DApp ? (getContractAddress(chainId, 'GRIDToken') || undefined) : undefined;
+  const proofOfUtilityAddress = !isL1DApp ? (getContractAddress(chainId, 'ProofOfUtility') || undefined) : undefined;
+  const feeHandlerAddress = !isL1DApp ? (getContractAddress(chainId, 'FeeHandler') || undefined) : undefined;
+  const rewardManagerAddress = !isL1DApp ? (getContractAddress(chainId, 'RewardManager') || undefined) : undefined;
   
-  // Get resolved contract address
-  const resolvedContractAddress = contractAddress || dapp.contractAddress || '';
+  // Get resolved contract address (only for L2 dApps)
+  const resolvedContractAddress = !isL1DApp ? (contractAddress || dapp.contractAddress || '') : '';
   
   // Use contract data as-is
   const mergedContractData = contractData;

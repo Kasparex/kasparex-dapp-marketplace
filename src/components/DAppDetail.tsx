@@ -12,6 +12,7 @@ import { TokenDisplay } from './dapps/TokenDisplay';
 import { ProofOfUtility } from './dapps/ProofOfUtility';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { NetworkInfoMessage } from './NetworkInfoMessage';
+import { getDAppNetworkType } from '@/lib/dapps';
 
 interface DAppDetailProps {
   dapp: DApp;
@@ -36,9 +37,10 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
   // Use contract data as-is
   const mergedContractData = contractData;
 
-  // Get contract addresses for token components
-  const gridTokenAddress = getContractAddress(chainId, 'GRIDToken') || undefined;
-  const proofOfUtilityAddress = getContractAddress(chainId, 'ProofOfUtility') || undefined;
+  // Get contract addresses for token components (only for L2 dApps)
+  const isL1DApp = getDAppNetworkType(dapp) === 'L1';
+  const gridTokenAddress = !isL1DApp ? (getContractAddress(chainId, 'GRIDToken') || undefined) : undefined;
+  const proofOfUtilityAddress = !isL1DApp ? (getContractAddress(chainId, 'ProofOfUtility') || undefined) : undefined;
 
   return (
     <div className="space-y-6">
@@ -48,19 +50,11 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
         onClose={() => setShowCompatibilityModal(false)}
       />
 
-      {/* Network Info Message */}
-      {!networkWallet.isCorrectWalletConnected && (
-        <NetworkInfoMessage 
-          networkType={networkWallet.networkType}
-          message={networkWallet.message}
-        />
-      )}
-
       {/* dApp Widget */}
       <DAppWidget dapp={dapp} />
 
-      {/* Token Information */}
-      {mergedContractData?.tokenAddress && mergedContractData.ticker && (
+      {/* Token Information - Only show for L2 dApps */}
+      {!isL1DApp && mergedContractData?.tokenAddress && mergedContractData.ticker && (
         <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
           <TokenDisplay
             tokenAddress={mergedContractData.tokenAddress}
@@ -71,8 +65,8 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
         </div>
       )}
 
-      {/* Proof of Utility */}
-      {proofOfUtilityAddress && (
+      {/* Proof of Utility - Only show for L2 dApps */}
+      {!isL1DApp && proofOfUtilityAddress && (
         <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
           <ProofOfUtility
             proofOfUtilityAddress={proofOfUtilityAddress}

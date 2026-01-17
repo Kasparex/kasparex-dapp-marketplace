@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAccount, useChainId } from 'wagmi';
 import { useChainModal } from '@rainbow-me/rainbowkit';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { DApp } from '@/lib/dapps';
+import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { getChainById } from '@/lib/wagmi';
 import { getCategoryById } from '@/lib/categories';
 import { isDeployer, useDeployerProfile, formatDeployerName, getDeployerProfileUrl } from '@/lib/dapps/deployer';
@@ -314,7 +314,7 @@ export function DAppInfoSidebar({
       {showInfoModal && (
         <DAppInfoModal
           dapp={mergedDApp}
-          contractAddress={resolvedContractAddress}
+          contractAddress={isL1DApp ? undefined : resolvedContractAddress}
           onClose={() => setShowInfoModal(false)}
         />
       )}
