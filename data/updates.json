@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768662628-ed38f37",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix KRC-20 JSON format (use uppercase KRC-20) and enhance error logging for debugging (by Kasparex)",
+      "date": "2026-01-17T16:09:56+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768661820-0600ef0",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix KRC-20 transfer: convert amount to smallest unit and include 'to' field in inscription JSON (by Kasparex)",
