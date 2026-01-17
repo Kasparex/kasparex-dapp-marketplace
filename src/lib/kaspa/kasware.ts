@@ -339,32 +339,55 @@ export async function signKRC20Transaction(
     throw new Error(`inscribeJsonString must be a string, received ${typeof inscribeJsonString}. Did you forget to JSON.stringify()?`);
   }
   
-  // Convert type to string if it's a number (KasWare API may accept both)
-  const typeParam = typeof type === 'number' ? type.toString() : type;
+  // Ensure type is a number (KasWare API expects number: 2=deploy, 3=mint, 4=transfer)
+  const typeParam = typeof type === 'number' ? type : (typeof type === 'string' ? parseInt(type, 10) : 4);
+  if (isNaN(typeParam) || typeParam < 2 || typeParam > 4) {
+    throw new Error(`Invalid type parameter: must be 2 (deploy), 3 (mint), or 4 (transfer), received ${type}`);
+  }
   
   // Ensure destAddr is a string
-  if (typeof destAddr !== 'string') {
+  if (typeof destAddr !== 'string' || !destAddr.trim()) {
     console.error('[KasWare] Invalid destAddr type:', typeof destAddr, destAddr);
-    throw new Error(`destAddr must be a string, received ${typeof destAddr}`);
+    throw new Error(`destAddr must be a non-empty string, received ${typeof destAddr}`);
+  }
+  
+  // Ensure priorityFee is a number if provided
+  let priorityFeeNum: number | undefined = undefined;
+  if (priorityFee !== undefined && priorityFee !== null) {
+    priorityFeeNum = typeof priorityFee === 'number' ? priorityFee : parseFloat(String(priorityFee));
+    if (isNaN(priorityFeeNum)) {
+      console.warn('[KasWare] Invalid priorityFee, ignoring:', priorityFee);
+      priorityFeeNum = undefined;
+    }
   }
   
   try {
+    // Final validation: ensure inscribeJsonString is valid JSON
+    try {
+      JSON.parse(inscribeJsonString);
+    } catch (e) {
+      throw new Error(`inscribeJsonString is not valid JSON: ${e instanceof Error ? e.message : String(e)}`);
+    }
+    
     console.log('[KasWare] Calling signKRC20Transaction with:', {
       inscribeJsonString: inscribeJsonString.substring(0, 100) + (inscribeJsonString.length > 100 ? '...' : ''),
       inscribeJsonStringLength: inscribeJsonString.length,
       inscribeJsonStringType: typeof inscribeJsonString,
       type: typeParam,
+      typeType: typeof typeParam,
       destAddr,
-      priorityFee,
+      destAddrType: typeof destAddr,
+      priorityFee: priorityFeeNum,
+      priorityFeeType: typeof priorityFeeNum,
     });
     
-    // Double-check the string before calling
-    const jsonString = String(inscribeJsonString);
-    if (jsonString === '[object Object]' || jsonString === 'undefined' || jsonString === 'null') {
-      throw new Error(`Invalid inscribeJsonString: received "${jsonString}". Make sure to use JSON.stringify() on the inscription object.`);
-    }
-    
-    const result = await kasware.signKRC20Transaction(jsonString, typeParam, destAddr, priorityFee);
+    // Call with explicit types: string, number, string, number|undefined
+    const result = await kasware.signKRC20Transaction(
+      inscribeJsonString, // string
+      typeParam,          // number (2, 3, or 4)
+      destAddr.trim(),    // string
+      priorityFeeNum      // number | undefined
+    );
     console.log('[KasWare] signKRC20Transaction success, txHash:', result);
     return result;
   } catch (err) {
