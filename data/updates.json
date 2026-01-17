@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768656343-80dfb45",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix missing isL1DApp variable in DAppSidebar (by Kasparex)",
+      "date": "2026-01-17T14:24:56+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768652685-f28fd0d",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: Add 'network' to SortField type in DAppTable (by Kasparex)",
