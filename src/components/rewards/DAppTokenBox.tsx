@@ -82,6 +82,13 @@ export function DAppTokenBox({ dapp }: DAppTokenBoxProps) {
     return null;
   }
   
+  // Map token ID to valid TokenLogoImage tokenId (only 'kas', 'krex', or 'grid')
+  const validTokenId: 'kas' | 'krex' | 'grid' | null = 
+    tokenTicker === 'KAS' ? 'kas' :
+    tokenTicker === 'KREX' ? 'krex' :
+    tokenTicker === 'GRID' ? 'grid' :
+    null;
+  
   // Get supply metrics
   let progress = 0;
   let minted = 0;
@@ -111,7 +118,15 @@ export function DAppTokenBox({ dapp }: DAppTokenBoxProps) {
   return (
     <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
       <div className="flex items-center gap-2 mb-3">
-        <TokenLogoImage tokenId={token?.id || tokenSlug} size={20} />
+        {validTokenId ? (
+          <TokenLogoImage tokenId={validTokenId} size={20} />
+        ) : (
+          <div className="flex items-center justify-center bg-zinc-200 dark:bg-zinc-700 rounded-full" style={{ width: 20, height: 20 }}>
+            <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+              {tokenTicker?.charAt(0) || 'T'}
+            </span>
+          </div>
+        )}
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
           {tokenTicker} Token
         </h3>
