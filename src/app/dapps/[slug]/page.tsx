@@ -1,10 +1,9 @@
 import { notFound } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { DAppSidebar } from '@/components/DAppSidebar';
 import { DAppInfoSidebar } from '@/components/dapps/DAppInfoSidebar';
 import { DAppDetail } from '@/components/DAppDetail';
-import { DAppFooter } from '@/components/dapps/DAppFooter';
+import { DAppPageFooter } from '@/components/dapps/DAppPageFooter';
 import { RelatedDApps } from '@/components/dapps/RelatedDApps';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
 import { placeholderDApps } from '@/lib/dapps';
@@ -65,13 +64,9 @@ export default async function DAppPage({ params }: PageProps) {
       
       <main className="flex-1 flex flex-col">
         <div className="flex-1 flex flex-col lg:flex-row">
-          {/* Left Sidebar - Rewards & Info */}
-          <DAppSidebar dapp={dapp} />
-
           {/* Main Content */}
           <div className="flex-1 min-w-0 p-4 sm:p-6 lg:px-16 lg:py-12">
             <DAppDetail dapp={dapp} />
-            <DAppFooter contractAddress={contractAddress} />
             
             {/* Comments Section */}
             <div className="mt-8">
@@ -87,6 +82,9 @@ export default async function DAppPage({ params }: PageProps) {
         <div className="px-4 sm:px-6 lg:px-8 lg:pl-6 pb-4 sm:pb-6 lg:pb-8">
           <RelatedDApps currentDApp={dapp} />
         </div>
+
+        {/* Footer with Action Flow, Rewards, etc. */}
+        <DAppPageFooter dapp={dapp} />
       </main>
 
       <Footer />
