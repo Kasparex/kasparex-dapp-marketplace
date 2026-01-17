@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768675703-0b90ed0",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix DAppTokenBox: add wallet connection check and balance hooks (by Kasparex)",
+      "date": "2026-01-17T19:46:49+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768673473-705d048",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Remove ticker mappings for deleted dApps and disable Quiz-to-Earn action flow (by Kasparex)",
