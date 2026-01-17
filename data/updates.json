@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768676967-676f520",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix DAppTokenBox: map tokenId to valid TokenLogoImage type (by Kasparex)",
+      "date": "2026-01-17T20:08:33+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768676666-dd69443",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix DAppTokenBox: add missing useKaspaWallet hook call (by Kasparex)",
