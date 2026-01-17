@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768659577-1cb7761",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Remove strict connection check from signKRC20Transaction - trust widget validation and let API call handle errors (by Kasparex)",
+      "date": "2026-01-17T15:18:55+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768659035-6cf8ae7",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix KasWare connection check in signKRC20Transaction to use getAddress as fallback (by Kasparex)",
