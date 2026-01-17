@@ -121,10 +121,28 @@ export function SendKREXWidget() {
       setAmount('');
 
       // Refresh balance
-      const tokens = await getKRC20Balance();
-      const krexToken = tokens.find((token) => token.tick?.toUpperCase() === 'KREX');
-      if (krexToken) {
-        setKrexBalance(krexToken.amount);
+      try {
+        const tokens = await getKRC20Balance();
+        if (tokens && Array.isArray(tokens)) {
+          const krexToken = tokens.find((token) => token.tick?.toUpperCase() === 'KREX');
+          if (krexToken) {
+            const rawBalance = krexToken.balance ?? krexToken.amount;
+            const decimals = krexToken.dec !== undefined ? Number(krexToken.dec) : 8;
+            
+            if (rawBalance !== undefined && rawBalance !== null) {
+              const rawBalanceNum = typeof rawBalance === 'string' 
+                ? parseFloat(rawBalance) 
+                : Number(rawBalance);
+              
+              if (!isNaN(rawBalanceNum)) {
+                const balance = rawBalanceNum / Math.pow(10, decimals);
+                setKrexBalance(balance);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error refreshing balance:', err);
       }
 
       // Clear success message after 5 seconds
