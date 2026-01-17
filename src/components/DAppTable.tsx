@@ -19,7 +19,7 @@ interface DAppTableRowProps {
   dapp: DApp;
 }
 
-type SortField = 'name' | 'token' | 'category' | 'status' | 'version' | 'id';
+type SortField = 'name' | 'token' | 'category' | 'status' | 'network' | 'version' | 'id';
 type SortDirection = 'asc' | 'desc';
 
 function DAppTableRow({ dapp }: DAppTableRowProps) {
@@ -152,6 +152,12 @@ export function DAppTable({ dapps }: DAppTableProps) {
           };
           aValue = statusOrder[a.status] || 999;
           bValue = statusOrder[b.status] || 999;
+          break;
+        case 'network':
+          const aNetworkType = getDAppNetworkType(a);
+          const bNetworkType = getDAppNetworkType(b);
+          aValue = aNetworkType;
+          bValue = bNetworkType;
           break;
         case 'version':
           // All have version 1.0.0, so sort by name
