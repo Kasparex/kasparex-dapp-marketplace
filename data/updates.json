@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768657438-f87cb9a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Remove unused NetworkInfoMessage imports from Send widgets (by Kasparex)",
+      "date": "2026-01-17T14:42:48+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768657175-50c10e4",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix missing useKaspaBalance import in SendKASWidget (by Kasparex)",
