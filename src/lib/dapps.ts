@@ -464,19 +464,9 @@ export function generateSimulatedTicker(dappName: string): string {
 
   // Special cases for known dApps
   const specialCases: Record<string, string> = {
-    'SUBSCRIPTION CHECKER': 'SUB',
-    'TOKEN PAYMENT SPLITTER': 'SPLIT',
-    'MULTI-CHOICE VOTING PANEL': 'VOTE',
     'DAO VOTING': 'VOTE',
     'SIMPLE PAYMENT': 'PAY',
-    'IDEA SUBMISSION BOX': 'IDEA',
-    'CUSTOM DAPP PAGE BUILDER': 'BUILD',
-    'TOKEN PROFILE PAGE': 'PROFILE',
-    'HOLD-TO-VIEW THREADS': 'HOLD',
-    'HOLD TO VIEW THREADS': 'HOLD',
     'VOTING TOURNAMENT TOOL': 'TOURNAMENT',
-    'TOKEN MILESTONE LOGGER': 'MILESTONE',
-    'ANONYMOUS FEEDBACK BOX': 'FEEDBACK',
   };
 
   if (specialCases[cleaned]) {

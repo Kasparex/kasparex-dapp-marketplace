@@ -109,8 +109,8 @@ function getDAppActions(dapp: DApp, tokenTicker: string): Array<{
     ];
   }
 
-  // Quiz-to-Earn specific actions
-  if (name.includes('quiz')) {
+  // Quiz-to-Earn specific actions (removed - dApp no longer exists)
+  if (false && name.includes('quiz')) {
     return [
       {
         step: 1,
