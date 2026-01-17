@@ -325,7 +325,21 @@ export async function signKRC20Transaction(
     throw new Error('KasWare wallet is not installed');
   }
   
-  if (!isKasWareConnected()) {
+  // Check connection - try to get address as a reliable connection check
+  let isConnected = false;
+  try {
+    if (typeof kasware.getAddress === 'function') {
+      const address = await kasware.getAddress();
+      isConnected = address !== null && address !== undefined;
+    } else if (typeof kasware.isConnected === 'function') {
+      isConnected = kasware.isConnected();
+    }
+  } catch (err) {
+    // If we can't check, assume not connected
+    isConnected = false;
+  }
+  
+  if (!isConnected) {
     throw new Error('KasWare wallet is not connected');
   }
   
