@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768676382-6ebf850",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix build error: remove KREXStatusBox, NFTStatusBox, NODEStatusBox from Sidebar (by Kasparex)",
+      "date": "2026-01-17T19:58:52+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768675703-0b90ed0",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix DAppTokenBox: add wallet connection check and balance hooks (by Kasparex)",
