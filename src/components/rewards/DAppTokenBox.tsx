@@ -68,7 +68,13 @@ export function DAppTokenBox({ dapp }: DAppTokenBoxProps) {
   
   // Get token data for display
   const token = tokenSlug ? getTokenBySlug(tokenSlug) : null;
-  const holdings = isConnected && address ? getMockWalletHoldings(address) : null;
+  
+  // Get actual balances for KAS and KREX
+  const { balanceInKas: kasBalance } = useKaspaBalance();
+  const { balance: krexBalance } = useKREXBalance();
+  
+  // Determine if wallet is connected (EVM or Kaspa)
+  const isWalletConnected = isConnected || (kaspaState.isConnected && kaspaState.provider === 'kasware');
   
   // Don't show box if no token
   if (!tokenTicker || !tokenSlug) {
