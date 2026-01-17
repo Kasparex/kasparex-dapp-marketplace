@@ -119,19 +119,25 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
     };
   }, [isResizing]);
 
-  // Get contract address
-  let contractAddress = dapp.contractAddress || '';
-  if (!contractAddress && dapp.slug === 'simple-payment') {
-    try {
-      contractAddress = getContractAddress(chainId, 'SimplePayment') || '';
-    } catch (e) {
-      console.warn('Could not get SimplePayment contract address');
+  // Check if this is an L1 dApp
+  const isL1DApp = getDAppNetworkType(dapp) === 'L1';
+
+  // Get contract address (only for L2 dApps)
+  let contractAddress = '';
+  if (!isL1DApp) {
+    contractAddress = dapp.contractAddress || '';
+    if (!contractAddress && dapp.slug === 'simple-payment') {
+      try {
+        contractAddress = getContractAddress(chainId, 'SimplePayment') || '';
+      } catch (e) {
+        console.warn('Could not get SimplePayment contract address');
+      }
     }
   }
 
-  // Fetch contract data to get deployer address
+  // Fetch contract data to get deployer address (only for L2 dApps)
   const { data: contractData } = useDAppFromContract(
-    contractAddress && contractAddress.startsWith('0x') ? contractAddress : undefined,
+    !isL1DApp && contractAddress && contractAddress.startsWith('0x') ? contractAddress : undefined,
     chainId
   );
 
@@ -141,8 +147,8 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
   // Merge localStorage data
   const mergedDApp = mergeDAppData(contractData, dapp);
   
-  // Get token ticker from contract data
-  const tokenTicker = contractData?.ticker || null;
+  // Get token ticker from contract data (only for L2 dApps)
+  const tokenTicker = !isL1DApp ? (contractData?.ticker || null) : null;
 
   return (
     <>
