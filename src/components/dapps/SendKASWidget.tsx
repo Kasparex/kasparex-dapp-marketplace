@@ -7,6 +7,7 @@ import { kasToSompis, sompisToKas } from '@/lib/kaspa/api';
 import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
 import { Alert } from '@/components/Alert';
 import { NetworkInfoMessage } from '@/components/NetworkInfoMessage';
+import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 
 export function SendKASWidget() {
   const { state, connect } = useKaspaWallet();
