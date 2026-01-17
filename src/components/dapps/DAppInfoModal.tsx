@@ -20,10 +20,11 @@ interface DAppInfoModalProps {
 export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalProps) {
   const chainId = useChainId();
   const [showDeveloperDropdown, setShowDeveloperDropdown] = useState(false);
+  const isL1DApp = getDAppNetworkType(dapp) === 'L1';
   
-  // Get contract data for deployer info
+  // Get contract data for deployer info (only for L2 dApps)
   const { data: contractData } = useDAppFromContract(
-    contractAddress && contractAddress.startsWith('0x') ? contractAddress : undefined,
+    !isL1DApp && contractAddress && contractAddress.startsWith('0x') ? contractAddress : undefined,
     chainId
   );
 
