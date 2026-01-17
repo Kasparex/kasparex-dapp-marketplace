@@ -316,7 +316,7 @@ export async function cancelKRC20Order(params: {
  */
 export async function signKRC20Transaction(
   inscribeJsonString: string,
-  type: string,
+  type: string | number,
   destAddr: string,
   priorityFee?: number | string
 ): Promise<string> {
@@ -333,8 +333,11 @@ export async function signKRC20Transaction(
     throw new Error('signKRC20Transaction() method is not available. Please update your KasWare extension.');
   }
   
+  // Convert type to string if it's a number (KasWare API may accept both)
+  const typeParam = typeof type === 'number' ? type.toString() : type;
+  
   try {
-    return await kasware.signKRC20Transaction(inscribeJsonString, type, destAddr, priorityFee);
+    return await kasware.signKRC20Transaction(inscribeJsonString, typeParam, destAddr, priorityFee);
   } catch (err) {
     // If the API call fails, provide a more helpful error message
     const errorMessage = err instanceof Error ? err.message : 'Unknown error';
