@@ -645,9 +645,6 @@ export function Sidebar({
           <UnifiedStatusBox />
           
           {/* Individual Status Boxes (Legacy - can be removed later) */}
-          <KREXStatusBox />
-          <NFTStatusBox />
-          <NODEStatusBox />
           <GRIDHoldingsBox />
           <XPPointsBox />
 
