@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768664105-b36525b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix signKRC20Transaction: ensure type is number and validate all parameters before calling KasWare API (by Kasparex)",
+      "date": "2026-01-17T16:34:13+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768663247-17ee788",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add validation to ensure inscribeJsonString is a valid string before calling KasWare API (by Kasparex)",
