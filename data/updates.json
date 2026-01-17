@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768660546-17227f2",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: update signKRC20Transaction to accept string | number for type parameter (by Kasparex)",
+      "date": "2026-01-17T15:35:19+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768660287-7aae0b7",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix KRC-20 transfer: use numeric type (4) and include priority fee for proper transaction formatting (by Kasparex)",
