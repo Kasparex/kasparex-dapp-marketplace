@@ -10,7 +10,7 @@ export function SendKREXWidget() {
   const { state, connect } = useKaspaWallet();
   const [toAddress, setToAddress] = useState('');
   const [amount, setAmount] = useState('');
-  const [krexBalance, setKrexBalance] = useState<string | number | null>(null);
+  const [krexBalance, setKrexBalance] = useState<number>(0);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -142,9 +142,8 @@ export function SendKREXWidget() {
   };
 
   const handleMaxAmount = () => {
-    if (krexBalance) {
-      const balanceNum = typeof krexBalance === 'string' ? parseFloat(krexBalance) : krexBalance;
-      setAmount(balanceNum.toString());
+    if (krexBalance > 0) {
+      setAmount(krexBalance.toString());
     }
   };
 
