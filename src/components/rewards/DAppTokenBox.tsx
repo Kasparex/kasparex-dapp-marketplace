@@ -72,6 +72,7 @@ export function DAppTokenBox({ dapp }: DAppTokenBoxProps) {
   // Get actual balances for KAS and KREX
   const { balanceInKas: kasBalance } = useKaspaBalance();
   const { balance: krexBalance } = useKREXBalance();
+  const { state: kaspaState } = useKaspaWallet();
   
   // Determine if wallet is connected (EVM or Kaspa)
   const isWalletConnected = isConnected || (kaspaState.isConnected && kaspaState.provider === 'kasware');
