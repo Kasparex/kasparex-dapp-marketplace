@@ -20,10 +20,6 @@ import { DAppInfoModal } from './DAppInfoModal';
 import { SocialIcons } from './SocialIcons';
 import { isEmbedded } from '@/lib/utils';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
-import { KREXStatusBox } from '../rewards/KREXStatusBox';
-import { NFTStatusBox } from '../rewards/NFTStatusBox';
-import { NODEStatusBox } from '../rewards/NODEStatusBox';
-import { KREXNFTMultipliersBox } from './KREXNFTMultipliersBox';
 
 interface DAppInfoSidebarProps {
   dapp: DApp;
@@ -301,17 +297,6 @@ export function DAppInfoSidebar({
                 </Link>
               )}
 
-              {/* KREX/NFT Multipliers */}
-              <KREXNFTMultipliersBox />
-
-              {/* KREX Status */}
-              <KREXStatusBox />
-
-              {/* NFT Status */}
-              <NFTStatusBox />
-
-              {/* NODE Status */}
-              <NODEStatusBox />
             </div>
         </div>
       </aside>

@@ -13,7 +13,6 @@ import { mergeDAppData } from '@/lib/dapps/contractData';
 import { DAppRewardsSidebar } from './rewards/DAppRewardsSidebar';
 import { DAppActionFlow } from './dapps/DAppActionFlow';
 import { NetworkAvailabilityBox } from './dapps/NetworkAvailabilityBox';
-import { SeasonalBoostersBox } from './rewards/SeasonalBoostersBox';
 import { getDAppNetworkType } from '@/lib/dapps';
 
 interface DAppSidebarProps {
@@ -276,8 +275,6 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
               />
             )}
 
-            {/* Seasonal Boosters - Only show for L2 dApps */}
-            {!isL1DApp && <SeasonalBoostersBox />}
         </div>
       </aside>
 

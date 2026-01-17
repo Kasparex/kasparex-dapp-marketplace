@@ -189,9 +189,24 @@ export function DAppWidgetHeader({
       )}
 
       <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 relative">
-        {/* Status Indicator and Fees Icon - Top Right (clickable on dApp page) */}
+        {/* Status Indicator, Network Badge, and Fees Icon - Top Right (clickable on dApp page) */}
         <div className="absolute top-4 right-4 sm:top-5 sm:right-6 z-10 flex items-center gap-2">
           <StatusIndicator dapp={mergedDApp} size="md" clickable={true} />
+          {/* Network Badge */}
+          {(() => {
+            const networkType = getDAppNetworkType(mergedDApp);
+            const networkBadgeColor =
+              networkType === 'L1'
+                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300';
+            return (
+              <span
+                className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${networkBadgeColor}`}
+              >
+                {networkType}
+              </span>
+            );
+          })()}
           <DAppFeesModal dapp={mergedDApp} tokenTicker={tokenTicker} clickable={true} />
         </div>
 
@@ -209,14 +224,13 @@ export function DAppWidgetHeader({
             {/* Dapp and Token Title Rows - Next to logo, aligned to bottom */}
             <div className="space-y-1.5 flex-1 min-w-0 flex items-end pr-24">
               <div className="space-y-1.5 w-full">
-                {/* Dapp Row */}
-                {dAppContractAddress && (
-                  <div className="flex items-center gap-2 text-base">
-                    <svg className="w-4 h-4 text-zinc-500 dark:text-zinc-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                    <span className="text-zinc-500 dark:text-zinc-500 font-medium">Dapp:</span>
-                    <span className="text-zinc-900 dark:text-zinc-100 font-bold truncate">{mergedDApp.name}</span>
+                {/* Dapp Row - Show for all dApps (L1 and L2) */}
+                <div className="flex items-center gap-2 text-base">
+                  <svg className="w-4 h-4 text-zinc-500 dark:text-zinc-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  <span className="text-zinc-500 dark:text-zinc-500 font-medium">Dapp:</span>
+                  <span className="text-zinc-900 dark:text-zinc-100 font-bold truncate">{mergedDApp.name}</span>
                     {dAppExplorerUrl && dAppContractAddress && (
                       <>
                         <span className="text-zinc-400 dark:text-zinc-600">—</span>
@@ -251,7 +265,6 @@ export function DAppWidgetHeader({
                       </>
                     )}
                   </div>
-                )}
                 
                 {/* Token Row */}
                 {tokenTicker && (
