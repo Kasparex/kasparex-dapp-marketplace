@@ -101,6 +101,8 @@ export function SendKREXWidget() {
 
     try {
       // Create transfer inscription JSON for KRC-20 transfer
+      // According to KasWare API: type should be number (4=transfer)
+      // The inscription JSON should include the transfer details
       const inscribeJson = {
         p: 'krc-20',
         op: 'transfer',
@@ -109,10 +111,15 @@ export function SendKREXWidget() {
       };
 
       const inscribeJsonString = JSON.stringify(inscribeJson);
+      // Type: 2=deploy, 3=mint, 4=transfer (as number per KasWare API)
+      // Priority fee: 0.001 KAS to ensure transaction is processed (in KAS units)
+      // Note: The wallet will automatically calculate the base network fee for the KRC-20 transfer
+      const priorityFeeKAS = 0.001;
       const txHash = await signKRC20Transaction(
         inscribeJsonString,
-        'transfer',
-        toAddress.trim()
+        4, // Transfer type as number (4 = transfer)
+        toAddress.trim(),
+        priorityFeeKAS // Priority fee in KAS (optional, helps with transaction priority)
       );
 
       setTxHash(txHash);

@@ -50,7 +50,7 @@ export interface KasWareAPI {
   
   signKRC20Transaction(
     inscribeJsonString: string,
-    type: string,
+    type: string | number,
     destAddr: string,
     priorityFee?: number | string
   ): Promise<string>;
