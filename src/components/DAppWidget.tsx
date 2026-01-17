@@ -113,7 +113,7 @@ export function DAppWidget({
           </div>
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-              <DAppWidgetFooter contractAddress={isL1DApp ? undefined : contractAddress} />
+              <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} />
             </div>
           )}
         </div>
@@ -157,7 +157,7 @@ export function DAppWidget({
           </div>
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-              <DAppWidgetFooter contractAddress={isL1DApp ? undefined : contractAddress} />
+              <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} />
             </div>
           )}
         </div>
@@ -201,7 +201,7 @@ export function DAppWidget({
           </div>
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-              <DAppWidgetFooter contractAddress={isL1DApp ? undefined : contractAddress} />
+              <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} />
             </div>
           )}
         </div>
@@ -245,7 +245,7 @@ export function DAppWidget({
           </div>
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-              <DAppWidgetFooter contractAddress={isL1DApp ? undefined : contractAddress} />
+              <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} />
             </div>
           )}
         </div>
@@ -337,7 +337,7 @@ export function DAppWidget({
             </div>
           </div>
           {!hideFooter && (
-            <DAppWidgetFooter contractAddress={contractAddress} />
+            <DAppWidgetFooter dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} />
           )}
         </div>
       </>
@@ -416,7 +416,7 @@ export function DAppWidget({
         )}
         {!hideFooter && (
           <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-            <DAppWidgetFooter contractAddress={contractAddress} />
+            <DAppWidgetFooter dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} />
           </div>
         )}
       </div>
