@@ -38,7 +38,21 @@ function DAppTableRow({ dapp }: DAppTableRowProps) {
     chainId
   );
   
-  const rawTicker = contractData?.ticker || generateSimulatedTicker(mergedDApp.name);
+  // Get token information
+  // For L1 dApps, use special token mappings (Send KAS -> KAS, Send KREX -> KREX)
+  const isL1DApp = getDAppNetworkType(mergedDApp) === 'L1';
+  let rawTicker: string | null = null;
+  if (isL1DApp) {
+    // L1 dApps: map to actual tokens
+    if (mergedDApp.slug === 'send-kas' || mergedDApp.name.toLowerCase().includes('send kas')) {
+      rawTicker = 'KAS';
+    } else if (mergedDApp.slug === 'send-krex' || mergedDApp.name.toLowerCase().includes('send krex')) {
+      rawTicker = 'KREX';
+    }
+  } else {
+    // L2 dApps: use contract data or generate
+    rawTicker = contractData?.ticker || generateSimulatedTicker(mergedDApp.name);
+  }
   const tokenTicker = rawTicker ? rawTicker.substring(0, 6) : null;
   
   // Get network type for badge

@@ -467,6 +467,8 @@ export function generateSimulatedTicker(dappName: string): string {
     'DAO VOTING': 'VOTE',
     'SIMPLE PAYMENT': 'PAY',
     'VOTING TOURNAMENT TOOL': 'TOURNAMENT',
+    'SEND KAS': 'KAS',
+    'SEND KREX': 'KREX',
   };
 
   if (specialCases[cleaned]) {

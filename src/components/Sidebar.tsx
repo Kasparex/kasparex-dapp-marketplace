@@ -9,9 +9,6 @@ import { CategoriesIcon, StatusIcon, DeveloperIcon, NetworkIcon } from '@/compon
 import { StatusIndicatorDot, getStatusTypeFromString } from './dapps/StatusIndicatorDot';
 import { GRIDHoldingsBox } from './rewards/GRIDHoldingsBox';
 import { XPPointsBox } from './rewards/XPPointsBox';
-import { KREXStatusBox } from './rewards/KREXStatusBox';
-import { NFTStatusBox } from './rewards/NFTStatusBox';
-import { NODEStatusBox } from './rewards/NODEStatusBox';
 import { UnifiedStatusBox } from './rewards/UnifiedStatusBox';
 import { QuickGuideWizard } from './rewards/QuickGuideWizard';
 

@@ -20,6 +20,8 @@ import { DAppInfoModal } from './DAppInfoModal';
 import { SocialIcons } from './SocialIcons';
 import { isEmbedded } from '@/lib/utils';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
+import { GRIDHoldingsBox } from '../rewards/GRIDHoldingsBox';
+import { DAppTokenBox } from '../rewards/DAppTokenBox';
 
 interface DAppInfoSidebarProps {
   dapp: DApp;
@@ -297,6 +299,11 @@ export function DAppInfoSidebar({
                 </Link>
               )}
 
+              {/* GRID Token Box */}
+              <GRIDHoldingsBox />
+
+              {/* dApp Token Box */}
+              <DAppTokenBox dapp={mergedDApp} />
             </div>
         </div>
       </aside>
