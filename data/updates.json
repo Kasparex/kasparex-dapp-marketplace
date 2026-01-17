@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768657175-50c10e4",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix missing useKaspaBalance import in SendKASWidget (by Kasparex)",
+      "date": "2026-01-17T14:38:52+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768656871-00e2300",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix missing isL1DApp variable in DAppInfoSidebar (by Kasparex)",
