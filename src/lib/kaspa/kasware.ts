@@ -337,13 +337,31 @@ export async function signKRC20Transaction(
   const typeParam = typeof type === 'number' ? type.toString() : type;
   
   try {
-    return await kasware.signKRC20Transaction(inscribeJsonString, typeParam, destAddr, priorityFee);
+    console.log('[KasWare] Calling signKRC20Transaction with:', {
+      inscribeJsonString,
+      type: typeParam,
+      destAddr,
+      priorityFee,
+    });
+    const result = await kasware.signKRC20Transaction(inscribeJsonString, typeParam, destAddr, priorityFee);
+    console.log('[KasWare] signKRC20Transaction success, txHash:', result);
+    return result;
   } catch (err) {
+    // Enhanced error logging
+    console.error('[KasWare] signKRC20Transaction error:', err);
+    console.error('[KasWare] Error details:', {
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+      name: err instanceof Error ? err.name : undefined,
+      fullError: err,
+    });
+    
     // If the API call fails, provide a more helpful error message
     const errorMessage = err instanceof Error ? err.message : 'Unknown error';
     if (errorMessage.includes('not connected') || errorMessage.includes('disconnected')) {
       throw new Error('KasWare wallet is not connected. Please reconnect your wallet.');
     }
+    // Re-throw with original error to preserve details
     throw err;
   }
 }

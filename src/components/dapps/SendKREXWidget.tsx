@@ -115,8 +115,9 @@ export function SendKREXWidget() {
       // Create transfer inscription JSON for KRC-20 transfer
       // According to KasWare API documentation, the JSON should include the 'to' field
       // Note: 'amt' must be in smallest unit (like satoshis), not whole tokens
+      // Protocol field should be uppercase "KRC-20" per KasWare API specification
       const inscribeJson = {
-        p: 'krc-20',
+        p: 'KRC-20', // Uppercase as per KasWare API spec
         op: 'transfer',
         tick: 'KREX',
         amt: amountInSmallestUnit.toString(), // Amount in smallest unit
@@ -175,9 +176,36 @@ export function SendKREXWidget() {
         setTxHash(null);
       }, 5000);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to send KREX';
-      setError(errorMessage);
+      // Enhanced error logging to help diagnose issues
       console.error('Send KREX error:', err);
+      console.error('Error details:', {
+        message: err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack : undefined,
+        name: err instanceof Error ? err.name : undefined,
+        fullError: err,
+      });
+      
+      // Extract more detailed error message
+      let errorMessage = 'Failed to send KREX';
+      if (err instanceof Error) {
+        errorMessage = err.message || errorMessage;
+        // Check for common error patterns
+        if (err.message.includes('user rejected') || err.message.includes('rejected')) {
+          errorMessage = 'Transaction was rejected';
+        } else if (err.message.includes('insufficient') || err.message.includes('balance')) {
+          errorMessage = 'Insufficient balance for transaction';
+        } else if (err.message.includes('not connected') || err.message.includes('disconnected')) {
+          errorMessage = 'Wallet is not connected. Please reconnect your wallet.';
+        } else if (err.message.includes('invalid') || err.message.includes('Invalid')) {
+          errorMessage = `Invalid transaction: ${err.message}`;
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsSending(false);
     }
