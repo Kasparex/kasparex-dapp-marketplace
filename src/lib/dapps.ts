@@ -40,6 +40,11 @@ export interface DApp {
    * If not provided, will be inferred from the network field using networkNameToChainIds.
    */
   supportedChainIds?: number[];
+  /**
+   * Network type: L1 (Kaspa native) or L2 (EVM-compatible).
+   * If not explicitly set, will be inferred from the network field.
+   */
+  networkType?: 'L1' | 'L2';
 }
 
 // Placeholder dApps for template demonstration
@@ -59,6 +64,7 @@ export const placeholderDApps: DApp[] = [
     ],
     status: 'Testnet',
     network: 'Testnet',
+    networkType: 'L2',
     provider: 'Kasparex',
     version: '1.0.0',
     description: 'A subscription-based access control system for Kaspa dApps and content platforms.',
@@ -73,6 +79,7 @@ export const placeholderDApps: DApp[] = [
     developer: 'Kasparex',
     status: 'Testnet',
     network: 'Testnet',
+    networkType: 'L2',
     provider: 'Kasparex',
     version: '1.0.0',
     description: 'Automatically distribute token payments across multiple recipients based on predefined percentages.',
@@ -101,6 +108,7 @@ export const placeholderDApps: DApp[] = [
     developer: 'Kasparex',
     status: 'Testnet',
     network: 'Testnet',
+    networkType: 'L2',
     provider: 'Kasparex',
     version: '1.0.0',
     description: 'A Web3 idea submission system where community members can share and track ideas linked to their wallet addresses.',
@@ -129,6 +137,7 @@ export const placeholderDApps: DApp[] = [
     developer: 'Kasparex',
     status: 'Testnet',
     network: 'Testnet',
+    networkType: 'L2',
     provider: 'Kasparex',
     version: '1.0.0',
     description: 'Create and verify token project profiles on Kasparex with on-chain ownership verification.',
@@ -157,6 +166,7 @@ export const placeholderDApps: DApp[] = [
     developer: 'Kasparex',
     status: 'Mainnet',
     network: 'Testnet',
+    networkType: 'L2',
     provider: 'Kasparex',
     version: '1.0.0',
     description: 'Create and manage bracket-style voting tournaments where community members vote on pairings using token-based contracts.',
@@ -185,6 +195,7 @@ export const placeholderDApps: DApp[] = [
     developer: 'Kasparex',
     status: 'Testnet',
     network: 'Testnet',
+    networkType: 'L2',
     provider: 'Kasparex',
     version: '1.0.0',
     description: 'Enable anonymous feedback collection from community members with a small KAS fee per message to prevent spam.',
@@ -205,6 +216,7 @@ export const placeholderDApps: DApp[] = [
     ],
     status: 'Testnet',
     network: 'Kasplex L2 Testnet',
+    networkType: 'L2',
     provider: 'Kasparex',
     version: '1.0.0',
     description: 'Simple Payment is the first dApp on Kasparex, demonstrating our fee collection and revenue distribution system. Send KAS payments with a transparent 1% fee that supports platform development.',
@@ -257,6 +269,7 @@ export const placeholderDApps: DApp[] = [
     ],
     status: 'Testnet',
     network: 'Kasplex L2',
+    networkType: 'L2',
     provider: 'Kasparex',
     version: '1.0.0',
     description: 'Quiz-to-Earn is a gamified learning platform where users answer questions about Kaspa, BlockDAG technology, and the ecosystem to earn rewards. Each correct answer earns GRID or token rewards, tracked on-chain through Proof-of-Utility.',
@@ -266,6 +279,50 @@ export const placeholderDApps: DApp[] = [
     supportedChainIds: [167012, 19416], // Kasplex L2 Testnet and Igra Caravel Testnet
     // Contract address will be fetched from environment variables via getContractAddress
     // deployerAddress will be fetched from DAppRegistry contract
+  },
+  {
+    id: '15',
+    name: 'Send KAS',
+    slug: 'send-kas',
+    category: 'payment',
+    utility: 'Send KAS (Kaspa native currency) to any Kaspa address quickly and securely.',
+    process: 'Enter recipient address and amount. Confirm transaction with your Kaspa wallet.',
+    benefits: 'Simple, fast, and secure KAS transfers on the Kaspa L1 network. No smart contracts required.',
+    developer: 'Kasparex',
+    developerLinks: [
+      { label: 'Website', url: 'https://www.kasparex.com' },
+      { label: 'Telegram', url: 'https://t.me/kasparex' },
+      { label: 'X (Twitter)', url: 'https://x.com/kasparex' },
+    ],
+    status: 'Mainnet',
+    network: 'Kaspa Mainnet',
+    networkType: 'L1',
+    provider: 'Kasparex',
+    version: '1.0.0',
+    description: 'Send KAS is a simple dApp for sending Kaspa native currency (KAS) to any Kaspa address. Built on L1, it provides fast and secure transfers without requiring smart contracts.',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: '16',
+    name: 'Send KREX',
+    slug: 'send-krex',
+    category: 'payment',
+    utility: 'Send KREX tokens to any Kaspa address on the L1 network.',
+    process: 'Enter recipient address and amount. Confirm KRC-20 token transfer with your Kaspa wallet.',
+    benefits: 'Transfer KREX tokens directly on Kaspa L1 using KRC-20 standard. Fast and secure token transfers.',
+    developer: 'Kasparex',
+    developerLinks: [
+      { label: 'Website', url: 'https://www.kasparex.com' },
+      { label: 'Telegram', url: 'https://t.me/kasparex' },
+      { label: 'X (Twitter)', url: 'https://x.com/kasparex' },
+    ],
+    status: 'Mainnet',
+    network: 'Kaspa Mainnet',
+    networkType: 'L1',
+    provider: 'Kasparex',
+    version: '1.0.0',
+    description: 'Send KREX is a simple dApp for sending KREX tokens to any Kaspa address. Built on L1, it uses the KRC-20 token standard for secure token transfers.',
+    createdAt: new Date().toISOString(),
   },
 ];
 
@@ -505,6 +562,31 @@ export function getDAppChainIds(dapp: DApp): number[] {
 export function isDAppCompatibleWithChain(dapp: DApp, chainId: number): boolean {
   const supportedChainIds = getDAppChainIds(dapp);
   return supportedChainIds.includes(chainId);
+}
+
+/**
+ * Gets the network type (L1 or L2) for a dApp.
+ * Uses networkType field if explicitly set, otherwise infers from network field.
+ * 
+ * @param dapp - The dApp to get network type for
+ * @returns 'L1' for Kaspa native, 'L2' for EVM-compatible
+ */
+export function getDAppNetworkType(dapp: DApp): 'L1' | 'L2' {
+  // If networkType is explicitly set, use it
+  if (dapp.networkType) {
+    return dapp.networkType;
+  }
+  
+  // Otherwise, infer from network field
+  const networkLower = dapp.network.toLowerCase();
+  
+  // If network contains "kasplex" or "igra", it's L2
+  if (networkLower.includes('kasplex') || networkLower.includes('igra')) {
+    return 'L2';
+  }
+  
+  // Default to L1 for other networks (Kaspa native)
+  return 'L1';
 }
 
 /**

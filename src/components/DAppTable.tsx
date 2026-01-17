@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useChainId } from 'wagmi';
-import { DApp, generateSimulatedTicker } from '@/lib/dapps';
+import { DApp, generateSimulatedTicker, getDAppNetworkType } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
 import { StatusIndicator } from './dapps/StatusIndicator';
@@ -40,6 +40,13 @@ function DAppTableRow({ dapp }: DAppTableRowProps) {
   
   const rawTicker = contractData?.ticker || generateSimulatedTicker(mergedDApp.name);
   const tokenTicker = rawTicker ? rawTicker.substring(0, 6) : null;
+  
+  // Get network type for badge
+  const networkType = getDAppNetworkType(mergedDApp);
+  const networkBadgeColor =
+    networkType === 'L1'
+      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+      : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300';
   
   return (
     <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
@@ -79,6 +86,15 @@ function DAppTableRow({ dapp }: DAppTableRowProps) {
       <td className="py-4 px-4">
         <Link href={`/dapps/${slug}`} className="block">
           <StatusIndicator dapp={mergedDApp} size="sm" clickable={false} />
+        </Link>
+      </td>
+      <td className="py-4 px-4">
+        <Link href={`/dapps/${slug}`} className="block">
+          <span
+            className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${networkBadgeColor}`}
+          >
+            {networkType}
+          </span>
         </Link>
       </td>
       <td className="py-4 px-4">
@@ -228,6 +244,13 @@ export function DAppTable({ dapps }: DAppTableProps) {
             >
               Status
               <SortIcon field="status" />
+            </th>
+            <th
+              className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              onClick={() => handleSort('network')}
+            >
+              Network
+              <SortIcon field="network" />
             </th>
             <th
               className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"

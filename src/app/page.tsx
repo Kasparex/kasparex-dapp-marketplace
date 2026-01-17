@@ -9,12 +9,13 @@ import { SortFilters, type SortOption, type ViewMode } from '@/components/SortFi
 import { DAppGrid } from '@/components/DAppGrid';
 import { DAppTable } from '@/components/DAppTable';
 import { Footer } from '@/components/Footer';
-import { placeholderDApps, filterDApps, getCategoryCounts, type FilterState } from '@/lib/dapps';
+import { placeholderDApps, filterDApps, getCategoryCounts, type FilterState, getDAppNetworkType } from '@/lib/dapps';
 import { sortDApps } from '@/lib/sorting';
 import type { Category } from '@/lib/categories';
 import { categories } from '@/lib/categories';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useLikes } from '@/hooks/useLikes';
+import { NetworkSwitcher } from '@/components/NetworkSwitcher';
 
 const validCategories = categories.map((cat) => cat.id);
 
@@ -43,6 +44,7 @@ function HomeContent() {
     developer: [],
     network: [],
   });
+  const [networkFilter, setNetworkFilter] = useState<'all' | 'L1' | 'L2'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
@@ -57,12 +59,17 @@ function HomeContent() {
     }
   }, [favoritesSet.size, sortBy]);
 
-  // Get category counts based on current filters and search
+  // Get category counts based on current filters, network filter, and search
   const categoryCounts = useMemo(() => {
-    return getCategoryCounts(placeholderDApps, filters, searchQuery);
-  }, [filters, searchQuery]);
+    // Apply network filter before counting
+    let filteredForCounts = placeholderDApps;
+    if (networkFilter !== 'all') {
+      filteredForCounts = filteredForCounts.filter((dapp) => getDAppNetworkType(dapp) === networkFilter);
+    }
+    return getCategoryCounts(filteredForCounts, filters, searchQuery);
+  }, [filters, searchQuery, networkFilter]);
 
-  // Filter and sort dApps based on current filters, selected categories, search query, and sort option
+  // Filter and sort dApps based on current filters, selected categories, network filter, search query, and sort option
   const filteredDApps = useMemo(() => {
     const filterState: FilterState = {
       category: selectedCategories,
@@ -70,18 +77,23 @@ function HomeContent() {
     };
     let filtered = filterDApps(placeholderDApps, filterState, searchQuery);
     
+    // Apply network filter (L1/L2)
+    if (networkFilter !== 'all') {
+      filtered = filtered.filter((dapp) => getDAppNetworkType(dapp) === networkFilter);
+    }
+    
     // If sorting by favorites, filter to only show favorites
     if (sortBy === 'favorites') {
       filtered = filtered.filter((dapp) => favoritesSet.has(dapp.id));
     }
     
     return sortDApps(filtered, sortBy, favoritesSet, likes);
-  }, [selectedCategories, filters, searchQuery, sortBy, favoritesSet, likes]);
+  }, [selectedCategories, filters, networkFilter, searchQuery, sortBy, favoritesSet, likes]);
 
   // Reset displayed count when filters change
   useEffect(() => {
     setDisplayedCount(50);
-  }, [selectedCategories, filters, searchQuery, sortBy]);
+  }, [selectedCategories, filters, networkFilter, searchQuery, sortBy]);
 
   // Get dApps to display (limited by displayedCount)
   const displayedDApps = useMemo(() => {
@@ -110,6 +122,7 @@ function HomeContent() {
       developer: [],
       network: [],
     });
+    setNetworkFilter('all');
     setSearchQuery('');
   };
 
@@ -149,13 +162,19 @@ function HomeContent() {
         <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 relative">
           <div>
             <div className="mb-6 flex items-start justify-between gap-4">
-              <div className="lg:pl-0 pl-12">
-                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-                  Available dApps
-                </h2>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
-              </p>
+              <div className="lg:pl-0 pl-12 flex-1">
+                <div className="flex items-center gap-4 mb-2 flex-wrap">
+                  <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                    Available dApps
+                  </h2>
+                  <NetworkSwitcher 
+                    value={networkFilter} 
+                    onChange={setNetworkFilter}
+                  />
+                </div>
+                <p className="text-zinc-600 dark:text-zinc-400">
+                  {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
+                </p>
               </div>
               {/* Action Buttons and Sort Filters - Positioned in top right */}
               <div className="flex items-center gap-2 flex-shrink-0">

@@ -13,6 +13,7 @@ import { CommentCreditsModal } from './CommentCreditsModal';
 import { CommentsInfoModal } from './CommentsInfoModal';
 import { Alert } from '@/components/Alert';
 import { Avatar } from '@/components/Avatar';
+import { NetworkInfoMessage } from '@/components/NetworkInfoMessage';
 
 interface CommentsSectionProps {
   articleId: string;
@@ -288,6 +289,25 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
                 </button>
               </div>
             )}
+
+            {/* Network Info for Comments */}
+            <div className="mb-4">
+              <div className="rounded-lg border p-4 bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
+                <div className="flex items-start gap-3">
+                  <div className="flex gap-2 flex-shrink-0">
+                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                      L1
+                    </span>
+                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+                      L2
+                    </span>
+                  </div>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400 flex-1">
+                    Comments can be posted using either L1 (Kaspa) or L2 (EVM) wallets. Choose the network that matches your dApp or preference.
+                  </p>
+                </div>
+              </div>
+            </div>
 
             {/* Comment Form */}
             {isWalletConnected ? (

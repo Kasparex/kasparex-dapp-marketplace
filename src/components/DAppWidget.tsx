@@ -5,9 +5,13 @@ import { useAccount, useChainId } from 'wagmi';
 import { DApp } from '@/lib/dapps';
 import { NetworkCompatibilityModal } from './NetworkCompatibilityModal';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
+import { useNetworkAwareWallet } from '@/hooks/useNetworkAwareWallet';
+import { NetworkInfoMessage } from './NetworkInfoMessage';
 import { SimplePaymentWidget } from './dapps/SimplePaymentWidget';
 import { DAOVotingWidget } from './dapps/DAOVotingWidget';
 import { QuizToEarnWidget } from './dapps/QuizToEarnWidget';
+import { SendKASWidget } from './dapps/SendKASWidget';
+import { SendKREXWidget } from './dapps/SendKREXWidget';
 import { DAppWidgetHeader } from './dapps/DAppWidgetHeader';
 import { DAppWidgetFooter } from './dapps/DAppWidgetFooter';
 import { getContractAddress } from '@/lib/contracts/addresses';
@@ -39,6 +43,7 @@ export function DAppWidget({
   const { isConnected } = useAccount();
   const chainId = useChainId();
   const compatibility = useNetworkCompatibility(dapp);
+  const networkWallet = useNetworkAwareWallet(dapp);
 
   const handleModalClose = () => {
     setShowModal(false);
@@ -77,6 +82,13 @@ export function DAppWidget({
           isOpen={showModal}
           onClose={handleModalClose}
         />
+        {!networkWallet.isCorrectWalletConnected && (
+          <NetworkInfoMessage 
+            networkType={networkWallet.networkType}
+            message={networkWallet.message}
+            className="mb-4"
+          />
+        )}
         <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
           {!hideHeader && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
@@ -114,6 +126,13 @@ export function DAppWidget({
           isOpen={showModal}
           onClose={handleModalClose}
         />
+        {!networkWallet.isCorrectWalletConnected && (
+          <NetworkInfoMessage 
+            networkType={networkWallet.networkType}
+            message={networkWallet.message}
+            className="mb-4"
+          />
+        )}
         <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
           {!hideHeader && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
@@ -142,6 +161,94 @@ export function DAppWidget({
     );
   }
 
+  // Render SendKREX widget if it's the Send KREX dApp
+  if (dapp.slug === 'send-krex' || dapp.id === '16') {
+    return (
+      <>
+        <NetworkCompatibilityModal
+          dapp={dapp}
+          isOpen={showModal}
+          onClose={handleModalClose}
+        />
+        {!networkWallet.isCorrectWalletConnected && (
+          <NetworkInfoMessage 
+            networkType={networkWallet.networkType}
+            message={networkWallet.message}
+            className="mb-4"
+          />
+        )}
+        <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
+          {!hideHeader && (
+            <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
+              <DAppWidgetHeader 
+                dapp={dapp} 
+                contractAddress={contractAddress}
+                hideIcons={hideIcons}
+                hideStar={hideStar}
+                hideHeart={hideHeart}
+                hideInfo={hideInfo}
+                hideEmbed={hideEmbed}
+                accentColor={accentColor}
+              />
+            </div>
+          )}
+          <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
+            <SendKREXWidget />
+          </div>
+          {!hideFooter && (
+            <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
+              <DAppWidgetFooter contractAddress={contractAddress} />
+            </div>
+          )}
+        </div>
+      </>
+    );
+  }
+
+  // Render SendKAS widget if it's the Send KAS dApp
+  if (dapp.slug === 'send-kas' || dapp.id === '15') {
+    return (
+      <>
+        <NetworkCompatibilityModal
+          dapp={dapp}
+          isOpen={showModal}
+          onClose={handleModalClose}
+        />
+        {!networkWallet.isCorrectWalletConnected && (
+          <NetworkInfoMessage 
+            networkType={networkWallet.networkType}
+            message={networkWallet.message}
+            className="mb-4"
+          />
+        )}
+        <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
+          {!hideHeader && (
+            <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
+              <DAppWidgetHeader 
+                dapp={dapp} 
+                contractAddress={contractAddress}
+                hideIcons={hideIcons}
+                hideStar={hideStar}
+                hideHeart={hideHeart}
+                hideInfo={hideInfo}
+                hideEmbed={hideEmbed}
+                accentColor={accentColor}
+              />
+            </div>
+          )}
+          <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
+            <SendKASWidget />
+          </div>
+          {!hideFooter && (
+            <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
+              <DAppWidgetFooter contractAddress={contractAddress} />
+            </div>
+          )}
+        </div>
+      </>
+    );
+  }
+
   // Render QuizToEarn widget if it's the Quiz-to-Earn dApp
   if (dapp.slug === 'quiz-to-earn') {
     return (
@@ -151,6 +258,13 @@ export function DAppWidget({
           isOpen={showModal}
           onClose={handleModalClose}
         />
+        {!networkWallet.isCorrectWalletConnected && (
+          <NetworkInfoMessage 
+            networkType={networkWallet.networkType}
+            message={networkWallet.message}
+            className="mb-4"
+          />
+        )}
         <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
           {!hideHeader && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
@@ -276,7 +390,13 @@ export function DAppWidget({
         isOpen={showModal}
         onClose={handleModalClose}
       />
-      
+      {!networkWallet.isCorrectWalletConnected && (
+        <NetworkInfoMessage 
+          networkType={networkWallet.networkType}
+          message={networkWallet.message}
+          className="mb-4"
+        />
+      )}
         <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
           {!hideHeader && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>

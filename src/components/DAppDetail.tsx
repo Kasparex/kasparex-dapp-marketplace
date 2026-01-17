@@ -6,10 +6,12 @@ import { DApp } from '@/lib/dapps';
 import { DAppWidget } from './DAppWidget';
 import { NetworkCompatibilityModal } from './NetworkCompatibilityModal';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
+import { useNetworkAwareWallet } from '@/hooks/useNetworkAwareWallet';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
 import { TokenDisplay } from './dapps/TokenDisplay';
 import { ProofOfUtility } from './dapps/ProofOfUtility';
 import { getContractAddress } from '@/lib/contracts/addresses';
+import { NetworkInfoMessage } from './NetworkInfoMessage';
 
 interface DAppDetailProps {
   dapp: DApp;
@@ -44,6 +46,14 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
         isOpen={showCompatibilityModal}
         onClose={() => setShowCompatibilityModal(false)}
       />
+
+      {/* Network Info Message */}
+      {!networkWallet.isCorrectWalletConnected && (
+        <NetworkInfoMessage 
+          networkType={networkWallet.networkType}
+          message={networkWallet.message}
+        />
+      )}
 
       {/* dApp Widget */}
       <DAppWidget dapp={dapp} />

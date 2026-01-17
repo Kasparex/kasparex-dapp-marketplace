@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useChainId } from 'wagmi';
-import { DApp, generateSimulatedTicker, generateSimulatedAddress } from '@/lib/dapps';
+import { DApp, generateSimulatedTicker, generateSimulatedAddress, getDAppNetworkType } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
 import { useLikes } from '@/hooks/useLikes';
@@ -75,6 +75,13 @@ export function DAppCard({ dapp }: DAppCardProps) {
     action();
   };
 
+  // Get network type for badge
+  const networkType = getDAppNetworkType(mergedDApp);
+  const networkBadgeColor =
+    networkType === 'L1'
+      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+      : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300';
+
   return (
     <Link
       href={`/dapps/${slug}`}
@@ -88,11 +95,17 @@ export function DAppCard({ dapp }: DAppCardProps) {
       </div>
 
       <div className="p-4 relative z-10 flex flex-col flex-1 min-h-0">
-        {/* Status Indicator and Fees Icon - Top Right (non-clickable on cards) */}
+        {/* Status Indicator, Network Badge, and Fees Icon - Top Right (non-clickable on cards) */}
         <div className="absolute top-4 right-4 z-10 flex items-center gap-2 pointer-events-none">
           <div className="pointer-events-auto">
             <StatusIndicator dapp={mergedDApp} size="md" clickable={false} />
           </div>
+          {/* Network Badge */}
+          <span
+            className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${networkBadgeColor} pointer-events-none`}
+          >
+            {networkType}
+          </span>
           <div className="pointer-events-none">
             <DAppFeesModal dapp={mergedDApp} tokenTicker={tokenTicker} />
           </div>
