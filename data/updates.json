@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768652685-f28fd0d",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix: Add 'network' to SortField type in DAppTable (by Kasparex)",
+      "date": "2026-01-17T13:23:54+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768652414-5de3dda",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: Add missing networkWallet hook call in DAppDetail (by Kasparex)",
