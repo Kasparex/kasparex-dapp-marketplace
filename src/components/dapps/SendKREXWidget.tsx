@@ -5,7 +5,6 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { signKRC20Transaction, getKRC20Balance } from '@/lib/kaspa/kasware';
 import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
 import { Alert } from '@/components/Alert';
-import { NetworkInfoMessage } from '@/components/NetworkInfoMessage';
 
 export function SendKREXWidget() {
   const { state, connect } = useKaspaWallet();
