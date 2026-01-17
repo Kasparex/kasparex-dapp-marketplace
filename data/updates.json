@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768658068-2663a0f",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix balance refresh logic to use proper decimal conversion (by Kasparex)",
+      "date": "2026-01-17T14:53:46+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768657804-a5036da",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix krexBalance type to number in SendKREXWidget (by Kasparex)",
