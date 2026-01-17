@@ -61,12 +61,14 @@ export function IconDisplay({
 
   const style = useMemo(() => {
     const iconSize = icon.config.size || size || 48;
-    const borderRadius = icon.config.borderRadius || 8;
+    // Check if className includes rounded-full to override borderRadius
+    const isRoundedFull = className.includes('rounded-full');
+    const borderRadius = isRoundedFull ? '50%' : `${icon.config.borderRadius || 8}px`;
     
     const baseStyle: React.CSSProperties = {
       width: `${iconSize}px`,
       height: `${iconSize}px`,
-      borderRadius: `${borderRadius}px`,
+      borderRadius: borderRadius,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -87,7 +89,7 @@ export function IconDisplay({
       ...baseStyle,
       backgroundColor: icon.colors.backgroundColor,
     };
-  }, [icon, size]);
+  }, [icon, size, className]);
 
   return (
     <div

@@ -226,13 +226,6 @@ export function DAppWidget({
           />
         )}
         <div className={`w-full bg-zinc-900 dark:bg-zinc-950 rounded-xl shadow-xl border border-zinc-800 dark:border-zinc-700 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
-          {/* Big dApp Title */}
-          <div className="px-6 py-4 border-b border-zinc-800 dark:border-zinc-700">
-            <h1 className="text-3xl font-bold text-white dark:text-zinc-100">
-              {dapp.name}
-            </h1>
-          </div>
-          
           {!hideHeader && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
               <DAppWidgetHeader 
@@ -247,6 +240,14 @@ export function DAppWidget({
               />
             </div>
           )}
+          
+          {/* Big dApp Title - Under Header */}
+          <div className="px-6 py-4 border-b border-zinc-800 dark:border-zinc-700">
+            <h1 className="text-3xl font-bold text-white dark:text-zinc-100">
+              {dapp.name}
+            </h1>
+          </div>
+          
           <div className={`bg-zinc-900 dark:bg-zinc-950 ${!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}`}>
             <SendKASWidget />
           </div>
@@ -366,13 +367,6 @@ export function DAppWidget({
         />
       )}
         <div className={`w-full bg-zinc-900 dark:bg-zinc-950 rounded-xl shadow-xl border border-zinc-800 dark:border-zinc-700 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
-          {/* Big dApp Title */}
-          <div className="px-6 py-4 border-b border-zinc-800 dark:border-zinc-700">
-            <h1 className="text-3xl font-bold text-white dark:text-zinc-100">
-              {dapp.name}
-            </h1>
-          </div>
-          
           {!hideHeader && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
               <DAppWidgetHeader 
@@ -387,6 +381,13 @@ export function DAppWidget({
               />
             </div>
           )}
+          
+          {/* Big dApp Title - Under Header */}
+          <div className="px-6 py-4 border-b border-zinc-800 dark:border-zinc-700">
+            <h1 className="text-3xl font-bold text-white dark:text-zinc-100">
+              {dapp.name}
+            </h1>
+          </div>
           <div 
             className={`relative w-full overflow-hidden bg-zinc-900 dark:bg-zinc-950 ${!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}`}
             style={{ minHeight: '600px' }}

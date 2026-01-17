@@ -10,6 +10,7 @@ import { generateSimulatedTicker } from '@/lib/dapps';
 import { getTokenBySlug, getAllTokens } from '@/lib/tokens/registry';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
+import { DAppIcon } from '@/components/dapps/DAppIcon';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -128,16 +129,17 @@ export function DAppTokenBox({ dapp }: DAppTokenBoxProps) {
     <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
       <div className="flex items-center gap-2 mb-3">
         {validTokenId ? (
-          <TokenLogoImage tokenId={validTokenId} size={20} />
+          <TokenLogoImage tokenId={validTokenId} size={20} className="rounded-full" />
         ) : (
-          <div className="flex items-center justify-center bg-zinc-200 dark:bg-zinc-700 rounded-full" style={{ width: 20, height: 20 }}>
-            <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">
-              {tokenTicker?.charAt(0) || 'T'}
-            </span>
-          </div>
+          <DAppIcon
+            dAppName={dapp.name}
+            category={dapp.category}
+            size={20}
+            className="rounded-full"
+          />
         )}
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-          {tokenTicker === 'KAS' ? tokenTicker : `${tokenTicker} Token`}
+          {tokenTicker}
         </h3>
       </div>
       
