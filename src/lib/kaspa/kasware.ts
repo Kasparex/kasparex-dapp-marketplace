@@ -333,17 +333,38 @@ export async function signKRC20Transaction(
     throw new Error('signKRC20Transaction() method is not available. Please update your KasWare extension.');
   }
   
+  // Validate that inscribeJsonString is actually a string
+  if (typeof inscribeJsonString !== 'string') {
+    console.error('[KasWare] Invalid inscribeJsonString type:', typeof inscribeJsonString, inscribeJsonString);
+    throw new Error(`inscribeJsonString must be a string, received ${typeof inscribeJsonString}. Did you forget to JSON.stringify()?`);
+  }
+  
   // Convert type to string if it's a number (KasWare API may accept both)
   const typeParam = typeof type === 'number' ? type.toString() : type;
   
+  // Ensure destAddr is a string
+  if (typeof destAddr !== 'string') {
+    console.error('[KasWare] Invalid destAddr type:', typeof destAddr, destAddr);
+    throw new Error(`destAddr must be a string, received ${typeof destAddr}`);
+  }
+  
   try {
     console.log('[KasWare] Calling signKRC20Transaction with:', {
-      inscribeJsonString,
+      inscribeJsonString: inscribeJsonString.substring(0, 100) + (inscribeJsonString.length > 100 ? '...' : ''),
+      inscribeJsonStringLength: inscribeJsonString.length,
+      inscribeJsonStringType: typeof inscribeJsonString,
       type: typeParam,
       destAddr,
       priorityFee,
     });
-    const result = await kasware.signKRC20Transaction(inscribeJsonString, typeParam, destAddr, priorityFee);
+    
+    // Double-check the string before calling
+    const jsonString = String(inscribeJsonString);
+    if (jsonString === '[object Object]' || jsonString === 'undefined' || jsonString === 'null') {
+      throw new Error(`Invalid inscribeJsonString: received "${jsonString}". Make sure to use JSON.stringify() on the inscription object.`);
+    }
+    
+    const result = await kasware.signKRC20Transaction(jsonString, typeParam, destAddr, priorityFee);
     console.log('[KasWare] signKRC20Transaction success, txHash:', result);
     return result;
   } catch (err) {

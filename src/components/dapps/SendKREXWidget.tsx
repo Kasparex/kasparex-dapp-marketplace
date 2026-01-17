@@ -124,7 +124,20 @@ export function SendKREXWidget() {
         to: recipientAddress, // Include recipient address in JSON (per KasWare API example)
       };
 
+      // Stringify the JSON and verify it's actually a string
       const inscribeJsonString = JSON.stringify(inscribeJson);
+      
+      // Validate the string was created correctly
+      if (typeof inscribeJsonString !== 'string' || inscribeJsonString === 'null' || inscribeJsonString === 'undefined') {
+        throw new Error('Failed to create valid JSON string for KRC-20 transfer');
+      }
+      
+      console.log('[SendKREX] Prepared inscription JSON:', {
+        json: inscribeJson,
+        string: inscribeJsonString,
+        stringType: typeof inscribeJsonString,
+        stringLength: inscribeJsonString.length,
+      });
       
       // Type: 2=deploy, 3=mint, 4=transfer (as number per KasWare API)
       // Priority fee: 0.001 KAS to ensure transaction is processed (in KAS units)
