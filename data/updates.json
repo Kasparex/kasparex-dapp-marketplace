@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768663247-17ee788",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add validation to ensure inscribeJsonString is a valid string before calling KasWare API (by Kasparex)",
+      "date": "2026-01-17T16:19:33+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768662628-ed38f37",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix KRC-20 JSON format (use uppercase KRC-20) and enhance error logging for debugging (by Kasparex)",
