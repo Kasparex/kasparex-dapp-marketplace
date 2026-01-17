@@ -12,6 +12,7 @@ import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useKaspaWallet } from '@/lib/kaspa/context';
 
 interface DAppTokenBoxProps {
   dapp: DApp;
@@ -141,7 +142,7 @@ export function DAppTokenBox({ dapp }: DAppTokenBoxProps) {
         )}
         
         {/* Balance (if connected) */}
-        {isConnected && tokenTicker && (
+        {isWalletConnected && tokenTicker && (
           <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
             <div className="flex items-center justify-between">
               <span className="text-xs text-zinc-600 dark:text-zinc-400">
