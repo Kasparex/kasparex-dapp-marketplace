@@ -11,6 +11,8 @@ import { handleNodeRequest } from './kasparex-api/nodes';
 import { handleRewardRequest } from './kasparex-api/rewards';
 import { handleL1RewardRequest } from './kasparex-api/rewards-l1';
 import { handlePublicRequest } from './kasparex-api/public';
+import { handleProcessRewards, processPendingRewards } from './kasparex-api/reward-processor';
+import { handleArchiveRewards, handleManualArchive } from './kasparex-api/archive';
 
 export interface Env {
   // KV Namespace for caching
@@ -39,7 +41,21 @@ export default {
         scheduledTime: Date.now(),
         cron: request.headers.get('cf-cron') || 'unknown',
       } as ScheduledEvent;
-      await handleArchiveRewards(event, env);
+      
+      const cron = event.cron;
+      
+      // Process rewards every 15 minutes
+      if (cron === '*/15 * * * *' || cron === '0,15,30,45 * * * *') {
+        console.log('[Cron] Processing pending rewards...');
+        await processPendingRewards(env, 50);
+      }
+      
+      // Archive rewards daily at 2 AM UTC
+      if (cron === '0 2 * * *') {
+        console.log('[Cron] Archiving old rewards...');
+        await handleArchiveRewards(event, env);
+      }
+      
       return new Response('OK');
     }
     const url = new URL(request.url);
@@ -60,6 +76,10 @@ export default {
       if (pathname.startsWith('/kasparex/rewards/')) {
         // L1 rewards (dApp user rewards)
         if (pathname.startsWith('/kasparex/rewards/l1/')) {
+          // Manual reward processing endpoint
+          if (pathname === '/kasparex/rewards/l1/process' && request.method === 'POST') {
+            return handleProcessRewards(request, env);
+          }
           return handleL1RewardRequest(request, env);
         }
         // Node rewards (KREX node operator rewards)
