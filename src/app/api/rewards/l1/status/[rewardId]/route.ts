@@ -21,9 +21,10 @@ export interface L1RewardStatusResponse {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { rewardId: string } }
+  context: { params: Promise<{ rewardId: string }> }
 ): Promise<NextResponse<L1RewardStatusResponse>> {
   try {
+    const params = await context.params;
     const { rewardId } = params;
 
     if (!rewardId) {
