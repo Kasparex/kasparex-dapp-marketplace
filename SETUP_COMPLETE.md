@@ -1,137 +1,170 @@
-# ✅ Setup Complete - Cloudflare Workers Deployed
+# ✅ Setup Complete!
 
-## 🎉 Successfully Completed
+## What's Been Done
 
-### Cloudflare Resources
-- ✅ **KV Namespace (KASPAREX_CACHE)**: `2d35691ad6da46a69d725645273f44ac`
-- ✅ **KV Namespace (RATE_LIMIT)**: `c4db19a526a344e79109cf4faae746c8`
-- ✅ **D1 Database (kasparex-nodes)**: `ec15da5c-133a-4735-9cd6-afde1377577a`
-- ✅ **Worker Deployed**: https://kasparex-api.kasparexcom.workers.dev
+✅ **Cloudflare D1 Database Created**
+- Database ID: `35760760-ee43-4ab4-b8c2-f9e134335acd`
+- Region: EEUR (Eastern Europe)
+- Tables created:
+  - `rewards_active` (for active rewards)
+  - `rewards_archived` (for archived rewards)
+  - `user_reward_summary` (for user summaries)
 
-### Worker Status
-- ✅ Health endpoint working: `/health`
-- ✅ API endpoints ready: `/kasparex/*`
-- ✅ CORS configured
-- ✅ Rate limiting enabled (100 req/min per IP)
+✅ **Database Schema Initialized**
+- All tables and indexes created successfully
+- Ready to store reward records
 
-## 📋 Remaining Steps
+✅ **Cloudflare Workers Deployed**
+- Worker URL: `https://kasparex-api.kasparexcom.workers.dev`
+- Cron job scheduled: Daily at 2 AM UTC (archives old rewards)
+- Endpoints available:
+  - `POST /kasparex/rewards/l1/record` - Record L1 rewards
+  - `GET /kasparex/rewards/l1/status/:rewardId` - Check reward status
+  - `POST /kasparex/rewards/archive` - Manual archive (requires auth token)
 
-### 1. Initialize Remote Database (Required)
+✅ **Configuration Updated**
+- `wrangler.toml` updated with database ID
+- All bindings configured (D1, KV, etc.)
 
-The database schema was initialized locally but needs to be applied to the remote database:
+---
 
-```bash
-cd workers
-npx wrangler d1 execute kasparex-nodes --file=./schema.sql --remote
+## Final Step: Configure Next.js
+
+### Add Environment Variable to Vercel
+
+1. Go to your Vercel project dashboard
+2. Navigate to **Settings** → **Environment Variables**
+3. Add new variable:
+   - **Name:** `NEXT_PUBLIC_CLOUDFLARE_WORKER_URL`
+   - **Value:** `https://kasparex-api.kasparexcom.workers.dev`
+   - **Environment:** Production, Preview, Development (select all)
+4. Click **Save**
+5. **Redeploy** your application
+
+### For Local Development
+
+Add to `.env.local`:
+```
+NEXT_PUBLIC_CLOUDFLARE_WORKER_URL=https://kasparex-api.kasparexcom.workers.dev
 ```
 
-**Note**: Answer "Y" when prompted. This will temporarily make the database unavailable.
+---
 
-### 2. Set Vercel Environment Variable (Required)
+## Test the Setup
 
-1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
-2. Select your project
-3. Go to **Settings** → **Environment Variables**
-4. Add:
-   - **Key**: `NEXT_PUBLIC_KASPAREX_API_URL`
-   - **Value**: `https://kasparex-api.kasparexcom.workers.dev`
-   - **Environments**: Production, Preview, Development (select all)
-
-### 3. Optional: Set Worker Secrets
-
-If you need Pinata or Storacha integration:
+### Test Reward Recording
 
 ```bash
-cd workers
-npx wrangler secret put PINATA_API_KEY
-npx wrangler secret put STORACHA_API_KEY
-npx wrangler secret put REGISTRY_CID
+curl -X POST https://kasparex-api.kasparexcom.workers.dev/kasparex/rewards/l1/record \
+  -H "Content-Type: application/json" \
+  -d '{
+    "txHash": "abc123def4567890123456789012345678901234567890123456789012345678",
+    "userAddress": "kaspa:qzy...",
+    "dappId": "dao-voting",
+    "actionType": "vote",
+    "actionValue": 1.0,
+    "network": "L1"
+  }'
 ```
 
-### 4. Deploy to Vercel
+**Expected Response:**
+```json
+{
+  "success": true,
+  "rewardId": "l1_1234567890_abc123"
+}
+```
 
-After setting environment variables, deploy:
+### Test Reward Status
 
-- **Via Git**: Push changes, Vercel auto-deploys
-- **Via CLI**: `vercel --prod`
-- **Via Dashboard**: Click "Deploy" button
-
-## 🧪 Test Your Deployment
-
-### Test Worker API
 ```bash
-# Health check
-curl https://kasparex-api.kasparexcom.workers.dev/health
-
-# Stats endpoint
-curl https://kasparex-api.kasparexcom.workers.dev/kasparex/stats
+curl https://kasparex-api.kasparexcom.workers.dev/kasparex/rewards/l1/status/l1_1234567890_abc123
 ```
 
-### Test Frontend Integration
-After deploying to Vercel with the environment variable set:
-1. Open your Vercel deployment URL
-2. Check browser console for API calls
-3. Verify asset resolution uses Krex Nodes
+**Expected Response:**
+```json
+{
+  "status": "pending",
+  "gridReward": null,
+  "dAppTokenReward": null
+}
+```
 
-## 📊 API Endpoints Available
+---
 
-### Node Management
-- `POST /kasparex/node/register` - Register a new node
-- `POST /kasparex/node/ping` - Send heartbeat
-- `GET /kasparex/nodes` - List all active nodes
-- `GET /kasparex/node/:id` - Get node details
-- `GET /kasparex/nodes/pinned/:cid` - Find nodes with CID
+## Optional: Set Environment Variables
 
-### Rewards
-- `GET /kasparex/rewards/:nodeId` - Get node rewards
-- `GET /kasparex/rewards/epoch/:epochDate` - Get epoch summary
+### Storacha API Key (for IPFS archival)
 
-### Public Data
-- `GET /kasparex/stats` - Network statistics
-- `GET /kasparex/dapps/availability?cid=...` - dApp availability
+If you have a Storacha API key:
 
-### Health
-- `GET /health` - Health check
+```bash
+wrangler secret put STORACHA_API_KEY
+```
 
-## 🔗 Important URLs
+### Archive Auth Token (for manual archive endpoint)
 
-- **Worker URL**: https://kasparex-api.kasparexcom.workers.dev
-- **Cloudflare Dashboard**: https://dash.cloudflare.com
-- **Vercel Dashboard**: https://vercel.com/dashboard
+Generate a secure token:
 
-## 📝 Configuration Files Updated
+```bash
+wrangler secret put ARCHIVE_AUTH_TOKEN
+```
 
-- ✅ `wrangler.toml` - All IDs configured
-- ✅ `workers/schema.sql` - Database schema ready
-- ✅ `src/lib/api/client.ts` - API client ready
-- ✅ `src/lib/storage/krex-nodes.ts` - Updated to use Workers API
+---
 
-## 🎯 What's Next?
+## Architecture Summary
 
-1. **Initialize remote database** (run the command above)
-2. **Set Vercel environment variable** (in dashboard)
-3. **Deploy to Vercel** (push to Git or use CLI)
-4. **Test everything** (verify API calls work)
+```
+User Transaction (L1)
+    ↓
+Next.js App
+    ↓
+Cloudflare Worker API
+    ↓
+D1 Database (Active Rewards)
+    ↓
+[After 7 days]
+    ↓
+IPFS/Storacha (Archived)
+    ↓
+D1 Database (CID Reference Only)
+```
 
-## 💡 Tips
+**Cost:** $0/month (all within free tiers!)
 
-- The worker is already deployed and working
-- Database schema initialization is the only blocking step
-- Environment variable in Vercel is required for frontend to connect
-- All existing UI components are preserved - no design changes
+---
 
-## 🆘 Troubleshooting
+## Monitoring
 
-If you encounter issues:
+### Cloudflare Dashboard
 
-1. **Worker not responding**: Check Cloudflare Dashboard → Workers
-2. **Database errors**: Make sure schema is initialized remotely
-3. **Frontend can't connect**: Verify `NEXT_PUBLIC_KASPAREX_API_URL` is set in Vercel
-4. **Rate limiting**: Check if you're hitting the 100 req/min limit
+1. **Workers & Pages** → `kasparex-api`
+   - Monitor requests (stay under 100k/day)
+   - Check errors and logs
 
-For more details, see:
-- `workers/README.md` - Worker setup guide
-- `MIGRATION_SUMMARY.md` - Complete migration details
-- `DEPLOYMENT_NEXT_STEPS.md` - Step-by-step deployment guide
+2. **D1** → `kasparex-rewards`
+   - Monitor storage (stay under 5GB)
+   - Monitor reads (stay under 5M/month)
 
+3. **Workers** → Triggers
+   - Verify cron job is scheduled (daily at 2 AM UTC)
 
+---
+
+## Next Steps
+
+1. ✅ Add `NEXT_PUBLIC_CLOUDFLARE_WORKER_URL` to Vercel
+2. ✅ Redeploy Next.js app
+3. ✅ Test L1 reward recording from your dApps
+4. ✅ Monitor usage in Cloudflare Dashboard
+5. ✅ (Optional) Set Storacha API key for IPFS archival
+
+---
+
+## Success! 🎉
+
+Your cost-effective, decentralized architecture is now live and ready to scale!
+
+**Worker URL:** https://kasparex-api.kasparexcom.workers.dev  
+**Database:** kasparex-rewards (35760760-ee43-4ab4-b8c2-f9e134335acd)  
+**Cost:** $0/month (free tiers)
