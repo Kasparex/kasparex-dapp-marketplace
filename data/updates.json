@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768758555-1cdd613",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix type error in ipfsArchive.ts for RewardRecord compatibility (by Kasparex)",
+      "date": "2026-01-18T18:48:17+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768758230-9eee034",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix KVNamespace type error for Next.js compatibility (by Kasparex)",
