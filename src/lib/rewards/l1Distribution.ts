@@ -24,9 +24,11 @@ export async function recordUsageAndRewardL1(
   txHash: string
 ): Promise<{ success: boolean; rewardId?: string; error?: string }> {
   try {
-    // Get API endpoint from environment or use default
-    const apiUrl = process.env.NEXT_PUBLIC_KASPAREX_API_URL || 'https://api.kasparex.com';
-    const endpoint = `${apiUrl}/api/rewards/l1/record`;
+    // Use relative URL for Next.js API routes, or external API if configured
+    const apiUrl = process.env.NEXT_PUBLIC_KASPAREX_API_URL;
+    const endpoint = apiUrl 
+      ? `${apiUrl}/api/rewards/l1/record`
+      : '/api/rewards/l1/record';
 
     // Call backend API to record L1 transaction
     const response = await fetch(endpoint, {
@@ -77,8 +79,11 @@ export async function getL1RewardStatus(
   rewardId: string
 ): Promise<{ status: string; gridReward?: number; dAppTokenReward?: number; distributedAt?: string; error?: string }> {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_KASPAREX_API_URL || 'https://api.kasparex.com';
-    const endpoint = `${apiUrl}/api/rewards/l1/status/${rewardId}`;
+    // Use relative URL for Next.js API routes, or external API if configured
+    const apiUrl = process.env.NEXT_PUBLIC_KASPAREX_API_URL;
+    const endpoint = apiUrl
+      ? `${apiUrl}/api/rewards/l1/status/${rewardId}`
+      : `/api/rewards/l1/status/${rewardId}`;
 
     const response = await fetch(endpoint, {
       method: 'GET',
