@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768766371-f0724e0",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TreasuryBox to use Treasury contract getBalance instead of non-existent FeeCollector function (by Kasparex)",
+      "date": "2026-01-18T20:59:11+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768766025-c0abf89",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix useWaitForTransactionReceipt hook usage in RewardStatusBox (by Kasparex)",
