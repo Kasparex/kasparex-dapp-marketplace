@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768756776-7ad0401",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Complete setup: database initialized, workers deployed, add completion guide (by Kasparex)",
+      "date": "2026-01-18T18:18:39+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768747948-ccb9695",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add SecureProofOfUtility to all address type definitions (by Kasparex)",
