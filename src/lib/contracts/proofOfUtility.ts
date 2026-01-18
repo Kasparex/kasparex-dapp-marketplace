@@ -3,13 +3,6 @@
  * 
  * Provides utilities for interacting with SecureProofOfUtility contract
  * Handles L2 (EVM) reward distribution with security measures
- */
-
-/**
- * ProofOfUtility Contract Integration
- * 
- * Provides utilities for interacting with SecureProofOfUtility contract
- * Handles L2 (EVM) reward distribution with security measures
  * 
  * Note: These functions return parameters for use with wagmi hooks
  * rather than executing transactions directly
@@ -55,7 +48,8 @@ export function getDAppAuthorizationParams(
 }
 
 /**
- * Record usage and distribute reward via SecureProofOfUtility (L2)
+ * Get transaction parameters for recordUsageAndReward (for use with wagmi hooks)
+ * Returns parameters that can be used with useWriteContract hook
  * 
  * @param userAddress User's wallet address
  * @param dAppContractAddress dApp contract address (must be authorized)
@@ -65,9 +59,9 @@ export function getDAppAuthorizationParams(
  * @param txHash Transaction hash of the original dApp transaction
  * @param nonce Nonce for replay protection
  * @param chainId Chain ID
- * @returns Success status and transaction hash
+ * @returns Transaction parameters for use with useWriteContract hook, or null if contract address not found
  */
-export async function recordUsageAndRewardL2(
+export function getRecordUsageAndRewardL2Params(
   userAddress: Address,
   dAppContractAddress: Address,
   dAppId: string,
@@ -76,68 +70,32 @@ export async function recordUsageAndRewardL2(
   txHash: string,
   nonce: bigint,
   chainId: number
-): Promise<{ success: boolean; txHash?: string; error?: string }> {
-  try {
-    const proofOfUtilityAddress = getSecureProofOfUtilityAddress(chainId);
-    
-    if (!proofOfUtilityAddress) {
-      return {
-        success: false,
-        error: 'SecureProofOfUtility contract address not found for current network',
-      };
-    }
-
-    // Verify dApp is authorized
-    const isAuthorized = await isDAppAuthorized(chainId, dAppContractAddress);
-    if (!isAuthorized) {
-      return {
-        success: false,
-        error: 'dApp contract is not authorized to call SecureProofOfUtility',
-      };
-    }
-
-    // Convert txHash string to bytes32
-    const txHashBytes32 = txHash.startsWith('0x') 
-      ? (txHash as `0x${string}`)
-      : (`0x${txHash}` as `0x${string}`);
-
-    // Call recordUsageAndReward on SecureProofOfUtility
-    const hash = await writeContract(config, {
-      address: proofOfUtilityAddress,
-      abi: SECURE_PROOF_OF_UTILITY_ABI,
-      functionName: 'recordUsageAndReward',
-      args: [
-        userAddress,
-        dAppContractAddress,
-        BigInt(dAppId),
-        actionType,
-        actionValue,
-        txHashBytes32,
-        nonce,
-      ],
-    });
-
-    // Wait for transaction confirmation
-    const receipt = await waitForTransactionReceipt(config, { hash });
-
-    if (receipt.status === 'success') {
-      return {
-        success: true,
-        txHash: hash,
-      };
-    } else {
-      return {
-        success: false,
-        error: 'Transaction failed',
-      };
-    }
-  } catch (error) {
-    console.error('Error recording usage and reward (L2):', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
+): { address: Address; abi: typeof SECURE_PROOF_OF_UTILITY_ABI; functionName: 'recordUsageAndReward'; args: [Address, Address, bigint, string, bigint, `0x${string}`, bigint] } | null {
+  const proofOfUtilityAddress = getSecureProofOfUtilityAddress(chainId);
+  
+  if (!proofOfUtilityAddress) {
+    return null;
   }
+
+  // Convert txHash string to bytes32
+  const txHashBytes32 = txHash.startsWith('0x') 
+    ? (txHash as `0x${string}`)
+    : (`0x${txHash}` as `0x${string}`);
+
+  return {
+    address: proofOfUtilityAddress,
+    abi: SECURE_PROOF_OF_UTILITY_ABI,
+    functionName: 'recordUsageAndReward',
+    args: [
+      userAddress,
+      dAppContractAddress,
+      BigInt(dAppId),
+      actionType,
+      actionValue,
+      txHashBytes32,
+      nonce,
+    ],
+  };
 }
 
 
