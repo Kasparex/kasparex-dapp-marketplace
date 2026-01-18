@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768747517-5e93aa0",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix missing KREX_TIERS import and add missing variables in useDAOVoting (by Kasparex)",
+      "date": "2026-01-18T15:44:15+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768747110-0ac3d28",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix missing export: add getRecordUsageAndRewardL2Params function (by Kasparex)",
