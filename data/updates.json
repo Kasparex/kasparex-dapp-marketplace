@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768764366-40f39c7",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add transaction tracking, reward status, treasury box, and documentation (by Kasparex)",
+      "date": "2026-01-18T20:25:45+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768758820-d807beb",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix type assertion in ipfsArchive.ts using double cast through unknown (by Kasparex)",
