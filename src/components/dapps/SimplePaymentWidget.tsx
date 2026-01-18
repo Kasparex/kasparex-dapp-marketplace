@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, useChainId } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
 import { SIMPLE_PAYMENT_ABI as SIMPLE_PAYMENT_ABI_IMPORT, SUBSCRIPTION_MANAGER_ABI } from '@/lib/contracts/abis';
@@ -13,6 +13,11 @@ import { TreasuryAutoDistribute } from '@/components/TreasuryAutoDistribute';
 import { getErrorMessage } from '@/lib/utils';
 import { useSafeError } from '@/hooks/useSafeError';
 import { useMemo } from 'react';
+import { calculateCost, type CostBreakdown } from '@/lib/payments/calculator';
+import { useAutomatedRewards } from '@/hooks/useAutomatedRewards';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useNFTStatus } from '@/hooks/useNFTStatus';
+import { placeholderDApps } from '@/lib/dapps';
 
 // Define ABI in proper JSON format as fallback to prevent bundling issues
 const SIMPLE_PAYMENT_ABI_FALLBACK = [
@@ -193,6 +198,38 @@ export function SimplePaymentWidget() {
   const [amount, setAmount] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [showDebugInfo, setShowDebugInfo] = useState(false);
+
+  // Get Simple Payment dApp object
+  const simplePaymentDApp = placeholderDApps.find(d => d.slug === 'simple-payment' || d.name.toLowerCase().includes('simple payment'));
+  
+  // Get user holdings for cost calculation
+  const { balance: krexBalance, tier } = useKREXBalance();
+  const { nftStatus } = useNFTStatus();
+  
+  // Automated rewards hook
+  const { distributeRewardAfterTransaction } = useAutomatedRewards();
+
+  // Calculate payment cost with discounts
+  const paymentCostBreakdown = useMemo((): CostBreakdown | null => {
+    if (!simplePaymentDApp || !amount || parseFloat(amount) <= 0) {
+      return null;
+    }
+    
+    return calculateCost({
+      dapp: simplePaymentDApp,
+      actionId: 'send-payment',
+      krexBalance: krexBalance || 0,
+      krexTier: tier,
+      hasAnyNFT: !!(nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX ||
+        (nftStatus?.partnerCollections && Object.values(nftStatus.partnerCollections || {}).some(v => v))),
+      hasDiamondNFT: !!(nftStatus?.hasDiamondKREXPRIME || nftStatus?.hasDiamondPIXELKREX ||
+        (nftStatus?.partnerDiamonds && Object.values(nftStatus.partnerDiamonds || {}).some(v => v))),
+      hasRarestNFT: !!nftStatus?.hasRarestNFT,
+      isNodeProvider: false, // TODO: Get from node status hook
+      nodeFeeReduction: 0,
+      nodeCostReduction: 0,
+    });
+  }, [simplePaymentDApp, amount, krexBalance, tier, nftStatus]);
 
   // Get contract addresses for current chain
   // Fallback to direct access if getContractAddress is not available
@@ -395,8 +432,33 @@ export function SimplePaymentWidget() {
   const safeTxError = useSafeError(txError);
   const displayError = error || safeWriteError || safeTxError;
 
-  // Reset form on success
-  if (isConfirmed && !isLoading) {
+  // Distribute rewards and reset form on success
+  useEffect(() => {
+    if (isConfirmed && !isLoading && hash && simplePaymentDApp && contractAddress) {
+      // Reset form
+      setRecipientAddress('');
+      setAmount('');
+      setError(null);
+
+      // Distribute rewards after successful transaction
+      const baseActionValue = paymentCostBreakdown?.baseCost || parseFloat(amount || '1.0');
+      
+      distributeRewardAfterTransaction({
+        dapp: simplePaymentDApp,
+        actionId: 'send-payment',
+        actionType: 'send-payment',
+        baseActionValue,
+        txHash: hash,
+        dAppContractAddress: contractAddress as `0x${string}`,
+      }).catch((err) => {
+        console.error('Error distributing reward:', err);
+        // Don't show error to user - reward distribution failure shouldn't block the UI
+      });
+    }
+  }, [isConfirmed, isLoading, hash, simplePaymentDApp, contractAddress, distributeRewardAfterTransaction, paymentCostBreakdown, amount]);
+
+  // Reset form on success (legacy - kept for compatibility)
+  if (isConfirmed && !isLoading && !hash) {
     setTimeout(() => {
       setRecipientAddress('');
       setAmount('');
@@ -450,34 +512,73 @@ export function SimplePaymentWidget() {
             />
           </div>
 
-          {/* Fee Breakdown */}
+          {/* Fee Breakdown with Calculated Costs */}
           {amount && amountBigInt > 0n && (
             <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
               <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
                 Payment Breakdown
               </h3>
               <div className="space-y-1 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-zinc-600 dark:text-zinc-400">Total Amount:</span>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1">
-                    <TokenLogoImage tokenId="kas" size={16} />
-                    {formatKAS(amountBigInt)} KAS
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-zinc-600 dark:text-zinc-400">Fee ({feePercentageNum / 100}%):</span>
-                  <span className="font-medium text-red-600 dark:text-red-400 flex items-center gap-1">
-                    <TokenLogoImage tokenId="kas" size={16} />
-                    -{formatKAS(feeAmount)} KAS
-                  </span>
-                </div>
-                <div className="flex justify-between items-center pt-2 border-t border-zinc-200 dark:border-zinc-800">
-                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">Recipient Receives:</span>
-                  <span className="font-semibold text-green-600 dark:text-green-400 flex items-center gap-1">
-                    <TokenLogoImage tokenId="kas" size={16} />
-                    {formatKAS(paymentAmount)} KAS
-                  </span>
-                </div>
+                {paymentCostBreakdown && (paymentCostBreakdown.costReductionPercent > 0 || paymentCostBreakdown.feePercent < 1.0) ? (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <span className="text-zinc-600 dark:text-zinc-400">Base Amount:</span>
+                      <span className="font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1">
+                        <TokenLogoImage tokenId="kas" size={16} />
+                        <span className="line-through text-zinc-400">
+                          {paymentCostBreakdown.baseCost.toFixed(2)} KAS + 1.00% fee
+                        </span>
+                      </span>
+                    </div>
+                    {paymentCostBreakdown.costReductionPercent > 0 && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-zinc-600 dark:text-zinc-400">Cost Reduction:</span>
+                        <span className="font-medium text-green-600 dark:text-green-400">
+                          -{paymentCostBreakdown.costReductionPercent.toFixed(0)}%
+                        </span>
+                      </div>
+                    )}
+                    {paymentCostBreakdown.feePercent < 1.0 && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-zinc-600 dark:text-zinc-400">Fee Reduction:</span>
+                        <span className="font-medium text-green-600 dark:text-green-400">
+                          {paymentCostBreakdown.feePercent.toFixed(2)}% (reduced from 1.00%)
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center pt-2 border-t border-zinc-200 dark:border-zinc-800">
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">Final Payment:</span>
+                      <span className="font-semibold text-green-600 dark:text-green-400 flex items-center gap-1">
+                        <TokenLogoImage tokenId="kas" size={16} />
+                        {paymentCostBreakdown.finalCostWithFee.toFixed(2)} KAS
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <span className="text-zinc-600 dark:text-zinc-400">Total Amount:</span>
+                      <span className="font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1">
+                        <TokenLogoImage tokenId="kas" size={16} />
+                        {formatKAS(amountBigInt)} KAS
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-zinc-600 dark:text-zinc-400">Fee ({feePercentageNum / 100}%):</span>
+                      <span className="font-medium text-red-600 dark:text-red-400 flex items-center gap-1">
+                        <TokenLogoImage tokenId="kas" size={16} />
+                        -{formatKAS(feeAmount)} KAS
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t border-zinc-200 dark:border-zinc-800">
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">Recipient Receives:</span>
+                      <span className="font-semibold text-green-600 dark:text-green-400 flex items-center gap-1">
+                        <TokenLogoImage tokenId="kas" size={16} />
+                        {formatKAS(paymentAmount)} KAS
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}

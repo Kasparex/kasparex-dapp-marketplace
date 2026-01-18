@@ -30,7 +30,13 @@ export function DAOVotingWidget() {
     voteFee,
     flagThreshold,
     proposalCount,
+    getSubmissionCost,
+    getVoteCost,
   } = useDAOVoting();
+
+  // Get calculated costs with discounts
+  const submissionCostBreakdown = getSubmissionCost();
+  const voteCostBreakdown = getVoteCost();
 
   // Load user votes for all proposals
   useEffect(() => {
@@ -164,21 +170,53 @@ export function DAOVotingWidget() {
         </button>
       </div>
 
-      {/* Fee Info */}
+      {/* Fee Info with Calculated Costs */}
       {submissionFee && voteFee && (
         <div className="p-4 bg-zinc-800 dark:bg-zinc-800 rounded-lg border border-zinc-700 dark:border-zinc-700">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-zinc-300 dark:text-zinc-400">Submission Fee:</span>
-              <span className="ml-2 font-semibold text-white dark:text-zinc-100">
-                {formatEther(submissionFee)} KAS
-              </span>
+              <div className="mt-1">
+                {submissionCostBreakdown && (submissionCostBreakdown.costReductionPercent > 0 || submissionCostBreakdown.feePercent < 1.0) ? (
+                  <div>
+                    <span className="line-through text-zinc-500 text-xs">
+                      {submissionCostBreakdown.baseCost.toFixed(2)} KAS + 1.00% fee
+                    </span>
+                    <span className="ml-2 font-semibold text-green-400">
+                      {submissionCostBreakdown.finalCostWithFee.toFixed(2)} KAS
+                      {submissionCostBreakdown.costReductionPercent > 0 && ` (-${submissionCostBreakdown.costReductionPercent.toFixed(0)}% cost`}
+                      {submissionCostBreakdown.feePercent < 1.0 && `, ${submissionCostBreakdown.feePercent.toFixed(2)}% fee`}
+                      {submissionCostBreakdown.costReductionPercent > 0 || submissionCostBreakdown.feePercent < 1.0 ? ')' : ''}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="font-semibold text-white dark:text-zinc-100">
+                    {formatEther(submissionFee)} KAS
+                  </span>
+                )}
+              </div>
             </div>
             <div>
               <span className="text-zinc-300 dark:text-zinc-400">Vote Fee:</span>
-              <span className="ml-2 font-semibold text-white dark:text-zinc-100">
-                {formatEther(voteFee)} KAS
-              </span>
+              <div className="mt-1">
+                {voteCostBreakdown && (voteCostBreakdown.costReductionPercent > 0 || voteCostBreakdown.feePercent < 1.0) ? (
+                  <div>
+                    <span className="line-through text-zinc-500 text-xs">
+                      {voteCostBreakdown.baseCost.toFixed(2)} KAS + 1.00% fee
+                    </span>
+                    <span className="ml-2 font-semibold text-green-400">
+                      {voteCostBreakdown.finalCostWithFee.toFixed(2)} KAS
+                      {voteCostBreakdown.costReductionPercent > 0 && ` (-${voteCostBreakdown.costReductionPercent.toFixed(0)}% cost`}
+                      {voteCostBreakdown.feePercent < 1.0 && `, ${voteCostBreakdown.feePercent.toFixed(2)}% fee`}
+                      {voteCostBreakdown.costReductionPercent > 0 || voteCostBreakdown.feePercent < 1.0 ? ')' : ''}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="font-semibold text-white dark:text-zinc-100">
+                    {formatEther(voteFee)} KAS
+                  </span>
+                )}
+              </div>
             </div>
             {flagThreshold && (
               <div className="col-span-2">
@@ -234,7 +272,18 @@ export function DAOVotingWidget() {
             {submissionFee && (
               <div className="p-3 bg-blue-900/30 dark:bg-blue-900/20 rounded-lg border border-blue-800/50 dark:border-blue-800">
                 <p className="text-sm text-blue-300 dark:text-blue-400">
-                  Submission fee: {formatEther(submissionFee)} KAS
+                  {submissionCostBreakdown && (submissionCostBreakdown.costReductionPercent > 0 || submissionCostBreakdown.feePercent < 1.0) ? (
+                    <span>
+                      Submission fee: <span className="line-through text-blue-400/60">{submissionCostBreakdown.baseCost.toFixed(2)} KAS + 1.00% fee</span>{' '}
+                      <span className="text-green-400">{submissionCostBreakdown.finalCostWithFee.toFixed(2)} KAS
+                        {submissionCostBreakdown.costReductionPercent > 0 && ` (-${submissionCostBreakdown.costReductionPercent.toFixed(0)}% cost`}
+                        {submissionCostBreakdown.feePercent < 1.0 && `, ${submissionCostBreakdown.feePercent.toFixed(2)}% fee`}
+                        {submissionCostBreakdown.costReductionPercent > 0 || submissionCostBreakdown.feePercent < 1.0 ? ')' : ''}
+                      </span>
+                    </span>
+                  ) : (
+                    `Submission fee: ${formatEther(submissionFee)} KAS`
+                  )}
                 </p>
               </div>
             )}

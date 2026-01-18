@@ -6,6 +6,11 @@ import { parseEther, formatEther } from 'viem';
 import { DAO_VOTING_ABI } from '@/lib/contracts/abis';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { useSafeError } from './useSafeError';
+import { calculateCost, type CostBreakdown } from '@/lib/payments/calculator';
+import { useAutomatedRewards } from './useAutomatedRewards';
+import { useKREXBalance } from './useKREXBalance';
+import { useNFTStatus } from './useNFTStatus';
+import { placeholderDApps } from '@/lib/dapps';
 
 export interface Proposal {
   id: bigint;
@@ -39,6 +44,9 @@ interface UseDAOVotingReturn {
   voteFee: bigint | null;
   flagThreshold: bigint | null;
   proposalCount: bigint | null;
+  // Cost calculation
+  getSubmissionCost: () => CostBreakdown | null;
+  getVoteCost: () => CostBreakdown | null;
 }
 
 export function useDAOVoting(): UseDAOVotingReturn {
@@ -156,28 +164,75 @@ export function useDAOVoting(): UseDAOVotingReturn {
     await loadProposals();
   }, [loadProposals]);
 
+  // Calculate submission cost with discounts
+  const getSubmissionCost = useCallback((): CostBreakdown | null => {
+    if (!daoVotingDApp) return null;
+    
+    return calculateCost({
+      dapp: daoVotingDApp,
+      actionId: 'submit-proposal',
+      krexBalance: krexBalance || 0,
+      krexTier: tier,
+      hasAnyNFT: !!(nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX ||
+        (nftStatus?.partnerCollections && Object.values(nftStatus.partnerCollections || {}).some(v => v))),
+      hasDiamondNFT: !!(nftStatus?.hasDiamondKREXPRIME || nftStatus?.hasDiamondPIXELKREX ||
+        (nftStatus?.partnerDiamonds && Object.values(nftStatus.partnerDiamonds || {}).some(v => v))),
+      hasRarestNFT: !!nftStatus?.hasRarestNFT,
+      isNodeProvider: false, // TODO: Get from node status hook
+      nodeFeeReduction: 0,
+      nodeCostReduction: 0,
+    });
+  }, [daoVotingDApp, krexBalance, tier, nftStatus]);
+
+  // Calculate vote cost with discounts
+  const getVoteCost = useCallback((): CostBreakdown | null => {
+    if (!daoVotingDApp) return null;
+    
+    return calculateCost({
+      dapp: daoVotingDApp,
+      actionId: 'cast-vote',
+      krexBalance: krexBalance || 0,
+      krexTier: tier,
+      hasAnyNFT: !!(nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX ||
+        (nftStatus?.partnerCollections && Object.values(nftStatus.partnerCollections || {}).some(v => v))),
+      hasDiamondNFT: !!(nftStatus?.hasDiamondKREXPRIME || nftStatus?.hasDiamondPIXELKREX ||
+        (nftStatus?.partnerDiamonds && Object.values(nftStatus.partnerDiamonds || {}).some(v => v))),
+      hasRarestNFT: !!nftStatus?.hasRarestNFT,
+      isNodeProvider: false, // TODO: Get from node status hook
+      nodeFeeReduction: 0,
+      nodeCostReduction: 0,
+    });
+  }, [daoVotingDApp, krexBalance, tier, nftStatus]);
+
   // Submit proposal
   const submitProposal = useCallback(async (title: string, description: string) => {
-    if (!contractAddress || !submissionFee) {
+    if (!contractAddress) {
       throw new Error('Contract not available');
     }
 
     setError(null);
 
     try {
+      // Calculate cost with discounts
+      const costBreakdown = getSubmissionCost();
+      const finalFee = costBreakdown 
+        ? parseEther(costBreakdown.finalCostWithFee.toString())
+        : (submissionFee || parseEther('10'));
+
+      // Execute transaction with calculated cost
       await writeContract({
         address: contractAddress as `0x${string}`,
         abi: DAO_VOTING_ABI,
         functionName: 'submitProposal',
         args: [title, description],
-        value: submissionFee,
+        value: finalFee,
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to submit proposal';
       setError(errorMessage);
       throw err;
     }
-  }, [contractAddress, submissionFee, writeContract]);
+  }, [contractAddress, submissionFee, writeContract, getSubmissionCost]);
 
   // Vote
   const vote = useCallback(async (proposalId: bigint, support: boolean) => {
@@ -204,26 +259,39 @@ export function useDAOVoting(): UseDAOVotingReturn {
 
   // Change vote
   const changeVote = useCallback(async (proposalId: bigint, newSupport: boolean) => {
-    if (!contractAddress || !voteFee) {
+    if (!contractAddress) {
       throw new Error('Contract not available');
     }
 
     setError(null);
 
     try {
+      // Calculate cost with discounts (same as vote)
+      const costBreakdown = getVoteCost();
+      const finalFee = costBreakdown 
+        ? parseEther(costBreakdown.finalCostWithFee.toString())
+        : (voteFee || parseEther('1'));
+
+      // Track action for reward distribution
+      setLastActionType('cast-vote');
+      setLastActionCost(costBreakdown?.baseCost || 1.0);
+
+      // Execute transaction with calculated cost
       await writeContract({
         address: contractAddress as `0x${string}`,
         abi: DAO_VOTING_ABI,
         functionName: 'changeVote',
         args: [proposalId, newSupport],
-        value: voteFee,
+        value: finalFee,
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to change vote';
       setError(errorMessage);
+      setLastActionType(null);
+      setLastActionCost(null);
       throw err;
     }
-  }, [contractAddress, voteFee, writeContract]);
+  }, [contractAddress, voteFee, writeContract, getVoteCost]);
 
   // Get user vote
   const getUserVote = useCallback(async (proposalId: bigint): Promise<Vote | null> => {
@@ -281,6 +349,8 @@ export function useDAOVoting(): UseDAOVotingReturn {
     voteFee: voteFee || null,
     flagThreshold: flagThreshold || null,
     proposalCount: proposalCount || null,
+    getSubmissionCost,
+    getVoteCost,
   };
 }
 

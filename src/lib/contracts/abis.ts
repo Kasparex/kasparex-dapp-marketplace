@@ -639,6 +639,244 @@ export const PROOF_OF_UTILITY_ABI = [
   }
 ] as const;
 
+export const SECURE_PROOF_OF_UTILITY_ABI = [
+  {
+    type: "function",
+    name: "recordUsageAndReward",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" },
+      { internalType: "address", name: "dAppContract", type: "address" },
+      { internalType: "uint256", name: "dAppId", type: "uint256" },
+      { internalType: "string", name: "actionType", type: "string" },
+      { internalType: "uint256", name: "actionValue", type: "uint256" },
+      { internalType: "bytes32", name: "txHash", type: "bytes32" },
+      { internalType: "uint256", name: "nonce", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "recordUsage",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" },
+      { internalType: "address", name: "dAppContract", type: "address" },
+      { internalType: "uint256", name: "dAppId", type: "uint256" },
+      { internalType: "string", name: "actionType", type: "string" },
+      { internalType: "bytes32", name: "txHash", type: "bytes32" },
+      { internalType: "uint256", name: "nonce", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "authorizedDApps",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "", type: "address" }
+    ],
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  },
+  {
+    type: "function",
+    name: "processedTransactions",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "bytes32", name: "", type: "bytes32" }
+    ],
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  },
+  {
+    type: "function",
+    name: "lastActionTime",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "", type: "address" },
+      { internalType: "string", name: "", type: "string" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "maxActionValue",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "maxRewardPerAction",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "string", name: "", type: "string" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "cooldownPeriods",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "string", name: "", type: "string" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "defaultCooldownPeriod",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "getUserEvents",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" }
+    ],
+    outputs: [
+      {
+        components: [
+          { internalType: "address", name: "user", type: "address" },
+          { internalType: "address", name: "dAppContract", type: "address" },
+          { internalType: "uint256", name: "dAppId", type: "uint256" },
+          { internalType: "string", name: "actionType", type: "string" },
+          { internalType: "uint256", name: "timestamp", type: "uint256" },
+          { internalType: "bytes32", name: "txHash", type: "bytes32" },
+          { internalType: "uint256", name: "nonce", type: "uint256" }
+        ],
+        internalType: "tuple[]",
+        name: "",
+        type: "tuple[]"
+      }
+    ]
+  },
+  {
+    type: "function",
+    name: "getDAppEvents",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "dAppContract", type: "address" }
+    ],
+    outputs: [
+      {
+        components: [
+          { internalType: "address", name: "user", type: "address" },
+          { internalType: "address", name: "dAppContract", type: "address" },
+          { internalType: "uint256", name: "dAppId", type: "uint256" },
+          { internalType: "string", name: "actionType", type: "string" },
+          { internalType: "uint256", name: "timestamp", type: "uint256" },
+          { internalType: "bytes32", name: "txHash", type: "bytes32" },
+          { internalType: "uint256", name: "nonce", type: "uint256" }
+        ],
+        internalType: "tuple[]",
+        name: "",
+        type: "tuple[]"
+      }
+    ]
+  },
+  {
+    type: "function",
+    name: "getUserEventCount",
+    stateMutability: "view",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" }
+    ],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "rewardManager",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "address", name: "", type: "address" }
+    ]
+  },
+  {
+    type: "function",
+    name: "totalEvents",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "uint256", name: "", type: "uint256" }
+    ]
+  },
+  {
+    type: "function",
+    name: "pause",
+    stateMutability: "nonpayable",
+    inputs: [],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "unpause",
+    stateMutability: "nonpayable",
+    inputs: [],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "paused",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" }
+    ]
+  },
+  {
+    type: "event",
+    name: "UsageEventRecorded",
+    inputs: [
+      { indexed: true, internalType: "address", name: "user", type: "address" },
+      { indexed: true, internalType: "address", name: "dAppContract", type: "address" },
+      { indexed: true, internalType: "uint256", name: "dAppId", type: "uint256" },
+      { indexed: false, internalType: "string", name: "actionType", type: "string" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" },
+      { indexed: false, internalType: "bytes32", name: "txHash", type: "bytes32" }
+    ],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "RewardDistributed",
+    inputs: [
+      { indexed: true, internalType: "address", name: "user", type: "address" },
+      { indexed: true, internalType: "address", name: "dAppContract", type: "address" },
+      { indexed: false, internalType: "uint256", name: "rewardAmount", type: "uint256" }
+    ],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "DAppAuthorized",
+    inputs: [
+      { indexed: true, internalType: "address", name: "dAppContract", type: "address" },
+      { indexed: false, internalType: "bool", name: "authorized", type: "bool" }
+    ],
+    anonymous: false
+  }
+] as const;
+
 export const ACCESS_CONTROL_ABI = [
   {
     type: "function",
