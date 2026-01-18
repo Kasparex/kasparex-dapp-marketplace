@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAccount, useChainId, useReadContract } from 'wagmi';
 import { formatEther } from 'viem';
 import { getContractAddress } from '@/lib/contracts/addresses';
-import { FEE_COLLECTOR_ABI } from '@/lib/contracts/abis';
+import { FEE_COLLECTOR_ABI, TREASURY_ABI } from '@/lib/contracts/abis';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 
 interface TreasuryBoxProps {
@@ -33,16 +33,30 @@ export function TreasuryBox({ compact = false, showPerDApp = false }: TreasuryBo
   const chainId = useChainId();
   const { state: kaspaState } = useKaspaWallet();
 
-  // Get fee collector contract address
+  // Get treasury contract address directly (or get it from FeeCollector)
+  const treasuryAddress = getContractAddress(chainId, 'Treasury');
   const feeCollectorAddress = getContractAddress(chainId, 'FeeCollector');
 
-  // Read treasury balance from FeeCollector contract (L2)
-  const { data: treasuryBalance, isLoading: isLoadingBalance } = useReadContract({
+  // First, get treasury address from FeeCollector if we don't have it directly
+  const { data: treasuryAddressFromCollector } = useReadContract({
     address: feeCollectorAddress as `0x${string}` | undefined,
     abi: FEE_COLLECTOR_ABI,
-    functionName: 'getTreasuryBalance',
+    functionName: 'treasury',
     query: {
-      enabled: !!feeCollectorAddress && !!evmAddress,
+      enabled: !!feeCollectorAddress && !treasuryAddress && !!evmAddress,
+    },
+  });
+
+  // Use treasury address (direct or from FeeCollector)
+  const finalTreasuryAddress = (treasuryAddress || treasuryAddressFromCollector) as `0x${string}` | undefined;
+
+  // Read treasury balance from Treasury contract (L2)
+  const { data: treasuryBalance, isLoading: isLoadingBalance } = useReadContract({
+    address: finalTreasuryAddress,
+    abi: TREASURY_ABI,
+    functionName: 'getBalance',
+    query: {
+      enabled: !!finalTreasuryAddress && !!evmAddress,
     },
   });
 
