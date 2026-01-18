@@ -27,7 +27,7 @@ database_id = "ec15da5c-133a-4735-9cd6-afde1377577a"
 [[d1_databases]]
 binding = "REWARDS_DB"
 database_name = "kasparex-rewards"
-database_id = "TBD"  # Create with: wrangler d1 create kasparex-rewards
+database_id = "35760760-ee43-4ab4-b8c2-f9e134335acd"
 
 # Environment variables (set via wrangler secret put or dashboard)
 # [vars]
