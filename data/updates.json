@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768757879-c51819a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix Next.js 15 route handler signature for dynamic params (by Kasparex)",
+      "date": "2026-01-18T18:36:52+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768757592-9db2a77",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Trigger Vercel deployment with Cloudflare Worker URL (by Kasparex)",
