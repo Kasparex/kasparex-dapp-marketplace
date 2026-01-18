@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768735942-8114450",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Add missing L1KaspaButton and L2NetworkButton components, fix React hooks usage in fee collector and reward distribution (by Kasparex)",
+      "date": "2026-01-18T12:31:53+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768735289-228708e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Remove duplicate totalFeeReduction declaration in DAppActionFlow (by Kasparex)",
