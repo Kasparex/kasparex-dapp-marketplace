@@ -34,6 +34,9 @@ export function DAOVotingWidget() {
     proposalCount,
     getSubmissionCost,
     getVoteCost,
+    txHash,
+    isConfirmed,
+    lastActionType,
   } = useDAOVoting();
 
   // Get calculated costs with discounts
