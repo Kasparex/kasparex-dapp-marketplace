@@ -406,18 +406,15 @@ export function SimplePaymentWidget() {
         return;
       }
 
-      const result = await writeContract({
+      // writeContract doesn't return a value - it triggers the transaction
+      // The transaction hash will be available via the useWriteContract hook's 'data' property
+      await writeContract({
         address: validContractAddress,
         abi: abiToUse,
         functionName: 'sendPayment',
         args: [validRecipientAddress],
         value: amountBigInt,
       });
-
-      // If writeContract returns undefined or null, the transaction wasn't submitted
-      if (!result) {
-        throw new Error('Transaction not submitted. Please check your wallet connection and try again.');
-      }
     } catch (err: any) {
       console.error('Write contract error:', err);
       const errorMessage = getErrorMessage(err, 'Failed to send payment');

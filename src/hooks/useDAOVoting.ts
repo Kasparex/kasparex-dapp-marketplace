@@ -283,20 +283,15 @@ export function useDAOVoting(): UseDAOVotingReturn {
       setLastActionCost(costBreakdown?.baseCost || 1.0);
 
       // Execute transaction with calculated cost
-      const result = await writeContract({
+      // writeContract doesn't return a value - it triggers the transaction
+      // The transaction hash will be available via the useWriteContract hook's 'data' property
+      await writeContract({
         address: contractAddress as `0x${string}`,
         abi: DAO_VOTING_ABI,
         functionName: 'vote',
         args: [proposalId, support],
         value: finalFee,
       });
-
-      // If writeContract returns undefined or null, the transaction wasn't submitted
-      if (!result) {
-        throw new Error('Transaction not submitted. Please check your wallet connection and try again.');
-      }
-
-      return result;
     } catch (err: any) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to vote';
       
