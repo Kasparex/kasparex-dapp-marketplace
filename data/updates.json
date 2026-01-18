@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768736943-fe12aef",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Remove @wagmi/core imports, use parameter helper functions instead (by Kasparex)",
+      "date": "2026-01-18T12:48:37+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768736419-26f02fa",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Change krexTier type from number to KREXTier in cost calculator (by Kasparex)",
