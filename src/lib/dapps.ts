@@ -45,6 +45,19 @@ export interface DApp {
    * If not explicitly set, will be inferred from the network field.
    */
   networkType?: 'L1' | 'L2';
+  /**
+   * Optional payment configuration for network-specific pricing.
+   * If not provided, will use default payment configs based on dApp category/name.
+   */
+  paymentConfig?: {
+    actions: Array<{
+      actionId: string;
+      actionName: string;
+      baseCost: number;
+      costL1?: number;
+      costL2?: number;
+    }>;
+  };
 }
 
 // Placeholder dApps for template demonstration
@@ -424,6 +437,23 @@ export function getDAppNetworkType(dapp: DApp): 'L1' | 'L2' {
   
   // Default to L1 for other networks (Kaspa native)
   return 'L1';
+}
+
+/**
+ * Get payment configuration for a dApp
+ * Uses paymentConfig field if available, otherwise uses default configs
+ * 
+ * @param dapp - The dApp to get payment config for
+ * @param networkType - The network type (L1 or L2)
+ * @returns Payment configuration or null
+ */
+export function getDAppPaymentConfig(
+  dapp: DApp,
+  networkType: 'L1' | 'L2'
+): import('./payments/config').PaymentConfig | null {
+  // Import dynamically to avoid circular dependencies
+  const { getDAppPaymentConfig: getPaymentConfig } = require('./payments/config');
+  return getPaymentConfig(dapp, networkType);
 }
 
 /**

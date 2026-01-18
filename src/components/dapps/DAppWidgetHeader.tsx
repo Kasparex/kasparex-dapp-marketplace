@@ -153,14 +153,23 @@ export function DAppWidgetHeader({
             const networkType = getDAppNetworkType(mergedDApp);
             const networkBadgeColor =
               networkType === 'L1'
-                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300';
+                ? 'bg-[#02abb8]/20 dark:bg-[#02abb8]/30 text-[#02abb8] border-[#02abb8]/30 dark:border-[#02abb8]/50'
+                : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700';
             return (
               <span
-                className={`absolute top-2 left-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium backdrop-blur-sm ${networkBadgeColor} z-20`}
-                title={`${mergedDApp.name} is deployed on ${networkType === 'L1' ? 'Kaspa Layer 1' : 'Kasplex Layer 2'} network`}
+                className={`absolute top-2 left-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold backdrop-blur-sm border ${networkBadgeColor} z-20 shadow-sm`}
+                title={`${mergedDApp.name} is deployed on ${networkType === 'L1' ? 'Kaspa Layer 1' : 'Kasplex/Igra Layer 2'} network`}
                 aria-label={`Network type: ${networkType}`}
               >
+                {networkType === 'L1' ? (
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                ) : (
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+                  </svg>
+                )}
                 {networkType}
               </span>
             );
@@ -187,14 +196,23 @@ export function DAppWidgetHeader({
             const networkType = getDAppNetworkType(mergedDApp);
             const networkBadgeColor =
               networkType === 'L1'
-                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300';
+                ? 'bg-[#02abb8]/20 dark:bg-[#02abb8]/30 text-[#02abb8] border-[#02abb8]/30 dark:border-[#02abb8]/50'
+                : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700';
             return (
               <span
-                className={`absolute top-3 left-3 inline-flex items-center px-2 py-1 rounded text-xs font-medium ${networkBadgeColor} z-20`}
-                title={`${mergedDApp.name} is deployed on ${networkType === 'L1' ? 'Kaspa Layer 1' : 'Kasplex Layer 2'} network`}
+                className={`absolute top-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${networkBadgeColor} z-20 shadow-sm`}
+                title={`${mergedDApp.name} is deployed on ${networkType === 'L1' ? 'Kaspa Layer 1' : 'Kasplex/Igra Layer 2'} network`}
                 aria-label={`Network type: ${networkType}`}
               >
+                {networkType === 'L1' ? (
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                ) : (
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+                  </svg>
+                )}
                 {networkType}
               </span>
             );
