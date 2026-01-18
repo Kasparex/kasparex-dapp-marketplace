@@ -18,6 +18,9 @@ import { useAutomatedRewards } from '@/hooks/useAutomatedRewards';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { placeholderDApps } from '@/lib/dapps';
+import { storeTransaction } from '@/lib/transactions/tracker';
+import { TransactionTracker } from '@/components/transactions/TransactionTracker';
+import { RewardStatusBox } from '@/components/rewards/RewardStatusBox';
 
 // Define ABI in proper JSON format as fallback to prevent bundling issues
 const SIMPLE_PAYMENT_ABI_FALLBACK = [
@@ -434,15 +437,35 @@ export function SimplePaymentWidget() {
 
   // Distribute rewards and reset form on success
   useEffect(() => {
-    if (isConfirmed && !isLoading && hash && simplePaymentDApp && contractAddress) {
+    if (isConfirmed && !isLoading && hash && simplePaymentDApp && contractAddress && address) {
       // Reset form
       setRecipientAddress('');
       setAmount('');
       setError(null);
 
-      // Distribute rewards after successful transaction
+      // Store transaction in tracker
       const baseActionValue = paymentCostBreakdown?.baseCost || parseFloat(amount || '1.0');
-      
+      storeTransaction({
+        txHash: hash,
+        network: 'L2',
+        dAppId: 'simple-payment',
+        actionType: 'send-payment',
+        timestamp: Date.now(),
+        amount: paymentCostBreakdown?.finalCostWithFee || baseActionValue,
+        fee: paymentCostBreakdown?.feeAmount || 0,
+        netAmount: paymentCostBreakdown?.finalCost || baseActionValue,
+        baseCost: paymentCostBreakdown?.baseCost,
+        costReduction: paymentCostBreakdown?.costReductionAmount,
+        finalCost: paymentCostBreakdown?.finalCost,
+        feePercentage: paymentCostBreakdown?.feePercent,
+        userAddress: address,
+        recipientAddress: recipientAddress || undefined,
+        contractAddress: contractAddress as string,
+        contractCallSuccess: true,
+        status: 'confirmed',
+      });
+
+      // Distribute rewards after successful transaction
       distributeRewardAfterTransaction({
         dapp: simplePaymentDApp,
         actionId: 'send-payment',
@@ -455,7 +478,7 @@ export function SimplePaymentWidget() {
         // Don't show error to user - reward distribution failure shouldn't block the UI
       });
     }
-  }, [isConfirmed, isLoading, hash, simplePaymentDApp, contractAddress, distributeRewardAfterTransaction, paymentCostBreakdown, amount]);
+  }, [isConfirmed, isLoading, hash, simplePaymentDApp, contractAddress, distributeRewardAfterTransaction, paymentCostBreakdown, amount, address, recipientAddress]);
 
   // Reset form on success (legacy - kept for compatibility)
   if (isConfirmed && !isLoading && !hash) {
@@ -664,6 +687,20 @@ export function SimplePaymentWidget() {
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
                 Contract: {contractAddress.slice(0, 6)}...{contractAddress.slice(-4)}
               </p>
+            </div>
+          )}
+
+          {/* Transaction Tracker - Show after transaction */}
+          {hash && isConfirmed && (
+            <div className="mt-4 space-y-4">
+              <TransactionTracker txHash={hash} compact />
+              <RewardStatusBox
+                txHash={hash}
+                network="L2"
+                dAppId="simple-payment"
+                actionType="send-payment"
+                compact
+              />
             </div>
           )}
         </div>

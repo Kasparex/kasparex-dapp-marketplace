@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount, useReadContract, useChainId } from 'wagmi';
+import { useAccount, useReadContract, useChainId, useWaitForTransactionReceipt } from 'wagmi';
 import { formatEther } from 'viem';
 import { DAO_VOTING_ABI } from '@/lib/contracts/abis';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { useDAOVoting, Proposal, Vote } from '@/hooks/useDAOVoting';
+import { TransactionTracker } from '@/components/transactions/TransactionTracker';
+import { RewardStatusBox } from '@/components/rewards/RewardStatusBox';
 
 export function DAOVotingWidget() {
   const { address, isConnected } = useAccount();
@@ -295,6 +297,20 @@ export function DAOVotingWidget() {
       {error && (
         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
           <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+        </div>
+      )}
+
+      {/* Transaction Tracker - Show after transaction */}
+      {txHash && isConfirmed && (
+        <div className="space-y-4">
+          <TransactionTracker txHash={txHash} compact />
+          <RewardStatusBox
+            txHash={txHash}
+            network="L2"
+            dAppId="dao-voting"
+            actionType={lastActionType || 'vote'}
+            compact
+          />
         </div>
       )}
 

@@ -11,6 +11,7 @@ import { useAutomatedRewards } from './useAutomatedRewards';
 import { useKREXBalance } from './useKREXBalance';
 import { useNFTStatus } from './useNFTStatus';
 import { placeholderDApps } from '@/lib/dapps';
+import { storeTransaction } from '@/lib/transactions/tracker';
 
 export interface Proposal {
   id: bigint;
@@ -233,6 +234,10 @@ export function useDAOVoting(): UseDAOVotingReturn {
         ? parseEther(costBreakdown.finalCostWithFee.toString())
         : (submissionFee || parseEther('10'));
 
+      // Track action for reward distribution
+      setLastActionType('submit-proposal');
+      setLastActionCost(costBreakdown?.baseCost || 10.0);
+
       // Execute transaction with calculated cost
       await writeContract({
         address: contractAddress as `0x${string}`,
@@ -244,6 +249,8 @@ export function useDAOVoting(): UseDAOVotingReturn {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to submit proposal';
       setError(errorMessage);
+      setLastActionType(null);
+      setLastActionCost(null);
       throw err;
     }
   }, [contractAddress, submissionFee, writeContract, getSubmissionCost]);
@@ -342,12 +349,35 @@ export function useDAOVoting(): UseDAOVotingReturn {
 
   // Refresh proposals and distribute rewards when transaction is confirmed
   useEffect(() => {
-    if (isConfirmed && !isConfirming && hash && daoVotingDApp && contractAddress && lastActionType) {
+    if (isConfirmed && !isConfirming && hash && daoVotingDApp && contractAddress && lastActionType && address) {
       // Store action info before resetting
       const actionId = lastActionType === 'submit-proposal' ? 'submit-proposal' : 'cast-vote';
       const actionType = lastActionType === 'submit-proposal' ? 'submit-proposal' : 'vote';
       const baseActionValue = lastActionCost || (lastActionType === 'submit-proposal' ? 10.0 : 1.0);
       const txHash = hash;
+
+      // Get cost breakdown for transaction details
+      const costBreakdown = lastActionType === 'submit-proposal' ? getSubmissionCost() : getVoteCost();
+
+      // Store transaction in tracker
+      storeTransaction({
+        txHash,
+        network: 'L2',
+        dAppId: 'dao-voting',
+        actionType,
+        timestamp: Date.now(),
+        amount: costBreakdown?.finalCostWithFee || baseActionValue,
+        fee: costBreakdown?.feeAmount || 0,
+        netAmount: costBreakdown?.finalCost || baseActionValue,
+        baseCost: costBreakdown?.baseCost,
+        costReduction: costBreakdown?.costReductionAmount,
+        finalCost: costBreakdown?.finalCost,
+        feePercentage: costBreakdown?.feePercent,
+        userAddress: address,
+        contractAddress: contractAddress as string,
+        contractCallSuccess: true,
+        status: 'confirmed',
+      });
 
       // Reset tracking immediately to prevent UI freezing
       setLastActionType(null);
@@ -371,7 +401,7 @@ export function useDAOVoting(): UseDAOVotingReturn {
         // Don't show error to user - reward distribution failure shouldn't block the UI
       });
     }
-  }, [isConfirmed, isConfirming, hash, daoVotingDApp, contractAddress, loadProposals, distributeRewardAfterTransaction, lastActionType, lastActionCost]);
+  }, [isConfirmed, isConfirming, hash, daoVotingDApp, contractAddress, loadProposals, distributeRewardAfterTransaction, lastActionType, lastActionCost, address, getSubmissionCost, getVoteCost]);
 
   // Load proposals on mount and when proposalCount changes
   useEffect(() => {
@@ -402,6 +432,9 @@ export function useDAOVoting(): UseDAOVotingReturn {
     proposalCount: proposalCount || null,
     getSubmissionCost,
     getVoteCost,
+    txHash: hash,
+    isConfirmed,
+    lastActionType,
   };
 }
 

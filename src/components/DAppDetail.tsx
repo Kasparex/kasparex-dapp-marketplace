@@ -15,6 +15,7 @@ import { NetworkInfoMessage } from './NetworkInfoMessage';
 import { getDAppNetworkType } from '@/lib/dapps';
 import { GRIDHoldingsBox } from './rewards/GRIDHoldingsBox';
 import { DAppTokenBox } from './rewards/DAppTokenBox';
+import { TreasuryBox } from './treasury/TreasuryBox';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 
 interface DAppDetailProps {
@@ -84,6 +85,13 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
           <ProofOfUtility
             proofOfUtilityAddress={proofOfUtilityAddress}
           />
+        </div>
+      )}
+
+      {/* Treasury Box - Only show for L2 dApps */}
+      {!isL1DApp && (
+        <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
+          <TreasuryBox showPerDApp />
         </div>
       )}
 

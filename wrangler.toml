@@ -43,9 +43,17 @@ name = "kasparex-api-production"
 [env.preview]
 name = "kasparex-api-preview"
 
-# Cron triggers (daily archival at 2 AM UTC)
+# Cron triggers
+# - Process rewards every 15 minutes
+# - Archive old rewards daily at 2 AM UTC
 [triggers]
-crons = ["0 2 * * *"]
+crons = ["*/15 * * * *", "0 2 * * *"]
+
+# Observability configuration for Workers Logs
+[observability]
+[observability.logs]
+enabled = false
+invocation_logs = true
 
 
 
