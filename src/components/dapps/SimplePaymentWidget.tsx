@@ -406,25 +406,35 @@ export function SimplePaymentWidget() {
         return;
       }
 
-      await writeContract({
+      const result = await writeContract({
         address: validContractAddress,
         abi: abiToUse,
         functionName: 'sendPayment',
         args: [validRecipientAddress],
         value: amountBigInt,
       });
-    } catch (err) {
+
+      // If writeContract returns undefined or null, the transaction wasn't submitted
+      if (!result) {
+        throw new Error('Transaction not submitted. Please check your wallet connection and try again.');
+      }
+    } catch (err: any) {
       console.error('Write contract error:', err);
       const errorMessage = getErrorMessage(err, 'Failed to send payment');
-      // Handle common errors
+      
+      // Handle common errors with more helpful messages
       if (errorMessage.includes('length') || errorMessage.includes('undefined')) {
         setError('Address validation error. Please check the recipient address format.');
-      } else if (errorMessage.includes('insufficient funds')) {
+      } else if (errorMessage.includes('insufficient funds') || errorMessage.includes('Insufficient funds')) {
         setError('Insufficient balance. Make sure you have enough KAS for the payment and gas fees.');
-      } else if (errorMessage.includes('user rejected')) {
+      } else if (errorMessage.includes('user rejected') || errorMessage.includes('User rejected')) {
         setError('Transaction rejected by user');
-      } else {
+      } else if (errorMessage.includes('wallet') || errorMessage.includes('connection') || errorMessage.includes('provider')) {
+        setError('Wallet connection issue. Please reconnect your wallet and try again. If using multiple wallet extensions, try disabling others.');
+      } else if (errorMessage.includes('not submitted')) {
         setError(errorMessage);
+      } else {
+        setError(`Failed to send payment: ${errorMessage}`);
       }
     }
   };

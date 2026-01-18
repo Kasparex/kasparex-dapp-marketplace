@@ -265,6 +265,10 @@ export function useDAOVoting(): UseDAOVotingReturn {
       throw new Error('Contract not available');
     }
 
+    if (!isConnected || !address) {
+      throw new Error('Wallet not connected. Please connect your wallet first.');
+    }
+
     setError(null);
 
     try {
@@ -279,21 +283,39 @@ export function useDAOVoting(): UseDAOVotingReturn {
       setLastActionCost(costBreakdown?.baseCost || 1.0);
 
       // Execute transaction with calculated cost
-      await writeContract({
+      const result = await writeContract({
         address: contractAddress as `0x${string}`,
         abi: DAO_VOTING_ABI,
         functionName: 'vote',
         args: [proposalId, support],
         value: finalFee,
       });
-    } catch (err) {
+
+      // If writeContract returns undefined or null, the transaction wasn't submitted
+      if (!result) {
+        throw new Error('Transaction not submitted. Please check your wallet connection and try again.');
+      }
+
+      return result;
+    } catch (err: any) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to vote';
-      setError(errorMessage);
+      
+      // Provide more helpful error messages
+      if (errorMessage.includes('user rejected') || errorMessage.includes('User rejected')) {
+        setError('Transaction rejected by user');
+      } else if (errorMessage.includes('insufficient funds') || errorMessage.includes('Insufficient funds')) {
+        setError('Insufficient balance. Make sure you have enough KAS for the transaction and gas fees.');
+      } else if (errorMessage.includes('wallet') || errorMessage.includes('connection')) {
+        setError('Wallet connection issue. Please reconnect your wallet and try again.');
+      } else {
+        setError(errorMessage);
+      }
+      
       setLastActionType(null);
       setLastActionCost(null);
       throw err;
     }
-  }, [contractAddress, voteFee, writeContract, getVoteCost]);
+  }, [contractAddress, voteFee, writeContract, getVoteCost, isConnected, address]);
 
   // Change vote
   const changeVote = useCallback(async (proposalId: bigint, newSupport: boolean) => {

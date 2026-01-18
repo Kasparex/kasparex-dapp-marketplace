@@ -193,9 +193,20 @@ export function getChainById(chainId: number): Chain | undefined {
  * Configured with Kaspa EVM-compatible chains
  * Uses WalletConnect for wallet connections
  */
+const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
+
+// Warn if WalletConnect project ID is not configured
+if (typeof window !== 'undefined' && (!walletConnectProjectId || walletConnectProjectId === 'default-project-id')) {
+  console.warn(
+    '⚠️ WalletConnect project ID not configured. ' +
+    'Set NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID environment variable. ' +
+    'Wallet connections may fail. Get a project ID at https://cloud.walletconnect.com'
+  );
+}
+
 export const config = getDefaultConfig({
   appName: 'Kasparex dApps',
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'default-project-id',
+  projectId: walletConnectProjectId || 'default-project-id',
   chains: [kasplexL2Mainnet, kasplexL2Testnet, igraCaravelTestnet],
   ssr: true, // Enable SSR support for Next.js
 });
