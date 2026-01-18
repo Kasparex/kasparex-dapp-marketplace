@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768747110-0ac3d28",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix missing export: add getRecordUsageAndRewardL2Params function (by Kasparex)",
+      "date": "2026-01-18T15:37:32+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768736943-fe12aef",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Remove @wagmi/core imports, use parameter helper functions instead (by Kasparex)",
