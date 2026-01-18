@@ -214,55 +214,6 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
   const costReductionPercent = firstActionCost?.costReductionPercent || 0;
   const baseFee = 1.0; // Base fee is 1%
   const totalFeeReduction = baseFee - feePercent;
-  
-  // Apply tier-based fee reduction from base fee
-  if (krexBalance > 0) {
-    feePercent = Math.max(0, feePercent - tierConfig.feeReduction);
-  }
-  
-  // Apply NFT fee reductions (stack with tier reduction)
-  const hasAnyNFT = !!(nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX ||
-    (nftStatus?.partnerCollections && Object.values(nftStatus.partnerCollections || {}).some(v => v)));
-  const hasDiamondNFT = !!(nftStatus?.hasDiamondKREXPRIME || nftStatus?.hasDiamondPIXELKREX ||
-    (nftStatus?.partnerDiamonds && Object.values(nftStatus.partnerDiamonds || {}).some(v => v)));
-  const hasRarestNFT = !!nftStatus?.hasRarestNFT;
-  
-  if (hasRarestNFT) {
-    feePercent = 0; // Zero fee
-  } else if (hasDiamondNFT) {
-    feePercent = Math.max(0, feePercent - DIAMOND_NFT_FEE_REDUCTION);
-  } else if (hasAnyNFT) {
-    feePercent = Math.max(0, feePercent - NFT_FEE_REDUCTION);
-  }
-  
-  // Calculate total fee reduction for display
-  const totalFeeReduction = baseFee - feePercent;
-  
-  // Calculate transaction cost reduction (stacks with fee reduction)
-  let costReductionPercent = 0;
-  if (krexBalance > 0) {
-    costReductionPercent = tierConfig.costReduction;
-  }
-  
-  // Apply NFT cost reductions (stack with tier reduction)
-  if (hasRarestNFT) {
-    costReductionPercent += RAREST_NFT_COST_REDUCTION;
-  } else if (hasDiamondNFT) {
-    costReductionPercent += DIAMOND_NFT_COST_REDUCTION;
-  } else if (hasAnyNFT) {
-    costReductionPercent += NFT_COST_REDUCTION;
-  }
-  
-  // Apply node cost reductions (mock node status for now - same as UnifiedStatusBox)
-  const mockNodeStatus = { hasLightNode: false, hasMirrorNode: false };
-  if (mockNodeStatus.hasMirrorNode) {
-    costReductionPercent += MIRROR_NODE_COST_REDUCTION;
-  } else if (mockNodeStatus.hasLightNode) {
-    costReductionPercent += LIGHT_NODE_COST_REDUCTION;
-  }
-  
-  // Cap cost reduction at 50% maximum
-  costReductionPercent = Math.min(costReductionPercent, 50);
 
   // Calculate total predicted rewards if user completes all actions
   const totalPredicted = actionsWithCalculatedCosts.reduce(
