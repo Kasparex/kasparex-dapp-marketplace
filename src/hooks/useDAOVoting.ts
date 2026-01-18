@@ -343,15 +343,20 @@ export function useDAOVoting(): UseDAOVotingReturn {
   // Refresh proposals and distribute rewards when transaction is confirmed
   useEffect(() => {
     if (isConfirmed && !isConfirming && hash && daoVotingDApp && contractAddress && lastActionType) {
-      // Refresh proposals
-      setTimeout(() => {
-        loadProposals();
-      }, 2000);
-
-      // Distribute rewards after successful transaction
+      // Store action info before resetting
       const actionId = lastActionType === 'submit-proposal' ? 'submit-proposal' : 'cast-vote';
       const actionType = lastActionType === 'submit-proposal' ? 'submit-proposal' : 'vote';
       const baseActionValue = lastActionCost || (lastActionType === 'submit-proposal' ? 10.0 : 1.0);
+      const txHash = hash;
+
+      // Reset tracking immediately to prevent UI freezing
+      setLastActionType(null);
+      setLastActionCost(null);
+
+      // Refresh proposals (non-blocking)
+      loadProposals().catch((err) => {
+        console.error('Error refreshing proposals:', err);
+      });
 
       // Distribute reward asynchronously (don't block UI)
       distributeRewardAfterTransaction({
@@ -359,16 +364,12 @@ export function useDAOVoting(): UseDAOVotingReturn {
         actionId,
         actionType,
         baseActionValue,
-        txHash: hash,
+        txHash,
         dAppContractAddress: contractAddress as `0x${string}`,
       }).catch((err) => {
         console.error('Error distributing reward:', err);
         // Don't show error to user - reward distribution failure shouldn't block the UI
       });
-
-      // Reset tracking
-      setLastActionType(null);
-      setLastActionCost(null);
     }
   }, [isConfirmed, isConfirming, hash, daoVotingDApp, contractAddress, loadProposals, distributeRewardAfterTransaction, lastActionType, lastActionCost]);
 

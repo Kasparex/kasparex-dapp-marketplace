@@ -109,15 +109,8 @@ export function DAOVotingWidget() {
       } else {
         await vote(proposalId, support);
       }
-      setTimeout(() => {
-        refreshProposals();
-        // Reload user votes
-        getUserVote(proposalId).then((vote) => {
-          if (vote && vote.timestamp > 0n) {
-            setUserVotes((prev) => new Map(prev).set(proposalId, vote));
-          }
-        });
-      }, 3000);
+      // Refresh after transaction completes (handled by useDAOVoting hook)
+      // Don't block UI with setTimeout
     } catch (err) {
       console.error('Error voting:', err);
     }
