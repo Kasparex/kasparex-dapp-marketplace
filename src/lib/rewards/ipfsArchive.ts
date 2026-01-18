@@ -40,7 +40,7 @@ export async function archiveRewardRecord(
 ): Promise<ArchiveResult> {
   try {
     // Upload to Storacha (free, decentralized)
-    const result = await uploadJSONToStoracha(record as Record<string, unknown>, { pin: true });
+    const result = await uploadJSONToStoracha(record as unknown as Record<string, unknown>, { pin: true });
 
     return {
       success: true,
