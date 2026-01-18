@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768757592-9db2a77",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Trigger Vercel deployment with Cloudflare Worker URL (by Kasparex)",
+      "date": "2026-01-18T18:32:16+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768757066-57fb3f4",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add setup summary and test results (by Kasparex)",
