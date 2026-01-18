@@ -31,10 +31,10 @@ const FEE_HANDLER_ABI = [
  */
 export async function collectFeeL2(
   feeAmount: bigint,
+  chainId: number,
   projectTreasuryAddress?: Address
 ): Promise<{ success: boolean; txHash?: string; error?: string }> {
   try {
-    const chainId = useChainId();
     const feeHandlerAddress = getContractAddress(chainId, 'FeeHandler');
     
     if (!feeHandlerAddress) {

@@ -41,10 +41,10 @@ const REWARD_MANAGER_ABI = [
 export async function distributeRewardL2(
   userAddress: Address,
   dAppContractAddress: Address,
-  actionValue: bigint
+  actionValue: bigint,
+  chainId: number
 ): Promise<{ success: boolean; txHash?: string; error?: string }> {
   try {
-    const chainId = useChainId();
     const rewardManagerAddress = getContractAddress(chainId, 'RewardManager');
     
     if (!rewardManagerAddress) {

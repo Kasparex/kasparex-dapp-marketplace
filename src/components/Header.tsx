@@ -48,55 +48,123 @@ function AdminLink() {
   );
 }
 
-function NetworkSwitcher() {
+// Signal icon (active network)
+function SignalIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"
+      />
+    </svg>
+  );
+}
+
+// No-signal icon (inactive network)
+function NoSignalIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+      />
+    </svg>
+  );
+}
+
+// L1 Kaspa Button
+function L1KaspaButton() {
+  const { state } = useKaspaWallet();
+  const isActive = state.isConnected && state.provider === 'kasware';
+
+  return (
+    <button
+      disabled={!isActive}
+      className={`px-3 py-2 rounded-lg border transition-colors text-sm font-medium flex items-center gap-2 ${
+        isActive
+          ? 'bg-[#70C7BA]/20 dark:bg-[#70C7BA]/30 text-[#70C7BA] border-[#70C7BA]/30 dark:border-[#70C7BA]/50 hover:bg-[#70C7BA]/30 dark:hover:bg-[#70C7BA]/40'
+          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 border-zinc-200 dark:border-zinc-700 cursor-not-allowed'
+      }`}
+      aria-label="L1 Kaspa Network"
+      title={isActive ? 'Connected to L1 Kaspa' : 'Connect KasWare wallet for L1'}
+    >
+      {isActive ? <SignalIcon /> : <NoSignalIcon />}
+      <span className="hidden sm:inline">L1 Kaspa</span>
+      <span className="sm:hidden">L1</span>
+    </button>
+  );
+}
+
+// L2 Network Button
+function L2NetworkButton() {
   const { isConnected } = useAccount();
   const chainId = useChainId();
   const { openChainModal } = useChainModal();
   const chain = chainId ? getChainById(chainId) : null;
 
-  if (!isConnected) {
-    return null;
-  }
-
-  // Determine if it's a mainnet or testnet based on chain properties
+  const isActive = isConnected;
   const isTestnet = chain?.testnet ?? false;
   const isMainnet = !isTestnet;
 
-  // Color classes based on network type (matching card badge colors)
-  const bgColorClass = isMainnet
-    ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-300 dark:border-green-700 hover:bg-green-200 dark:hover:bg-green-900/40'
-    : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-300 dark:border-yellow-700 hover:bg-yellow-200 dark:hover:bg-yellow-900/40';
+  // Determine if it's Kasplex or Igra
+  let networkLabel = 'L2';
+  if (chain) {
+    const chainName = chain.name.toLowerCase();
+    if (chainName.includes('kasplex')) {
+      networkLabel = 'L2 Kasplex';
+    } else if (chainName.includes('igra')) {
+      networkLabel = 'L2 Igra';
+    }
+  }
+
+  // Color classes based on network type
+  const bgColorClass = isActive
+    ? isMainnet
+      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700 hover:bg-blue-200 dark:hover:bg-blue-900/40'
+      : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-300 dark:border-yellow-700 hover:bg-yellow-200 dark:hover:bg-yellow-900/40'
+    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 border-zinc-200 dark:border-zinc-700 cursor-not-allowed';
+
+  const handleClick = () => {
+    if (isActive && openChainModal) {
+      openChainModal();
+    }
+  };
 
   return (
     <button
-      onClick={() => openChainModal?.()}
+      onClick={handleClick}
+      disabled={!isActive}
       className={`px-3 py-2 rounded-lg border transition-colors text-sm font-medium flex items-center gap-2 ${bgColorClass}`}
-      aria-label="Switch network"
+      aria-label="L2 Network"
+      title={isActive ? `Connected to ${networkLabel} - Click to switch network` : 'Connect EVM wallet for L2'}
     >
-      <svg
-        className="w-4 h-4"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"
-        />
-      </svg>
-      <span className="hidden sm:inline">
-        {chain?.name || 'Switch Network'}
-      </span>
-      <svg
-        className="w-4 h-4"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-      </svg>
+      {isActive ? <SignalIcon /> : <NoSignalIcon />}
+      <span className="hidden sm:inline">{networkLabel}</span>
+      <span className="sm:hidden">L2</span>
+      {isActive && (
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      )}
     </button>
   );
 }
