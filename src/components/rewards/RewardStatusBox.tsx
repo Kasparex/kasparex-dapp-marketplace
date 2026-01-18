@@ -30,8 +30,10 @@ export function RewardStatusBox({
 
   // For L2, check transaction receipt
   const { data: receipt, isSuccess: isTxSuccess } = useWaitForTransactionReceipt({
-    hash: txHash as `0x${string}` | undefined,
-    enabled: network === 'L2' && !!txHash,
+    hash: network === 'L2' && txHash ? (txHash as `0x${string}`) : undefined,
+    query: {
+      enabled: network === 'L2' && !!txHash,
+    },
   });
 
   useEffect(() => {
