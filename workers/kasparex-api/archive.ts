@@ -11,11 +11,11 @@ import {
   getRewardsForArchival,
   archiveRewardRecord as archiveToD1,
   type RewardRecord,
-} from '../../src/lib/rewards/d1Database';
+} from './d1Database';
 import {
   archiveRewardRecord as archiveToIPFS,
   type RewardRecord as IPFSRewardRecord,
-} from '../../src/lib/rewards/ipfsArchive';
+} from './ipfsArchive';
 
 /**
  * Archive old rewards to IPFS
@@ -72,7 +72,7 @@ export async function handleArchiveRewards(
           };
 
           // Archive to IPFS
-          const archiveResult = await archiveToIPFS(ipfsRecord);
+          const archiveResult = await archiveToIPFS(ipfsRecord, env.STORACHA_API_KEY);
 
           if (archiveResult.success && archiveResult.cid) {
             // Update D1: move to archived table

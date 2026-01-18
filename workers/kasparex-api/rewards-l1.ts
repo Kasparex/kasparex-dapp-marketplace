@@ -12,8 +12,8 @@ import {
   updateRewardStatus,
   getArchivedRewardCid,
   type RewardRecord,
-} from '../../src/lib/rewards/d1Database';
-import { fetchArchivedRewardRecord } from '../../src/lib/rewards/ipfsArchive';
+} from './d1Database';
+import { fetchArchivedRewardRecord } from './ipfsArchive';
 
 /**
  * POST /kasparex/rewards/l1/record
