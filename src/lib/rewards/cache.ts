@@ -72,9 +72,10 @@ class LocalCacheAdapter implements CacheAdapter {
 
 /**
  * Cloudflare KV adapter (for production)
+ * Note: KVNamespace is a Cloudflare Workers type, not available in Next.js
  */
 class CloudflareKVAdapter implements CacheAdapter {
-  constructor(private kv: KVNamespace) {}
+  constructor(private kv: any) {} // Using 'any' since KVNamespace is not available in Next.js context
 
   async get<T>(key: string): Promise<T | null> {
     try {
@@ -108,12 +109,14 @@ class CloudflareKVAdapter implements CacheAdapter {
 
 /**
  * Get cache adapter based on environment
+ * Note: In Next.js, always returns LocalCacheAdapter
+ * In Cloudflare Workers, pass the KV namespace
  */
-export function getCacheAdapter(kv?: KVNamespace): CacheAdapter {
+export function getCacheAdapter(kv?: any): CacheAdapter {
   if (kv) {
     return new CloudflareKVAdapter(kv);
   }
-  // Fallback to local cache in development
+  // Fallback to local cache in development/Next.js
   return new LocalCacheAdapter();
 }
 
