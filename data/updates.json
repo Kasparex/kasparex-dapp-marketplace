@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768757066-57fb3f4",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add setup summary and test results (by Kasparex)",
+      "date": "2026-01-18T18:23:30+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768756776-7ad0401",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Complete setup: database initialized, workers deployed, add completion guide (by Kasparex)",
