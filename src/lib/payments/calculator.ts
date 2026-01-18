@@ -6,7 +6,7 @@
 
 import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { getDAppPaymentConfig, getActionCost } from './config';
-import { KREX_TIERS, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION } from '@/lib/rewards/types';
+import { KREX_TIERS, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION, type KREXTier } from '@/lib/rewards/types';
 
 export interface CostBreakdown {
   baseCost: number;
@@ -30,7 +30,7 @@ export interface CostCalculatorInputs {
   dapp: DApp;
   actionId: string;
   krexBalance: number;
-  krexTier: number;
+  krexTier: KREXTier;
   hasAnyNFT: boolean;
   hasDiamondNFT: boolean;
   hasRarestNFT: boolean;
