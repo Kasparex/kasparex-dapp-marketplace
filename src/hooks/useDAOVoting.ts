@@ -48,6 +48,10 @@ interface UseDAOVotingReturn {
   // Cost calculation
   getSubmissionCost: () => CostBreakdown | null;
   getVoteCost: () => CostBreakdown | null;
+  // Transaction tracking
+  txHash: `0x${string}` | undefined;
+  isConfirmed: boolean;
+  lastActionType: 'submit-proposal' | 'cast-vote' | null;
 }
 
 export function useDAOVoting(): UseDAOVotingReturn {
