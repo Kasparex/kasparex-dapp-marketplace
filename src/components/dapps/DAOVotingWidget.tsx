@@ -52,12 +52,23 @@ export function DAOVotingWidget() {
     const loadUserVotes = async () => {
       const votesMap = new Map<bigint, Vote>();
       for (const proposal of proposals) {
+        // Skip invalid proposals (ID must be > 0 and <= proposalCount)
+        if (!proposal.id || proposal.id <= 0n) {
+          continue;
+        }
+        
         try {
           const userVote = await getUserVote(proposal.id);
           if (userVote && userVote.timestamp > 0n) {
             votesMap.set(proposal.id, userVote);
           }
-        } catch (err) {
+        } catch (err: any) {
+          // Silently skip errors for invalid proposal IDs
+          // This can happen if proposals were deleted or IDs are out of sync
+          if (err?.message?.includes('Invalid proposal ID') || err?.shortMessage?.includes('Invalid proposal ID')) {
+            // Expected error for non-existent proposals, skip silently
+            continue;
+          }
           console.error(`Error loading vote for proposal ${proposal.id}:`, err);
         }
       }

@@ -429,7 +429,8 @@ export function SimplePaymentWidget() {
     }
   };
 
-  const isLoading = isPendingWrite || isConfirming;
+  // Calculate loading state - only true when actively processing, not after confirmation
+  const isLoading = (isPendingWrite && !isConfirmed) || (isConfirming && !isConfirmed);
   // Safely convert errors to strings immediately
   const safeWriteError = useSafeError(writeError);
   const safeTxError = useSafeError(txError);
@@ -437,14 +438,13 @@ export function SimplePaymentWidget() {
 
   // Distribute rewards and reset form on success
   useEffect(() => {
-    if (isConfirmed && !isLoading && hash && simplePaymentDApp && contractAddress && address) {
-      // Reset form
-      setRecipientAddress('');
-      setAmount('');
-      setError(null);
+    if (isConfirmed && !isConfirming && hash && simplePaymentDApp && contractAddress && address) {
+      // Store transaction info before resetting
+      const storedAmount = amount;
+      const storedRecipient = recipientAddress;
+      const baseActionValue = paymentCostBreakdown?.baseCost || parseFloat(storedAmount || '1.0');
 
       // Store transaction in tracker
-      const baseActionValue = paymentCostBreakdown?.baseCost || parseFloat(amount || '1.0');
       storeTransaction({
         txHash: hash,
         network: 'L2',
@@ -459,26 +459,35 @@ export function SimplePaymentWidget() {
         finalCost: paymentCostBreakdown?.finalCost,
         feePercentage: paymentCostBreakdown?.feePercent,
         userAddress: address,
-        recipientAddress: recipientAddress || undefined,
+        recipientAddress: storedRecipient || undefined,
         contractAddress: contractAddress as string,
         contractCallSuccess: true,
         status: 'confirmed',
       });
 
-      // Distribute rewards after successful transaction
-      distributeRewardAfterTransaction({
-        dapp: simplePaymentDApp,
-        actionId: 'send-payment',
-        actionType: 'send-payment',
-        baseActionValue,
-        txHash: hash,
-        dAppContractAddress: contractAddress as `0x${string}`,
-      }).catch((err) => {
-        console.error('Error distributing reward:', err);
-        // Don't show error to user - reward distribution failure shouldn't block the UI
-      });
+      // Reset form immediately (use setTimeout to ensure state updates don't block)
+      setTimeout(() => {
+        setRecipientAddress('');
+        setAmount('');
+        setError(null);
+      }, 0);
+
+      // Distribute rewards after successful transaction (non-blocking)
+      setTimeout(() => {
+        distributeRewardAfterTransaction({
+          dapp: simplePaymentDApp,
+          actionId: 'send-payment',
+          actionType: 'send-payment',
+          baseActionValue,
+          txHash: hash,
+          dAppContractAddress: contractAddress as `0x${string}`,
+        }).catch((err) => {
+          console.error('Error distributing reward:', err);
+          // Don't show error to user - reward distribution failure shouldn't block the UI
+        });
+      }, 500);
     }
-  }, [isConfirmed, isLoading, hash, simplePaymentDApp, contractAddress, distributeRewardAfterTransaction, paymentCostBreakdown, amount, address, recipientAddress]);
+  }, [isConfirmed, isConfirming, hash, simplePaymentDApp, contractAddress, distributeRewardAfterTransaction, paymentCostBreakdown, amount, recipientAddress, address]);
 
   // Reset form on success (legacy - kept for compatibility)
   if (isConfirmed && !isLoading && !hash) {

@@ -337,6 +337,11 @@ export function useDAOVoting(): UseDAOVotingReturn {
       return null;
     }
 
+    // Validate proposal ID before calling contract
+    if (!proposalId || proposalId <= 0n) {
+      return null;
+    }
+
     try {
       const vote = await publicClient.readContract({
         address: contractAddress as `0x${string}`,
@@ -345,7 +350,12 @@ export function useDAOVoting(): UseDAOVotingReturn {
         args: [proposalId, address],
       });
       return vote as Vote;
-    } catch (err) {
+    } catch (err: any) {
+      // Silently handle "Invalid proposal ID" errors - this is expected for non-existent proposals
+      if (err?.message?.includes('Invalid proposal ID') || err?.shortMessage?.includes('Invalid proposal ID')) {
+        return null;
+      }
+      // Only log unexpected errors
       console.error('Error getting user vote:', err);
       return null;
     }
@@ -384,26 +394,33 @@ export function useDAOVoting(): UseDAOVotingReturn {
       });
 
       // Reset tracking immediately to prevent UI freezing
-      setLastActionType(null);
-      setLastActionCost(null);
+      // Use setTimeout to ensure state updates don't block
+      setTimeout(() => {
+        setLastActionType(null);
+        setLastActionCost(null);
+      }, 0);
 
-      // Refresh proposals (non-blocking)
-      loadProposals().catch((err) => {
-        console.error('Error refreshing proposals:', err);
-      });
+      // Refresh proposals (non-blocking, with delay to allow contract state to update)
+      setTimeout(() => {
+        loadProposals().catch((err) => {
+          console.error('Error refreshing proposals:', err);
+        });
+      }, 1000);
 
       // Distribute reward asynchronously (don't block UI)
-      distributeRewardAfterTransaction({
-        dapp: daoVotingDApp,
-        actionId,
-        actionType,
-        baseActionValue,
-        txHash,
-        dAppContractAddress: contractAddress as `0x${string}`,
-      }).catch((err) => {
-        console.error('Error distributing reward:', err);
-        // Don't show error to user - reward distribution failure shouldn't block the UI
-      });
+      setTimeout(() => {
+        distributeRewardAfterTransaction({
+          dapp: daoVotingDApp,
+          actionId,
+          actionType,
+          baseActionValue,
+          txHash,
+          dAppContractAddress: contractAddress as `0x${string}`,
+        }).catch((err) => {
+          console.error('Error distributing reward:', err);
+          // Don't show error to user - reward distribution failure shouldn't block the UI
+        });
+      }, 500);
     }
   }, [isConfirmed, isConfirming, hash, daoVotingDApp, contractAddress, loadProposals, distributeRewardAfterTransaction, lastActionType, lastActionCost, address, getSubmissionCost, getVoteCost]);
 
@@ -421,9 +438,12 @@ export function useDAOVoting(): UseDAOVotingReturn {
     }
   }, [safeWriteError, safeTxError]);
 
+  // Calculate loading state - only true when actively processing, not after confirmation
+  const isLoadingState = isLoading || (isPendingWrite && !isConfirmed) || (isConfirming && !isConfirmed);
+
   return {
     proposals,
-    isLoading: isLoading || isPendingWrite || isConfirming,
+    isLoading: isLoadingState,
     error: error || safeWriteError || safeTxError,
     submitProposal,
     vote,
