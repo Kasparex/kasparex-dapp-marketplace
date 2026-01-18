@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768766025-c0abf89",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix useWaitForTransactionReceipt hook usage in RewardStatusBox (by Kasparex)",
+      "date": "2026-01-18T20:53:26+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768764366-40f39c7",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add transaction tracking, reward status, treasury box, and documentation (by Kasparex)",
