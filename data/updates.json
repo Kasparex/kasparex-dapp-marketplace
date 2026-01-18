@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768758230-9eee034",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix KVNamespace type error for Next.js compatibility (by Kasparex)",
+      "date": "2026-01-18T18:43:07+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768757879-c51819a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix Next.js 15 route handler signature for dynamic params (by Kasparex)",
