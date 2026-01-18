@@ -59,6 +59,20 @@ export function useDAOVoting(): UseDAOVotingReturn {
 
   const contractAddress = getContractAddress(chainId, 'DAOVoting');
 
+  // Get DAO Voting dApp object
+  const daoVotingDApp = placeholderDApps.find(d => d.slug === 'dao-voting' || d.name.toLowerCase().includes('dao voting'));
+  
+  // Get user holdings for cost calculation
+  const { balance: krexBalance, tier } = useKREXBalance();
+  const { nftStatus } = useNFTStatus();
+  
+  // Automated rewards hook
+  const { distributeRewardAfterTransaction } = useAutomatedRewards();
+  
+  // Track last action type for reward distribution
+  const [lastActionType, setLastActionType] = useState<'submit-proposal' | 'cast-vote' | null>(null);
+  const [lastActionCost, setLastActionCost] = useState<number | null>(null);
+
   // Read contract state
   const { data: proposalCount } = useReadContract({
     address: contractAddress as `0x${string}`,
@@ -236,26 +250,39 @@ export function useDAOVoting(): UseDAOVotingReturn {
 
   // Vote
   const vote = useCallback(async (proposalId: bigint, support: boolean) => {
-    if (!contractAddress || !voteFee) {
+    if (!contractAddress) {
       throw new Error('Contract not available');
     }
 
     setError(null);
 
     try {
+      // Calculate cost with discounts
+      const costBreakdown = getVoteCost();
+      const finalFee = costBreakdown 
+        ? parseEther(costBreakdown.finalCostWithFee.toString())
+        : (voteFee || parseEther('1'));
+
+      // Track action for reward distribution
+      setLastActionType('cast-vote');
+      setLastActionCost(costBreakdown?.baseCost || 1.0);
+
+      // Execute transaction with calculated cost
       await writeContract({
         address: contractAddress as `0x${string}`,
         abi: DAO_VOTING_ABI,
         functionName: 'vote',
         args: [proposalId, support],
-        value: voteFee,
+        value: finalFee,
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to vote';
       setError(errorMessage);
+      setLastActionType(null);
+      setLastActionCost(null);
       throw err;
     }
-  }, [contractAddress, voteFee, writeContract]);
+  }, [contractAddress, voteFee, writeContract, getVoteCost]);
 
   // Change vote
   const changeVote = useCallback(async (proposalId: bigint, newSupport: boolean) => {
@@ -313,14 +340,37 @@ export function useDAOVoting(): UseDAOVotingReturn {
     }
   }, [contractAddress, address, publicClient]);
 
-  // Refresh proposals when transaction is confirmed
+  // Refresh proposals and distribute rewards when transaction is confirmed
   useEffect(() => {
-    if (isConfirmed && !isConfirming) {
+    if (isConfirmed && !isConfirming && hash && daoVotingDApp && contractAddress && lastActionType) {
+      // Refresh proposals
       setTimeout(() => {
         loadProposals();
       }, 2000);
+
+      // Distribute rewards after successful transaction
+      const actionId = lastActionType === 'submit-proposal' ? 'submit-proposal' : 'cast-vote';
+      const actionType = lastActionType === 'submit-proposal' ? 'submit-proposal' : 'vote';
+      const baseActionValue = lastActionCost || (lastActionType === 'submit-proposal' ? 10.0 : 1.0);
+
+      // Distribute reward asynchronously (don't block UI)
+      distributeRewardAfterTransaction({
+        dapp: daoVotingDApp,
+        actionId,
+        actionType,
+        baseActionValue,
+        txHash: hash,
+        dAppContractAddress: contractAddress as `0x${string}`,
+      }).catch((err) => {
+        console.error('Error distributing reward:', err);
+        // Don't show error to user - reward distribution failure shouldn't block the UI
+      });
+
+      // Reset tracking
+      setLastActionType(null);
+      setLastActionCost(null);
     }
-  }, [isConfirmed, isConfirming, loadProposals]);
+  }, [isConfirmed, isConfirming, hash, daoVotingDApp, contractAddress, loadProposals, distributeRewardAfterTransaction, lastActionType, lastActionCost]);
 
   // Load proposals on mount and when proposalCount changes
   useEffect(() => {

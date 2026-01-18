@@ -20,6 +20,7 @@ import { recordUsageAndRewardL1 } from '@/lib/rewards/l1Distribution';
 import { recordUsageAndRewardVProgs } from '@/lib/rewards/vprogsDistribution';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useQueryClient } from '@tanstack/react-query';
+import { KREX_TIERS } from '@/lib/rewards/types';
 
 export interface DistributeRewardOptions {
   dapp: DApp;
