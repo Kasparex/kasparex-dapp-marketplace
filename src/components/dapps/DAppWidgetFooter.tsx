@@ -108,7 +108,7 @@ export function DAppWidgetFooter({
 
   return (
     <>
-      <div className="px-6 py-4 border-t border-zinc-800 dark:border-zinc-700 bg-zinc-900 dark:bg-zinc-950">
+      <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         <div className="flex flex-col gap-4">
           {/* Token Progress Bar Section - Skip for KAS (native coin, not a reward token) */}
           {tokenTicker && tokenTicker !== 'KAS' && (

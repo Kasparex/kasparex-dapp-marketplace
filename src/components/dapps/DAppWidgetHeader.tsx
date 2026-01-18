@@ -213,7 +213,7 @@ export function DAppWidgetHeader({
         </div>
       )}
 
-      <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-800 dark:border-zinc-700 bg-zinc-900 dark:bg-zinc-950 relative">
+      <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 relative">
         {/* Title Section with Icon and Info */}
         <div className="mb-4 relative">
           {/* Top Row: Logo, Titles */}
@@ -333,7 +333,7 @@ export function DAppWidgetHeader({
                 onClick={() => setShowInfoModal(true)}
                 className="text-left w-full"
               >
-                <p className="text-base text-zinc-300 dark:text-zinc-300 line-clamp-3 hover:text-white dark:hover:text-zinc-100 transition-colors">
+                <p className="text-base text-zinc-600 dark:text-zinc-400 line-clamp-3 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
                   {shortDescription}{' '}
                   <span className="text-[#02abb8] font-medium">Read more →</span>
                 </p>

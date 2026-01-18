@@ -404,7 +404,7 @@ export function SimplePaymentWidget() {
   }
 
   return (
-    <div className="px-6 py-4 space-y-4 bg-zinc-900 dark:bg-zinc-950">
+    <div className="px-6 py-4 space-y-4">
 
       {!isConnected ? (
         <div className="text-center py-8">

@@ -100,7 +100,7 @@ export function SendKASWidget() {
   }
 
   return (
-    <div className="p-6 space-y-4 bg-zinc-900 dark:bg-zinc-950">
+    <div className="p-6 space-y-4">
       {/* Wallet Info */}
       <div className="bg-zinc-800 dark:bg-zinc-800/50 rounded-lg p-4 space-y-2">
         <div className="flex items-center justify-between">
