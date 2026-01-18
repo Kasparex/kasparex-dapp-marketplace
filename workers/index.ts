@@ -9,6 +9,7 @@
 import { applyMiddleware, getCorsHeaders } from './middleware';
 import { handleNodeRequest } from './kasparex-api/nodes';
 import { handleRewardRequest } from './kasparex-api/rewards';
+import { handleL1RewardRequest } from './kasparex-api/rewards-l1';
 import { handlePublicRequest } from './kasparex-api/public';
 
 export interface Env {
@@ -17,6 +18,7 @@ export interface Env {
   
   // D1 Database for dynamic data
   NODES_DB: D1Database;
+  REWARDS_DB: D1Database; // Separate database for rewards
   
   // Rate limiting KV (optional)
   RATE_LIMIT?: KVNamespace;
@@ -26,10 +28,20 @@ export interface Env {
   PINATA_API_KEY?: string;
   STORACHA_API_KEY?: string;
   KASPAREX_API_URL?: string;
+  ARCHIVE_AUTH_TOKEN?: string; // For manual archive endpoint
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    // Handle scheduled events (cron triggers)
+    if (request.headers.get('cf-scheduled') === 'true') {
+      const event = {
+        scheduledTime: Date.now(),
+        cron: request.headers.get('cf-cron') || 'unknown',
+      } as ScheduledEvent;
+      await handleArchiveRewards(event, env);
+      return new Response('OK');
+    }
     const url = new URL(request.url);
     const pathname = url.pathname;
 
@@ -46,11 +58,21 @@ export default {
       }
 
       if (pathname.startsWith('/kasparex/rewards/')) {
+        // L1 rewards (dApp user rewards)
+        if (pathname.startsWith('/kasparex/rewards/l1/')) {
+          return handleL1RewardRequest(request, env);
+        }
+        // Node rewards (KREX node operator rewards)
         return handleRewardRequest(request, env);
       }
 
       if (pathname.startsWith('/kasparex/stats') || pathname.startsWith('/kasparex/dapps/availability')) {
         return handlePublicRequest(request, env);
+      }
+
+      // Manual archive endpoint (for testing)
+      if (pathname === '/kasparex/rewards/archive' && request.method === 'POST') {
+        return handleManualArchive(request, env);
       }
 
       // Health check

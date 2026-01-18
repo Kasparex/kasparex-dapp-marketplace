@@ -23,6 +23,12 @@ binding = "NODES_DB"
 database_name = "kasparex-nodes"
 database_id = "ec15da5c-133a-4735-9cd6-afde1377577a"
 
+# D1 Database for rewards (L1 reward distribution)
+[[d1_databases]]
+binding = "REWARDS_DB"
+database_name = "kasparex-rewards"
+database_id = "TBD"  # Create with: wrangler d1 create kasparex-rewards
+
 # Environment variables (set via wrangler secret put or dashboard)
 # [vars]
 # REGISTRY_CID = "your-registry-cid"
@@ -36,6 +42,10 @@ name = "kasparex-api-production"
 # Preview environment
 [env.preview]
 name = "kasparex-api-preview"
+
+# Cron triggers (daily archival at 2 AM UTC)
+[triggers]
+crons = ["0 2 * * *"]
 
 
 

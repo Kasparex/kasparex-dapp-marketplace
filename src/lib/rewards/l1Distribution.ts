@@ -24,10 +24,14 @@ export async function recordUsageAndRewardL1(
   txHash: string
 ): Promise<{ success: boolean; rewardId?: string; error?: string }> {
   try {
-    // Use relative URL for Next.js API routes, or external API if configured
-    const apiUrl = process.env.NEXT_PUBLIC_KASPAREX_API_URL;
-    const endpoint = apiUrl 
-      ? `${apiUrl}/api/rewards/l1/record`
+    // Use Cloudflare Worker API if configured, otherwise use Next.js API route
+    const cloudflareApiUrl = process.env.NEXT_PUBLIC_CLOUDFLARE_WORKER_URL;
+    const nextjsApiUrl = process.env.NEXT_PUBLIC_KASPAREX_API_URL;
+    
+    const endpoint = cloudflareApiUrl
+      ? `${cloudflareApiUrl}/kasparex/rewards/l1/record`
+      : nextjsApiUrl
+      ? `${nextjsApiUrl}/api/rewards/l1/record`
       : '/api/rewards/l1/record';
 
     // Call backend API to record L1 transaction
@@ -79,10 +83,14 @@ export async function getL1RewardStatus(
   rewardId: string
 ): Promise<{ status: string; gridReward?: number; dAppTokenReward?: number; distributedAt?: string; error?: string }> {
   try {
-    // Use relative URL for Next.js API routes, or external API if configured
-    const apiUrl = process.env.NEXT_PUBLIC_KASPAREX_API_URL;
-    const endpoint = apiUrl
-      ? `${apiUrl}/api/rewards/l1/status/${rewardId}`
+    // Use Cloudflare Worker API if configured, otherwise use Next.js API route
+    const cloudflareApiUrl = process.env.NEXT_PUBLIC_CLOUDFLARE_WORKER_URL;
+    const nextjsApiUrl = process.env.NEXT_PUBLIC_KASPAREX_API_URL;
+    
+    const endpoint = cloudflareApiUrl
+      ? `${cloudflareApiUrl}/kasparex/rewards/l1/status/${rewardId}`
+      : nextjsApiUrl
+      ? `${nextjsApiUrl}/api/rewards/l1/status/${rewardId}`
       : `/api/rewards/l1/status/${rewardId}`;
 
     const response = await fetch(endpoint, {
