@@ -3,11 +3,12 @@
  * 
  * Handles automatic reward distribution after successful transactions
  * Works with existing RewardManager contract for L2
+ * 
+ * Note: For L2 transactions, use wagmi hooks (useWriteContract, useWaitForTransactionReceipt)
+ * in React components. This file provides helper functions to get transaction parameters.
  */
 
 import { Address } from 'viem';
-import { writeContract, waitForTransactionReceipt } from '@wagmi/core';
-import { config } from '@/lib/wagmi';
 import { getContractAddress } from '@/lib/contracts/addresses';
 
 // RewardManager contract ABI (simplified - only distributeReward function)
@@ -35,54 +36,37 @@ const REWARD_MANAGER_ABI = [
 ] as const;
 
 /**
- * Distribute rewards for L2 (EVM) transactions
- * Uses RewardManager contract to distribute GRID or dApp tokens
+ * Get reward distribution transaction parameters for L2 (EVM) transactions
+ * Returns the parameters needed to call distributeReward via wagmi hooks
+ * 
+ * Usage in component:
+ * ```tsx
+ * const { writeContract } = useWriteContract();
+ * const { waitForTransactionReceipt } = useWaitForTransactionReceipt();
+ * 
+ * const params = getRewardDistributionParams(chainId, userAddress, dAppContractAddress, actionValue);
+ * const hash = await writeContract(params);
+ * await waitForTransactionReceipt({ hash });
+ * ```
  */
-export async function distributeRewardL2(
+export function getRewardDistributionParams(
+  chainId: number,
   userAddress: Address,
   dAppContractAddress: Address,
-  actionValue: bigint,
-  chainId: number
-): Promise<{ success: boolean; txHash?: string; error?: string }> {
-  try {
-    const rewardManagerAddress = getContractAddress(chainId, 'RewardManager');
-    
-    if (!rewardManagerAddress) {
-      return {
-        success: false,
-        error: 'RewardManager contract address not found for current network',
-      };
-    }
-    
-    // Call distributeReward on RewardManager contract
-    const hash = await writeContract(config, {
-      address: rewardManagerAddress as Address,
-      abi: REWARD_MANAGER_ABI,
-      functionName: 'distributeReward',
-      args: [userAddress, dAppContractAddress, actionValue],
-    });
-    
-    // Wait for transaction confirmation
-    const receipt = await waitForTransactionReceipt(config, { hash });
-    
-    if (receipt.status === 'success') {
-      return {
-        success: true,
-        txHash: hash,
-      };
-    } else {
-      return {
-        success: false,
-        error: 'Transaction failed',
-      };
-    }
-  } catch (error) {
-    console.error('Error distributing reward (L2):', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
+  actionValue: bigint
+): { address: Address; abi: typeof REWARD_MANAGER_ABI; functionName: 'distributeReward'; args: [Address, Address, bigint] } | null {
+  const rewardManagerAddress = getContractAddress(chainId, 'RewardManager');
+  
+  if (!rewardManagerAddress) {
+    return null;
   }
+  
+  return {
+    address: rewardManagerAddress as Address,
+    abi: REWARD_MANAGER_ABI,
+    functionName: 'distributeReward',
+    args: [userAddress, dAppContractAddress, actionValue],
+  };
 }
 
 /**
@@ -123,33 +107,29 @@ export async function distributeRewardL1(
 }
 
 /**
- * Distribute rewards automatically based on network type
+ * Get reward distribution parameters automatically based on network type
+ * For L2, returns parameters for wagmi hooks
+ * For L1, returns placeholder (to be implemented)
  */
-export async function distributeReward(
+export function getRewardDistributionParamsByNetwork(
   userAddress: Address | string,
   dAppContractAddress: Address | string,
   actionValue: bigint | number,
   networkType: 'L1' | 'L2',
   chainId?: number
-): Promise<{ success: boolean; txHash?: string; error?: string }> {
+): { address: Address; abi: typeof REWARD_MANAGER_ABI; functionName: 'distributeReward'; args: [Address, Address, bigint] } | null {
   if (networkType === 'L2') {
     if (!chainId) {
-      return {
-        success: false,
-        error: 'Chain ID required for L2 reward distribution',
-      };
+      return null;
     }
-    return distributeRewardL2(
+    return getRewardDistributionParams(
+      chainId,
       userAddress as Address,
       dAppContractAddress as Address,
-      actionValue as bigint,
-      chainId
+      actionValue as bigint
     );
   } else {
-    return distributeRewardL1(
-      userAddress as string,
-      dAppContractAddress as string,
-      actionValue as number
-    );
+    // L1 reward distribution - to be implemented
+    return null;
   }
 }

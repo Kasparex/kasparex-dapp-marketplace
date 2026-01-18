@@ -2,11 +2,12 @@
  * Fee Collection System
  * 
  * Handles automatic fee collection for both L1 and L2 networks
+ * 
+ * Note: For L2 transactions, use wagmi hooks (useWriteContract, useWaitForTransactionReceipt)
+ * in React components. This file provides helper functions to get transaction parameters.
  */
 
 import { Address } from 'viem';
-import { writeContract, waitForTransactionReceipt } from '@wagmi/core';
-import { config } from '@/lib/wagmi';
 import { getContractAddress } from '@/lib/contracts/addresses';
 
 // FeeHandler contract ABI (simplified - only collectFee function)
@@ -26,54 +27,39 @@ const FEE_HANDLER_ABI = [
 ] as const;
 
 /**
- * Collect fees for L2 (EVM) transactions
- * Uses FeeHandler contract to split fees between Kasparex and project treasuries
+ * Get fee collection transaction parameters for L2 (EVM) transactions
+ * Returns the parameters needed to call collectFee via wagmi hooks
+ * 
+ * Usage in component:
+ * ```tsx
+ * const { writeContract } = useWriteContract();
+ * const { waitForTransactionReceipt } = useWaitForTransactionReceipt();
+ * 
+ * const params = getFeeCollectionParams(chainId, feeAmount, projectTreasuryAddress);
+ * if (params) {
+ *   const hash = await writeContract(params);
+ *   await waitForTransactionReceipt({ hash });
+ * }
+ * ```
  */
-export async function collectFeeL2(
-  feeAmount: bigint,
+export function getFeeCollectionParams(
   chainId: number,
+  feeAmount: bigint,
   projectTreasuryAddress?: Address
-): Promise<{ success: boolean; txHash?: string; error?: string }> {
-  try {
-    const feeHandlerAddress = getContractAddress(chainId, 'FeeHandler');
-    
-    if (!feeHandlerAddress) {
-      return {
-        success: false,
-        error: 'FeeHandler contract address not found for current network',
-      };
-    }
-    
-    // Call collectFee on FeeHandler contract
-    const hash = await writeContract(config, {
-      address: feeHandlerAddress as Address,
-      abi: FEE_HANDLER_ABI,
-      functionName: 'collectFee',
-      args: [projectTreasuryAddress || '0x0000000000000000000000000000000000000000'],
-      value: feeAmount,
-    });
-    
-    // Wait for transaction confirmation
-    const receipt = await waitForTransactionReceipt(config, { hash });
-    
-    if (receipt.status === 'success') {
-      return {
-        success: true,
-        txHash: hash,
-      };
-    } else {
-      return {
-        success: false,
-        error: 'Transaction failed',
-      };
-    }
-  } catch (error) {
-    console.error('Error collecting fee (L2):', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
+): { address: Address; abi: typeof FEE_HANDLER_ABI; functionName: 'collectFee'; args: [Address]; value: bigint } | null {
+  const feeHandlerAddress = getContractAddress(chainId, 'FeeHandler');
+  
+  if (!feeHandlerAddress) {
+    return null;
   }
+  
+  return {
+    address: feeHandlerAddress as Address,
+    abi: FEE_HANDLER_ABI,
+    functionName: 'collectFee',
+    args: [projectTreasuryAddress || '0x0000000000000000000000000000000000000000'],
+    value: feeAmount,
+  };
 }
 
 /**
@@ -112,23 +98,23 @@ export async function collectFeeL1(
 }
 
 /**
- * Collect fees automatically based on network type
+ * Get fee collection parameters automatically based on network type
+ * For L2, returns parameters for wagmi hooks
+ * For L1, returns placeholder (to be implemented)
  */
-export async function collectFee(
+export function getFeeCollectionParamsByNetwork(
   feeAmount: bigint | number,
   networkType: 'L1' | 'L2',
   chainId?: number,
   projectTreasuryAddress?: Address | string
-): Promise<{ success: boolean; txHash?: string; error?: string }> {
+): { address: Address; abi: typeof FEE_HANDLER_ABI; functionName: 'collectFee'; args: [Address]; value: bigint } | null {
   if (networkType === 'L2') {
     if (!chainId) {
-      return {
-        success: false,
-        error: 'Chain ID required for L2 fee collection',
-      };
+      return null;
     }
-    return collectFeeL2(feeAmount as bigint, chainId, projectTreasuryAddress as Address);
+    return getFeeCollectionParams(chainId, feeAmount as bigint, projectTreasuryAddress as Address);
   } else {
-    return collectFeeL1(feeAmount as number, projectTreasuryAddress as string);
+    // L1 fee collection - to be implemented
+    return null;
   }
 }
