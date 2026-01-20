@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768926665-73aa741",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix: Add PromoMintRouter to kasplexL2Testnet contract addresses (by Kasparex)",
+      "date": "2026-01-20T17:30:49+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768926353-743524b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix Vercel build: drop recaptcha dep and fix Next params (by Kasparex)",
