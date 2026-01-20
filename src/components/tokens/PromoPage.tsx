@@ -256,6 +256,11 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
   const slotBps = contractTokenConfig?.slotBps || [4000, 1000, 500, 200, 100]; // Default percentages if not loaded
   const slotPercentages = slotBps.map(bps => bps / 100); // Convert basis points to percentages
 
+  // Use contract price if available, otherwise fall back to database price
+  const mintPrice = contractTokenConfig?.mintPrice 
+    ? parseFloat(formatEther(contractTokenConfig.mintPrice))
+    : tokenConfig.mint_price;
+
   const slots = [
     { wallet: page.slot1_wallet, label: page.slot1_label || 'Slot 1', earnings: page.earn_slot1, percentage: slotPercentages[0], isActive: true },
     { wallet: page.slot2_wallet, label: page.slot2_label || 'Slot 2', earnings: page.earn_slot2, percentage: slotPercentages[1], isActive: false },
@@ -264,7 +269,7 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
     { wallet: page.slot5_wallet, label: page.slot5_label || 'Slot 5', earnings: page.earn_slot5, percentage: slotPercentages[4], isActive: false },
   ];
 
-  const totalPrice = tokenConfig.mint_price * mintCount;
+  const totalPrice = mintPrice * mintCount;
   const canMint = isConnected && 
     address && // Check address is available
     isIgraTestnet && 
