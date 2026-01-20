@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768943257-7581b43",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add test-genesis-v1 token to registry for promo engine testing (by Kasparex)",
+      "date": "2026-01-20T22:06:30+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768942608-0ac12ab",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Complete promo engine setup: deploy contracts, initialize database, register test token (by Kasparex)",
