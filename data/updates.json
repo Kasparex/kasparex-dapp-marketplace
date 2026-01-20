@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768951873-50a2c41",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add test-genesis-v2 token to registry with 10 KAS mint price (by Kasparex)",
+      "date": "2026-01-21T00:27:39+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768949643-525693d",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix promo page: add sidebar, table layout for slots, fix wallet connection check, highlight active slot (by Kasparex)",
