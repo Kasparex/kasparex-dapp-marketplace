@@ -113,6 +113,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     ProfileRegistry: "",
     UserProfileDashboard: "",
     AdminDashboard: "",
+    PromoMintRouter: "",
   },
   kasplexL2Testnet: {
     Treasury: "",
