@@ -196,6 +196,7 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
       // This matches the format used in token registration (keccak256 of string)
       const tokenIdBytes = keccak256(stringToHex(token.id)) as `0x${string}`;
       const pageIdBytes = keccak256(stringToHex(page.id)) as `0x${string}`;
+      // Slots array must be a fixed-size tuple [Address, Address, Address, Address, Address]
       const slots: [Address, Address, Address, Address, Address] = [
         page.slot1_wallet as Address,
         page.slot2_wallet as Address,
