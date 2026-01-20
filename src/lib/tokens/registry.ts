@@ -101,6 +101,31 @@ export const baseTokens: Token[] = [
     ],
     tags: ['test', 'promo-engine', 'igra-testnet'],
   },
+  {
+    id: 'test-genesis-v2',
+    slug: 'test-genesis-v2',
+    name: 'Test Genesis Token V2',
+    symbol: 'TGEN2',
+    description: 'Test token V2 for the Promo Engine on Igra Caravel Testnet. Used for testing minting with 10 KAS price.',
+    shortDescription: 'Test token V2 for Promo Engine (10 KAS)',
+    network: 'L2',
+    chainId: 19416, // Igra Caravel Testnet
+    contractAddress: '0x86a779696878f054A8D549273453f6A2fC896769', // Same contract, different registration
+    type: 'local',
+    decimals: 18,
+    maxSupply: 100_000_000, // 100M tokens
+    allocations: [
+      { category: 'Use-to-mint', percentage: 80, description: 'Rewards for active usage' },
+      { category: 'Liquidity', percentage: 10, description: 'Reserved for DEX liquidity' },
+      { category: 'Treasury', percentage: 5, description: 'Kasparex + Project treasury' },
+      { category: 'Dev', percentage: 3, description: 'Development and maintenance' },
+      { category: 'Airdrops', percentage: 2, description: 'Airdrops and bonuses' },
+    ],
+    links: [
+      { label: 'Explorer', url: 'https://explorer.caravel.igralabs.com/address/0x86a779696878f054A8D549273453f6A2fC896769', type: 'explorer' },
+    ],
+    tags: ['test', 'promo-engine', 'igra-testnet', 'v2'],
+  },
 ];
 
 /**
