@@ -7,6 +7,7 @@
 import { notFound } from 'next/navigation';
 import { getAllTokens, getTokenBySlug } from '@/lib/tokens/registry';
 import { PromoPage } from '@/components/tokens/PromoPage';
+import { TokenSidebar } from '@/components/tokens/TokenSidebar';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 
@@ -33,9 +34,15 @@ export default async function PromoPageRoute({ params }: PromoPageRouteProps) {
     <div className="flex flex-col min-h-screen">
       <Header />
       
-      <main className="flex-1 min-w-0">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <PromoPage token={token} pageId={pageId} apiBaseUrl={apiBaseUrl} />
+      <main className="flex-1 flex flex-col lg:flex-row">
+        {/* Sidebar */}
+        <TokenSidebar token={token} />
+
+        {/* Main Content */}
+        <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6">
+          <div className="max-w-7xl mx-auto">
+            <PromoPage token={token} pageId={pageId} apiBaseUrl={apiBaseUrl} />
+          </div>
         </div>
       </main>
 

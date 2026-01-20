@@ -49,6 +49,7 @@ interface TokenConfig {
   status: string;
   creator_wallet: string;
   platform_wallet: string;
+  slotBps?: number[]; // Revenue split percentages for slots (basis points)
 }
 
 interface PromoPageProps {
@@ -82,7 +83,7 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
         const data = await response.json();
         setPage(data.page);
         
-        // Load token config
+        // Load token config from database
         const tokenResponse = await fetch(`${apiBaseUrl}/kasparex/promo/token/${data.page.token_id}`);
         if (tokenResponse.ok) {
           const tokenData = await tokenResponse.json();
@@ -165,6 +166,18 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
     },
   });
 
+  // Read token config from contract to get revenue split percentages and mint price
+  const tokenIdBytes = token ? keccak256(stringToHex(token.id)) as `0x${string}` : undefined;
+  const { data: contractTokenConfig } = useReadContract({
+    address: routerAddress,
+    abi: PROMO_MINT_ROUTER_ABI,
+    functionName: 'getTokenConfig',
+    args: tokenIdBytes ? [tokenIdBytes] : undefined,
+    query: {
+      enabled: !!routerAddress && !!tokenIdBytes && isIgraTestnet,
+    },
+  });
+
   const { writeContract, data: txHash, isPending: isMinting } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash: txHash,
@@ -204,7 +217,11 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
         page.slot4_wallet as Address,
         page.slot5_wallet as Address,
       ];
-      const totalPrice = parseEther((tokenConfig.mint_price * mintCount).toString());
+      // Use contract price if available, otherwise fall back to database price
+      const currentMintPrice = contractTokenConfig?.mintPrice 
+        ? parseFloat(formatEther(contractTokenConfig.mintPrice))
+        : tokenConfig.mint_price;
+      const totalPrice = parseEther((currentMintPrice * mintCount).toString());
 
       writeContract({
         address: routerAddress,
@@ -235,16 +252,21 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
     );
   }
 
+  // Get revenue split percentages from contract (basis points)
+  const slotBps = contractTokenConfig?.slotBps || [4000, 1000, 500, 200, 100]; // Default percentages if not loaded
+  const slotPercentages = slotBps.map(bps => bps / 100); // Convert basis points to percentages
+
   const slots = [
-    { wallet: page.slot1_wallet, label: page.slot1_label || 'Slot 1', earnings: page.earn_slot1 },
-    { wallet: page.slot2_wallet, label: page.slot2_label || 'Slot 2', earnings: page.earn_slot2 },
-    { wallet: page.slot3_wallet, label: page.slot3_label || 'Slot 3', earnings: page.earn_slot3 },
-    { wallet: page.slot4_wallet, label: page.slot4_label || 'Slot 4', earnings: page.earn_slot4 },
-    { wallet: page.slot5_wallet, label: page.slot5_label || 'Slot 5', earnings: page.earn_slot5 },
+    { wallet: page.slot1_wallet, label: page.slot1_label || 'Slot 1', earnings: page.earn_slot1, percentage: slotPercentages[0], isActive: true },
+    { wallet: page.slot2_wallet, label: page.slot2_label || 'Slot 2', earnings: page.earn_slot2, percentage: slotPercentages[1], isActive: false },
+    { wallet: page.slot3_wallet, label: page.slot3_label || 'Slot 3', earnings: page.earn_slot3, percentage: slotPercentages[2], isActive: false },
+    { wallet: page.slot4_wallet, label: page.slot4_label || 'Slot 4', earnings: page.earn_slot4, percentage: slotPercentages[3], isActive: false },
+    { wallet: page.slot5_wallet, label: page.slot5_label || 'Slot 5', earnings: page.earn_slot5, percentage: slotPercentages[4], isActive: false },
   ];
 
   const totalPrice = tokenConfig.mint_price * mintCount;
   const canMint = isConnected && 
+    address && // Check address is available
     isIgraTestnet && 
     (!cooldownRemaining || cooldownRemaining <= 0) &&
     (!rateLimitStatus || rateLimitStatus.remainingMints >= mintCount) &&
@@ -268,26 +290,68 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
         </div>
       )}
 
-      {/* Slot Rewards Panel */}
+      {/* Slot Rewards Panel - Table Format */}
       <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
         <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">Promotion Slots</h2>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {slots.map((slot, idx) => (
-            <div
-              key={idx}
-              className="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700"
-            >
-              <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">
-                {slot.label}
-              </div>
-              <div className="text-sm font-mono text-zinc-900 dark:text-zinc-100 truncate mb-2">
-                {slot.wallet.slice(0, 6)}...{slot.wallet.slice(-4)}
-              </div>
-              <div className="text-xs text-zinc-600 dark:text-zinc-400">
-                Earned: {slot.earnings.toFixed(4)} KAS
-              </div>
-            </div>
-          ))}
+        <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
+          <table className="w-full border-collapse min-w-[600px]">
+            <thead>
+              <tr className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-200 dark:border-zinc-800">
+                <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                  Slot
+                </th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                  Wallet Address
+                </th>
+                <th className="text-right py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                  Revenue Split
+                </th>
+                <th className="text-right py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                  Earned
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {slots.map((slot, idx) => (
+                <tr
+                  key={idx}
+                  className={`border-b border-zinc-200 dark:border-zinc-800 transition-colors ${
+                    slot.isActive
+                      ? 'bg-[#02abb8]/10 dark:bg-[#02abb8]/20 hover:bg-[#02abb8]/20 dark:hover:bg-[#02abb8]/30'
+                      : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
+                  }`}
+                >
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                        {slot.label}
+                      </span>
+                      {slot.isActive && (
+                        <span className="px-2 py-0.5 text-xs font-medium bg-[#02abb8] text-white rounded">
+                          Active
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="text-sm font-mono text-zinc-900 dark:text-zinc-100">
+                      {slot.wallet}
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 text-right">
+                    <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                      {slot.percentage.toFixed(2)}%
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 text-right">
+                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                      {slot.earnings.toFixed(4)} KAS
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -338,9 +402,15 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
         {/* Price Display */}
         <div className="mb-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
           <div className="flex justify-between items-center mb-2">
+            <span className="text-sm text-zinc-600 dark:text-zinc-400">Price per Mint</span>
+            <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+              {mintPrice.toFixed(2)} KAS
+            </span>
+          </div>
+          <div className="flex justify-between items-center mb-2">
             <span className="text-sm text-zinc-600 dark:text-zinc-400">Total Price</span>
             <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-              {totalPrice.toFixed(4)} KAS
+              {totalPrice.toFixed(2)} KAS
             </span>
           </div>
           <div className="text-xs text-zinc-500 dark:text-zinc-500">
@@ -395,7 +465,7 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
       {/* Disclaimers */}
       <PromoRiskNotice />
       {tokenConfig && (
-        <MintInfoBox mintPrice={tokenConfig.mint_price} tokensPerMint={tokenConfig.tokens_per_mint} />
+        <MintInfoBox mintPrice={mintPrice} tokensPerMint={tokenConfig.tokens_per_mint} />
       )}
       <SlotRewardsInfoBox />
 
