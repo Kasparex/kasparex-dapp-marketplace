@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768949643-525693d",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix promo page: add sidebar, table layout for slots, fix wallet connection check, highlight active slot (by Kasparex)",
+      "date": "2026-01-20T23:53:36+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768943257-7581b43",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add test-genesis-v1 token to registry for promo engine testing (by Kasparex)",
