@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768926036-d05be95",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix syntax error: remove duplicate code in PromoPage.tsx (by Kasparex)",
+      "date": "2026-01-20T17:20:07+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768925654-8e462ad",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add Promo Engine: minting, promotion, and revenue sharing system (by Kasparex)",
