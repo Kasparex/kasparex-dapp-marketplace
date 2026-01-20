@@ -11,14 +11,14 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 
 interface PromoPageRouteProps {
-  params: {
+  params: Promise<{
     slug: string;
     pageId: string;
-  };
+  }>;
 }
 
 export default async function PromoPageRoute({ params }: PromoPageRouteProps) {
-  const { slug, pageId } = params;
+  const { slug, pageId } = await params;
   const token = getTokenBySlug(slug);
 
   if (!token) {

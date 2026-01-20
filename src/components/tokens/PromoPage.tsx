@@ -6,16 +6,9 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccount, useChainId, useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi';
-import { parseEther, formatEther, keccak256, toUtf8Bytes, type Address } from 'viem';
-// ReCAPTCHA is optional - try to import, but don't fail if package is not installed
-let ReCAPTCHA: any = null;
-try {
-  ReCAPTCHA = require('react-google-recaptcha')?.default;
-} catch (e) {
-  // Package not installed - will work without it
-}
+import { parseEther, formatEther, keccak256, stringToHex, type Address } from 'viem';
 import { PROMO_MINT_ROUTER_ABI } from '@/lib/contracts/abis';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { CHAIN_IDS } from '@/lib/wagmi';
@@ -70,18 +63,10 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
   const [page, setPage] = useState<PromoPage | null>(null);
   const [tokenConfig, setTokenConfig] = useState<TokenConfig | null>(null);
   const [mintCount, setMintCount] = useState(1);
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-  const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [cooldownRemaining, setCooldownRemaining] = useState<number | null>(null);
   const [rateLimitStatus, setRateLimitStatus] = useState<{ dailyMints: number; remainingMints: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isVerifyingRecaptcha, setIsVerifyingRecaptcha] = useState(false);
-  const recaptchaRef = useRef<any>(null);
-  
-  // Get reCAPTCHA site key from environment
-  const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '';
-  const hasRecaptcha = !!ReCAPTCHA && !!recaptchaSiteKey;
 
   const routerAddress = getContractAddress(chainId, 'PromoMintRouter') as Address | undefined;
   const isIgraTestnet = chainId === CHAIN_IDS.IGRA_CARAVEL_TESTNET;
@@ -185,83 +170,9 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
     hash: txHash,
   });
 
-  // Handle reCAPTCHA verification (optional)
-  const handleRecaptchaChange = async (token: string | null) => {
-    if (!hasRecaptcha) {
-      // If reCAPTCHA not available, auto-generate session token
-      if (token && address) {
-        const mockSessionToken = `session_${address.slice(0, 10)}_${Date.now()}`;
-        setSessionToken(mockSessionToken);
-      }
-      return;
-    }
-
-    if (!token) {
-      setRecaptchaToken(null);
-      setSessionToken(null);
-      return;
-    }
-
-    if (!address) {
-      setError('Please connect your wallet first');
-      recaptchaRef.current?.reset();
-      return;
-    }
-
-    setRecaptchaToken(token);
-    setIsVerifyingRecaptcha(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`${apiBaseUrl}/kasparex/promo/verify-recaptcha`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          recaptchaToken: token,
-          walletAddress: address,
-          tokenId: page?.token_id || token.id,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'reCAPTCHA verification failed' }));
-        throw new Error(errorData.error || 'reCAPTCHA verification failed');
-      }
-
-      const data = await response.json();
-      setSessionToken(data.sessionToken);
-    } catch (err) {
-      console.error('reCAPTCHA error:', err);
-      setError(err instanceof Error ? err.message : 'reCAPTCHA verification failed');
-      setRecaptchaToken(null);
-      recaptchaRef.current?.reset();
-    } finally {
-      setIsVerifyingRecaptcha(false);
-    }
-  };
-
-  // Auto-generate session token if reCAPTCHA not available
-  useEffect(() => {
-    if (!hasRecaptcha && isConnected && address && !sessionToken) {
-      const mockSessionToken = `session_${address.slice(0, 10)}_${Date.now()}`;
-      setSessionToken(mockSessionToken);
-    }
-  }, [hasRecaptcha, isConnected, address, sessionToken]);
-
-  // Reset when wallet disconnects
-  useEffect(() => {
-    if (!isConnected) {
-      setRecaptchaToken(null);
-      setSessionToken(null);
-      if (recaptchaRef.current) {
-        recaptchaRef.current.reset();
-      }
-    }
-  }, [isConnected]);
-
   const handleMint = async () => {
-    if (!isConnected || !address || !page || !tokenConfig || !routerAddress || !sessionToken) {
-      setError('Please connect wallet and complete reCAPTCHA');
+    if (!isConnected || !address || !page || !tokenConfig || !routerAddress) {
+      setError('Please connect wallet');
       return;
     }
 
@@ -283,8 +194,8 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
     try {
       // Convert token ID and page ID to bytes32 using keccak256 hash
       // This matches the format used in token registration (keccak256 of string)
-      const tokenIdBytes = keccak256(toUtf8Bytes(token.id)) as `0x${string}`;
-      const pageIdBytes = keccak256(toUtf8Bytes(page.id)) as `0x${string}`;
+      const tokenIdBytes = keccak256(stringToHex(token.id)) as `0x${string}`;
+      const pageIdBytes = keccak256(stringToHex(page.id)) as `0x${string}`;
       const slots: Address[] = [
         page.slot1_wallet as Address,
         page.slot2_wallet as Address,
@@ -334,7 +245,6 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
   const totalPrice = tokenConfig.mint_price * mintCount;
   const canMint = isConnected && 
     isIgraTestnet && 
-    sessionToken && 
     (!cooldownRemaining || cooldownRemaining <= 0) &&
     (!rateLimitStatus || rateLimitStatus.remainingMints >= mintCount) &&
     tokenConfig.status === 'ACTIVE';
@@ -383,28 +293,6 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
       {/* Mint Panel */}
       <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
         <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">Mint Tokens</h2>
-
-        {/* reCAPTCHA (optional) */}
-        {hasRecaptcha && !sessionToken && isConnected && (
-          <div className="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-            <p className="text-sm text-yellow-800 dark:text-yellow-200 mb-2">
-              Please complete reCAPTCHA verification to continue
-            </p>
-            <div className="flex justify-center">
-              <ReCAPTCHA
-                ref={recaptchaRef}
-                sitekey={recaptchaSiteKey}
-                onChange={handleRecaptchaChange}
-                theme="light"
-              />
-            </div>
-            {isVerifyingRecaptcha && (
-              <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-2 text-center">
-                Verifying...
-              </p>
-            )}
-          </div>
-        )}
 
         {/* Cooldown Display */}
         {cooldownRemaining && cooldownRemaining > 0 && (
@@ -513,7 +401,7 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
       {/* Security Notice */}
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
         <p className="text-sm text-blue-800 dark:text-blue-200">
-          This system uses reCAPTCHA and rate limiting to ensure fair access for all users. Bots and automated scripts are not permitted.
+          This system uses rate limiting to ensure fair access for all users. Bots and automated scripts are not permitted.
         </p>
       </div>
     </div>
