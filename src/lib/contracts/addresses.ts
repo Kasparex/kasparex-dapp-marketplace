@@ -213,6 +213,7 @@ export const CONTRACT_ADDRESSES = {
     ProfileRegistry: getEnvVar('NEXT_PUBLIC_PROFILE_REGISTRY_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.ProfileRegistry || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.ProfileRegistry,
     UserProfileDashboard: getEnvVar('NEXT_PUBLIC_USER_PROFILE_DASHBOARD_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.UserProfileDashboard || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.UserProfileDashboard,
     AdminDashboard: getEnvVar('NEXT_PUBLIC_ADMIN_DASHBOARD_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.AdminDashboard || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.AdminDashboard,
+    PromoMintRouter: getEnvVar('NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.PromoMintRouter,
   },
   // Igra Caravel Testnet (Chain ID: 19416)
   igraCaravelTestnet: {
