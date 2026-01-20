@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768928170-5903be7",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Trigger deployment: ensure latest fixes are deployed (by Kasparex)",
+      "date": "2026-01-20T17:55:28+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768927028-e6c95d3",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: Use tuple type for slots array (exactly 5 addresses) (by Kasparex)",
