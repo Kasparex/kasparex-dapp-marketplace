@@ -13,6 +13,7 @@ import { handleL1RewardRequest } from './kasparex-api/rewards-l1';
 import { handlePublicRequest } from './kasparex-api/public';
 import { handleProcessRewards, processPendingRewards } from './kasparex-api/reward-processor';
 import { handleArchiveRewards, handleManualArchive } from './kasparex-api/archive';
+import { handlePromoRequest } from './kasparex-api/promo';
 
 export interface Env {
   // KV Namespace for caching
@@ -31,6 +32,9 @@ export interface Env {
   STORACHA_API_KEY?: string;
   KASPAREX_API_URL?: string;
   ARCHIVE_AUTH_TOKEN?: string; // For manual archive endpoint
+  RECAPTCHA_SECRET_KEY?: string; // reCAPTCHA secret key for verification
+  IGRA_RPC_URL?: string; // Igra testnet RPC URL for event indexing
+  ADMIN_AUTH_TOKEN?: string; // Admin token for token registration and genesis page creation
 }
 
 export default {
@@ -84,6 +88,11 @@ export default {
         }
         // Node rewards (KREX node operator rewards)
         return handleRewardRequest(request, env);
+      }
+
+      // Promo engine endpoints
+      if (pathname.startsWith('/kasparex/promo/')) {
+        return handlePromoRequest(request, env);
       }
 
       if (pathname.startsWith('/kasparex/stats') || pathname.startsWith('/kasparex/dapps/availability')) {

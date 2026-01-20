@@ -86,6 +86,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     ProfileRegistry: "",
     UserProfileDashboard: "",
     AdminDashboard: "",
+    PromoMintRouter: "",
   },
 };
 
@@ -135,6 +136,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     ProfileRegistry: "",
     UserProfileDashboard: "",
     AdminDashboard: "",
+    PromoMintRouter: "",
   },
   igraCaravelTestnet: {
     Treasury: "",
@@ -158,6 +160,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     ProfileRegistry: "",
     UserProfileDashboard: "",
     AdminDashboard: "",
+    PromoMintRouter: "",
   },
 };
 
@@ -185,6 +188,7 @@ export const CONTRACT_ADDRESSES = {
     ProfileRegistry: getEnvVar('NEXT_PUBLIC_PROFILE_REGISTRY_ADDRESS') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Mainnet.ProfileRegistry || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.ProfileRegistry,
     UserProfileDashboard: getEnvVar('NEXT_PUBLIC_USER_PROFILE_DASHBOARD_ADDRESS') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Mainnet.UserProfileDashboard || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.UserProfileDashboard,
     AdminDashboard: getEnvVar('NEXT_PUBLIC_ADMIN_DASHBOARD_ADDRESS') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Mainnet.AdminDashboard || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.AdminDashboard,
+    PromoMintRouter: getEnvVar('NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.PromoMintRouter,
   },
   // Kasplex L2 Testnet (Chain ID: 167012)
   kasplexL2Testnet: {
@@ -233,6 +237,7 @@ export const CONTRACT_ADDRESSES = {
     ProfileRegistry: getEnvVar('NEXT_PUBLIC_PROFILE_REGISTRY_ADDRESS_IGRA_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.igraCaravelTestnet.ProfileRegistry || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.ProfileRegistry,
     UserProfileDashboard: getEnvVar('NEXT_PUBLIC_USER_PROFILE_DASHBOARD_ADDRESS_IGRA_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.igraCaravelTestnet.UserProfileDashboard || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.UserProfileDashboard,
     AdminDashboard: getEnvVar('NEXT_PUBLIC_ADMIN_DASHBOARD_ADDRESS_IGRA_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.igraCaravelTestnet.AdminDashboard || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.AdminDashboard,
+    PromoMintRouter: getEnvVar('NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.PromoMintRouter,
   },
 };
 
