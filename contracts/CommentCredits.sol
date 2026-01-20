@@ -95,7 +95,7 @@ contract CommentCredits is Ownable, ReentrancyGuard {
      * @dev Purchase comment credits
      * @notice Users send KAS to purchase credits (1 KAS = 1 credit base rate)
      */
-    function purchaseCredits() external payable nonReentrant {
+    function purchaseCredits() public payable nonReentrant {
         require(msg.value > 0, "CommentCredits: Must send KAS to purchase credits");
         
         uint256 creditsToAdd = msg.value / 1e8; // Convert KAS (assuming 8 decimals) to credits

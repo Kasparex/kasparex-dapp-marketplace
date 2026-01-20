@@ -15,3 +15,8 @@ node_modules
 # Next.js build output
 .next/
 out/
+
+# Environment variables (contains sensitive data like private keys)
+.env
+.env.local
+.env*.local

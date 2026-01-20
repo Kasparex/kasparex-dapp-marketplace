@@ -1,0 +1,12 @@
+{
+  "network": "igraCaravelTestnet",
+  "contractName": "DAppToken",
+  "address": "0x86a779696878f054A8D549273453f6A2fC896769",
+  "name": "Test Genesis Token",
+  "ticker": "TGEN",
+  "maxSupply": "100000000000000000000000000",
+  "minter": "0xF2501A66A8d04a264c955e1613B091b89A46048f",
+  "deployer": "0x658420Fd88dbd610249a88384f9B1aD387F797c7",
+  "deployedAt": "2026-01-20T20:22:31.248Z",
+  "transactionHash": "0x780a877e4ba625d756cb435a9468d56dd332c2e9c823d71f53098ced8f8eb8fe"
+}

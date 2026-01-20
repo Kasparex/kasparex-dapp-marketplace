@@ -76,6 +76,17 @@ export async function handlePromoRequest(
       return handleRateLimitStatus(env, rateLimitMatch[1]);
     }
 
+    // Admin endpoints
+    // POST /kasparex/promo/admin/register-token - Register token in database
+    if (pathname === '/kasparex/promo/admin/register-token' && request.method === 'POST') {
+      return handleAdminRegisterToken(request, env);
+    }
+
+    // POST /kasparex/promo/admin/create-genesis-page - Create genesis page
+    if (pathname === '/kasparex/promo/admin/create-genesis-page' && request.method === 'POST') {
+      return handleAdminCreateGenesisPage(request, env);
+    }
+
     return new Response(
       JSON.stringify({ error: 'Not found' }),
       {
