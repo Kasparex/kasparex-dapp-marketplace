@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1768952356-4caa814",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix mintPrice variable scope in PromoPage component (by Kasparex)",
+      "date": "2026-01-21T00:37:25+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768951873-50a2c41",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add test-genesis-v2 token to registry with 10 KAS mint price (by Kasparex)",
