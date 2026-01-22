@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769124746-b11715e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix ESLint error: escape apostrophe in GamePayment component (by Kasparex)",
+      "date": "2026-01-23T00:31:56+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769124369-80c4e38",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix GamePayment imports: use correct paths for kasToSompis and isValidKaspaAddress (by Kasparex)",
