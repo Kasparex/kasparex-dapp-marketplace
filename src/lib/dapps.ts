@@ -178,7 +178,7 @@ export const placeholderDApps: DApp[] = [
     id: 'genesis',
     name: 'Genesis Dapp',
     slug: 'genesis-dapp',
-    category: 'social',
+    category: 'general',
     utility: 'Leave a permanent message on-chain, creating a time capsule of the early Kaspa ecosystem.',
     process: 'Connect wallet, write your message (max 280 characters), pay 0.01 KAS fee, and your message is permanently stored.',
     benefits: 'Be part of Kaspa history. Your message will be forever recorded on-chain as one of the first participants.',
