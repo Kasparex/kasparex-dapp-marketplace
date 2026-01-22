@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769123889-cb03aaf",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add Kasparex Games foundation: listing page, game cards, filtering, sorting, payment integration, and rewards system (by Kasparex)",
+      "date": "2026-01-23T00:17:18+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769119800-4af6b67",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Use L1 wallet for Genesis Dapp and update filtering logic (by Kasparex)",
