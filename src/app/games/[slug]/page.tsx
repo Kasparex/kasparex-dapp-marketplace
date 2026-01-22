@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { GamesSidebar } from '@/components/games/GamesSidebar';
 import { GameInfoPanel } from '@/components/games/GameInfoPanel';
 import { RelatedGames } from '@/components/games/RelatedGames';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
@@ -49,45 +48,9 @@ export default async function GamePage({ params }: PageProps) {
     <div className="flex flex-col min-h-screen">
       <Header />
       
-      <main className="flex-1 flex flex-col lg:flex-row">
-        {/* Sidebar */}
-        <div className="hidden lg:block flex-shrink-0">
-          <GamesSidebar
-            selectedGameTypes={[]}
-            onGameTypeChange={() => {}}
-            selectedDifficulties={[]}
-            onDifficultyChange={() => {}}
-            selectedStatuses={[]}
-            onStatusChange={() => {}}
-            gameTypeCounts={{
-              puzzle: 0,
-              arcade: 0,
-              strategy: 0,
-              casual: 0,
-              multiplayer: 0,
-              trivia: 0,
-              skill: 0,
-            }}
-            difficultyCounts={{
-              easy: 0,
-              medium: 0,
-              hard: 0,
-              expert: 0,
-            }}
-            statusCounts={{
-              beta: 0,
-              active: 0,
-              'coming-soon': 0,
-              maintenance: 0,
-            }}
-            searchQuery=""
-            onSearchChange={() => {}}
-            onResetFilters={() => {}}
-          />
-        </div>
-
+      <main className="flex-1">
         {/* Main Content */}
-        <div className="flex-1 min-w-0 p-4 sm:p-6 lg:px-16 lg:py-12">
+        <div className="max-w-6xl mx-auto w-full p-4 sm:p-6 lg:px-16 lg:py-12">
           {/* Game Header */}
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-4">
