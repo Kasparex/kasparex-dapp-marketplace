@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769113806-f3a3781",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: chore: Remove misplaced Rust files from src directory (by Kasparex)",
+      "date": "2026-01-22T21:29:16+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1768952356-4caa814",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix mintPrice variable scope in PromoPage component (by Kasparex)",
