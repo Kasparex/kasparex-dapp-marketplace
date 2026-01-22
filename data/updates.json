@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769125373-87eaff5",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Remove GamesSidebar from individual game page to fix static generation error (by Kasparex)",
+      "date": "2026-01-23T00:42:28+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769125147-260b096",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: use wallet.id instead of wallet object when connecting (by Kasparex)",
