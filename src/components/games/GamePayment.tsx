@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { Game } from '@/lib/games/games';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
-import { kasToSompis } from '@/lib/kaspa/utils';
-import { isValidKaspaAddress } from '@/lib/kaspa/address';
+import { kasToSompis } from '@/lib/kaspa/api';
+import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
 
 interface GamePaymentProps {
   game: Game;
