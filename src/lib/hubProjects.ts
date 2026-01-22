@@ -39,8 +39,8 @@ export const hubProjects: HubProject[] = [
     name: 'Kasparex Games',
     category: 'Entertainment',
     description: 'Simple web3 mini games and interactive experiences with rewards. Play, earn, and have fun in the Kasparex ecosystem.',
-    route: '/hub/coming-soon',
-    status: 'coming-soon',
+    route: '/games',
+    status: 'beta',
   },
   {
     id: 'kasparex-vblog',
