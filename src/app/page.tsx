@@ -79,9 +79,9 @@ function HomeContent() {
     };
     let filtered = filterDApps(placeholderDApps, filterState, searchQuery);
     
-    // Apply network filter (L1/L2)
-    if (networkFilter !== 'all') {
-      filtered = filtered.filter((dapp) => getDAppNetworkType(dapp) === networkFilter);
+    // Apply network filter (L1/L2) - uses effectiveNetworkFilter which auto-filters based on wallet connections
+    if (effectiveNetworkFilter !== 'all') {
+      filtered = filtered.filter((dapp) => getDAppNetworkType(dapp) === effectiveNetworkFilter);
     }
     
     // If sorting by favorites, filter to only show favorites
@@ -90,7 +90,7 @@ function HomeContent() {
     }
     
     return sortDApps(filtered, sortBy, favoritesSet, likes);
-  }, [selectedCategories, filters, networkFilter, searchQuery, sortBy, favoritesSet, likes]);
+  }, [selectedCategories, filters, effectiveNetworkFilter, searchQuery, sortBy, favoritesSet, likes]);
 
   // Reset displayed count when filters change
   useEffect(() => {
