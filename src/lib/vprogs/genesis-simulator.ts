@@ -11,8 +11,8 @@ const DEFAULT_MESSAGE_FEE = '10000000000000000'; // 0.01 KAS
 const MAX_MESSAGE_LENGTH = 280;
 
 class GenesisDappSimulator {
-  private messages: Map<number, GenesisMessage>;
-  private messageCount: number;
+  private messages: Map<number, GenesisMessage> = new Map();
+  private messageCount: number = 0;
   private state: GenesisDappState;
 
   constructor() {
@@ -28,9 +28,11 @@ class GenesisDappSimulator {
         this.messageCount = parsed.messageCount || 0;
         this.state = parsed.state || this.getDefaultState();
       } catch {
+        this.state = this.getDefaultState();
         this.reset();
       }
     } else {
+      this.state = this.getDefaultState();
       this.reset();
     }
   }
@@ -44,7 +46,7 @@ class GenesisDappSimulator {
   }
 
   private reset() {
-    this.messages = new Map();
+    this.messages.clear();
     this.messageCount = 0;
     this.state = this.getDefaultState();
   }
