@@ -170,7 +170,7 @@ export function GamePayment({ game }: GamePaymentProps) {
             <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800 space-y-1">
               {game.rewardConfig.gridReward && (
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-zinc-500 dark:text-zinc-400">You'll earn:</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">You&apos;ll earn:</span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
                     {game.rewardConfig.gridReward} GRID
                   </span>
