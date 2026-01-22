@@ -3,6 +3,8 @@
 import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useAccount } from 'wagmi';
+import { useKaspaWallet } from '@/lib/kaspa/context';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
 import { SortFilters, type SortOption, type ViewMode } from '@/components/SortFilters';
@@ -63,11 +65,11 @@ function HomeContent() {
   const categoryCounts = useMemo(() => {
     // Apply network filter before counting
     let filteredForCounts = placeholderDApps;
-    if (networkFilter !== 'all') {
-      filteredForCounts = filteredForCounts.filter((dapp) => getDAppNetworkType(dapp) === networkFilter);
+    if (effectiveNetworkFilter !== 'all') {
+      filteredForCounts = filteredForCounts.filter((dapp) => getDAppNetworkType(dapp) === effectiveNetworkFilter);
     }
     return getCategoryCounts(filteredForCounts, filters, searchQuery);
-  }, [filters, searchQuery, networkFilter]);
+  }, [filters, searchQuery, effectiveNetworkFilter]);
 
   // Filter and sort dApps based on current filters, selected categories, network filter, search query, and sort option
   const filteredDApps = useMemo(() => {
@@ -93,7 +95,7 @@ function HomeContent() {
   // Reset displayed count when filters change
   useEffect(() => {
     setDisplayedCount(50);
-  }, [selectedCategories, filters, networkFilter, searchQuery, sortBy]);
+  }, [selectedCategories, filters, effectiveNetworkFilter, searchQuery, sortBy]);
 
   // Get dApps to display (limited by displayedCount)
   const displayedDApps = useMemo(() => {
