@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769115878-3e635c1",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Add missing wallet hooks and effectiveNetworkFilter logic (by Kasparex)",
+      "date": "2026-01-22T22:04:16+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769115173-6edf6d6",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Initialize class properties in GenesisDappSimulator (by Kasparex)",
