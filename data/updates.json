@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769114929-1b8258a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Change Genesis Dapp category from 'social' to 'general' (by Kasparex)",
+      "date": "2026-01-22T21:47:45+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769114626-5f0068b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Convert messageFee string to bigint for formatEther (by Kasparex)",
