@@ -12,6 +12,7 @@ import { getDAppNetworkType } from '@/lib/dapps';
 import { DAOVotingWidget } from './dapps/DAOVotingWidget';
 import { SendKASWidget } from './dapps/SendKASWidget';
 import { SendKREXWidget } from './dapps/SendKREXWidget';
+import { GenesisDappWidget } from './dapps/GenesisDappWidget';
 import { DAppWidgetHeader } from './dapps/DAppWidgetHeader';
 import { DAppWidgetFooter } from './dapps/DAppWidgetFooter';
 import { getContractAddress } from '@/lib/contracts/addresses';
@@ -159,6 +160,44 @@ export function DAppWidget({
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
               <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} />
             </div>
+          )}
+        </div>
+      </>
+    );
+  }
+
+  // Render Genesis Dapp widget if it's the Genesis Dapp
+  if (dapp.slug === 'genesis-dapp') {
+    return (
+      <>
+        <NetworkCompatibilityModal
+          dapp={dapp}
+          isOpen={showModal}
+          onClose={handleModalClose}
+        />
+        <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden`}>
+          {!hideHeader && (
+            <DAppWidgetHeader 
+              dapp={dapp} 
+              contractAddress={undefined}
+              hideIcons={hideIcons}
+              hideStar={hideStar}
+              hideHeart={hideHeart}
+              hideInfo={hideInfo}
+              hideEmbed={hideEmbed}
+              accentColor={accentColor}
+            />
+          )}
+          <GenesisDappWidget />
+          {!hideFooter && (
+            <DAppWidgetFooter 
+              dapp={dapp} 
+              contractAddress={undefined} 
+              hideIcons={hideIcons} 
+              hideStar={hideStar} 
+              hideHeart={hideHeart} 
+              hideEmbed={hideEmbed} 
+            />
           )}
         </div>
       </>

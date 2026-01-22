@@ -226,6 +226,17 @@ contract PromoMintRouter is Ownable, ReentrancyGuard {
     }
 
     /**
+     * @dev Update mint price for an existing token.
+     */
+    function setMintPrice(bytes32 tokenId, uint256 mintPrice) external onlyOwner {
+        TokenConfig storage cfg = tokenConfigs[tokenId];
+        require(cfg.token != address(0), "PromoMintRouter: unknown token");
+        require(mintPrice > 0, "PromoMintRouter: mint price must be > 0");
+        cfg.mintPrice = mintPrice;
+        emit TokenPercentagesUpdated(tokenId, cfg.creatorBps, cfg.platformBps, cfg.slotBps);
+    }
+
+    /**
      * @dev Set active status for a token.
      */
     function setActive(bytes32 tokenId, bool active) external onlyOwner {

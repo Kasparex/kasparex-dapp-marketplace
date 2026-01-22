@@ -1,0 +1,11 @@
+[package]
+name = "genesis-dapp"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+borsh = "1.6.0"
+# vProgs dependencies (when available)
+# vprogs-core-types = { path = "../../vprogs/core/types" }
+# vprogs-state-version = { path = "../../vprogs/state/version" }
+# vprogs-transaction-runtime-program = { path = "../../vprogs/transaction-runtime/program" }

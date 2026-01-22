@@ -86,7 +86,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     ProfileRegistry: "",
     UserProfileDashboard: "",
     AdminDashboard: "",
-    PromoMintRouter: "",
+    PromoMintRouter: "0xc76515904e948698F67fCBc64f7d3b4C57602470",
   },
 };
 
@@ -161,7 +161,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     ProfileRegistry: "",
     UserProfileDashboard: "",
     AdminDashboard: "",
-    PromoMintRouter: "",
+    PromoMintRouter: "0xc76515904e948698F67fCBc64f7d3b4C57602470",
   },
 };
 

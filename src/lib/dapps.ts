@@ -174,6 +174,30 @@ export const placeholderDApps: DApp[] = [
     description: 'Send KREX is a simple dApp for sending KREX tokens to any Kaspa address. Built on L1, it uses the KRC-20 token standard for secure token transfers.',
     createdAt: new Date().toISOString(),
   },
+  {
+    id: 'genesis',
+    name: 'Genesis Dapp',
+    slug: 'genesis-dapp',
+    category: 'social',
+    utility: 'Leave a permanent message on-chain, creating a time capsule of the early Kaspa ecosystem.',
+    process: 'Connect wallet, write your message (max 280 characters), pay 0.01 KAS fee, and your message is permanently stored.',
+    benefits: 'Be part of Kaspa history. Your message will be forever recorded on-chain as one of the first participants.',
+    developer: 'Kasparex',
+    developerLinks: [
+      { label: 'Website', url: 'https://www.kasparex.com' },
+      { label: 'Telegram', url: 'https://t.me/kasparex' },
+      { label: 'X (Twitter)', url: 'https://x.com/kasparex' },
+    ],
+    status: 'Testnet',
+    network: 'Kaspa vProgs (Simulator)',
+    networkType: 'L1',
+    provider: 'Kasparex',
+    version: '0.1.0',
+    description: 'Genesis Dapp is the first dApp on Kasparex Hub, built with vProgs framework for native Kaspa Layer 1. Leave a permanent message on-chain and become part of Kaspa history.',
+    security: 'Built with vProgs framework. All messages are permanently stored on-chain using vProgs state management. Currently running on simulator, will migrate to production vProgs when ready.',
+    roadmap: 'Q1 2025: Simulator implementation\nQ2 2025: vProgs integration when framework is ready\nQ3 2025: Production deployment on Kaspa L1',
+    createdAt: new Date().toISOString(),
+  },
 ];
 
 export interface FilterState {
