@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAccount } from 'wagmi';
+import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getGenesisDappSimulator } from '@/lib/vprogs/genesis-simulator';
 import type { GenesisMessage, GenesisDappState } from '@/lib/vprogs/genesis-types';
 
@@ -16,7 +16,9 @@ interface UseGenesisDappReturn {
 }
 
 export function useGenesisDapp(): UseGenesisDappReturn {
-  const { address, isConnected } = useAccount();
+  const { state: kaspaState } = useKaspaWallet();
+  const address = kaspaState.address;
+  const isConnected = kaspaState.isConnected;
   const [messages, setMessages] = useState<GenesisMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { useAccount } from 'wagmi';
 import { formatEther } from 'viem';
+import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useGenesisDapp } from '@/hooks/useGenesisDapp';
 
 export function GenesisDappWidget() {
-  const { address, isConnected } = useAccount();
+  const { state: kaspaState } = useKaspaWallet();
+  const isConnected = kaspaState.isConnected;
+  const address = kaspaState.address;
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 

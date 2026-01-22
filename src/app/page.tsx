@@ -64,9 +64,10 @@ function HomeContent() {
   }, [favoritesSet.size, sortBy]);
 
   // Auto-filter based on connected wallets
-  // If only L1 wallet connected, show only L1 dApps
-  // If only L2 wallet connected, show only L2 dApps
-  // If both or neither connected, respect manual filter
+  // L1 connected: show only L1 dApps
+  // L2 connected: show only L2 dApps
+  // Both connected: show all dApps
+  // None connected: show message (handled in UI)
   const effectiveNetworkFilter = useMemo(() => {
     // If user manually selected a filter, respect it
     if (networkFilter !== 'all') {
@@ -87,7 +88,12 @@ function HomeContent() {
       return 'L2' as const;
     }
     
-    // If both connected or neither connected, show all
+    // If both connected, show all
+    if (isL1Connected && isL2Connected) {
+      return 'all' as const;
+    }
+    
+    // If neither connected, return 'all' but UI will show message
     return 'all' as const;
   }, [networkFilter, kaspaState.isConnected, isEVMConnected]);
 
@@ -198,9 +204,15 @@ function HomeContent() {
                 <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
                   Available dApps
                 </h2>
-                <p className="text-zinc-600 dark:text-zinc-400">
-                  {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
-                </p>
+                {!kaspaState.isConnected && !isEVMConnected ? (
+                  <p className="text-zinc-600 dark:text-zinc-400">
+                    Please connect a wallet to see available dApps
+                  </p>
+                ) : (
+                  <p className="text-zinc-600 dark:text-zinc-400">
+                    {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
+                  </p>
+                )}
               </div>
               {/* Action Buttons and Sort Filters - Positioned in top right */}
               <div className="flex items-center gap-2 flex-shrink-0">
@@ -223,7 +235,24 @@ function HomeContent() {
                 </button>
               </div>
             </div>
-            {viewMode === 'cards' ? (
+            {!kaspaState.isConnected && !isEVMConnected ? (
+              <div className="text-center py-12 px-4">
+                <div className="max-w-md mx-auto">
+                  <div className="text-6xl mb-4">🔌</div>
+                  <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                    Connect a Wallet
+                  </h3>
+                  <p className="text-zinc-600 dark:text-zinc-400 mb-6">
+                    Connect a Kaspa L1 wallet or an EVM L2 wallet to see and interact with dApps.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <p className="text-sm text-zinc-500 dark:text-zinc-500">
+                      Use the wallet button in the header to connect
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : viewMode === 'cards' ? (
               <DAppGrid 
                 dapps={displayedDApps}
               />
