@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769119800-4af6b67",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Use L1 wallet for Genesis Dapp and update filtering logic (by Kasparex)",
+      "date": "2026-01-22T23:09:11+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769116606-ea4745f",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Add missing effectiveNetworkFilter definition and wallet hooks (by Kasparex)",
