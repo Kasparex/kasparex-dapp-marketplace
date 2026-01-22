@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769124369-80c4e38",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix GamePayment imports: use correct paths for kasToSompis and isValidKaspaAddress (by Kasparex)",
+      "date": "2026-01-23T00:25:23+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769123889-cb03aaf",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add Kasparex Games foundation: listing page, game cards, filtering, sorting, payment integration, and rewards system (by Kasparex)",
