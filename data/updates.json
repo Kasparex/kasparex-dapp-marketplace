@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769116606-ea4745f",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Add missing effectiveNetworkFilter definition and wallet hooks (by Kasparex)",
+      "date": "2026-01-22T22:16:05+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769115878-3e635c1",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Add missing wallet hooks and effectiveNetworkFilter logic (by Kasparex)",
