@@ -26,9 +26,10 @@ export function GamePayment({ game }: GamePaymentProps) {
       setError('Please connect your Kaspa wallet first');
       // Try to connect automatically
       try {
-        const wallets = await import('@/lib/kaspa/wallet').then(m => m.detectKaspaWallets());
+        const { detectKaspaWallets } = await import('@/lib/kaspa/wallet');
+        const wallets = detectKaspaWallets();
         if (wallets.length > 0) {
-          await connect(wallets[0]);
+          await connect(wallets[0].id);
         }
       } catch (err) {
         console.error('Auto-connect failed:', err);
@@ -124,9 +125,9 @@ export function GamePayment({ game }: GamePaymentProps) {
             onClick={async () => {
               try {
                 const { detectKaspaWallets } = await import('@/lib/kaspa/wallet');
-                const wallets = await detectKaspaWallets();
+                const wallets = detectKaspaWallets();
                 if (wallets.length > 0) {
-                  await connect(wallets[0]);
+                  await connect(wallets[0].id);
                 } else {
                   setError('No Kaspa wallet detected. Please install KasWare or Kastle.');
                 }
