@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769115173-6edf6d6",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Initialize class properties in GenesisDappSimulator (by Kasparex)",
+      "date": "2026-01-22T21:51:53+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769114929-1b8258a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Change Genesis Dapp category from 'social' to 'general' (by Kasparex)",
