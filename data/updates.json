@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769125147-260b096",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: use wallet.id instead of wallet object when connecting (by Kasparex)",
+      "date": "2026-01-23T00:38:41+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769124746-b11715e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix ESLint error: escape apostrophe in GamePayment component (by Kasparex)",
