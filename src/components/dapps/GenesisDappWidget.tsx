@@ -74,7 +74,7 @@ export function GenesisDappWidget() {
         </p>
         {state && (
           <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-2">
-            Fee: {formatEther(state.messageFee)} KAS • {messageCount} messages total
+            Fee: {formatEther(BigInt(state.messageFee))} KAS • {messageCount} messages total
           </p>
         )}
       </div>
