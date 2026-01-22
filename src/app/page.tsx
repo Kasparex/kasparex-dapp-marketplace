@@ -24,6 +24,8 @@ const validCategories = categories.map((cat) => cat.id);
 function HomeContent() {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
+  const { isConnected: isEVMConnected } = useAccount();
+  const { state: kaspaState } = useKaspaWallet();
   
   const [selectedCategories, setSelectedCategories] = useState<Category[]>(() => {
     if (categoryParam && validCategories.includes(categoryParam as Category)) {
@@ -60,6 +62,34 @@ function HomeContent() {
       setSortBy('newest');
     }
   }, [favoritesSet.size, sortBy]);
+
+  // Auto-filter based on connected wallets
+  // If only L1 wallet connected, show only L1 dApps
+  // If only L2 wallet connected, show only L2 dApps
+  // If both or neither connected, respect manual filter
+  const effectiveNetworkFilter = useMemo(() => {
+    // If user manually selected a filter, respect it
+    if (networkFilter !== 'all') {
+      return networkFilter;
+    }
+    
+    // Auto-filter based on wallet connections
+    const isL1Connected = kaspaState.isConnected;
+    const isL2Connected = isEVMConnected;
+    
+    // If only L1 connected, show only L1
+    if (isL1Connected && !isL2Connected) {
+      return 'L1' as const;
+    }
+    
+    // If only L2 connected, show only L2
+    if (isL2Connected && !isL1Connected) {
+      return 'L2' as const;
+    }
+    
+    // If both connected or neither connected, show all
+    return 'all' as const;
+  }, [networkFilter, kaspaState.isConnected, isEVMConnected]);
 
   // Get category counts based on current filters, network filter, and search
   const categoryCounts = useMemo(() => {
