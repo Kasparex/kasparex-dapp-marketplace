@@ -26,6 +26,7 @@ export default function ProductPage({ params }: PageProps) {
   const [error, setError] = useState<string | null>(null);
   const [hasAccess, setHasAccess] = useState(false);
   const [checkingAccess, setCheckingAccess] = useState(true);
+  const [purchaseTxHash, setPurchaseTxHash] = useState<string | null>(null);
   const { state } = useKaspaWallet();
 
   // Get slug from params
