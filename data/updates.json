@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769178376-27ccbff",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: capture slug in const to satisfy type checker (by Kasparex)",
+      "date": "2026-01-23T15:25:48+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769178065-4787665",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: add null check for slug parameter (by Kasparex)",
