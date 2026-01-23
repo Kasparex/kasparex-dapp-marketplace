@@ -7,6 +7,7 @@ import { getExplorerTxUrl } from '@/lib/store/utils';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { calculatePlatformFee } from '@/lib/store/fees';
+import type { KREXTier } from '@/lib/rewards/types';
 
 interface ProductSidebarProps {
   product: Product;
@@ -18,7 +19,7 @@ export function ProductSidebar({ product, txHash }: ProductSidebarProps) {
   const [sidebarWidth, setSidebarWidth] = useState(256);
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const { tier: krexTier } = useKREXBalance();
+  const { tier: krexTier, balance: krexBalance } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
   
   const categories: ProductCategory[] = ['Software', 'Art', 'Music', 'Templates', 'Other'];
@@ -191,10 +192,10 @@ export function ProductSidebar({ product, txHash }: ProductSidebarProps) {
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-zinc-600 dark:text-zinc-400">KREX Tier:</span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    {krexTier === 'none' ? 'None' : krexTier}
+                    {krexBalance === 0 ? 'None' : krexTier}
                   </span>
                 </div>
-                {krexTier !== 'none' && (
+                {krexBalance > 0 && (
                   <div className="text-xs text-green-600 dark:text-green-400">
                     ✓ Fee discount active
                   </div>
@@ -220,7 +221,8 @@ export function ProductSidebar({ product, txHash }: ProductSidebarProps) {
 
               {/* Fee Calculation */}
               {(() => {
-                const fee = calculatePlatformFee(product.priceKAS, krexTier, nftStatus);
+                const effectiveTier: KREXTier | 'none' = krexBalance === 0 ? 'none' : krexTier;
+                const fee = calculatePlatformFee(product.priceKAS, effectiveTier, nftStatus);
                 const hasDiscount = fee.feePercent < 5;
                 
                 return (
