@@ -15,8 +15,10 @@ export default function SellerDashboardPage() {
   const { state } = useKaspaWallet();
   const [products, setProducts] = useState<Product[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [myPurchases, setMyPurchases] = useState<Purchase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'sold' | 'purchased'>('sold');
 
   // Load seller data
   useEffect(() => {
