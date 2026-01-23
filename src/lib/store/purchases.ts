@@ -48,6 +48,12 @@ export async function recordPurchase(
       throw new Error('Failed to upload purchase registry to IPFS');
     }
 
+    // Store purchase registry CID in localStorage for immediate access
+    if (typeof window !== 'undefined') {
+      const { setPurchasesCID } = await import('./ipfs-registry');
+      setPurchasesCID(registryCid);
+    }
+
     // Increment product purchase count
     await incrementProductPurchaseCount(purchase.productId);
 

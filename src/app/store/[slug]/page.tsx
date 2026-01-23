@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ProductPurchase } from '@/components/store/ProductPurchase';
+import { ProductSidebar } from '@/components/store/ProductSidebar';
 import { getProductBySlug } from '@/lib/store/products';
-import { hasUserPurchased as checkPurchase } from '@/lib/store/purchases';
+import { hasUserPurchased as checkPurchase, getPurchasesByBuyer } from '@/lib/store/purchases';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import type { Product } from '@/lib/store/types';
@@ -146,7 +147,13 @@ export default function ProductPage({ params }: PageProps) {
       <Header />
       
       <main className="flex-1">
-        <div className="max-w-6xl mx-auto w-full p-4 sm:p-6 lg:px-16 lg:py-12">
+        <div className="flex">
+          {/* Sidebar */}
+          <ProductSidebar product={product} txHash={purchaseTxHash} />
+
+          {/* Main Content */}
+          <div className="flex-1 lg:ml-0">
+            <div className="max-w-6xl mx-auto w-full p-4 sm:p-6 lg:px-16 lg:py-12">
           {/* Product Header */}
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-4">
@@ -235,61 +242,25 @@ export default function ProductPage({ params }: PageProps) {
                   </div>
                 </div>
               )}
-            </div>
 
-            {/* Sidebar */}
-            <div className="space-y-6">
               {/* Purchase Component */}
               <ProductPurchase
                 product={product}
-                onPurchaseComplete={() => {
-                  // Refresh access check
+                onPurchaseComplete={async () => {
+                  // Refresh access check and get transaction hash
                   if (state.address) {
-                    checkPurchase(product.id, state.address).then(setHasAccess);
+                    const purchased = await checkPurchase(product.id, state.address);
+                    setHasAccess(purchased);
+                    if (purchased) {
+                      const purchases = await getPurchasesByBuyer(state.address);
+                      const purchase = purchases.find(p => p.productId === product.id);
+                      if (purchase) {
+                        setPurchaseTxHash(purchase.txHash);
+                      }
+                    }
                   }
                 }}
               />
-
-              {/* Product Info */}
-              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                  Product Information
-                </h3>
-                <div className="space-y-3 text-sm">
-                  <div>
-                    <span className="text-zinc-500 dark:text-zinc-400">Price:</span>
-                    <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                      {product.priceKAS} KAS
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-zinc-500 dark:text-zinc-400">Network:</span>
-                    <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {product.network}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-zinc-500 dark:text-zinc-400">Category:</span>
-                    <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {product.category}
-                    </div>
-                  </div>
-                  {product.purchaseCount > 0 && (
-                    <div>
-                      <span className="text-zinc-500 dark:text-zinc-400">Sales:</span>
-                      <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {product.purchaseCount}
-                      </div>
-                    </div>
-                  )}
-                  <div>
-                    <span className="text-zinc-500 dark:text-zinc-400">Seller:</span>
-                    <div className="font-mono text-xs text-zinc-600 dark:text-zinc-400 break-all">
-                      {product.sellerAddress}
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>

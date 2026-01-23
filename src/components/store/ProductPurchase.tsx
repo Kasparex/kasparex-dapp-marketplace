@@ -29,7 +29,7 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
   const [feeCalculation, setFeeCalculation] = useState<ReturnType<typeof calculatePlatformFee> | null>(null);
 
   // Calculate fee on mount and when tier/NFT status changes
-  useState(() => {
+  useEffect(() => {
     if (state.address) {
       const fee = calculatePlatformFee(
         product.priceKAS,
@@ -38,7 +38,7 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
       );
       setFeeCalculation(fee);
     }
-  });
+  }, [state.address, product.priceKAS, krexTier, nftStatus]);
 
   const handlePurchase = async () => {
     if (!state.isConnected || !state.provider) {
@@ -123,6 +123,8 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
       if (!purchaseResult) {
         throw new Error('Failed to record purchase');
       }
+
+      // Purchase registry CID is already stored in localStorage by recordPurchase
 
       setTxHash(purchaseTxHash);
       setSuccess(true);

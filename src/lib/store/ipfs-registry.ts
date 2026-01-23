@@ -35,13 +35,27 @@ export function setRegistryCID(cid: string): void {
 }
 
 /**
- * Get current purchase registry CID from environment
+ * Get current purchase registry CID from localStorage or environment
  */
 export function getPurchasesCID(): string | null {
+  // Check localStorage first (for newly recorded purchases)
   if (typeof window !== 'undefined') {
-    return process.env.NEXT_PUBLIC_STORE_PURCHASES_CID || null;
+    const storedCid = localStorage.getItem('store-purchase-registry-cid');
+    if (storedCid) {
+      return storedCid;
+    }
   }
+  // Fall back to environment variable
   return process.env.NEXT_PUBLIC_STORE_PURCHASES_CID || null;
+}
+
+/**
+ * Store purchase registry CID in localStorage (for immediate access after purchase)
+ */
+export function setPurchasesCID(cid: string): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('store-purchase-registry-cid', cid);
+  }
 }
 
 /**

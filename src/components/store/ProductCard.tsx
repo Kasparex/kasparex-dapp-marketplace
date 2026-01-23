@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import type { Product } from '@/lib/store/types';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { ProductPreviewModal } from './ProductPreviewModal';
+import { PurchaseModal } from './PurchaseModal';
 
 interface ProductCardProps {
   product: Product;
@@ -121,13 +122,13 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
           </div>
 
-          {/* Action Buttons - Show on hover or always visible on mobile */}
+          {/* Action Buttons - Show only on hover */}
           <div
             className={`flex gap-2 transition-all duration-200 relative z-20 ${
               isHovered
                 ? 'opacity-100 translate-y-0'
                 : 'opacity-0 translate-y-2 pointer-events-none'
-            } md:opacity-100 md:translate-y-0`}
+            }`}
           >
             <button
               onClick={(e) => {
@@ -167,6 +168,14 @@ export function ProductCard({ product }: ProductCardProps) {
         isOpen={showPreview}
         onClose={() => setShowPreview(false)}
         onBuy={handleBuy}
+      />
+
+      {/* Purchase Modal */}
+      <PurchaseModal
+        product={product}
+        isOpen={showPurchase}
+        onClose={() => setShowPurchase(false)}
+        onProceed={handleProceedPurchase}
       />
     </>
   );

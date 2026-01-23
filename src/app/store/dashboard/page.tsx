@@ -4,9 +4,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { getProductsBySeller } from '@/lib/store/products';
-import { getPurchasesBySeller } from '@/lib/store/purchases';
+import { getProductsBySeller, getProductById } from '@/lib/store/products';
+import { getPurchasesBySeller, getPurchasesByBuyer } from '@/lib/store/purchases';
 import { archiveProduct } from '@/lib/store/products';
+import { StoreSidebar } from '@/components/store/StoreSidebar';
+import { PurchasedItemsList } from '@/components/store/PurchasedItemsList';
 import type { Product, Purchase } from '@/lib/store/types';
 
 export default function SellerDashboardPage() {
@@ -36,6 +38,10 @@ export default function SellerDashboardPage() {
         const productIds = sellerProducts.map((p) => p.id);
         const sellerPurchases = await getPurchasesBySeller(currentAddress, productIds);
         setPurchases(sellerPurchases);
+        
+        // Load purchases made by this user
+        const buyerPurchases = await getPurchasesByBuyer(currentAddress);
+        setMyPurchases(buyerPurchases);
       } catch (err) {
         console.error('Failed to load dashboard:', err);
         setError('Failed to load dashboard data');
@@ -101,7 +107,21 @@ export default function SellerDashboardPage() {
       <Header />
       
       <main className="flex-1">
-        <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 lg:px-16 lg:py-12">
+        <div className="flex">
+          {/* Sidebar */}
+          <StoreSidebar
+            searchQuery=""
+            onSearchChange={() => {}}
+            isWalletConnected={!!state.address}
+            onSubmitProduct={() => {}}
+            selectedCategories={[]}
+            onCategoryChange={() => {}}
+            categoryCounts={{}}
+          />
+
+          {/* Main Content */}
+          <div className="flex-1 lg:ml-0">
+            <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 lg:px-16 lg:py-12">
           {/* Header */}
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
@@ -145,8 +165,11 @@ export default function SellerDashboardPage() {
                 </div>
               </div>
 
-              {/* Products List */}
-              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
+              {/* Content based on active tab */}
+              {activeTab === 'sold' ? (
+                <>
+                  {/* Products List */}
+                  <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
                 <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
                   Your Products ({products.length})
                 </h2>
