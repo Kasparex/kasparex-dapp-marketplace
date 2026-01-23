@@ -37,6 +37,11 @@ export default function ProductPage({ params }: PageProps) {
 
   // Load product
   useEffect(() => {
+    // Wait for params to resolve before checking slug
+    if (!paramsResolved) {
+      return;
+    }
+
     if (!slug) {
       setIsLoading(false);
       setError('Invalid product slug');
@@ -47,10 +52,12 @@ export default function ProductPage({ params }: PageProps) {
 
     async function loadProduct() {
       setIsLoading(true);
+      setError(null);
       try {
         const productData = await getProductBySlug(currentSlug);
         if (!productData) {
           setError('Product not found');
+          setIsLoading(false);
           return;
         }
         setProduct(productData);
@@ -63,7 +70,7 @@ export default function ProductPage({ params }: PageProps) {
     }
 
     loadProduct();
-  }, [slug]);
+  }, [slug, paramsResolved]);
 
   // Check access
   useEffect(() => {

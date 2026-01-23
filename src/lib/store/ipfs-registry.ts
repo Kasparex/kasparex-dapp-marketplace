@@ -52,15 +52,20 @@ export async function fetchProductRegistry(
 ): Promise<ProductRegistry | null> {
   const registryCID = cid || getRegistryCID();
   if (!registryCID) {
-    console.warn('No product registry CID configured');
+    // Don't warn if no CID - this is expected when using demo products
     return null;
   }
 
   try {
     const registry = await fetchJSON<ProductRegistry>(registryCID);
+    if (!registry || !registry.products) {
+      console.warn('Registry fetched but invalid structure');
+      return null;
+    }
     return registry;
   } catch (error) {
     console.error('Failed to fetch product registry:', error);
+    // Return null to allow fallback to demo products
     return null;
   }
 }

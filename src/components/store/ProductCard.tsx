@@ -1,23 +1,37 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { Product } from '@/lib/store/types';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { ProductPreviewModal } from './ProductPreviewModal';
 
 interface ProductCardProps {
   product: Product;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const [showPreview, setShowPreview] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const router = useRouter();
+  
   const thumbnailUrl = product.thumbnailCid
     ? getBestGatewayUrl(product.thumbnailCid)
     : null;
 
+  const handleBuy = () => {
+    router.push(`/store/${product.slug}`);
+  };
+
   return (
-    <Link
-      href={`/store/${product.slug}`}
-      className="block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all relative flex flex-col min-h-[320px]"
-    >
+    <>
+      <div
+        className="group block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all relative flex flex-col min-h-[320px]"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onTouchStart={() => setIsHovered(true)}
+      >
       {/* Product Thumbnail */}
       <div className="relative w-full h-32 bg-zinc-100/80 dark:bg-zinc-900/95 flex items-center justify-center border-b border-zinc-200/50 dark:border-zinc-800/50">
         {thumbnailUrl ? (
@@ -106,8 +120,51 @@ export function ProductCard({ product }: ProductCardProps) {
               )}
             </div>
           </div>
+
+          {/* Action Buttons - Show on hover or always on mobile */}
+          <div
+            className={`flex gap-2 transition-all duration-200 ${
+              isHovered
+                ? 'opacity-100 translate-y-0'
+                : 'opacity-0 translate-y-2 pointer-events-none md:pointer-events-auto md:opacity-100 md:translate-y-0'
+            }`}
+          >
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                handleBuy();
+              }}
+              className="flex-1 px-3 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              Buy
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                setShowPreview(true);
+              }}
+              className="flex-1 px-3 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg text-sm font-medium transition-colors"
+            >
+              Preview
+            </button>
+          </div>
         </div>
+
+        {/* Clickable overlay for card navigation - lower z-index so buttons can be clicked */}
+        <Link
+          href={`/store/${product.slug}`}
+          className="absolute inset-0 z-0"
+          aria-label={`View ${product.title}`}
+        />
       </div>
-    </Link>
+
+      {/* Preview Modal */}
+      <ProductPreviewModal
+        product={product}
+        isOpen={showPreview}
+        onClose={() => setShowPreview(false)}
+        onBuy={handleBuy}
+      />
+    </>
   );
 }
