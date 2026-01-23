@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769190319-af85443",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix: Update handleResetFilters to use selectedCategories (by Kasparex)",
+      "date": "2026-01-23T18:44:31+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769190011-cd7056f",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix ProductGrid image optimization (by Kasparex)",
