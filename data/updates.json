@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769207626-4c8d24a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: Use balance check instead of comparing KREXTier to 'none' (by Kasparex)",
+      "date": "2026-01-23T23:32:45+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769207205-7ea02eb",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix transaction links, restructure product page, update sidebar with categories and rewards, fix product card hover buttons (by Kasparex)",
