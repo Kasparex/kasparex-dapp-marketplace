@@ -29,7 +29,10 @@ export default function ProductPage({ params }: PageProps) {
 
   // Get slug from params
   useEffect(() => {
-    params.then((p) => setSlug(p.slug));
+    params.then((p) => {
+      setSlug(p.slug);
+      setParamsResolved(true);
+    });
   }, [params]);
 
   // Load product
@@ -40,10 +43,12 @@ export default function ProductPage({ params }: PageProps) {
       return;
     }
 
+    const currentSlug = slug; // Capture slug in a const for TypeScript
+
     async function loadProduct() {
       setIsLoading(true);
       try {
-        const productData = await getProductBySlug(slug);
+        const productData = await getProductBySlug(currentSlug);
         if (!productData) {
           setError('Product not found');
           return;
