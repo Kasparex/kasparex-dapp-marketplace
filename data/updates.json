@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769201255-be64dd1",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix unescaped apostrophe in PurchasedItemsList (by Kasparex)",
+      "date": "2026-01-23T21:44:36+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769200790-479781d",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix missing closing div tags in product page and dashboard (by Kasparex)",
