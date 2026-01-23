@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769205378-276b159",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix categoryCounts type error in seller dashboard (by Kasparex)",
+      "date": "2026-01-23T22:05:17+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769202070-da352a9",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix missing state variables in seller dashboard (by Kasparex)",
