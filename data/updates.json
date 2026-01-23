@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769191562-c879ac9",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix product slug routing and add Buy/Preview buttons to product cards (by Kasparex)",
+      "date": "2026-01-23T19:05:08+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769190319-af85443",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: Update handleResetFilters to use selectedCategories (by Kasparex)",
