@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769190011-cd7056f",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix ProductGrid image optimization (by Kasparex)",
+      "date": "2026-01-23T18:39:14+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769188092-7985c88",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: Add missing viewMode state declaration (by Kasparex)",
