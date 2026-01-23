@@ -73,10 +73,13 @@ export default function ProductPage({ params }: PageProps) {
       return;
     }
 
+    const currentProduct = product; // Capture product in a const for TypeScript
+    const currentAddress = state.address; // Capture address in a const for TypeScript
+
     async function checkAccess() {
       setCheckingAccess(true);
       try {
-        const purchased = await checkPurchase(product.id, state.address);
+        const purchased = await checkPurchase(currentProduct.id, currentAddress);
         setHasAccess(purchased);
       } catch (error) {
         console.error('Failed to check access:', error);
