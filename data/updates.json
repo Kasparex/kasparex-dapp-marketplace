@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769191846-4f23119",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix: Correct ProductCard component structure and button z-index (by Kasparex)",
+      "date": "2026-01-23T19:10:16+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769191562-c879ac9",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix product slug routing and add Buy/Preview buttons to product cards (by Kasparex)",
