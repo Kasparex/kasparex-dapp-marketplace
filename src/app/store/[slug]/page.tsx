@@ -260,6 +260,8 @@ export default function ProductPage({ params }: PageProps) {
               }}
             />
           </div>
+            </div>
+          </div>
         </div>
       </main>
 

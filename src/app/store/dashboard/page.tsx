@@ -267,6 +267,10 @@ export default function SellerDashboardPage() {
               ) : (
                 <PurchasedItemsList purchases={myPurchases} />
               )}
+            </div>
+          )}
+            </div>
+          </div>
         </div>
       </main>
 
