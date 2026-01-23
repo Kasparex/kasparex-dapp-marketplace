@@ -85,18 +85,12 @@ class PinataService {
   /**
    * Upload JSON data to Pinata IPFS
    */
-  async uploadJSON(data: Record<string, unknown>): Promise<UploadResult> {
+  async uploadJSON(data: Record<string, unknown>, filename?: string): Promise<UploadResult> {
     if (!this.apiKey || !this.apiSecret) {
       throw new Error('Pinata API credentials not configured');
     }
 
-    const metadata = JSON.stringify({
-      name: 'metadata.json',
-    });
-
-    const options = JSON.stringify({
-      cidVersion: 1,
-    });
+    const metadataName = filename || 'metadata.json';
 
     try {
       const response = await fetch(`${this.baseUrl}/pinning/pinJSONToIPFS`, {
@@ -109,7 +103,7 @@ class PinataService {
         body: JSON.stringify({
           pinataContent: data,
           pinataMetadata: {
-            name: 'metadata.json',
+            name: metadataName,
           },
           pinataOptions: {
             cidVersion: 1,

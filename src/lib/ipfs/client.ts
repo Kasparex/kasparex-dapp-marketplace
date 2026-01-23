@@ -63,7 +63,7 @@ class IPFSClient {
     this.ensureInitialized();
 
     try {
-      const result: UploadResult = await this.pinataService.uploadJSON(data);
+      const result: UploadResult = await this.pinataService.uploadJSON(data, options.filename);
 
       // Auto-pin if requested (Pinata auto-pins on upload)
       if (options.pin !== false) {

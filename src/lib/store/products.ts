@@ -75,17 +75,21 @@ export async function getAllProducts(): Promise<Product[]> {
  * Get product by slug
  */
 export async function getProductBySlug(slug: string): Promise<Product | null> {
+  // Try to fetch from registry (checks localStorage first for new products)
   const registry = await fetchProductRegistry();
-  if (!registry) {
-    return buildDemoProducts().find((p) => p.slug === slug) || null;
+  
+  if (registry) {
+    const entry = registry.products.find((p) => p.slug === slug && p.status === 'active');
+    if (entry) {
+      const product = await fetchProduct(entry.productCid);
+      if (product) {
+        return product;
+      }
+    }
   }
-
-  const entry = registry.products.find((p) => p.slug === slug && p.status === 'active');
-  if (!entry) {
-    return buildDemoProducts().find((p) => p.slug === slug) || null;
-  }
-
-  return fetchProduct(entry.productCid);
+  
+  // Fall back to demo products if not found in registry
+  return buildDemoProducts().find((p) => p.slug === slug) || null;
 }
 
 /**
@@ -153,13 +157,15 @@ export async function createProduct(
       listingFeePaid: true, // Assume paid if we're creating it
     };
 
-    // Upload product to IPFS
-    const productCid = await uploadProduct(product);
+    // Upload product to IPFS with descriptive filename
+    const productFilename = `${slug}-metadata.json`;
+    const productCid = await uploadProduct(product, productFilename);
     if (!productCid) {
       throw new Error('Failed to upload product to IPFS');
     }
 
     // Fetch or create registry
+    // Try to get from localStorage first (for newly created products), then fall back to env var
     let registry = await fetchProductRegistry();
     if (!registry) {
       registry = createEmptyProductRegistry();
@@ -193,6 +199,11 @@ export async function createProduct(
     const registryCid = await uploadProductRegistry(registry);
     if (!registryCid) {
       throw new Error('Failed to upload registry to IPFS');
+    }
+
+    // Store the new registry CID in localStorage for immediate access
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('store-registry-cid', registryCid);
     }
 
     return { product, registryCid };

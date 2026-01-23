@@ -7,12 +7,14 @@ interface StoreSidebarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   isWalletConnected?: boolean;
+  onSubmitProduct?: () => void;
 }
 
 export function StoreSidebar({
   searchQuery,
   onSearchChange,
   isWalletConnected = false,
+  onSubmitProduct,
 }: StoreSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   
@@ -217,12 +219,20 @@ export function StoreSidebar({
                 Browse Store
               </Link>
               {isWalletConnected && (
-                <Link
-                  href="/store/dashboard"
-                  className="block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-                >
-                  Seller Dashboard
-                </Link>
+                <>
+                  <button
+                    onClick={onSubmitProduct}
+                    className="w-full text-left px-3 py-2 text-sm font-medium bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
+                  >
+                    Submit Product
+                  </button>
+                  <Link
+                    href="/store/dashboard"
+                    className="block px-3 py-2 text-sm font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                  >
+                    Seller Dashboard
+                  </Link>
+                </>
               )}
               <Link
                 href="/points"

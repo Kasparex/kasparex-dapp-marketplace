@@ -140,9 +140,19 @@ export function ProductSubmissionModal({
         throw new Error('Failed to create product');
       }
 
+      // Store the new registry CID for immediate access
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('store-registry-cid', productResult.registryCid);
+      }
+
       setStep('complete');
+      
+      // Call onSuccess to refresh product list
       if (onSuccess) {
-        onSuccess();
+        // Small delay to ensure registry is accessible
+        setTimeout(() => {
+          onSuccess();
+        }, 500);
       }
 
       // Reset form after 2 seconds

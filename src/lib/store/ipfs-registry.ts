@@ -11,13 +11,27 @@ const REGISTRY_CID_ENV = 'NEXT_PUBLIC_STORE_REGISTRY_CID';
 const PURCHASES_CID_ENV = 'NEXT_PUBLIC_STORE_PURCHASES_CID';
 
 /**
- * Get current product registry CID from environment
+ * Get current product registry CID from environment or localStorage
  */
 export function getRegistryCID(): string | null {
+  // Check localStorage first (for newly created products)
   if (typeof window !== 'undefined') {
-    return process.env.NEXT_PUBLIC_STORE_REGISTRY_CID || null;
+    const storedCid = localStorage.getItem('store-registry-cid');
+    if (storedCid) {
+      return storedCid;
+    }
   }
+  // Fall back to environment variable
   return process.env.NEXT_PUBLIC_STORE_REGISTRY_CID || null;
+}
+
+/**
+ * Store registry CID in localStorage (for immediate access after product creation)
+ */
+export function setRegistryCID(cid: string): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('store-registry-cid', cid);
+  }
 }
 
 /**
@@ -103,14 +117,20 @@ export async function uploadPurchaseRegistry(
 ): Promise<string | null> {
   try {
     const client = getIPFSClient();
-    const cid = await client.uploadJSON(registry as unknown as Record<string, unknown>, { pin: true });
+    const cid = await client.uploadJSON(registry as unknown as Record<string, unknown>, { 
+      pin: true,
+      filename: 'purchase-registry.json'
+    });
     
     // Update registry with its own CID
     registry.registryCid = cid;
     registry.updatedAt = Date.now();
     
     // Re-upload with updated CID
-    const finalCid = await client.uploadJSON(registry as unknown as Record<string, unknown>, { pin: true });
+    const finalCid = await client.uploadJSON(registry as unknown as Record<string, unknown>, { 
+      pin: true,
+      filename: 'purchase-registry.json'
+    });
     return finalCid;
   } catch (error) {
     console.error('Failed to upload purchase registry:', error);
@@ -119,12 +139,17 @@ export async function uploadPurchaseRegistry(
 }
 
 /**
- * Upload product data to IPFS
+ * Upload product data to IPFS with descriptive filename
  */
-export async function uploadProduct(product: Product): Promise<string | null> {
+export async function uploadProduct(product: Product, filename?: string): Promise<string | null> {
   try {
     const client = getIPFSClient();
-    const cid = await client.uploadJSON(product as unknown as Record<string, unknown>, { pin: true });
+    // Use descriptive filename if provided, otherwise generate from slug
+    const metadataFilename = filename || `${product.slug}-metadata.json`;
+    const cid = await client.uploadJSON(product as unknown as Record<string, unknown>, { 
+      pin: true,
+      filename: metadataFilename 
+    });
     return cid;
   } catch (error) {
     console.error('Failed to upload product:', error);

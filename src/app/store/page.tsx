@@ -4,15 +4,16 @@ import { useState, useEffect, useMemo } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { StoreSidebar } from '@/components/store/StoreSidebar';
-import { ProductCard } from '@/components/store/ProductCard';
+import { ProductGrid } from '@/components/store/ProductGrid';
 import { ProductSubmissionModal } from '@/components/store/ProductSubmissionModal';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getAllProducts } from '@/lib/store/products';
 import { filterProducts } from '@/lib/store/filtering';
 import { ProductSortFilters } from '@/components/store/ProductSortFilters';
-import Link from 'next/link';
 import { sortProducts, type SortOption } from '@/lib/store/sorting';
 import type { Product, ProductCategory, ProductNetwork } from '@/lib/store/types';
+
+export type ProductViewMode = 'grid' | 'compact' | 'table';
 
 export default function StorePage() {
   const { state } = useKaspaWallet();
@@ -28,21 +29,21 @@ export default function StorePage() {
   const [sortBy, setSortBy] = useState<SortOption>('newest');
 
   // Load products from IPFS
-  useEffect(() => {
-    async function loadProducts() {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const allProducts = await getAllProducts();
-        setProducts(allProducts);
-      } catch (err) {
-        console.error('Failed to load products:', err);
-        setError('Failed to load products. Please try again later.');
-      } finally {
-        setIsLoading(false);
-      }
+  const loadProducts = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const allProducts = await getAllProducts();
+      setProducts(allProducts);
+    } catch (err) {
+      console.error('Failed to load products:', err);
+      setError('Failed to load products. Please try again later.');
+    } finally {
+      setIsLoading(false);
     }
+  };
 
+  useEffect(() => {
     loadProducts();
   }, []);
 
@@ -78,6 +79,7 @@ export default function StorePage() {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             isWalletConnected={!!state.address}
+            onSubmitProduct={() => setShowSubmitModal(true)}
           />
 
           {/* Main Content */}
@@ -97,7 +99,7 @@ export default function StorePage() {
                     )}
                   </p>
                 </div>
-                {/* Action Buttons and Sort Filters */}
+                {/* Filters and Sort Controls */}
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {/* Filters (kept in main column for Kasparex consistency) */}
                   <select
@@ -123,6 +125,51 @@ export default function StorePage() {
                     <option value="L1">L1</option>
                     <option value="L2">L2</option>
                   </select>
+                  {/* View Mode Controls */}
+                  <div className="flex items-center border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
+                    <button
+                      onClick={() => setViewMode('grid')}
+                      className={`p-2 text-sm font-medium transition-colors ${
+                        viewMode === 'grid'
+                          ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
+                          : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                      }`}
+                      title="Grid view"
+                      aria-label="Grid view"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setViewMode('compact')}
+                      className={`p-2 text-sm font-medium transition-colors border-l border-zinc-200 dark:border-zinc-800 ${
+                        viewMode === 'compact'
+                          ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
+                          : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                      }`}
+                      title="Compact view"
+                      aria-label="Compact view"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setViewMode('table')}
+                      className={`p-2 text-sm font-medium transition-colors border-l border-zinc-200 dark:border-zinc-800 ${
+                        viewMode === 'table'
+                          ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
+                          : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                      }`}
+                      title="Table view"
+                      aria-label="Table view"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                  </div>
                   <ProductSortFilters 
                     sortBy={sortBy} 
                     onSortChange={setSortBy}
@@ -133,22 +180,6 @@ export default function StorePage() {
                   >
                     Reset Filters
                   </button>
-                  {state.address && (
-                    <>
-                      <button
-                        onClick={() => setShowSubmitModal(true)}
-                        className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors whitespace-nowrap"
-                      >
-                        Submit Product
-                      </button>
-                      <Link
-                        href="/store/dashboard"
-                        className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors whitespace-nowrap"
-                      >
-                        Dashboard
-                      </Link>
-                    </>
-                  )}
                 </div>
               </div>
 
@@ -161,7 +192,7 @@ export default function StorePage() {
 
               {/* Products Grid */}
               {isLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {[...Array(8)].map((_, i) => (
                     <div
                       key={i}
@@ -169,18 +200,8 @@ export default function StorePage() {
                     />
                   ))}
                 </div>
-              ) : filteredAndSortedProducts.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-zinc-600 dark:text-zinc-400">
-                    No products found. Try adjusting your filters.
-                  </p>
-                </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {filteredAndSortedProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                  ))}
-                </div>
+                <ProductGrid products={filteredAndSortedProducts} viewMode={viewMode} />
               )}
             </div>
           </div>
@@ -193,9 +214,11 @@ export default function StorePage() {
       <ProductSubmissionModal
         isOpen={showSubmitModal}
         onClose={() => setShowSubmitModal(false)}
-        onSuccess={() => {
-          // Reload products
-          getAllProducts().then(setProducts);
+        onSuccess={async () => {
+          // Reload products - the new registry CID is now in localStorage
+          // Wait a moment for IPFS propagation, then reload
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          await loadProducts();
         }}
       />
     </div>
