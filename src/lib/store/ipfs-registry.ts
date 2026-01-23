@@ -80,14 +80,14 @@ export async function uploadProductRegistry(
 ): Promise<string | null> {
   try {
     const client = getIPFSClient();
-    const cid = await client.uploadJSON(registry, { pin: true });
+    const cid = await client.uploadJSON(registry as Record<string, unknown>, { pin: true });
     
     // Update registry with its own CID
     registry.registryCid = cid;
     registry.updatedAt = Date.now();
     
     // Re-upload with updated CID
-    const finalCid = await client.uploadJSON(registry, { pin: true });
+    const finalCid = await client.uploadJSON(registry as Record<string, unknown>, { pin: true });
     return finalCid;
   } catch (error) {
     console.error('Failed to upload product registry:', error);
@@ -103,14 +103,14 @@ export async function uploadPurchaseRegistry(
 ): Promise<string | null> {
   try {
     const client = getIPFSClient();
-    const cid = await client.uploadJSON(registry, { pin: true });
+    const cid = await client.uploadJSON(registry as Record<string, unknown>, { pin: true });
     
     // Update registry with its own CID
     registry.registryCid = cid;
     registry.updatedAt = Date.now();
     
     // Re-upload with updated CID
-    const finalCid = await client.uploadJSON(registry, { pin: true });
+    const finalCid = await client.uploadJSON(registry as Record<string, unknown>, { pin: true });
     return finalCid;
   } catch (error) {
     console.error('Failed to upload purchase registry:', error);
@@ -124,7 +124,7 @@ export async function uploadPurchaseRegistry(
 export async function uploadProduct(product: Product): Promise<string | null> {
   try {
     const client = getIPFSClient();
-    const cid = await client.uploadJSON(product, { pin: true });
+    const cid = await client.uploadJSON(product as Record<string, unknown>, { pin: true });
     return cid;
   } catch (error) {
     console.error('Failed to upload product:', error);
