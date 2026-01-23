@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769199925-014be26",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix store: fee calculation, content unlocking, sidebars, purchase modal, and card buttons (by Kasparex)",
+      "date": "2026-01-23T21:24:35+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769192066-7e64581",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: Add missing closing div tag for main card container (by Kasparex)",
