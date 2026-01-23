@@ -25,6 +25,10 @@ export function ProductCard({ product }: ProductCardProps) {
             src={thumbnailUrl}
             alt={product.title}
             className="w-full h-full object-cover"
+            loading="lazy"
+            decoding="async"
+            width={400}
+            height={128}
           />
         ) : (
           <svg

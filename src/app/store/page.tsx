@@ -8,7 +8,7 @@ import { ProductGrid } from '@/components/store/ProductGrid';
 import { ProductSubmissionModal } from '@/components/store/ProductSubmissionModal';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getAllProducts } from '@/lib/store/products';
-import { filterProducts } from '@/lib/store/filtering';
+import { filterProducts, getCategoryCounts } from '@/lib/store/filtering';
 import { ProductSortFilters } from '@/components/store/ProductSortFilters';
 import { sortProducts, type SortOption } from '@/lib/store/sorting';
 import type { Product, ProductCategory, ProductNetwork } from '@/lib/store/types';
@@ -23,11 +23,14 @@ export default function StorePage() {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   
   // Filters
-  const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'all'>('all');
+  const [selectedCategories, setSelectedCategories] = useState<ProductCategory[]>([]);
   const [selectedNetwork, setSelectedNetwork] = useState<ProductNetwork | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [viewMode, setViewMode] = useState<ProductViewMode>('grid');
+  
+  // Category counts
+  const categoryCounts = useMemo(() => getCategoryCounts(products), [products]);
 
   // Load products from IPFS
   const loadProducts = async () => {
@@ -81,6 +84,9 @@ export default function StorePage() {
             onSearchChange={setSearchQuery}
             isWalletConnected={!!state.address}
             onSubmitProduct={() => setShowSubmitModal(true)}
+            selectedCategories={selectedCategories}
+            onCategoryChange={setSelectedCategories}
+            categoryCounts={categoryCounts}
           />
 
           {/* Main Content */}
@@ -102,20 +108,7 @@ export default function StorePage() {
                 </div>
                 {/* Filters and Sort Controls */}
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  {/* Filters (kept in main column for Kasparex consistency) */}
-                  <select
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value as ProductCategory | 'all')}
-                    className="px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-                    aria-label="Filter by category"
-                  >
-                    <option value="all">All Categories</option>
-                    <option value="Software">Software</option>
-                    <option value="Art">Art</option>
-                    <option value="Music">Music</option>
-                    <option value="Templates">Templates</option>
-                    <option value="Other">Other</option>
-                  </select>
+                  {/* Network Filter (kept in main column for Kasparex consistency) */}
                   <select
                     value={selectedNetwork}
                     onChange={(e) => setSelectedNetwork(e.target.value as ProductNetwork | 'all')}

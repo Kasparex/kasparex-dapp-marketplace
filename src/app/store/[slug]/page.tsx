@@ -171,6 +171,8 @@ export default function ProductPage({ params }: PageProps) {
                 src={thumbnailUrl}
                 alt={product.title}
                 className="w-full max-w-2xl rounded-lg border border-zinc-200 dark:border-zinc-800"
+                loading="lazy"
+                decoding="async"
               />
             </div>
           )}

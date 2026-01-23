@@ -3,11 +3,16 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 
+import type { ProductCategory } from '@/lib/store/types';
+
 interface StoreSidebarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   isWalletConnected?: boolean;
   onSubmitProduct?: () => void;
+  selectedCategories: ProductCategory[];
+  onCategoryChange: (categories: ProductCategory[]) => void;
+  categoryCounts: Record<ProductCategory, number>;
 }
 
 export function StoreSidebar({
@@ -15,7 +20,20 @@ export function StoreSidebar({
   onSearchChange,
   isWalletConnected = false,
   onSubmitProduct,
+  selectedCategories,
+  onCategoryChange,
+  categoryCounts,
 }: StoreSidebarProps) {
+  const [categoriesExpanded, setCategoriesExpanded] = useState(true);
+  
+  const categories: ProductCategory[] = ['Software', 'Art', 'Music', 'Templates', 'Other'];
+  
+  const handleCategoryToggle = (category: ProductCategory) => {
+    const newCategories = selectedCategories.includes(category)
+      ? selectedCategories.filter((c) => c !== category)
+      : [...selectedCategories, category];
+    onCategoryChange(newCategories);
+  };
   const [isOpen, setIsOpen] = useState(false);
   
   // Sidebar hide/show and resize state
@@ -190,50 +208,89 @@ export function StoreSidebar({
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full px-3 py-2 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#02abb8] text-zinc-900 dark:text-zinc-100"
           />
+          
+          {/* Action Buttons at Top */}
+          {isWalletConnected && (
+            <div className="mt-3 space-y-2">
+              <button
+                onClick={onSubmitProduct}
+                className="w-full px-3 py-2 text-sm font-medium bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
+              >
+                Submit Product
+              </button>
+              <Link
+                href="/store/dashboard"
+                className="block w-full px-3 py-2 text-sm font-medium text-center bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+              >
+                Seller Dashboard
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Sidebar Content */}
         <div className="p-4">
-          {/* Info */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Kasparex Store</h3>
-            <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              Digital products marketplace powered by KAS. Listings and metadata can be stored via IPFS to keep the ecosystem lean.
-            </p>
+          {/* Category Filters */}
+          <div className="space-y-3 mb-4">
+            <button
+              onClick={() => setCategoriesExpanded(!categoriesExpanded)}
+              className="w-full flex items-center justify-between text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors"
+            >
+              <span className="flex items-center gap-2">
+                <span>📦</span>
+                Categories
+              </span>
+              <svg
+                className={`w-4 h-4 transition-transform ${categoriesExpanded ? 'rotate-180' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {categoriesExpanded && (
+              <div className="space-y-2 pl-2">
+                {categories.map((category) => {
+                  const isChecked = selectedCategories.includes(category);
+                  const count = categoryCounts[category] || 0;
+                  return (
+                    <label
+                      key={category}
+                      className="flex items-center justify-between cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900/50 p-2 rounded transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleCategoryToggle(category)}
+                          className="rounded border-zinc-300 dark:border-zinc-700 text-[#02abb8] focus:ring-[#02abb8]"
+                        />
+                        <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                          {category}
+                        </span>
+                      </div>
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                        {count}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Quick Links */}
-          <div className="space-y-3 pt-4 border-t border-zinc-200 dark:border-zinc-800 mt-4">
+          <div className="space-y-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
             <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Quick Links</h3>
             <div className="space-y-2">
-              <Link
-                href="/hub"
-                className="block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-              >
-                ← Back to Hub
-              </Link>
               <Link
                 href="/store"
                 className="block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
               >
                 Browse Store
               </Link>
-              {isWalletConnected && (
-                <>
-                  <button
-                    onClick={onSubmitProduct}
-                    className="w-full text-left px-3 py-2 text-sm font-medium bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
-                  >
-                    Submit Product
-                  </button>
-                  <Link
-                    href="/store/dashboard"
-                    className="block px-3 py-2 text-sm font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-                  >
-                    Seller Dashboard
-                  </Link>
-                </>
-              )}
               <Link
                 href="/points"
                 className="block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"

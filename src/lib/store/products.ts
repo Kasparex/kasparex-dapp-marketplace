@@ -53,8 +53,12 @@ export function generateSlug(title: string): string {
  */
 export async function getAllProducts(): Promise<Product[]> {
   const registry = await fetchProductRegistry();
-  if (!registry) {
-    return buildDemoProducts();
+  
+  // Always include demo products for testing
+  const demoProducts = buildDemoProducts();
+  
+  if (!registry || registry.products.length === 0) {
+    return demoProducts;
   }
 
   // Fetch full product data for each entry
@@ -68,7 +72,16 @@ export async function getAllProducts(): Promise<Product[]> {
     }
   }
 
-  return products;
+  // Merge with demo products, avoiding duplicates by slug
+  const productMap = new Map<string, Product>();
+  
+  // Add demo products first
+  demoProducts.forEach(p => productMap.set(p.slug, p));
+  
+  // Add registry products (will overwrite demo products with same slug)
+  products.forEach(p => productMap.set(p.slug, p));
+  
+  return Array.from(productMap.values());
 }
 
 /**
@@ -78,8 +91,9 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   // Try to fetch from registry (checks localStorage first for new products)
   const registry = await fetchProductRegistry();
   
-  if (registry) {
+  if (registry && registry.products.length > 0) {
     const entry = registry.products.find((p) => p.slug === slug && p.status === 'active');
+    
     if (entry) {
       const product = await fetchProduct(entry.productCid);
       if (product) {
@@ -88,8 +102,11 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     }
   }
   
-  // Fall back to demo products if not found in registry
-  return buildDemoProducts().find((p) => p.slug === slug) || null;
+  // Fall back to demo products
+  const demoProducts = buildDemoProducts();
+  const demoProduct = demoProducts.find((p) => p.slug === slug);
+  
+  return demoProduct || null;
 }
 
 /**

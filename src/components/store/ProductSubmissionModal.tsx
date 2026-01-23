@@ -48,6 +48,14 @@ export function ProductSubmissionModal({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Check file size (2MB limit)
+    const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+    if (file.size > maxSize) {
+      setError(`Image size exceeds 2MB limit. Please use a smaller image. (Current: ${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      e.target.value = ''; // Clear the input
+      return;
+    }
+
     setThumbnailFile(file);
     setError(null);
 
@@ -63,6 +71,17 @@ export function ProductSubmissionModal({
   const handleAssetChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
+
+    // Check file sizes (2MB limit per file)
+    const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+    const oversizedFiles = files.filter(f => f.size > maxSize);
+    
+    if (oversizedFiles.length > 0) {
+      const fileNames = oversizedFiles.map(f => `${f.name} (${(f.size / 1024 / 1024).toFixed(2)}MB)`).join(', ');
+      setError(`Some files exceed 2MB limit: ${fileNames}. Please use smaller files.`);
+      e.target.value = ''; // Clear the input
+      return;
+    }
 
     setAssetFiles((prev) => [...prev, ...files]);
     setError(null);
@@ -189,8 +208,8 @@ export function ProductSubmissionModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-white dark:bg-zinc-900 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
+      <div className="bg-white dark:bg-zinc-900 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         <div className="p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
