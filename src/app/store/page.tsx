@@ -8,7 +8,7 @@ import { ProductGrid } from '@/components/store/ProductGrid';
 import { ProductSubmissionModal } from '@/components/store/ProductSubmissionModal';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getAllProducts } from '@/lib/store/products';
-import { filterProducts, getCategoryCounts } from '@/lib/store/filtering';
+import { getCategoryCounts } from '@/lib/store/filtering';
 import { ProductSortFilters } from '@/components/store/ProductSortFilters';
 import { sortProducts, type SortOption } from '@/lib/store/sorting';
 import type { Product, ProductCategory, ProductNetwork } from '@/lib/store/types';
@@ -53,17 +53,32 @@ export default function StorePage() {
 
   // Filter and sort products
   const filteredAndSortedProducts = useMemo(() => {
-    const filters = {
-      category: selectedCategory,
-      network: selectedNetwork,
-      search: searchQuery,
-    };
+    let filtered = products;
     
-    let filtered = filterProducts(products, filters);
+    // Category filter (multiple selection)
+    if (selectedCategories.length > 0) {
+      filtered = filtered.filter(p => selectedCategories.includes(p.category));
+    }
+    
+    // Network filter
+    if (selectedNetwork !== 'all') {
+      filtered = filtered.filter(p => p.network === selectedNetwork);
+    }
+    
+    // Search filter
+    if (searchQuery) {
+      const searchLower = searchQuery.toLowerCase();
+      filtered = filtered.filter(p =>
+        p.title.toLowerCase().includes(searchLower) ||
+        p.description.toLowerCase().includes(searchLower) ||
+        p.category.toLowerCase().includes(searchLower)
+      );
+    }
+    
     filtered = sortProducts(filtered, sortBy);
     
     return filtered;
-  }, [products, selectedCategory, selectedNetwork, searchQuery, sortBy]);
+  }, [products, selectedCategories, selectedNetwork, searchQuery, sortBy]);
 
   const handleResetFilters = () => {
     setSelectedCategory('all');
