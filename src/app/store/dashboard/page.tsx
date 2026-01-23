@@ -170,96 +170,103 @@ export default function SellerDashboardPage() {
                 <>
                   {/* Products List */}
                   <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
-                <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                  Your Products ({products.length})
-                </h2>
-                {products.length === 0 ? (
-                  <p className="text-zinc-600 dark:text-zinc-400">
-                    You have not listed any products yet.
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    {products.map((product) => (
-                      <div
-                        key={product.id}
-                        className="flex items-center justify-between p-4 border border-zinc-200 dark:border-zinc-800 rounded-lg"
-                      >
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">
-                            {product.title}
-                          </h3>
-                          <div className="flex items-center gap-4 mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                            <span>{product.priceKAS} KAS</span>
-                            <span>{product.purchaseCount} sales</span>
-                            <span className={`px-2 py-1 rounded text-xs ${
-                              product.status === 'active'
-                                ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
-                                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-300'
-                            }`}>
-                              {product.status}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <a
-                            href={`/store/${product.slug}`}
-                            className="px-3 py-1 text-sm text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors"
+                    <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+                      Your Products ({products.length})
+                    </h2>
+                    {products.length === 0 ? (
+                      <p className="text-zinc-600 dark:text-zinc-400">
+                        You have not listed any products yet.
+                      </p>
+                    ) : (
+                      <div className="space-y-4">
+                        {products.map((product) => (
+                          <div
+                            key={product.id}
+                            className="flex items-center justify-between p-4 border border-zinc-200 dark:border-zinc-800 rounded-lg"
                           >
-                            View
-                          </a>
-                          {product.status === 'active' && (
-                            <button
-                              onClick={() => handleArchive(product.id)}
-                              className="px-3 py-1 text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
-                            >
-                              Archive
-                            </button>
-                          )}
-                        </div>
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">
+                                {product.title}
+                              </h3>
+                              <div className="flex items-center gap-4 mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                                <span>{product.priceKAS} KAS</span>
+                                <span>{product.purchaseCount} sales</span>
+                                <span className={`px-2 py-1 rounded text-xs ${
+                                  product.status === 'active'
+                                    ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+                                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-300'
+                                }`}>
+                                  {product.status}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <a
+                                href={`/store/${product.slug}`}
+                                className="px-3 py-1 text-sm text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors"
+                              >
+                                View
+                              </a>
+                              {product.status === 'active' && (
+                                <button
+                                  onClick={() => handleArchive(product.id)}
+                                  className="px-3 py-1 text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                                >
+                                  Archive
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
-                )}
-              </div>
 
-              {/* Recent Sales */}
-              {stats.recentSales.length > 0 && (
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
-                  <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                    Recent Sales
-                  </h2>
-                  <div className="space-y-2">
-                    {stats.recentSales.map((purchase) => {
-                      const product = products.find((p) => p.id === purchase.productId);
-                      return (
-                        <div
-                          key={purchase.id}
-                          className="flex items-center justify-between p-3 border border-zinc-200 dark:border-zinc-800 rounded-lg"
-                        >
-                          <div>
-                            <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {product?.title || 'Unknown Product'}
+                  {/* Recent Sales */}
+                  {stats.recentSales.length > 0 && (
+                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
+                      <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+                        Recent Sales
+                      </h2>
+                      <div className="space-y-2">
+                        {stats.recentSales.map((purchase) => {
+                          const product = products.find((p) => p.id === purchase.productId);
+                          return (
+                            <div
+                              key={purchase.id}
+                              className="flex items-center justify-between p-3 border border-zinc-200 dark:border-zinc-800 rounded-lg"
+                            >
+                              <div>
+                                <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                                  {product?.title || 'Unknown Product'}
+                                </div>
+                                <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                                  {new Date(purchase.purchasedAt).toLocaleDateString()}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="font-semibold text-zinc-900 dark:text-zinc-100">
+                                  {purchase.sellerRevenueKAS.toFixed(4)} KAS
+                                </div>
+                                <a
+                                  href={`https://explorer.kaspa.org/txs/${purchase.txHash}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-[#02abb8] hover:underline"
+                                >
+                                  {purchase.txHash.slice(0, 10)}...
+                                </a>
+                              </div>
                             </div>
-                            <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                              {new Date(purchase.purchasedAt).toLocaleDateString()}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="font-semibold text-zinc-900 dark:text-zinc-100">
-                              {purchase.sellerRevenueKAS.toFixed(4)} KAS
-                            </div>
-                            <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                              {purchase.txHash.slice(0, 10)}...
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <PurchasedItemsList purchases={myPurchases} />
               )}
-            </div>
-          )}
         </div>
       </main>
 

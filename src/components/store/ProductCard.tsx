@@ -170,13 +170,6 @@ export function ProductCard({ product }: ProductCardProps) {
         onBuy={handleBuy}
       />
 
-      {/* Purchase Modal */}
-      <PurchaseModal
-        product={product}
-        isOpen={showPurchase}
-        onClose={() => setShowPurchase(false)}
-        onProceed={handleProceedPurchase}
-      />
     </>
   );
 }

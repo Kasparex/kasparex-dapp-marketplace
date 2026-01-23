@@ -191,77 +191,74 @@ export default function ProductPage({ params }: PageProps) {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Main Content */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Protected Content Section */}
-              {hasAccess ? (
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
-                  <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                    Product Content
-                  </h2>
-                  {product.content && (
-                    <div className="prose dark:prose-invert max-w-none">
-                      <p className="text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
-                        {product.content}
-                      </p>
-                    </div>
-                  )}
-                  
-                  {/* Asset Downloads */}
-                  {product.assetCids && product.assetCids.length > 0 && (
-                    <div className="mt-6">
-                      <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-                        Download Files
-                      </h3>
-                      <div className="space-y-2">
-                        {product.assetCids.map((cid, index) => (
-                          <a
-                            key={cid}
-                            href={getBestGatewayUrl(cid)}
-                            download
-                            className="block px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-sm font-medium text-zinc-900 dark:text-zinc-100 transition-colors"
-                          >
-                            Download File {index + 1}
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
-                  <div className="text-center py-8">
-                    <div className="text-4xl mb-4">🔒</div>
-                    <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-                      Purchase Required
-                    </h3>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Purchase this product to access the content and download files
+          <div className="space-y-6">
+            {/* Protected Content Section */}
+            {hasAccess ? (
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
+                <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+                  Product Content
+                </h2>
+                {product.content && (
+                  <div className="prose dark:prose-invert max-w-none">
+                    <p className="text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
+                      {product.content}
                     </p>
                   </div>
+                )}
+                
+                {/* Asset Downloads */}
+                {product.assetCids && product.assetCids.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+                      Download Files
+                    </h3>
+                    <div className="space-y-2">
+                      {product.assetCids.map((cid, index) => (
+                        <a
+                          key={cid}
+                          href={getBestGatewayUrl(cid)}
+                          download
+                          className="block px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-sm font-medium text-zinc-900 dark:text-zinc-100 transition-colors"
+                        >
+                          Download File {index + 1}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
+                <div className="text-center py-8">
+                  <div className="text-4xl mb-4">🔒</div>
+                  <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                    Purchase Required
+                  </h3>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Purchase this product to access the content and download files
+                  </p>
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Purchase Component */}
-              <ProductPurchase
-                product={product}
-                onPurchaseComplete={async () => {
-                  // Refresh access check and get transaction hash
-                  if (state.address) {
-                    const purchased = await checkPurchase(product.id, state.address);
-                    setHasAccess(purchased);
-                    if (purchased) {
-                      const purchases = await getPurchasesByBuyer(state.address);
-                      const purchase = purchases.find(p => p.productId === product.id);
-                      if (purchase) {
-                        setPurchaseTxHash(purchase.txHash);
-                      }
+            {/* Purchase Component */}
+            <ProductPurchase
+              product={product}
+              onPurchaseComplete={async () => {
+                // Refresh access check and get transaction hash
+                if (state.address) {
+                  const purchased = await checkPurchase(product.id, state.address);
+                  setHasAccess(purchased);
+                  if (purchased) {
+                    const purchases = await getPurchasesByBuyer(state.address);
+                    const purchase = purchases.find(p => p.productId === product.id);
+                    if (purchase) {
+                      setPurchaseTxHash(purchase.txHash);
                     }
                   }
-                }}
-              />
-            </div>
+                }
+              }}
+            />
           </div>
         </div>
       </main>
