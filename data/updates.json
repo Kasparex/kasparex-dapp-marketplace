@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769179903-74db6ed",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: use double cast (as unknown as Record) for type safety (by Kasparex)",
+      "date": "2026-01-23T15:50:44+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769179446-1eb7738",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: cast registry and product objects to Record<string, unknown> for uploadJSON (by Kasparex)",
