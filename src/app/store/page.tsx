@@ -81,7 +81,7 @@ export default function StorePage() {
   }, [products, selectedCategories, selectedNetwork, searchQuery, sortBy]);
 
   const handleResetFilters = () => {
-    setSelectedCategory('all');
+    setSelectedCategories([]);
     setSelectedNetwork('all');
     setSearchQuery('');
     setSortBy('newest');
