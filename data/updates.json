@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769207205-7ea02eb",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix transaction links, restructure product page, update sidebar with categories and rewards, fix product card hover buttons (by Kasparex)",
+      "date": "2026-01-23T23:25:36+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769205378-276b159",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix categoryCounts type error in seller dashboard (by Kasparex)",
