@@ -159,6 +159,7 @@ export function ProductCard({ product }: ProductCardProps) {
           aria-label={`View ${product.title}`}
         />
       </div>
+      </div>
 
       {/* Preview Modal */}
       <ProductPreviewModal
