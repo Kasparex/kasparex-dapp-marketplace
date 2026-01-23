@@ -2,7 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import type { Product } from '@/lib/store/types';
+import type { Product, ProductCategory } from '@/lib/store/types';
+import { getExplorerTxUrl } from '@/lib/store/utils';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useNFTStatus } from '@/hooks/useNFTStatus';
+import { calculatePlatformFee } from '@/lib/store/fees';
 
 interface ProductSidebarProps {
   product: Product;
@@ -14,6 +18,10 @@ export function ProductSidebar({ product, txHash }: ProductSidebarProps) {
   const [sidebarWidth, setSidebarWidth] = useState(256);
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const { tier: krexTier } = useKREXBalance();
+  const { nftStatus } = useNFTStatus();
+  
+  const categories: ProductCategory[] = ['Software', 'Art', 'Music', 'Templates', 'Other'];
 
   // Load sidebar state from localStorage
   useEffect(() => {
@@ -62,7 +70,7 @@ export function ProductSidebar({ product, txHash }: ProductSidebarProps) {
     };
   }, [isResizing]);
 
-  const explorerUrl = txHash ? `https://explorer.kaspa.org/txs/${txHash}` : null;
+  const explorerUrl = txHash ? getExplorerTxUrl(txHash) : null;
 
   return (
     <>
@@ -150,55 +158,91 @@ export function ProductSidebar({ product, txHash }: ProductSidebarProps) {
 
         {/* Content */}
         <div className="p-4 space-y-6">
-          {/* Product Information */}
+          {/* Categories Menu */}
           <div>
             <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-              Product Information
+              Categories
             </h3>
-            <div className="space-y-3 text-sm">
-              <div>
-                <span className="text-zinc-500 dark:text-zinc-400">Price:</span>
-                <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mt-1">
-                  {product.priceKAS} KAS
-                </div>
-              </div>
-              <div>
-                <span className="text-zinc-500 dark:text-zinc-400">Network:</span>
-                <div className="font-medium text-zinc-900 dark:text-zinc-100 mt-1">
-                  {product.network}
-                </div>
-              </div>
-              <div>
-                <span className="text-zinc-500 dark:text-zinc-400">Category:</span>
-                <div className="font-medium text-zinc-900 dark:text-zinc-100 mt-1">
-                  {product.category}
-                </div>
-              </div>
-              {product.purchaseCount > 0 && (
-                <div>
-                  <span className="text-zinc-500 dark:text-zinc-400">Sales:</span>
-                  <div className="font-medium text-zinc-900 dark:text-zinc-100 mt-1">
-                    {product.purchaseCount}
-                  </div>
-                </div>
-              )}
-              <div>
-                <span className="text-zinc-500 dark:text-zinc-400">Seller:</span>
-                <div className="font-mono text-xs text-zinc-600 dark:text-zinc-400 break-all mt-1">
-                  {product.sellerAddress}
-                </div>
-              </div>
+            <div className="space-y-1">
+              {categories.map((category) => (
+                <Link
+                  key={category}
+                  href={`/store?category=${category}`}
+                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                    product.category === category
+                      ? 'bg-[#02abb8] text-white font-medium'
+                      : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                  }`}
+                >
+                  {category}
+                </Link>
+              ))}
             </div>
           </div>
 
-          {/* Description */}
-          <div>
+          {/* Rewards Box */}
+          <div className="bg-gradient-to-br from-[#02abb8]/10 to-purple-500/10 border border-[#02abb8]/20 dark:border-purple-500/20 rounded-lg p-4">
             <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-              Description
+              Rewards & Benefits
             </h3>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              {product.description}
-            </p>
+            <div className="space-y-3 text-sm">
+              {/* KREX Benefits */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-zinc-600 dark:text-zinc-400">KREX Tier:</span>
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                    {krexTier === 'none' ? 'None' : krexTier}
+                  </span>
+                </div>
+                {krexTier !== 'none' && (
+                  <div className="text-xs text-green-600 dark:text-green-400">
+                    ✓ Fee discount active
+                  </div>
+                )}
+              </div>
+
+              {/* NFT Benefits */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-zinc-600 dark:text-zinc-400">NFT Status:</span>
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                    {nftStatus && (nftStatus.hasKREXPRIME || nftStatus.hasPIXELKREX || nftStatus.hasDiamondKREXPRIME || nftStatus.hasDiamondPIXELKREX)
+                      ? 'Active'
+                      : 'None'}
+                  </span>
+                </div>
+                {nftStatus && (nftStatus.hasKREXPRIME || nftStatus.hasPIXELKREX || nftStatus.hasDiamondKREXPRIME || nftStatus.hasDiamondPIXELKREX) && (
+                  <div className="text-xs text-green-600 dark:text-green-400">
+                    ✓ Fee discount active
+                  </div>
+                )}
+              </div>
+
+              {/* Fee Calculation */}
+              {(() => {
+                const fee = calculatePlatformFee(product.priceKAS, krexTier, nftStatus);
+                const hasDiscount = fee.feePercent < 5;
+                
+                return (
+                  <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-zinc-600 dark:text-zinc-400">Platform Fee:</span>
+                      <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                        {fee.feePercent.toFixed(2)}%
+                      </span>
+                    </div>
+                    {hasDiscount && (
+                      <div className="text-xs text-green-600 dark:text-green-400">
+                        Reduced from 5% base fee
+                      </div>
+                    )}
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                      Fee: {fee.feeAmount.toFixed(4)} KAS
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
           </div>
 
           {/* Transaction Link */}

@@ -75,7 +75,7 @@ export function PurchasedItemsList({ purchases }: PurchasedItemsListProps) {
                   {purchase.amountPaidKAS.toFixed(4)} KAS
                 </div>
                 <a
-                  href={`https://explorer.kaspa.org/txs/${purchase.txHash}`}
+                  href={`https://explorer.kaspa.org/transactions/${purchase.txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-[#02abb8] hover:underline"

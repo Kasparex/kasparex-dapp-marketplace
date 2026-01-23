@@ -147,7 +147,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address 
                 <div className="text-sm text-zinc-700 dark:text-zinc-300">
                   <div className="font-mono break-all">{txHash}</div>
                   <a
-                    href={`https://explorer.kaspa.org/txs/${txHash}`}
+                    href={`https://explorer.kaspa.org/transactions/${txHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 dark:text-blue-400 hover:underline mt-2 inline-block"

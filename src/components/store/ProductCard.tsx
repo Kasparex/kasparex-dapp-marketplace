@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useKaspaWallet } from '@/lib/kaspa/context';
 import type { Product } from '@/lib/store/types';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { ProductPreviewModal } from './ProductPreviewModal';
@@ -14,14 +15,27 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const [showPreview, setShowPreview] = useState(false);
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const router = useRouter();
+  const { state } = useKaspaWallet();
   
   const thumbnailUrl = product.thumbnailCid
     ? getBestGatewayUrl(product.thumbnailCid)
     : null;
 
-  const handleBuy = () => {
+  const handleBuy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!state.isConnected) {
+      // Could trigger wallet connection here if needed
+      return;
+    }
+    setShowPurchaseModal(true);
+  };
+
+  const handlePurchaseProceed = () => {
+    setShowPurchaseModal(false);
     router.push(`/store/${product.slug}`);
   };
 
@@ -122,31 +136,44 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
           </div>
 
-          {/* Action Buttons - Show only on hover */}
-          <div
-            className={`flex gap-2 transition-all duration-200 relative z-20 ${
-              isHovered
-                ? 'opacity-100 translate-y-0'
-                : 'opacity-0 translate-y-2 pointer-events-none'
-            }`}
-          >
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleBuy();
-              }}
-              className="flex-1 px-3 py-2 bg-[#02abb8] hover:bg-[#028a94] active:bg-[#027a84] text-white rounded-lg text-sm font-medium transition-colors touch-manipulation"
-            >
-              Buy
-            </button>
+        </div>
+
+        {/* Action Buttons - Overlay on hover, no layout shift */}
+        <div
+          className={`absolute inset-0 flex items-end justify-center p-4 transition-opacity duration-200 z-30 ${
+            isHovered
+              ? 'opacity-100'
+              : 'opacity-0 pointer-events-none'
+          }`}
+        >
+          <div className="flex gap-2 w-full">
+            {state.isConnected ? (
+              <button
+                onClick={handleBuy}
+                className="flex-1 px-3 py-2 bg-[#02abb8] hover:bg-[#028a94] active:bg-[#027a84] text-white rounded-lg text-sm font-medium transition-colors touch-manipulation shadow-lg"
+              >
+                Buy
+              </button>
+            ) : (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                className="flex-1 px-3 py-2 bg-zinc-400 dark:bg-zinc-600 text-white rounded-lg text-sm font-medium cursor-not-allowed shadow-lg"
+                disabled
+                title="Connect wallet to purchase"
+              >
+                Connect wallet
+              </button>
+            )}
             <button
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setShowPreview(true);
               }}
-              className="flex-1 px-3 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 active:bg-zinc-300 dark:active:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-lg text-sm font-medium transition-colors touch-manipulation"
+              className="flex-1 px-3 py-2 bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 active:bg-zinc-200 dark:active:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-lg text-sm font-medium transition-colors touch-manipulation shadow-lg border border-zinc-200 dark:border-zinc-700"
             >
               Preview
             </button>
@@ -167,7 +194,20 @@ export function ProductCard({ product }: ProductCardProps) {
         product={product}
         isOpen={showPreview}
         onClose={() => setShowPreview(false)}
-        onBuy={handleBuy}
+        onBuy={() => {
+          setShowPreview(false);
+          if (state.isConnected) {
+            setShowPurchaseModal(true);
+          }
+        }}
+      />
+
+      {/* Purchase Modal */}
+      <PurchaseModal
+        product={product}
+        isOpen={showPurchaseModal}
+        onClose={() => setShowPurchaseModal(false)}
+        onProceed={handlePurchaseProceed}
       />
 
     </>

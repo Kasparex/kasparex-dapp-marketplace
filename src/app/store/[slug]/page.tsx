@@ -10,6 +10,9 @@ import { getProductBySlug } from '@/lib/store/products';
 import { hasUserPurchased as checkPurchase, getPurchasesByBuyer } from '@/lib/store/purchases';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useNFTStatus } from '@/hooks/useNFTStatus';
+import { calculatePlatformFee } from '@/lib/store/fees';
 import type { Product } from '@/lib/store/types';
 
 interface PageProps {
@@ -28,6 +31,8 @@ export default function ProductPage({ params }: PageProps) {
   const [checkingAccess, setCheckingAccess] = useState(true);
   const [purchaseTxHash, setPurchaseTxHash] = useState<string | null>(null);
   const { state } = useKaspaWallet();
+  const { tier: krexTier } = useKREXBalance();
+  const { nftStatus } = useNFTStatus();
 
   // Get slug from params
   useEffect(() => {
@@ -179,88 +184,146 @@ export default function ProductPage({ params }: PageProps) {
             </p>
           </div>
 
-          {/* Product Image */}
+          {/* Protected Content Section - Moved higher */}
+          {hasAccess ? (
+            <div className="mb-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
+              <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+                Product Content
+              </h2>
+              {product.content && (
+                <div className="prose dark:prose-invert max-w-none">
+                  <p className="text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
+                    {product.content}
+                  </p>
+                </div>
+              )}
+              
+              {/* Asset Downloads */}
+              {product.assetCids && product.assetCids.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+                    Download Files
+                  </h3>
+                  <div className="space-y-2">
+                    {product.assetCids.map((cid, index) => (
+                      <a
+                        key={cid}
+                        href={getBestGatewayUrl(cid)}
+                        download
+                        className="block px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-sm font-medium text-zinc-900 dark:text-zinc-100 transition-colors"
+                      >
+                        Download File {index + 1}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="mb-6 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
+              <div className="text-center py-8">
+                <div className="text-4xl mb-4">🔒</div>
+                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                  Purchase Required
+                </h3>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Purchase this product to access the content and download files
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Product Image - Smaller, above costs */}
           {thumbnailUrl && (
             <div className="mb-6">
               <img
                 src={thumbnailUrl}
                 alt={product.title}
-                className="w-full max-w-2xl rounded-lg border border-zinc-200 dark:border-zinc-800"
+                className="w-full max-w-md rounded-lg border border-zinc-200 dark:border-zinc-800"
                 loading="lazy"
                 decoding="async"
               />
             </div>
           )}
 
-          <div className="space-y-6">
-            {/* Protected Content Section */}
-            {hasAccess ? (
-              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
-                <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                  Product Content
-                </h2>
-                {product.content && (
-                  <div className="prose dark:prose-invert max-w-none">
-                    <p className="text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
-                      {product.content}
-                    </p>
-                  </div>
-                )}
-                
-                {/* Asset Downloads */}
-                {product.assetCids && product.assetCids.length > 0 && (
-                  <div className="mt-6">
-                    <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-                      Download Files
-                    </h3>
-                    <div className="space-y-2">
-                      {product.assetCids.map((cid, index) => (
-                        <a
-                          key={cid}
-                          href={getBestGatewayUrl(cid)}
-                          download
-                          className="block px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-sm font-medium text-zinc-900 dark:text-zinc-100 transition-colors"
-                        >
-                          Download File {index + 1}
-                        </a>
-                      ))}
+          {/* Costs and Fees - In main content area */}
+          <div className="mb-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+              Pricing & Fees
+            </h3>
+            {(() => {
+              const fee = calculatePlatformFee(product.priceKAS, krexTier, nftStatus);
+              const hasDiscount = fee.feePercent < 5;
+              
+              return (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Product Price:</span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                        {product.priceKAS}
+                      </span>
+                      <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">KAS</span>
                     </div>
                   </div>
-                )}
-              </div>
-            ) : (
-              <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
-                <div className="text-center py-8">
-                  <div className="text-4xl mb-4">🔒</div>
-                  <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-                    Purchase Required
-                  </h3>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Purchase this product to access the content and download files
-                  </p>
+                  
+                  {fee.feePercent > 0 && (
+                    <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800 space-y-1">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-zinc-600 dark:text-zinc-400">
+                          Platform Fee ({fee.feePercent.toFixed(2)}%):
+                        </span>
+                        <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                          {fee.feeAmount.toFixed(4)} KAS
+                        </span>
+                      </div>
+                      {hasDiscount && (
+                        <div className="text-xs text-green-600 dark:text-green-400">
+                          ✓ Discount applied (KREX/NFT holder)
+                        </div>
+                      )}
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                        Seller receives: {fee.sellerRevenue.toFixed(4)} KAS
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="pt-2 border-t-2 border-zinc-300 dark:border-zinc-700 mt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                        Total to Pay:
+                      </span>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                          {product.priceKAS}
+                        </span>
+                        <span className="text-base font-medium text-zinc-600 dark:text-zinc-400">KAS</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
+          </div>
 
-            {/* Purchase Component */}
-            <ProductPurchase
-              product={product}
-              onPurchaseComplete={async () => {
-                // Refresh access check and get transaction hash
-                if (state.address) {
-                  const purchased = await checkPurchase(product.id, state.address);
-                  setHasAccess(purchased);
-                  if (purchased) {
-                    const purchases = await getPurchasesByBuyer(state.address);
-                    const purchase = purchases.find(p => p.productId === product.id);
-                    if (purchase) {
-                      setPurchaseTxHash(purchase.txHash);
-                    }
+          {/* Purchase Component */}
+          <ProductPurchase
+            product={product}
+            onPurchaseComplete={async () => {
+              // Refresh access check and get transaction hash
+              if (state.address) {
+                const purchased = await checkPurchase(product.id, state.address);
+                setHasAccess(purchased);
+                if (purchased) {
+                  const purchases = await getPurchasesByBuyer(state.address);
+                  const purchase = purchases.find(p => p.productId === product.id);
+                  if (purchase) {
+                    setPurchaseTxHash(purchase.txHash);
                   }
                 }
-              }}
-            />
-          </div>
+              }
+            }}
+          />
             </div>
           </div>
         </div>

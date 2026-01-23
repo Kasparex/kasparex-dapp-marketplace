@@ -117,6 +117,14 @@ export function PurchaseModal({ product, isOpen, onClose, onProceed }: PurchaseM
           </div>
 
           {/* Wallet Info */}
+          {!state.isConnected && (
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+              <p className="text-sm text-yellow-800 dark:text-yellow-300">
+                Please connect your wallet to proceed with the purchase.
+              </p>
+            </div>
+          )}
+          
           {state.address && (
             <div className="text-xs text-zinc-500 dark:text-zinc-400">
               Paying from: {state.address.slice(0, 8)}...{state.address.slice(-6)}
@@ -133,9 +141,10 @@ export function PurchaseModal({ product, isOpen, onClose, onProceed }: PurchaseM
             </button>
             <button
               onClick={onProceed}
-              className="flex-1 px-4 py-2.5 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
+              disabled={!state.isConnected}
+              className="flex-1 px-4 py-2.5 bg-[#02abb8] hover:bg-[#028a94] disabled:bg-zinc-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
             >
-              Proceed to Payment
+              {state.isConnected ? 'Proceed to Payment' : 'Connect Wallet'}
             </button>
           </div>
         </div>

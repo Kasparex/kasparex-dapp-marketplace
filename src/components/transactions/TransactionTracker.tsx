@@ -121,7 +121,7 @@ export function TransactionTracker({ txHash, showAll = false, compact = false }:
             {selectedTx.txHash}
           </div>
           <a
-            href={`${selectedTx.network === 'L1' ? 'https://explorer.kaspa.org/txs/' : `https://explorer.kasplex.com/tx/`}${selectedTx.txHash}`}
+            href={`${selectedTx.network === 'L1' ? 'https://explorer.kaspa.org/transactions/' : `https://explorer.kasplex.com/tx/`}${selectedTx.txHash}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-[#70C7BA] hover:underline mt-1 inline-block"
