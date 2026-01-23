@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769202070-da352a9",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix missing state variables in seller dashboard (by Kasparex)",
+      "date": "2026-01-23T22:00:42+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769201669-7e40f96",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix missing purchaseTxHash state variable in product page (by Kasparex)",
