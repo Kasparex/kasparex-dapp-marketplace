@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769179006-11e3abe",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: capture address in const for type safety in dashboard (by Kasparex)",
+      "date": "2026-01-23T15:36:07+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769178700-af91a08",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: capture product and address in consts for type safety (by Kasparex)",
