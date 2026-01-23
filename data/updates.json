@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769180103-6d74764",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix: remove uuid import and add generateUUID function using crypto.randomUUID (by Kasparex)",
+      "date": "2026-01-23T15:54:37+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769179903-74db6ed",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: use double cast (as unknown as Record) for type safety (by Kasparex)",
