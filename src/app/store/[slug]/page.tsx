@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-// Removed notFound - using client-side error handling
+import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ProductPurchase } from '@/components/store/ProductPurchase';
@@ -104,12 +104,12 @@ export default function ProductPage({ params }: PageProps) {
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
               {error || 'Product not found'}
             </h2>
-            <a
+            <Link
               href="/store"
               className="text-[#02abb8] hover:underline"
             >
               Back to Store
-            </a>
+            </Link>
           </div>
         </main>
         <Footer />

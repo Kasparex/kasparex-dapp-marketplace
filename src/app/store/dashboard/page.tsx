@@ -150,7 +150,7 @@ export default function SellerDashboardPage() {
                 </h2>
                 {products.length === 0 ? (
                   <p className="text-zinc-600 dark:text-zinc-400">
-                    You haven't listed any products yet.
+                    You have not listed any products yet.
                   </p>
                 ) : (
                   <div className="space-y-4">
