@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769192066-7e64581",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix: Add missing closing div tag for main card container (by Kasparex)",
+      "date": "2026-01-23T19:13:41+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769191846-4f23119",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: Correct ProductCard component structure and button z-index (by Kasparex)",
