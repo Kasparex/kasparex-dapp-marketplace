@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769201669-7e40f96",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix missing purchaseTxHash state variable in product page (by Kasparex)",
+      "date": "2026-01-23T21:54:02+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769201255-be64dd1",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix unescaped apostrophe in PurchasedItemsList (by Kasparex)",
