@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769179446-1eb7738",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: cast registry and product objects to Record<string, unknown> for uploadJSON (by Kasparex)",
+      "date": "2026-01-23T15:43:17+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769179006-11e3abe",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript error: capture address in const for type safety in dashboard (by Kasparex)",
