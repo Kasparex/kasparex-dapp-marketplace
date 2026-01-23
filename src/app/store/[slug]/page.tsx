@@ -34,19 +34,24 @@ export default function ProductPage({ params }: PageProps) {
 
   // Load product
   useEffect(() => {
-    if (!slug) return;
+    if (!slug) {
+      setIsLoading(false);
+      setError('Invalid product slug');
+      return;
+    }
 
     async function loadProduct() {
       setIsLoading(true);
       try {
         const productData = await getProductBySlug(slug);
         if (!productData) {
-          notFound();
+          setError('Product not found');
+          return;
         }
         setProduct(productData);
       } catch (error) {
         console.error('Failed to load product:', error);
-        notFound();
+        setError('Failed to load product');
       } finally {
         setIsLoading(false);
       }
