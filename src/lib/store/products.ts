@@ -3,7 +3,6 @@
  * IPFS-based product operations
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import {
   fetchProductRegistry,
   uploadProductRegistry,
@@ -12,6 +11,13 @@ import {
   createEmptyProductRegistry,
 } from './ipfs-registry';
 import type { Product, ProductRegistry, ProductRegistryEntry } from './types';
+
+/**
+ * Generate UUID
+ */
+function generateUUID(): string {
+  return crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+}
 
 /**
  * Generate URL-friendly slug from title
