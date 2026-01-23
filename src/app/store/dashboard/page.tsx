@@ -9,6 +9,7 @@ import { getPurchasesBySeller, getPurchasesByBuyer } from '@/lib/store/purchases
 import { archiveProduct } from '@/lib/store/products';
 import { StoreSidebar } from '@/components/store/StoreSidebar';
 import { PurchasedItemsList } from '@/components/store/PurchasedItemsList';
+import { getExplorerTxUrl, extractTxId } from '@/lib/store/utils';
 import type { Product, Purchase } from '@/lib/store/types';
 
 export default function SellerDashboardPage() {
@@ -257,12 +258,15 @@ export default function SellerDashboardPage() {
                                   {purchase.sellerRevenueKAS.toFixed(4)} KAS
                                 </div>
                                 <a
-                                  href={`https://explorer.kaspa.org/transactions/${purchase.txHash}`}
+                                  href={getExplorerTxUrl(purchase.txHash)}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-xs text-[#02abb8] hover:underline"
+                                  className="text-sm font-medium text-[#02abb8] hover:underline flex items-center gap-1"
                                 >
-                                  {purchase.txHash.slice(0, 10)}...
+                                  View Transaction
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                  </svg>
                                 </a>
                               </div>
                             </div>

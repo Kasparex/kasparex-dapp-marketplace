@@ -6,6 +6,7 @@ import { getL1RewardStatus } from '@/lib/rewards/l1Distribution';
 import { formatEther } from 'viem';
 import { useAccount, useChainId } from 'wagmi';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { extractTxId } from '@/lib/store/utils';
 
 interface TransactionTrackerProps {
   txHash?: string; // If provided, shows details for this specific transaction
@@ -121,7 +122,7 @@ export function TransactionTracker({ txHash, showAll = false, compact = false }:
             {selectedTx.txHash}
           </div>
           <a
-            href={`${selectedTx.network === 'L1' ? 'https://explorer.kaspa.org/transactions/' : `https://explorer.kasplex.com/tx/`}${selectedTx.txHash}`}
+            href={`${selectedTx.network === 'L1' ? 'https://explorer.kaspa.org/transactions/' : `https://explorer.kasplex.com/tx/`}${extractTxId(selectedTx.txHash)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-[#70C7BA] hover:underline mt-1 inline-block"

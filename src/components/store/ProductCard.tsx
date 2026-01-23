@@ -3,11 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useKaspaWallet } from '@/lib/kaspa/context';
 import type { Product } from '@/lib/store/types';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { ProductPreviewModal } from './ProductPreviewModal';
-import { PurchaseModal } from './PurchaseModal';
 
 interface ProductCardProps {
   product: Product;
@@ -43,9 +41,6 @@ export function ProductCard({ product }: ProductCardProps) {
     <>
       <div
         className="group block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all relative flex flex-col min-h-[320px]"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onTouchStart={() => setIsHovered(true)}
       >
       {/* Product Thumbnail */}
       <div className="relative w-full h-32 bg-zinc-100/80 dark:bg-zinc-900/95 flex items-center justify-center border-b border-zinc-200/50 dark:border-zinc-800/50">
@@ -136,44 +131,21 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
           </div>
 
-        </div>
-
-        {/* Action Buttons - Overlay on hover, no layout shift */}
-        <div
-          className={`absolute inset-0 flex items-end justify-center p-4 transition-opacity duration-200 z-30 ${
-            isHovered
-              ? 'opacity-100'
-              : 'opacity-0 pointer-events-none'
-          }`}
-        >
-          <div className="flex gap-2 w-full">
-            {state.isConnected ? (
-              <button
-                onClick={handleBuy}
-                className="flex-1 px-3 py-2 bg-[#02abb8] hover:bg-[#028a94] active:bg-[#027a84] text-white rounded-lg text-sm font-medium transition-colors touch-manipulation shadow-lg"
-              >
-                Buy
-              </button>
-            ) : (
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-                className="flex-1 px-3 py-2 bg-zinc-400 dark:bg-zinc-600 text-white rounded-lg text-sm font-medium cursor-not-allowed shadow-lg"
-                disabled
-                title="Connect wallet to purchase"
-              >
-                Connect wallet
-              </button>
-            )}
+          {/* Action Buttons - Always visible */}
+          <div className="flex gap-2">
+            <button
+              onClick={handleBuy}
+              className="flex-1 px-3 py-2 bg-[#02abb8] hover:bg-[#028a94] active:bg-[#027a84] text-white rounded-lg text-sm font-medium transition-colors touch-manipulation"
+            >
+              Buy
+            </button>
             <button
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setShowPreview(true);
               }}
-              className="flex-1 px-3 py-2 bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 active:bg-zinc-200 dark:active:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-lg text-sm font-medium transition-colors touch-manipulation shadow-lg border border-zinc-200 dark:border-zinc-700"
+              className="flex-1 px-3 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 active:bg-zinc-300 dark:active:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-lg text-sm font-medium transition-colors touch-manipulation"
             >
               Preview
             </button>
@@ -196,18 +168,8 @@ export function ProductCard({ product }: ProductCardProps) {
         onClose={() => setShowPreview(false)}
         onBuy={() => {
           setShowPreview(false);
-          if (state.isConnected) {
-            setShowPurchaseModal(true);
-          }
+          router.push(`/store/${product.slug}`);
         }}
-      />
-
-      {/* Purchase Modal */}
-      <PurchaseModal
-        product={product}
-        isOpen={showPurchaseModal}
-        onClose={() => setShowPurchaseModal(false)}
-        onProceed={handlePurchaseProceed}
       />
 
     </>

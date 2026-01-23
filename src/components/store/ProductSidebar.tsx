@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import type { Product, ProductCategory } from '@/lib/store/types';
-import { getExplorerTxUrl } from '@/lib/store/utils';
+import { getExplorerTxUrl, extractTxId } from '@/lib/store/utils';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { calculatePlatformFee } from '@/lib/store/fees';
@@ -248,7 +248,7 @@ export function ProductSidebar({ product, txHash }: ProductSidebarProps) {
           </div>
 
           {/* Transaction Link */}
-          {explorerUrl && (
+          {explorerUrl && txHash && (
             <div>
               <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
                 Transaction
@@ -257,13 +257,16 @@ export function ProductSidebar({ product, txHash }: ProductSidebarProps) {
                 href={explorerUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block px-3 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-sm font-medium text-zinc-900 dark:text-zinc-100 transition-colors text-center"
+                className="block px-3 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-sm font-medium text-[#02abb8] hover:text-[#028a94] transition-colors text-center flex items-center justify-center gap-2"
               >
-                View on Explorer
-                <svg className="w-4 h-4 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <span>View Transaction</span>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
               </a>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 text-center font-mono break-all">
+                {extractTxId(txHash).slice(0, 16)}...
+              </p>
             </div>
           )}
         </div>

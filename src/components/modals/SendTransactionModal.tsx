@@ -8,6 +8,7 @@ import { getErrorMessage } from '@/lib/utils';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useBalanceVisibility, formatBalanceForDisplay } from '@/hooks/useBalanceVisibility';
 import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
+import { getExplorerTxUrl, extractTxId } from '@/lib/store/utils';
 
 interface SendTransactionModalProps {
   isOpen: boolean;
@@ -145,14 +146,17 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address 
                   <span className="font-semibold">Transaction Sent Successfully!</span>
                 </div>
                 <div className="text-sm text-zinc-700 dark:text-zinc-300">
-                  <div className="font-mono break-all">{txHash}</div>
+                  <div className="font-mono break-all text-xs mb-2">{extractTxId(txHash)}</div>
                   <a
-                    href={`https://explorer.kaspa.org/transactions/${txHash}`}
+                    href={getExplorerTxUrl(txHash)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 dark:text-blue-400 hover:underline mt-2 inline-block"
+                    className="text-[#02abb8] hover:text-[#028a94] hover:underline mt-2 inline-flex items-center gap-2 font-medium"
                   >
-                    View on Explorer →
+                    View Transaction on Explorer
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
                   </a>
                 </div>
               </div>
