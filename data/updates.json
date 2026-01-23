@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769177554-25a685f",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix linting errors: use Link component and fix apostrophe (by Kasparex)",
+      "date": "2026-01-23T15:11:49+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769125373-87eaff5",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Remove GamesSidebar from individual game page to fix static generation error (by Kasparex)",
