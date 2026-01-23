@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769200530-93ae083",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix JSX syntax errors in product page and dashboard (by Kasparex)",
+      "date": "2026-01-23T21:34:32+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769199925-014be26",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix store: fee calculation, content unlocking, sidebars, purchase modal, and card buttons (by Kasparex)",
