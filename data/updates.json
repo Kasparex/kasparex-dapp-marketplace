@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769209788-475f699",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix ProductCard: Remove useKaspaWallet and PurchaseModal, make Buy button navigate directly (by Kasparex)",
+      "date": "2026-01-24T00:09:01+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769209170-6548bb9",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix product card buttons, product page layout, transaction links, and file downloads (by Kasparex)",
