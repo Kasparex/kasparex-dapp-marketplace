@@ -121,29 +121,31 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
           </div>
 
-          {/* Action Buttons - Show on hover or always on mobile */}
+          {/* Action Buttons - Show on hover or always visible on mobile */}
           <div
-            className={`flex gap-2 transition-all duration-200 ${
+            className={`flex gap-2 transition-all duration-200 relative z-20 ${
               isHovered
                 ? 'opacity-100 translate-y-0'
-                : 'opacity-0 translate-y-2 pointer-events-none md:pointer-events-auto md:opacity-100 md:translate-y-0'
-            }`}
+                : 'opacity-0 translate-y-2 pointer-events-none'
+            } md:opacity-100 md:translate-y-0`}
           >
             <button
               onClick={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 handleBuy();
               }}
-              className="flex-1 px-3 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg text-sm font-medium transition-colors"
+              className="flex-1 px-3 py-2 bg-[#02abb8] hover:bg-[#028a94] active:bg-[#027a84] text-white rounded-lg text-sm font-medium transition-colors touch-manipulation"
             >
               Buy
             </button>
             <button
               onClick={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 setShowPreview(true);
               }}
-              className="flex-1 px-3 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg text-sm font-medium transition-colors"
+              className="flex-1 px-3 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 active:bg-zinc-300 dark:active:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-lg text-sm font-medium transition-colors touch-manipulation"
             >
               Preview
             </button>
