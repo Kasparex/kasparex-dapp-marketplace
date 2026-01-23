@@ -27,6 +27,7 @@ export default function StorePage() {
   const [selectedNetwork, setSelectedNetwork] = useState<ProductNetwork | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [viewMode, setViewMode] = useState<ProductViewMode>('grid');
 
   // Load products from IPFS
   const loadProducts = async () => {
