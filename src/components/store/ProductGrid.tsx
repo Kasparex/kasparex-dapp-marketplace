@@ -72,12 +72,16 @@ export function ProductGrid({ products, viewMode }: ProductGridProps) {
             className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 hover:shadow-md transition-shadow"
           >
             <div className="flex items-center gap-4">
-              <div className="flex-shrink-0 w-16 h-16 bg-zinc-100 dark:bg-zinc-800 rounded flex items-center justify-center">
+              <div className="flex-shrink-0 w-16 h-16 bg-zinc-100 dark:bg-zinc-800 rounded flex items-center justify-center overflow-hidden">
                 {product.thumbnailCid ? (
                   <img
                     src={`https://gateway.pinata.cloud/ipfs/${product.thumbnailCid}`}
                     alt={product.title}
-                    className="w-full h-full object-cover rounded"
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                    width={64}
+                    height={64}
                   />
                 ) : (
                   <svg className="w-8 h-8 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
