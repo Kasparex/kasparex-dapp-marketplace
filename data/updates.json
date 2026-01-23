@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769184297-2d90c22",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Unify Store UI with Kasparex sidebars and add demo products (by Kasparex)",
+      "date": "2026-01-23T17:03:12+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769180103-6d74764",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: remove uuid import and add generateUUID function using crypto.randomUUID (by Kasparex)",
