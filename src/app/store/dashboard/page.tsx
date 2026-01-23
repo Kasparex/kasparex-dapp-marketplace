@@ -118,7 +118,13 @@ export default function SellerDashboardPage() {
             onSubmitProduct={() => {}}
             selectedCategories={[]}
             onCategoryChange={() => {}}
-            categoryCounts={{}}
+            categoryCounts={{
+              Software: 0,
+              Art: 0,
+              Music: 0,
+              Templates: 0,
+              Other: 0,
+            }}
           />
 
           {/* Main Content */}
