@@ -106,5 +106,13 @@ export const hubProjects: HubProject[] = [
     route: '/nft',
     status: 'beta',
   },
+  {
+    id: 'kasparex-store',
+    name: 'Kasparex Store',
+    category: 'Marketplace',
+    description: 'Digital products marketplace powered by KAS. Buy and sell software, art, music, templates, and more with IPFS storage.',
+    route: '/store',
+    status: 'beta',
+  },
 ];
 

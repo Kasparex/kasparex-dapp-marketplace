@@ -2,38 +2,32 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import type { ProductCategory, ProductNetwork } from '@/lib/store/types';
-import type { ProductFilters } from '@/lib/store/filtering';
 
 interface StoreSidebarProps {
-  selectedCategory: ProductCategory | 'all';
-  onCategoryChange: (category: ProductCategory | 'all') => void;
-  selectedNetwork: ProductNetwork | 'all';
-  onNetworkChange: (network: ProductNetwork | 'all') => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  availableCategories: ProductCategory[];
-  onResetFilters: () => void;
+  isWalletConnected?: boolean;
 }
 
 export function StoreSidebar({
-  selectedCategory,
-  onCategoryChange,
-  selectedNetwork,
-  onNetworkChange,
   searchQuery,
   onSearchChange,
-  availableCategories,
-  onResetFilters,
+  isWalletConnected = false,
 }: StoreSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  
+  // Sidebar hide/show and resize state
   const [isHidden, setIsHidden] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(256); // Default 256px (w-64)
+  const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   // Load sidebar state from localStorage
   useEffect(() => {
     const savedHidden = localStorage.getItem('store-sidebar-hidden');
+    const savedWidth = localStorage.getItem('store-sidebar-width');
     if (savedHidden === 'true') setIsHidden(true);
+    if (savedWidth) setSidebarWidth(parseInt(savedWidth, 10));
   }, []);
 
   // Save sidebar state to localStorage
@@ -41,20 +35,83 @@ export function StoreSidebar({
     localStorage.setItem('store-sidebar-hidden', String(isHidden));
   }, [isHidden]);
 
-  const categories: ProductCategory[] = ['Software', 'Art', 'Music', 'Templates', 'Other'];
-  const networks: ProductNetwork[] = ['L1', 'L2'];
+  useEffect(() => {
+    localStorage.setItem('store-sidebar-width', String(sidebarWidth));
+  }, [sidebarWidth]);
+
+  // Handle resize
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing || !sidebarRef.current) return;
+      const sidebarRect = sidebarRef.current.getBoundingClientRect();
+      const newWidth = e.clientX - sidebarRect.left;
+      if (newWidth >= 200 && newWidth <= 500) {
+        setSidebarWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing]);
 
   return (
     <>
-      {/* Mobile Menu Button */}
+      {/* Mobile menu button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-20 left-4 z-50 p-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-sm"
+        className="lg:hidden fixed top-20 left-4 z-40 p-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-lg"
+        style={{ top: '5.5rem' }}
+        aria-label="Toggle menu"
       >
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        <svg
+          className="h-6 w-6 text-zinc-900 dark:text-zinc-100"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          {isOpen ? (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          ) : (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          )}
         </svg>
       </button>
+
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-30 bg-black/50"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Show Sidebar Button - Fixed when hidden */}
+      {isHidden && (
+        <button
+          onClick={() => setIsHidden(false)}
+          className="hidden lg:block fixed left-0 top-20 z-[60] p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+          aria-label="Show sidebar"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      )}
 
       {/* Sidebar */}
       <aside
@@ -69,129 +126,114 @@ export function StoreSidebar({
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           ${isHidden ? 'lg:translate-x-[-100%]' : ''}
         `}
-        style={{ width: isHidden ? 0 : '256px', minWidth: isHidden ? 0 : '256px', maxWidth: isHidden ? 0 : '256px' }}
+        style={{ 
+          width: isHidden ? 0 : `${sidebarWidth}px`,
+          minWidth: isHidden ? 0 : `${sidebarWidth}px`,
+          maxWidth: isHidden ? 0 : `${sidebarWidth}px`,
+          cursor: isResizing ? 'col-resize' : ''
+        }}
+        onMouseMove={(e) => {
+          if (!isHidden && !isResizing && sidebarRef.current) {
+            const rect = sidebarRef.current.getBoundingClientRect();
+            const isOnBorder = e.clientX >= rect.right - 4 && e.clientX <= rect.right;
+            sidebarRef.current.style.cursor = isOnBorder ? 'col-resize' : '';
+            if (isOnBorder) {
+              sidebarRef.current.style.borderRight = '2px solid #06b6d4';
+            } else {
+              sidebarRef.current.style.borderRight = '';
+            }
+          }
+        }}
+        onMouseLeave={() => {
+          if (sidebarRef.current && !isResizing) {
+            sidebarRef.current.style.borderRight = '';
+          }
+        }}
+        onMouseDown={(e) => {
+          if (!isHidden && sidebarRef.current) {
+            const rect = sidebarRef.current.getBoundingClientRect();
+            if (e.clientX >= rect.right - 4 && e.clientX <= rect.right) {
+              e.preventDefault();
+              setIsResizing(true);
+            }
+          }
+        }}
       >
-        {/* Header */}
+        {/* Header with Hide Button and Search */}
         <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
           <div className="flex items-center justify-between mb-4">
-            <Link href="/store" className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-              Kasparex Store
+            <Link
+              href="/hub"
+              className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium transition-colors text-sm flex items-center gap-1"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Go back to Hub
             </Link>
             <button
               onClick={() => setIsHidden(true)}
-              className="hidden lg:block p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded"
+              className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+              aria-label="Hide sidebar"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
           </div>
-
-          {/* Search */}
-          <div className="mb-4">
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
-            />
-          </div>
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="w-full px-3 py-2 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#02abb8] text-zinc-900 dark:text-zinc-100"
+          />
         </div>
 
-        {/* Filters */}
-        <div className="p-4 space-y-4">
-          {/* Category Filter */}
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2 uppercase tracking-wider">
-              Category
-            </h3>
-            <div className="space-y-1">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="category"
-                  checked={selectedCategory === 'all'}
-                  onChange={() => onCategoryChange('all')}
-                  className="w-4 h-4"
-                />
-                <span className="text-sm text-zinc-600 dark:text-zinc-400">All</span>
-              </label>
-              {categories.map((category) => (
-                <label key={category} className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="category"
-                    checked={selectedCategory === category}
-                    onChange={() => onCategoryChange(category)}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">{category}</span>
-                </label>
-              ))}
-            </div>
+        {/* Sidebar Content */}
+        <div className="p-4">
+          {/* Info */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Kasparex Store</h3>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              Digital products marketplace powered by KAS. Listings and metadata can be stored via IPFS to keep the ecosystem lean.
+            </p>
           </div>
 
-          {/* Network Filter */}
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2 uppercase tracking-wider">
-              Network
-            </h3>
-            <div className="space-y-1">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="network"
-                  checked={selectedNetwork === 'all'}
-                  onChange={() => onNetworkChange('all')}
-                  className="w-4 h-4"
-                />
-                <span className="text-sm text-zinc-600 dark:text-zinc-400">All</span>
-              </label>
-              {networks.map((network) => (
-                <label key={network} className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="network"
-                    checked={selectedNetwork === network}
-                    onChange={() => onNetworkChange(network)}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">{network}</span>
-                </label>
-              ))}
+          {/* Quick Links */}
+          <div className="space-y-3 pt-4 border-t border-zinc-200 dark:border-zinc-800 mt-4">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Quick Links</h3>
+            <div className="space-y-2">
+              <Link
+                href="/hub"
+                className="block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+              >
+                ← Back to Hub
+              </Link>
+              <Link
+                href="/store"
+                className="block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+              >
+                Browse Store
+              </Link>
+              {isWalletConnected && (
+                <Link
+                  href="/store/dashboard"
+                  className="block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                >
+                  Seller Dashboard
+                </Link>
+              )}
+              <Link
+                href="/points"
+                className="block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+              >
+                View Rewards
+              </Link>
             </div>
           </div>
-
-          {/* Reset Filters */}
-          <button
-            onClick={onResetFilters}
-            className="w-full px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
-          >
-            Reset Filters
-          </button>
         </div>
       </aside>
-
-      {/* Show Sidebar Button (when hidden) */}
-      {isHidden && (
-        <button
-          onClick={() => setIsHidden(false)}
-          className="hidden lg:block fixed top-20 left-0 z-30 p-2 bg-white dark:bg-zinc-900 border-r border-b border-zinc-200 dark:border-zinc-800 rounded-r-lg shadow-sm"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      )}
-
-      {/* Overlay for mobile */}
-      {isOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-30"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
     </>
   );
 }

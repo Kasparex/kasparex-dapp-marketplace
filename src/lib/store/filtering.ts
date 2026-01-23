@@ -69,3 +69,34 @@ export function getAvailableCategories(products: Product[]): ProductCategory[] {
   });
   return Array.from(categories).sort();
 }
+
+/**
+ * Get category counts from products
+ */
+export function getCategoryCounts(products: Product[]): Record<ProductCategory, number> {
+  const counts: Record<ProductCategory, number> = {
+    Software: 0,
+    Art: 0,
+    Music: 0,
+    Templates: 0,
+    Other: 0,
+  };
+  products.forEach((product) => {
+    counts[product.category] = (counts[product.category] || 0) + 1;
+  });
+  return counts;
+}
+
+/**
+ * Get network counts from products
+ */
+export function getNetworkCounts(products: Product[]): Record<ProductNetwork, number> {
+  const counts: Record<ProductNetwork, number> = {
+    L1: 0,
+    L2: 0,
+  };
+  products.forEach((product) => {
+    counts[product.network] = (counts[product.network] || 0) + 1;
+  });
+  return counts;
+}

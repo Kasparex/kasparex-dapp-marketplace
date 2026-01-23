@@ -11,6 +11,23 @@ import {
   createEmptyProductRegistry,
 } from './ipfs-registry';
 import type { Product, ProductRegistry, ProductRegistryEntry } from './types';
+import { demoProducts } from './demo-products';
+
+function buildDemoProducts(): Product[] {
+  // Deterministic IDs/slugs so routes remain stable across refreshes
+  const baseTime = Date.now() - 1000 * 60 * 60 * 24 * 30; // ~30 days ago
+  return demoProducts.map((p, idx) => {
+    const slug = generateSlug(p.title);
+    return {
+      ...p,
+      id: `demo-${slug}`,
+      slug,
+      createdAt: baseTime + idx * 1000 * 60 * 60 * 6,
+      purchaseCount: [12, 4, 27, 2, 9, 6, 18, 3][idx] ?? 0,
+      listingFeePaid: true,
+    };
+  });
+}
 
 /**
  * Generate UUID
@@ -37,7 +54,7 @@ export function generateSlug(title: string): string {
 export async function getAllProducts(): Promise<Product[]> {
   const registry = await fetchProductRegistry();
   if (!registry) {
-    return [];
+    return buildDemoProducts();
   }
 
   // Fetch full product data for each entry
@@ -60,12 +77,12 @@ export async function getAllProducts(): Promise<Product[]> {
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   const registry = await fetchProductRegistry();
   if (!registry) {
-    return null;
+    return buildDemoProducts().find((p) => p.slug === slug) || null;
   }
 
   const entry = registry.products.find((p) => p.slug === slug && p.status === 'active');
   if (!entry) {
-    return null;
+    return buildDemoProducts().find((p) => p.slug === slug) || null;
   }
 
   return fetchProduct(entry.productCid);
@@ -77,12 +94,12 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
 export async function getProductById(id: string): Promise<Product | null> {
   const registry = await fetchProductRegistry();
   if (!registry) {
-    return null;
+    return buildDemoProducts().find((p) => p.id === id) || null;
   }
 
   const entry = registry.products.find((p) => p.id === id && p.status === 'active');
   if (!entry) {
-    return null;
+    return buildDemoProducts().find((p) => p.id === id) || null;
   }
 
   return fetchProduct(entry.productCid);
@@ -94,7 +111,9 @@ export async function getProductById(id: string): Promise<Product | null> {
 export async function getProductsBySeller(sellerAddress: string): Promise<Product[]> {
   const registry = await fetchProductRegistry();
   if (!registry) {
-    return [];
+    return buildDemoProducts().filter(
+      (p) => p.sellerAddress.toLowerCase() === sellerAddress.toLowerCase()
+    );
   }
 
   const sellerProducts = registry.products.filter(
