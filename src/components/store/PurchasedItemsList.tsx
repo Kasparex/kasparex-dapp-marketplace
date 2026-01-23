@@ -34,7 +34,7 @@ export function PurchasedItemsList({ purchases }: PurchasedItemsListProps) {
           My Purchases (0)
         </h2>
         <p className="text-zinc-600 dark:text-zinc-400">
-          You haven't purchased any products yet.
+          You haven&apos;t purchased any products yet.
         </p>
       </div>
     );
