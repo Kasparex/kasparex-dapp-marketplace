@@ -13,10 +13,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const [showPreview, setShowPreview] = useState(false);
-  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
   const router = useRouter();
-  const { state } = useKaspaWallet();
   
   const thumbnailUrl = product.thumbnailCid
     ? getBestGatewayUrl(product.thumbnailCid)
@@ -25,15 +22,6 @@ export function ProductCard({ product }: ProductCardProps) {
   const handleBuy = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!state.isConnected) {
-      // Could trigger wallet connection here if needed
-      return;
-    }
-    setShowPurchaseModal(true);
-  };
-
-  const handlePurchaseProceed = () => {
-    setShowPurchaseModal(false);
     router.push(`/store/${product.slug}`);
   };
 
