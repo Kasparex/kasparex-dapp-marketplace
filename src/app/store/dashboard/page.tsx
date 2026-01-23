@@ -23,16 +23,18 @@ export default function SellerDashboardPage() {
       return;
     }
 
+    const currentAddress = state.address; // Capture address in a const for TypeScript
+
     async function loadDashboard() {
       setIsLoading(true);
       setError(null);
       try {
-        const sellerProducts = await getProductsBySeller(state.address);
+        const sellerProducts = await getProductsBySeller(currentAddress);
         setProducts(sellerProducts);
         
         // Load purchases for seller's products
         const productIds = sellerProducts.map((p) => p.id);
-        const sellerPurchases = await getPurchasesBySeller(state.address, productIds);
+        const sellerPurchases = await getPurchasesBySeller(currentAddress, productIds);
         setPurchases(sellerPurchases);
       } catch (err) {
         console.error('Failed to load dashboard:', err);
