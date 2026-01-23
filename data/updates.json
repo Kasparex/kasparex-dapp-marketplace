@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769178065-4787665",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: add null check for slug parameter (by Kasparex)",
+      "date": "2026-01-23T15:20:10+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769177554-25a685f",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix linting errors: use Link component and fix apostrophe (by Kasparex)",
