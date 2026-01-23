@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769187838-9e720b9",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix store: 3-column grid, slug routing, sidebar buttons, view modes, and product creation flow (by Kasparex)",
+      "date": "2026-01-23T18:03:26+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769184297-2d90c22",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Unify Store UI with Kasparex sidebars and add demo products (by Kasparex)",
