@@ -12,7 +12,7 @@ export function Footer() {
               Kasparex dApp Marketplace
             </h3>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4 leading-relaxed">
-              A tokenized utility ecosystem where each dApp has its own token. Earn rewards through real interaction with dApps, unlock multipliers with KREX and NFTs, and support the network with Krex Nodes. Every action you take rewards you with Local Tokens, Global GRID, and XP Points.
+              A tokenized utility ecosystem where each dApp has its own token. Earn rewards through real interaction with dApps, unlock multipliers with KREX and NFTs, and support the network with Krex Nodes.
             </p>
             {/* Social Links */}
             <div className="flex items-center gap-3 mt-6">
