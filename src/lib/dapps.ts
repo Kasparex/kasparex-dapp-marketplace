@@ -1,7 +1,7 @@
 import { Category } from './categories';
 import { CHAIN_IDS } from './wagmi';
 
-export type DAppStatus = 
+export type DAppStatus =
   | 'Mainnet'
   | 'Testnet'
   | 'Suspended';
@@ -108,6 +108,7 @@ export const placeholderDApps: DApp[] = [
     id: '12',
     name: 'DAO Voting',
     slug: 'dao-voting',
+    featuredImage: 'https://static.wixstatic.com/media/de4185_f76fb3e9bf3e445f95576099cc1d5265~mv2.png/v1/fill/w_511,h_213,al_c,q_80,usm_0.66_1.00_0.01,enc_auto/de4185_f76fb3e9bf3e445f95576099cc1d5265~mv2.png',
     category: 'dao',
     utility: 'Submit and vote on future dApp ideas for marketplace integration',
     process: 'Submit proposals with 10 KAS fee, vote with 1 KAS fee per vote. High-vote proposals are flagged for review.',
@@ -227,34 +228,34 @@ export const filterDApps = (
     if (filters.category.length > 0 && !filters.category.includes(dapp.category) && !filters.category.includes('all')) {
       return false;
     }
-    
+
     // Status filter - empty array means all selected
     if (filters.status.length > 0 && !filters.status.includes(dapp.status) && !filters.status.includes('all')) {
       return false;
     }
-    
+
     // Developer filter - empty array means all selected
     if (filters.developer.length > 0 && !filters.developer.includes(dapp.developer) && !filters.developer.includes('all')) {
       return false;
     }
-    
+
     // Network filter - empty array means all selected
     if (filters.network.length > 0 && !filters.network.includes('all')) {
       const hasVProgsFilter = filters.network.includes('vProgs');
       const supportedChainIds = getDAppChainIds(dapp);
-      const hasVProgs = supportedChainIds.includes(CHAIN_IDS.VPROGS_TESTNET) || 
-                        supportedChainIds.includes(CHAIN_IDS.VPROGS_MAINNET);
-      
+      const hasVProgs = supportedChainIds.includes(CHAIN_IDS.VPROGS_TESTNET) ||
+        supportedChainIds.includes(CHAIN_IDS.VPROGS_MAINNET);
+
       // Check if dApp matches any selected network (OR logic)
       const matchesNetwork = filters.network.includes(dapp.network);
       const matchesVProgs = hasVProgsFilter && hasVProgs;
-      
+
       // If neither network name nor vProgs compatibility matches, filter out
       if (!matchesNetwork && !matchesVProgs) {
         return false;
       }
     }
-    
+
     // Search query filter
     if (searchQuery && searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase().trim();
@@ -272,12 +273,12 @@ export const filterDApps = (
         .filter(Boolean)
         .join(' ')
         .toLowerCase();
-      
+
       if (!searchableText.includes(query)) {
         return false;
       }
     }
-    
+
     return true;
   });
 };
@@ -317,19 +318,19 @@ export const getCategoryCounts = (
     if (filters.network.length > 0 && !filters.network.includes('all')) {
       const hasVProgsFilter = filters.network.includes('vProgs');
       const supportedChainIds = getDAppChainIds(dapp);
-      const hasVProgs = supportedChainIds.includes(CHAIN_IDS.VPROGS_TESTNET) || 
-                        supportedChainIds.includes(CHAIN_IDS.VPROGS_MAINNET);
-      
+      const hasVProgs = supportedChainIds.includes(CHAIN_IDS.VPROGS_TESTNET) ||
+        supportedChainIds.includes(CHAIN_IDS.VPROGS_MAINNET);
+
       // Check if dApp matches any selected network (OR logic)
       const matchesNetwork = filters.network.includes(dapp.network);
       const matchesVProgs = hasVProgsFilter && hasVProgs;
-      
+
       // If neither network name nor vProgs compatibility matches, filter out
       if (!matchesNetwork && !matchesVProgs) {
         return false;
       }
     }
-    
+
     // Search query filter
     if (searchQuery && searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase().trim();
@@ -347,12 +348,12 @@ export const getCategoryCounts = (
         .filter(Boolean)
         .join(' ')
         .toLowerCase();
-      
+
       if (!searchableText.includes(query)) {
         return false;
       }
     }
-    
+
     return true;
   });
 
@@ -386,27 +387,27 @@ export const getDAppById = (dapps: DApp[], id: string): DApp | undefined => {
  */
 export function networkNameToChainIds(network: string): number[] {
   const networkLower = network.toLowerCase();
-  
+
   if (networkLower.includes('kasplex')) {
     // Kasplex L2 networks - both mainnet and testnet
     return [CHAIN_IDS.KASPLEX_L2_MAINNET, CHAIN_IDS.KASPLEX_L2_TESTNET];
   }
-  
+
   if (networkLower.includes('igra')) {
     // Igra L2 networks - currently only testnet available
     return [CHAIN_IDS.IGRA_CARAVEL_TESTNET];
   }
-  
+
   if (networkLower === 'testnet' || networkLower.includes('testnet')) {
     // Generic testnet - includes both testnets
     return [CHAIN_IDS.KASPLEX_L2_TESTNET, CHAIN_IDS.IGRA_CARAVEL_TESTNET];
   }
-  
+
   if (networkLower === 'mainnet' || networkLower.includes('mainnet')) {
     // Generic mainnet - currently only Kasplex L2 Mainnet
     return [CHAIN_IDS.KASPLEX_L2_MAINNET];
   }
-  
+
   // Default: return empty array for unknown networks
   return [];
 }
@@ -450,15 +451,15 @@ export function getDAppNetworkType(dapp: DApp): 'L1' | 'L2' {
   if (dapp.networkType) {
     return dapp.networkType;
   }
-  
+
   // Otherwise, infer from network field
   const networkLower = dapp.network.toLowerCase();
-  
+
   // If network contains "kasplex" or "igra", it's L2
   if (networkLower.includes('kasplex') || networkLower.includes('igra')) {
     return 'L2';
   }
-  
+
   // Default to L1 for other networks (Kaspa native)
   return 'L1';
 }
@@ -493,14 +494,14 @@ export function generateSimulatedAddress(dappId: string): string {
     hash = ((hash << 5) - hash) + char;
     hash = hash & hash; // Convert to 32-bit integer
   }
-  
+
   // Convert to positive number and pad to 40 hex characters (20 bytes)
   const positiveHash = Math.abs(hash);
   const hexString = positiveHash.toString(16).padStart(8, '0');
-  
+
   // Repeat and pad to 40 characters for a full address
   const fullHex = (hexString.repeat(5) + hexString.substring(0, 8)).substring(0, 40);
-  
+
   return `0x${fullHex}`;
 }
 
@@ -547,7 +548,7 @@ export function generateSimulatedTicker(dappName: string): string {
 
   // Multiple words: use first letter of each word (up to 4 words)
   const initials = words.slice(0, 4).map(word => word[0]).join('');
-  
+
   // If we have 2-3 words, try to use first 2 letters of first word + first letter of others
   if (words.length === 2 || words.length === 3) {
     const firstWord = words[0];
@@ -557,7 +558,7 @@ export function generateSimulatedTicker(dappName: string): string {
   }
 
   const result = initials.substring(0, 5);
-  
+
   // Limit to 6 characters max
   return result.substring(0, 6);
 }
