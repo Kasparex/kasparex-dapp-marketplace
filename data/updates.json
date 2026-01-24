@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769287346-6a81456",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix Sidebar props in app/page.tsx to resolve build error (by Kasparex)",
+      "date": "2026-01-24T21:42:10+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769287084-0a6103d",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix sidebar item alignment, spacing, and replace emojis with SVG icons ecosystem-wide (by Kasparex)",
