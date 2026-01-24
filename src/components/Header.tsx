@@ -95,8 +95,8 @@ function L1KaspaButton() {
     <button
       disabled={!isActive}
       className={`px-3 py-2 rounded-lg border transition-colors text-sm font-medium flex items-center gap-2 ${isActive
-          ? 'bg-[#70C7BA]/20 dark:bg-[#70C7BA]/30 text-[#70C7BA] border-[#70C7BA]/30 dark:border-[#70C7BA]/50 hover:bg-[#70C7BA]/30 dark:hover:bg-[#70C7BA]/40'
-          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 border-zinc-200 dark:border-zinc-700 cursor-not-allowed'
+        ? 'bg-[#70C7BA]/20 dark:bg-[#70C7BA]/30 text-[#70C7BA] border-[#70C7BA]/30 dark:border-[#70C7BA]/50 hover:bg-[#70C7BA]/30 dark:hover:bg-[#70C7BA]/40'
+        : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 border-zinc-200 dark:border-zinc-700 cursor-not-allowed'
         }`}
       aria-label="L1 Kaspa Network"
       title={isActive ? 'Connected to L1 Kaspa' : 'Connect KasWare wallet for L1'}
@@ -191,6 +191,9 @@ function getCurrentSectionTitle(pathname: string): string {
   }
   if (pathname.startsWith('/store')) {
     return 'Store';
+  }
+  if (pathname.startsWith('/games')) {
+    return 'Games';
   }
   // Default to dApps
   return 'dApps';
@@ -502,8 +505,8 @@ export function Header() {
                         const ProjectIcon = getProjectIcon(project.id);
 
                         const linkClassName = `flex items-center gap-2 px-3 py-2.5 text-sm rounded transition-all whitespace-nowrap ${isActive
-                            ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
-                            : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
+                          ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
+                          : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
                           }`;
 
                         const linkContent = (

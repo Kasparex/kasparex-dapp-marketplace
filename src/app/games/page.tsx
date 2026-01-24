@@ -19,7 +19,7 @@ function GamesContent() {
   const [costRange, setCostRange] = useState<{ min: number; max: number } | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<GameSortOption>('newest');
-  const [viewMode, setViewMode] = useState<GameViewMode>('grid');
+  const [viewMode, setViewMode] = useState<GameViewMode>('compact');
   const [displayedCount, setDisplayedCount] = useState(50);
   const { favoritesSet, toggleFavorite, isFavorite } = useFavorites();
   const { likes } = useLikes();
@@ -68,12 +68,12 @@ function GamesContent() {
       costRange,
     };
     let filtered = filterGames(placeholderGames, filters, searchQuery);
-    
+
     // If sorting by favorites, filter to only show favorites
     if (sortBy === 'favorites') {
       filtered = filtered.filter((game) => favoritesSet.has(game.id));
     }
-    
+
     return sortGames(filtered, sortBy, favoritesSet, likes);
   }, [selectedGameTypes, selectedDifficulties, selectedStatuses, costRange, searchQuery, sortBy, favoritesSet, likes]);
 
@@ -105,7 +105,7 @@ function GamesContent() {
   return (
     <>
       <Header />
-      
+
       <main className="flex-1 flex flex-col lg:flex-row">
         {/* Sidebar */}
         <div className="hidden lg:block flex-shrink-0">
@@ -160,8 +160,8 @@ function GamesContent() {
               </div>
               {/* Action Buttons and Sort Filters */}
               <div className="flex items-center gap-2 flex-shrink-0">
-                <GameSortFilters 
-                  sortBy={sortBy} 
+                <GameSortFilters
+                  sortBy={sortBy}
                   onSortChange={setSortBy}
                   favoritesCount={favoritesSet.size}
                   viewMode={viewMode}

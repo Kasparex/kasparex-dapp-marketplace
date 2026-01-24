@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { GameType, GameDifficulty, GameStatus, gameTypes, difficultyLevels } from '@/lib/games/games';
-import { GameFilterState } from '@/lib/games/filtering';
 
 interface GamesSidebarProps {
   selectedGameTypes: GameType[];
@@ -20,7 +19,23 @@ interface GamesSidebarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onResetFilters: () => void;
+  showCategories?: boolean;
+  backLink?: { href: string; label: string };
 }
+
+const STATUS_EMOJIS: Record<GameStatus, string> = {
+  beta: '🧪',
+  active: '✅',
+  'coming-soon': '⏳',
+  maintenance: '🛠️',
+};
+
+const DIFFICULTY_EMOJIS: Record<GameDifficulty, string> = {
+  easy: '🌱',
+  medium: '⚔️',
+  hard: '💀',
+  expert: '🔥',
+};
 
 export function GamesSidebar({
   selectedGameTypes,
@@ -37,13 +52,15 @@ export function GamesSidebar({
   searchQuery,
   onSearchChange,
   onResetFilters,
+  showCategories = true,
+  backLink = { href: '/hub', label: 'Go back to Hub' },
 }: GamesSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [gameTypesExpanded, setGameTypesExpanded] = useState(true);
   const [difficultiesExpanded, setDifficultiesExpanded] = useState(true);
   const [statusExpanded, setStatusExpanded] = useState(true);
   const [costExpanded, setCostExpanded] = useState(false);
-  
+
   // Sidebar hide/show and resize state
   const [isHidden, setIsHidden] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(256); // Default 256px (w-64)
@@ -214,7 +231,7 @@ export function GamesSidebar({
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           ${isHidden ? 'lg:translate-x-[-100%]' : ''}
         `}
-        style={{ 
+        style={{
           width: isHidden ? 0 : `${sidebarWidth}px`,
           minWidth: isHidden ? 0 : `${sidebarWidth}px`,
           maxWidth: isHidden ? 0 : `${sidebarWidth}px`,
@@ -251,13 +268,13 @@ export function GamesSidebar({
         <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
           <div className="flex items-center justify-between mb-4">
             <Link
-              href="/hub"
+              href={backLink.href}
               className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium transition-colors text-sm flex items-center gap-1"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Go back to Hub
+              {backLink.label}
             </Link>
             <button
               onClick={() => setIsHidden(true)}
@@ -280,153 +297,189 @@ export function GamesSidebar({
 
         {/* Sidebar Content */}
         <div className="p-4">
-          {/* Game Types Filter */}
-          <CollapsibleSection
-            title="Game Type"
-            icon="🎮"
-            expanded={gameTypesExpanded}
-            onToggle={() => setGameTypesExpanded(!gameTypesExpanded)}
-          >
-            <div className="space-y-2">
-              {Object.entries(gameTypes).map(([type, info]) => (
-                <label
-                  key={type}
-                  className="flex items-center justify-between cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900/50 p-2 rounded transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={selectedGameTypes.includes(type as GameType)}
-                      onChange={() => handleGameTypeToggle(type as GameType)}
-                      className="rounded border-zinc-300 dark:border-zinc-700 text-[#02abb8] focus:ring-[#02abb8]"
-                    />
-                    <span className="text-sm text-zinc-700 dark:text-zinc-300">
-                      {info.emoji} {info.name}
-                    </span>
-                  </div>
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {gameTypeCounts[type as GameType]}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </CollapsibleSection>
-
-          {/* Difficulty Filter */}
-          <CollapsibleSection
-            title="Difficulty"
-            icon="⚡"
-            expanded={difficultiesExpanded}
-            onToggle={() => setDifficultiesExpanded(!difficultiesExpanded)}
-          >
-            <div className="space-y-2">
-              {Object.entries(difficultyLevels).map(([difficulty, info]) => (
-                <label
-                  key={difficulty}
-                  className="flex items-center justify-between cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900/50 p-2 rounded transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={selectedDifficulties.includes(difficulty as GameDifficulty)}
-                      onChange={() => handleDifficultyToggle(difficulty as GameDifficulty)}
-                      className="rounded border-zinc-300 dark:border-zinc-700 text-[#02abb8] focus:ring-[#02abb8]"
-                    />
-                    <span className="text-sm text-zinc-700 dark:text-zinc-300">
-                      {info.name}
-                    </span>
-                  </div>
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {difficultyCounts[difficulty as GameDifficulty]}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </CollapsibleSection>
-
-          {/* Status Filter */}
-          <CollapsibleSection
-            title="Status"
-            icon="📊"
-            expanded={statusExpanded}
-            onToggle={() => setStatusExpanded(!statusExpanded)}
-          >
-            <div className="space-y-2">
-              {(['beta', 'active', 'coming-soon', 'maintenance'] as GameStatus[]).map((status) => (
-                <label
-                  key={status}
-                  className="flex items-center justify-between cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900/50 p-2 rounded transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={selectedStatuses.includes(status)}
-                      onChange={() => handleStatusToggle(status)}
-                      className="rounded border-zinc-300 dark:border-zinc-700 text-[#02abb8] focus:ring-[#02abb8]"
-                    />
-                    <span className="text-sm text-zinc-700 dark:text-zinc-300 capitalize">
-                      {status.replace('-', ' ')}
-                    </span>
-                  </div>
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {statusCounts[status]}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </CollapsibleSection>
-
-          {/* Cost Range Filter */}
-          {onCostRangeChange && (
-            <CollapsibleSection
-              title="Entry Cost (KAS)"
-              icon="💰"
-              expanded={costExpanded}
-              onToggle={() => setCostExpanded(!costExpanded)}
-            >
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    placeholder="Min"
-                    value={costRange?.min || ''}
-                    onChange={(e) => {
-                      const min = e.target.value ? parseFloat(e.target.value) : 0;
-                      onCostRangeChange({ min, max: costRange?.max || 10 });
-                    }}
-                    className="w-full px-2 py-1.5 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded focus:outline-none focus:ring-2 focus:ring-[#02abb8] text-zinc-900 dark:text-zinc-100"
-                  />
-                  <span className="text-zinc-500">to</span>
-                  <input
-                    type="number"
-                    placeholder="Max"
-                    value={costRange?.max || ''}
-                    onChange={(e) => {
-                      const max = e.target.value ? parseFloat(e.target.value) : 10;
-                      onCostRangeChange({ min: costRange?.min || 0, max });
-                    }}
-                    className="w-full px-2 py-1.5 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded focus:outline-none focus:ring-2 focus:ring-[#02abb8] text-zinc-900 dark:text-zinc-100"
-                  />
+          {showCategories && (
+            <>
+              {/* Game Types Filter */}
+              <CollapsibleSection
+                title="Game Type"
+                icon="🎮"
+                expanded={gameTypesExpanded}
+                onToggle={() => setGameTypesExpanded(!gameTypesExpanded)}
+              >
+                <div className="space-y-1 pl-2">
+                  {Object.entries(gameTypes).map(([type, info]) => {
+                    const isChecked = selectedGameTypes.includes(type as GameType);
+                    const count = gameTypeCounts[type as GameType] || 0;
+                    return (
+                      <label
+                        key={type}
+                        className={`
+                          checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
+                          transition-colors pl-8
+                          ${isChecked
+                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
+                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
+                          }
+                        `}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleGameTypeToggle(type as GameType)}
+                        />
+                        <div className="control__indicator"></div>
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <span className="text-lg flex-shrink-0">{info.emoji}</span>
+                          <span className="text-sm text-zinc-700 dark:text-zinc-300">{info.name}</span>
+                        </div>
+                        <span className="text-xs px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex-shrink-0">
+                          {count}
+                        </span>
+                      </label>
+                    );
+                  })}
                 </div>
-                {costRange && (
-                  <button
-                    onClick={() => onCostRangeChange(undefined)}
-                    className="w-full text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
-                  >
-                    Clear range
-                  </button>
-                )}
-              </div>
-            </CollapsibleSection>
-          )}
+              </CollapsibleSection>
 
-          {/* Reset Filters Button */}
-          <button
-            onClick={onResetFilters}
-            className="w-full mt-4 px-4 py-2 text-sm font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-          >
-            Reset Filters
-          </button>
+              {/* Difficulty Filter */}
+              <CollapsibleSection
+                title="Difficulty"
+                icon="⚡"
+                expanded={difficultiesExpanded}
+                onToggle={() => setDifficultiesExpanded(!difficultiesExpanded)}
+              >
+                <div className="space-y-1 pl-2">
+                  {Object.entries(difficultyLevels).map(([difficulty, info]) => {
+                    const isChecked = selectedDifficulties.includes(difficulty as GameDifficulty);
+                    const count = difficultyCounts[difficulty as GameDifficulty] || 0;
+                    return (
+                      <label
+                        key={difficulty}
+                        className={`
+                          checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
+                          transition-colors pl-8
+                          ${isChecked
+                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
+                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
+                          }
+                        `}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleDifficultyToggle(difficulty as GameDifficulty)}
+                        />
+                        <div className="control__indicator"></div>
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <span className="text-lg flex-shrink-0">{DIFFICULTY_EMOJIS[difficulty as GameDifficulty]}</span>
+                          <span className="text-sm text-zinc-700 dark:text-zinc-300">{info.name}</span>
+                        </div>
+                        <span className="text-xs px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex-shrink-0">
+                          {count}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </CollapsibleSection>
+
+              {/* Status Filter */}
+              <CollapsibleSection
+                title="Status"
+                icon="📊"
+                expanded={statusExpanded}
+                onToggle={() => setStatusExpanded(!statusExpanded)}
+              >
+                <div className="space-y-1 pl-2">
+                  {(['beta', 'active', 'coming-soon', 'maintenance'] as GameStatus[]).map((status) => {
+                    const isChecked = selectedStatuses.includes(status);
+                    const count = statusCounts[status] || 0;
+                    return (
+                      <label
+                        key={status}
+                        className={`
+                          checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
+                          transition-colors pl-8
+                          ${isChecked
+                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
+                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
+                          }
+                        `}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleStatusToggle(status)}
+                        />
+                        <div className="control__indicator"></div>
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <span className="text-lg flex-shrink-0">{STATUS_EMOJIS[status]}</span>
+                          <span className="text-sm text-zinc-700 dark:text-zinc-300 capitalize">
+                            {status.replace('-', ' ')}
+                          </span>
+                        </div>
+                        <span className="text-xs px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex-shrink-0">
+                          {count}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </CollapsibleSection>
+
+              {/* Cost Range Filter */}
+              {onCostRangeChange && (
+                <CollapsibleSection
+                  title="Entry Cost (KAS)"
+                  icon="💰"
+                  expanded={costExpanded}
+                  onToggle={() => setCostExpanded(!costExpanded)}
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        placeholder="Min"
+                        value={costRange?.min || ''}
+                        onChange={(e) => {
+                          const min = e.target.value ? parseFloat(e.target.value) : 0;
+                          onCostRangeChange({ min, max: costRange?.max || 10 });
+                        }}
+                        className="w-full px-2 py-1.5 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded focus:outline-none focus:ring-2 focus:ring-[#02abb8] text-zinc-900 dark:text-zinc-100"
+                      />
+                      <span className="text-zinc-500">to</span>
+                      <input
+                        type="number"
+                        placeholder="Max"
+                        value={costRange?.max || ''}
+                        onChange={(e) => {
+                          const max = e.target.value ? parseFloat(e.target.value) : 10;
+                          onCostRangeChange({ min: costRange?.min || 0, max });
+                        }}
+                        className="w-full px-2 py-1.5 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded focus:outline-none focus:ring-2 focus:ring-[#02abb8] text-zinc-900 dark:text-zinc-100"
+                      />
+                    </div>
+                    {costRange && (
+                      <button
+                        onClick={() => onCostRangeChange(undefined)}
+                        className="w-full text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+                      >
+                        Clear range
+                      </button>
+                    )}
+                  </div>
+                </CollapsibleSection>
+              )}
+
+              {/* Reset Filters Button */}
+              <button
+                onClick={onResetFilters}
+                className="w-full mt-4 px-4 py-2 text-sm font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+              >
+                Reset Filters
+              </button>
+            </>
+          )}
         </div>
       </aside>
     </>
