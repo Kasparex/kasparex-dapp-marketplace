@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769260232-da56538",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add Seller Status to ProductSidebar and update StoreSidebar styles (by Kasparex)",
+      "date": "2026-01-24T14:10:05+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769257462-311bff4",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Restore ProductSidebar with UnifiedStatusBox and resize functionality (by Kasparex)",
