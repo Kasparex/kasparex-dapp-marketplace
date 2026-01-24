@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769269357-90f5a4b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix type error and missing import in DAppCompact (by Kasparex)",
+      "date": "2026-01-24T16:42:12+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769269104-b151274",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add Compact view to dApps listing, move search bar to main area, and unify controls styling (by Kasparex)",
