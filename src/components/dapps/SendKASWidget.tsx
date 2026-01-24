@@ -119,7 +119,7 @@ export function SendKASWidget() {
 
       {/* Recipient Address */}
       <div>
-        <label htmlFor="toAddress" className="block text-sm font-medium text-zinc-300 dark:text-zinc-300 mb-2">
+        <label htmlFor="toAddress" className="k-label">
           Recipient Address
         </label>
         <input
@@ -128,14 +128,14 @@ export function SendKASWidget() {
           value={toAddress}
           onChange={(e) => setToAddress(e.target.value)}
           placeholder="kaspa:..."
-          className="w-full px-3 py-2 border border-zinc-700 dark:border-zinc-700 rounded-lg bg-zinc-800 dark:bg-zinc-800 text-white dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+          className="k-input"
           disabled={isSending}
         />
       </div>
 
       {/* Amount */}
       <div>
-        <label htmlFor="amount" className="block text-sm font-medium text-zinc-300 dark:text-zinc-300 mb-2">
+        <label htmlFor="amount" className="k-label">
           Amount (KAS)
         </label>
         <div className="flex gap-2">
@@ -147,7 +147,7 @@ export function SendKASWidget() {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0.00"
-            className="flex-1 px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+            className="k-input"
             disabled={isSending}
           />
           <button

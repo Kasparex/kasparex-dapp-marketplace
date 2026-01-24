@@ -164,7 +164,7 @@ export function RewardCalculator() {
             <div className="space-y-6">
               {/* KAS Amount Input */}
               <div>
-                <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-2">
+                <label className="k-label">
                   KAS Amount to Spend
                 </label>
                 <div className="relative">
@@ -174,10 +174,10 @@ export function RewardCalculator() {
                     onChange={handleKASChange}
                     min="0"
                     step="0.1"
-                    className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent"
+                    className="k-input pr-12"
                     placeholder="Enter KAS amount"
                   />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400">
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400 text-sm font-medium">
                     KAS
                   </span>
                 </div>
@@ -254,11 +254,10 @@ export function RewardCalculator() {
                       key={tier}
                       type="button"
                       onClick={() => handleTierChange(tier)}
-                      className={`p-3 rounded-lg border-2 transition-all ${
-                        krexTier === tier
+                      className={`p-3 rounded-lg border-2 transition-all ${krexTier === tier
                           ? 'border-[#02abb8] bg-[#02abb8]/10 dark:bg-[#02abb8]/20'
                           : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700'
-                      }`}
+                        }`}
                     >
                       <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                         {tier === 'Tier1' ? 'Tier 1' : tier === 'Tier2' ? 'Tier 2' : tier === 'Tier3' ? 'Tier 3' : 'Tier 4'}
@@ -267,10 +266,10 @@ export function RewardCalculator() {
                         {tier === 'Tier1'
                           ? '< 10M KREX'
                           : tier === 'Tier2'
-                          ? '≥ 10M KREX'
-                          : tier === 'Tier3'
-                          ? '≥ 50M KREX'
-                          : '≥ 100M KREX'}
+                            ? '≥ 10M KREX'
+                            : tier === 'Tier3'
+                              ? '≥ 50M KREX'
+                              : '≥ 100M KREX'}
                       </div>
                     </button>
                   ))}
@@ -368,7 +367,7 @@ export function RewardCalculator() {
                 {nodeProvider.isNodeProvider && (
                   <div className="space-y-3 mt-3">
                     <div>
-                      <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
+                      <label className="k-label text-xs mb-1">
                         Node Multiplier (e.g., 1.5x, 2x)
                       </label>
                       <input
@@ -377,11 +376,11 @@ export function RewardCalculator() {
                         onChange={handleNodeMultiplierChange}
                         min="1"
                         step="0.1"
-                        className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded text-sm"
+                        className="k-input py-1.5 px-3 h-auto min-h-0"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
+                      <label className="k-label text-xs mb-1">
                         Fee Reduction (%)
                       </label>
                       <input
@@ -390,7 +389,7 @@ export function RewardCalculator() {
                         onChange={handleNodeFeeReductionChange}
                         min="0"
                         step="0.1"
-                        className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded text-sm"
+                        className="k-input py-1.5 px-3 h-auto min-h-0"
                       />
                     </div>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -407,7 +406,7 @@ export function RewardCalculator() {
                 </label>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
+                    <label className="k-label text-xs mb-1">
                       GRT Max Supply
                     </label>
                     <input
@@ -415,11 +414,11 @@ export function RewardCalculator() {
                       value={supplyMetrics.grtMaxSupply}
                       onChange={(e) => setSupplyMetrics(prev => ({ ...prev, grtMaxSupply: parseFloat(e.target.value) || 0 }))}
                       min="0"
-                      className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded text-sm"
+                      className="k-input py-1.5 px-3 h-auto min-h-0"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
+                    <label className="k-label text-xs mb-1">
                       LRT Max Supply
                     </label>
                     <input
@@ -427,11 +426,11 @@ export function RewardCalculator() {
                       value={supplyMetrics.lrtMaxSupply}
                       onChange={(e) => setSupplyMetrics(prev => ({ ...prev, lrtMaxSupply: parseFloat(e.target.value) || 0 }))}
                       min="0"
-                      className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded text-sm"
+                      className="k-input py-1.5 px-3 h-auto min-h-0"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
+                    <label className="k-label text-xs mb-1">
                       Daily KAS Spent
                     </label>
                     <input
@@ -439,11 +438,11 @@ export function RewardCalculator() {
                       value={supplyMetrics.dailyKasSpent}
                       onChange={(e) => setSupplyMetrics(prev => ({ ...prev, dailyKasSpent: parseFloat(e.target.value) || 0 }))}
                       min="0"
-                      className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded text-sm"
+                      className="k-input py-1.5 px-3 h-auto min-h-0"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
+                    <label className="k-label text-xs mb-1">
                       Number of Users
                     </label>
                     <input
@@ -451,11 +450,11 @@ export function RewardCalculator() {
                       value={supplyMetrics.numberOfUsers}
                       onChange={(e) => setSupplyMetrics(prev => ({ ...prev, numberOfUsers: parseFloat(e.target.value) || 0 }))}
                       min="0"
-                      className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded text-sm"
+                      className="k-input py-1.5 px-3 h-auto min-h-0"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
+                    <label className="k-label text-xs mb-1">
                       GRT Already Minted
                     </label>
                     <input
@@ -463,11 +462,11 @@ export function RewardCalculator() {
                       value={supplyMetrics.grtMinted}
                       onChange={(e) => setSupplyMetrics(prev => ({ ...prev, grtMinted: parseFloat(e.target.value) || 0 }))}
                       min="0"
-                      className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded text-sm"
+                      className="k-input py-1.5 px-3 h-auto min-h-0"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
+                    <label className="k-label text-xs mb-1">
                       LRT Already Minted
                     </label>
                     <input
@@ -475,7 +474,7 @@ export function RewardCalculator() {
                       value={supplyMetrics.lrtMinted}
                       onChange={(e) => setSupplyMetrics(prev => ({ ...prev, lrtMinted: parseFloat(e.target.value) || 0 }))}
                       min="0"
-                      className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded text-sm"
+                      className="k-input py-1.5 px-3 h-auto min-h-0"
                     />
                   </div>
                 </div>
@@ -483,7 +482,7 @@ export function RewardCalculator() {
 
               {/* Seasonal Boost */}
               <div>
-                <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-2">
+                <label className="k-label">
                   Seasonal Boost (%)
                 </label>
                 <div className="relative">
@@ -494,10 +493,10 @@ export function RewardCalculator() {
                     min="0"
                     max="1000"
                     step="1"
-                    className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent"
+                    className="k-input pr-12"
                     placeholder="0"
                   />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400">
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400 text-sm font-medium">
                     %
                   </span>
                 </div>

@@ -7,9 +7,9 @@ import { KASFeeInfo } from '@/lib/vblog/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
-import { 
-  validateTitle, 
-  validateDescription, 
+import {
+  validateTitle,
+  validateDescription,
   validateContent,
   getCharacterCount,
   CONTENT_LIMITS,
@@ -37,11 +37,11 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
   const pricing = useVBlogPricing();
-  
+
   // Support both Kaspa and EVM wallets
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
   const isWalletConnected = kaspaState.isConnected || isEVMConnected;
-  
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [content, setContent] = useState('');
@@ -67,7 +67,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
       setError(titleValidation.error ?? 'Title validation failed');
       return;
     }
-    
+
     if (!description.trim()) {
       setError('Description is required');
       return;
@@ -77,7 +77,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
       setError(descValidation.error ?? 'Description validation failed');
       return;
     }
-    
+
     if (!content.trim()) {
       setError('Content is required');
       return;
@@ -147,27 +147,26 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
           </p>
           {pricing.tier.hasNFTPerks && (
             <Alert type="success" compact className="mb-4">
-              NFT Perks Active: Increased text limits enabled ({pricing.tier.nftCollections.join(', ')})
+              <p>NFT Perks Active: Increased text limits enabled ({pricing.tier.nftCollections.join(', ')})</p>
             </Alert>
           )}
         </div>
 
         {error && (
           <Alert type="error" title="Error" onDismiss={() => setError(null)}>
-            {error}
+            <p>{error}</p>
           </Alert>
         )}
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label className="k-label">
               Title <span className="text-red-500">*</span>
             </label>
-            <span className={`text-xs ${
-              getCharacterCount(title) > (pricing.isPremium ? CONTENT_LIMITS.premium.title.max : CONTENT_LIMITS.title.max)
+            <span className={`text-xs ${getCharacterCount(title) > (pricing.isPremium ? CONTENT_LIMITS.premium.title.max : CONTENT_LIMITS.title.max)
                 ? 'text-red-500'
                 : 'text-zinc-500 dark:text-zinc-400'
-            }`}>
+              }`}>
               {getCharacterCount(title)} / {pricing.isPremium ? CONTENT_LIMITS.premium.title.max : CONTENT_LIMITS.title.max}
             </span>
           </div>
@@ -177,7 +176,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Enter article title"
             maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.title.max : CONTENT_LIMITS.title.max}
-            className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+            className="k-input"
             required
             disabled={isSubmitting}
           />
@@ -185,14 +184,13 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label className="k-label">
               Short Description <span className="text-red-500">*</span>
             </label>
-            <span className={`text-xs ${
-              getCharacterCount(description) > (pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max)
+            <span className={`text-xs ${getCharacterCount(description) > (pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max)
                 ? 'text-red-500'
                 : 'text-zinc-500 dark:text-zinc-400'
-            }`}>
+              }`}>
               {getCharacterCount(description)} / {pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max}
             </span>
           </div>
@@ -202,7 +200,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
             placeholder="Enter a brief description of the article"
             rows={3}
             maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max}
-            className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] resize-none"
+            className="k-textarea min-h-[80px]"
             required
             disabled={isSubmitting}
           />
@@ -210,7 +208,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label className="k-label">
               Main Content <span className="text-red-500">*</span>
             </label>
           </div>
@@ -221,15 +219,15 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
             maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max}
             disabled={isSubmitting}
             rows={10}
-            className="w-full min-h-[200px] px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] resize-y"
+            className="k-textarea"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+          <label className="k-label">
             Featured Image URL or CID
           </label>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
+          <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-2">
             Recommended size: 1200x630px (1.91:1 aspect ratio) for optimal display
           </p>
           <input
@@ -237,20 +235,20 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
             value={featuredImage}
             onChange={(e) => setFeaturedImage(e.target.value)}
             placeholder="Enter image URL or CID"
-            className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+            className="k-input"
             disabled={isSubmitting}
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+            <label className="k-label">
               Category
             </label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+              className="k-select"
               disabled={isSubmitting}
             >
               {CATEGORIES.map((cat) => (
@@ -262,7 +260,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+            <label className="k-label">
               Tags (comma-separated)
             </label>
             <input
@@ -270,14 +268,14 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="tag1, tag2, tag3"
-              className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+              className="k-input"
               disabled={isSubmitting}
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+          <label className="k-label">
             Content CID (optional)
           </label>
           <input
@@ -285,10 +283,10 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
             value={cid}
             onChange={(e) => setCid(e.target.value)}
             placeholder="Paste the content CID or reference hash"
-            className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] font-mono text-sm"
+            className="k-input font-mono"
             disabled={isSubmitting}
           />
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
             If you&apos;ve already uploaded your content to IPFS or another decentralized storage, paste the CID here.
           </p>
         </div>

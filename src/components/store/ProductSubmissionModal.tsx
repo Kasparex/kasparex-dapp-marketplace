@@ -75,7 +75,7 @@ export function ProductSubmissionModal({
     // Check file sizes (2MB limit per file)
     const maxSize = 2 * 1024 * 1024; // 2MB in bytes
     const oversizedFiles = files.filter(f => f.size > maxSize);
-    
+
     if (oversizedFiles.length > 0) {
       const fileNames = oversizedFiles.map(f => `${f.name} (${(f.size / 1024 / 1024).toFixed(2)}MB)`).join(', ');
       setError(`Some files exceed 2MB limit: ${fileNames}. Please use smaller files.`);
@@ -165,7 +165,7 @@ export function ProductSubmissionModal({
       }
 
       setStep('complete');
-      
+
       // Call onSuccess to refresh product list
       if (onSuccess) {
         // Small delay to ensure registry is accessible
@@ -231,49 +231,49 @@ export function ProductSubmissionModal({
             <div className="space-y-4">
               {/* Title */}
               <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                <label className="k-label">
                   Title *
                 </label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                  className="k-input"
                   placeholder="Product title"
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                <label className="k-label">
                   Description *
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
-                  className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                  className="k-textarea min-h-[80px]"
                   placeholder="Product description"
                 />
               </div>
 
               {/* Protected Content */}
               <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                <label className="k-label">
                   Protected Content (for buyers)
                 </label>
                 <textarea
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                   rows={4}
-                  className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                  className="k-textarea min-h-[100px]"
                   placeholder="Content that will be visible only to buyers..."
                 />
               </div>
 
               {/* Price */}
               <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                <label className="k-label">
                   Price (KAS) *
                 </label>
                 <input
@@ -282,20 +282,20 @@ export function ProductSubmissionModal({
                   min="0"
                   value={formData.priceKAS}
                   onChange={(e) => setFormData({ ...formData, priceKAS: e.target.value })}
-                  className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                  className="k-input"
                   placeholder="0.0000"
                 />
               </div>
 
               {/* Category */}
               <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                <label className="k-label">
                   Category *
                 </label>
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value as ProductCategory })}
-                  className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                  className="k-select"
                 >
                   {categories.map((cat) => (
                     <option key={cat} value={cat}>
@@ -307,21 +307,21 @@ export function ProductSubmissionModal({
 
               {/* Network */}
               <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                <label className="k-label">
                   Network *
                 </label>
-                <div className="flex gap-4">
+                <div className="flex gap-4 p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-700">
                   {(['L1', 'L2'] as ProductNetwork[]).map((net) => (
-                    <label key={net} className="flex items-center gap-2 cursor-pointer">
+                    <label key={net} className="flex items-center gap-2 cursor-pointer group no-k-style">
                       <input
                         type="radio"
                         name="network"
                         value={net}
                         checked={formData.network === net}
                         onChange={() => setFormData({ ...formData, network: net })}
-                        className="w-4 h-4"
+                        className="w-4 h-4 text-[#02abb8] focus:ring-[#02abb8] bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 no-k-style"
                       />
-                      <span className="text-sm text-zinc-700 dark:text-zinc-300">{net}</span>
+                      <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 group-hover:text-[#02abb8] transition-colors">{net}</span>
                     </label>
                   ))}
                 </div>
@@ -329,14 +329,14 @@ export function ProductSubmissionModal({
 
               {/* Thumbnail */}
               <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                <label className="k-label">
                   Thumbnail Image *
                 </label>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleThumbnailChange}
-                  className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                  className="k-input"
                 />
                 {isUploading && <p className="text-xs text-zinc-500 mt-1">Uploading...</p>}
                 {thumbnailCid && (
@@ -346,14 +346,14 @@ export function ProductSubmissionModal({
 
               {/* Product Files */}
               <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                <label className="k-label">
                   Product Files
                 </label>
                 <input
                   type="file"
                   multiple
                   onChange={handleAssetChange}
-                  className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                  className="k-input"
                 />
                 {isUploading && <p className="text-xs text-zinc-500 mt-1">Uploading...</p>}
                 {assetCids.length > 0 && (

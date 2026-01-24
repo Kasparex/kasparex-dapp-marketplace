@@ -26,7 +26,7 @@ export function BasicInfoStep({ formData, onUpdate }: FormStepProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+        <label className="k-label">
           dApp Name <span className="text-red-500">*</span>
         </label>
         <input
@@ -34,20 +34,20 @@ export function BasicInfoStep({ formData, onUpdate }: FormStepProps) {
           value={formData.name || ''}
           onChange={(e) => onUpdate({ name: e.target.value })}
           placeholder="e.g., Subscription Checker"
-          className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+          className="k-input"
           required
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+          <label className="k-label">
             Category <span className="text-red-500">*</span>
           </label>
           <select
             value={formData.category || 'general'}
             onChange={(e) => onUpdate({ category: e.target.value as Category })}
-            className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+            className="k-select"
           >
             {categoryOptions.map((cat) => (
               <option key={cat.id} value={cat.id}>
@@ -58,7 +58,7 @@ export function BasicInfoStep({ formData, onUpdate }: FormStepProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+          <label className="k-label">
             Version
           </label>
           <input
@@ -66,13 +66,13 @@ export function BasicInfoStep({ formData, onUpdate }: FormStepProps) {
             value={formData.version || ''}
             onChange={(e) => onUpdate({ version: e.target.value })}
             placeholder="e.g., 1.0"
-            className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+            className="k-input"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+        <label className="k-label">
           Description
         </label>
         <textarea
@@ -80,12 +80,12 @@ export function BasicInfoStep({ formData, onUpdate }: FormStepProps) {
           onChange={(e) => onUpdate({ description: e.target.value })}
           placeholder="Brief description of your dApp..."
           rows={4}
-          className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+          className="k-textarea"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+        <label className="k-label">
           Utility <span className="text-red-500">*</span>
         </label>
         <textarea
@@ -93,13 +93,13 @@ export function BasicInfoStep({ formData, onUpdate }: FormStepProps) {
           onChange={(e) => onUpdate({ utility: e.target.value })}
           placeholder="What does your dApp do?"
           rows={3}
-          className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+          className="k-textarea"
           required
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+        <label className="k-label">
           Process <span className="text-red-500">*</span>
         </label>
         <textarea
@@ -107,13 +107,13 @@ export function BasicInfoStep({ formData, onUpdate }: FormStepProps) {
           onChange={(e) => onUpdate({ process: e.target.value })}
           placeholder="How does it work?"
           rows={3}
-          className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+          className="k-textarea"
           required
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+        <label className="k-label">
           Benefits
         </label>
         <textarea
@@ -121,19 +121,19 @@ export function BasicInfoStep({ formData, onUpdate }: FormStepProps) {
           onChange={(e) => onUpdate({ benefits: e.target.value })}
           placeholder="What are the benefits for users?"
           rows={3}
-          className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+          className="k-textarea"
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+          <label className="k-label">
             Status
           </label>
           <select
             value={formData.status || 'Testnet'}
             onChange={(e) => onUpdate({ status: e.target.value as DAppStatus })}
-            className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+            className="k-select"
           >
             {statusOptions.map((status) => (
               <option key={status} value={status}>
@@ -144,13 +144,13 @@ export function BasicInfoStep({ formData, onUpdate }: FormStepProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+          <label className="k-label">
             Network
           </label>
           <select
             value={formData.network || 'Testnet'}
             onChange={(e) => onUpdate({ network: e.target.value })}
-            className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+            className="k-select"
           >
             {networkOptions.map((network) => (
               <option key={network} value={network}>
@@ -162,7 +162,7 @@ export function BasicInfoStep({ formData, onUpdate }: FormStepProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+        <label className="k-label">
           Developer Name
         </label>
         <input
@@ -170,7 +170,7 @@ export function BasicInfoStep({ formData, onUpdate }: FormStepProps) {
           value={formData.developer || ''}
           onChange={(e) => onUpdate({ developer: e.target.value })}
           placeholder="Your name or organization"
-          className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+          className="k-input"
         />
       </div>
     </div>
@@ -204,7 +204,7 @@ export function MediaLinksStep({ formData, onUpdate }: FormStepProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+        <label className="k-label">
           dApp Image URL
         </label>
         <input
@@ -212,7 +212,7 @@ export function MediaLinksStep({ formData, onUpdate }: FormStepProps) {
           value={formData.image || ''}
           onChange={(e) => onUpdate({ image: e.target.value })}
           placeholder="https://example.com/image.png"
-          className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+          className="k-input"
         />
         {formData.image && (
           <div className="mt-2">
@@ -229,7 +229,7 @@ export function MediaLinksStep({ formData, onUpdate }: FormStepProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+        <label className="k-label">
           dApp URL
         </label>
         <input
@@ -237,12 +237,12 @@ export function MediaLinksStep({ formData, onUpdate }: FormStepProps) {
           value={formData.url || ''}
           onChange={(e) => onUpdate({ url: e.target.value })}
           placeholder="https://your-dapp.com"
-          className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+          className="k-input"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+        <label className="k-label">
           Widget/Embed URL
         </label>
         <input
@@ -250,7 +250,7 @@ export function MediaLinksStep({ formData, onUpdate }: FormStepProps) {
           value={formData.widgetUrl || ''}
           onChange={(e) => onUpdate({ widgetUrl: e.target.value })}
           placeholder="https://your-dapp.com/widget"
-          className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+          className="k-input"
         />
         <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
           URL for embedded widget/iframe of your dApp
@@ -263,7 +263,7 @@ export function MediaLinksStep({ formData, onUpdate }: FormStepProps) {
         </h4>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+            <label className="k-label">
               Website
             </label>
             <input
@@ -271,11 +271,11 @@ export function MediaLinksStep({ formData, onUpdate }: FormStepProps) {
               value={website}
               onChange={(e) => updateLinks('website', e.target.value)}
               placeholder="https://your-website.com"
-              className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+              className="k-input"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+            <label className="k-label">
               Twitter/X
             </label>
             <input
@@ -283,11 +283,11 @@ export function MediaLinksStep({ formData, onUpdate }: FormStepProps) {
               value={twitter}
               onChange={(e) => updateLinks('twitter', e.target.value)}
               placeholder="https://twitter.com/yourhandle"
-              className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+              className="k-input"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+            <label className="k-label">
               Telegram
             </label>
             <input
@@ -295,7 +295,7 @@ export function MediaLinksStep({ formData, onUpdate }: FormStepProps) {
               value={telegram}
               onChange={(e) => updateLinks('telegram', e.target.value)}
               placeholder="https://t.me/yourchannel"
-              className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+              className="k-input"
             />
           </div>
         </div>

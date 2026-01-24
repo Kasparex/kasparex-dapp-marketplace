@@ -26,11 +26,11 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
   const { getArticleComments, addArticleComment } = useVBlog();
-  
+
   // Support both Kaspa and EVM wallets
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
   const isWalletConnected = kaspaState.isConnected || isEVMConnected;
-  
+
   const { credits, useCredit: deductCredit, hasCredits, isLoading: creditsLoading, refreshCredits } = useCommentCredits(walletAddress);
   const [allComments, setAllComments] = useState<VBlogComment[]>([]);
   const [displayedComments, setDisplayedComments] = useState<VBlogComment[]>([]);
@@ -313,7 +313,7 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
             {isWalletConnected ? (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label htmlFor="comment" className="block text-base font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                  <label htmlFor="comment" className="k-label text-base">
                     Add a Comment
                   </label>
                   <textarea
@@ -322,7 +322,7 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="Write your comment here..."
                     rows={4}
-                    className="w-full px-3 py-2 text-base border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] resize-none"
+                    className="k-textarea"
                     disabled={isSubmitting}
                   />
                   {error && (

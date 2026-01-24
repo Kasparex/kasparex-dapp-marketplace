@@ -5,9 +5,9 @@ import { VBlogArticle } from '@/lib/vblog/types';
 import { KASFeeConfirmation } from './KASFeeConfirmation';
 import { KASFeeInfo } from '@/lib/vblog/types';
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
-import { 
-  validateTitle, 
-  validateDescription, 
+import {
+  validateTitle,
+  validateDescription,
   validateContent,
   getCharacterCount,
   CONTENT_LIMITS,
@@ -69,7 +69,7 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
       setError(titleValidation.error ?? 'Title validation failed');
       return;
     }
-    
+
     if (!description.trim()) {
       setError('Description is required');
       return;
@@ -79,7 +79,7 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
       setError(descValidation.error ?? 'Description validation failed');
       return;
     }
-    
+
     if (!content.trim()) {
       setError('Content is required');
       return;
@@ -133,27 +133,26 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
           </p>
           {pricing.tier.hasNFTPerks && (
             <Alert type="success" compact className="mb-4">
-              NFT Perks Active: Increased text limits enabled ({pricing.tier.nftCollections.join(', ')})
+              <p>NFT Perks Active: Increased text limits enabled ({pricing.tier.nftCollections.join(', ')})</p>
             </Alert>
           )}
         </div>
 
         {error && (
           <Alert type="error" title="Error" onDismiss={() => setError(null)}>
-            {error}
+            <p>{error}</p>
           </Alert>
         )}
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label className="k-label">
               Title <span className="text-red-500">*</span>
             </label>
-            <span className={`text-xs ${
-              getCharacterCount(title) > (pricing.isPremium ? CONTENT_LIMITS.premium.title.max : CONTENT_LIMITS.title.max)
+            <span className={`text-xs ${getCharacterCount(title) > (pricing.isPremium ? CONTENT_LIMITS.premium.title.max : CONTENT_LIMITS.title.max)
                 ? 'text-red-500'
                 : 'text-zinc-500 dark:text-zinc-400'
-            }`}>
+              }`}>
               {getCharacterCount(title)} / {pricing.isPremium ? CONTENT_LIMITS.premium.title.max : CONTENT_LIMITS.title.max}
             </span>
           </div>
@@ -163,7 +162,7 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Enter article title"
             maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.title.max : CONTENT_LIMITS.title.max}
-            className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+            className="k-input"
             required
             disabled={isSubmitting}
           />
@@ -171,14 +170,13 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label className="k-label">
               Short Description <span className="text-red-500">*</span>
             </label>
-            <span className={`text-xs ${
-              getCharacterCount(description) > (pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max)
+            <span className={`text-xs ${getCharacterCount(description) > (pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max)
                 ? 'text-red-500'
                 : 'text-zinc-500 dark:text-zinc-400'
-            }`}>
+              }`}>
               {getCharacterCount(description)} / {pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max}
             </span>
           </div>
@@ -188,7 +186,7 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
             placeholder="Enter a brief description of the article"
             rows={3}
             maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max}
-            className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] resize-none"
+            className="k-textarea min-h-[80px]"
             required
             disabled={isSubmitting}
           />
@@ -196,7 +194,7 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label className="k-label">
               Main Content <span className="text-red-500">*</span>
             </label>
           </div>
@@ -207,15 +205,15 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
             maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max}
             disabled={isSubmitting}
             rows={10}
-            className="w-full min-h-[200px] px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] resize-y"
+            className="k-textarea"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+          <label className="k-label">
             Featured Image URL or CID
           </label>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
+          <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-2">
             Recommended size: 1200x630px (1.91:1 aspect ratio) for optimal display
           </p>
           <input
@@ -223,20 +221,20 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
             value={featuredImage}
             onChange={(e) => setFeaturedImage(e.target.value)}
             placeholder="Enter image URL or CID"
-            className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+            className="k-input"
             disabled={isSubmitting}
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+            <label className="k-label">
               Category
             </label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+              className="k-select"
               disabled={isSubmitting}
             >
               {CATEGORIES.map((cat) => (
@@ -248,7 +246,7 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+            <label className="k-label">
               Tags (comma-separated)
             </label>
             <input
@@ -256,14 +254,14 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="tag1, tag2, tag3"
-              className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+              className="k-input"
               disabled={isSubmitting}
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+          <label className="k-label">
             Content CID (optional)
           </label>
           <input
@@ -271,7 +269,7 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
             value={cid}
             onChange={(e) => setCid(e.target.value)}
             placeholder="Paste the content CID or reference hash"
-            className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] font-mono text-sm"
+            className="k-input font-mono"
             disabled={isSubmitting}
           />
         </div>

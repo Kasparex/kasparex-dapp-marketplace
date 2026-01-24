@@ -242,7 +242,7 @@ export function ProfileEditModal({
   const displayError = error || safePaymentError;
 
   const buttonDisabledReasons = getButtonDisabledReasons();
-  const isSaveButtonDisabled = isLoading || !isConnected || !isTreasuryAvailable || 
+  const isSaveButtonDisabled = isLoading || !isConnected || !isTreasuryAvailable ||
     (connectedAddress && connectedAddress.toLowerCase() !== walletAddress.toLowerCase());
 
   // Close on Escape key
@@ -365,7 +365,7 @@ export function ProfileEditModal({
           >
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                <label className="k-label">
                   Display Name
                 </label>
                 <div className="relative">
@@ -375,17 +375,17 @@ export function ProfileEditModal({
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder="Enter display name"
                     maxLength={50}
-                    className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+                    className="k-input pr-16"
                     disabled={isLoading}
                   />
-                  <div className="absolute right-3 top-2 text-xs text-zinc-500 dark:text-zinc-400">
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs font-mono text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-700">
                     {displayName.length}/50
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                <label className="k-label">
                   Bio
                 </label>
                 <textarea
@@ -394,10 +394,10 @@ export function ProfileEditModal({
                   placeholder="Tell us about yourself"
                   rows={4}
                   maxLength={500}
-                  className="w-full px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] resize-none"
+                  className="k-textarea"
                   disabled={isLoading}
                 />
-                <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 text-right">
+                <div className="text-[10px] sm:text-xs font-mono text-zinc-500 dark:text-zinc-400 mt-1 text-right">
                   {bio.length}/500
                 </div>
               </div>
@@ -414,7 +414,7 @@ export function ProfileEditModal({
             <div className="space-y-6">
               {/* Profile Picture */}
               <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                <label className="k-label">
                   Profile Picture URL
                 </label>
                 <div className="flex gap-2">
@@ -426,7 +426,7 @@ export function ProfileEditModal({
                       setProfilePictureError(false);
                     }}
                     placeholder="https://example.com/profile-picture.jpg"
-                    className="flex-1 px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+                    className="k-input"
                     disabled={isLoading}
                   />
                   {profilePictureUrl && (
@@ -457,7 +457,7 @@ export function ProfileEditModal({
 
               {/* Featured Image */}
               <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                <label className="k-label">
                   Featured Image URL
                 </label>
                 <div className="flex gap-2">
@@ -469,7 +469,7 @@ export function ProfileEditModal({
                       setFeaturedImageError(false);
                     }}
                     placeholder="https://example.com/featured-image.jpg"
-                    className="flex-1 px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+                    className="k-input"
                     disabled={isLoading}
                   />
                   {featuredImageUrl && (
@@ -562,11 +562,10 @@ export function ProfileEditModal({
                   )}
                   <div className="flex items-center justify-between p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded">
                     <span className="text-sm text-zinc-700 dark:text-zinc-300">Profile Owner Match:</span>
-                    <span className={`text-sm font-medium ${
-                      connectedAddress && connectedAddress.toLowerCase() === walletAddress.toLowerCase()
+                    <span className={`text-sm font-medium ${connectedAddress && connectedAddress.toLowerCase() === walletAddress.toLowerCase()
                         ? 'text-green-600 dark:text-green-400'
                         : 'text-red-600 dark:text-red-400'
-                    }`}>
+                      }`}>
                       {connectedAddress && connectedAddress.toLowerCase() === walletAddress.toLowerCase()
                         ? '✓ Match'
                         : '✗ No Match'}
@@ -618,11 +617,10 @@ export function ProfileEditModal({
                       )}
                     </span>
                   </li>
-                  <li className={`flex items-start gap-2 ${
-                    connectedAddress && connectedAddress.toLowerCase() === walletAddress.toLowerCase()
+                  <li className={`flex items-start gap-2 ${connectedAddress && connectedAddress.toLowerCase() === walletAddress.toLowerCase()
                       ? 'text-green-600 dark:text-green-400'
                       : ''
-                  }`}>
+                    }`}>
                     <span className="font-semibold">2.</span>
                     <span>
                       {connectedAddress && connectedAddress.toLowerCase() === walletAddress.toLowerCase() ? '✓ ' : ''}

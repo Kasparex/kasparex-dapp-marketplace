@@ -204,11 +204,11 @@ export function SimplePaymentWidget() {
 
   // Get Simple Payment dApp object
   const simplePaymentDApp = placeholderDApps.find(d => d.slug === 'simple-payment' || d.name.toLowerCase().includes('simple payment'));
-  
+
   // Get user holdings for cost calculation
   const { balance: krexBalance, tier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
-  
+
   // Automated rewards hook
   const { distributeRewardAfterTransaction } = useAutomatedRewards();
 
@@ -217,7 +217,7 @@ export function SimplePaymentWidget() {
     if (!simplePaymentDApp || !amount || parseFloat(amount) <= 0) {
       return null;
     }
-    
+
     return calculateCost({
       dapp: simplePaymentDApp,
       actionId: 'send-payment',
@@ -238,7 +238,7 @@ export function SimplePaymentWidget() {
   // Fallback to direct access if getContractAddress is not available
   let contractAddress = '';
   let subscriptionManagerAddress = '';
-  
+
   try {
     // Ensure CONTRACT_ADDRESSES exists
     if (CONTRACT_ADDRESSES && typeof getContractAddress === 'function') {
@@ -248,7 +248,7 @@ export function SimplePaymentWidget() {
   } catch (e) {
     console.warn('getContractAddress not available, using fallback', e);
   }
-  
+
   // Fallback to direct CONTRACT_ADDRESSES access
   try {
     if (!contractAddress && CONTRACT_ADDRESSES) {
@@ -258,7 +258,7 @@ export function SimplePaymentWidget() {
         contractAddress = CONTRACT_ADDRESSES.kasplexL2Testnet.SimplePayment || '';
       }
     }
-    
+
     if (!subscriptionManagerAddress && CONTRACT_ADDRESSES) {
       if (chainId === 202555 && CONTRACT_ADDRESSES.kasplexL2Mainnet) {
         subscriptionManagerAddress = CONTRACT_ADDRESSES.kasplexL2Mainnet.SubscriptionManager || '';
@@ -327,18 +327,18 @@ export function SimplePaymentWidget() {
   });
 
   // Write contract for sending payment
-  const { 
-    writeContract, 
-    data: hash, 
+  const {
+    writeContract,
+    data: hash,
     isPending: isPendingWrite,
-    error: writeError 
+    error: writeError
   } = useWriteContract();
 
   // Wait for transaction
-  const { 
-    isLoading: isConfirming, 
+  const {
+    isLoading: isConfirming,
     isSuccess: isConfirmed,
-    error: txError 
+    error: txError
   } = useWaitForTransactionReceipt({
     hash,
   });
@@ -385,11 +385,11 @@ export function SimplePaymentWidget() {
 
     try {
       // Validate addresses one more time
-      const validContractAddress = contractAddress?.startsWith('0x') && contractAddress.length === 42 
-        ? contractAddress as `0x${string}` 
+      const validContractAddress = contractAddress?.startsWith('0x') && contractAddress.length === 42
+        ? contractAddress as `0x${string}`
         : null;
-      const validRecipientAddress = recipientAddress?.startsWith('0x') && recipientAddress.length === 42 
-        ? recipientAddress as `0x${string}` 
+      const validRecipientAddress = recipientAddress?.startsWith('0x') && recipientAddress.length === 42
+        ? recipientAddress as `0x${string}`
         : null;
 
       if (!validContractAddress || !validRecipientAddress) {
@@ -399,7 +399,7 @@ export function SimplePaymentWidget() {
 
       // Use ABI (fallback ensures it's always available)
       const abiToUse = SIMPLE_PAYMENT_ABI || SIMPLE_PAYMENT_ABI_FALLBACK;
-      
+
       if (!abiToUse) {
         console.error('ABI is still not available');
         setError('Contract ABI not loaded. Please refresh the page.');
@@ -418,7 +418,7 @@ export function SimplePaymentWidget() {
     } catch (err: any) {
       console.error('Write contract error:', err);
       const errorMessage = getErrorMessage(err, 'Failed to send payment');
-      
+
       // Handle common errors with more helpful messages
       if (errorMessage.includes('length') || errorMessage.includes('undefined')) {
         setError('Address validation error. Please check the recipient address format.');
@@ -517,7 +517,7 @@ export function SimplePaymentWidget() {
         <div className="space-y-4">
           {/* Recipient Address Input */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 dark:text-zinc-300 mb-2">
+            <label className="k-label">
               Recipient Address
             </label>
             <input
@@ -525,14 +525,14 @@ export function SimplePaymentWidget() {
               value={recipientAddress}
               onChange={(e) => setRecipientAddress(e.target.value)}
               placeholder="0x..."
-              className="w-full px-4 py-2 border border-zinc-700 dark:border-zinc-700 rounded-lg bg-zinc-800 dark:bg-zinc-800 text-white dark:text-zinc-100 focus:ring-2 focus:ring-[#02abb8] focus:border-transparent"
+              className="k-input"
               disabled={isLoading}
             />
           </div>
 
           {/* Amount Input */}
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2 flex items-center gap-2">
+            <label className="k-label flex items-center gap-2">
               Amount (<TokenLogoImage tokenId="kas" size={16} /> KAS)
             </label>
             <input
@@ -546,7 +546,7 @@ export function SimplePaymentWidget() {
                 }
               }}
               placeholder="0.0"
-              className="w-full px-4 py-2 border border-zinc-700 dark:border-zinc-700 rounded-lg bg-zinc-800 dark:bg-zinc-800 text-white dark:text-zinc-100 focus:ring-2 focus:ring-[#02abb8] focus:border-transparent"
+              className="k-input"
               disabled={isLoading}
             />
           </div>
@@ -683,18 +683,18 @@ export function SimplePaymentWidget() {
               className="flex-1 px-4 py-2 text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               style={{ backgroundColor: '#02abb8' }}
             >
-            {isLoading ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                {isPendingWrite ? 'Confirming...' : 'Processing...'}
-              </span>
-            ) : (
-              'Send'
-            )}
-          </button>
+              {isLoading ? (
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {isPendingWrite ? 'Confirming...' : 'Processing...'}
+                </span>
+              ) : (
+                'Send'
+              )}
+            </button>
           </div>
 
           {/* Contract Info */}

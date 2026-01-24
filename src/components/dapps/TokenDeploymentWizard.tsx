@@ -128,41 +128,41 @@ export function TokenDeploymentWizard({
       {step === 1 && (
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+            <label className="k-label">
               Token Name
             </label>
             <input
               type="text"
               value={config.name}
               onChange={(e) => setConfig({ ...config, name: e.target.value })}
-              className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100"
+              className="k-input"
               placeholder="My dApp Token"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+            <label className="k-label">
               Token Symbol
             </label>
             <input
               type="text"
               value={config.symbol}
               onChange={(e) => setConfig({ ...config, symbol: e.target.value.toUpperCase() })}
-              className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100"
+              className="k-input"
               placeholder="MDT"
               maxLength={10}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+            <label className="k-label">
               Max Supply (tokens)
             </label>
             <input
               type="number"
               value={config.maxSupply}
               onChange={(e) => setConfig({ ...config, maxSupply: e.target.value })}
-              className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100"
+              className="k-input"
               placeholder="1000000"
               min="1"
             />
@@ -176,40 +176,40 @@ export function TokenDeploymentWizard({
       {step === 2 && (
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+            <label className="k-label">
               Reward Vault Address
             </label>
             <input
               type="text"
               value={config.rewardVault}
               onChange={(e) => setConfig({ ...config, rewardVault: e.target.value })}
-              className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100 font-mono text-sm"
+              className="k-input font-mono"
               placeholder="0x..."
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+            <label className="k-label">
               Liquidity Reserve Address
             </label>
             <input
               type="text"
               value={config.liquidityReserve}
               onChange={(e) => setConfig({ ...config, liquidityReserve: e.target.value })}
-              className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100 font-mono text-sm"
+              className="k-input font-mono"
               placeholder="0x..."
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+            <label className="k-label">
               Treasury Address
             </label>
             <input
               type="text"
               value={config.treasury}
               onChange={(e) => setConfig({ ...config, treasury: e.target.value })}
-              className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100 font-mono text-sm"
+              className="k-input font-mono"
               placeholder="0x..."
             />
           </div>
@@ -219,27 +219,27 @@ export function TokenDeploymentWizard({
       {step === 3 && (
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+            <label className="k-label">
               Dev/Maintenance Address
             </label>
             <input
               type="text"
               value={config.devAddress}
               onChange={(e) => setConfig({ ...config, devAddress: e.target.value })}
-              className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100 font-mono text-sm"
+              className="k-input font-mono"
               placeholder="0x..."
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+            <label className="k-label">
               Airdrop Address
             </label>
             <input
               type="text"
               value={config.airdropAddress}
               onChange={(e) => setConfig({ ...config, airdropAddress: e.target.value })}
-              className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100 font-mono text-sm"
+              className="k-input font-mono"
               placeholder="0x..."
             />
           </div>
