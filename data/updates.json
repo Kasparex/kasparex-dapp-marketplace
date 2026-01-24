@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769290026-2729222",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add featured image to DAO Voting dApp (by Kasparex)",
+      "date": "2026-01-24T22:26:49+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769288303-6add17d",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Sync search bar padding in Hub project (by Kasparex)",
