@@ -98,7 +98,7 @@ export default function StorePage() {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             isWalletConnected={!!state.address}
-            currentAddress={state.address}
+            currentAddress={state.address || undefined}
             onSubmitProduct={() => setShowSubmitModal(true)}
             selectedCategories={selectedCategories}
             onCategoryChange={setSelectedCategories}
@@ -140,8 +140,8 @@ export default function StorePage() {
                     <button
                       onClick={() => setViewMode('grid')}
                       className={`p-2 text-sm font-medium transition-colors ${viewMode === 'grid'
-                          ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
-                          : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                        ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
+                        : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
                         }`}
                       title="Grid view"
                       aria-label="Grid view"
@@ -153,8 +153,8 @@ export default function StorePage() {
                     <button
                       onClick={() => setViewMode('compact')}
                       className={`p-2 text-sm font-medium transition-colors border-l border-zinc-200 dark:border-zinc-800 ${viewMode === 'compact'
-                          ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
-                          : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                        ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
+                        : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
                         }`}
                       title="Compact view"
                       aria-label="Compact view"
@@ -166,8 +166,8 @@ export default function StorePage() {
                     <button
                       onClick={() => setViewMode('table')}
                       className={`p-2 text-sm font-medium transition-colors border-l border-zinc-200 dark:border-zinc-800 ${viewMode === 'table'
-                          ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
-                          : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                        ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
+                        : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
                         }`}
                       title="Table view"
                       aria-label="Table view"
