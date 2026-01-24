@@ -199,14 +199,6 @@ function HomeContent() {
                 {/* Search Bar */}
                 <div className="flex-1 min-w-[200px]">
                   <div className="k-search-container">
-                    <svg
-                      className="k-search-icon"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
                     <input
                       type="text"
                       placeholder="Search dApps..."
@@ -235,7 +227,7 @@ function HomeContent() {
                 {/* Reset Filters */}
                 <button
                   onClick={handleResetFilters}
-                  className="px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg text-sm font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors whitespace-nowrap"
+                  className="k-control-btn whitespace-nowrap"
                 >
                   Reset Filters
                 </button>
