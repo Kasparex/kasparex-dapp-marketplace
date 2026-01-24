@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769285904-f904b01",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Align sidebar counters to right, increase emoji spacing, and unify uppercase label styling across all projects (by Kasparex)",
+      "date": "2026-01-24T21:18:08+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769284897-4f8a8fe",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Standardize sidebar styling, fix search icon overlap, and unify sorting control sizing (by Kasparex)",
