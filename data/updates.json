@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769254661-aab2387",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Merge branch 'main' of https://github.com/Kasparex/kasparex-dapp-marketplace (by Kasparex)",
+      "date": "2026-01-24T12:37:11+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769209788-475f699",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix ProductCard: Remove useKaspaWallet and PurchaseModal, make Buy button navigate directly (by Kasparex)",
