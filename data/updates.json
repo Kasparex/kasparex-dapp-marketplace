@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769256093-0562df5",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Refactor Store layout: Remove ProductSidebar, update ProductPage and StoreSidebar (by Kasparex)",
+      "date": "2026-01-24T13:01:08+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769254661-aab2387",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Merge branch 'main' of https://github.com/Kasparex/kasparex-dapp-marketplace (by Kasparex)",
