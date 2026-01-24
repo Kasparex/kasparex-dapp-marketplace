@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useChainId } from 'wagmi';
 import { DApp, generateSimulatedTicker, getDAppNetworkType } from '@/lib/dapps';
@@ -82,7 +82,7 @@ function DAppCompactRow({ dapp }: { dapp: DApp }) {
             </div>
 
             <div className="flex flex-col items-end gap-2">
-                <StatusIndicator dapp={mergedDApp} size="xs" clickable={false} />
+                <StatusIndicator dapp={mergedDApp} size="sm" clickable={false} />
                 <div className="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono">
                     ID: {mergedDApp.id}
                 </div>
