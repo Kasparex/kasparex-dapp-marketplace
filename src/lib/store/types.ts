@@ -81,3 +81,13 @@ export interface SellerStats {
   }>;
   recentSales: Purchase[];
 }
+
+export interface ProductComment {
+  id: string;
+  productId: string;
+  author: string;
+  content: string;
+  timestamp: string;
+  txHash?: string;
+}
+

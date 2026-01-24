@@ -12,6 +12,7 @@ import { hasUserPurchased as checkPurchase, getPurchasesByBuyer } from '@/lib/st
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import type { Product } from '@/lib/store/types';
+import { StoreCommentsSection } from '@/components/store/StoreCommentsSection';
 
 interface PageProps {
   params: Promise<{
@@ -253,6 +254,9 @@ export default function ProductPage({ params }: PageProps) {
                     </p>
                   </div>
                 )}
+
+                {/* On-Chain Comments Module */}
+                <StoreCommentsSection productId={product.id} />
               </div>
 
               {/* Right Column: Purchase Component */}
