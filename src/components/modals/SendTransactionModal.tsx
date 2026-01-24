@@ -51,7 +51,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address 
 
     const balanceNum = currentBalance ? parseFloat(currentBalance) : 0;
     const amountNum = parseFloat(amount);
-    
+
     if (amountNum > balanceNum) {
       setError('Insufficient balance');
       return;
@@ -66,7 +66,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address 
       }
 
       const sompiAmount = kasToSompis(amountNum);
-      
+
       // Use SDK transaction function
       const transaction = {
         to: toAddress.trim(),
@@ -75,13 +75,13 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address 
       };
 
       const result = await sendKaspaTransaction(state.provider, transaction);
-      
+
       if (result.status === 'failed') {
         throw new Error(result.error || 'Transaction failed');
       }
 
       setTxHash(result.txHash);
-      
+
       // Reset form after successful send
       setTimeout(() => {
         setToAddress('');
@@ -170,7 +170,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address 
           ) : (
             <>
               <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                <label className="k-label">
                   Recipient Address
                 </label>
                 <input
@@ -178,17 +178,17 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address 
                   value={toAddress}
                   onChange={(e) => setToAddress(e.target.value)}
                   placeholder="kaspa:..."
-                  className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="k-input"
                   disabled={isSending}
                 />
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
-                    Amount (<TokenLogoImage tokenId="kas" size={16} /> KAS)
+                  <label className="k-label !mb-0 flex items-center gap-1.5 whitespace-nowrap">
+                    Amount (<TokenLogoImage tokenId="kas" size={14} /> KAS)
                   </label>
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                  <div className="text-[10px] uppercase tracking-wider font-bold text-zinc-500 dark:text-zinc-500">
                     Balance: {formatBalanceForDisplay(currentBalance, 'KAS', false, isBalanceVisible)}
                   </div>
                 </div>
@@ -200,7 +200,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address 
                     placeholder="0.00"
                     step="0.00000001"
                     min="0"
-                    className="flex-1 px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="k-input flex-1"
                     disabled={isSending}
                   />
                   <button
@@ -215,7 +215,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address 
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                <label className="k-label">
                   Priority Fee (Optional)
                 </label>
                 <input
@@ -225,7 +225,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address 
                   placeholder="0"
                   step="1"
                   min="0"
-                  className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="k-input"
                   disabled={isSending}
                 />
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">

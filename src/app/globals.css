@@ -19,12 +19,12 @@
   body {
     @apply bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100;
   }
-  
+
   /* Kaspa Theme */
   .kaspa {
     color-scheme: light;
   }
-  
+
   .kaspa body {
     background-color: #231F20;
     color: #B6B6B6;
@@ -37,8 +37,10 @@
   --kaspa-secondary: #49EACB;
   --kaspa-black: #231F20;
   --kaspa-gray: #B6B6B6;
-  --kaspa-bg: #0a1f1c; /* Turquoise-style dark background */
-  --kaspa-bg-light: #0f2a26; /* Lighter turquoise background */
+  --kaspa-bg: #0a1f1c;
+  /* Turquoise-style dark background */
+  --kaspa-bg-light: #0f2a26;
+  /* Lighter turquoise background */
 }
 
 .kaspa body {
@@ -51,7 +53,8 @@
 }
 
 .kaspa .bg-zinc-50 {
-  background-color: rgba(15, 42, 38, 0.8) !important; /* Turquoise-tinted */
+  background-color: rgba(15, 42, 38, 0.8) !important;
+  /* Turquoise-tinted */
 }
 
 .kaspa .bg-zinc-100 {
@@ -95,7 +98,8 @@
 }
 
 .kaspa .border-zinc-200 {
-  border-color: rgba(112, 199, 186, 0.2) !important; /* Turquoise borders */
+  border-color: rgba(112, 199, 186, 0.2) !important;
+  /* Turquoise borders */
 }
 
 .kaspa .border-zinc-800 {
@@ -174,7 +178,8 @@
 }
 
 .kaspa ::-webkit-scrollbar-thumb {
-  background-color: rgba(182, 182, 182, 0.2) !important; /* Barely visible for Kaspa theme */
+  background-color: rgba(182, 182, 182, 0.2) !important;
+  /* Barely visible for Kaspa theme */
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -188,15 +193,18 @@
 /* Firefox scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgb(228 228 231) transparent; /* zinc-200 - lighter for light theme */
+  scrollbar-color: rgb(228 228 231) transparent;
+  /* zinc-200 - lighter for light theme */
 }
 
 .dark * {
-  scrollbar-color: rgb(39 39 42) transparent; /* zinc-800 - darker for dark theme */
+  scrollbar-color: rgb(39 39 42) transparent;
+  /* zinc-800 - darker for dark theme */
 }
 
 .kaspa * {
-  scrollbar-color: rgba(182, 182, 182, 0.2) transparent; /* Barely visible for Kaspa theme */
+  scrollbar-color: rgba(182, 182, 182, 0.2) transparent;
+  /* Barely visible for Kaspa theme */
 }
 
 /* Custom checkbox styling */
@@ -218,36 +226,40 @@
   transform: translateY(-50%);
   height: 20px;
   width: 20px;
-  background: rgb(212 212 212); /* zinc-300 */
+  background: rgb(212 212 212);
+  /* zinc-300 */
   border-radius: 4px;
   transition: background 0.2s;
   flex-shrink: 0;
 }
 
 .dark .checkbox-custom .control__indicator {
-  background: rgb(63 63 70); /* zinc-700 */
+  background: rgb(63 63 70);
+  /* zinc-700 */
 }
 
-.checkbox-custom:hover input ~ .control__indicator,
-.checkbox-custom input:focus ~ .control__indicator {
-  background: rgb(161 161 170); /* zinc-400 */
+.checkbox-custom:hover input~.control__indicator,
+.checkbox-custom input:focus~.control__indicator {
+  background: rgb(161 161 170);
+  /* zinc-400 */
 }
 
-.dark .checkbox-custom:hover input ~ .control__indicator,
-.dark .checkbox-custom input:focus ~ .control__indicator {
-  background: rgb(82 82 91); /* zinc-600 */
+.dark .checkbox-custom:hover input~.control__indicator,
+.dark .checkbox-custom input:focus~.control__indicator {
+  background: rgb(82 82 91);
+  /* zinc-600 */
 }
 
-.checkbox-custom input:checked ~ .control__indicator {
+.checkbox-custom input:checked~.control__indicator {
   background: #02abb8;
 }
 
-.checkbox-custom:hover input:not([disabled]):checked ~ .control__indicator,
-.checkbox-custom input:checked:focus ~ .control__indicator {
+.checkbox-custom:hover input:not([disabled]):checked~.control__indicator,
+.checkbox-custom input:checked:focus~.control__indicator {
   background: #02919c;
 }
 
-.checkbox-custom input:disabled ~ .control__indicator {
+.checkbox-custom input:disabled~.control__indicator {
   opacity: 0.6;
   pointer-events: none;
 }
@@ -258,7 +270,7 @@
   display: none;
 }
 
-.checkbox-custom input:checked ~ .control__indicator:after {
+.checkbox-custom input:checked~.control__indicator:after {
   display: block;
 }
 
@@ -272,20 +284,22 @@
   transform: rotate(45deg);
 }
 
-.checkbox-custom input:disabled ~ .control__indicator:after {
-  border-color: rgb(113 113 122); /* zinc-500 */
+.checkbox-custom input:disabled~.control__indicator:after {
+  border-color: rgb(113 113 122);
+  /* zinc-500 */
 }
+
 /* Standardized Form Styling - Kasparex Ecosystem */
 .k-input {
-  @apply w-full px-4 py-2.5 bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent focus:bg-white dark:focus:bg-zinc-900 transition-all;
+  @apply w-full px-4 py-2.5 bg-white dark:bg-black/30 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent focus:bg-white dark:focus:bg-zinc-900/60 transition-all;
 }
 
 .k-textarea {
-  @apply w-full px-4 py-3 bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent focus:bg-white dark:focus:bg-zinc-900 transition-all min-h-[120px] resize-y;
+  @apply w-full px-4 py-3 bg-white dark:bg-black/30 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent focus:bg-white dark:focus:bg-zinc-900/60 transition-all min-h-[120px] resize-y;
 }
 
 .k-select {
-  @apply w-full px-4 py-2.5 bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent focus:bg-white dark:focus:bg-zinc-900 transition-all appearance-none cursor-pointer;
+  @apply w-full px-4 py-2.5 bg-white dark:bg-black/30 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent focus:bg-white dark:focus:bg-zinc-900/60 transition-all appearance-none cursor-pointer;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2371717a' %3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 1rem center;
@@ -293,7 +307,7 @@
 }
 
 .k-label {
-  @apply block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2;
+  @apply block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2 whitespace-nowrap overflow-hidden text-ellipsis;
 }
 
 .k-form-group {
@@ -302,6 +316,7 @@
 
 /* Base override for unclassed inputs */
 @layer base {
+
   input[type="text"]:not(.no-k-style),
   input[type="number"]:not(.no-k-style),
   input[type="email"]:not(.no-k-style),
@@ -310,7 +325,7 @@
   textarea:not(.no-k-style) {
     @apply k-input;
   }
-  
+
   label:not(.no-k-style) {
     @apply k-label;
   }

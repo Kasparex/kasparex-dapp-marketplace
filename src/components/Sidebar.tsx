@@ -402,7 +402,7 @@ export function Sidebar({
                         <div className="control__indicator"></div>
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                           <span className="text-lg flex-shrink-0">{category.emoji}</span>
-                          <span className="text-sm text-zinc-700 dark:text-zinc-300">{category.name}</span>
+                          <span className="text-sm text-zinc-700 dark:text-zinc-300 truncate whitespace-nowrap">{category.name}</span>
                         </div>
                         <span className="text-xs px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex-shrink-0">
                           {count}

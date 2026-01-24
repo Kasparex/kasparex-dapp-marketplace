@@ -31,15 +31,15 @@ export function SendKREXWidget() {
               // Handle balance/amount property and decimals like other balance hooks
               const rawBalance = krexToken.balance ?? krexToken.amount;
               const decimals = krexToken.dec !== undefined ? Number(krexToken.dec) : 8;
-              
+
               // Store decimals for use in transfers
               setKrexDecimals(decimals);
-              
+
               if (rawBalance !== undefined && rawBalance !== null) {
-                const rawBalanceNum = typeof rawBalance === 'string' 
-                  ? parseFloat(rawBalance) 
+                const rawBalanceNum = typeof rawBalance === 'string'
+                  ? parseFloat(rawBalance)
                   : Number(rawBalance);
-                
+
                 if (!isNaN(rawBalanceNum)) {
                   // Convert from smallest unit to actual balance (divide by 10^decimals)
                   const balance = rawBalanceNum / Math.pow(10, decimals);
@@ -92,7 +92,7 @@ export function SendKREXWidget() {
     }
 
     const amountNum = parseFloat(amount);
-    
+
     if (amountNum > krexBalance) {
       setError('Insufficient KREX balance');
       return;
@@ -108,10 +108,10 @@ export function SendKREXWidget() {
       // KRC-20 transfers require amount in smallest unit, not whole tokens
       // Example: 10000 KREX with 8 decimals = 10000 * 10^8 = 1000000000000
       const amountInSmallestUnit = Math.floor(amountNum * Math.pow(10, krexDecimals));
-      
+
       // Ensure recipient address is properly formatted (keep kaspa: prefix as per KasWare API)
       const recipientAddress = toAddress.trim();
-      
+
       // Create transfer inscription JSON for KRC-20 transfer
       // According to KasWare API documentation, the JSON should include the 'to' field
       // Note: 'amt' must be in smallest unit (like satoshis), not whole tokens
@@ -126,19 +126,19 @@ export function SendKREXWidget() {
 
       // Stringify the JSON and verify it's actually a string
       const inscribeJsonString = JSON.stringify(inscribeJson);
-      
+
       // Validate the string was created correctly
       if (typeof inscribeJsonString !== 'string' || inscribeJsonString === 'null' || inscribeJsonString === 'undefined') {
         throw new Error('Failed to create valid JSON string for KRC-20 transfer');
       }
-      
+
       console.log('[SendKREX] Prepared inscription JSON:', {
         json: inscribeJson,
         string: inscribeJsonString,
         stringType: typeof inscribeJsonString,
         stringLength: inscribeJsonString.length,
       });
-      
+
       // Type: 2=deploy, 3=mint, 4=transfer (as number per KasWare API)
       // Priority fee: 0.001 KAS to ensure transaction is processed (in KAS units)
       // Note: The wallet will automatically calculate the base network fee for the KRC-20 transfer
@@ -163,15 +163,15 @@ export function SendKREXWidget() {
           if (krexToken) {
             const rawBalance = krexToken.balance ?? krexToken.amount;
             const decimals = krexToken.dec !== undefined ? Number(krexToken.dec) : 8;
-            
+
             // Update decimals if changed
             setKrexDecimals(decimals);
-            
+
             if (rawBalance !== undefined && rawBalance !== null) {
-              const rawBalanceNum = typeof rawBalance === 'string' 
-                ? parseFloat(rawBalance) 
+              const rawBalanceNum = typeof rawBalance === 'string'
+                ? parseFloat(rawBalance)
                 : Number(rawBalance);
-              
+
               if (!isNaN(rawBalanceNum)) {
                 const balance = rawBalanceNum / Math.pow(10, decimals);
                 setKrexBalance(balance);
@@ -197,7 +197,7 @@ export function SendKREXWidget() {
         name: err instanceof Error ? err.name : undefined,
         fullError: err,
       });
-      
+
       // Extract more detailed error message
       let errorMessage = 'Failed to send KREX';
       if (err instanceof Error) {
@@ -217,7 +217,7 @@ export function SendKREXWidget() {
       } else if (typeof err === 'string') {
         errorMessage = err;
       }
-      
+
       setError(errorMessage);
     } finally {
       setIsSending(false);
@@ -263,7 +263,7 @@ export function SendKREXWidget() {
 
       {/* Recipient Address */}
       <div>
-        <label htmlFor="toAddress" className="block text-sm font-medium text-zinc-300 dark:text-zinc-300 mb-2">
+        <label htmlFor="toAddress" className="k-label">
           Recipient Address
         </label>
         <input
@@ -272,14 +272,14 @@ export function SendKREXWidget() {
           value={toAddress}
           onChange={(e) => setToAddress(e.target.value)}
           placeholder="kaspa:..."
-          className="w-full px-3 py-2 border border-zinc-700 dark:border-zinc-700 rounded-lg bg-zinc-800 dark:bg-zinc-800 text-white dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+          className="k-input"
           disabled={isSending}
         />
       </div>
 
       {/* Amount */}
       <div>
-        <label htmlFor="amount" className="block text-sm font-medium text-zinc-300 dark:text-zinc-300 mb-2">
+        <label htmlFor="amount" className="k-label truncate">
           Amount (KREX)
         </label>
         <div className="flex gap-2">
@@ -291,7 +291,7 @@ export function SendKREXWidget() {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0.00"
-            className="flex-1 px-3 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+            className="k-input"
             disabled={isSending}
           />
           <button

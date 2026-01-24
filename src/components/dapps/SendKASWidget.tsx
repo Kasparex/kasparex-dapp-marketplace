@@ -135,7 +135,7 @@ export function SendKASWidget() {
 
       {/* Amount */}
       <div>
-        <label htmlFor="amount" className="k-label">
+        <label htmlFor="amount" className="k-label truncate">
           Amount (KAS)
         </label>
         <div className="flex gap-2">

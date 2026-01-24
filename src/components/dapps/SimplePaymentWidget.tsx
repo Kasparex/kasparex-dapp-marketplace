@@ -532,8 +532,8 @@ export function SimplePaymentWidget() {
 
           {/* Amount Input */}
           <div>
-            <label className="k-label flex items-center gap-2">
-              Amount (<TokenLogoImage tokenId="kas" size={16} /> KAS)
+            <label className="k-label flex items-center gap-2 whitespace-nowrap">
+              Amount (<TokenLogoImage tokenId="kas" size={14} /> KAS)
             </label>
             <input
               type="text"
