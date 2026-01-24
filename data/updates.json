@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769260530-be8e56d",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Complete Store sidebar refactor with Seller Status and Submit Product integration (by Kasparex)",
+      "date": "2026-01-24T14:15:08+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769260232-da56538",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add Seller Status to ProductSidebar and update StoreSidebar styles (by Kasparex)",
