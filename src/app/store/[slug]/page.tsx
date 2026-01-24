@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ProductPurchase } from '@/components/store/ProductPurchase';
-import { DAppRewardsSidebar } from '@/components/rewards/DAppRewardsSidebar';
+import { ProductSidebar } from '@/components/store/ProductSidebar';
 import { getProductBySlug } from '@/lib/store/products';
 import { hasUserPurchased as checkPurchase, getPurchasesByBuyer } from '@/lib/store/purchases';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -150,11 +150,7 @@ export default function ProductPage({ params }: PageProps) {
       <main className="flex-1 flex flex-col">
         <div className="flex-1 flex flex-col lg:flex-row">
           {/* Left Sidebar - Rewards Status */}
-          <div className="w-full lg:w-64 flex-shrink-0 border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
-            <div className="p-4">
-              <DAppRewardsSidebar dappName={product.title} />
-            </div>
-          </div>
+          <ProductSidebar />
 
           {/* Main Content */}
           <div className="flex-1 min-w-0 p-4 sm:p-6 lg:px-12 lg:py-12">
