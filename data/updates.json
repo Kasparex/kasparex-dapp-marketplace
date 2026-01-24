@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769277806-80804d2",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Implement on-chain Comments module in Kasparex Store (by Kasparex)",
+      "date": "2026-01-24T19:03:07+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769271019-59f6956",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Refine dApps listing: adjust sizes, spacing, switcher style, and add description to compact view (by Kasparex)",
