@@ -74,11 +74,16 @@ function DAppCompactRow({ dapp }: { dapp: DApp }) {
                         {networkType}
                     </span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                <div className="flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400">
                     <span className="truncate">{category?.emoji} {category?.name}</span>
                     <span>•</span>
                     <span className="font-medium text-zinc-700 dark:text-zinc-300">{tokenTicker || 'N/A'}</span>
                 </div>
+                {mergedDApp.description && (
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1 mt-0.5 opacity-80">
+                        {mergedDApp.description}
+                    </p>
+                )}
             </div>
 
             <div className="flex flex-col items-end gap-2">

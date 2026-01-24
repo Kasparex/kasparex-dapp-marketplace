@@ -53,7 +53,7 @@ function HomeContent() {
   const [networkFilter, setNetworkFilter] = useState<'all' | 'L1' | 'L2'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
-  const [viewMode, setViewMode] = useState<ViewMode>('compact');
+  const [viewMode, setViewMode] = useState<ViewMode>('cards');
   const [displayedCount, setDisplayedCount] = useState(50);
   const { favoritesSet, toggleFavorite, isFavorite } = useFavorites();
   const { likes } = useLikes();
@@ -174,23 +174,23 @@ function HomeContent() {
         <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 relative">
           <div className="max-w-7xl mx-auto">
             {/* Page Header */}
-            <div className="mb-8">
-              <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
                 Available dApps
               </h1>
               {!kaspaState.isConnected && !isEVMConnected ? (
-                <p className="text-lg text-zinc-600 dark:text-zinc-400">
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
                   Please connect a wallet to see available dApps
                 </p>
               ) : (
-                <p className="text-lg text-zinc-600 dark:text-zinc-400">
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
                   {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
                 </p>
               )}
             </div>
 
             {/* Controls Area */}
-            <div className="flex flex-col gap-4 mb-8">
+            <div className="flex flex-col gap-4 mb-6">
               <div className="flex flex-wrap items-center gap-3">
                 {/* Search Bar */}
                 <div className="flex-1 min-w-[200px]">
