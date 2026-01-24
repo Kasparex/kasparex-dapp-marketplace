@@ -4,11 +4,13 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 
 import type { ProductCategory } from '@/lib/store/types';
+import { getProductsBySeller } from '@/lib/store/products';
 
 interface StoreSidebarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   isWalletConnected?: boolean;
+  currentAddress?: string;
   onSubmitProduct?: () => void;
   selectedCategories: ProductCategory[];
   onCategoryChange: (categories: ProductCategory[]) => void;
@@ -19,15 +21,17 @@ export function StoreSidebar({
   searchQuery,
   onSearchChange,
   isWalletConnected = false,
+  currentAddress,
   onSubmitProduct,
   selectedCategories,
   onCategoryChange,
   categoryCounts,
 }: StoreSidebarProps) {
   const [categoriesExpanded, setCategoriesExpanded] = useState(true);
-  
+  const [sellerRevenue, setSellerRevenue] = useState<number | null>(null);
+
   const categories: ProductCategory[] = ['Software', 'Art', 'Music', 'Templates', 'Other'];
-  
+
   const handleCategoryToggle = (category: ProductCategory) => {
     const newCategories = selectedCategories.includes(category)
       ? selectedCategories.filter((c) => c !== category)
@@ -35,7 +39,7 @@ export function StoreSidebar({
     onCategoryChange(newCategories);
   };
   const [isOpen, setIsOpen] = useState(false);
-  
+
   // Sidebar hide/show and resize state
   const [isHidden, setIsHidden] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(256); // Default 256px (w-64)
@@ -58,6 +62,26 @@ export function StoreSidebar({
   useEffect(() => {
     localStorage.setItem('store-sidebar-width', String(sidebarWidth));
   }, [sidebarWidth]);
+
+  // Fetch seller revenue
+  useEffect(() => {
+    async function fetchRevenue() {
+      if (!currentAddress) {
+        setSellerRevenue(null);
+        return;
+      }
+      try {
+        const products = await getProductsBySeller(currentAddress);
+        const revenue = products.reduce((acc, product) => {
+          return acc + (product.priceKAS * product.purchaseCount);
+        }, 0);
+        setSellerRevenue(revenue);
+      } catch (e) {
+        console.error('Failed to fetch seller revenue:', e);
+      }
+    }
+    fetchRevenue();
+  }, [currentAddress]);
 
   // Handle resize
   useEffect(() => {
@@ -146,7 +170,7 @@ export function StoreSidebar({
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           ${isHidden ? 'lg:translate-x-[-100%]' : ''}
         `}
-        style={{ 
+        style={{
           width: isHidden ? 0 : `${sidebarWidth}px`,
           minWidth: isHidden ? 0 : `${sidebarWidth}px`,
           maxWidth: isHidden ? 0 : `${sidebarWidth}px`,
@@ -208,7 +232,7 @@ export function StoreSidebar({
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full px-3 py-2 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#02abb8] text-zinc-900 dark:text-zinc-100"
           />
-          
+
           {/* Action Buttons at Top */}
           {isWalletConnected && (
             <div className="mt-3 space-y-2">
@@ -218,12 +242,6 @@ export function StoreSidebar({
               >
                 Submit Product
               </button>
-              <Link
-                href="/store/dashboard"
-                className="block w-full px-3 py-2 text-sm font-medium text-center bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-              >
-                Seller Dashboard
-              </Link>
             </div>
           )}
         </div>
@@ -249,7 +267,7 @@ export function StoreSidebar({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            
+
             {categoriesExpanded && (
               <div className="space-y-2 pl-2">
                 {categories.map((category) => {
@@ -281,24 +299,30 @@ export function StoreSidebar({
             )}
           </div>
 
-          {/* Quick Links */}
-          <div className="space-y-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Quick Links</h3>
-            <div className="space-y-2">
-              <Link
-                href="/store"
-                className="block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-              >
-                Browse Store
-              </Link>
-              <Link
-                href="/points"
-                className="block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-              >
-                View Rewards
-              </Link>
+          {/* Seller Status */}
+          {isWalletConnected && (
+            <div className="space-y-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+              <div className="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800">
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+                  Seller Status
+                </h3>
+                <div className="mb-3">
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
+                    Total Revenue
+                  </div>
+                  <div className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                    {sellerRevenue !== null ? `${sellerRevenue.toLocaleString()} KAS` : '...'}
+                  </div>
+                </div>
+                <Link
+                  href="/store/dashboard"
+                  className="block w-full px-3 py-2 text-sm font-medium text-center bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
+                >
+                  Seller Dashboard
+                </Link>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </aside>
     </>

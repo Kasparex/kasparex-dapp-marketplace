@@ -21,14 +21,14 @@ export default function StorePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
-  
+
   // Filters
   const [selectedCategories, setSelectedCategories] = useState<ProductCategory[]>([]);
   const [selectedNetwork, setSelectedNetwork] = useState<ProductNetwork | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [viewMode, setViewMode] = useState<ProductViewMode>('grid');
-  
+
   // Category counts
   const categoryCounts = useMemo(() => getCategoryCounts(products), [products]);
 
@@ -54,17 +54,17 @@ export default function StorePage() {
   // Filter and sort products
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = products;
-    
+
     // Category filter (multiple selection)
     if (selectedCategories.length > 0) {
       filtered = filtered.filter(p => selectedCategories.includes(p.category));
     }
-    
+
     // Network filter
     if (selectedNetwork !== 'all') {
       filtered = filtered.filter(p => p.network === selectedNetwork);
     }
-    
+
     // Search filter
     if (searchQuery) {
       const searchLower = searchQuery.toLowerCase();
@@ -74,9 +74,9 @@ export default function StorePage() {
         p.category.toLowerCase().includes(searchLower)
       );
     }
-    
+
     filtered = sortProducts(filtered, sortBy);
-    
+
     return filtered;
   }, [products, selectedCategories, selectedNetwork, searchQuery, sortBy]);
 
@@ -90,7 +90,7 @@ export default function StorePage() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      
+
       <main className="flex-1">
         <div className="flex">
           {/* Sidebar */}
@@ -98,6 +98,7 @@ export default function StorePage() {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             isWalletConnected={!!state.address}
+            currentAddress={state.address}
             onSubmitProduct={() => setShowSubmitModal(true)}
             selectedCategories={selectedCategories}
             onCategoryChange={setSelectedCategories}
@@ -138,11 +139,10 @@ export default function StorePage() {
                   <div className="flex items-center border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
                     <button
                       onClick={() => setViewMode('grid')}
-                      className={`p-2 text-sm font-medium transition-colors ${
-                        viewMode === 'grid'
+                      className={`p-2 text-sm font-medium transition-colors ${viewMode === 'grid'
                           ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
                           : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-                      }`}
+                        }`}
                       title="Grid view"
                       aria-label="Grid view"
                     >
@@ -152,11 +152,10 @@ export default function StorePage() {
                     </button>
                     <button
                       onClick={() => setViewMode('compact')}
-                      className={`p-2 text-sm font-medium transition-colors border-l border-zinc-200 dark:border-zinc-800 ${
-                        viewMode === 'compact'
+                      className={`p-2 text-sm font-medium transition-colors border-l border-zinc-200 dark:border-zinc-800 ${viewMode === 'compact'
                           ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
                           : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-                      }`}
+                        }`}
                       title="Compact view"
                       aria-label="Compact view"
                     >
@@ -166,11 +165,10 @@ export default function StorePage() {
                     </button>
                     <button
                       onClick={() => setViewMode('table')}
-                      className={`p-2 text-sm font-medium transition-colors border-l border-zinc-200 dark:border-zinc-800 ${
-                        viewMode === 'table'
+                      className={`p-2 text-sm font-medium transition-colors border-l border-zinc-200 dark:border-zinc-800 ${viewMode === 'table'
                           ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
                           : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-                      }`}
+                        }`}
                       title="Table view"
                       aria-label="Table view"
                     >
@@ -179,8 +177,8 @@ export default function StorePage() {
                       </svg>
                     </button>
                   </div>
-                  <ProductSortFilters 
-                    sortBy={sortBy} 
+                  <ProductSortFilters
+                    sortBy={sortBy}
                     onSortChange={setSortBy}
                   />
                   <button
