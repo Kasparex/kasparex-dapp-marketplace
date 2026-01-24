@@ -6,7 +6,11 @@ import { UnifiedStatusBox } from '@/components/rewards/UnifiedStatusBox';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getProductsBySeller } from '@/lib/store/products';
 
-export function ProductSidebar() {
+interface ProductSidebarProps {
+    onSubmitProduct?: () => void;
+}
+
+export function ProductSidebar({ onSubmitProduct }: ProductSidebarProps) {
     // Sidebar hide/show and resize state
     const [isHidden, setIsHidden] = useState(false);
     const [sidebarWidth, setSidebarWidth] = useState(256); // Default 256px (w-64)
@@ -192,6 +196,14 @@ export function ProductSidebar() {
                                 >
                                     Seller Dashboard
                                 </Link>
+                                {onSubmitProduct && (
+                                    <button
+                                        onClick={onSubmitProduct}
+                                        className="w-full px-3 py-2 text-sm font-medium bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
+                                    >
+                                        Submit Product
+                                    </button>
+                                )}
                             </div>
                         </div>
 

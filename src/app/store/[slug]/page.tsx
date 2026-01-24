@@ -6,7 +6,8 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ProductPurchase } from '@/components/store/ProductPurchase';
 import { ProductSidebar } from '@/components/store/ProductSidebar';
-import { getProductBySlug } from '@/lib/store/products';
+import { ProductSubmissionModal } from '@/components/store/ProductSubmissionModal';
+import { getProductBySlug, getAllProducts } from '@/lib/store/products';
 import { hasUserPurchased as checkPurchase, getPurchasesByBuyer } from '@/lib/store/purchases';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
@@ -27,6 +28,7 @@ export default function ProductPage({ params }: PageProps) {
   const [hasAccess, setHasAccess] = useState(false);
   const [checkingAccess, setCheckingAccess] = useState(true);
   const [purchaseTxHash, setPurchaseTxHash] = useState<string | null>(null);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
   const { state } = useKaspaWallet();
 
   // Get slug from params
@@ -38,7 +40,7 @@ export default function ProductPage({ params }: PageProps) {
   }, [params]);
 
   // Load product
-  useEffect(() => {
+  const loadProduct = async () => {
     // Wait for params to resolve before checking slug
     if (!paramsResolved) {
       return;
@@ -52,25 +54,25 @@ export default function ProductPage({ params }: PageProps) {
 
     const currentSlug = slug; // Capture slug in a const for TypeScript
 
-    async function loadProduct() {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const productData = await getProductBySlug(currentSlug);
-        if (!productData) {
-          setError('Product not found');
-          setIsLoading(false);
-          return;
-        }
-        setProduct(productData);
-      } catch (error) {
-        console.error('Failed to load product:', error);
-        setError('Failed to load product');
-      } finally {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const productData = await getProductBySlug(currentSlug);
+      if (!productData) {
+        setError('Product not found');
         setIsLoading(false);
+        return;
       }
+      setProduct(productData);
+    } catch (error) {
+      console.error('Failed to load product:', error);
+      setError('Failed to load product');
+    } finally {
+      setIsLoading(false);
     }
+  };
 
+  useEffect(() => {
     loadProduct();
   }, [slug, paramsResolved]);
 
@@ -150,7 +152,7 @@ export default function ProductPage({ params }: PageProps) {
       <main className="flex-1 flex flex-col">
         <div className="flex-1 flex flex-col lg:flex-row">
           {/* Left Sidebar - Rewards Status */}
-          <ProductSidebar />
+          <ProductSidebar onSubmitProduct={() => setShowSubmitModal(true)} />
 
           {/* Main Content */}
           <div className="flex-1 min-w-0 p-4 sm:p-6 lg:px-12 lg:py-12">
@@ -281,6 +283,18 @@ export default function ProductPage({ params }: PageProps) {
       </main>
 
       <Footer />
+
+      {/* Submit Product Modal */}
+      <ProductSubmissionModal
+        isOpen={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        onSuccess={async () => {
+          // Reload products - the new registry CID is now in localStorage
+          // Wait a moment for IPFS propagation, then reload
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          await loadProduct();
+        }}
+      />
     </div>
   );
 }
