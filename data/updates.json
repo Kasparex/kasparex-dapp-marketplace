@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769271019-59f6956",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Refine dApps listing: adjust sizes, spacing, switcher style, and add description to compact view (by Kasparex)",
+      "date": "2026-01-24T17:10:04+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769269357-90f5a4b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix type error and missing import in DAppCompact (by Kasparex)",
