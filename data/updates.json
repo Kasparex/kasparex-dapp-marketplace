@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769267471-fa4c85b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update Games sidebar styling and add sidebar to individual game pages (by Kasparex)",
+      "date": "2026-01-24T16:10:35+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769260530-be8e56d",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Complete Store sidebar refactor with Seller Status and Submit Product integration (by Kasparex)",
