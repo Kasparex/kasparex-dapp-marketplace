@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769284897-4f8a8fe",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Standardize sidebar styling, fix search icon overlap, and unify sorting control sizing (by Kasparex)",
+      "date": "2026-01-24T21:01:21+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769283536-f37953a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix input backgrounds for contrast and prevent label wrapping (by Kasparex)",
