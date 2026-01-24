@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769290312-4783801",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Support featured images in DAppCard banner (by Kasparex)",
+      "date": "2026-01-24T22:31:33+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769290026-2729222",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add featured image to DAO Voting dApp (by Kasparex)",
