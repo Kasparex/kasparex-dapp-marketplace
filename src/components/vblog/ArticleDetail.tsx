@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { VBlogArticle } from '@/lib/vblog/types';
-import { formatAddress, formatDate } from '@/lib/vblog/utils';
+import { formatAddress, formatDate, parseMarkdown } from '@/lib/vblog/utils';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 import { useVBlog } from '@/hooks/useVBlog';
@@ -127,7 +127,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
             </svg>
             {article.status === 'on-chain-ready' ? 'On-chain ready' : article.status}
           </div>
-          
+
           {/* Edit/Delete Buttons (Author Only) */}
           {isAuthor && (
             <div className="flex items-center gap-2">
@@ -176,10 +176,16 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
       )}
 
       {/* Article Content */}
-      <div className="prose prose-zinc dark:prose-invert max-w-none mb-8">
-        <div 
-          className="text-base text-zinc-900 dark:text-zinc-100 leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: article.content }}
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-10 shadow-sm mb-12">
+        <div
+          className="prose prose-zinc dark:prose-invert max-w-none 
+            prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100
+            prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:leading-relaxed prose-p:text-lg
+            prose-a:text-[#02abb8] prose-a:no-underline hover:prose-a:underline
+            prose-strong:text-zinc-900 dark:prose-strong:text-zinc-100
+            prose-blockquote:border-l-[#02abb8] prose-blockquote:bg-zinc-50 dark:prose-blockquote:bg-zinc-800/30
+            prose-img:rounded-xl"
+          dangerouslySetInnerHTML={{ __html: parseMarkdown(article.content) }}
         />
       </div>
     </article>

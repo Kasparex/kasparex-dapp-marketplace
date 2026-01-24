@@ -27,7 +27,7 @@ interface PricingInfo {
  */
 async function checkNFTHoldings(walletAddress: string | null): Promise<string[]> {
   if (!walletAddress || typeof window === 'undefined') return [];
-  
+
   // Mock: Check localStorage for NFT holdings
   // In production, this would query the NFT contracts
   try {
@@ -35,7 +35,7 @@ async function checkNFTHoldings(walletAddress: string | null): Promise<string[]>
     if (stored) {
       return JSON.parse(stored);
     }
-    
+
     // For testing, return empty array
     return [];
   } catch {
@@ -50,17 +50,17 @@ async function checkNFTHoldings(walletAddress: string | null): Promise<string[]>
 export function useVBlogPricing() {
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
-  
+
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
   const isWalletConnected = kaspaState.isConnected || isEVMConnected;
-  
+
   // Get real KREX balance from hook
   const { balance: krexBalance } = useKREXBalance();
-  
+
   // Initialize with default values - always return a stable object
   const [pricingInfo, setPricingInfo] = useState<PricingInfo>({
-    createFee: 20,
-    editFee: 5,
+    createFee: 10,
+    editFee: 2,
     isPremium: false,
     tier: {
       hasKREXDiscount: false,
@@ -85,14 +85,14 @@ export function useVBlogPricing() {
           // CRITICAL: Only update state if it's different to prevent infinite loops
           // Check if current state is already the default before setting
           setPricingInfo(prev => {
-            if (prev.createFee === 20 && prev.editFee === 5 && !prev.isPremium && 
-                !prev.tier.hasKREXDiscount && !prev.tier.hasNFTPerks && 
-                prev.tier.nftCollections.length === 0) {
+            if (prev.createFee === 10 && prev.editFee === 2 && !prev.isPremium &&
+              !prev.tier.hasKREXDiscount && !prev.tier.hasNFTPerks &&
+              prev.tier.nftCollections.length === 0) {
               return prev; // Already at default, don't update
             }
             return {
-              createFee: 20,
-              editFee: 5,
+              createFee: 10,
+              editFee: 2,
               isPremium: false,
               tier: {
                 hasKREXDiscount: false,
@@ -110,7 +110,7 @@ export function useVBlogPricing() {
             const nftHoldings = await checkNFTHoldings(walletAddress).catch(() => [] as string[]);
 
             if (!isMounted) return;
-            
+
             // Use KREX balance from hook (available in closure)
             const hasKREXDiscount = krexBalance >= KREX_DISCOUNT_THRESHOLD;
             const hasKREXPRIME = nftHoldings.includes(KREXPRIME_NFT_COLLECTION);
@@ -120,18 +120,18 @@ export function useVBlogPricing() {
             if (isMounted) {
               // CRITICAL: Only update if values actually changed to prevent infinite loops
               setPricingInfo(prev => {
-                const newCreateFee = hasKREXDiscount ? 5 : 20;
-                const newEditFee = hasKREXDiscount ? 1 : 5;
-                
-                if (prev.createFee === newCreateFee && 
-                    prev.editFee === newEditFee && 
-                    prev.isPremium === hasNFTPerks &&
-                    prev.tier.hasKREXDiscount === hasKREXDiscount &&
-                    prev.tier.hasNFTPerks === hasNFTPerks &&
-                    JSON.stringify(prev.tier.nftCollections.sort()) === JSON.stringify(nftHoldings.sort())) {
+                const newCreateFee = hasKREXDiscount ? 2 : 10;
+                const newEditFee = hasKREXDiscount ? 1 : 2;
+
+                if (prev.createFee === newCreateFee &&
+                  prev.editFee === newEditFee &&
+                  prev.isPremium === hasNFTPerks &&
+                  prev.tier.hasKREXDiscount === hasKREXDiscount &&
+                  prev.tier.hasNFTPerks === hasNFTPerks &&
+                  JSON.stringify(prev.tier.nftCollections.sort()) === JSON.stringify(nftHoldings.sort())) {
                   return prev; // No changes, don't update
                 }
-                
+
                 return {
                   createFee: newCreateFee,
                   editFee: newEditFee,
@@ -149,14 +149,14 @@ export function useVBlogPricing() {
             if (isMounted) {
               console.error('Error loading pricing info:', error);
               setPricingInfo(prev => {
-                if (prev.createFee === 20 && prev.editFee === 5 && !prev.isPremium && 
-                    !prev.tier.hasKREXDiscount && !prev.tier.hasNFTPerks && 
-                    prev.tier.nftCollections.length === 0) {
+                if (prev.createFee === 10 && prev.editFee === 2 && !prev.isPremium &&
+                  !prev.tier.hasKREXDiscount && !prev.tier.hasNFTPerks &&
+                  prev.tier.nftCollections.length === 0) {
                   return prev; // Already at default
                 }
                 return {
-                  createFee: 20,
-                  editFee: 5,
+                  createFee: 10,
+                  editFee: 2,
                   isPremium: false,
                   tier: {
                     hasKREXDiscount: false,
@@ -172,14 +172,14 @@ export function useVBlogPricing() {
         // Ultimate fallback
         if (isMounted) {
           setPricingInfo(prev => {
-            if (prev.createFee === 20 && prev.editFee === 5 && !prev.isPremium && 
-                !prev.tier.hasKREXDiscount && !prev.tier.hasNFTPerks && 
-                prev.tier.nftCollections.length === 0) {
+            if (prev.createFee === 10 && prev.editFee === 2 && !prev.isPremium &&
+              !prev.tier.hasKREXDiscount && !prev.tier.hasNFTPerks &&
+              prev.tier.nftCollections.length === 0) {
               return prev; // Already at default
             }
             return {
-              createFee: 20,
-              editFee: 5,
+              createFee: 10,
+              editFee: 2,
               isPremium: false,
               tier: {
                 hasKREXDiscount: false,
