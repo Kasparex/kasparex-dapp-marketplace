@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769287084-0a6103d",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix sidebar item alignment, spacing, and replace emojis with SVG icons ecosystem-wide (by Kasparex)",
+      "date": "2026-01-24T21:37:48+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769285904-f904b01",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Align sidebar counters to right, increase emoji spacing, and unify uppercase label styling across all projects (by Kasparex)",
