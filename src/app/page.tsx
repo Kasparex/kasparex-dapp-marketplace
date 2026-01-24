@@ -145,11 +145,13 @@ function HomeContent() {
         {/* Sidebar */}
         <div className="hidden lg:block flex-shrink-0">
           <Sidebar
-            selectedCategories={selectedCategories}
+            categories={selectedCategories}
             onCategoryChange={handleCategoryChange}
             filters={filters}
-            onFilterChange={handleFilterChange}
-            categoryCounts={categoryCounts}
+            onStatusChange={(status) => setFilters({ ...filters, status })}
+            onDeveloperChange={(developer) => setFilters({ ...filters, developer })}
+            onNetworkChange={(network) => setFilters({ ...filters, network })}
+            counts={categoryCounts}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             onResetFilters={handleResetFilters}
@@ -159,11 +161,13 @@ function HomeContent() {
         {/* Mobile sidebar */}
         <div className="lg:hidden">
           <Sidebar
-            selectedCategories={selectedCategories}
+            categories={selectedCategories}
             onCategoryChange={handleCategoryChange}
             filters={filters}
-            onFilterChange={handleFilterChange}
-            categoryCounts={categoryCounts}
+            onStatusChange={(status) => setFilters({ ...filters, status })}
+            onDeveloperChange={(developer) => setFilters({ ...filters, developer })}
+            onNetworkChange={(network) => setFilters({ ...filters, network })}
+            counts={categoryCounts}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             onResetFilters={handleResetFilters}
