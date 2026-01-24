@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769288270-cc92187",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Standardize search bar and reset button styling on dApps page (by Kasparex)",
+      "date": "2026-01-24T21:57:33+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769287535-c0d7744",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TypeScript type error in handleStatusSelectAll (by Kasparex)",
