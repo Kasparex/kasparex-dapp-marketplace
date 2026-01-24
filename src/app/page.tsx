@@ -10,6 +10,7 @@ import { Sidebar } from '@/components/Sidebar';
 import { SortFilters, type SortOption, type ViewMode } from '@/components/SortFilters';
 import { DAppGrid } from '@/components/DAppGrid';
 import { DAppTable } from '@/components/DAppTable';
+import { DAppCompact } from '@/components/DAppCompact';
 import { Footer } from '@/components/Footer';
 import { placeholderDApps, filterDApps, getCategoryCounts, type FilterState, getDAppNetworkType } from '@/lib/dapps';
 import { sortDApps } from '@/lib/sorting';
@@ -26,7 +27,7 @@ function HomeContent() {
   const categoryParam = searchParams.get('category');
   const { isConnected: isEVMConnected } = useAccount();
   const { state: kaspaState } = useKaspaWallet();
-  
+
   const [selectedCategories, setSelectedCategories] = useState<Category[]>(() => {
     if (categoryParam && validCategories.includes(categoryParam as Category)) {
       return [categoryParam as Category];
@@ -43,6 +44,7 @@ function HomeContent() {
       setSelectedCategories([]);
     }
   }, [categoryParam]);
+
   const [filters, setFilters] = useState<Omit<FilterState, 'category'>>({
     status: [],
     developer: [],
@@ -51,7 +53,7 @@ function HomeContent() {
   const [networkFilter, setNetworkFilter] = useState<'all' | 'L1' | 'L2'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
-  const [viewMode, setViewMode] = useState<ViewMode>('cards');
+  const [viewMode, setViewMode] = useState<ViewMode>('compact');
   const [displayedCount, setDisplayedCount] = useState(50);
   const { favoritesSet, toggleFavorite, isFavorite } = useFavorites();
   const { likes } = useLikes();
@@ -64,42 +66,19 @@ function HomeContent() {
   }, [favoritesSet.size, sortBy]);
 
   // Auto-filter based on connected wallets
-  // L1 connected: show only L1 dApps
-  // L2 connected: show only L2 dApps
-  // Both connected: show all dApps
-  // None connected: show message (handled in UI)
   const effectiveNetworkFilter = useMemo(() => {
-    // If user manually selected a filter, respect it
     if (networkFilter !== 'all') {
       return networkFilter;
     }
-    
-    // Auto-filter based on wallet connections
     const isL1Connected = kaspaState.isConnected;
     const isL2Connected = isEVMConnected;
-    
-    // If only L1 connected, show only L1
-    if (isL1Connected && !isL2Connected) {
-      return 'L1' as const;
-    }
-    
-    // If only L2 connected, show only L2
-    if (isL2Connected && !isL1Connected) {
-      return 'L2' as const;
-    }
-    
-    // If both connected, show all
-    if (isL1Connected && isL2Connected) {
-      return 'all' as const;
-    }
-    
-    // If neither connected, return 'all' but UI will show message
+    if (isL1Connected && !isL2Connected) return 'L1' as const;
+    if (isL2Connected && !isL1Connected) return 'L2' as const;
     return 'all' as const;
   }, [networkFilter, kaspaState.isConnected, isEVMConnected]);
 
-  // Get category counts based on current filters, network filter, and search
+  // Get category counts
   const categoryCounts = useMemo(() => {
-    // Apply network filter before counting
     let filteredForCounts = placeholderDApps;
     if (effectiveNetworkFilter !== 'all') {
       filteredForCounts = filteredForCounts.filter((dapp) => getDAppNetworkType(dapp) === effectiveNetworkFilter);
@@ -107,33 +86,27 @@ function HomeContent() {
     return getCategoryCounts(filteredForCounts, filters, searchQuery);
   }, [filters, searchQuery, effectiveNetworkFilter]);
 
-  // Filter and sort dApps based on current filters, selected categories, network filter, search query, and sort option
+  // Filter and sort dApps
   const filteredDApps = useMemo(() => {
     const filterState: FilterState = {
       category: selectedCategories,
       ...filters,
     };
     let filtered = filterDApps(placeholderDApps, filterState, searchQuery);
-    
-    // Apply network filter (L1/L2) - uses effectiveNetworkFilter which auto-filters based on wallet connections
     if (effectiveNetworkFilter !== 'all') {
       filtered = filtered.filter((dapp) => getDAppNetworkType(dapp) === effectiveNetworkFilter);
     }
-    
-    // If sorting by favorites, filter to only show favorites
     if (sortBy === 'favorites') {
       filtered = filtered.filter((dapp) => favoritesSet.has(dapp.id));
     }
-    
     return sortDApps(filtered, sortBy, favoritesSet, likes);
   }, [selectedCategories, filters, effectiveNetworkFilter, searchQuery, sortBy, favoritesSet, likes]);
 
-  // Reset displayed count when filters change
+  // Reset displayed count
   useEffect(() => {
     setDisplayedCount(50);
   }, [selectedCategories, filters, effectiveNetworkFilter, searchQuery, sortBy]);
 
-  // Get dApps to display (limited by displayedCount)
   const displayedDApps = useMemo(() => {
     return filteredDApps.slice(0, displayedCount);
   }, [filteredDApps, displayedCount]);
@@ -167,7 +140,7 @@ function HomeContent() {
   return (
     <>
       <Header />
-      
+
       <main className="flex-1 flex flex-col lg:flex-row">
         {/* Sidebar */}
         <div className="hidden lg:block flex-shrink-0">
@@ -182,7 +155,8 @@ function HomeContent() {
             onResetFilters={handleResetFilters}
           />
         </div>
-        {/* Mobile sidebar (fixed positioning handled in component) */}
+
+        {/* Mobile sidebar */}
         <div className="lg:hidden">
           <Sidebar
             selectedCategories={selectedCategories}
@@ -198,45 +172,75 @@ function HomeContent() {
 
         {/* Main Content */}
         <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 relative">
-          <div>
-            <div className="mb-6 flex items-start justify-between gap-4">
-              <div className="lg:pl-0 pl-12 flex-1">
-                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-                  Available dApps
-                </h2>
-                {!kaspaState.isConnected && !isEVMConnected ? (
-                  <p className="text-zinc-600 dark:text-zinc-400">
-                    Please connect a wallet to see available dApps
-                  </p>
-                ) : (
-                  <p className="text-zinc-600 dark:text-zinc-400">
-                    {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
-                  </p>
-                )}
-              </div>
-              {/* Action Buttons and Sort Filters - Positioned in top right */}
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <NetworkSwitcher 
-                  value={networkFilter} 
+          <div className="max-w-7xl mx-auto">
+            {/* Page Header */}
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+                Available dApps
+              </h1>
+              {!kaspaState.isConnected && !isEVMConnected ? (
+                <p className="text-lg text-zinc-600 dark:text-zinc-400">
+                  Please connect a wallet to see available dApps
+                </p>
+              ) : (
+                <p className="text-lg text-zinc-600 dark:text-zinc-400">
+                  {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
+                </p>
+              )}
+            </div>
+
+            {/* Controls Area */}
+            <div className="flex flex-col gap-4 mb-8">
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Search Bar */}
+                <div className="flex-1 min-w-[200px]">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search dApps..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent transition-all"
+                    />
+                    <svg
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Network Switcher */}
+                <NetworkSwitcher
+                  value={networkFilter}
                   onChange={setNetworkFilter}
                 />
-                <SortFilters 
-                  sortBy={sortBy} 
+
+                {/* View Mode Switcher, Sort, Favorites, Plus */}
+                <SortFilters
+                  sortBy={sortBy}
                   onSortChange={setSortBy}
                   favoritesCount={favoritesSet.size}
                   viewMode={viewMode}
                   onViewModeChange={setViewMode}
                 />
+
+                {/* Reset Filters */}
                 <button
                   onClick={handleResetFilters}
-                  className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors whitespace-nowrap"
+                  className="px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg text-sm font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors whitespace-nowrap"
                 >
                   Reset Filters
                 </button>
               </div>
             </div>
+
+            {/* Content Display */}
             {!kaspaState.isConnected && !isEVMConnected ? (
-              <div className="text-center py-12 px-4">
+              <div className="text-center py-12 px-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800">
                 <div className="max-w-md mx-auto">
                   <div className="text-6xl mb-4">🔌</div>
                   <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
@@ -245,31 +249,32 @@ function HomeContent() {
                   <p className="text-zinc-600 dark:text-zinc-400 mb-6">
                     Connect a Kaspa L1 wallet or an EVM L2 wallet to see and interact with dApps.
                   </p>
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                      Use the wallet button in the header to connect
-                    </p>
-                  </div>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-500">
+                    Use the wallet button in the header to connect
+                  </p>
                 </div>
               </div>
-            ) : viewMode === 'cards' ? (
-              <DAppGrid 
-                dapps={displayedDApps}
-              />
             ) : (
-              <DAppTable 
-                dapps={displayedDApps}
-              />
-            )}
-            {showLoadMore && hasMore && (
-              <div className="mt-8 flex justify-center">
-                <button
-                  onClick={handleLoadMore}
-                  className="px-6 py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
-                >
-                  Load More
-                </button>
-              </div>
+              <>
+                {viewMode === 'cards' ? (
+                  <DAppGrid dapps={displayedDApps} />
+                ) : viewMode === 'compact' ? (
+                  <DAppCompact dapps={displayedDApps} />
+                ) : (
+                  <DAppTable dapps={displayedDApps} />
+                )}
+
+                {showLoadMore && hasMore && (
+                  <div className="mt-8 flex justify-center">
+                    <button
+                      onClick={handleLoadMore}
+                      className="px-6 py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+                    >
+                      Load More
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

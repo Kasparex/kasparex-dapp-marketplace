@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 
-export type SortOption = 
+export type SortOption =
   | 'newest'
   | 'oldest'
   | 'alphabetical-az'
@@ -14,7 +14,7 @@ export type SortOption =
   | 'likes-high'
   | 'likes-low';
 
-export type ViewMode = 'cards' | 'table';
+export type ViewMode = 'cards' | 'table' | 'compact';
 
 interface SortFiltersProps {
   sortBy: SortOption;
@@ -69,11 +69,10 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
         <div className="flex items-center border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
           <button
             onClick={() => onViewModeChange('cards')}
-            className={`p-2 text-sm font-medium transition-colors ${
-              viewMode === 'cards'
+            className={`p-2 text-sm font-medium transition-colors ${viewMode === 'cards'
                 ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
                 : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-            }`}
+              }`}
             title="Card view"
             aria-label="Card view"
           >
@@ -83,16 +82,28 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
           </button>
           <button
             onClick={() => onViewModeChange('table')}
-            className={`p-2 text-sm font-medium transition-colors border-l border-zinc-200 dark:border-zinc-800 ${
-              viewMode === 'table'
+            className={`p-2 text-sm font-medium transition-colors border-l border-zinc-200 dark:border-zinc-800 ${viewMode === 'table'
                 ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
                 : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-            }`}
+              }`}
             title="Table view"
             aria-label="Table view"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </button>
+          <button
+            onClick={() => onViewModeChange('compact')}
+            className={`p-2 text-sm font-medium transition-colors border-l border-zinc-200 dark:border-zinc-800 ${viewMode === 'compact'
+                ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
+                : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+              }`}
+            title="Compact view"
+            aria-label="Compact view"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
             </svg>
           </button>
         </div>
@@ -115,32 +126,31 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
           </svg>
         </button>
 
-      {isOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setIsOpen(false)}
-          />
-          <div className="absolute top-full right-0 mt-1 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-50 overflow-hidden">
-            {sortOptions.map((option) => (
-              <button
-                key={option.value}
-                onClick={() => {
-                  onSortChange(option.value);
-                  setIsOpen(false);
-                }}
-                className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                  sortBy === option.value
-                    ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium'
-                    : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
+        {isOpen && (
+          <>
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setIsOpen(false)}
+            />
+            <div className="absolute top-full right-0 mt-1 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-50 overflow-hidden">
+              {sortOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    onSortChange(option.value);
+                    setIsOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${sortBy === option.value
+                      ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium'
+                      : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                    }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Favorites Star Button */}
@@ -149,11 +159,10 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
           // Toggle favorites: if already active, switch to 'newest', otherwise set to 'favorites'
           onSortChange(isFavoritesActive ? 'newest' : 'favorites');
         }}
-        className={`flex items-center justify-center p-2 rounded-lg border transition-colors ${
-          isFavoritesActive
+        className={`flex items-center justify-center p-2 rounded-lg border transition-colors ${isFavoritesActive
             ? 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700 text-yellow-600 dark:text-yellow-400'
             : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-        }`}
+          }`}
         title={isFavoritesActive ? 'Show All' : 'Show Favorites'}
         aria-label={isFavoritesActive ? 'Show All' : 'Show Favorites'}
       >

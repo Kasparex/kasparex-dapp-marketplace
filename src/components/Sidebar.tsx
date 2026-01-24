@@ -63,7 +63,7 @@ export function Sidebar({
   const [developerExpanded, setDeveloperExpanded] = useState(false);
   const [networkExpanded, setNetworkExpanded] = useState(false);
   const [showQuickGuide, setShowQuickGuide] = useState(false);
-  
+
   // Sidebar hide/show and resize state
   const [isHidden, setIsHidden] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(256); // Default 256px (w-64)
@@ -280,7 +280,7 @@ export function Sidebar({
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           ${isHidden ? 'lg:translate-x-[-100%]' : ''}
         `}
-        style={{ 
+        style={{
           width: isHidden ? 0 : `${sidebarWidth}px`,
           minWidth: isHidden ? 0 : `${sidebarWidth}px`,
           maxWidth: isHidden ? 0 : `${sidebarWidth}px`,
@@ -337,14 +337,8 @@ export function Sidebar({
               </svg>
             </button>
           </div>
-          <input
-            type="text"
-            placeholder="Search dApps..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full px-3 py-2 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#02abb8] text-zinc-900 dark:text-zinc-100 mb-3"
-          />
-          
+
+
           {/* Collapsible Filters Group */}
           <CollapsibleSection
             title="Filters"
@@ -389,10 +383,9 @@ export function Sidebar({
                         className={`
                           checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
                           transition-colors pl-8
-                          ${
-                            isChecked
-                              ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                              : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
+                          ${isChecked
+                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
+                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
                           }
                         `}
                       >
@@ -453,10 +446,9 @@ export function Sidebar({
                         className={`
                           checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
                           transition-colors pl-8
-                          ${
-                            isChecked
-                              ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                              : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
+                          ${isChecked
+                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
+                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
                           }
                         `}
                       >
@@ -514,10 +506,9 @@ export function Sidebar({
                         className={`
                           checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
                           transition-colors pl-8
-                          ${
-                            isChecked
-                              ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                              : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
+                          ${isChecked
+                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
+                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
                           }
                         `}
                       >
@@ -585,10 +576,9 @@ export function Sidebar({
                         className={`
                           checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
                           transition-colors pl-8
-                          ${
-                            isChecked
-                              ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                              : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
+                          ${isChecked
+                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
+                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
                           }
                         `}
                       >
@@ -643,7 +633,7 @@ export function Sidebar({
 
           {/* Unified Status Box (New) */}
           <UnifiedStatusBox />
-          
+
           {/* Individual Status Boxes (Legacy - can be removed later) */}
           <GRIDHoldingsBox />
           <XPPointsBox />
