@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769283536-f37953a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix input backgrounds for contrast and prevent label wrapping (by Kasparex)",
+      "date": "2026-01-24T20:38:32+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769281142-1d2bb4a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Standardize modern design system for inputs and forms (by Kasparex)",
