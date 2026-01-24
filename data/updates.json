@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769256400-cad01f3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix StoreSidebar prop type mismatch for currentAddress (by Kasparex)",
+      "date": "2026-01-24T13:06:13+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769256093-0562df5",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Refactor Store layout: Remove ProductSidebar, update ProductPage and StoreSidebar (by Kasparex)",
