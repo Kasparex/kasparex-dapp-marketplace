@@ -80,16 +80,16 @@ export function NFTSidebar({
 
   const tabs: Array<{ id: TabType; label: string }> = isListingPage
     ? [
-        { id: 'collections', label: 'Collections' },
-        { id: 'my-nfts', label: 'My NFTs' },
-      ]
+      { id: 'collections', label: 'Collections' },
+      { id: 'my-nfts', label: 'My NFTs' },
+    ]
     : [
-        { id: 'my-nfts', label: 'My NFTs' },
-        { id: 'checker', label: 'Rarity Checker' },
-        { id: 'traits', label: 'Trait Analysis' },
-        { id: 'builder', label: 'PFP Builder' },
-        { id: 'stats', label: 'Collection Stats' },
-      ];
+      { id: 'my-nfts', label: 'My NFTs' },
+      { id: 'checker', label: 'Rarity Checker' },
+      { id: 'traits', label: 'Trait Analysis' },
+      { id: 'builder', label: 'PFP Builder' },
+      { id: 'stats', label: 'Collection Stats' },
+    ];
 
   return (
     <>
@@ -218,20 +218,13 @@ export function NFTSidebar({
               {collectionName}
             </h2>
           )}
-          
+
           {/* Search field - only show on listing page */}
           {isListingPage && searchQuery !== undefined && onSearchChange && (
             <div className="mb-4">
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => onSearchChange(e.target.value)}
-                  placeholder="Search collections..."
-                  className="w-full px-4 py-2 pl-10 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-500 text-sm"
-                />
+              <div className="k-search-container">
                 <svg
-                  className="absolute left-3 top-2.5 w-4 h-4 text-zinc-400 dark:text-zinc-600"
+                  className="k-search-icon"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -243,6 +236,13 @@ export function NFTSidebar({
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                   />
                 </svg>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  placeholder="Search collections..."
+                  className="k-search-input !h-9 !pl-9"
+                />
               </div>
             </div>
           )}
@@ -258,20 +258,16 @@ export function NFTSidebar({
                   onTabChange(tab.id);
                   setIsOpen(false); // Close mobile menu on selection
                 }}
-                className={`
-                  w-full text-left px-3 py-2 text-sm rounded-lg transition-colors
-                  ${
-                    activeTab === tab.id
-                      ? 'bg-[#02abb8]/10 text-[#02abb8] font-medium'
-                      : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
-                  }
-                `}
+                className={`k-sidebar-item w-full ${activeTab === tab.id
+                    ? 'k-sidebar-item-active font-bold'
+                    : 'text-zinc-600 dark:text-zinc-400'
+                  }`}
               >
-                {tab.label}
+                <span className="truncate">{tab.label}</span>
               </button>
             ))}
           </nav>
-          
+
           {/* NFT Status Box - show on both listing and collection pages, under menu */}
           <div className="mt-4">
             <NFTStatusBox />

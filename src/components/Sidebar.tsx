@@ -380,14 +380,7 @@ export function Sidebar({
                     return (
                       <label
                         key={category.id}
-                        className={`
-                          checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
-                          transition-colors pl-8
-                          ${isChecked
-                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
-                          }
-                        `}
+                        className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}
                       >
                         <input
                           type="checkbox"
@@ -398,13 +391,12 @@ export function Sidebar({
                               : [...selectedCategories, category.id];
                             onCategoryChange(newCategories);
                           }}
+                          className="sr-only" // Hide native checkbox for premium look
                         />
-                        <div className="control__indicator"></div>
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <span className="text-lg flex-shrink-0">{category.emoji}</span>
-                          <span className="text-sm text-zinc-700 dark:text-zinc-300 truncate whitespace-nowrap">{category.name}</span>
-                        </div>
-                        <span className="text-xs px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex-shrink-0">
+                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                        <span className="k-sidebar-emoji">{category.emoji}</span>
+                        <span className="text-sm font-medium transition-colors flex-1 truncate">{category.name}</span>
+                        <span className="k-sidebar-count">
                           {count}
                         </span>
                       </label>
@@ -443,21 +435,15 @@ export function Sidebar({
                     return (
                       <label
                         key={option.value}
-                        className={`
-                          checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
-                          transition-colors pl-8
-                          ${isChecked
-                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
-                          }
-                        `}
+                        className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}
                       >
                         <input
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => handleStatusToggle(option.value)}
+                          className="sr-only"
                         />
-                        <div className="control__indicator"></div>
+                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
                         {option.value !== 'all' && (
                           <StatusIndicatorDot
                             statusType={getStatusTypeFromString(option.value)}
@@ -465,7 +451,7 @@ export function Sidebar({
                             className="flex-shrink-0"
                           />
                         )}
-                        <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
+                        <span className="text-sm font-medium transition-colors flex-1 truncate">{option.label}</span>
                       </label>
                     );
                   })}
@@ -503,39 +489,28 @@ export function Sidebar({
                     return (
                       <label
                         key={option.label}
-                        className={`
-                          checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
-                          transition-colors pl-8
-                          ${isChecked
-                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
-                          }
-                        `}
+                        className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}
                       >
                         <input
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => handleDeveloperToggle(option.label)}
+                          className="sr-only"
                         />
-                        <div className="control__indicator"></div>
-                        {option.logo ? (
-                          <>
-                            <Image
-                              src={option.logo}
-                              alt={`${option.label} logo`}
-                              width={16}
-                              height={16}
-                              className="flex-shrink-0"
-                              onError={(e) => {
-                                // Hide logo if it doesn't exist
-                                (e.target as HTMLImageElement).style.display = 'none';
-                              }}
-                            />
-                            <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
-                          </>
-                        ) : (
-                          <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
+                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                        {option.logo && (
+                          <Image
+                            src={option.logo}
+                            alt={`${option.label} logo`}
+                            width={16}
+                            height={16}
+                            className="flex-shrink-0 grayscale group-hover:grayscale-0 transition-all opacity-70 group-hover:opacity-100"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
                         )}
+                        <span className="text-sm font-medium transition-colors flex-1 truncate">{option.label}</span>
                       </label>
                     );
                   })}

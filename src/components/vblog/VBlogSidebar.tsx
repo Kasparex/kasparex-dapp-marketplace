@@ -147,7 +147,7 @@ export function VBlogSidebar({
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           ${isHidden ? 'lg:translate-x-[-100%]' : ''}
         `}
-        style={{ 
+        style={{
           width: isHidden ? 0 : `${sidebarWidth}px`,
           minWidth: isHidden ? 0 : `${sidebarWidth}px`,
           maxWidth: isHidden ? 0 : `${sidebarWidth}px`,
@@ -202,13 +202,23 @@ export function VBlogSidebar({
               </svg>
             </button>
           </div>
-          <input
-            type="text"
-            placeholder="Search articles..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full px-3 py-2 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#02abb8] text-zinc-900 dark:text-zinc-100"
-          />
+          <div className="k-search-container">
+            <svg
+              className="k-search-icon"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search articles..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="k-search-input !h-9 !pl-9"
+            />
+          </div>
         </div>
 
         {/* Sidebar Content */}
@@ -221,25 +231,23 @@ export function VBlogSidebar({
             <div className="space-y-1">
               <button
                 onClick={() => onCategoryChange(null)}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                  selectedCategory === null
-                    ? 'bg-[#02abb8] text-white'
-                    : 'bg-zinc-50 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                }`}
+                className={`k-sidebar-item w-full ${selectedCategory === null
+                    ? 'k-sidebar-item-active font-bold'
+                    : 'text-zinc-700 dark:text-zinc-300'
+                  }`}
               >
-                All Categories
+                <span className="truncate">All Categories</span>
               </button>
               {categories.map((category) => (
                 <button
                   key={category}
                   onClick={() => onCategoryChange(category)}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                    selectedCategory === category
-                      ? 'bg-[#02abb8] text-white'
-                      : 'bg-zinc-50 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                  }`}
+                  className={`k-sidebar-item w-full ${selectedCategory === category
+                      ? 'k-sidebar-item-active font-bold'
+                      : 'text-zinc-700 dark:text-zinc-300'
+                    }`}
                 >
-                  {category}
+                  <span className="truncate">{category}</span>
                 </button>
               ))}
             </div>
@@ -256,11 +264,10 @@ export function VBlogSidebar({
                   <button
                     key={tag}
                     onClick={() => onTagToggle(tag)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                      selectedTags.includes(tag)
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${selectedTags.includes(tag)
                         ? 'bg-[#02abb8] text-white'
                         : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-                    }`}
+                      }`}
                   >
                     #{tag}
                   </button>

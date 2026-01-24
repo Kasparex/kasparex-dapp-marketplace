@@ -307,11 +307,57 @@
 }
 
 .k-label {
-  @apply block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2 whitespace-nowrap overflow-hidden text-ellipsis;
+  @apply block text-sm font-bold text-zinc-700 dark:text-zinc-200 mb-2 whitespace-nowrap overflow-hidden text-ellipsis uppercase tracking-wider;
 }
 
 .k-form-group {
   @apply space-y-2 mb-6;
+}
+
+/* Premium Sidebar Components */
+.k-sidebar-item {
+  @apply relative flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap;
+}
+
+.k-sidebar-item:hover {
+  @apply bg-zinc-100/80 dark:bg-zinc-800/50;
+}
+
+.k-sidebar-item-active {
+  @apply bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20;
+}
+
+.k-sidebar-emoji {
+  @apply text-lg flex-shrink-0 grayscale group-hover:grayscale-0 transition-all;
+}
+
+.k-sidebar-count {
+  @apply text-[10px] px-1.5 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 font-bold ml-auto flex-shrink-0 border border-zinc-200 dark:border-zinc-700/50;
+}
+
+/* Uniform Controls */
+.k-control-btn {
+  @apply h-10 px-4 flex items-center justify-center gap-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-[#02abb8]/30 transition-all active:scale-[0.98];
+}
+
+.k-control-icon-btn {
+  @apply h-10 w-10 flex items-center justify-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-600 dark:text-zinc-400 hover:text-[#02abb8] hover:border-[#02abb8]/30 transition-all active:scale-95;
+}
+
+.k-control-group {
+  @apply flex items-center border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-900;
+}
+
+.k-search-container {
+  @apply relative flex items-center;
+}
+
+.k-search-icon {
+  @apply absolute left-3.5 w-4 h-4 text-zinc-400 pointer-events-none z-10;
+}
+
+.k-search-input {
+  @apply h-10 pl-10 pr-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent transition-all w-full;
 }
 
 /* Base override for unclassed inputs */

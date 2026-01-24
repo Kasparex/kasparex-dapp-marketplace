@@ -12,7 +12,7 @@ interface TokensListingSidebarProps {
   // Can add filter props here if needed
 }
 
-export function TokensListingSidebar({}: TokensListingSidebarProps) {
+export function TokensListingSidebar({ }: TokensListingSidebarProps) {
   const [isHidden, setIsHidden] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(256);
   const [isResizing, setIsResizing] = useState(false);
@@ -152,7 +152,7 @@ export function TokensListingSidebar({}: TokensListingSidebarProps) {
                 About Kasparex Tokens
               </h3>
               <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                Explore all tokens in the Kasparex ecosystem, including global tokens like KREX and GRID, 
+                Explore all tokens in the Kasparex ecosystem, including global tokens like KREX and GRID,
                 local dApp tokens, and collaboration tokens.
               </p>
             </div>
@@ -162,24 +162,24 @@ export function TokensListingSidebar({}: TokensListingSidebarProps) {
               <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                 Quick Links
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <Link
                   href="/hub"
-                  className="block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                  className="k-sidebar-item text-zinc-600 dark:text-zinc-400"
                 >
-                  ← Back to Hub
+                  <span className="truncate">← Back to Hub</span>
                 </Link>
                 <Link
                   href="/dapps"
-                  className="block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                  className="k-sidebar-item text-zinc-600 dark:text-zinc-400"
                 >
-                  Explore dApps
+                  <span className="truncate">Explore dApps</span>
                 </Link>
                 <Link
                   href="/points"
-                  className="block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                  className="k-sidebar-item text-zinc-600 dark:text-zinc-400"
                 >
-                  View Rewards
+                  <span className="truncate">View Rewards</span>
                 </Link>
               </div>
             </div>
