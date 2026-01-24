@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769288303-6add17d",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Sync search bar padding in Hub project (by Kasparex)",
+      "date": "2026-01-24T21:58:08+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769288270-cc92187",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Standardize search bar and reset button styling on dApps page (by Kasparex)",
