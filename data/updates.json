@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769287535-c0d7744",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix TypeScript type error in handleStatusSelectAll (by Kasparex)",
+      "date": "2026-01-24T21:45:21+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769287346-6a81456",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix Sidebar props in app/page.tsx to resolve build error (by Kasparex)",
