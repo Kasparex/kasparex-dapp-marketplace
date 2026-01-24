@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769269104-b151274",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add Compact view to dApps listing, move search bar to main area, and unify controls styling (by Kasparex)",
+      "date": "2026-01-24T16:37:43+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769267471-fa4c85b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update Games sidebar styling and add sidebar to individual game pages (by Kasparex)",
