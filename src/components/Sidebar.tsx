@@ -151,7 +151,9 @@ export function Sidebar({
   };
 
   const handleStatusSelectAll = () => {
-    const allStatuses = statusOptions.filter(opt => opt.value !== 'all').map((opt) => opt.value);
+    const allStatuses = statusOptions
+      .map(opt => opt.value)
+      .filter((v): v is DAppStatus => v !== 'all');
     onStatusChange(allStatuses);
   };
 
