@@ -15,7 +15,20 @@ interface StoreSidebarProps {
   selectedCategories: ProductCategory[];
   onCategoryChange: (categories: ProductCategory[]) => void;
   categoryCounts: Record<ProductCategory, number>;
+  showCategories?: boolean;
+  backLink?: {
+    href: string;
+    label: string;
+  };
 }
+
+const CATEGORY_EMOJIS: Record<ProductCategory, string> = {
+  'Software': '💻',
+  'Art': '🎨',
+  'Music': '🎵',
+  'Templates': '📋',
+  'Other': '📦',
+};
 
 export function StoreSidebar({
   searchQuery,
@@ -26,6 +39,8 @@ export function StoreSidebar({
   selectedCategories,
   onCategoryChange,
   categoryCounts,
+  showCategories = true,
+  backLink = { href: '/hub', label: 'Go back to Hub' },
 }: StoreSidebarProps) {
   const [categoriesExpanded, setCategoriesExpanded] = useState(true);
   const [sellerRevenue, setSellerRevenue] = useState<number | null>(null);
@@ -207,13 +222,13 @@ export function StoreSidebar({
         <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
           <div className="flex items-center justify-between mb-4">
             <Link
-              href="/hub"
+              href={backLink.href}
               className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium transition-colors text-sm flex items-center gap-1"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Go back to Hub
+              {backLink.label}
             </Link>
             <button
               onClick={() => setIsHidden(true)}
@@ -232,95 +247,102 @@ export function StoreSidebar({
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full px-3 py-2 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#02abb8] text-zinc-900 dark:text-zinc-100"
           />
-
-          {/* Action Buttons at Top */}
-          {isWalletConnected && (
-            <div className="mt-3 space-y-2">
-              <button
-                onClick={onSubmitProduct}
-                className="w-full px-3 py-2 text-sm font-medium bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
-              >
-                Submit Product
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Sidebar Content */}
         <div className="p-4">
-          {/* Category Filters */}
-          <div className="space-y-3 mb-4">
-            <button
-              onClick={() => setCategoriesExpanded(!categoriesExpanded)}
-              className="w-full flex items-center justify-between text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors"
-            >
-              <span className="flex items-center gap-2">
-                <span>📦</span>
-                Categories
-              </span>
-              <svg
-                className={`w-4 h-4 transition-transform ${categoriesExpanded ? 'rotate-180' : ''}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {categoriesExpanded && (
-              <div className="space-y-2 pl-2">
-                {categories.map((category) => {
-                  const isChecked = selectedCategories.includes(category);
-                  const count = categoryCounts[category] || 0;
-                  return (
-                    <label
-                      key={category}
-                      className="flex items-center justify-between cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900/50 p-2 rounded transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => handleCategoryToggle(category)}
-                          className="rounded border-zinc-300 dark:border-zinc-700 text-[#02abb8] focus:ring-[#02abb8]"
-                        />
-                        <span className="text-sm text-zinc-700 dark:text-zinc-300">
-                          {category}
-                        </span>
-                      </div>
-                      <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                        {count}
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Seller Status */}
-          {isWalletConnected && (
-            <div className="space-y-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
-              <div className="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800">
-                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-                  Seller Status
-                </h3>
-                <div className="mb-3">
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
-                    Total Revenue
-                  </div>
-                  <div className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                    {sellerRevenue !== null ? `${sellerRevenue.toLocaleString()} KAS` : '...'}
-                  </div>
+          {/* Seller Status - Moved to Top */}
+          <div className="space-y-3 mb-6">
+            <div className="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800">
+              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+                Seller Status
+              </h3>
+              <div className="mb-3">
+                <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
+                  Total Revenue
                 </div>
+                <div className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                  {sellerRevenue !== null ? `${sellerRevenue.toLocaleString()} KAS` : '0 KAS'}
+                </div>
+              </div>
+              <div className="space-y-2">
                 <Link
                   href="/store/dashboard"
                   className="block w-full px-3 py-2 text-sm font-medium text-center bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
                 >
                   Seller Dashboard
                 </Link>
+                {/* Submit Product Button - Moved Here */}
+                {isWalletConnected && onSubmitProduct && (
+                  <button
+                    onClick={onSubmitProduct}
+                    className="w-full px-3 py-2 text-sm font-medium bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
+                  >
+                    Submit Product
+                  </button>
+                )}
               </div>
+            </div>
+          </div>
+
+          {/* Category Filters */}
+          {showCategories && (
+            <div className="space-y-3 mb-4">
+              <button
+                onClick={() => setCategoriesExpanded(!categoriesExpanded)}
+                className="w-full flex items-center justify-between text-sm font-semibold text-zinc-700 dark:text-white opacity-80 uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-white hover:opacity-100 transition-all"
+              >
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                  </svg>
+                  <span>Categories</span>
+                </div>
+                <svg
+                  className={`w-4 h-4 transition-transform ${categoriesExpanded ? 'rotate-180' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {categoriesExpanded && (
+                <div className="space-y-1 pl-2">
+                  {categories.map((category) => {
+                    const isChecked = selectedCategories.includes(category);
+                    const count = categoryCounts[category] || 0;
+                    return (
+                      <label
+                        key={category}
+                        className={`
+                          checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
+                          transition-colors pl-8
+                          ${isChecked
+                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
+                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
+                          }
+                        `}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleCategoryToggle(category)}
+                        />
+                        <div className="control__indicator"></div>
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <span className="text-lg flex-shrink-0">{CATEGORY_EMOJIS[category]}</span>
+                          <span className="text-sm text-zinc-700 dark:text-zinc-300">{category}</span>
+                        </div>
+                        <span className="text-xs px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex-shrink-0">
+                          {count}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>

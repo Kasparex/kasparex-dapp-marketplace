@@ -18,7 +18,7 @@ import { hubProjects, type HubProject } from '@/lib/hubProjects';
 
 function AdminLink() {
   const { isAdmin } = useAdmin();
-  
+
   if (!isAdmin) {
     return null;
   }
@@ -94,11 +94,10 @@ function L1KaspaButton() {
   return (
     <button
       disabled={!isActive}
-      className={`px-3 py-2 rounded-lg border transition-colors text-sm font-medium flex items-center gap-2 ${
-        isActive
+      className={`px-3 py-2 rounded-lg border transition-colors text-sm font-medium flex items-center gap-2 ${isActive
           ? 'bg-[#70C7BA]/20 dark:bg-[#70C7BA]/30 text-[#70C7BA] border-[#70C7BA]/30 dark:border-[#70C7BA]/50 hover:bg-[#70C7BA]/30 dark:hover:bg-[#70C7BA]/40'
           : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 border-zinc-200 dark:border-zinc-700 cursor-not-allowed'
-      }`}
+        }`}
       aria-label="L1 Kaspa Network"
       title={isActive ? 'Connected to L1 Kaspa' : 'Connect KasWare wallet for L1'}
     >
@@ -190,6 +189,9 @@ function getCurrentSectionTitle(pathname: string): string {
   if (pathname.startsWith('/hub')) {
     return 'Hub';
   }
+  if (pathname.startsWith('/store')) {
+    return 'Store';
+  }
   // Default to dApps
   return 'dApps';
 }
@@ -198,7 +200,7 @@ function getCurrentSectionTitle(pathname: string): string {
 function getCurrentProject(pathname: string): HubProject | null {
   // Normalize pathname for matching
   const normalizedPath = pathname === '/' ? '/' : pathname;
-  
+
   // Find matching project
   return hubProjects.find(project => {
     if (project.route === normalizedPath) {
@@ -286,7 +288,7 @@ function getProjectIcon(projectId: string) {
       </svg>
     ),
   };
-  
+
   return iconMap[projectId] || iconMap['kasparex-dapps'];
 }
 
@@ -294,7 +296,7 @@ function getProjectIcon(projectId: string) {
 function getStatusBadge(status: HubProject['status'], isActive: boolean = false) {
   // Smaller badge styling
   const baseClasses = "px-1.5 py-0.5 text-[10px] font-medium rounded";
-  
+
   if (isActive) {
     // Active state badges with subtle styling
     switch (status) {
@@ -320,7 +322,7 @@ function getStatusBadge(status: HubProject['status'], isActive: boolean = false)
         return null;
     }
   }
-  
+
   // Default state badges
   switch (status) {
     case 'demo':
@@ -356,7 +358,7 @@ export function Header() {
   const [hasNewUpdates, setHasNewUpdates] = useState(false);
   const [updateCount, setUpdateCount] = useState(0);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   const currentSectionTitle = getCurrentSectionTitle(pathname);
   const currentProject = getCurrentProject(pathname);
   const currentProjectStatus = currentProject?.status || null;
@@ -400,8 +402,8 @@ export function Header() {
       <div className="flex h-16 items-center justify-between w-full">
         {/* Left side: Logo and Title - no padding, flush to left */}
         <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 lg:pl-6">
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className="flex items-center gap-2 sm:gap-3 relative group"
             title="Back to main page"
           >
@@ -487,23 +489,22 @@ export function Header() {
                     <div className="grid grid-cols-3 gap-1">
                       {hubProjects.map((project) => {
                         const isExternal = project.route.startsWith('http');
-                        
+
                         // Check if this is the current page
                         const isCurrentPage = currentProject?.id === project.id;
-                        
+
                         // Normalize pathname for matching
                         const normalizedPath = pathname === '/' ? '/' : pathname;
-                        const matchesRoute = project.route === normalizedPath || 
+                        const matchesRoute = project.route === normalizedPath ||
                           (normalizedPath.startsWith(project.route) && project.route !== '/');
-                        
+
                         const isActive = isCurrentPage || matchesRoute;
                         const ProjectIcon = getProjectIcon(project.id);
-                        
-                        const linkClassName = `flex items-center gap-2 px-3 py-2.5 text-sm rounded transition-all whitespace-nowrap ${
-                          isActive
+
+                        const linkClassName = `flex items-center gap-2 px-3 py-2.5 text-sm rounded transition-all whitespace-nowrap ${isActive
                             ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
                             : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
-                        }`;
+                          }`;
 
                         const linkContent = (
                           <>

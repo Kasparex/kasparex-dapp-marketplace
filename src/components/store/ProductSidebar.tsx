@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { UnifiedStatusBox } from '@/components/rewards/UnifiedStatusBox';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { getProductsBySeller } from '@/lib/store/products';
 
 export function ProductSidebar() {
     // Sidebar hide/show and resize state
@@ -10,6 +12,8 @@ export function ProductSidebar() {
     const [sidebarWidth, setSidebarWidth] = useState(256); // Default 256px (w-64)
     const [isResizing, setIsResizing] = useState(false);
     const sidebarRef = useRef<HTMLDivElement>(null);
+    const { state } = useKaspaWallet();
+    const [sellerRevenue, setSellerRevenue] = useState<number | null>(null);
 
     // Load sidebar state from localStorage
     useEffect(() => {
@@ -27,6 +31,26 @@ export function ProductSidebar() {
     useEffect(() => {
         localStorage.setItem('product-sidebar-width', String(sidebarWidth));
     }, [sidebarWidth]);
+
+    // Fetch seller revenue
+    useEffect(() => {
+        async function fetchRevenue() {
+            if (!state.address) {
+                setSellerRevenue(null);
+                return;
+            }
+            try {
+                const products = await getProductsBySeller(state.address);
+                const revenue = products.reduce((acc, product) => {
+                    return acc + (product.priceKAS * product.purchaseCount);
+                }, 0);
+                setSellerRevenue(revenue);
+            } catch (e) {
+                console.error('Failed to fetch seller revenue:', e);
+            }
+        }
+        fetchRevenue();
+    }, [state.address]);
 
     // Handle resize
     useEffect(() => {
@@ -148,6 +172,29 @@ export function ProductSidebar() {
 
                     {/* Sidebar Content */}
                     <div className="p-4">
+                        {/* Seller Status Box */}
+                        <div className="mb-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800">
+                            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+                                Seller Status
+                            </h3>
+                            <div className="mb-3">
+                                <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
+                                    Total Revenue
+                                </div>
+                                <div className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                                    {sellerRevenue !== null ? `${sellerRevenue.toLocaleString()} KAS` : '0 KAS'}
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Link
+                                    href="/store/dashboard"
+                                    className="block w-full px-3 py-2 text-sm font-medium text-center bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
+                                >
+                                    Seller Dashboard
+                                </Link>
+                            </div>
+                        </div>
+
                         <UnifiedStatusBox />
                     </div>
                 </div>
