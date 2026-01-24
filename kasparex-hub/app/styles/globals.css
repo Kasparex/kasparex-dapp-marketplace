@@ -334,7 +334,9 @@ a {
 
 /* Premium Sidebar Components */
 .k-sidebar-item {
-  @apply relative flex items-center gap-4 px-4 py-2.5 rounded-xl transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap;
+  @apply relative flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap;
+  gap: 1rem;
+  /* Uniform 16px gap */
 }
 
 .k-sidebar-item:hover {
@@ -345,12 +347,16 @@ a {
   @apply bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20;
 }
 
+.k-sidebar-icon {
+  @apply w-4 h-4 flex-shrink-0 text-zinc-500 dark:text-zinc-400 transition-colors group-hover:text-[#02abb8];
+}
+
 .k-sidebar-emoji {
-  @apply text-xl flex-shrink-0 grayscale group-hover:grayscale-0 transition-all mr-1;
+  @apply text-base w-5 h-5 flex items-center justify-center flex-shrink-0 transition-all;
 }
 
 .k-sidebar-count {
-  @apply text-[10px] px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-900/50 text-zinc-500 dark:text-zinc-400 font-bold ml-auto flex-shrink-0 border border-zinc-200 dark:border-zinc-800 transition-colors group-hover:border-[#02abb8]/30;
+  @apply ml-auto text-[10px] px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-900/50 text-zinc-500 dark:text-zinc-400 font-bold flex-shrink-0 border border-zinc-200 dark:border-zinc-800 transition-colors group-hover:border-[#02abb8]/30;
 }
 
 /* Uniform Controls */

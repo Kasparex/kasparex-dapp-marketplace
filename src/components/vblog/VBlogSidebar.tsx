@@ -14,6 +14,21 @@ interface VBlogSidebarProps {
   onSearchChange: (query: string) => void;
 }
 
+function VBlogCategoryIcon({ id, className = "" }: { id: string | null; className?: string }) {
+  const iconProps = { className: `k-sidebar-icon ${className}`, strokeWidth: 2, fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" };
+
+  if (!id) return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>;
+
+  switch (id.toLowerCase()) {
+    case 'announcement': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A1.76 1.76 0 015 15.066V15c0 .115.022.23.064.338a.98.98 0 00.936.662H9c.552 0 1 .448 1 1s-.448 1-1 1H7.618a2 2 0 01-1.789-1.106l-.53-.1.53.1zm14.11-6.191A1.76 1.76 0 0021 6.096V6c0-.115-.022-.23-.064-.338a.98.98 0 00-.936-.662H15c-.552 0-1-.448-1-1s.448-1 1-1h1.382a2 2 0 001.789-1.106l.53.1-.53-.1z" /></svg>;
+    case 'development': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>;
+    case 'ecosystem': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>;
+    case 'newsletter': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>;
+    case 'social': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>;
+    default: return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>;
+  }
+}
+
 export function VBlogSidebar({
   articles,
   selectedCategory,
@@ -232,24 +247,35 @@ export function VBlogSidebar({
               <button
                 onClick={() => onCategoryChange(null)}
                 className={`k-sidebar-item w-full ${selectedCategory === null
-                    ? 'k-sidebar-item-active font-bold'
-                    : 'text-zinc-700 dark:text-zinc-300'
+                  ? 'k-sidebar-item-active font-bold'
+                  : 'text-zinc-700 dark:text-zinc-300'
                   }`}
               >
-                <span className="text-[11px] font-bold uppercase tracking-wider truncate">All Categories</span>
+                <VBlogCategoryIcon id={null} />
+                <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">All Categories</span>
+                <span className="k-sidebar-count">
+                  {articles.length}
+                </span>
               </button>
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => onCategoryChange(category)}
-                  className={`k-sidebar-item w-full ${selectedCategory === category
+              {categories.map((category) => {
+                const count = articles.filter(a => a.category === category).length;
+                return (
+                  <button
+                    key={category}
+                    onClick={() => onCategoryChange(category)}
+                    className={`k-sidebar-item w-full ${selectedCategory === category
                       ? 'k-sidebar-item-active font-bold'
                       : 'text-zinc-700 dark:text-zinc-300'
-                    }`}
-                >
-                  <span className="text-[11px] font-bold uppercase tracking-wider truncate">{category}</span>
-                </button>
-              ))}
+                      }`}
+                  >
+                    <VBlogCategoryIcon id={category} />
+                    <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">{category}</span>
+                    <span className="k-sidebar-count">
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

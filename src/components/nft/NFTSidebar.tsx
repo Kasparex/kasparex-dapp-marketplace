@@ -16,6 +16,20 @@ interface NFTSidebarProps {
   onSearchChange?: (query: string) => void;
 }
 
+function NFTTabIcon({ id, className = "" }: { id: string; className?: string }) {
+  const iconProps = { className: `k-sidebar-icon ${className}`, strokeWidth: 2, fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" };
+
+  switch (id) {
+    case 'collections': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>;
+    case 'my-nfts': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
+    case 'checker': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
+    case 'traits': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>;
+    case 'builder': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>;
+    case 'stats': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path strokeLinecap="round" strokeLinejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" /></svg>;
+    default: return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>;
+  }
+}
+
 export function NFTSidebar({
   activeTab,
   onTabChange,
@@ -259,11 +273,12 @@ export function NFTSidebar({
                   setIsOpen(false); // Close mobile menu on selection
                 }}
                 className={`k-sidebar-item w-full ${activeTab === tab.id
-                    ? 'k-sidebar-item-active font-bold'
-                    : 'text-zinc-600 dark:text-zinc-400'
+                  ? 'k-sidebar-item-active font-bold'
+                  : 'text-zinc-600 dark:text-zinc-400'
                   }`}
               >
-                <span className="text-[11px] font-bold uppercase tracking-wider truncate">{tab.label}</span>
+                <NFTTabIcon id={tab.id} />
+                <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">{tab.label}</span>
               </button>
             ))}
           </nav>

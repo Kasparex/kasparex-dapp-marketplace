@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { categories, type Category } from '@/lib/categories';
+import { Category, categories } from '@/lib/categories';
 import type { FilterState, DAppStatus } from '@/lib/dapps';
 import { CategoriesIcon, StatusIcon, DeveloperIcon, NetworkIcon } from '@/components/icons/SectionIcons';
 import { StatusIndicatorDot, getStatusTypeFromString } from './dapps/StatusIndicatorDot';
@@ -13,11 +13,13 @@ import { UnifiedStatusBox } from './rewards/UnifiedStatusBox';
 import { QuickGuideWizard } from './rewards/QuickGuideWizard';
 
 interface SidebarProps {
-  selectedCategories: Category[];
+  categories: Category[]; // Renamed from selectedCategories
   onCategoryChange: (categories: Category[]) => void;
   filters: Omit<FilterState, 'category'>;
-  onFilterChange: (filters: Omit<FilterState, 'category'>) => void;
-  categoryCounts: Record<Category, number>;
+  onStatusChange: (status: DAppStatus[]) => void; // New prop
+  onDeveloperChange: (developers: string[]) => void; // New prop
+  onNetworkChange: (networks: string[]) => void; // New prop
+  counts: Record<string, number>; // Renamed from categoryCounts, type changed to string
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onResetFilters: () => void;
@@ -46,12 +48,35 @@ const networkOptions: { label: string; logo?: string }[] = [
   { label: 'vProgs', logo: '/img/logos/kaspa.png' },
 ];
 
+function CategoryIcon({ id, className = "" }: { id: string; className?: string }) {
+  const iconProps = { className: `k-sidebar-icon ${className}`, strokeWidth: 2, fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" };
+
+  switch (id) {
+    case 'all': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>;
+    case 'tracker': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>;
+    case 'general': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>;
+    case 'minting': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>;
+    case 'defi': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>;
+    case 'games': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M15 5v2m0 4v2m-7-4h12M5 15a3 3 0 11-6 0 3 3 0 016 0zm6 5a2 2 0 11-4 0 2 2 0 014 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M11 20.9l-6-6M4.5 12.5l5 5" /></svg>;
+    case 'promotion': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A1.76 1.76 0 015 15.066V15c0 .115.022.23.064.338a.98.98 0 00.936.662H9c.552 0 1 .448 1 1s-.448 1-1 1H7.618a2 2 0 01-1.789-1.106l-.53-.1.53.1zm14.11-6.191A1.76 1.76 0 0021 6.096V6c0-.115-.022-.23-.064-.338a.98.98 0 00-.936-.662H15c-.552 0-1-.448-1-1s.448-1 1-1h1.382a2 2 0 001.789-1.106l.53.1-.53-.1z" /></svg>;
+    case 'subscription': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>;
+    case 'dao': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>;
+    case 'tools': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
+    case 'collabs': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>;
+    case 'airdrops': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" /></svg>;
+    case 'payment': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>;
+    default: return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>;
+  }
+}
+
 export function Sidebar({
-  selectedCategories,
+  categories: selectedCategories, // Destructure `categories` prop as `selectedCategories`
   onCategoryChange,
   filters,
-  onFilterChange,
-  categoryCounts,
+  onStatusChange, // New prop
+  onDeveloperChange, // New prop
+  onNetworkChange, // New prop
+  counts, // Renamed from categoryCounts
   searchQuery,
   onSearchChange,
   onResetFilters,
@@ -122,16 +147,16 @@ export function Sidebar({
     const newStatus = currentStatus.includes(status)
       ? currentStatus.filter((s) => s !== status)
       : [...currentStatus, status];
-    onFilterChange({ ...filters, status: newStatus });
+    onStatusChange(newStatus.filter((s): s is DAppStatus => s !== 'all')); // Filter out 'all' before passing
   };
 
   const handleStatusSelectAll = () => {
-    const allStatuses = statusOptions.map((opt) => opt.value);
-    onFilterChange({ ...filters, status: allStatuses });
+    const allStatuses = statusOptions.filter(opt => opt.value !== 'all').map((opt) => opt.value);
+    onStatusChange(allStatuses);
   };
 
   const handleStatusDeselectAll = () => {
-    onFilterChange({ ...filters, status: [] });
+    onStatusChange([]);
   };
 
   const handleDeveloperToggle = (developer: string) => {
@@ -140,16 +165,16 @@ export function Sidebar({
     const newDeveloper = currentDeveloper.includes(value)
       ? currentDeveloper.filter((d) => d !== value)
       : [...currentDeveloper, value];
-    onFilterChange({ ...filters, developer: newDeveloper });
+    onDeveloperChange(newDeveloper.filter((d): d is string => d !== 'all')); // Filter out 'all'
   };
 
   const handleDeveloperSelectAll = () => {
-    const allDevelopers = developerOptions.map((opt) => (opt.label === 'All' ? 'all' : opt.label));
-    onFilterChange({ ...filters, developer: allDevelopers });
+    const allDevelopers = developerOptions.filter(opt => opt.label !== 'All').map((opt) => opt.label);
+    onDeveloperChange(allDevelopers);
   };
 
   const handleDeveloperDeselectAll = () => {
-    onFilterChange({ ...filters, developer: [] });
+    onDeveloperChange([]);
   };
 
   const handleNetworkToggle = (network: string) => {
@@ -158,16 +183,16 @@ export function Sidebar({
     const newNetwork = currentNetwork.includes(value)
       ? currentNetwork.filter((n) => n !== value)
       : [...currentNetwork, value];
-    onFilterChange({ ...filters, network: newNetwork });
+    onNetworkChange(newNetwork.filter((n): n is string => n !== 'all')); // Filter out 'all'
   };
 
   const handleNetworkSelectAll = () => {
-    const allNetworks = networkOptions.map((opt) => (opt.label === 'All' ? 'all' : opt.label));
-    onFilterChange({ ...filters, network: allNetworks });
+    const allNetworks = networkOptions.filter(opt => opt.label !== 'All').map((opt) => opt.label);
+    onNetworkChange(allNetworks);
   };
 
   const handleNetworkDeselectAll = () => {
-    onFilterChange({ ...filters, network: [] });
+    onNetworkChange([]);
   };
 
   const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
@@ -376,7 +401,7 @@ export function Sidebar({
                 <nav className="space-y-1">
                   {categories.map((category) => {
                     const isChecked = selectedCategories.includes(category.id);
-                    const count = categoryCounts[category.id] || 0;
+                    const count = counts[category.id] || 0;
                     return (
                       <label
                         key={category.id}
@@ -394,7 +419,7 @@ export function Sidebar({
                           className="sr-only" // Hide native checkbox for premium look
                         />
                         <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                        <span className="k-sidebar-emoji">{category.emoji}</span>
+                        <CategoryIcon id={category.id} />
                         <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{category.name}</span>
                         <span className="k-sidebar-count">
                           {count}

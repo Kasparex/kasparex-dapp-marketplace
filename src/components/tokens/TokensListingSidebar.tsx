@@ -12,6 +12,17 @@ interface TokensListingSidebarProps {
   // Can add filter props here if needed
 }
 
+function TokenLinkIcon({ id, className = "" }: { id: string; className?: string }) {
+  const iconProps = { className: `k-sidebar-icon ${className}`, strokeWidth: 2, fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" };
+
+  switch (id) {
+    case 'hub': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>;
+    case 'dapps': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>;
+    case 'rewards': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2v-2m0 13V5.5A2.5 2.5 0 1019.5 8V19M12 8l-4-4m4 4l4-4" /></svg>;
+    default: return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>;
+  }
+}
+
 export function TokensListingSidebar({ }: TokensListingSidebarProps) {
   const [isHidden, setIsHidden] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(256);
@@ -165,21 +176,24 @@ export function TokensListingSidebar({ }: TokensListingSidebarProps) {
               <div className="space-y-1">
                 <Link
                   href="/hub"
-                  className="k-sidebar-item text-zinc-600 dark:text-zinc-400"
+                  className="k-sidebar-item text-zinc-600 dark:text-zinc-400 group"
                 >
-                  <span className="text-[11px] font-bold uppercase tracking-wider truncate">← Back to Hub</span>
+                  <TokenLinkIcon id="hub" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">Back to Hub</span>
                 </Link>
                 <Link
                   href="/dapps"
-                  className="k-sidebar-item text-zinc-600 dark:text-zinc-400"
+                  className="k-sidebar-item text-zinc-600 dark:text-zinc-400 group"
                 >
-                  <span className="text-[11px] font-bold uppercase tracking-wider truncate">Explore dApps</span>
+                  <TokenLinkIcon id="dapps" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">Explore dApps</span>
                 </Link>
                 <Link
                   href="/points"
-                  className="k-sidebar-item text-zinc-600 dark:text-zinc-400"
+                  className="k-sidebar-item text-zinc-600 dark:text-zinc-400 group"
                 >
-                  <span className="text-[11px] font-bold uppercase tracking-wider truncate">View Rewards</span>
+                  <TokenLinkIcon id="rewards" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">View Rewards</span>
                 </Link>
               </div>
             </div>

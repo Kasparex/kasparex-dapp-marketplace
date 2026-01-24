@@ -60,6 +60,20 @@ const CollapsibleSection = ({
   </div>
 );
 
+function RewardFilterIcon({ id, className = "" }: { id: string; className?: string }) {
+  const iconProps = { className: `k-sidebar-icon ${className}`, strokeWidth: 2, fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" };
+
+  switch (id) {
+    case 'unlockedPerks': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>;
+    case 'lockedPerks': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>;
+    case 'unlockedBadges': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>;
+    case 'lockedBadges': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>;
+    case 'nftPerks': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
+    case 'nodePerks': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" /></svg>;
+    default: return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>;
+  }
+}
+
 export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [perksExpanded, setPerksExpanded] = useState(true);
@@ -328,7 +342,8 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     className="sr-only"
                   />
                   <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${filters.unlockedPerks ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">
+                  <RewardFilterIcon id="unlockedPerks" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">
                     Unlocked Perks
                   </span>
                 </label>
@@ -342,7 +357,8 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     className="sr-only"
                   />
                   <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${filters.lockedPerks ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">
+                  <RewardFilterIcon id="lockedPerks" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">
                     Locked Perks
                   </span>
                 </label>
@@ -387,7 +403,8 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     className="sr-only"
                   />
                   <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${filters.unlockedBadges ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">
+                  <RewardFilterIcon id="unlockedBadges" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">
                     Unlocked Badges
                   </span>
                 </label>
@@ -401,7 +418,8 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     className="sr-only"
                   />
                   <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${filters.lockedBadges ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">
+                  <RewardFilterIcon id="lockedBadges" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">
                     Locked Badges
                   </span>
                 </label>
@@ -432,7 +450,8 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     className="sr-only"
                   />
                   <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${filters.nftPerks ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">
+                  <RewardFilterIcon id="nftPerks" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">
                     NFT Perks
                   </span>
                 </label>
@@ -446,7 +465,8 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     className="sr-only"
                   />
                   <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${filters.nodePerks ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">
+                  <RewardFilterIcon id="nodePerks" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">
                     Node Perks
                   </span>
                 </label>
