@@ -316,7 +316,7 @@
 
 /* Premium Sidebar Components */
 .k-sidebar-item {
-  @apply relative flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap;
+  @apply relative flex items-center gap-4 px-4 py-2.5 rounded-xl transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap;
 }
 
 .k-sidebar-item:hover {
@@ -328,11 +328,11 @@
 }
 
 .k-sidebar-emoji {
-  @apply text-lg flex-shrink-0 grayscale group-hover:grayscale-0 transition-all;
+  @apply text-xl flex-shrink-0 grayscale group-hover:grayscale-0 transition-all mr-1;
 }
 
 .k-sidebar-count {
-  @apply text-[10px] px-1.5 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 font-bold ml-auto flex-shrink-0 border border-zinc-200 dark:border-zinc-700/50;
+  @apply text-[10px] px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-900/50 text-zinc-500 dark:text-zinc-400 font-bold ml-auto flex-shrink-0 border border-zinc-200 dark:border-zinc-800 transition-colors group-hover:border-[#02abb8]/30;
 }
 
 /* Uniform Controls */

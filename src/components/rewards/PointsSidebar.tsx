@@ -64,7 +64,7 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [perksExpanded, setPerksExpanded] = useState(true);
   const [badgesExpanded, setBadgesExpanded] = useState(true);
-  
+
   // Sidebar hide/show and resize state
   const [isHidden, setIsHidden] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(256); // Default 256px (w-64)
@@ -223,7 +223,7 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           ${isHidden ? 'lg:translate-x-[-100%]' : ''}
         `}
-        style={{ 
+        style={{
           width: isHidden ? 0 : `${sidebarWidth}px`,
           minWidth: isHidden ? 0 : `${sidebarWidth}px`,
           maxWidth: isHidden ? 0 : `${sidebarWidth}px`,
@@ -285,7 +285,7 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
         <div className={`p-4 lg:p-6 ${isHidden ? 'lg:hidden' : ''}`}>
           {/* Unified Status Box (New) */}
           <UnifiedStatusBox />
-          
+
           {/* Individual Status Boxes (Legacy - can be removed later) */}
           <XPPointsBox />
           <KREXStatusBox />
@@ -319,44 +319,30 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
               </div>
               <nav className="space-y-1">
                 <label
-                  className={`
-                    checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
-                    transition-colors pl-8
-                    ${
-                      filters.unlockedPerks
-                        ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                        : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
-                    }
-                  `}
+                  className={`k-sidebar-item group ${filters.unlockedPerks ? 'k-sidebar-item-active' : ''}`}
                 >
                   <input
                     type="checkbox"
                     checked={filters.unlockedPerks}
                     onChange={() => handleFilterToggle('unlockedPerks')}
+                    className="sr-only"
                   />
-                  <div className="control__indicator"></div>
-                  <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">
+                  <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${filters.unlockedPerks ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">
                     Unlocked Perks
                   </span>
                 </label>
                 <label
-                  className={`
-                    checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
-                    transition-colors pl-8
-                    ${
-                      filters.lockedPerks
-                        ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                        : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
-                    }
-                  `}
+                  className={`k-sidebar-item group ${filters.lockedPerks ? 'k-sidebar-item-active' : ''}`}
                 >
                   <input
                     type="checkbox"
                     checked={filters.lockedPerks}
                     onChange={() => handleFilterToggle('lockedPerks')}
+                    className="sr-only"
                   />
-                  <div className="control__indicator"></div>
-                  <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">
+                  <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${filters.lockedPerks ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">
                     Locked Perks
                   </span>
                 </label>
@@ -392,44 +378,30 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
               </div>
               <nav className="space-y-1">
                 <label
-                  className={`
-                    checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
-                    transition-colors pl-8
-                    ${
-                      filters.unlockedBadges
-                        ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                        : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
-                    }
-                  `}
+                  className={`k-sidebar-item group ${filters.unlockedBadges ? 'k-sidebar-item-active' : ''}`}
                 >
                   <input
                     type="checkbox"
                     checked={filters.unlockedBadges}
                     onChange={() => handleFilterToggle('unlockedBadges')}
+                    className="sr-only"
                   />
-                  <div className="control__indicator"></div>
-                  <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">
+                  <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${filters.unlockedBadges ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">
                     Unlocked Badges
                   </span>
                 </label>
                 <label
-                  className={`
-                    checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
-                    transition-colors pl-8
-                    ${
-                      filters.lockedBadges
-                        ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                        : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
-                    }
-                  `}
+                  className={`k-sidebar-item group ${filters.lockedBadges ? 'k-sidebar-item-active' : ''}`}
                 >
                   <input
                     type="checkbox"
                     checked={filters.lockedBadges}
                     onChange={() => handleFilterToggle('lockedBadges')}
+                    className="sr-only"
                   />
-                  <div className="control__indicator"></div>
-                  <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">
+                  <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${filters.lockedBadges ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">
                     Locked Badges
                   </span>
                 </label>
@@ -446,49 +418,35 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
               </svg>
             }
             expanded={true}
-            onToggle={() => {}}
+            onToggle={() => { }}
           >
             <div className="mb-4">
               <nav className="space-y-1">
                 <label
-                  className={`
-                    checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
-                    transition-colors pl-8
-                    ${
-                      filters.nftPerks
-                        ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                        : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
-                    }
-                  `}
+                  className={`k-sidebar-item group ${filters.nftPerks ? 'k-sidebar-item-active' : ''}`}
                 >
                   <input
                     type="checkbox"
                     checked={filters.nftPerks}
                     onChange={() => handleFilterToggle('nftPerks')}
+                    className="sr-only"
                   />
-                  <div className="control__indicator"></div>
-                  <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">
+                  <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${filters.nftPerks ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">
                     NFT Perks
                   </span>
                 </label>
                 <label
-                  className={`
-                    checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
-                    transition-colors pl-8
-                    ${
-                      filters.nodePerks
-                        ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                        : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
-                    }
-                  `}
+                  className={`k-sidebar-item group ${filters.nodePerks ? 'k-sidebar-item-active' : ''}`}
                 >
                   <input
                     type="checkbox"
                     checked={filters.nodePerks}
                     onChange={() => handleFilterToggle('nodePerks')}
+                    className="sr-only"
                   />
-                  <div className="control__indicator"></div>
-                  <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">
+                  <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${filters.nodePerks ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">
                     Node Perks
                   </span>
                 </label>

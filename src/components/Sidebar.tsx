@@ -395,7 +395,7 @@ export function Sidebar({
                         />
                         <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
                         <span className="k-sidebar-emoji">{category.emoji}</span>
-                        <span className="text-sm font-medium transition-colors flex-1 truncate">{category.name}</span>
+                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{category.name}</span>
                         <span className="k-sidebar-count">
                           {count}
                         </span>
@@ -451,7 +451,7 @@ export function Sidebar({
                             className="flex-shrink-0"
                           />
                         )}
-                        <span className="text-sm font-medium transition-colors flex-1 truncate">{option.label}</span>
+                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{option.label}</span>
                       </label>
                     );
                   })}
@@ -510,7 +510,7 @@ export function Sidebar({
                             }}
                           />
                         )}
-                        <span className="text-sm font-medium transition-colors flex-1 truncate">{option.label}</span>
+                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{option.label}</span>
                       </label>
                     );
                   })}
@@ -548,39 +548,16 @@ export function Sidebar({
                     return (
                       <label
                         key={option.label}
-                        className={`
-                          checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
-                          transition-colors pl-8
-                          ${isChecked
-                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
-                          }
-                        `}
+                        className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}
                       >
                         <input
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => handleNetworkToggle(option.label)}
+                          className="sr-only"
                         />
-                        <div className="control__indicator"></div>
-                        {option.logo ? (
-                          <>
-                            <Image
-                              src={option.logo}
-                              alt={`${option.label} logo`}
-                              width={16}
-                              height={16}
-                              className="flex-shrink-0"
-                              onError={(e) => {
-                                // Hide logo if it doesn't exist
-                                (e.target as HTMLImageElement).style.display = 'none';
-                              }}
-                            />
-                            <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
-                          </>
-                        ) : (
-                          <span className="text-sm text-zinc-700 dark:text-zinc-300 flex-1">{option.label}</span>
-                        )}
+                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{option.label}</span>
                       </label>
                     );
                   })}

@@ -167,19 +167,19 @@ export function TokensListingSidebar({ }: TokensListingSidebarProps) {
                   href="/hub"
                   className="k-sidebar-item text-zinc-600 dark:text-zinc-400"
                 >
-                  <span className="truncate">← Back to Hub</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider truncate">← Back to Hub</span>
                 </Link>
                 <Link
                   href="/dapps"
                   className="k-sidebar-item text-zinc-600 dark:text-zinc-400"
                 >
-                  <span className="truncate">Explore dApps</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider truncate">Explore dApps</span>
                 </Link>
                 <Link
                   href="/points"
                   className="k-sidebar-item text-zinc-600 dark:text-zinc-400"
                 >
-                  <span className="truncate">View Rewards</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider truncate">View Rewards</span>
                 </Link>
               </div>
             </div>

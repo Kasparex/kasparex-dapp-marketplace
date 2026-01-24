@@ -313,26 +313,18 @@ export function GamesSidebar({
                     return (
                       <label
                         key={type}
-                        className={`
-                          checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
-                          transition-colors pl-8
-                          ${isChecked
-                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
-                          }
-                        `}
+                        className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}
                       >
                         <input
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => handleGameTypeToggle(type as GameType)}
+                          className="sr-only"
                         />
-                        <div className="control__indicator"></div>
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <span className="text-lg flex-shrink-0">{info.emoji}</span>
-                          <span className="text-sm text-zinc-700 dark:text-zinc-300">{info.name}</span>
-                        </div>
-                        <span className="text-xs px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex-shrink-0">
+                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                        <span className="k-sidebar-emoji">{info.emoji}</span>
+                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{info.name}</span>
+                        <span className="k-sidebar-count">
                           {count}
                         </span>
                       </label>
@@ -355,26 +347,18 @@ export function GamesSidebar({
                     return (
                       <label
                         key={difficulty}
-                        className={`
-                          checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
-                          transition-colors pl-8
-                          ${isChecked
-                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
-                          }
-                        `}
+                        className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}
                       >
                         <input
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => handleDifficultyToggle(difficulty as GameDifficulty)}
+                          className="sr-only"
                         />
-                        <div className="control__indicator"></div>
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <span className="text-lg flex-shrink-0">{DIFFICULTY_EMOJIS[difficulty as GameDifficulty]}</span>
-                          <span className="text-sm text-zinc-700 dark:text-zinc-300">{info.name}</span>
-                        </div>
-                        <span className="text-xs px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex-shrink-0">
+                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                        <span className="k-sidebar-emoji">{DIFFICULTY_EMOJIS[difficulty as GameDifficulty]}</span>
+                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{info.name}</span>
+                        <span className="k-sidebar-count">
                           {count}
                         </span>
                       </label>
@@ -397,28 +381,18 @@ export function GamesSidebar({
                     return (
                       <label
                         key={status}
-                        className={`
-                          checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
-                          transition-colors pl-8
-                          ${isChecked
-                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
-                          }
-                        `}
+                        className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}
                       >
                         <input
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => handleStatusToggle(status)}
+                          className="sr-only"
                         />
-                        <div className="control__indicator"></div>
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <span className="text-lg flex-shrink-0">{STATUS_EMOJIS[status]}</span>
-                          <span className="text-sm text-zinc-700 dark:text-zinc-300 capitalize">
-                            {status.replace('-', ' ')}
-                          </span>
-                        </div>
-                        <span className="text-xs px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex-shrink-0">
+                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                        <span className="k-sidebar-emoji">{STATUS_EMOJIS[status]}</span>
+                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{status.replace('-', ' ')}</span>
+                        <span className="k-sidebar-count">
                           {count}
                         </span>
                       </label>

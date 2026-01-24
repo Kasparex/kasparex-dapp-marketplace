@@ -316,26 +316,18 @@ export function StoreSidebar({
                     return (
                       <label
                         key={category}
-                        className={`
-                          checkbox-custom relative flex items-center gap-3 px-4 py-2 rounded-lg
-                          transition-colors pl-8
-                          ${isChecked
-                            ? 'bg-zinc-50 dark:bg-zinc-900/50'
-                            : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30'
-                          }
-                        `}
+                        className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}
                       >
                         <input
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => handleCategoryToggle(category)}
+                          className="sr-only"
                         />
-                        <div className="control__indicator"></div>
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <span className="text-lg flex-shrink-0">{CATEGORY_EMOJIS[category]}</span>
-                          <span className="text-sm text-zinc-700 dark:text-zinc-300">{category}</span>
-                        </div>
-                        <span className="text-xs px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex-shrink-0">
+                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                        <span className="k-sidebar-emoji">{CATEGORY_EMOJIS[category]}</span>
+                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{category}</span>
+                        <span className="k-sidebar-count">
                           {count}
                         </span>
                       </label>

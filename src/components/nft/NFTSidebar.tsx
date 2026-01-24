@@ -263,7 +263,7 @@ export function NFTSidebar({
                     : 'text-zinc-600 dark:text-zinc-400'
                   }`}
               >
-                <span className="truncate">{tab.label}</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider truncate">{tab.label}</span>
               </button>
             ))}
           </nav>

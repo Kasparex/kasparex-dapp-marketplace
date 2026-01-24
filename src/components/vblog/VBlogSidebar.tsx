@@ -236,7 +236,7 @@ export function VBlogSidebar({
                     : 'text-zinc-700 dark:text-zinc-300'
                   }`}
               >
-                <span className="truncate">All Categories</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider truncate">All Categories</span>
               </button>
               {categories.map((category) => (
                 <button
@@ -247,7 +247,7 @@ export function VBlogSidebar({
                       : 'text-zinc-700 dark:text-zinc-300'
                     }`}
                 >
-                  <span className="truncate">{category}</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider truncate">{category}</span>
                 </button>
               ))}
             </div>
@@ -265,8 +265,8 @@ export function VBlogSidebar({
                     key={tag}
                     onClick={() => onTagToggle(tag)}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${selectedTags.includes(tag)
-                        ? 'bg-[#02abb8] text-white'
-                        : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                      ? 'bg-[#02abb8] text-white'
+                      : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
                       }`}
                   >
                     #{tag}
