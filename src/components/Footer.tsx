@@ -9,7 +9,7 @@ export function Footer() {
           {/* About Section */}
           <div className="lg:col-span-4">
             <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-              Kasparex dApp Marketplace
+              Kasparex Hub
             </h3>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4 leading-relaxed">
               A tokenized utility ecosystem where each dApp has its own token. Earn rewards through real interaction with dApps, unlock multipliers with KREX and NFTs, and support the network with Krex Nodes.

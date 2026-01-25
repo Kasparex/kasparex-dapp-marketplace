@@ -342,7 +342,6 @@ export function Sidebar({
           }
         }}
       >
-          </div>
           <div className="k-search-container">
             <input
               type="text"
@@ -352,7 +351,7 @@ export function Sidebar({
               className="k-search-input !h-9"
             />
           </div>
-        </div>
+
 
         {/* Sidebar Content */}
         <div className={`p-4 ${isHidden ? 'lg:hidden' : ''}`}>
