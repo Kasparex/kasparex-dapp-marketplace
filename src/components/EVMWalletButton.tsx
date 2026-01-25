@@ -9,14 +9,16 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAccount, useBalance, useDisconnect } from 'wagmi';
+import { useAccount, useBalance, useDisconnect, useChainId } from 'wagmi';
 import { ConnectButton, useChainModal } from '@rainbow-me/rainbowkit';
 import { formatUnits } from 'viem';
 import { Avatar } from './Avatar';
 import { useBalanceVisibility, formatBalanceForDisplay } from '@/hooks/useBalanceVisibility';
+import { getChainById } from '@/lib/wagmi';
 
 export function EVMWalletButton() {
   const { address, isConnected } = useAccount();
+  const chainId = useChainId();
   const { disconnect } = useDisconnect();
   const { openChainModal } = useChainModal();
   const router = useRouter();
@@ -24,6 +26,28 @@ export function EVMWalletButton() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Get current network info
+  const chain = chainId ? getChainById(chainId) : null;
+  const isTestnet = chain?.testnet ?? false;
+  const isMainnet = !isTestnet;
+
+  // Determine dynamic network label and styling
+  let networkLabel = 'L2';
+  let networkBadgeColorClass = 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
+  
+  if (chain) {
+    const chainName = chain.name.toLowerCase();
+    if (chainName.includes('kasplex')) {
+      networkLabel = 'L2 Kasplex';
+      networkBadgeColorClass = isMainnet
+        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+        : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
+    } else if (chainName.includes('igra')) {
+      networkLabel = 'L2 Igra';
+      networkBadgeColorClass = 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
+    }
+  }
 
   const { data: balance } = useBalance({
     address: address,
@@ -108,10 +132,10 @@ export function EVMWalletButton() {
               e.stopPropagation();
               handleChangeNetwork();
             }}
-            className="px-2 py-1 text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors cursor-pointer"
+            className={`px-3 py-1.5 text-xs font-semibold rounded-[6px] hover:opacity-90 transition-opacity cursor-pointer ${networkBadgeColorClass}`}
             title="Click to change network"
           >
-            L2 Kasplex
+            {networkLabel}
           </button>
           
           {/* Avatar */}
