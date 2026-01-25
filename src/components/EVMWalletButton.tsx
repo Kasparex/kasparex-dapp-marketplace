@@ -133,7 +133,7 @@ export function EVMWalletButton() {
               e.stopPropagation();
               handleChangeNetwork();
             }}
-            className={`flex items-center gap-1 px-4 py-2.5 text-xs font-semibold rounded-[6px] hover:opacity-90 transition-opacity cursor-pointer shadow-sm ${networkBadgeColorClass}`}
+            className={`flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-[6px] hover:opacity-90 transition-opacity cursor-pointer shadow-sm ${networkBadgeColorClass}`}
             title="Click to change network"
           >
             <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">

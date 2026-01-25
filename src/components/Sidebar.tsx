@@ -342,17 +342,6 @@ export function Sidebar({
           }
         }}
       >
-          <div className="k-search-container">
-            <input
-              type="text"
-              placeholder="Search dApps..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="k-search-input !h-9"
-            />
-          </div>
-
-
         {/* Sidebar Content */}
         <div className={`p-4 ${isHidden ? 'lg:hidden' : ''}`}>
           {/* Collapsible Filters Group */}
