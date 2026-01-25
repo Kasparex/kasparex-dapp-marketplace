@@ -56,8 +56,8 @@ export function GamesSidebar({
   backLink = { href: '/hub', label: 'Go back to Hub' },
 }: GamesSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [difficultiesExpanded, setDifficultiesExpanded] = useState(true);
   const [statusExpanded, setStatusExpanded] = useState(true);
+  const [difficultiesExpanded, setDifficultiesExpanded] = useState(true);
   const [costExpanded, setCostExpanded] = useState(false);
 
   // Sidebar hide/show and resize state
