@@ -79,6 +79,9 @@ export function GameContent({ game }: GameContentProps) {
                     onSearchChange={(q) => { setSearchQuery(q); handleFilterChange(); }}
                     onResetFilters={() => { router.push('/games'); }}
                     backLink={{ href: '/games', label: 'Back to Games' }}
+                    showCategories={false}
+                    showGameInfo={true}
+                    game={game}
                 />
             </div>
 
@@ -99,11 +102,6 @@ export function GameContent({ game }: GameContentProps) {
                     <p className="text-lg text-zinc-600 dark:text-zinc-400">
                         {game.description}
                     </p>
-                </div>
-
-                {/* Game Info Panel */}
-                <div className="mb-6">
-                    <GameInfoPanel game={game} />
                 </div>
 
                 {/* Payment and Play Section */}

@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { GameType, GameDifficulty, GameStatus, gameTypes, difficultyLevels } from '@/lib/games/games';
+import { GameType, GameDifficulty, GameStatus, gameTypes, difficultyLevels, Game } from '@/lib/games/games';
+import { GameInfoPanel } from './GameInfoPanel';
 
 interface GamesSidebarProps {
   selectedGameTypes: GameType[];
@@ -20,6 +21,8 @@ interface GamesSidebarProps {
   onSearchChange: (query: string) => void;
   onResetFilters: () => void;
   showCategories?: boolean;
+  showGameInfo?: boolean;
+  game?: Game;
   backLink?: { href: string; label: string };
 }
 
@@ -53,6 +56,8 @@ export function GamesSidebar({
   onSearchChange,
   onResetFilters,
   showCategories = true,
+  showGameInfo = false,
+  game,
   backLink = { href: '/hub', label: 'Go back to Hub' },
 }: GamesSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -328,6 +333,15 @@ export function GamesSidebar({
 
         {/* Sidebar Content */}
         <div className="p-4">
+          {showGameInfo && game ? (
+            <>
+              {/* Game Info Panel */}
+              <div className="mb-4">
+                <GameInfoPanel game={game} />
+              </div>
+            </>
+          ) : null}
+
           {showCategories && (
             <>
               {/* Game Types Filter */}

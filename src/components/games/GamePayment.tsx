@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Game } from '@/lib/games/games';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
-import { kasToSompis } from '@/lib/kaspa/api';
+import { kasToSompis, isTransactionConfirmed } from '@/lib/kaspa/api';
 import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
 
 interface GamePaymentProps {
@@ -18,6 +18,7 @@ const GAME_TREASURY_ADDRESS = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '
 export function GamePayment({ game, onPaymentSuccess }: GamePaymentProps) {
   const { state, connect } = useKaspaWallet();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -70,6 +71,33 @@ export function GamePayment({ game, onPaymentSuccess }: GamePaymentProps) {
       }
 
       setTxHash(result.txHash);
+      setIsConfirming(true);
+      
+      // Poll for confirmation
+      let attempts = 0;
+      const maxAttempts = 30; // ~60 seconds
+      let confirmed = false;
+
+      while (attempts < maxAttempts) {
+        try {
+          const isConfirmed = await isTransactionConfirmed(result.txHash);
+          if (isConfirmed) {
+            confirmed = true;
+            break;
+          }
+        } catch (e) {
+          console.error('Error checking confirmation:', e);
+        }
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        attempts++;
+      }
+
+      setIsConfirming(false);
+
+      if (!confirmed) {
+        throw new Error('Transaction not confirmed in time. Please check your wallet.');
+      }
+
       setSuccess(true);
       if (onPaymentSuccess) {
         onPaymentSuccess();
@@ -199,6 +227,23 @@ export function GamePayment({ game, onPaymentSuccess }: GamePaymentProps) {
           </div>
         )}
 
+        {isConfirming && txHash && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <svg className="animate-spin h-4 w-4 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
+                Waiting for confirmation...
+              </p>
+            </div>
+            <p className="text-xs text-blue-700 dark:text-blue-400 break-all">
+              Tx: {txHash}
+            </p>
+          </div>
+        )}
+
         {success && txHash && (
           <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
             <p className="text-sm text-green-800 dark:text-green-300 mb-1">
@@ -221,7 +266,7 @@ export function GamePayment({ game, onPaymentSuccess }: GamePaymentProps) {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              Processing...
+              {isConfirming ? 'Confirming...' : 'Processing...'}
             </span>
           ) : success ? (
             'Payment Complete!'
