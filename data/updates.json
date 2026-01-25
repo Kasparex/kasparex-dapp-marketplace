@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769335014-f8303ea",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix sidebar count badges alignment and standardize styling across projects (by Kasparex)",
+      "date": "2026-01-25T10:56:10+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769290312-4783801",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Support featured images in DAppCard banner (by Kasparex)",
