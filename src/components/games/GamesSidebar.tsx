@@ -351,9 +351,10 @@ export function GamesSidebar({
                           onChange={() => handleGameTypeToggle(type as GameType)}
                           className="sr-only"
                         />
-                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                        <GameIcon id={type} />
-                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{info.name}</span>
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <GameIcon id={type} />
+                          <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">{info.name}</span>
+                        </div>
                         <span className="k-sidebar-count">
                           {count}
                         </span>
@@ -385,9 +386,10 @@ export function GamesSidebar({
                           onChange={() => handleDifficultyToggle(difficulty as GameDifficulty)}
                           className="sr-only"
                         />
-                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                        <GameIcon id={difficulty} type="difficulty" />
-                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{info.name}</span>
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <GameIcon id={difficulty} type="difficulty" />
+                          <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">{info.name}</span>
+                        </div>
                         <span className="k-sidebar-count">
                           {count}
                         </span>
@@ -419,9 +421,10 @@ export function GamesSidebar({
                           onChange={() => handleStatusToggle(status)}
                           className="sr-only"
                         />
-                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                        <GameIcon id={status} type="status" />
-                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{status.replace('-', ' ')}</span>
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <GameIcon id={status} type="status" />
+                          <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">{status.replace('-', ' ')}</span>
+                        </div>
                         <span className="k-sidebar-count">
                           {count}
                         </span>
