@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769384442-f7c3db3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: adjust badge padding to original size, add signal icons, remove duplicate search from sidebar (by Kasparex)",
+      "date": "2026-01-26T00:40:27+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769383929-d87585b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: revert wallet button size, make badges bigger with signal icons, match Reset Filters styling, hide search on game pages (by Kasparex)",
