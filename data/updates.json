@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769375780-4c340e8",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: refactor: move game info to sidebar and hide filters on game pages (by Kasparex)",
+      "date": "2026-01-25T22:15:38+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769364338-9550cf3",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Merge branch 'main' of https://github.com/Kasparex/kasparex-dapp-marketplace (by Kasparex)",
