@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769383929-d87585b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: revert wallet button size, make badges bigger with signal icons, match Reset Filters styling, hide search on game pages (by Kasparex)",
+      "date": "2026-01-26T00:31:53+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769383086-200156e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: refactor: enhance network badges with subtle border, shadow, and Kasplex testnet yellow styling (by Kasparex)",
