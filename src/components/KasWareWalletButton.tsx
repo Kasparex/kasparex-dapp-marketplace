@@ -160,8 +160,10 @@ export function KasWareWalletButton() {
           className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium"
           aria-label="KasWare Wallet"
         >
-          {/* Balance on left */}
-          <span className="text-zinc-900 dark:text-zinc-100">{displayBalance}</span>
+          {/* Network Badge on left */}
+          <span className="px-2 py-1 text-xs font-semibold bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 rounded">
+            L1 Kaspa
+          </span>
           
           {/* Avatar */}
           <Avatar address={addressWithoutPrefix} size={20} />
@@ -191,8 +193,17 @@ export function KasWareWalletButton() {
                   Connected
                 </span>
               </div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400 font-mono break-all">
+              <div className="text-xs text-zinc-500 dark:text-zinc-400 font-mono break-all mb-3">
                 {state.address}
+              </div>
+              
+              {/* Balance Display in Dropdown */}
+              <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-3 mb-3">
+                <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">KAS Balance</div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{displayBalance}</span>
+                  <span className="text-xs text-zinc-600 dark:text-zinc-400">KAS</span>
+                </div>
               </div>
             </div>
 

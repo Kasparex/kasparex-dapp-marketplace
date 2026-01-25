@@ -99,11 +99,20 @@ export function EVMWalletButton() {
       <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium relative"
           aria-label="EVM Wallet"
         >
-          {/* Balance on left */}
-          <span className="text-zinc-900 dark:text-zinc-100">{displayBalance}</span>
+          {/* Network Badge Button on left - clickable to change network */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleChangeNetwork();
+            }}
+            className="px-2 py-1 text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors cursor-pointer"
+            title="Click to change network"
+          >
+            L2 Kasplex
+          </button>
           
           {/* Avatar */}
           <Avatar address={address} size={20} />
@@ -130,9 +139,19 @@ export function EVMWalletButton() {
               <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
                 Connected Wallet
               </div>
-              <div className="text-sm font-mono text-zinc-900 dark:text-zinc-100 mb-2">
+              <div className="text-sm font-mono text-zinc-900 dark:text-zinc-100 mb-3">
                 {shortenedAddress}
               </div>
+              
+              {/* Balance Display in Dropdown */}
+              <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-2.5 mb-3">
+                <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">KAS Balance</div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{displayBalance}</span>
+                  <span className="text-xs text-zinc-600 dark:text-zinc-400">KAS</span>
+                </div>
+              </div>
+              
               <button
                 onClick={handleCopyAddress}
                 className="w-full px-3 py-1.5 text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors flex items-center justify-center gap-1.5"
