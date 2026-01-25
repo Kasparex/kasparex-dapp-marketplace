@@ -124,18 +124,21 @@ export function EVMWalletButton() {
       <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium relative"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium relative"
           aria-label="EVM Wallet"
         >
-          {/* Network Badge Button on left - clickable to change network */}
+          {/* Network Badge Button on left - clickable to change network - Bigger with signal icon */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               handleChangeNetwork();
             }}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-[6px] hover:opacity-90 transition-opacity cursor-pointer shadow-sm ${networkBadgeColorClass}`}
+            className={`flex items-center gap-1 px-4 py-2.5 text-xs font-semibold rounded-[6px] hover:opacity-90 transition-opacity cursor-pointer shadow-sm ${networkBadgeColorClass}`}
             title="Click to change network"
           >
+            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
+            </svg>
             {networkLabel}
           </button>
           
