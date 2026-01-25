@@ -7,6 +7,7 @@ import { GameInfoPanel } from '@/components/games/GameInfoPanel';
 import { RelatedGames } from '@/components/games/RelatedGames';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
 import { GamePayment } from '@/components/games/GamePayment';
+import { SnakeGame } from '@/components/games/snake/SnakeGame';
 import { placeholderGames, GameType, GameDifficulty, GameStatus, Game } from '@/lib/games/games';
 import { getGameTypeCounts, getDifficultyCounts, getStatusCounts, GameFilterState } from '@/lib/games/filtering';
 
@@ -23,6 +24,7 @@ export function GameContent({ game }: GameContentProps) {
     const [selectedStatuses, setSelectedStatuses] = useState<GameStatus[]>([]);
     const [costRange, setCostRange] = useState<{ min: number; max: number } | undefined>();
     const [searchQuery, setSearchQuery] = useState('');
+    const [hasPaid, setHasPaid] = useState(false);
 
     // Get counts for sidebar
     const gameTypeCounts = useMemo(() => {
@@ -106,7 +108,18 @@ export function GameContent({ game }: GameContentProps) {
 
                 {/* Payment and Play Section */}
                 <div className="mb-6">
-                    <GamePayment game={game} />
+                    {game.slug === 'kasparex-snake' && hasPaid ? (
+                        <SnakeGame game={game} />
+                    ) : (
+                        <GamePayment 
+                            game={game} 
+                            onPaymentSuccess={() => {
+                                if (game.slug === 'kasparex-snake') {
+                                    setTimeout(() => setHasPaid(true), 2000);
+                                }
+                            }}
+                        />
+                    )}
                 </div>
 
                 {/* Game Embed Area */}

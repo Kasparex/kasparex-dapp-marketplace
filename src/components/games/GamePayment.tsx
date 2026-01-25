@@ -9,12 +9,13 @@ import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
 
 interface GamePaymentProps {
   game: Game;
+  onPaymentSuccess?: () => void;
 }
 
 // Treasury address for game entry fees (this should be configurable)
 const GAME_TREASURY_ADDRESS = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '';
 
-export function GamePayment({ game }: GamePaymentProps) {
+export function GamePayment({ game, onPaymentSuccess }: GamePaymentProps) {
   const { state, connect } = useKaspaWallet();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +71,9 @@ export function GamePayment({ game }: GamePaymentProps) {
 
       setTxHash(result.txHash);
       setSuccess(true);
+      if (onPaymentSuccess) {
+        onPaymentSuccess();
+      }
 
       // Record reward transaction
       try {
