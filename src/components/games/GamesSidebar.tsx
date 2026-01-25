@@ -338,7 +338,7 @@ export function GamesSidebar({
                 expanded={gameTypesExpanded}
                 onToggle={() => setGameTypesExpanded(!gameTypesExpanded)}
               >
-                <div className="space-y-1 pl-2">
+                <div className="space-y-1">
                   {Object.entries(gameTypes).map(([type, info]) => {
                     const isChecked = selectedGameTypes.includes(type as GameType);
                     const count = gameTypeCounts[type as GameType] || 0;
@@ -372,7 +372,7 @@ export function GamesSidebar({
                 expanded={difficultiesExpanded}
                 onToggle={() => setDifficultiesExpanded(!difficultiesExpanded)}
               >
-                <div className="space-y-1 pl-2">
+                <div className="space-y-1">
                   {Object.entries(difficultyLevels).map(([difficulty, info]) => {
                     const isChecked = selectedDifficulties.includes(difficulty as GameDifficulty);
                     const count = difficultyCounts[difficulty as GameDifficulty] || 0;
@@ -406,7 +406,7 @@ export function GamesSidebar({
                 expanded={statusExpanded}
                 onToggle={() => setStatusExpanded(!statusExpanded)}
               >
-                <div className="space-y-1 pl-2">
+                <div className="space-y-1">
                   {(['beta', 'active', 'coming-soon', 'maintenance'] as GameStatus[]).map((status) => {
                     const isChecked = selectedStatuses.includes(status);
                     const count = statusCounts[status] || 0;

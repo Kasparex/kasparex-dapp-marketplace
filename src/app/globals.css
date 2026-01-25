@@ -316,7 +316,7 @@
 
 /* Premium Sidebar Components */
 .k-sidebar-item {
-  @apply relative flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap;
+  @apply w-full relative flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap;
   gap: 1rem;
   /* Uniform 16px gap */
 }

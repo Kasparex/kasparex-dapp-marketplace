@@ -342,36 +342,26 @@ export function Sidebar({
           }
         }}
       >
-        {/* Header with Hide Button and Search */}
-        <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
-          <div className="flex items-center justify-between mb-4">
-            <Link
-              href="/hub"
-              className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium transition-colors text-sm flex items-center gap-1"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Go back to Hub
-            </Link>
-            <button
-              onClick={() => setIsHidden(true)}
-              className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
-              aria-label="Hide sidebar"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
           </div>
+          <div className="k-search-container">
+            <input
+              type="text"
+              placeholder="Search dApps..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="k-search-input !h-9"
+            />
+          </div>
+        </div>
 
-
+        {/* Sidebar Content */}
+        <div className={`p-4 ${isHidden ? 'lg:hidden' : ''}`}>
           {/* Collapsible Filters Group */}
           <CollapsibleSection
             title="Filters"
             expanded={filtersExpanded}
             onToggle={() => setFiltersExpanded(!filtersExpanded)}
-            className={filtersExpanded ? "mb-4" : "mb-0"}
+            className={filtersExpanded ? "mb-6" : "mb-4"}
           >
             {/* Categories Filter */}
             <CollapsibleSection
@@ -592,10 +582,6 @@ export function Sidebar({
               </div>
             </CollapsibleSection>
           </CollapsibleSection>
-        </div>
-
-        {/* Sidebar Content */}
-        <div className={`p-4 ${isHidden ? 'lg:hidden' : ''}`}>
 
           {/* Quick Guide Button */}
           <div className="mb-6">
