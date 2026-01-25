@@ -161,7 +161,7 @@ export function KasWareWalletButton() {
           aria-label="KasWare Wallet"
         >
           {/* Network Badge on left */}
-          <span className="px-2.5 py-1 text-xs font-semibold bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 rounded-[6px]">
+          <span className="px-3 py-1.5 text-xs font-semibold bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 rounded-[6px] border border-cyan-300/50 dark:border-cyan-600/40 shadow-sm">
             L1 Kaspa
           </span>
           

@@ -34,18 +34,19 @@ export function EVMWalletButton() {
 
   // Determine dynamic network label and styling
   let networkLabel = 'L2';
-  let networkBadgeColorClass = 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
+  let networkBadgeColorClass = 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-300/50 dark:border-blue-600/40';
   
   if (chain) {
     const chainName = chain.name.toLowerCase();
     if (chainName.includes('kasplex')) {
       networkLabel = 'L2 Kasplex';
+      // Kasplex is yellow on testnet, blue on mainnet
       networkBadgeColorClass = isMainnet
-        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-        : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
+        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-300/50 dark:border-blue-600/40'
+        : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border border-yellow-300/50 dark:border-yellow-600/40';
     } else if (chainName.includes('igra')) {
       networkLabel = 'L2 Igra';
-      networkBadgeColorClass = 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
+      networkBadgeColorClass = 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border border-yellow-300/50 dark:border-yellow-600/40';
     }
   }
 
@@ -132,7 +133,7 @@ export function EVMWalletButton() {
               e.stopPropagation();
               handleChangeNetwork();
             }}
-            className={`px-2.5 py-1 text-xs font-semibold rounded-[6px] hover:opacity-90 transition-opacity cursor-pointer ${networkBadgeColorClass}`}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-[6px] hover:opacity-90 transition-opacity cursor-pointer shadow-sm ${networkBadgeColorClass}`}
             title="Click to change network"
           >
             {networkLabel}
