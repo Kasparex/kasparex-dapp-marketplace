@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769383086-200156e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: refactor: enhance network badges with subtle border, shadow, and Kasplex testnet yellow styling (by Kasparex)",
+      "date": "2026-01-26T00:17:48+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769382483-eada4bd",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: refactor: adjust network badge padding to be slightly bigger without affecting button size (by Kasparex)",
