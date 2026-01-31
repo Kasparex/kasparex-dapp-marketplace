@@ -52,11 +52,11 @@ export function VBlogSortFilters({ sortBy, onSortChange, onAddArticle }: VBlogSo
             <div className="relative">
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="w-full flex items-center justify-between px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors shadow-sm"
+                    className="k-control-btn w-full"
                 >
-                    <span>{currentLabel}</span>
+                    <span className="truncate">{currentLabel}</span>
                     <svg
-                        className="w-4 h-4 ml-2"
+                        className="w-4 h-4 ml-auto"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -79,9 +79,9 @@ export function VBlogSortFilters({ sortBy, onSortChange, onAddArticle }: VBlogSo
                                         onSortChange(option.value);
                                         setIsOpen(false);
                                     }}
-                                    className={`w-full text-left px-4 py-2 text-sm transition-colors ${sortBy === option.value
-                                        ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium'
-                                        : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${sortBy === option.value
+                                        ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
+                                        : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
                                         }`}
                                 >
                                     {option.label}

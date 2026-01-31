@@ -141,8 +141,8 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
                     setIsOpen(false);
                   }}
                   className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${sortBy === option.value
-                    ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium'
-                    : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                    ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
+                    : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
                     }`}
                 >
                   {option.label}
