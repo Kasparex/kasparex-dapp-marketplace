@@ -252,7 +252,7 @@ export function KnowledgeBaseSidebar({
                       <span className="k-sidebar-icon text-zinc-600 dark:text-zinc-400">
                         {icon}
                       </span>
-                      <span className="truncate">{category.label}</span>
+                      <span className="truncate">{category.name}</span>
                     </div>
                   </button>
                 );
