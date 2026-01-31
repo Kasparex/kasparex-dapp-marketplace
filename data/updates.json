@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769878780-aa71088",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix(style-guide): use k-sidebar-item for sidebar nav (by Kasparex)",
+      "date": "2026-01-31T17:59:25+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769877656-e8bc0dc",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: style(sidebar): unify hover — icon turquoise & text white globally (by Kasparex)",
