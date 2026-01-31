@@ -325,6 +325,8 @@
 
 .k-sidebar-item:hover {
   @apply bg-zinc-100/80 dark:bg-zinc-800/50;
+  /* On hover, make the text inside the capsule fully white (matching Games) */
+  color: #ffffff;
 }
 
 .k-sidebar-item-active {
@@ -332,7 +334,7 @@
 }
 
 .k-sidebar-icon {
-  @apply w-4 h-4 flex-shrink-0 text-zinc-500 dark:text-zinc-400 transition-colors group-hover:text-[#02abb8];
+  @apply w-4 h-4 flex-shrink-0 text-zinc-500 dark:text-zinc-400 transition-colors;
 }
 
 .k-sidebar-emoji {
@@ -345,6 +347,11 @@
   right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
+}
+
+/* Icon color on hover: turquoise */
+.k-sidebar-item:hover .k-sidebar-icon {
+  color: #02abb8;
 }
 
 /* Uniform Controls */
