@@ -1463,20 +1463,22 @@ export default function StyleGuidePage() {
                 {categories.map((category) => (
                   <button
                     key={category.id}
-                  onClick={() => {
-                    setSelectedCategory(category.id);
-                    setSelectedElement(null);
-                  }}
-                  className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors flex items-center gap-2 ${
+                    onClick={() => {
+                      setSelectedCategory(category.id);
+                      setSelectedElement(null);
+                    }}
+                    className={`k-sidebar-item ${
                       selectedCategory === category.id
-                        ? 'bg-[#02abb8]/10 text-[#02abb8] font-medium'
+                        ? 'k-sidebar-item-active font-medium'
                         : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
                     }`}
                   >
-                  <span className="flex-shrink-0 text-zinc-600 dark:text-zinc-400">
-                    {category.icon}
-                  </span>
-                  <span>{category.label}</span>
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="k-sidebar-icon text-zinc-600 dark:text-zinc-400">
+                        {category.icon}
+                      </span>
+                      <span className="truncate">{category.label}</span>
+                    </div>
                   </button>
                 ))}
               </nav>
