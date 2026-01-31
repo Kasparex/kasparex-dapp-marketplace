@@ -230,7 +230,7 @@ export function Sidebar({
       >
         <div className="flex items-center gap-2">
           {icon && (
-            <span className="text-zinc-700 dark:text-white opacity-80">{icon}</span>
+            <span className="k-sidebar-icon opacity-80">{icon}</span>
           )}
           <span>{title}</span>
         </div>
@@ -420,11 +420,12 @@ export function Sidebar({
                               : [...selectedCategories, category.id];
                             onCategoryChange(newCategories);
                           }}
-                          className="sr-only" // Hide native checkbox for premium look
+                          className="sr-only"
                         />
-                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                        <CategoryIcon id={category.id} />
-                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{category.name}</span>
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <CategoryIcon id={category.id} />
+                          <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">{category.name}</span>
+                        </div>
                         <span className="k-sidebar-count">
                           {count}
                         </span>
@@ -472,15 +473,16 @@ export function Sidebar({
                           onChange={() => handleStatusToggle(option.value)}
                           className="sr-only"
                         />
-                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                        {option.value !== 'all' && (
-                          <StatusIndicatorDot
-                            statusType={getStatusTypeFromString(option.value)}
-                            size="sm"
-                            className="flex-shrink-0"
-                          />
-                        )}
-                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{option.label}</span>
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          {option.value !== 'all' && (
+                            <StatusIndicatorDot
+                              statusType={getStatusTypeFromString(option.value)}
+                              size="sm"
+                              className="flex-shrink-0"
+                            />
+                          )}
+                          <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">{option.label}</span>
+                        </div>
                       </label>
                     );
                   })}
@@ -526,20 +528,21 @@ export function Sidebar({
                           onChange={() => handleDeveloperToggle(option.label)}
                           className="sr-only"
                         />
-                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                        {option.logo && (
-                          <Image
-                            src={option.logo}
-                            alt={`${option.label} logo`}
-                            width={16}
-                            height={16}
-                            className="flex-shrink-0 grayscale group-hover:grayscale-0 transition-all opacity-70 group-hover:opacity-100"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                          />
-                        )}
-                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{option.label}</span>
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          {option.logo && (
+                            <Image
+                              src={option.logo}
+                              alt={`${option.label} logo`}
+                              width={16}
+                              height={16}
+                              className="flex-shrink-0 grayscale group-hover:grayscale-0 transition-all opacity-70 group-hover:opacity-100"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          )}
+                          <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">{option.label}</span>
+                        </div>
                       </label>
                     );
                   })}
@@ -585,8 +588,9 @@ export function Sidebar({
                           onChange={() => handleNetworkToggle(option.label)}
                           className="sr-only"
                         />
-                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{option.label}</span>
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">{option.label}</span>
+                        </div>
                       </label>
                     );
                   })}
