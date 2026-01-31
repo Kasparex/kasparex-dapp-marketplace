@@ -213,9 +213,11 @@ export function RewardsDashboardSidebar({
                 <button
                   key={type.id}
                   onClick={() => scrollToSection(type.id)}
-                  className="w-full text-left px-3 py-2 text-sm rounded-lg transition-colors text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100"
+                  className="k-sidebar-item"
                 >
-                  {type.label}
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span className="truncate">{type.label}</span>
+                  </div>
                 </button>
               ))}
             </nav>
