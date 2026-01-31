@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769863167-b5ffba8",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix(sidebar): anchor count badges; add Vercel deploy workflow & script (by Kasparex)",
+      "date": "2026-01-31T13:39:09+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769384977-5b506fa",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: reduce wallet button sizes to match header buttons, add Back link and Hide/Show button to sidebar (by Kasparex)",
