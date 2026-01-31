@@ -179,13 +179,15 @@ export function KnowledgeBaseSidebar({
             <div className="mb-4">
               <button
                 onClick={() => onCategoryChange('all')}
-                className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${
+                className={`k-sidebar-item ${
                   selectedCategory === 'all'
-                    ? 'bg-[#02abb8]/10 text-[#02abb8] font-medium'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
+                    ? 'k-sidebar-item-active'
+                    : ''
                 }`}
               >
-                All Articles
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="truncate">All Articles</span>
+                </div>
               </button>
             </div>
 
@@ -240,16 +242,18 @@ export function KnowledgeBaseSidebar({
                   <button
                     key={category.id}
                     onClick={() => onCategoryChange(category.id)}
-                    className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors flex items-center gap-2 ${
+                    className={`k-sidebar-item ${
                       selectedCategory === category.id
-                        ? 'bg-[#02abb8]/10 text-[#02abb8] font-medium'
-                        : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
+                        ? 'k-sidebar-item-active'
+                        : ''
                     }`}
                   >
-                    <span className="flex-shrink-0 text-zinc-600 dark:text-zinc-400">
-                      {icon}
-                    </span>
-                    <span>{category.name}</span>
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="k-sidebar-icon text-zinc-600 dark:text-zinc-400">
+                        {icon}
+                      </span>
+                      <span className="truncate">{category.label}</span>
+                    </div>
                   </button>
                 );
               })}
