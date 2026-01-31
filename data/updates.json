@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769879544-e19e05a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: style(menus): unify sorting/filter dropdowns to k-control styling with turquoise hover (by Kasparex)",
+      "date": "2026-01-31T18:12:08+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769878780-aa71088",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix(style-guide): use k-sidebar-item for sidebar nav (by Kasparex)",
