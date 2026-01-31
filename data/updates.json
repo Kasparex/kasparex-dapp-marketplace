@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769863838-2c55acf",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: refactor(sidebar): align dApp sidebar styling with Games sidebar - remove control__indicator, restructure filter items for consistent padding and badge alignment (by Kasparex)",
+      "date": "2026-01-31T13:50:20+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769863167-b5ffba8",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix(sidebar): anchor count badges; add Vercel deploy workflow & script (by Kasparex)",
