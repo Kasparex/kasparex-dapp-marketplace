@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769880298-691485e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: style(menus): update RewardsDashboard sidebar menu to use k-sidebar-item (by Kasparex)",
+      "date": "2026-01-31T18:24:41+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769880262-534d46c",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: style(menus): update KnowledgeBase sidebar and header dropdown with unified k-sidebar-item styling (by Kasparex)",
