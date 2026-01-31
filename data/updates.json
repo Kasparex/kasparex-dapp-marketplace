@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769868958-c4837ed",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: refactor: make Game Type collapsible in Games sidebar; apply k-sidebar styling to header project dropdown menu (by Kasparex)",
+      "date": "2026-01-31T15:15:37+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769863838-2c55acf",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: refactor(sidebar): align dApp sidebar styling with Games sidebar - remove control__indicator, restructure filter items for consistent padding and badge alignment (by Kasparex)",
