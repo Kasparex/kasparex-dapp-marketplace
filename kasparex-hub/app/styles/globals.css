@@ -337,6 +337,8 @@ a {
   @apply w-full relative flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap;
   gap: 1rem;
   /* Uniform 16px gap */
+  /* Reserve right padding so absolute-positioned count sits inside capsule */
+  padding-right: 3rem;
 }
 
 .k-sidebar-item:hover {
@@ -357,6 +359,10 @@ a {
 
 .k-sidebar-count {
   @apply ml-auto text-[10px] px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-900/50 text-zinc-500 dark:text-zinc-400 font-bold flex-shrink-0 border border-zinc-200 dark:border-zinc-800 transition-colors group-hover:border-[#02abb8]/30;
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 /* Uniform Controls */
