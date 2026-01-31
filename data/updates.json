@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769882986-ded17c3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix(knowledge-base): use category.name instead of label (by Kasparex)",
+      "date": "2026-01-31T19:09:22+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769880298-691485e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: style(menus): update RewardsDashboard sidebar menu to use k-sidebar-item (by Kasparex)",
