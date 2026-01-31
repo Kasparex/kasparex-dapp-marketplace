@@ -61,6 +61,7 @@ export function GamesSidebar({
   backLink = { href: '/hub', label: 'Go back to Hub' },
 }: GamesSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [gameTypesExpanded, setGameTypesExpanded] = useState(true);
   const [statusExpanded, setStatusExpanded] = useState(true);
   const [difficultiesExpanded, setDifficultiesExpanded] = useState(true);
   const [costExpanded, setCostExpanded] = useState(false);
@@ -347,11 +348,12 @@ export function GamesSidebar({
           {showCategories && (
             <>
               {/* Game Types Filter */}
-              <div className="mb-4">
-                <div className="flex items-center gap-2 text-sm font-semibold text-zinc-700 dark:text-white opacity-80 uppercase tracking-wider mb-2">
-                  <span className="k-sidebar-icon opacity-80">🎮</span>
-                  <span>Game Type</span>
-                </div>
+              <CollapsibleSection
+                title="Game Type"
+                icon="🎮"
+                expanded={gameTypesExpanded}
+                onToggle={() => setGameTypesExpanded(!gameTypesExpanded)}
+              >
                 <div className="space-y-1">
                   {Object.entries(gameTypes).map(([type, info]) => {
                     const isChecked = selectedGameTypes.includes(type as GameType);
@@ -378,7 +380,7 @@ export function GamesSidebar({
                     );
                   })}
                 </div>
-              </div>
+              </CollapsibleSection>
 
               {/* Difficulty Filter */}
               <CollapsibleSection
