@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1769877656-e8bc0dc",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: style(sidebar): unify hover — icon turquoise & text white globally (by Kasparex)",
+      "date": "2026-01-31T17:40:41+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1769868958-c4837ed",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: refactor: make Game Type collapsible in Games sidebar; apply k-sidebar styling to header project dropdown menu (by Kasparex)",
