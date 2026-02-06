@@ -55,8 +55,8 @@ export const hubProjects: HubProject[] = [
     name: 'Kasparex Magazines',
     category: 'Publishing',
     description: 'Digital magazines and curated issues from creators and the community. Discover curated content and stories.',
-    route: '/hub/coming-soon',
-    status: 'coming-soon',
+    route: '/magazines',
+    status: 'beta',
   },
   {
     id: 'kasparex-movies',
