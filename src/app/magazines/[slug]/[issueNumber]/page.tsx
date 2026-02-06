@@ -9,6 +9,10 @@ import { Footer } from '@/components/Footer';
 import { getMagazineBySlug, getIssuesForMagazine, markIssueAsPurchased } from '@/lib/magazines/data';
 import { Magazine, MagazineIssue } from '@/lib/magazines/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useNFTStatus } from '@/hooks/useNFTStatus';
+import { KREX_TIERS, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION } from '@/lib/rewards/types';
+import { MagazineDashboardButton } from '@/components/magazines/MagazineDashboardButton';
 
 export default function IssueDetailPage() {
     const { slug, issueNumber } = useParams();
@@ -18,6 +22,35 @@ export default function IssueDetailPage() {
     const [issue, setIssue] = useState<MagazineIssue | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isProcessing, setIsProcessing] = useState(false);
+
+    // Rewards Hooks
+    const { balance: krexBalance, tier: krexTier } = useKREXBalance();
+    const { nftStatus } = useNFTStatus();
+
+    // Calculate discount
+    const discountInfo = (() => {
+        let totalDiscount = 0;
+        const tierConfig = KREX_TIERS[krexTier];
+
+        if (krexBalance > 0) {
+            totalDiscount += tierConfig.costReduction;
+        }
+
+        if (nftStatus?.hasRarestNFT) {
+            totalDiscount += RAREST_NFT_COST_REDUCTION;
+        } else if (nftStatus?.hasDiamondKREXPRIME || nftStatus?.hasDiamondPIXELKREX) {
+            totalDiscount += DIAMOND_NFT_COST_REDUCTION;
+        } else if (nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX) {
+            totalDiscount += NFT_COST_REDUCTION;
+        }
+
+        return {
+            percent: Math.min(50, totalDiscount),
+            hasRewards: totalDiscount > 0
+        };
+    })();
+
+    const finalPrice = issue ? (issue.priceKAS * (1 - discountInfo.percent / 100)).toFixed(2) : '0';
 
     useEffect(() => {
         if (!slug || !issueNumber) return;
@@ -77,16 +110,19 @@ export default function IssueDetailPage() {
 
             <main className="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-12">
                 {/* Breadcrumbs */}
-                <nav className="flex items-center gap-2 text-sm text-zinc-500 mb-8 font-medium">
-                    <Link href="/magazines" className="hover:text-cyan-500 transition-colors">Magazines</Link>
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                    <Link href={`/magazines/${magazine.slug}`} className="hover:text-cyan-500 transition-colors">{magazine.name}</Link>
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                    <span className="text-zinc-900 dark:text-zinc-100">Issue #{issue.issueNumber}</span>
+                <nav className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-2 text-sm text-zinc-500 font-medium">
+                        <Link href="/magazines" className="hover:text-cyan-500 transition-colors">Magazines</Link>
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                        <Link href={`/magazines/${magazine.slug}`} className="hover:text-cyan-500 transition-colors">{magazine.name}</Link>
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                        <span className="text-zinc-900 dark:text-zinc-100">Issue #{issue.issueNumber}</span>
+                    </div>
+                    <MagazineDashboardButton variant="breadcrumb" />
                 </nav>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 mb-16">
@@ -139,9 +175,24 @@ export default function IssueDetailPage() {
                             <div className="flex items-center justify-between mb-6">
                                 <div>
                                     <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold mb-1">Purchase Access</div>
-                                    <div className="text-3xl font-black text-zinc-900 dark:text-zinc-100">
-                                        {issue.priceKAS} <span className="text-sm text-zinc-500 font-bold uppercase tracking-wider">KAS</span>
+                                    <div className="flex items-baseline gap-2">
+                                        <div className="text-3xl font-black text-zinc-900 dark:text-zinc-100">
+                                            {discountInfo.hasRewards ? finalPrice : issue.priceKAS} <span className="text-sm text-zinc-500 font-bold uppercase tracking-wider">KAS</span>
+                                        </div>
+                                        {discountInfo.hasRewards && (
+                                            <div className="text-sm text-zinc-400 line-through font-bold">
+                                                {issue.priceKAS} KAS
+                                            </div>
+                                        )}
                                     </div>
+                                    {discountInfo.hasRewards && (
+                                        <div className="mt-1 text-xs font-bold text-emerald-500 flex items-center gap-1">
+                                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clipRule="evenodd" />
+                                            </svg>
+                                            {discountInfo.percent}% Reward Discount Applied
+                                        </div>
+                                    )}
                                 </div>
                                 {!issue.isPurchased && (
                                     <div className="text-right">
@@ -155,8 +206,8 @@ export default function IssueDetailPage() {
                                 onClick={handlePurchase}
                                 disabled={issue.isPurchased || isProcessing}
                                 className={`w-full py-4 rounded-xl font-black text-lg shadow-xl transition-all flex items-center justify-center gap-3 ${issue.isPurchased
-                                        ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-default'
-                                        : 'bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-600 hover:to-emerald-600 text-white shadow-cyan-500/20'
+                                    ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-default'
+                                    : 'bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-600 hover:to-emerald-600 text-white shadow-cyan-500/20'
                                     }`}
                             >
                                 {isProcessing ? (

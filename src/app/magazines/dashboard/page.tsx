@@ -9,6 +9,10 @@ import { Magazine, MagazineIssue } from '@/lib/magazines/types';
 import { MagazineCard } from '@/components/magazines/MagazineCard';
 import { MagazineIssueCard } from '@/components/magazines/MagazineIssueCard';
 import Link from 'next/link';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useNFTStatus } from '@/hooks/useNFTStatus';
+import { KREX_TIERS, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION } from '@/lib/rewards/types';
+import { TierBadge } from '@/components/rewards/TierBadge';
 
 export default function MagazinesDashboardPage() {
     const { state: walletState } = useKaspaWallet();
@@ -49,6 +53,31 @@ export default function MagazinesDashboardPage() {
         // In a real app, this would come from on-chain indexer
         return myMagazines.length * 450;
     }, [myMagazines]);
+
+    const { balance: krexBalance, tier: krexTier } = useKREXBalance();
+    const { nftStatus } = useNFTStatus();
+
+    const discountInfo = (() => {
+        let totalDiscount = 0;
+        const tierConfig = KREX_TIERS[krexTier];
+
+        if (krexBalance > 0) {
+            totalDiscount += tierConfig.costReduction;
+        }
+
+        if (nftStatus?.hasRarestNFT) {
+            totalDiscount += RAREST_NFT_COST_REDUCTION;
+        } else if (nftStatus?.hasDiamondKREXPRIME || nftStatus?.hasDiamondPIXELKREX) {
+            totalDiscount += DIAMOND_NFT_COST_REDUCTION;
+        } else if (nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX) {
+            totalDiscount += NFT_COST_REDUCTION;
+        }
+
+        return {
+            percent: Math.min(50, totalDiscount),
+            hasRewards: totalDiscount > 0
+        };
+    })();
 
     if (!walletState.isConnected) {
         return (
@@ -114,6 +143,34 @@ export default function MagazinesDashboardPage() {
                     >
                         Revenue & Splits
                     </button>
+                </div>
+
+                {/* Rewards Status Card */}
+                <div className="bg-gradient-to-br from-zinc-900 to-black text-white rounded-3xl p-8 mb-12 border border-zinc-800 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 blur-3xl rounded-full translate-x-12 -translate-y-12"></div>
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                        <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-4">
+                                <h2 className="text-xl font-black">My Rewards & Benefits</h2>
+                                <TierBadge tier={krexTier} isUnlocked={krexBalance > 0} />
+                            </div>
+                            <p className="text-zinc-400 text-sm max-w-md">
+                                Your KREX holdings and NFT ownership unlock exclusive discounts and perks across the Kasparex Magazines platform.
+                            </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 sm:gap-8">
+                            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                                <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Magazine Discount</div>
+                                <div className="text-2xl font-black text-emerald-400">{discountInfo.percent}% OFF</div>
+                            </div>
+                            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                                <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Active Assets</div>
+                                <div className="text-2xl font-black text-cyan-400">
+                                    {(nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX) ? 'NFT Enabled' : '0 NFTs'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {isLoading ? (

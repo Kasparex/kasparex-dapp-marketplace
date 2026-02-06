@@ -9,6 +9,7 @@ import { Footer } from '@/components/Footer';
 import { getMagazineBySlug, getIssuesForMagazine } from '@/lib/magazines/data';
 import { Magazine, MagazineIssue } from '@/lib/magazines/types';
 import { MagazineIssueCard } from '@/components/magazines/MagazineIssueCard';
+import { MagazineDashboardButton } from '@/components/magazines/MagazineDashboardButton';
 
 export default function MagazineDetailPage() {
     const { slug } = useParams();
@@ -50,12 +51,15 @@ export default function MagazineDetailPage() {
 
             <main className="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-12">
                 {/* Breadcrumbs */}
-                <nav className="flex items-center gap-2 text-sm text-zinc-500 mb-8 font-medium">
-                    <Link href="/magazines" className="hover:text-cyan-500 transition-colors">Magazines</Link>
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                    <span className="text-zinc-900 dark:text-zinc-100">{magazine.name}</span>
+                <nav className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-2 text-sm text-zinc-500 font-medium">
+                        <Link href="/magazines" className="hover:text-cyan-500 transition-colors">Magazines</Link>
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                        <span className="text-zinc-900 dark:text-zinc-100">{magazine.name}</span>
+                    </div>
+                    <MagazineDashboardButton variant="breadcrumb" />
                 </nav>
 
                 {/* Magazine Info Header */}

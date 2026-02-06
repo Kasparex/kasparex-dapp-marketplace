@@ -1,5 +1,7 @@
 'use client';
 
+import { MagazineDashboardButton } from './MagazineDashboardButton';
+
 export function MagazineHeader() {
     return (
         <div className="relative mb-12 py-12 px-6 rounded-3xl overflow-hidden bg-zinc-950">
@@ -21,9 +23,13 @@ export function MagazineHeader() {
                     Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">Magazines</span>
                 </h1>
 
-                <p className="text-lg text-zinc-400 max-w-2xl leading-relaxed">
+                <p className="text-lg text-zinc-400 max-w-2xl leading-relaxed mb-8">
                     The hub for digital publications within the Kaspa ecosystem. High-quality magazines, technical deep dives, and community-driven content, all powered by KAS.
                 </p>
+
+                <div className="flex flex-wrap gap-4">
+                    <MagazineDashboardButton variant="header" />
+                </div>
             </div>
 
             <div className="absolute right-0 bottom-0 top-0 w-1/3 hidden lg:flex items-center justify-center opacity-40">
