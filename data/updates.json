@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1770385482-9a1f071",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat: implement Kasparex Magazines with editor and payment flow (by Kasparex)",
+      "date": "2026-02-06T14:44:22+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1770382497-664eef9",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix ESLint errors in Support and Partnerships pages (by Kasparex)",
