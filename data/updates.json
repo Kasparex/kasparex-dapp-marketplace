@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1770394191-5b4cbf9",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat: expand magazines platform with dashboard, admin center, and treasury splits (by Kasparex)",
+      "date": "2026-02-06T17:09:26+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1770388622-447b827",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: feat: add KRC-20 Magazine and update expansion plan (by Kasparex)",
