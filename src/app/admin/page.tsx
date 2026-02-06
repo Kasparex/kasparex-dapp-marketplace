@@ -7,6 +7,7 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { useAccount } from 'wagmi';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import Link from 'next/link';
 
 // Dynamically import AdminDashboard with no SSR to prevent build-time evaluation
 const AdminDashboard = dynamicImport(

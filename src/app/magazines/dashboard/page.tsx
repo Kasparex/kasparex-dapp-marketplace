@@ -141,7 +141,7 @@ export default function MagazinesDashboardPage() {
                                     </div>
                                 ) : (
                                     <div className="bg-white dark:bg-zinc-900 rounded-3xl p-12 text-center border border-dashed border-zinc-200 dark:border-zinc-800">
-                                        <p className="text-zinc-500 mb-6">You haven't purchased any magazines yet.</p>
+                                        <p className="text-zinc-500 mb-6">You haven&apos;t purchased any magazines yet.</p>
                                         <Link href="/magazines" className="inline-flex px-8 py-3 bg-cyan-500 text-white rounded-xl font-bold hover:bg-cyan-600 transition-all">
                                             Explore Magazines
                                         </Link>
@@ -179,7 +179,7 @@ export default function MagazinesDashboardPage() {
                                     </div>
                                 ) : (
                                     <div className="bg-white dark:bg-zinc-900 rounded-3xl p-12 text-center border border-dashed border-zinc-200 dark:border-zinc-800">
-                                        <p className="text-zinc-500 mb-6">You don't own any magazines yet. Start your own digital publication.</p>
+                                        <p className="text-zinc-500 mb-6">You don&apos;t own any magazines yet. Start your own digital publication.</p>
                                         <button className="inline-flex px-8 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl font-bold hover:opacity-90 transition-all">
                                             Launch New Magazine
                                         </button>
