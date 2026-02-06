@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1770382497-664eef9",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix ESLint errors in Support and Partnerships pages (by Kasparex)",
+      "date": "2026-02-06T13:54:38+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1770382323-0a77c9b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Build footer pages: Support, Partnerships, Loyalty Program, Legal & Privacy (by Kasparex)",
