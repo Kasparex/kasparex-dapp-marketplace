@@ -107,6 +107,16 @@ function getDefaultMagazines(): Magazine[] {
             coverImage: '/img/magazines/crypto-future-cover.jpg',
             category: 'Technology',
             totalIssues: 1,
+        },
+        {
+            id: 'mag-krc20',
+            slug: 'krc20-magazine',
+            name: 'KRC20 Magazine',
+            description: 'The ultimate insider\'s guide to the ever-evolving world of the Kaspa network, curated by the legendary Krex himself.',
+            author: 'Krex',
+            coverImage: '/img/magazines/krc20-cover.jpg',
+            category: 'KRC20',
+            totalIssues: 1,
         }
     ];
 }
@@ -152,6 +162,23 @@ function getDefaultIssues(): MagazineIssue[] {
             status: 'published',
             tags: ['scalability', 'performance', 'mainnet'],
             category: 'Technology',
+        },
+        {
+            id: 'mag-krc20-1',
+            issueNumber: 1,
+            title: 'Welcome to KRC20',
+            description: 'Discover the world of KRC20 tokens, the legends behind them, and how to get started in the new era of Kaspa.',
+            priceKAS: 20,
+            publishDate: '2026-02-06T12:00:00Z',
+            coverImage: '/img/magazines/krc20-cover.jpg',
+            previewImages: ['/img/magazines/krc20-cover.jpg'],
+            cid: 'QmKRC20Issue1',
+            contributors: [
+                { address: 'kaspa:qkrex', role: 'Author', sharePercentage: 100 },
+            ],
+            status: 'published',
+            tags: ['krc20', 'krex', 'guide'],
+            category: 'KRC20',
         }
     ];
 }
