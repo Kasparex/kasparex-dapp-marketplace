@@ -36,7 +36,7 @@ export default function PartnershipsPage() {
                             Partnerships
                         </h1>
                         <p className="text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
-                            Collaborate with Kasparex Hub to grow the Kaspa ecosystem together. We're looking for innovative dApps, artists, and developers.
+                            Collaborate with Kasparex Hub to grow the Kaspa ecosystem together. We&apos;re looking for innovative dApps, artists, and developers.
                         </p>
                     </div>
 
@@ -94,7 +94,7 @@ export default function PartnershipsPage() {
                         <div className="bg-[#02abb8] rounded-2xl p-8 text-white shadow-xl shadow-[#02abb8]/20 text-center">
                             <h2 className="text-2xl font-bold mb-4">Ready to Build with Us?</h2>
                             <p className="mb-8 text-[#e0fbfc]">
-                                Whether you're an established project or just starting out, we'd love to hear from you. Let's discuss how we can work together.
+                                Whether you&apos;re an established project or just starting out, we&apos;d love to hear from you. Let&apos;s discuss how we can work together.
                             </p>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                                 <a

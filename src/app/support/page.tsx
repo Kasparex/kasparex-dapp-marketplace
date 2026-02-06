@@ -8,7 +8,7 @@ export default function SupportPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      
+
       <main className="flex-1 p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto py-12">
           <Link
@@ -30,13 +30,13 @@ export default function SupportPage() {
             </svg>
             Back to Home
           </Link>
-          
+
           <div className="text-center mb-16">
             <h1 className="text-4xl sm:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
               Support Center
             </h1>
             <p className="text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
-              We're here to help you navigate the Kasparex ecosystem. Get in touch with our team or join our community.
+              We&apos;re here to help you navigate the Kasparex ecosystem. Get in touch with our team or join our community.
             </p>
           </div>
 
@@ -51,8 +51,8 @@ export default function SupportPage() {
               <p className="text-zinc-600 dark:text-zinc-400 mb-6">
                 For general inquiries, technical issues, or account assistance, reach out to our support team.
               </p>
-              <a 
-                href="mailto:support@kasparex.com" 
+              <a
+                href="mailto:support@kasparex.com"
                 className="inline-flex items-center text-[#02abb8] font-semibold hover:underline"
               >
                 support@kasparex.com
@@ -72,8 +72,8 @@ export default function SupportPage() {
               <p className="text-zinc-600 dark:text-zinc-400 mb-6">
                 Join our active Telegram group to get real-time help from the community and the team.
               </p>
-              <a 
-                href="https://t.me/KasparexHub" 
+              <a
+                href="https://t.me/KasparexHub"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center text-[#02abb8] font-semibold hover:underline"
@@ -91,8 +91,8 @@ export default function SupportPage() {
             <p className="text-zinc-600 dark:text-zinc-400 mb-6">
               Browse our Knowledge Base for detailed guides on how to use Kasparex Hub, KREX tokens, and dApps.
             </p>
-            <Link 
-              href="/knowledge-base" 
+            <Link
+              href="/knowledge-base"
               className="inline-flex items-center justify-center px-6 py-3 bg-[#02abb8] text-white font-bold rounded-xl hover:bg-[#02abb8]/90 transition-colors shadow-lg shadow-[#02abb8]/20"
             >
               Browse Knowledge Base
