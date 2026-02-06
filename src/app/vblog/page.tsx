@@ -6,11 +6,9 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { VBlogHeader } from '@/components/vblog/VBlogHeader';
 import { VBlogCard } from '@/components/vblog/VBlogCard';
-import { VBlogExplainer } from '@/components/vblog/VBlogExplainer';
-import { VBlogSidebar } from '@/components/vblog/VBlogSidebar';
-import { PricingTable } from '@/components/vblog/PricingTable';
 import { VBlogSortFilters, type VBlogSortOption } from '@/components/vblog/VBlogSortFilters';
 import { VBlogSubmissionModal } from '@/components/vblog/VBlogSubmissionModal';
+import { VBlogRewardsSection } from '@/components/vblog/VBlogRewardsSection';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 
@@ -19,7 +17,6 @@ export default function VBlogPage() {
   const { state } = useKaspaWallet();
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<VBlogSortOption>('newest');
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
@@ -30,13 +27,6 @@ export default function VBlogPage() {
     // Filter by category
     if (selectedCategory) {
       filtered = filtered.filter(article => article.category === selectedCategory);
-    }
-
-    // Filter by tags
-    if (selectedTags.length > 0) {
-      filtered = filtered.filter(article =>
-        selectedTags.some(tag => article.tags.includes(tag))
-      );
     }
 
     // Filter by search query
@@ -67,108 +57,102 @@ export default function VBlogPage() {
     });
 
     return filtered;
-  }, [articles, selectedCategory, selectedTags, searchQuery, sortBy]);
-
-  const handleTagToggle = (tag: string) => {
-    setSelectedTags(prev =>
-      prev.includes(tag)
-        ? prev.filter(t => t !== tag)
-        : [...prev, tag]
-    );
-  };
+  }, [articles, selectedCategory, searchQuery, sortBy]);
 
   const handleResetFilters = () => {
     setSelectedCategory(null);
-    setSelectedTags([]);
     setSearchQuery('');
   };
 
+  const CATEGORIES = Array.from(new Set(articles.map(a => a.category))).filter(Boolean);
+
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <Header />
 
-      <main className="flex-1">
-        <div className="flex flex-col lg:flex-row">
-          {/* Sidebar */}
-          <VBlogSidebar
-            articles={articles}
-            selectedCategory={selectedCategory}
-            selectedTags={selectedTags}
-            searchQuery={searchQuery}
-            onCategoryChange={setSelectedCategory}
-            onTagToggle={handleTagToggle}
-            onSearchChange={setSearchQuery}
-          />
+      <main className="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-12">
+        {/* Unified Header */}
+        <VBlogHeader />
 
-          {/* Main Content */}
-          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6">
-            <div className="max-w-7xl mx-auto">
-              <div className="mb-6">
-                <div className="flex items-start justify-between gap-4 mb-6">
-                  <div className="flex-1">
-                    <VBlogHeader />
-                  </div>
-                </div>
+        {/* Dynamic Rewards Section */}
+        <VBlogRewardsSection />
 
-                {/* Controls Area */}
-                <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-                  <div className="flex items-center gap-3">
-                    <VBlogSortFilters
-                      sortBy={sortBy}
-                      onSortChange={setSortBy}
-                      onAddArticle={() => setIsSubmitModalOpen(true)}
-                    />
+        {/* Controls Area */}
+        <div className="mt-12 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setSelectedCategory(null)}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${!selectedCategory
+                ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-lg'
+                : 'bg-white dark:bg-zinc-900 text-zinc-500 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50'}`}
+            >
+              All Posts
+            </button>
+            {CATEGORIES.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${selectedCategory === cat
+                  ? 'bg-orange-500 text-white shadow-lg'
+                  : 'bg-white dark:bg-zinc-900 text-zinc-500 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50'}`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
 
-                    <button
-                      onClick={handleResetFilters}
-                      className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg text-sm font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors shadow-sm"
-                    >
-                      Reset
-                    </button>
-                  </div>
+          <div className="flex items-center gap-3">
+            <VBlogSortFilters
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+              onAddArticle={() => setIsSubmitModalOpen(true)}
+            />
 
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    {filteredArticles.length} article{filteredArticles.length !== 1 ? 's' : ''} found
-                  </p>
-                </div>
-
-                {/* Pricing Table (Optional / Collapsed or smaller) */}
-                <div className="mb-12">
-                  <PricingTable />
-                </div>
-              </div>
-
-              {/* Articles Grid */}
-              {isLoading ? (
-                <div className="text-center py-12">
-                  <p className="text-base text-zinc-600 dark:text-zinc-400">Loading articles...</p>
-                </div>
-              ) : filteredArticles.length > 0 ? (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                  {filteredArticles.map((article) => (
-                    <VBlogCard key={article.id} article={article} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 mb-12">
-                  <p className="text-base text-zinc-600 dark:text-zinc-400 mb-4">
-                    {searchQuery || selectedCategory || selectedTags.length > 0
-                      ? 'No articles match your filters. Try adjusting your search criteria.'
-                      : 'No articles yet. Be the first to create one!'}
-                  </p>
-                  <button
-                    onClick={() => setIsSubmitModalOpen(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
-                  >
-                    Create First Article
-                  </button>
-                </div>
-              )}
-
-              <VBlogExplainer />
+            <div className="relative group">
+              <input
+                type="text"
+                placeholder="Search articles..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm w-64 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+              />
+              <svg className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
           </div>
         </div>
+
+        {/* Articles Grid */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-24">
+            <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : filteredArticles.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            {filteredArticles.map((article) => (
+              <VBlogCard key={article.id} article={article} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-24 bg-white dark:bg-zinc-900 rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800 mb-16">
+            <div className="w-20 h-20 bg-zinc-50 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 mb-2">No Articles Found</h3>
+            <p className="text-zinc-500 dark:text-zinc-400 mb-8 max-w-sm mx-auto">
+              We couldn&apos;t find any articles matching your current filters or search query.
+            </p>
+            <button
+              onClick={handleResetFilters}
+              className="px-6 py-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl font-bold text-sm transition-all"
+            >
+              Clear All Filters
+            </button>
+          </div>
+        )}
       </main>
 
       <VBlogSubmissionModal

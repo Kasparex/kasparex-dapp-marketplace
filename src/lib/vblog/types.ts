@@ -14,6 +14,8 @@ export interface VBlogArticle {
   txHash?: string; // Transaction hash for article creation/update
   status: 'draft' | 'published' | 'on-chain-ready';
   updatedAt?: string; // ISO date string for last update
+  linkedMagazineId?: string; // ID of the magazine this article is linked to
+  linkedIssueNumber?: number; // Issue number within the magazine
 }
 
 export interface VBlogComment {

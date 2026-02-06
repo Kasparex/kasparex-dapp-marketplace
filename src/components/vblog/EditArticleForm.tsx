@@ -13,6 +13,7 @@ import {
   CONTENT_LIMITS,
 } from '@/lib/vblog/limits';
 import { Alert } from '@/components/Alert';
+import { VBlogMagazineIntegration } from './VBlogMagazineIntegration';
 
 interface EditArticleFormProps {
   article: VBlogArticle;
@@ -41,6 +42,8 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
   const [category, setCategory] = useState(article.category);
   const [tags, setTags] = useState(article.tags.join(', '));
   const [cid, setCid] = useState(article.cid || '');
+  const [linkedMagazineId, setLinkedMagazineId] = useState<string | undefined>(article.linkedMagazineId);
+  const [linkedIssueNumber, setLinkedIssueNumber] = useState<number | undefined>(article.linkedIssueNumber);
   const [showFeeConfirmation, setShowFeeConfirmation] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +56,8 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
     setCategory(article.category);
     setTags(article.tags.join(', '));
     setCid(article.cid || '');
+    setLinkedMagazineId(article.linkedMagazineId);
+    setLinkedIssueNumber(article.linkedIssueNumber);
   }, [article]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -112,6 +117,8 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
         tags: tagsArray,
         featuredImage: featuredImage.trim() || undefined,
         cid: cid.trim() || undefined,
+        linkedMagazineId,
+        linkedIssueNumber,
       });
     } catch (err) {
       console.error('Error updating article:', err);
@@ -150,8 +157,8 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
               Title <span className="text-red-500">*</span>
             </label>
             <span className={`text-xs ${getCharacterCount(title) > (pricing.isPremium ? CONTENT_LIMITS.premium.title.max : CONTENT_LIMITS.title.max)
-                ? 'text-red-500'
-                : 'text-zinc-500 dark:text-zinc-400'
+              ? 'text-red-500'
+              : 'text-zinc-500 dark:text-zinc-400'
               }`}>
               {getCharacterCount(title)} / {pricing.isPremium ? CONTENT_LIMITS.premium.title.max : CONTENT_LIMITS.title.max}
             </span>
@@ -174,8 +181,8 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
               Short Description <span className="text-red-500">*</span>
             </label>
             <span className={`text-xs ${getCharacterCount(description) > (pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max)
-                ? 'text-red-500'
-                : 'text-zinc-500 dark:text-zinc-400'
+              ? 'text-red-500'
+              : 'text-zinc-500 dark:text-zinc-400'
               }`}>
               {getCharacterCount(description)} / {pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max}
             </span>
@@ -259,6 +266,16 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
             />
           </div>
         </div>
+
+        <VBlogMagazineIntegration
+          linkedMagazineId={linkedMagazineId}
+          linkedIssueNumber={linkedIssueNumber}
+          onChange={(magId, issueNum) => {
+            setLinkedMagazineId(magId);
+            setLinkedIssueNumber(issueNum);
+          }}
+          disabled={isSubmitting}
+        />
 
         <div>
           <label className="k-label">
