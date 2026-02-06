@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1770401062-bae2c53",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Refine vBlog & Magazines integration: restore sidebar, premium dashboards, and pricing visibility (by Kasparex)",
+      "date": "2026-02-06T19:04:02+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1770399474-77bdec4",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Integrated vBlog with Magazines, added linking logic and rewards section (re-applied) (by Kasparex)",
