@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1770399474-77bdec4",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Integrated vBlog with Magazines, added linking logic and rewards section (re-applied) (by Kasparex)",
+      "date": "2026-02-06T18:36:36+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1770394191-5b4cbf9",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: feat: expand magazines platform with dashboard, admin center, and treasury splits (by Kasparex)",
