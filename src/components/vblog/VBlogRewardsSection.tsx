@@ -1,5 +1,7 @@
 'use client';
 
+// Kasparex vBlog Rewards - Unified with Magazines for curated publishing
+
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
