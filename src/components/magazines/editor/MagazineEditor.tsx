@@ -10,13 +10,17 @@ interface EditorBlock {
 }
 
 export function MagazineEditor() {
+    const [title, setTitle] = useState('New Magazine Issue');
+    const [price, setPrice] = useState(10);
+    const [treasurySplit, setTreasurySplit] = useState(5);
     const [blocks, setBlocks] = useState<EditorBlock[]>([
-        { id: '1', type: 'header', content: 'New Magazine Issue' },
+        { id: '1', type: 'header', content: 'Genesis Section' },
         { id: '2', type: 'text', content: 'Start writing your collaborative masterpiece here...' },
     ]);
     const [contributors, setContributors] = useState<ContributorShare[]>([
-        { address: 'kaspa:your-address', role: 'Author', sharePercentage: 100 }
+        { address: 'kaspa:your-address', role: 'Author', sharePercentage: 95 }
     ]);
+    const [isUploading, setIsUploading] = useState(false);
 
     const addBlock = (type: EditorBlock['type']) => {
         const newBlock: EditorBlock = {
@@ -52,31 +56,57 @@ export function MagazineEditor() {
         setContributors(newContributors);
     };
 
-    const totalShare = contributors.reduce((sum, c) => sum + (Number(c.sharePercentage) || 0), 0);
+    const totalContributorShare = contributors.reduce((sum, c) => sum + (Number(c.sharePercentage) || 0), 0);
+    const totalShare = totalContributorShare + treasurySplit;
+
+    const handlePublish = async () => {
+        if (totalShare !== 100) {
+            alert('Total share (contributors + treasury) must equal 100%');
+            return;
+        }
+        setIsUploading(true);
+        // Mock IPFS upload
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        setIsUploading(false);
+        alert('Published to IPFS! CID: QmTh7W... (Simulated)');
+    };
 
     return (
         <div className="flex flex-col lg:flex-row gap-8 bg-white dark:bg-zinc-950 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-2xl">
             {/* Main Editor Area */}
             <div className="flex-1 space-y-6">
-                <div className="flex items-center justify-between mb-8">
-                    <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-100">Editor Module</h2>
+                <div className="flex items-center justify-between mb-8 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+                    <div className="flex-1 mr-4">
+                        <input
+                            type="text"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            className="text-2xl font-black bg-transparent border-none focus:ring-0 text-zinc-900 dark:text-zinc-100 p-0"
+                            placeholder="Magazine Title"
+                        />
+                    </div>
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => addBlock('text')}
-                            className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-lg text-xs font-bold hover:bg-cyan-500 hover:text-white transition-all"
+                            className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-lg text-xs font-bold hover:bg-cyan-500 hover:text-white transition-all underline decoration-cyan-500/30"
                         >
                             + Text
                         </button>
                         <button
                             onClick={() => addBlock('image')}
-                            className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-lg text-xs font-bold hover:bg-cyan-500 hover:text-white transition-all"
+                            className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-lg text-xs font-bold hover:bg-cyan-500 hover:text-white transition-all underline decoration-cyan-500/30"
                         >
                             + Image
                         </button>
                         <button
-                            className="px-4 py-1.5 bg-cyan-500 text-white rounded-lg text-xs font-bold hover:bg-cyan-600 transition-all shadow-lg shadow-cyan-500/20"
+                            onClick={handlePublish}
+                            disabled={isUploading || totalShare !== 100}
+                            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all shadow-lg ${isUploading || totalShare !== 100
+                                ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
+                                : 'bg-cyan-500 text-white hover:bg-cyan-600 shadow-cyan-500/20'
+                                }`}
                         >
-                            Publish Issue
+                            {isUploading ? 'Uploading...' : 'Publish to IPFS'}
                         </button>
                     </div>
                 </div>
@@ -90,7 +120,7 @@ export function MagazineEditor() {
                                         type="text"
                                         value={block.content}
                                         onChange={(e) => updateBlock(block.id, e.target.value)}
-                                        className="w-full text-2xl font-black bg-transparent border-none focus:ring-0 text-zinc-900 dark:text-zinc-100"
+                                        className="w-full text-xl font-black bg-transparent border-none focus:ring-0 text-zinc-900 dark:text-zinc-100"
                                         placeholder="Section Title"
                                     />
                                 ) : (
@@ -115,11 +145,41 @@ export function MagazineEditor() {
                 </div>
             </div>
 
-            {/* Sidebar: Contributors & Revenue Share */}
+            {/* Sidebar: Settings & Split */}
             <div className="w-full lg:w-80 space-y-8 border-l border-zinc-100 dark:border-zinc-800 lg:pl-8">
+                {/* Pricing Block */}
+                <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800">
+                    <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-4">Pricing & Access</h3>
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Issue Price (KAS)</label>
+                            <input
+                                type="number"
+                                value={price}
+                                onChange={(e) => setPrice(Number(e.target.value))}
+                                className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm font-bold"
+                            />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <input type="checkbox" id="restricted" defaultChecked className="rounded border-zinc-300 text-cyan-500 focus:ring-cyan-500" />
+                            <label htmlFor="restricted" className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Restrict access to buyers</label>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Revenue Split */}
                 <div>
-                    <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-4">Contributors & Shares</h3>
+                    <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-4">Revenue Split</h3>
                     <div className="space-y-3">
+                        {/* Kasparex Treasury Fixed Split */}
+                        <div className="p-3 bg-cyan-500/5 rounded-xl border border-cyan-500/20 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-full bg-cyan-500 flex items-center justify-center text-[8px] font-bold text-white">T</div>
+                                <div className="text-[10px] font-bold text-cyan-600">Kasparex Treasury</div>
+                            </div>
+                            <div className="text-[10px] font-black text-cyan-600">5% <span className="text-[8px] text-cyan-500/60 font-bold ml-0.5">PLATFORM FEE</span></div>
+                        </div>
+
                         {contributors.map((c, i) => (
                             <div key={i} className="p-3 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-3">
                                 <input
@@ -162,21 +222,21 @@ export function MagazineEditor() {
 
                     <div className="mt-6 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                         <div className="flex items-center justify-between text-xs font-black">
-                            <span className="text-zinc-500">Total Share</span>
+                            <span className="text-zinc-500">Total Split</span>
                             <span className={totalShare === 100 ? 'text-green-500' : 'text-red-500'}>
                                 {totalShare}%
                             </span>
                         </div>
                         {totalShare !== 100 && (
-                            <p className="text-[9px] text-red-400 mt-1">Total share must equal 100% before publishing.</p>
+                            <p className="text-[9px] text-red-400 mt-1">Total split (incl. Treasury) must equal 100%.</p>
                         )}
                     </div>
                 </div>
 
-                <div className="p-4 bg-cyan-500/5 rounded-2xl border border-cyan-500/10">
-                    <h4 className="text-[10px] font-black text-cyan-500 uppercase tracking-widest mb-1">Collaborative Economy</h4>
+                <div className="p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10">
+                    <h4 className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">IPFS Storage</h4>
                     <p className="text-[10px] text-zinc-500 leading-normal">
-                        Sales revenue will be automatically split on-chain based on these percentages. Each contributor receives KAS directly to their wallet.
+                        All assets, metadata, and content blocks are hashed and pinned to IPFS for decentralized availability and access control.
                     </p>
                 </div>
             </div>

@@ -1,4 +1,4 @@
-export type ContributorRole = 'Author' | 'Co-Author' | 'Writer' | 'Designer' | 'Editor' | 'Photographer' | 'vBlog Author';
+export type ContributorRole = 'Author' | 'Co-Author' | 'Writer' | 'Designer' | 'Editor' | 'Photographer' | 'vBlog Author' | 'Treasury';
 
 export interface ContributorShare {
     address: string;
@@ -21,6 +21,7 @@ export interface MagazineIssue {
     tags: string[];
     category: string;
     isPurchased?: boolean; // Client-side hydration
+    treasuryPercentage: number; // Percentage allocated to Kasparex Treasury
 }
 
 export interface Magazine {
@@ -29,6 +30,7 @@ export interface Magazine {
     name: string;
     description: string;
     author: string;
+    ownerAddress: string; // Wallet address of the magazine owner
     coverImage: string;
     category: string;
     totalIssues: number;

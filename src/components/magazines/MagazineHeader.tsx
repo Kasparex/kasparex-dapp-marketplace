@@ -22,7 +22,7 @@ export function MagazineHeader() {
                 </h1>
 
                 <p className="text-lg text-zinc-400 max-w-2xl leading-relaxed">
-                    The hub for digital publications within the Kaspa ecosystem. High-quality magazines, technical deep dives, and community-driven content—all powered by KAS.
+                    The hub for digital publications within the Kaspa ecosystem. High-quality magazines, technical deep dives, and community-driven content, all powered by KAS.
                 </p>
             </div>
 
