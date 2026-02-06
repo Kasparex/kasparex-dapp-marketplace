@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1770417042-b84054b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Phase 9: Fix vBlog card images, redesign Author Dashboard with pricing, implement 2-column article layout, and overhaul Hub page with premium gradients (by Kasparex)",
+      "date": "2026-02-06T23:30:23+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1770403544-ead92cd",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Refine vBlog UI/UX: Unified sidebar, premium article redesign, and status badges (by Kasparex)",
