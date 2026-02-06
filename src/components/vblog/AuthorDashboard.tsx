@@ -14,11 +14,11 @@ import { Alert } from '@/components/Alert';
 export function AuthorDashboard() {
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
-  
+
   // Support both Kaspa and EVM wallets
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
   const isWalletConnected = kaspaState.isConnected || isEVMConnected;
-  
+
   const { createNewArticle, updateExistingArticle, deleteExistingArticle, getAuthorArticles, loadArticles } = useVBlog();
   const [activeTab, setActiveTab] = useState<'create' | 'my-articles'>('create');
   const [editingArticle, setEditingArticle] = useState<VBlogArticle | null>(null);
@@ -70,7 +70,7 @@ export function AuthorDashboard() {
     if (!confirm('Are you sure you want to delete this article? This action cannot be undone.')) {
       return;
     }
-    
+
     try {
       await deleteExistingArticle(articleId);
       loadArticles();
@@ -88,53 +88,55 @@ export function AuthorDashboard() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Pricing Table */}
-      <PricingTable />
+    <div className="space-y-12">
+      {/* Pricing Header Area */}
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[32px] overflow-hidden shadow-xl shadow-orange-500/5">
+        <div className="p-8 border-b border-zinc-100 dark:border-zinc-800 bg-gradient-to-r from-orange-500/5 to-amber-500/5">
+          <PricingTable />
+        </div>
 
-      {/* Success Message */}
-      {successMessage && (
-        <Alert type="success" onDismiss={() => setSuccessMessage(null)}>
-          {successMessage}
-        </Alert>
-      )}
-
-      {/* Tabs */}
-      <div className="border-b border-zinc-200 dark:border-zinc-800">
-        <div className="flex gap-4">
+        {/* Navigation Tabs */}
+        <div className="flex bg-zinc-50 dark:bg-zinc-950/50 p-2 gap-2">
           <button
             onClick={() => {
               setActiveTab('create');
               setEditingArticle(null);
             }}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === 'create'
-                ? 'border-[#02abb8] text-[#02abb8]'
-                : 'border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
-            }`}
+            className={`flex-1 px-8 py-4 text-xs font-black uppercase tracking-widest rounded-2xl transition-all ${activeTab === 'create'
+                ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-lg'
+                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
+              }`}
           >
-            {editingArticle ? 'Edit Article' : 'Create New Article'}
+            {editingArticle ? 'Edit Article' : 'Draft New Article'}
           </button>
           <button
             onClick={() => {
               setActiveTab('my-articles');
               setEditingArticle(null);
             }}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === 'my-articles'
-                ? 'border-[#02abb8] text-[#02abb8]'
-                : 'border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
-            }`}
+            className={`flex-1 px-8 py-4 text-xs font-black uppercase tracking-widest rounded-2xl transition-all ${activeTab === 'my-articles'
+                ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-lg'
+                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
+              }`}
           >
-            My Articles ({authorArticles.length})
+            My Library ({authorArticles.length})
           </button>
         </div>
       </div>
 
-      {/* Tab Content */}
-      <div>
+      {/* Success Message Area */}
+      {successMessage && (
+        <div className="fixed bottom-12 right-12 z-[100] animate-in slide-in-from-bottom-5">
+          <Alert type="success" onDismiss={() => setSuccessMessage(null)}>
+            {successMessage}
+          </Alert>
+        </div>
+      )}
+
+      {/* Content Area */}
+      <div className="min-h-[400px]">
         {activeTab === 'create' ? (
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
+          <div className="animate-in fade-in slide-in-from-top-4 duration-500">
             {editingArticle ? (
               <EditArticleForm
                 article={editingArticle}
@@ -146,10 +148,12 @@ export function AuthorDashboard() {
             )}
           </div>
         ) : (
-          <div>
-            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-              My Articles
-            </h3>
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">
+                Personal <span className="text-orange-500">Archive</span>
+              </h3>
+            </div>
             <ArticleList articles={authorArticles} onEdit={handleEdit} onDelete={handleDeleteArticle} />
           </div>
         )}
