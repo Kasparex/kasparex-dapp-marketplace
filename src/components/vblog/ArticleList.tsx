@@ -21,7 +21,7 @@ export function ArticleList({ articles, onEdit, onDelete }: ArticleListProps) {
 
   const handleConfirmDelete = async () => {
     if (!confirmDeleteId || !onDelete) return;
-    
+
     setDeletingId(confirmDeleteId);
     try {
       await onDelete(confirmDeleteId);
@@ -52,20 +52,39 @@ export function ArticleList({ articles, onEdit, onDelete }: ArticleListProps) {
             className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all flex flex-col"
           >
             {/* Featured Image */}
-            <div className="relative w-full h-32 bg-zinc-100/80 dark:bg-zinc-900/95 flex items-center justify-center border-b border-zinc-200/50 dark:border-zinc-800/50">
+            <div className="relative w-full h-32 overflow-hidden flex items-center justify-center border-b border-zinc-200/50 dark:border-zinc-800/50">
+              {/* Status Badge Overlay */}
+              <div className="absolute top-2 left-2 z-10">
+                <span className={`px-2 py-0.5 text-white text-[8px] font-black uppercase tracking-widest rounded-md shadow-lg ${article.status === 'published' || article.status === 'on-chain-ready'
+                    ? 'bg-emerald-500'
+                    : article.status === 'pending'
+                      ? 'bg-amber-500'
+                      : 'bg-zinc-500'
+                  }`}>
+                  {article.status === 'on-chain-ready' ? 'Published' : article.status}
+                </span>
+              </div>
+
               {article.featuredImage ? (
                 <img
                   src={article.featuredImage}
                   alt={article.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
                   }}
                 />
               ) : (
-                <svg className="w-12 h-12 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+                <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${article.category === 'Development' ? 'from-cyan-500 to-blue-600' :
+                    article.category === 'Ecosystem' ? 'from-emerald-500 to-teal-600' :
+                      article.category === 'Announcement' ? 'from-orange-500 to-red-600' :
+                        'from-zinc-700 to-zinc-900'
+                  }`}>
+                  <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+                  <svg className="w-8 h-8 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                  </svg>
+                </div>
               )}
             </div>
 

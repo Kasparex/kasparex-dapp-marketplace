@@ -33,9 +33,18 @@ export function VBlogCard({ article }: VBlogCardProps) {
                 <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5S19.832 5.477 21 6.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
-                Magazine Issue #{article.linkedIssueNumber}
+                {article.linkedIssueNumber}
               </span>
             )}
+            {/* Status Badge */}
+            <span className={`px-2.5 py-1 text-white text-[9px] font-black uppercase tracking-widest rounded-lg shadow-lg ${article.status === 'published' || article.status === 'on-chain-ready'
+                ? 'bg-emerald-500'
+                : article.status === 'pending'
+                  ? 'bg-amber-500'
+                  : 'bg-zinc-500'
+              }`}>
+              {article.status === 'on-chain-ready' ? 'Published' : article.status}
+            </span>
           </div>
 
           {article.featuredImage ? (
@@ -46,9 +55,14 @@ export function VBlogCard({ article }: VBlogCardProps) {
               className="object-cover transition-transform duration-700 group-hover:scale-105"
             />
           ) : (
-            <div className="w-full h-full bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center">
-              <svg className="w-12 h-12 text-zinc-200 dark:text-zinc-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br transition-transform duration-700 group-hover:scale-105 ${article.category === 'Development' ? 'from-cyan-500 to-blue-600' :
+                article.category === 'Ecosystem' ? 'from-emerald-500 to-teal-600' :
+                  article.category === 'Announcement' ? 'from-orange-500 to-red-600' :
+                    'from-zinc-700 to-zinc-900'
+              }`}>
+              <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+              <svg className="w-16 h-16 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
               </svg>
             </div>
           )}

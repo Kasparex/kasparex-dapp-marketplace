@@ -12,6 +12,8 @@ interface VBlogSidebarProps {
   onCategoryChange: (category: string | null) => void;
   onTagToggle: (tag: string) => void;
   onSearchChange: (query: string) => void;
+  onCreateArticle?: () => void;
+  activeView?: 'explore' | 'dashboard';
 }
 
 function VBlogCategoryIcon({ id, className = "" }: { id: string | null; className?: string }) {
@@ -37,6 +39,8 @@ export function VBlogSidebar({
   onCategoryChange,
   onTagToggle,
   onSearchChange,
+  onCreateArticle,
+  activeView = 'explore',
 }: VBlogSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
@@ -238,6 +242,52 @@ export function VBlogSidebar({
 
         {/* Sidebar Content */}
         <div className="p-4">
+          {/* Main Actions */}
+          <div className="mb-8 space-y-2">
+            <button
+              onClick={onCreateArticle}
+              className="w-full flex items-center gap-3 px-4 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl transition-all shadow-lg shadow-orange-500/20 group"
+            >
+              <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                </svg>
+              </div>
+              <span className="text-xs font-black uppercase tracking-widest text-left">Create Article</span>
+            </button>
+
+            <Link
+              href="/vblog/dashboard"
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all border ${activeView === 'dashboard'
+                  ? 'bg-zinc-900 border-zinc-900 text-white dark:bg-white dark:border-white dark:text-zinc-900 shadow-xl'
+                  : 'bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-orange-500/30 hover:bg-orange-500/5'
+                }`}
+            >
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${activeView === 'dashboard' ? 'bg-orange-500' : 'bg-zinc-100 dark:bg-zinc-800'
+                }`}>
+                <svg className={`w-4 h-4 ${activeView === 'dashboard' ? 'text-white' : 'text-zinc-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-left">Author Dashboard</span>
+            </Link>
+
+            <Link
+              href="/vblog"
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all border ${activeView === 'explore'
+                  ? 'bg-zinc-900 border-zinc-900 text-white dark:bg-white dark:border-white dark:text-zinc-900 shadow-xl'
+                  : 'bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-orange-500/30 hover:bg-orange-500/5'
+                }`}
+            >
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${activeView === 'explore' ? 'bg-orange-500' : 'bg-zinc-100 dark:bg-zinc-800'
+                }`}>
+                <svg className={`w-4 h-4 ${activeView === 'explore' ? 'text-white' : 'text-zinc-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-left">Explore Articles</span>
+            </Link>
+          </div>
           {/* Categories */}
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-zinc-700 dark:text-white opacity-80 uppercase tracking-wider mb-3">

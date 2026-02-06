@@ -99,6 +99,8 @@ export default function VBlogPage() {
             onCategoryChange={setSelectedCategory}
             onTagToggle={handleTagToggle}
             onSearchChange={setSearchQuery}
+            onCreateArticle={() => setIsSubmitModalOpen(true)}
+            activeView="explore"
           />
 
           {/* Main Content Area */}
