@@ -10,6 +10,7 @@ import { useAccount } from 'wagmi';
 import { useVBlog } from '@/hooks/useVBlog';
 import { Alert } from '@/components/Alert';
 import { Avatar } from '@/components/Avatar';
+import { ArticleSidebar } from './ArticleSidebar';
 
 interface ArticleDetailProps {
   article: VBlogArticle;
@@ -72,7 +73,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
                 {article.category}
               </span>
               <span className={`px-3 py-1 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg ${article.status === 'published' || article.status === 'on-chain-ready' ? 'bg-emerald-500' :
-                  article.status === 'pending' ? 'bg-amber-500' : 'bg-zinc-500'
+                article.status === 'pending' ? 'bg-amber-500' : 'bg-zinc-500'
                 }`}>
                 {article.status === 'on-chain-ready' ? 'Published' : article.status}
               </span>
@@ -113,8 +114,8 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
               />
             ) : (
               <div className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br ${article.category === 'Development' ? 'from-cyan-500 to-blue-600' :
-                  article.category === 'Ecosystem' ? 'from-emerald-500 to-teal-600' :
-                    'from-orange-500 to-red-600'
+                article.category === 'Ecosystem' ? 'from-emerald-500 to-teal-600' :
+                  'from-orange-500 to-red-600'
                 }`}>
                 <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
                 <svg className="w-24 h-24 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -148,18 +149,28 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
         )}
       </div>
 
-      {/* Article Content Panel */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-[40px] p-8 sm:p-12 lg:p-20 shadow-2xl shadow-orange-500/5 mb-16">
-        <div
-          className="prose prose-zinc dark:prose-invert max-w-none 
-            prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100 prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tight
-            prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:leading-[1.8] prose-p:text-xl
-            prose-a:text-orange-500 prose-a:font-bold prose-a:no-underline hover:prose-a:underline
-            prose-strong:text-zinc-900 dark:prose-strong:text-zinc-100 prose-strong:font-black
-            prose-blockquote:border-l-orange-500 prose-blockquote:bg-orange-500/5 prose-blockquote:rounded-3xl prose-blockquote:px-8 prose-blockquote:py-4 prose-blockquote:font-medium prose-blockquote:italic
-            prose-img:rounded-[32px] prose-img:shadow-2xl"
-          dangerouslySetInnerHTML={{ __html: parseMarkdown(article.content) }}
-        />
+      {/* Two-Column Layout Container */}
+      <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
+        {/* Main Article Content Panel */}
+        <div className="flex-1 min-w-0">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-[40px] p-8 sm:p-12 lg:p-20 shadow-2xl shadow-orange-500/5 mb-16">
+            <div
+              className="prose prose-zinc dark:prose-invert max-w-none 
+                prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100 prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tight
+                prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:leading-[1.8] prose-p:text-xl
+                prose-a:text-orange-500 prose-a:font-bold prose-a:no-underline hover:prose-a:underline
+                prose-strong:text-zinc-900 dark:prose-strong:text-zinc-100 prose-strong:font-black
+                prose-blockquote:border-l-orange-500 prose-blockquote:bg-orange-500/5 prose-blockquote:rounded-3xl prose-blockquote:px-8 prose-blockquote:py-4 prose-blockquote:font-medium prose-blockquote:italic
+                prose-img:rounded-[32px] prose-img:shadow-2xl"
+              dangerouslySetInnerHTML={{ __html: parseMarkdown(article.content) }}
+            />
+          </div>
+        </div>
+
+        {/* Right Sidebar Column */}
+        <div className="w-full lg:w-[320px] xl:w-[380px] shrink-0">
+          <ArticleSidebar article={article} />
+        </div>
       </div>
 
       {/* Delete Confirmation Modal */}

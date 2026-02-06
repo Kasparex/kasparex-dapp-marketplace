@@ -8,7 +8,7 @@ import { useAccount } from 'wagmi';
 import { CreateArticleForm } from './CreateArticleForm';
 import { EditArticleForm } from './EditArticleForm';
 import { ArticleList } from './ArticleList';
-import { PricingTable } from './PricingTable';
+import { AuthorPricing } from './AuthorPricing';
 import { Alert } from '@/components/Alert';
 
 export function AuthorDashboard() {
@@ -89,40 +89,36 @@ export function AuthorDashboard() {
 
   return (
     <div className="space-y-12">
-      {/* Pricing Header Area */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[32px] overflow-hidden shadow-xl shadow-orange-500/5">
-        <div className="p-8 border-b border-zinc-100 dark:border-zinc-800 bg-gradient-to-r from-orange-500/5 to-amber-500/5">
-          <PricingTable />
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className="flex bg-zinc-50 dark:bg-zinc-950/50 p-2 gap-2">
-          <button
-            onClick={() => {
-              setActiveTab('create');
-              setEditingArticle(null);
-            }}
-            className={`flex-1 px-8 py-4 text-xs font-black uppercase tracking-widest rounded-2xl transition-all ${activeTab === 'create'
-                ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-lg'
-                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
-              }`}
-          >
-            {editingArticle ? 'Edit Article' : 'Draft New Article'}
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab('my-articles');
-              setEditingArticle(null);
-            }}
-            className={`flex-1 px-8 py-4 text-xs font-black uppercase tracking-widest rounded-2xl transition-all ${activeTab === 'my-articles'
-                ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-lg'
-                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
-              }`}
-          >
-            My Library ({authorArticles.length})
-          </button>
-        </div>
+      {/* Navigation Tabs */}
+      <div className="flex bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-1.5 gap-1.5 rounded-2xl shadow-sm max-w-sm mx-auto">
+        <button
+          onClick={() => {
+            setActiveTab('create');
+            setEditingArticle(null);
+          }}
+          className={`flex-1 px-6 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${activeTab === 'create'
+            ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md'
+            : 'text-zinc-500 hover:text-zinc-100 dark:hover:text-zinc-100'
+            }`}
+        >
+          {editingArticle ? 'Edit Article' : 'Draft Article'}
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab('my-articles');
+            setEditingArticle(null);
+          }}
+          className={`flex-1 px-6 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${activeTab === 'my-articles'
+            ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md'
+            : 'text-zinc-500 hover:text-zinc-100 dark:hover:text-zinc-100'
+            }`}
+        >
+          Archive ({authorArticles.length})
+        </button>
       </div>
+
+      {/* Pricing and Benefits Section */}
+      {activeTab === 'create' && !editingArticle && <AuthorPricing />}
 
       {/* Success Message Area */}
       {successMessage && (

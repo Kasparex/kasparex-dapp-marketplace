@@ -38,27 +38,26 @@ export function VBlogCard({ article }: VBlogCardProps) {
             )}
             {/* Status Badge */}
             <span className={`px-2.5 py-1 text-white text-[9px] font-black uppercase tracking-widest rounded-lg shadow-lg ${article.status === 'published' || article.status === 'on-chain-ready'
-                ? 'bg-emerald-500'
-                : article.status === 'pending'
-                  ? 'bg-amber-500'
-                  : 'bg-zinc-500'
+              ? 'bg-emerald-500'
+              : article.status === 'pending'
+                ? 'bg-amber-500'
+                : 'bg-zinc-500'
               }`}>
               {article.status === 'on-chain-ready' ? 'Published' : article.status}
             </span>
           </div>
 
           {article.featuredImage ? (
-            <Image
+            <img
               src={article.featuredImage}
               alt={article.title}
-              fill
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
           ) : (
             <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br transition-transform duration-700 group-hover:scale-105 ${article.category === 'Development' ? 'from-cyan-500 to-blue-600' :
-                article.category === 'Ecosystem' ? 'from-emerald-500 to-teal-600' :
-                  article.category === 'Announcement' ? 'from-orange-500 to-red-600' :
-                    'from-zinc-700 to-zinc-900'
+              article.category === 'Ecosystem' ? 'from-emerald-500 to-teal-600' :
+                article.category === 'Announcement' ? 'from-orange-500 to-red-600' :
+                  'from-zinc-700 to-zinc-900'
               }`}>
               <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
               <svg className="w-16 h-16 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
