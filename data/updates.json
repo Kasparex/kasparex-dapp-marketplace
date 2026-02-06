@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1770403544-ead92cd",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Refine vBlog UI/UX: Unified sidebar, premium article redesign, and status badges (by Kasparex)",
+      "date": "2026-02-06T19:45:26+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1770401062-bae2c53",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Refine vBlog & Magazines integration: restore sidebar, premium dashboards, and pricing visibility (by Kasparex)",
