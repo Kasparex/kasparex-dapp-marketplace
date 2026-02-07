@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1770472513-3f362bc",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Implement Kasparex Studio unified creation workspace (by Kasparex)",
+      "date": "2026-02-07T14:54:51+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1770417042-b84054b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Phase 9: Fix vBlog card images, redesign Author Dashboard with pricing, implement 2-column article layout, and overhaul Hub page with premium gradients (by Kasparex)",
