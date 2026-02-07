@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1770482640-e131725",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix(studio): correct contract address reference in portfolio page (by Kasparex)",
+      "date": "2026-02-07T17:43:38+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1770480939-2397135",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: feat(studio): add Portfolio page and update sidebar (by Kasparex)",
