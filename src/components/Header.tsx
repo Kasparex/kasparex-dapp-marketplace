@@ -3,16 +3,13 @@
 import { useState, Suspense, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { useChainModal } from '@rainbow-me/rainbowkit';
-import { useAccount, useChainId } from 'wagmi';
+import { useAccount } from 'wagmi';
 import { useTheme } from './ThemeProvider';
 import { UserMenu } from './UserMenu';
-import { getChainById, CHAIN_IDS } from '@/lib/wagmi';
 import { KasWareWalletButton } from './KasWareWalletButton';
 import { EVMWalletButton } from './EVMWalletButton';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useBalanceVisibility } from '@/hooks/useBalanceVisibility';
-import { useKaspaWallet } from '@/lib/kaspa/context';
 import Link from 'next/link';
 import { hubProjects, type HubProject } from '@/lib/hubProjects';
 
@@ -48,125 +45,6 @@ function AdminLink() {
   );
 }
 
-// Signal icon (active network)
-function SignalIcon({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"
-      />
-    </svg>
-  );
-}
-
-// No-signal icon (inactive network)
-function NoSignalIcon({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
-      />
-    </svg>
-  );
-}
-
-// L1 Kaspa Button
-function L1KaspaButton() {
-  const { state } = useKaspaWallet();
-  const isActive = state.isConnected && state.provider === 'kasware';
-
-  return (
-    <button
-      disabled={!isActive}
-      className={`px-3 py-2 rounded-lg border transition-colors text-sm font-medium flex items-center gap-2 ${isActive
-        ? 'bg-[#70C7BA]/20 dark:bg-[#70C7BA]/30 text-[#70C7BA] border-[#70C7BA]/30 dark:border-[#70C7BA]/50 hover:bg-[#70C7BA]/30 dark:hover:bg-[#70C7BA]/40'
-        : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 border-zinc-200 dark:border-zinc-700 cursor-not-allowed'
-        }`}
-      aria-label="L1 Kaspa Network"
-      title={isActive ? 'Connected to L1 Kaspa' : 'Connect KasWare wallet for L1'}
-    >
-      {isActive ? <SignalIcon /> : <NoSignalIcon />}
-      <span className="hidden sm:inline">L1 Kaspa</span>
-      <span className="sm:hidden">L1</span>
-    </button>
-  );
-}
-
-// L2 Network Button
-function L2NetworkButton() {
-  const { isConnected } = useAccount();
-  const chainId = useChainId();
-  const { openChainModal } = useChainModal();
-  const chain = chainId ? getChainById(chainId) : null;
-
-  const isActive = isConnected;
-  const isTestnet = chain?.testnet ?? false;
-  const isMainnet = !isTestnet;
-
-  // Determine if it's Kasplex or Igra
-  let networkLabel = 'L2';
-  if (chain) {
-    const chainName = chain.name.toLowerCase();
-    if (chainName.includes('kasplex')) {
-      networkLabel = 'L2 Kasplex';
-    } else if (chainName.includes('igra')) {
-      networkLabel = 'L2 Igra';
-    }
-  }
-
-  // Color classes based on network type
-  const bgColorClass = isActive
-    ? isMainnet
-      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700 hover:bg-blue-200 dark:hover:bg-blue-900/40'
-      : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-300 dark:border-yellow-700 hover:bg-yellow-200 dark:hover:bg-yellow-900/40'
-    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 border-zinc-200 dark:border-zinc-700 cursor-not-allowed';
-
-  const handleClick = () => {
-    if (isActive && openChainModal) {
-      openChainModal();
-    }
-  };
-
-  return (
-    <button
-      onClick={handleClick}
-      disabled={!isActive}
-      className={`px-3 py-2 rounded-lg border transition-colors text-sm font-medium flex items-center gap-2 ${bgColorClass}`}
-      aria-label="L2 Network"
-      title={isActive ? `Connected to ${networkLabel} - Click to switch network` : 'Connect EVM wallet for L2'}
-    >
-      {isActive ? <SignalIcon /> : <NoSignalIcon />}
-      <span className="hidden sm:inline">{networkLabel}</span>
-      <span className="sm:hidden">L2</span>
-      {isActive && (
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      )}
-    </button>
-  );
-}
 
 
 // Function to get current section title based on pathname
@@ -690,14 +568,6 @@ export function Header() {
               </svg>
             )}
           </button>
-          <div className="flex-shrink-0 flex items-center gap-2">
-            <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>
-              <L1KaspaButton />
-            </Suspense>
-            <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>
-              <L2NetworkButton />
-            </Suspense>
-          </div>
           <div className="flex-shrink-0">
             <KasWareWalletButton />
           </div>
