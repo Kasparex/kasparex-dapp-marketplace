@@ -191,6 +191,7 @@ export function StudioSidebar() {
                         </h3>
                         <nav className="space-y-1">
                             <SidebarItem href="/studio" label="Dashboard" emoji="🏠" />
+                            <SidebarItem href="/studio/portfolio" label="My Portfolio" emoji="💼" />
                             <SidebarItem href="/studio/activity" label="Activity & Records" emoji="📊" />
                         </nav>
                     </section>
