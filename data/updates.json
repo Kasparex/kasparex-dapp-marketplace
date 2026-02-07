@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1770486383-88bee24",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Polish(Studio): Premium Halo Headers, Standard Icons, and Balance Logic Refinement (by Kasparex)",
+      "date": "2026-02-07T18:46:05+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1770483783-e23f4c5",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix(studio): fix tokenId union type in portfolio page (by Kasparex)",
