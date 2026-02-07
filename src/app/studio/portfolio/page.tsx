@@ -205,7 +205,7 @@ function BalanceCard({ symbol, name, balance, isLoading, color, tokenId, isConne
     balance: number,
     isLoading: boolean,
     color: 'cyan' | 'emerald' | 'indigo',
-    tokenId: string,
+    tokenId: 'kas' | 'krex' | 'grid',
     isConnected: boolean,
     extra?: string
 }) {
