@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1770480939-2397135",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat(studio): add Portfolio page and update sidebar (by Kasparex)",
+      "date": "2026-02-07T17:15:23+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1770474991-b323b6b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Standardize Kasparex Studio layout with global Header, Sidebar, and Fonts (by Kasparex)",
