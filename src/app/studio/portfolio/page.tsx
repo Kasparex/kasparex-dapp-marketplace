@@ -23,7 +23,7 @@ export default function StudioPortfolioPage() {
     // Core Balances
     const { balance: krexBalance, l1Balance: krexL1, l2Balance: krexL2, tier: krexTier, isLoading: isKREXLoading } = useKREXBalance();
     const kasBalance = useKaspaTokenBalance('KAS');
-    const gridToken = useGRIDToken(CONTRACT_ADDRESSES.GRID_TOKEN_TESTNET);
+    const gridToken = useGRIDToken(CONTRACT_ADDRESSES.kasplexL2Testnet.GRIDToken);
 
     // Rewards Status
     const { nftStatus, nftPoints, isLoading: isNFTLoading } = useNFTStatus();
