@@ -6,7 +6,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useGRIDToken } from '@/hooks/useGRIDToken';
-import { useKaspaTokenBalance } from '@/hooks/useKaspaTokenBalance';
+import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { getMockWalletHoldings } from '@/lib/rewards/mockData';
 import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
