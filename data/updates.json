@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1770483783-e23f4c5",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix(studio): fix tokenId union type in portfolio page (by Kasparex)",
+      "date": "2026-02-07T18:02:45+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1770482640-e131725",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix(studio): correct contract address reference in portfolio page (by Kasparex)",
