@@ -79,8 +79,8 @@ export const hubProjects: HubProject[] = [
     name: 'Kasparex Studio',
     category: 'Creator Tools',
     description: 'A future suite for generating and managing assets like visuals, music and clips. Everything creators need in one place.',
-    route: '/hub/coming-soon',
-    status: 'coming-soon',
+    route: '/studio',
+    status: 'beta',
   },
   {
     id: 'krex-nodes',
