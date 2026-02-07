@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1770474991-b323b6b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Standardize Kasparex Studio layout with global Header, Sidebar, and Fonts (by Kasparex)",
+      "date": "2026-02-07T15:35:44+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1770472513-3f362bc",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Implement Kasparex Studio unified creation workspace (by Kasparex)",
