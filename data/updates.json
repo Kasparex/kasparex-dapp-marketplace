@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1770494596-02ae9a4",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix(Header): Remove redundant network buttons and cleanup unused imports (by Kasparex)",
+      "date": "2026-02-07T21:02:57+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1770486598-9429060",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix(Studio): Add missing useKaspaBalance import in Portfolio page (by Kasparex)",
