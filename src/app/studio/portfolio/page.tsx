@@ -22,7 +22,7 @@ export default function StudioPortfolioPage() {
 
     // Core Balances
     const { balance: krexBalance, l1Balance: krexL1, l2Balance: krexL2, tier: krexTier, isLoading: isKREXLoading } = useKREXBalance();
-    const kasBalance = useKaspaTokenBalance('KAS');
+    const { balanceInKas: kasBalance, isLoading: isKasLoading } = useKaspaBalance();
     const gridToken = useGRIDToken(CONTRACT_ADDRESSES.kasplexL2Testnet.GRIDToken);
 
     // Rewards Status
@@ -76,8 +76,8 @@ export default function StudioPortfolioPage() {
                 <BalanceCard
                     symbol="KAS"
                     name="Kaspa Native"
-                    balance={kasBalance.balance}
-                    isLoading={kasBalance.isLoading}
+                    balance={kasBalance || 0}
+                    isLoading={isKasLoading}
                     color="cyan"
                     tokenId="kas"
                     isConnected={isL1Connected}

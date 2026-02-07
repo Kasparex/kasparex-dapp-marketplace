@@ -36,14 +36,23 @@ export function TierBadge({ tier, isUnlocked }: TierBadgeProps) {
     },
   };
   const colors = tierColors[tier] || tierColors.Tier1;
-  
+
   return (
-    <span className={`px-2 py-1 text-xs font-medium rounded ${
-      isUnlocked 
-        ? `${colors.bg} ${colors.text}` 
-        : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'
-    }`}>
-      {tierConfig.label}
-    </span>
+    <div className={`inline-flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${isUnlocked
+        ? `${colors.bg} ${colors.text} shadow-sm border border-current/10`
+        : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 opacity-60'
+      }`}>
+      {isUnlocked && (
+        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2.5}
+            d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+          />
+        </svg>
+      )}
+      <span>{tierConfig.label}</span>
+    </div>
   );
 }

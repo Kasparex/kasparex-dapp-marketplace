@@ -32,10 +32,10 @@ export function useKaspaBalance(): UseKaspaBalanceReturn {
 
   const fetchBalance = useCallback(async () => {
     if (!state.isConnected || !state.address || !state.provider) {
-      console.log('Balance fetch skipped - not connected:', { 
-        isConnected: state.isConnected, 
-        address: state.address, 
-        provider: state.provider 
+      console.log('Balance fetch skipped - not connected:', {
+        isConnected: state.isConnected,
+        address: state.address,
+        provider: state.provider
       });
       setBalance(null);
       setBalanceInKas(null);
@@ -50,7 +50,7 @@ export function useKaspaBalance(): UseKaspaBalanceReturn {
     try {
       // Try to get balance from wallet provider first
       const walletProvider = getWalletProvider(state.provider);
-      
+
       if (walletProvider && walletProvider.getBalance) {
         try {
           console.log('Calling walletProvider.getBalance()...');
@@ -61,10 +61,10 @@ export function useKaspaBalance(): UseKaspaBalanceReturn {
             console.log('Balance result keys:', Object.keys(balanceResult));
             console.log('Balance result full object:', JSON.stringify(balanceResult, null, 2));
           }
-          
+
           if (balanceResult !== null && balanceResult !== undefined) {
             let balanceValue: string | number | null = null;
-            
+
             // Handle different response formats
             if (typeof balanceResult === 'string' || typeof balanceResult === 'number') {
               balanceValue = balanceResult;
@@ -106,17 +106,17 @@ export function useKaspaBalance(): UseKaspaBalanceReturn {
 
             if (balanceValue !== null && balanceValue !== undefined && balanceValue !== '') {
               const balanceNum = typeof balanceValue === 'string' ? parseFloat(balanceValue) : balanceValue;
-              
+
               if (!isNaN(balanceNum) && balanceNum >= 0) {
                 // Convert from sompis to KAS
                 // KasWare and other wallets return balance in sompis (smallest unit)
                 const strValue = balanceNum.toString();
                 const hasDecimals = strValue.includes('.');
                 const decimalPlaces = hasDecimals ? strValue.split('.')[1]?.length || 0 : 0;
-                
+
                 let kasBalance: string;
                 let kasBalanceNum: number;
-                
+
                 // If balance < 0.01 and has > 6 decimal places, likely already in KAS
                 if (balanceNum < 0.01 && decimalPlaces > 6) {
                   kasBalance = balanceNum.toFixed(8);
@@ -126,7 +126,7 @@ export function useKaspaBalance(): UseKaspaBalanceReturn {
                   kasBalanceNum = balanceNum / 100000000;
                   kasBalance = kasBalanceNum.toFixed(2);
                 }
-                
+
                 setBalance(kasBalance);
                 setBalanceInKas(kasBalanceNum);
                 setIsLoading(false);
@@ -164,16 +164,7 @@ export function useKaspaBalance(): UseKaspaBalanceReturn {
     fetchBalance();
   }, [fetchBalance]);
 
-  // Auto-refresh balance every 30 seconds when connected
-  useEffect(() => {
-    if (!state.isConnected) return;
-
-    const interval = setInterval(() => {
-      fetchBalance();
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [state.isConnected, fetchBalance]);
+  // Auto-refresh removed as per user request
 
   return {
     balance,

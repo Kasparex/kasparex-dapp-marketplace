@@ -139,9 +139,6 @@ export function useKaspaTokenBalance(
 
   useEffect(() => {
     fetchBalance();
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchBalance, 30000);
-    return () => clearInterval(interval);
   }, [fetchBalance]);
 
   const formattedBalance = balance.toLocaleString(undefined, {
