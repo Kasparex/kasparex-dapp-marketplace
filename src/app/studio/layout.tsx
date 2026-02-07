@@ -1,9 +1,8 @@
 'use client';
 
+import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
 import { StudioSidebar } from '@/components/studio/StudioSidebar';
-import { L1L2Indicator } from '@/components/studio/L1L2Indicator';
-import { UserMenu } from '@/components/UserMenu';
-import { WalletStatus } from '@/components/WalletStatus';
 
 export default function StudioLayout({
     children,
@@ -11,36 +10,26 @@ export default function StudioLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="flex h-screen bg-zinc-50 dark:bg-zinc-950 overflow-hidden">
-            {/* Sidebar */}
-            <StudioSidebar />
+        <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
+            <Header />
 
-            {/* Main Content Area */}
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                {/* Top Header */}
-                <header className="h-16 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-8 z-10">
-                    <div className="flex items-center gap-4">
-                        <h1 className="text-sm font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100">
-                            Workspace
-                        </h1>
-                        <L1L2Indicator />
-                    </div>
+            <main className="flex-1 min-h-[calc(100vh-4rem)]">
+                <div className="flex flex-col lg:flex-row h-full">
+                    {/* Sidebar */}
+                    <StudioSidebar />
 
-                    <div className="flex items-center gap-4">
-                        <div className="hidden sm:block">
-                            <WalletStatus />
+                    {/* Main Content Area */}
+                    <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
+                        <div className="max-w-7xl mx-auto">
+                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                {children}
+                            </div>
                         </div>
-                        <UserMenu />
                     </div>
-                </header>
+                </div>
+            </main>
 
-                {/* Scrollable Content */}
-                <main className="flex-1 overflow-y-auto bg-zinc-50 dark:bg-black/20 p-8">
-                    <div className="max-w-7xl mx-auto">
-                        {children}
-                    </div>
-                </main>
-            </div>
+            <Footer />
         </div>
     );
 }
