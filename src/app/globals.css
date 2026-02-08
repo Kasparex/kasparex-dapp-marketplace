@@ -329,6 +329,19 @@
   color: #ffffff;
 }
 
+.k-sidebar-item:hover::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: #02abb8;
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 10px #02abb8;
+}
+
 .k-sidebar-item-active {
   @apply bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20;
 }

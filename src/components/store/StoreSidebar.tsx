@@ -276,7 +276,7 @@ export function StoreSidebar({
                     <span className="text-[#02abb8] opacity-80 group-hover:opacity-100">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                     </span>
-                    <span className="text-[11px] font-bold uppercase tracking-wider truncate">+ Add Product</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider truncate">Add New</span>
                   </Link>
                   <Link
                     href="/store/dashboard?tab=purchased"
