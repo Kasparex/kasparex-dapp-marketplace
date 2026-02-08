@@ -12,6 +12,7 @@ import { PurchasedItemsList } from '@/components/store/PurchasedItemsList';
 import { getExplorerTxUrl } from '@/lib/store/utils';
 import type { Product, Purchase } from '@/lib/store/types';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 export default function SellerDashboardPage() {
   const { state } = useKaspaWallet();
@@ -189,13 +190,13 @@ export default function SellerDashboardPage() {
                         Your Products
                       </h2>
                       {activeTab === 'overview' && (
-                        <a href="/store/dashboard?tab=products" className="text-xs font-bold text-violet-500 hover:underline uppercase tracking-wider">View All</a>
+                        <Link href="/store/dashboard?tab=products" className="text-xs font-bold text-violet-500 hover:underline uppercase tracking-wider">View All</Link>
                       )}
                     </div>
 
                     {products.length === 0 ? (
                       <div className="p-12 text-center text-zinc-500">
-                        <p>You haven't listed any products yet.</p>
+                        <p>You haven&apos;t listed any products yet.</p>
                         <button className="mt-4 px-4 py-2 bg-violet-500 text-white rounded-lg text-sm font-bold uppercase tracking-wider hover:bg-violet-600 transition-colors">
                           Create First Product
                         </button>
@@ -220,9 +221,9 @@ export default function SellerDashboardPage() {
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <a href={`/store/${product.slug}`} className="p-2 text-zinc-400 hover:text-violet-500 transition-colors" title="View">
+                              <Link href={`/store/${product.slug}`} className="p-2 text-zinc-400 hover:text-violet-500 transition-colors" title="View">
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                              </a>
+                              </Link>
                               {product.status === 'active' && (
                                 <button onClick={() => handleArchive(product.id)} className="p-2 text-zinc-400 hover:text-red-500 transition-colors" title="Archive">
                                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -244,7 +245,7 @@ export default function SellerDashboardPage() {
                         Recent Sales
                       </h2>
                       {activeTab === 'overview' && (
-                        <a href="/store/dashboard?tab=sales" className="text-xs font-bold text-violet-500 hover:underline uppercase tracking-wider">View All</a>
+                        <Link href="/store/dashboard?tab=sales" className="text-xs font-bold text-violet-500 hover:underline uppercase tracking-wider">View All</Link>
                       )}
                     </div>
                     <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
