@@ -27,7 +27,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link href={`/store/${product.slug}`} className="group h-full">
-      <div className="h-full flex flex-col bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden transition-all duration-300 hover:shadow-lg">
+      <div className="h-full flex flex-col bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-[#02abb8]/10 hover:-translate-y-1">
         {/* Product Image */}
         <div className="relative aspect-[4/3] overflow-hidden bg-zinc-100 dark:bg-zinc-950">
           {thumbnailUrl ? (
@@ -66,7 +66,7 @@ export function ProductCard({ product }: ProductCardProps) {
         {/* Product Info */}
         <div className="p-4 flex-1 flex flex-col">
           <div className="text-xs font-bold text-[#02abb8] uppercase tracking-widest mb-1">
-            by {product.sellerAddress.substring(0, 8)}...
+            by {product.sellerAddress.slice(-5)}
           </div>
           <h4 className="font-bold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-1">
             {product.title}
@@ -75,17 +75,33 @@ export function ProductCard({ product }: ProductCardProps) {
             {product.description}
           </p>
 
-          {/* Footer with Price and Buy Button */}
+          {/* Footer with Price and Buttons */}
           <div className="flex items-center justify-between pt-4 border-t border-zinc-100 dark:border-zinc-800">
-            <div className="text-sm font-black text-zinc-900 dark:text-zinc-100">
-              {product.priceKAS} <span className="text-[10px] text-zinc-500 font-normal">KAS</span>
+            <div className="text-lg font-black text-zinc-900 dark:text-zinc-100">
+              {product.priceKAS} <span className="text-sm text-zinc-500 font-bold">KAS</span>
             </div>
-            <button
-              onClick={handleBuy}
-              className="px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-[#02abb8]/10 text-[#02abb8] hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-600 dark:hover:text-zinc-400"
-            >
-              Buy Now
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowPreview(true);
+                }}
+                className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                title="Quick Preview"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </button>
+              <button
+                onClick={handleBuy}
+                className="px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-[#02abb8] text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-600 dark:hover:text-zinc-400"
+              >
+                Buy Now
+              </button>
+            </div>
           </div>
         </div>
       </div>
