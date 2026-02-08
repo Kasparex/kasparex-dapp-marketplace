@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ProductPurchase } from '@/components/store/ProductPurchase';
-import { ProductSidebar } from '@/components/store/ProductSidebar';
+import { StoreSidebar } from '@/components/store/StoreSidebar';
 import { ProductSubmissionModal } from '@/components/store/ProductSubmissionModal';
-import { getProductBySlug, getAllProducts } from '@/lib/store/products';
+import { getProductBySlug } from '@/lib/store/products';
 import { hasUserPurchased as checkPurchase, getPurchasesByBuyer } from '@/lib/store/purchases';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
@@ -42,19 +42,14 @@ export default function ProductPage({ params }: PageProps) {
 
   // Load product
   const loadProduct = async () => {
-    // Wait for params to resolve before checking slug
-    if (!paramsResolved) {
-      return;
-    }
-
+    if (!paramsResolved) return;
     if (!slug) {
       setIsLoading(false);
       setError('Invalid product slug');
       return;
     }
 
-    const currentSlug = slug; // Capture slug in a const for TypeScript
-
+    const currentSlug = slug;
     setIsLoading(true);
     setError(null);
     try {
@@ -85,8 +80,8 @@ export default function ProductPage({ params }: PageProps) {
       return;
     }
 
-    const currentProduct = product; // Capture product in a const for TypeScript
-    const currentAddress = state.address; // Capture address in a const for TypeScript
+    const currentProduct = product;
+    const currentAddress = state.address;
 
     async function checkAccess() {
       setCheckingAccess(true);
@@ -110,7 +105,7 @@ export default function ProductPage({ params }: PageProps) {
         <Header />
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#02abb8] mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500 mx-auto mb-4"></div>
             <p className="text-zinc-600 dark:text-zinc-400">Loading product...</p>
           </div>
         </main>
@@ -126,12 +121,12 @@ export default function ProductPage({ params }: PageProps) {
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="text-4xl mb-4">❌</div>
-            <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+            <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
               {error || 'Product not found'}
             </h2>
             <Link
               href="/store"
-              className="text-[#02abb8] hover:underline"
+              className="text-violet-500 hover:underline font-bold"
             >
               Back to Store
             </Link>
@@ -150,19 +145,23 @@ export default function ProductPage({ params }: PageProps) {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-1 flex flex-col">
-        <div className="flex-1 flex flex-col lg:flex-row">
-          {/* Left Sidebar - Rewards Status */}
-          <ProductSidebar onSubmitProduct={() => setShowSubmitModal(true)} />
+      <div className="flex flex-1">
+        {/* Sidebar */}
+        <StoreSidebar
+          mode="product"
+          currentProduct={product}
+        />
 
-          {/* Main Content */}
-          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:px-12 lg:py-12">
-            <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-8">
-              {/* Left Column: Image, Description, Content */}
+        {/* Main Content */}
+        <main className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto bg-zinc-50 dark:bg-zinc-900/50">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-8">
+
+              {/* Left Column: Image & Details */}
               <div className="space-y-8">
                 {/* Product Image */}
                 {thumbnailUrl && (
-                  <div className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900">
+                  <div className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 shadow-xl shadow-black/5 relative group">
                     <img
                       src={thumbnailUrl}
                       alt={product.title}
@@ -170,98 +169,126 @@ export default function ProductPage({ params }: PageProps) {
                       loading="lazy"
                       decoding="async"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
                 )}
 
-                {/* Product Header Info */}
+                {/* Title & Description */}
                 <div>
                   <div className="flex items-center gap-3 mb-4 flex-wrap">
-                    <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+                    <h1 className="text-4xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
                       {product.title}
                     </h1>
-                    <span
-                      className={`px-2.5 py-1 text-xs font-medium rounded ${product.network === 'L1'
-                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
-                        : 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300'
-                        }`}
-                    >
+                  </div>
+                  <div className="flex items-center gap-2 mb-6 text-sm">
+                    <span className={`px-2.5 py-1 font-bold rounded uppercase tracking-wider ${product.network === 'L1'
+                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                      : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                      }`}>
                       {product.network}
                     </span>
-                    <span className="px-2.5 py-1 text-xs font-medium bg-zinc-100 dark:bg-zinc-900/30 text-zinc-800 dark:text-zinc-300 rounded">
+                    <span className="px-2.5 py-1 font-bold bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 rounded uppercase tracking-wider">
                       {product.category}
                     </span>
                   </div>
-                  <p className="text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                    {product.description}
-                  </p>
+
+                  <div className="prose dark:prose-invert max-w-none">
+                    <p className="text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
+                      {product.description}
+                    </p>
+                  </div>
                 </div>
 
                 {/* Protected Content Section */}
-                {hasAccess ? (
-                  <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
-                    <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                      Product Content
-                    </h2>
-                    {product.content && (
-                      <div className="prose dark:prose-invert max-w-none mb-6">
-                        <p className="text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
-                          {product.content}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Asset Downloads */}
-                    {product.assetCids && product.assetCids.length > 0 && (
-                      <div className="mt-6 pt-6 border-t border-zinc-100 dark:border-zinc-800">
-                        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-                          Download Files
-                        </h3>
-                        <div className="space-y-2">
-                          {product.assetCids.map((cid, index) => {
-                            const fileUrl = getBestGatewayUrl(cid);
-                            return (
-                              <a
-                                key={cid}
-                                href={fileUrl}
-                                download
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-between px-4 py-3 bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 transition-all group"
-                              >
-                                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                                  File {index + 1}
-                                </span>
-                                <svg className="w-5 h-5 text-zinc-400 group-hover:text-[#02abb8] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                              </a>
-                            );
-                          })}
+                <div id="content-section" className="scroll-mt-24">
+                  {hasAccess ? (
+                    <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 shadow-sm ring-1 ring-violet-500/20">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg text-green-600 dark:text-green-400">
+                          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-wide">
+                            Purchased Content
+                          </h2>
+                          <p className="text-xs text-zinc-500 font-medium">You have full access to this product</p>
                         </div>
                       </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-8 text-center">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-100 dark:bg-zinc-800 mb-4">
-                      <span className="text-3xl">🔒</span>
+
+                      {product.content && (
+                        <div className="prose dark:prose-invert max-w-none mb-8 bg-zinc-50 dark:bg-zinc-900/50 p-6 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                          <p className="text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap font-mono text-sm">
+                            {product.content}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Asset Downloads */}
+                      {product.assetCids && product.assetCids.length > 0 && (
+                        <div>
+                          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider mb-4">
+                            Download Assets
+                          </h3>
+                          <div className="grid gap-3">
+                            {product.assetCids.map((cid, index) => {
+                              const fileUrl = getBestGatewayUrl(cid);
+                              return (
+                                <a
+                                  key={cid}
+                                  href={fileUrl}
+                                  download
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center justify-between px-5 py-4 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-800 transition-all group hover:border-violet-500/30 hover:shadow-lg hover:shadow-violet-500/5"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-zinc-500 group-hover:text-violet-500 transition-colors">
+                                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                    </div>
+                                    <div>
+                                      <span className="block text-sm font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-violet-500 transition-colors">
+                                        Asset File {index + 1}
+                                      </span>
+                                      <span className="text-[10px] font-mono text-zinc-400">IPFS: {cid.substring(0, 12)}...</span>
+                                    </div>
+                                  </div>
+                                  <svg className="w-5 h-5 text-zinc-300 group-hover:text-violet-500 transition-colors transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                  </svg>
+                                </a>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-                      Purchase Required
-                    </h3>
-                    <p className="text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto">
-                      Purchase this product to access the content and download files.
-                    </p>
-                  </div>
-                )}
+                  ) : (
+                    <div className="bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-10 text-center relative overflow-hidden">
+                      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:16px_16px] opacity-50" />
+                      <div className="relative z-10">
+                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white dark:bg-zinc-900 shadow-xl shadow-zinc-200/50 dark:shadow-zinc-950/50 mb-6 text-zinc-300 dark:text-zinc-700">
+                          <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                        </div>
+                        <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-3 tracking-tight">
+                          Premium Content Locked
+                        </h3>
+                        <p className="text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto font-medium">
+                          Purchase this product to instantly access the full content, source files, and download links.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {/* On-Chain Comments Module */}
-                <StoreCommentsSection productId={product.id} />
+                <div className="pt-8 border-t border-zinc-200 dark:border-zinc-800">
+                  <StoreCommentsSection productId={product.id} />
+                </div>
               </div>
 
               {/* Right Column: Purchase Component */}
               <div className="lg:pt-0">
-                <div className="sticky top-24">
+                <div className="sticky top-6 space-y-6">
                   <ProductPurchase
                     product={product}
                     onPurchaseComplete={async () => {
@@ -275,16 +302,34 @@ export default function ProductPage({ params }: PageProps) {
                           if (purchase) {
                             setPurchaseTxHash(purchase.txHash);
                           }
+                          // Smooth scroll to content
+                          document.getElementById('content-section')?.scrollIntoView({ behavior: 'smooth' });
                         }
                       }
                     }}
                   />
+
+                  {/* Trust Badges */}
+                  <div className="bg-white dark:bg-zinc-950 rounded-xl p-4 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                    <div className="flex items-center gap-3 text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">
+                      <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      Verified Purchase
+                    </div>
+                    <div className="flex items-center gap-3 text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">
+                      <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                      Instant Delivery
+                    </div>
+                    <div className="flex items-center gap-3 text-xs font-bold text-zinc-500 uppercase tracking-wider">
+                      <svg className="w-4 h-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                      Secure Transaction
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
 
       <Footer />
 
@@ -293,8 +338,6 @@ export default function ProductPage({ params }: PageProps) {
         isOpen={showSubmitModal}
         onClose={() => setShowSubmitModal(false)}
         onSuccess={async () => {
-          // Reload products - the new registry CID is now in localStorage
-          // Wait a moment for IPFS propagation, then reload
           await new Promise(resolve => setTimeout(resolve, 1000));
           await loadProduct();
         }}

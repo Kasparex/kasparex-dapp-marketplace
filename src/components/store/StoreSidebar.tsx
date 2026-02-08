@@ -2,28 +2,27 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-
-import type { ProductCategory } from '@/lib/store/types';
-import { getProductsBySeller } from '@/lib/store/products';
+import { usePathname } from 'next/navigation';
+import type { ProductCategory, Product, Purchase } from '@/lib/store/types';
 
 interface StoreSidebarProps {
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
-  isWalletConnected?: boolean;
-  currentAddress?: string;
-  onSubmitProduct?: () => void;
-  selectedCategories: ProductCategory[];
-  onCategoryChange: (categories: ProductCategory[]) => void;
-  categoryCounts: Record<ProductCategory, number>;
-  showCategories?: boolean;
-  backLink?: {
-    href: string;
-    label: string;
-  };
+  mode: 'listing' | 'product' | 'dashboard';
+  // Listing props
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+  categories?: ProductCategory[];
+  selectedCategories?: ProductCategory[];
+  onCategoryChange?: (categories: ProductCategory[]) => void;
+  categoryCounts?: Record<ProductCategory, number>;
+  // Product props
+  currentProduct?: Product;
+  // Dashboard props
+  sellerRevenue?: number;
+  totalSales?: number;
 }
 
 function StoreCategoryIcon({ id, className = "" }: { id: string; className?: string }) {
-  const iconProps = { className: `k-sidebar-icon ${className}`, strokeWidth: 2, fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" };
+  const iconProps = { className: `w-4 h-4 ${className}`, strokeWidth: 2, fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" };
 
   switch (id.toLowerCase()) {
     case 'software': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>;
@@ -35,37 +34,31 @@ function StoreCategoryIcon({ id, className = "" }: { id: string; className?: str
 }
 
 export function StoreSidebar({
-  searchQuery,
+  mode,
+  searchQuery = '',
   onSearchChange,
-  isWalletConnected = false,
-  currentAddress,
-  onSubmitProduct,
-  selectedCategories,
+  categories = ['Software', 'Art', 'Music', 'Templates', 'Other'],
+  selectedCategories = [],
   onCategoryChange,
-  categoryCounts,
-  showCategories = true,
-  backLink = { href: '/hub', label: 'Go back to Hub' },
+  categoryCounts = { Software: 0, Art: 0, Music: 0, Templates: 0, Other: 0 },
+  currentProduct,
+  sellerRevenue = 0,
+  totalSales = 0,
 }: StoreSidebarProps) {
-  const [categoriesExpanded, setCategoriesExpanded] = useState(true);
-  const [sellerRevenue, setSellerRevenue] = useState<number | null>(null);
-
-  const categories: ProductCategory[] = ['Software', 'Art', 'Music', 'Templates', 'Other'];
-
-  const handleCategoryToggle = (category: ProductCategory) => {
-    const newCategories = selectedCategories.includes(category)
-      ? selectedCategories.filter((c) => c !== category)
-      : [...selectedCategories, category];
-    onCategoryChange(newCategories);
-  };
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-
-  // Sidebar hide/show and resize state
   const [isHidden, setIsHidden] = useState(false);
-  const [sidebarWidth, setSidebarWidth] = useState(256); // Default 256px (w-64)
+  const [sidebarWidth, setSidebarWidth] = useState(256);
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  // Load sidebar state from localStorage
+  // Expand states
+  const [categoriesExpanded, setCategoriesExpanded] = useState(true);
+  const [tagsExpanded, setTagsExpanded] = useState(true);
+  const [productDetailsExpanded, setProductDetailsExpanded] = useState(true);
+  const [dashboardMenuExpanded, setDashboardMenuExpanded] = useState(true);
+
+  // Load sidebar state
   useEffect(() => {
     const savedHidden = localStorage.getItem('store-sidebar-hidden');
     const savedWidth = localStorage.getItem('store-sidebar-width');
@@ -73,7 +66,7 @@ export function StoreSidebar({
     if (savedWidth) setSidebarWidth(parseInt(savedWidth, 10));
   }, []);
 
-  // Save sidebar state to localStorage
+  // Save sidebar state
   useEffect(() => {
     localStorage.setItem('store-sidebar-hidden', String(isHidden));
   }, [isHidden]);
@@ -82,27 +75,7 @@ export function StoreSidebar({
     localStorage.setItem('store-sidebar-width', String(sidebarWidth));
   }, [sidebarWidth]);
 
-  // Fetch seller revenue
-  useEffect(() => {
-    async function fetchRevenue() {
-      if (!currentAddress) {
-        setSellerRevenue(null);
-        return;
-      }
-      try {
-        const products = await getProductsBySeller(currentAddress);
-        const revenue = products.reduce((acc, product) => {
-          return acc + (product.priceKAS * product.purchaseCount);
-        }, 0);
-        setSellerRevenue(revenue);
-      } catch (e) {
-        console.error('Failed to fetch seller revenue:', e);
-      }
-    }
-    fetchRevenue();
-  }, [currentAddress]);
-
-  // Handle resize
+  // Resize handlers
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing || !sidebarRef.current) return;
@@ -132,6 +105,57 @@ export function StoreSidebar({
     };
   }, [isResizing]);
 
+  const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
+    <svg
+      className={`w-3 h-3 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+    </svg>
+  );
+
+  const CollapsibleSection = ({
+    title,
+    icon,
+    expanded,
+    onToggle,
+    children,
+  }: {
+    title: string;
+    icon?: React.ReactNode;
+    expanded: boolean;
+    onToggle: () => void;
+    children: React.ReactNode;
+  }) => (
+    <div className="mb-6">
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-3 px-2 hover:text-violet-500 transition-colors group"
+      >
+        <div className="flex items-center gap-2">
+          {icon && <span className="text-violet-500 opacity-80 group-hover:opacity-100">{icon}</span>}
+          <span>{title}</span>
+        </div>
+        <ChevronIcon expanded={expanded} />
+      </button>
+      {expanded && <div className="space-y-1">{children}</div>}
+    </div>
+  );
+
+  const isListing = mode === 'listing';
+  const isProduct = mode === 'product';
+  const isDashboard = mode === 'dashboard';
+
+  const handleCategoryToggle = (cat: ProductCategory) => {
+    if (!onCategoryChange || !selectedCategories) return;
+    const newCats = selectedCategories.includes(cat)
+      ? selectedCategories.filter(c => c !== cat)
+      : [...selectedCategories, cat];
+    onCategoryChange(newCats);
+  };
+
   return (
     <>
       {/* Mobile menu button */}
@@ -141,12 +165,7 @@ export function StoreSidebar({
         style={{ top: '5.5rem' }}
         aria-label="Toggle menu"
       >
-        <svg
-          className="h-6 w-6 text-zinc-900 dark:text-zinc-100"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
+        <svg className="h-6 w-6 text-zinc-900 dark:text-zinc-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           {isOpen ? (
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           ) : (
@@ -163,7 +182,7 @@ export function StoreSidebar({
         />
       )}
 
-      {/* Show Sidebar Button - Fixed when hidden */}
+      {/* Show Sidebar Button */}
       {isHidden && (
         <button
           onClick={() => setIsHidden(false)}
@@ -176,40 +195,28 @@ export function StoreSidebar({
         </button>
       )}
 
-      {/* Sidebar */}
       <aside
         ref={sidebarRef}
         className={`
-          fixed lg:sticky top-16 lg:top-0 left-0 z-40
-          h-[calc(100vh-4rem)] lg:h-screen
-          bg-white dark:bg-zinc-950
-          border-r border-zinc-200 dark:border-zinc-800
-          transform transition-all duration-300 ease-in-out
-          overflow-y-auto
-          ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          ${isHidden ? 'lg:translate-x-[-100%]' : ''}
-        `}
+                    fixed lg:sticky top-16 lg:top-0 left-0 z-40
+                    h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)]
+                    bg-white dark:bg-zinc-950
+                    border-r border-zinc-200 dark:border-zinc-800
+                    transform transition-all duration-300 ease-in-out
+                    flex flex-col
+                    ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+                    ${isHidden ? 'lg:translate-x-[-100%]' : ''}
+                `}
         style={{
           width: isHidden ? 0 : `${sidebarWidth}px`,
           minWidth: isHidden ? 0 : `${sidebarWidth}px`,
           maxWidth: isHidden ? 0 : `${sidebarWidth}px`,
-          cursor: isResizing ? 'col-resize' : ''
         }}
         onMouseMove={(e) => {
           if (!isHidden && !isResizing && sidebarRef.current) {
             const rect = sidebarRef.current.getBoundingClientRect();
             const isOnBorder = e.clientX >= rect.right - 4 && e.clientX <= rect.right;
             sidebarRef.current.style.cursor = isOnBorder ? 'col-resize' : '';
-            if (isOnBorder) {
-              sidebarRef.current.style.borderRight = '2px solid #06b6d4';
-            } else {
-              sidebarRef.current.style.borderRight = '';
-            }
-          }
-        }}
-        onMouseLeave={() => {
-          if (sidebarRef.current && !isResizing) {
-            sidebarRef.current.style.borderRight = '';
           }
         }}
         onMouseDown={(e) => {
@@ -222,17 +229,17 @@ export function StoreSidebar({
           }
         }}
       >
-        {/* Header with Hide Button and Search */}
-        <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
-          <div className="flex items-center justify-between mb-4">
+        <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
+          {/* Header with Back Link and Hide Button */}
+          <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-black">
             <Link
-              href={backLink.href}
-              className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium transition-colors text-sm flex items-center gap-1"
+              href={isListing ? '/hub' : '/store'}
+              className="text-zinc-500 hover:text-violet-500 font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
               </svg>
-              {backLink.label}
+              {isListing ? 'Back to Hub' : 'Back to Store'}
             </Link>
             <button
               onClick={() => setIsHidden(true)}
@@ -244,107 +251,170 @@ export function StoreSidebar({
               </svg>
             </button>
           </div>
-          <div className="k-search-container">
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="k-search-input !h-9"
-            />
-          </div>
-        </div>
 
-        {/* Sidebar Content */}
-        <div className="p-4">
-          {/* Seller Status - Moved to Top */}
-          <div className="space-y-3 mb-6">
-            <div className="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800">
-              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-                Seller Status
-              </h3>
-              <div className="mb-3">
-                <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
-                  Total Revenue
-                </div>
-                <div className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                  {sellerRevenue !== null ? `${sellerRevenue.toLocaleString()} KAS` : '0 KAS'}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Link
-                  href="/store/dashboard"
-                  className="block w-full px-3 py-2 text-sm font-medium text-center bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
-                >
-                  Seller Dashboard
-                </Link>
-                {/* Submit Product Button - Moved Here */}
-                {isWalletConnected && onSubmitProduct && (
-                  <button
-                    onClick={onSubmitProduct}
-                    className="w-full px-3 py-2 text-sm font-medium bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
+          <div className="flex-1 p-4">
+            {/* LISTING MODE: Status & Quick Actions */}
+            {isListing && (
+              <div className="mb-8">
+                <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4 px-2">
+                  Quick Actions
+                </h3>
+                <div className="space-y-1">
+                  <Link
+                    href="/store/dashboard"
+                    className="k-sidebar-item group"
                   >
-                    Submit Product
-                  </button>
-                )}
+                    <span className="text-violet-500 opacity-80 group-hover:opacity-100">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    </span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider truncate">Sell Product</span>
+                  </Link>
+                  <Link
+                    href="/store/dashboard?tab=purchased"
+                    className="k-sidebar-item group"
+                  >
+                    <span className="text-violet-500 opacity-80 group-hover:opacity-100">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                    </span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider truncate">My Purchases</span>
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* LISTING MODE: Categories */}
+            {isListing && (
+              <CollapsibleSection
+                title="Categories"
+                icon={<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>}
+                expanded={categoriesExpanded}
+                onToggle={() => setCategoriesExpanded(!categoriesExpanded)}
+              >
+                {categories?.map((cat) => {
+                  const isSelected = selectedCategories?.includes(cat);
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => handleCategoryToggle(cat)}
+                      className={`w-full k-sidebar-item group ${isSelected ? 'k-sidebar-item-active' : ''}`}
+                    >
+                      <StoreCategoryIcon id={cat} className="mr-2 opacity-70 group-hover:text-violet-500" />
+                      <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">
+                        {cat}
+                      </span>
+                      {categoryCounts && (
+                        <span className="ml-auto text-[9px] font-bold text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded-full">
+                          {categoryCounts[cat] || 0}
+                        </span>
+                      )}
+                      {isSelected && (
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-violet-500 rounded-r-full shadow-[0_0_10px_#8b5cf6]" />
+                      )}
+                    </button>
+                  );
+                })}
+              </CollapsibleSection>
+            )}
+
+            {/* DASHBOARD MODE: Menu */}
+            {isDashboard && (
+              <CollapsibleSection
+                title="Seller Panel"
+                icon={<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}
+                expanded={dashboardMenuExpanded}
+                onToggle={() => setDashboardMenuExpanded(!dashboardMenuExpanded)}
+              >
+                <div className="px-2 py-4 mb-2 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                  <div className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Total Revenue</div>
+                  <div className="text-2xl font-black text-violet-500">{sellerRevenue.toLocaleString()} KAS</div>
+                </div>
+
+                <Link href="/store/dashboard" className={`w-full k-sidebar-item group ${pathname === '/store/dashboard' ? 'k-sidebar-item-active' : ''}`}>
+                  <span className="text-[11px] font-bold uppercase tracking-wider truncate">Overview</span>
+                </Link>
+                <Link href="/store/dashboard?tab=products" className="w-full k-sidebar-item group">
+                  <span className="text-[11px] font-bold uppercase tracking-wider truncate">My Products</span>
+                </Link>
+                <Link href="/store/dashboard?tab=sales" className="w-full k-sidebar-item group">
+                  <span className="text-[11px] font-bold uppercase tracking-wider truncate">Sales History</span>
+                </Link>
+              </CollapsibleSection>
+            )}
+
+            {/* PRODUCT MODE: Info */}
+            {isProduct && currentProduct && (
+              <CollapsibleSection
+                title="Product Details"
+                expanded={productDetailsExpanded}
+                onToggle={() => setProductDetailsExpanded(!productDetailsExpanded)}
+              >
+                <div className="px-3 py-2">
+                  <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-4">{currentProduct.title}</h4>
+
+                  <div className="space-y-4">
+                    <div>
+                      <div className="text-[10px] uppercase font-bold text-zinc-500 mb-1">Price</div>
+                      <div className="text-lg font-black text-violet-500">{currentProduct.priceKAS} KAS</div>
+                    </div>
+
+                    <div>
+                      <div className="text-[10px] uppercase font-bold text-zinc-500 mb-1">Category</div>
+                      <div className="inline-flex items-center gap-2 px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded text-xs font-bold">
+                        <StoreCategoryIcon id={currentProduct.category} />
+                        {currentProduct.category}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-[10px] uppercase font-bold text-zinc-500 mb-1">Network</div>
+                      <div className={`inline-flex items-center px-2 py-1 rounded text-xs font-bold ${currentProduct.network === 'L1'
+                          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                          : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                        }`}>
+                        {currentProduct.network} Network
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CollapsibleSection>
+            )}
+          </div>
+
+          {/* Footer Section */}
+          <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-black mt-auto">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-violet-500/10 text-violet-500 flex items-center justify-center font-black text-[10px]">
+                KS
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-widest truncate">
+                  Kasparex Store
+                </p>
+                <p className="text-[9px] font-bold text-zinc-500 uppercase">Digital Marketplace</p>
               </div>
             </div>
           </div>
-
-          {/* Category Filters */}
-          {showCategories && (
-            <div className="space-y-3 mb-4">
-              <button
-                onClick={() => setCategoriesExpanded(!categoriesExpanded)}
-                className="w-full flex items-center justify-between text-sm font-semibold text-zinc-700 dark:text-white opacity-80 uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-white hover:opacity-100 transition-all"
-              >
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                  </svg>
-                  <span>Categories</span>
-                </div>
-                <svg
-                  className={`w-4 h-4 transition-transform ${categoriesExpanded ? 'rotate-180' : ''}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {categoriesExpanded && (
-                <div className="space-y-1 pl-2">
-                  {categories.map((category) => {
-                    const isChecked = selectedCategories.includes(category);
-                    const count = categoryCounts[category] || 0;
-                    return (
-                      <label
-                        key={category}
-                        className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => handleCategoryToggle(category)}
-                          className="sr-only"
-                        />
-                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                        <StoreCategoryIcon id={category} />
-                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{category}</span>
-                        <span className="k-sidebar-count">
-                          {count}
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </aside>
+
+      <style jsx global>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 4px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: rgba(161, 161, 170, 0.2);
+                    border-radius: 10px;
+                }
+                .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: rgba(63, 63, 70, 0.4);
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: rgba(161, 161, 170, 0.4);
+                }
+            `}</style>
     </>
   );
 }

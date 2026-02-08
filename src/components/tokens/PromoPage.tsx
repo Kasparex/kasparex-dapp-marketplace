@@ -59,6 +59,9 @@ interface PromoPageProps {
 }
 
 export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.kasparexcom.workers.dev' }: PromoPageProps) {
+  // Ensure apiBaseUrl doesn't have a trailing slash
+  const baseUrl = apiBaseUrl.replace(/\/$/, '');
+
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const [page, setPage] = useState<PromoPage | null>(null);
@@ -78,13 +81,19 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
 
     const loadPage = async () => {
       try {
-        const response = await fetch(`${apiBaseUrl}/kasparex/promo/page/${pageId}`);
+        const url = `${baseUrl}/kasparex/promo/page/${pageId}`;
+        console.log('[PromoPage] Fetching page data from:', url);
+        const response = await fetch(url);
+
         if (!response.ok) throw new Error('Failed to load page');
         const data = await response.json();
         setPage(data.page);
-        
+
         // Load token config from database
-        const tokenResponse = await fetch(`${apiBaseUrl}/kasparex/promo/token/${data.page.token_id}`);
+        const tokenUrl = `${baseUrl}/kasparex/promo/token/${data.page.token_id}`;
+        console.log('[PromoPage] Fetching token config from:', tokenUrl);
+        const tokenResponse = await fetch(tokenUrl);
+
         if (tokenResponse.ok) {
           const tokenData = await tokenResponse.json();
           setTokenConfig(tokenData.token);
@@ -98,7 +107,7 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
     };
 
     loadPage();
-  }, [pageId, apiBaseUrl]);
+  }, [pageId, baseUrl]);
 
   // Load cooldown and rate limit status
   useEffect(() => {
@@ -106,10 +115,14 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
 
     const loadStatus = async () => {
       try {
+        const cooldownUrl = `${baseUrl}/kasparex/promo/cooldown-status/${address}`;
+        const rateLimitUrl = `${baseUrl}/kasparex/promo/rate-limit-status/${address}`;
+
         const [cooldownRes, rateLimitRes] = await Promise.all([
-          fetch(`${apiBaseUrl}/kasparex/promo/cooldown-status/${address}`),
-          fetch(`${apiBaseUrl}/kasparex/promo/rate-limit-status/${address}`),
+          fetch(cooldownUrl),
+          fetch(rateLimitUrl),
         ]);
+
 
         if (cooldownRes.ok) {
           const cooldownData = await cooldownRes.json();
@@ -218,7 +231,7 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
         page.slot5_wallet as Address,
       ];
       // Use contract price if available, otherwise fall back to database price
-      const currentMintPrice = contractTokenConfig?.mintPrice 
+      const currentMintPrice = contractTokenConfig?.mintPrice
         ? parseFloat(formatEther(contractTokenConfig.mintPrice))
         : tokenConfig.mint_price;
       const totalPrice = parseEther((currentMintPrice * mintCount).toString());
@@ -257,7 +270,7 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
   const slotPercentages = slotBps.map(bps => bps / 100); // Convert basis points to percentages
 
   // Use contract price if available, otherwise fall back to database price
-  const mintPrice = contractTokenConfig?.mintPrice 
+  const mintPrice = contractTokenConfig?.mintPrice
     ? parseFloat(formatEther(contractTokenConfig.mintPrice))
     : tokenConfig.mint_price;
 
@@ -270,9 +283,9 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
   ];
 
   const totalPrice = mintPrice * mintCount;
-  const canMint = isConnected && 
+  const canMint = isConnected &&
     address && // Check address is available
-    isIgraTestnet && 
+    isIgraTestnet &&
     (!cooldownRemaining || cooldownRemaining <= 0) &&
     (!rateLimitStatus || rateLimitStatus.remainingMints >= mintCount) &&
     tokenConfig.status === 'ACTIVE';
@@ -320,11 +333,10 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
               {slots.map((slot, idx) => (
                 <tr
                   key={idx}
-                  className={`border-b border-zinc-200 dark:border-zinc-800 transition-colors ${
-                    slot.isActive
-                      ? 'bg-[#02abb8]/10 dark:bg-[#02abb8]/20 hover:bg-[#02abb8]/20 dark:hover:bg-[#02abb8]/30'
-                      : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
-                  }`}
+                  className={`border-b border-zinc-200 dark:border-zinc-800 transition-colors ${slot.isActive
+                    ? 'bg-[#02abb8]/10 dark:bg-[#02abb8]/20 hover:bg-[#02abb8]/20 dark:hover:bg-[#02abb8]/30'
+                    : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
+                    }`}
                 >
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
@@ -392,11 +404,10 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
               <button
                 key={count}
                 onClick={() => setMintCount(count)}
-                className={`px-4 py-2 rounded-lg border transition-colors ${
-                  mintCount === count
-                    ? 'bg-[#02abb8] text-white border-[#02abb8]'
-                    : 'bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100'
-                }`}
+                className={`px-4 py-2 rounded-lg border transition-colors ${mintCount === count
+                  ? 'bg-[#02abb8] text-white border-[#02abb8]'
+                  : 'bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100'
+                  }`}
               >
                 {count}
               </button>

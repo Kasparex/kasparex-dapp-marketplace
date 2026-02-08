@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Header } from '@/components/Header';
+import { StoreHeader } from '@/components/store/StoreHeader';
 import { Footer } from '@/components/Footer';
+import { Header } from '@/components/Header';
 import { StoreSidebar } from '@/components/store/StoreSidebar';
 import { ProductGrid } from '@/components/store/ProductGrid';
 import { ProductSubmissionModal } from '@/components/store/ProductSubmissionModal';
@@ -91,129 +92,117 @@ export default function StorePage() {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-1">
-        <div className="flex">
-          {/* Sidebar */}
-          <StoreSidebar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            isWalletConnected={!!state.address}
-            currentAddress={state.address || undefined}
-            onSubmitProduct={() => setShowSubmitModal(true)}
-            selectedCategories={selectedCategories}
-            onCategoryChange={setSelectedCategories}
-            categoryCounts={categoryCounts}
-          />
+      <div className="flex flex-1">
+        <StoreSidebar
+          mode="listing"
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          categories={['Software', 'Art', 'Music', 'Templates', 'Other']}
+          selectedCategories={selectedCategories}
+          onCategoryChange={setSelectedCategories}
+          categoryCounts={categoryCounts}
+        />
 
-          {/* Main Content */}
-          <div className="flex-1 lg:ml-0">
-            <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 lg:px-16 lg:py-12">
-              {/* Header */}
-              <div className="mb-6 flex items-start justify-between gap-4">
-                <div className="lg:pl-0 pl-12 flex-1">
-                  <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-                    Kasparex Store
-                  </h2>
-                  <p className="text-zinc-600 dark:text-zinc-400">
-                    {isLoading ? (
-                      'Loading products...'
-                    ) : (
-                      `${filteredAndSortedProducts.length} product${filteredAndSortedProducts.length !== 1 ? 's' : ''} found`
-                    )}
-                  </p>
-                </div>
-                {/* Filters and Sort Controls */}
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {/* Network Filter (kept in main column for Kasparex consistency) */}
+        <main className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto bg-white dark:bg-zinc-950">
+          <div className="w-full">
+            {/* Premium Header */}
+            <StoreHeader />
+
+            {/* Controls Bar */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+              <div className="flex-1">
+                <p className="text-zinc-500 dark:text-zinc-400 font-medium">
+                  {isLoading ? (
+                    'Loading products...'
+                  ) : (
+                    `${filteredAndSortedProducts.length} product${filteredAndSortedProducts.length !== 1 ? 's' : ''} found`
+                  )}
+                </p>
+              </div>
+
+              {/* Filters and Sort Controls */}
+              <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                {/* Network Filter */}
+                <div className="relative">
                   <select
                     value={selectedNetwork}
                     onChange={(e) => setSelectedNetwork(e.target.value as ProductNetwork | 'all')}
-                    className="px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                    className="appearance-none pl-3 pr-8 py-2 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 focus:outline-none hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                     aria-label="Filter by network"
                   >
-                    <option value="all">All Networks</option>
-                    <option value="L1">L1</option>
-                    <option value="L2">L2</option>
+                    <option value="all">Every Network</option>
+                    <option value="L1">L1 Only</option>
+                    <option value="L2">L2 Only</option>
                   </select>
-                  {/* View Mode Controls */}
-                  <div className="flex items-center border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
-                    <button
-                      onClick={() => setViewMode('grid')}
-                      className={`p-2 text-sm font-medium transition-colors ${viewMode === 'grid'
-                        ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
-                        : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-                        }`}
-                      title="Grid view"
-                      aria-label="Grid view"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => setViewMode('compact')}
-                      className={`p-2 text-sm font-medium transition-colors border-l border-zinc-200 dark:border-zinc-800 ${viewMode === 'compact'
-                        ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
-                        : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-                        }`}
-                      title="Compact view"
-                      aria-label="Compact view"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => setViewMode('table')}
-                      className={`p-2 text-sm font-medium transition-colors border-l border-zinc-200 dark:border-zinc-800 ${viewMode === 'table'
-                        ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
-                        : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-                        }`}
-                      title="Table view"
-                      aria-label="Table view"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                    </button>
-                  </div>
-                  <ProductSortFilters
-                    sortBy={sortBy}
-                    onSortChange={setSortBy}
-                  />
+                  <svg className="w-3 h-3 text-zinc-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+
+                {/* View Mode Controls */}
+                <div className="flex items-center border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden bg-white dark:bg-zinc-900">
                   <button
-                    onClick={handleResetFilters}
-                    className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors whitespace-nowrap"
+                    onClick={() => setViewMode('grid')}
+                    className={`p-2 transition-colors ${viewMode === 'grid'
+                      ? 'bg-zinc-100 dark:bg-zinc-800 text-violet-500'
+                      : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200'
+                      }`}
+                    title="Grid view"
                   >
-                    Reset Filters
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                  </button>
+                  <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-800" />
+                  <button
+                    onClick={() => setViewMode('compact')}
+                    className={`p-2 transition-colors ${viewMode === 'compact'
+                      ? 'bg-zinc-100 dark:bg-zinc-800 text-violet-500'
+                      : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200'
+                      }`}
+                    title="Compact view"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
                   </button>
                 </div>
+
+                <ProductSortFilters
+                  sortBy={sortBy}
+                  onSortChange={setSortBy}
+                />
+
+                {(selectedCategories.length > 0 || selectedNetwork !== 'all' || searchQuery) && (
+                  <button
+                    onClick={handleResetFilters}
+                    className="px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                  >
+                    Reset
+                  </button>
+                )}
               </div>
-
-              {/* Error State */}
-              {error && (
-                <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                  <p className="text-sm text-red-800 dark:text-red-300">{error}</p>
-                </div>
-              )}
-
-              {/* Products Grid */}
-              {isLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {[...Array(8)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="bg-zinc-100 dark:bg-zinc-900 rounded-lg h-80 animate-pulse"
-                    />
-                  ))}
-                </div>
-              ) : (
-                <ProductGrid products={filteredAndSortedProducts} viewMode={viewMode} />
-              )}
             </div>
+
+            {/* Error State */}
+            {error && (
+              <div className="mb-8 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+                <p className="text-sm text-red-800 dark:text-red-300 font-medium">{error}</p>
+              </div>
+            )}
+
+            {/* Products Grid */}
+            {isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {[...Array(6)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="bg-zinc-100 dark:bg-zinc-900 rounded-2xl h-[400px] animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : (
+              <ProductGrid products={filteredAndSortedProducts} viewMode={viewMode} />
+            )}
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
 
       <Footer />
 
@@ -222,8 +211,6 @@ export default function StorePage() {
         isOpen={showSubmitModal}
         onClose={() => setShowSubmitModal(false)}
         onSuccess={async () => {
-          // Reload products - the new registry CID is now in localStorage
-          // Wait a moment for IPFS propagation, then reload
           await new Promise(resolve => setTimeout(resolve, 1000));
           await loadProducts();
         }}

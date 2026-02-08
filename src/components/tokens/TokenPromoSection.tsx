@@ -28,11 +28,15 @@ export function TokenPromoSection({ token, apiBaseUrl = 'https://kasparex-api.ka
   const [userPageId, setUserPageId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Ensure apiBaseUrl doesn't have a trailing slash
+  const baseUrl = apiBaseUrl.replace(/\/$/, '');
+
   useEffect(() => {
     const loadStats = async () => {
       try {
         // Get token stats
-        const response = await fetch(`${apiBaseUrl}/kasparex/promo/token/${token.id}`);
+        const statsUrl = `${baseUrl}/kasparex/promo/token/${token.id}`;
+        const response = await fetch(statsUrl);
         if (response.ok) {
           const data = await response.json();
           setStats(data.stats);
@@ -40,7 +44,8 @@ export function TokenPromoSection({ token, apiBaseUrl = 'https://kasparex-api.ka
 
         // Get user's page if connected
         if (isConnected && address) {
-          const pageResponse = await fetch(`${apiBaseUrl}/kasparex/promo/page-by-owner/${token.id}/${address}`);
+          const userPageUrl = `${baseUrl}/kasparex/promo/page-by-owner/${token.id}/${address}`;
+          const pageResponse = await fetch(userPageUrl);
           if (pageResponse.ok) {
             const pageData = await pageResponse.json();
             if (pageData.page) {
@@ -56,7 +61,7 @@ export function TokenPromoSection({ token, apiBaseUrl = 'https://kasparex-api.ka
     };
 
     loadStats();
-  }, [token.id, isConnected, address, apiBaseUrl]);
+  }, [token.id, isConnected, address, baseUrl]);
 
   // Check if token has promo engine (for now, check if it's L2 and has a contract)
   const hasPromoEngine = token.network === 'L2' && token.contractAddress;
@@ -65,7 +70,7 @@ export function TokenPromoSection({ token, apiBaseUrl = 'https://kasparex-api.ka
     return null;
   }
 
-  const promoPageUrl = userPageId 
+  const promoPageUrl = userPageId
     ? `/tokens/${token.slug}/promo/${userPageId}`
     : `/tokens/${token.slug}/promo/genesis`; // Fallback to genesis page
 
