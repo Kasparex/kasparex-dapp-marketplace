@@ -41,7 +41,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
       {/* Premium Gradient Header Visuals */}
       <div className={`relative w-full h-32 overflow-hidden flex items-center justify-center border-b border-zinc-200/50 dark:border-zinc-800/50 bg-gradient-to-br transition-all duration-500 group-hover:scale-[1.02] ${project.category === 'Publishing' ? 'from-orange-500 to-amber-600' :
         project.category === 'Media' ? 'from-purple-500 to-pink-600' :
-          project.category === 'Finance' ? 'from-emerald-500 to-teal-600' :
+          project.category === 'Finance' ? 'from-[#02abb8] to-cyan-600' :
             project.category === 'Entertainment' ? 'from-blue-500 to-indigo-600' :
               project.category === 'Infrastructure' ? 'from-zinc-700 to-zinc-900' :
                 project.category === 'Creator Tools' ? 'from-cyan-500 to-blue-600' :

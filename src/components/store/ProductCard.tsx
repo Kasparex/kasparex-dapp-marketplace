@@ -33,15 +33,15 @@ export function ProductCard({ product }: ProductCardProps) {
 
           {/* Tags / Badges */}
           <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
-            <span className="self-start px-3 py-1 bg-violet-600/90 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-lg border border-white/10">
+            <span className="self-start px-3 py-1 bg-[#02abb8]/20 backdrop-blur-sm text-[#02abb8] text-[10px] font-bold uppercase tracking-wider rounded-full shadow-lg border border-[#02abb8]/20">
               {product.category}
             </span>
           </div>
 
           <div className="absolute top-4 right-4 z-20">
             <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-sm ${product.network === 'L1'
-              ? 'bg-blue-500/90 text-white'
-              : 'bg-indigo-500/90 text-white'
+              ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400'
+              : 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400'
               }`}>
               {product.network}
             </span>
@@ -65,7 +65,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <div className="absolute bottom-4 left-4 right-4 z-20">
             <div className="flex items-end justify-between">
               <div className="flex-1 mr-4">
-                <h3 className="text-xl font-bold text-white mb-1 group-hover:text-violet-300 transition-colors line-clamp-1">
+                <h3 className="text-xl font-bold text-white mb-1 group-hover:text-[#02abb8] transition-colors line-clamp-1">
                   {product.title}
                 </h3>
                 <p className="text-zinc-300 text-xs line-clamp-1">
@@ -106,7 +106,7 @@ export function ProductCard({ product }: ProductCardProps) {
               </button>
               <button
                 onClick={handleBuy}
-                className="px-4 py-2 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-bold uppercase tracking-wider hover:bg-violet-600 dark:hover:bg-violet-400 hover:text-white dark:hover:text-white transition-all transform active:scale-95"
+                className="px-4 py-2 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-bold uppercase tracking-wider hover:bg-[#02abb8] dark:hover:bg-[#02abb8] hover:text-white dark:hover:text-white transition-all transform active:scale-95"
               >
                 Buy Now
               </button>

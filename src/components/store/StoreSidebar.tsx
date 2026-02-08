@@ -135,7 +135,7 @@ export function StoreSidebar({
         className="w-full flex items-center justify-between text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-3 px-2 hover:text-violet-500 transition-colors group"
       >
         <div className="flex items-center gap-2">
-          {icon && <span className="text-violet-500 opacity-80 group-hover:opacity-100">{icon}</span>}
+          {icon && <span className="text-[#02abb8] opacity-80 group-hover:opacity-100">{icon}</span>}
           <span>{title}</span>
         </div>
         <ChevronIcon expanded={expanded} />
@@ -231,10 +231,10 @@ export function StoreSidebar({
       >
         <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
           {/* Header with Back Link and Hide Button */}
-          <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-black">
+          <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-white dark:bg-zinc-950">
             <Link
               href={isListing ? '/hub' : '/store'}
-              className="text-zinc-500 hover:text-violet-500 font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
+              className="text-zinc-500 hover:text-[#02abb8] font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
             >
               <svg className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
@@ -264,16 +264,25 @@ export function StoreSidebar({
                     href="/store/dashboard"
                     className="k-sidebar-item group"
                   >
-                    <span className="text-violet-500 opacity-80 group-hover:opacity-100">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    <span className="text-[#02abb8] opacity-80 group-hover:opacity-100">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                     </span>
-                    <span className="text-[11px] font-bold uppercase tracking-wider truncate">Sell Product</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider truncate">My Dashboard</span>
+                  </Link>
+                  <Link
+                    href="/store/create"
+                    className="k-sidebar-item group"
+                  >
+                    <span className="text-[#02abb8] opacity-80 group-hover:opacity-100">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                    </span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider truncate">+ Add Product</span>
                   </Link>
                   <Link
                     href="/store/dashboard?tab=purchased"
                     className="k-sidebar-item group"
                   >
-                    <span className="text-violet-500 opacity-80 group-hover:opacity-100">
+                    <span className="text-[#02abb8] opacity-80 group-hover:opacity-100">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                     </span>
                     <span className="text-[11px] font-bold uppercase tracking-wider truncate">My Purchases</span>
@@ -298,7 +307,7 @@ export function StoreSidebar({
                       onClick={() => handleCategoryToggle(cat)}
                       className={`w-full k-sidebar-item group ${isSelected ? 'k-sidebar-item-active' : ''}`}
                     >
-                      <StoreCategoryIcon id={cat} className="mr-2 opacity-70 group-hover:text-violet-500" />
+                      <StoreCategoryIcon id={cat} className="mr-2 opacity-70 group-hover:text-[#02abb8]" />
                       <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">
                         {cat}
                       </span>
@@ -308,7 +317,7 @@ export function StoreSidebar({
                         </span>
                       )}
                       {isSelected && (
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-violet-500 rounded-r-full shadow-[0_0_10px_#8b5cf6]" />
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-[#02abb8] rounded-r-full shadow-[0_0_10px_#02abb8]" />
                       )}
                     </button>
                   );
@@ -326,7 +335,7 @@ export function StoreSidebar({
               >
                 <div className="px-2 py-4 mb-2 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                   <div className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Total Revenue</div>
-                  <div className="text-2xl font-black text-violet-500">{sellerRevenue.toLocaleString()} KAS</div>
+                  <div className="text-2xl font-black text-[#02abb8]">{sellerRevenue.toLocaleString()} KAS</div>
                 </div>
 
                 <Link href="/store/dashboard" className={`w-full k-sidebar-item group ${pathname === '/store/dashboard' ? 'k-sidebar-item-active' : ''}`}>
@@ -368,8 +377,8 @@ export function StoreSidebar({
                     <div>
                       <div className="text-[10px] uppercase font-bold text-zinc-500 mb-1">Network</div>
                       <div className={`inline-flex items-center px-2 py-1 rounded text-xs font-bold ${currentProduct.network === 'L1'
-                          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                          : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                        : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
                         }`}>
                         {currentProduct.network} Network
                       </div>
@@ -381,9 +390,9 @@ export function StoreSidebar({
           </div>
 
           {/* Footer Section */}
-          <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-black mt-auto">
+          <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 mt-auto">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-violet-500/10 text-violet-500 flex items-center justify-center font-black text-[10px]">
+              <div className="w-8 h-8 rounded-xl bg-[#02abb8]/10 text-[#02abb8] flex items-center justify-center font-black text-[10px]">
                 KS
               </div>
               <div className="flex-1 min-w-0">

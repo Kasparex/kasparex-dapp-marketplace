@@ -128,13 +128,70 @@ function DashboardContent() {
         {/* Main Content */}
         <div className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto bg-zinc-50 dark:bg-zinc-900/50">
           <div className="max-w-6xl mx-auto">
-            <div className="mb-8">
-              <h1 className="text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2 tracking-tight">
-                Dashboard
+            <div className="mb-12">
+              <h1 className="text-4xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
+                Store <span className="text-[#02abb8]">Dashboard</span>
               </h1>
-              <p className="text-zinc-500 dark:text-zinc-400 font-medium">
-                Welcome back, <span className="font-mono text-violet-500">{state.address.substring(0, 8)}...</span>
-              </p>
+              <div className="flex items-center gap-2 text-zinc-500 font-mono text-xs">
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                {state.address}
+              </div>
+            </div>
+
+            {/* Dashboard Tabs */}
+            <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl w-fit mb-12 border border-zinc-200 dark:border-zinc-800">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'overview'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+                  : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                  }`}
+              >
+                My Purchases
+              </button>
+              <button
+                onClick={() => setActiveTab('products')}
+                className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'products'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+                  : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                  }`}
+              >
+                Seller Center
+              </button>
+              <button
+                onClick={() => setActiveTab('sales')}
+                className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'sales'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+                  : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                  }`}
+              >
+                Sales & Revenue
+              </button>
+            </div>
+
+            {/* Rewards Status Card */}
+            <div className="bg-gradient-to-br from-zinc-900 to-black text-white rounded-3xl p-8 mb-12 border border-zinc-800 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#02abb8]/10 blur-3xl rounded-full translate-x-12 -translate-y-12"></div>
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-4">
+                    <h2 className="text-xl font-black">My Rewards & Benefits</h2>
+                  </div>
+                  <p className="text-zinc-400 text-sm max-w-md">
+                    Your KREX holdings and NFT ownership unlock exclusive discounts and perks across the Kasparex Store platform.
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-4 sm:gap-8">
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                    <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Listing Fee Discount</div>
+                    <div className="text-2xl font-black text-emerald-400">5% OFF</div>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                    <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Active Assets</div>
+                    <div className="text-2xl font-black text-[#02abb8]">NFT Enabled</div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {error && (
@@ -145,7 +202,7 @@ function DashboardContent() {
 
             {isLoading ? (
               <div className="py-12 flex justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#02abb8]"></div>
               </div>
             ) : (
               <div className="space-y-8">
