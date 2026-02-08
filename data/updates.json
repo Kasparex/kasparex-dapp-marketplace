@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1770554974-fcf3492",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix Suspense boundary error in Dashboard page (by Kasparex)",
+      "date": "2026-02-08T13:49:02+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1770553692-9da13d4",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix ProductCard type error: use sellerAddress instead of seller (by Kasparex)",
