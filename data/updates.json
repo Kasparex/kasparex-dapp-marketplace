@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1770551704-972f8ce",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Redesign Store: Update Listing, Product, and Dashboard pages (by Kasparex)",
+      "date": "2026-02-08T12:54:36+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1770494596-02ae9a4",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix(Header): Remove redundant network buttons and cleanup unused imports (by Kasparex)",
