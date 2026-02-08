@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1770559704-8360aa5",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Apply turquoise color scheme across Store, redesign Dashboard, update Hub cards (by Kasparex)",
+      "date": "2026-02-08T15:08:04+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1770554974-fcf3492",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix Suspense boundary error in Dashboard page (by Kasparex)",
