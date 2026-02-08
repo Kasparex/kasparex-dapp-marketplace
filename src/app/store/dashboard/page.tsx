@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -14,7 +14,7 @@ import type { Product, Purchase } from '@/lib/store/types';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function SellerDashboardPage() {
+function DashboardContent() {
   const { state } = useKaspaWallet();
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
@@ -289,5 +289,21 @@ export default function SellerDashboardPage() {
       </div>
       <Footer />
     </div>
+  );
+}
+
+export default function SellerDashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500"></div>
+        </main>
+        <Footer />
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
   );
 }
