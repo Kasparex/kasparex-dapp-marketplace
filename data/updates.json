@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1770563245-927dd3e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix Hub cards graphics, add sidebar hover effects, update product cards styling (by Kasparex)",
+      "date": "2026-02-08T16:07:06+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1770559704-8360aa5",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Apply turquoise color scheme across Store, redesign Dashboard, update Hub cards (by Kasparex)",
