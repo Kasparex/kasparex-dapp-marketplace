@@ -40,8 +40,8 @@ export function ProductCard({ product }: ProductCardProps) {
 
           <div className="absolute top-4 right-4 z-20">
             <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-sm ${product.network === 'L1'
-                ? 'bg-blue-500/90 text-white'
-                : 'bg-indigo-500/90 text-white'
+              ? 'bg-blue-500/90 text-white'
+              : 'bg-indigo-500/90 text-white'
               }`}>
               {product.network}
             </span>
@@ -69,7 +69,7 @@ export function ProductCard({ product }: ProductCardProps) {
                   {product.title}
                 </h3>
                 <p className="text-zinc-300 text-xs line-clamp-1">
-                  by {product.seller.substring(0, 8)}...
+                  by {product.sellerAddress.substring(0, 8)}...
                 </p>
               </div>
             </div>
