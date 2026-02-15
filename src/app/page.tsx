@@ -177,11 +177,34 @@ function HomeContent() {
         {/* Main Content */}
         <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 relative">
           <div className="max-w-7xl mx-auto">
+            {/* Premium Hero */}
+            <div className="relative mb-10 py-10 px-6 rounded-3xl overflow-hidden bg-zinc-950">
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,#02abb8,transparent_50%)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,#00c2b2,transparent_50%)]" />
+              </div>
+              <div className="relative z-10 w-full">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold uppercase tracking-widest mb-6">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500" />
+                  </span>
+                  Ecosystem
+                </div>
+                <h1 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">
+                  Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">dApps</span>
+                </h1>
+                <p className="text-lg text-zinc-400 max-w-2xl leading-relaxed">
+                  Discover and use decentralized applications on Kaspa. Earn GRID and XP when you interact — connect a wallet to get started.
+                </p>
+              </div>
+            </div>
+
             {/* Page Header */}
             <div className="mb-6">
-              <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
+              <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
                 Available dApps
-              </h1>
+              </h2>
               {!kaspaState.isConnected && !isEVMConnected ? (
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
                   Please connect a wallet to see available dApps

@@ -52,7 +52,7 @@ export default function KasparexAPIPage() {
               What is the Kasparex API?
             </h2>
             <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-              The Kasparex API is a lightweight backend service that coordinates KREX Nodes, tracks uptime and performance, calculates rewards (GRID + LRT + KREX multipliers), and provides public data for the Kasparex frontend and ecosystem.
+              The Kasparex API is a lightweight backend service that coordinates KREX Nodes, tracks uptime and performance, calculates rewards (GRID + KREX multipliers), and provides public data for the Kasparex frontend and ecosystem.
             </p>
             
             <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 mb-6">
@@ -101,7 +101,7 @@ export default function KasparexAPIPage() {
               <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
                 <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Reward Engine</h3>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Calculates and distributes GRID/LRT rewards with KREX multipliers
+                  Calculates and distributes GRID rewards with KREX multipliers
                 </p>
               </div>
               <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
@@ -202,14 +202,14 @@ export default function KasparexAPIPage() {
                     <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/api/rewards/node/:nodeId</code>
                   </div>
                   <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
-                    Returns rewards for a specific node including GRID, LRT, and multipliers.
+                    Returns rewards for a specific node including GRID and multipliers.
                   </p>
                   <div className="p-3 bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-700">
                     <pre className="text-xs text-zinc-900 dark:text-zinc-100 overflow-x-auto">
 {`{
   "epoch": "2025-02-08",
   "gridReward": 52,
-  "lrtRewards": {
+  "rewardsDetail": {
     "heatmap": 12,
     "raffles": 22
   },
@@ -330,7 +330,7 @@ export default function KasparexAPIPage() {
                   5. Enables Dashboards
                 </h3>
                 <p className="text-zinc-600 dark:text-zinc-400">
-                  User dashboards can show &quot;My KREX Node: Online/Offline&quot;, rewards, uptime, LRT earnings, and KREX multiplier tier.
+                  User dashboards can show &quot;My KREX Node: Online/Offline&quot;, rewards, uptime, GRID earnings, and KREX multiplier tier.
                 </p>
               </div>
             </div>
@@ -356,7 +356,7 @@ export default function KasparexAPIPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#02abb8] mt-1">•</span>
-                  <span>Calculates GRID/LRT rewards and handles KREX multipliers</span>
+                  <span>Calculates GRID rewards and handles KREX multipliers</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#02abb8] mt-1">•</span>
@@ -401,7 +401,7 @@ export default function KasparexAPIPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#02abb8] mt-1">•</span>
-                  <span>Reward claiming (users claim GRID + LRT on-chain)</span>
+                  <span>Reward claiming (users claim GRID on-chain)</span>
                 </li>
               </ul>
               <p className="text-zinc-600 dark:text-zinc-400 mt-4">

@@ -20,7 +20,7 @@ export function WalletHoldingsBox() {
             Connect wallet to view holdings
           </p>
           <div className="text-xs text-zinc-400 dark:text-zinc-500">
-            GRT, LRT tokens, and balances
+            GRID (GRT) and balances
           </div>
         </div>
       ) : holdings ? (
@@ -37,27 +37,6 @@ export function WalletHoldingsBox() {
             </div>
           </div>
 
-          {/* LRT Balances */}
-          <div>
-            <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-2">
-              Local Reward Tokens (LRT)
-            </div>
-            <div className="space-y-2">
-              {holdings.lrtBalances.map((lrt, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between text-xs"
-                >
-                  <span className="text-zinc-500 dark:text-zinc-400">
-                    {lrt.ticker}
-                  </span>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    {formatLargeNumber(lrt.balance)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       ) : null}
     </div>

@@ -27,7 +27,6 @@ export function RewardCalculator() {
   const [seasonalBoost, setSeasonalBoost] = useState<number>(0);
   const [customBaseRewards, setCustomBaseRewards] = useState<CustomBaseRewards>({
     grtPerKas: BASE_REWARDS.GRT_PER_KAS,
-    lrtPerKas: BASE_REWARDS.LRT_PER_KAS,
     xpPerKas: BASE_REWARDS.XP_PER_KAS,
     useCustom: false,
   });
@@ -38,18 +37,15 @@ export function RewardCalculator() {
   });
   const [supplyMetrics, setSupplyMetrics] = useState<SupplyMetrics>({
     grtMaxSupply: 100_000_000_000, // 100B
-    lrtMaxSupply: 100_000_000, // 100M
     dailyKasSpent: 1000,
     numberOfUsers: 100,
     grtMinted: 0,
-    lrtMinted: 0,
   });
   const [feeSettings, setFeeSettings] = useState<FeeSettings>({
     baseFeePercent: DEFAULT_BASE_FEE_PERCENT,
     useCustomDistribution: false,
     kasparexPercent: DEFAULT_FEE_DISTRIBUTION.KASPAREX,
     grtTreasuryPercent: DEFAULT_FEE_DISTRIBUTION.GRT_TREASURY,
-    lrtTreasuryPercent: DEFAULT_FEE_DISTRIBUTION.LRT_TREASURY,
   });
 
   // Build inputs object
@@ -112,7 +108,7 @@ export function RewardCalculator() {
     }));
   };
 
-  const handleCustomRewardChange = (field: 'grtPerKas' | 'lrtPerKas' | 'xpPerKas', value: number) => {
+  const handleCustomRewardChange = (field: 'grtPerKas' | 'xpPerKas', value: number) => {
     setCustomBaseRewards((prev) => ({
       ...prev,
       [field]: Math.max(0, value),
@@ -183,7 +179,7 @@ export function RewardCalculator() {
                 </div>
                 {!customBaseRewards.useCustom && (
                   <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                    Default: 1 KAS = 10,000 GRT + 1,000 LRT + 100 XP Points
+                    Default: 1 KAS = 10,000 GRID + 100 XP Points
                   </p>
                 )}
               </div>
@@ -211,18 +207,6 @@ export function RewardCalculator() {
                         type="number"
                         value={customBaseRewards.grtPerKas}
                         onChange={(e) => handleCustomRewardChange('grtPerKas', parseFloat(e.target.value) || 0)}
-                        min="0"
-                        className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
-                        LRT per KAS
-                      </label>
-                      <input
-                        type="number"
-                        value={customBaseRewards.lrtPerKas}
-                        onChange={(e) => handleCustomRewardChange('lrtPerKas', parseFloat(e.target.value) || 0)}
                         min="0"
                         className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded text-sm"
                       />
@@ -419,18 +403,6 @@ export function RewardCalculator() {
                   </div>
                   <div>
                     <label className="k-label text-xs mb-1">
-                      LRT Max Supply
-                    </label>
-                    <input
-                      type="number"
-                      value={supplyMetrics.lrtMaxSupply}
-                      onChange={(e) => setSupplyMetrics(prev => ({ ...prev, lrtMaxSupply: parseFloat(e.target.value) || 0 }))}
-                      min="0"
-                      className="k-input py-1.5 px-3 h-auto min-h-0"
-                    />
-                  </div>
-                  <div>
-                    <label className="k-label text-xs mb-1">
                       Daily KAS Spent
                     </label>
                     <input
@@ -465,18 +437,6 @@ export function RewardCalculator() {
                       className="k-input py-1.5 px-3 h-auto min-h-0"
                     />
                   </div>
-                  <div>
-                    <label className="k-label text-xs mb-1">
-                      LRT Already Minted
-                    </label>
-                    <input
-                      type="number"
-                      value={supplyMetrics.lrtMinted}
-                      onChange={(e) => setSupplyMetrics(prev => ({ ...prev, lrtMinted: parseFloat(e.target.value) || 0 }))}
-                      min="0"
-                      className="k-input py-1.5 px-3 h-auto min-h-0"
-                    />
-                  </div>
                 </div>
               </div>
 
@@ -501,7 +461,7 @@ export function RewardCalculator() {
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                  Optional: Add percentage boost for seasonal events (applies to GRT and LRT rewards)
+                  Optional: Add percentage boost for seasonal events (applies to GRID rewards)
                 </p>
               </div>
             </div>

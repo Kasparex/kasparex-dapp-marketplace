@@ -103,64 +103,10 @@ export default function StudioPortfolioPage() {
                 />
             </section>
 
-            {/* Tokens and Rewards Split */}
+            {/* Rewards Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* dApp Tokens Table */}
-                <div className="lg:col-span-2 space-y-6">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tighter">
-                            dApp Tokens
-                        </h2>
-                        <button className="text-sm font-bold text-cyan-500 hover:text-cyan-600 transition-colors uppercase tracking-widest">
-                            Trade Tokens
-                        </button>
-                    </div>
-
-                    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-800">
-                                    <th className="px-6 py-4 text-xs font-bold text-zinc-500 uppercase tracking-widest">Asset</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-zinc-500 uppercase tracking-widest">Network</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-zinc-500 uppercase tracking-widest text-right">Balance</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                                {mockHoldings?.lrtBalances.map((token) => (
-                                    <tr key={token.ticker} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors group">
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center font-bold text-xs text-zinc-600 dark:text-zinc-300">
-                                                    {token.ticker[0]}
-                                                </div>
-                                                <span className="font-bold text-zinc-900 dark:text-zinc-100">{token.ticker}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className="text-xs px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-md font-medium border border-zinc-200 dark:border-zinc-700">
-                                                L2
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-right font-black text-zinc-900 dark:text-zinc-100">
-                                            {formatLargeNumber(token.balance)}
-                                        </td>
-                                    </tr>
-                                ))}
-                                {/* Empty State if no tokens */}
-                                {!mockHoldings?.lrtBalances.length && (
-                                    <tr>
-                                        <td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 italic">
-                                            No dApp tokens found in your wallet.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
                 {/* Rewards Panel */}
-                <div className="space-y-6">
+                <div className="lg:col-span-2 space-y-6">
                     <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tighter">
                         Rewards Status
                     </h2>

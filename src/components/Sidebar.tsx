@@ -7,10 +7,6 @@ import { Category, categories } from '@/lib/categories';
 import type { FilterState, DAppStatus } from '@/lib/dapps';
 import { CategoriesIcon, StatusIcon, DeveloperIcon, NetworkIcon } from '@/components/icons/SectionIcons';
 import { StatusIndicatorDot, getStatusTypeFromString } from './dapps/StatusIndicatorDot';
-import { GRIDHoldingsBox } from './rewards/GRIDHoldingsBox';
-import { XPPointsBox } from './rewards/XPPointsBox';
-import { UnifiedStatusBox } from './rewards/UnifiedStatusBox';
-import { QuickGuideWizard } from './rewards/QuickGuideWizard';
 
 interface SidebarProps {
   categories: Category[]; // Renamed from selectedCategories
@@ -83,11 +79,9 @@ export function Sidebar({
 }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
-  const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [statusExpanded, setStatusExpanded] = useState(false);
   const [developerExpanded, setDeveloperExpanded] = useState(false);
   const [networkExpanded, setNetworkExpanded] = useState(false);
-  const [showQuickGuide, setShowQuickGuide] = useState(false);
 
   // Sidebar hide/show and resize state
   const [isHidden, setIsHidden] = useState(false);
@@ -208,35 +202,37 @@ export function Sidebar({
     </svg>
   );
 
-  const CollapsibleSection = ({
+  const FilterSection = ({
     title,
     icon,
     expanded,
     onToggle,
     children,
-    className = '',
   }: {
     title: string;
     icon?: React.ReactNode;
     expanded: boolean;
     onToggle: () => void;
     children: React.ReactNode;
-    className?: string;
   }) => (
-    <div className={className || "mb-4"}>
+    <div className="mb-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30 overflow-hidden">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between text-sm font-semibold text-zinc-700 dark:text-white opacity-80 uppercase tracking-wider mb-2 hover:text-zinc-700 dark:hover:text-white hover:opacity-100 transition-all"
+        className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-zinc-700 dark:text-zinc-200 uppercase tracking-wider hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors"
       >
         <div className="flex items-center gap-2">
           {icon && (
-            <span className="k-sidebar-icon opacity-80">{icon}</span>
+            <span className="text-zinc-500 dark:text-zinc-400">{icon}</span>
           )}
           <span>{title}</span>
         </div>
         <ChevronIcon expanded={expanded} />
       </button>
-      {expanded && <div>{children}</div>}
+      {expanded && (
+        <div className="px-4 pb-4 pt-0 border-t border-zinc-200 dark:border-zinc-800">
+          {children}
+        </div>
+      )}
     </div>
   );
 
@@ -342,41 +338,22 @@ export function Sidebar({
           }
         }}
       >
-        {/* Header with Hide Button and Back Link */}
-        <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
-          <div className="flex items-center justify-between">
-            <Link
-              href="/"
-              className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium transition-colors text-sm flex items-center gap-1"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back to Hub
-            </Link>
-            <button
-              onClick={() => setIsHidden(true)}
-              className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
-              aria-label="Hide sidebar"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+        <div className="flex flex-col h-full">
+          <div className="p-4 pb-0 flex-shrink-0">
+            <div className="k-search-container">
+              <input
+                type="text"
+                placeholder="Search dApps..."
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="k-search-input !h-9"
+              />
+            </div>
           </div>
-        </div>
 
-        {/* Sidebar Content */}
-        <div className={`p-4 ${isHidden ? 'lg:hidden' : ''}`}>
-          {/* Collapsible Filters Group */}
-          <CollapsibleSection
-            title="Filters"
-            expanded={filtersExpanded}
-            onToggle={() => setFiltersExpanded(!filtersExpanded)}
-            className={filtersExpanded ? "mb-6" : "mb-4"}
-          >
-            {/* Categories Filter */}
-            <CollapsibleSection
+          {/* Sidebar Content - Filters only */}
+          <div className={`p-4 overflow-y-auto ${isHidden ? 'lg:hidden' : ''}`}>
+            <FilterSection
               title="Categories"
               icon={<CategoriesIcon />}
               expanded={categoriesExpanded}
@@ -420,12 +397,11 @@ export function Sidebar({
                               : [...selectedCategories, category.id];
                             onCategoryChange(newCategories);
                           }}
-                          className="sr-only"
+                          className="sr-only" // Hide native checkbox for premium look
                         />
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <CategoryIcon id={category.id} />
-                          <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">{category.name}</span>
-                        </div>
+                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                        <CategoryIcon id={category.id} />
+                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{category.name}</span>
                         <span className="k-sidebar-count">
                           {count}
                         </span>
@@ -434,10 +410,10 @@ export function Sidebar({
                   })}
                 </nav>
               </div>
-            </CollapsibleSection>
+            </FilterSection>
 
             {/* Status Filter */}
-            <CollapsibleSection
+            <FilterSection
               title="Status"
               icon={<StatusIcon />}
               expanded={statusExpanded}
@@ -473,25 +449,24 @@ export function Sidebar({
                           onChange={() => handleStatusToggle(option.value)}
                           className="sr-only"
                         />
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          {option.value !== 'all' && (
-                            <StatusIndicatorDot
-                              statusType={getStatusTypeFromString(option.value)}
-                              size="sm"
-                              className="flex-shrink-0"
-                            />
-                          )}
-                          <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">{option.label}</span>
-                        </div>
+                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                        {option.value !== 'all' && (
+                          <StatusIndicatorDot
+                            statusType={getStatusTypeFromString(option.value)}
+                            size="sm"
+                            className="flex-shrink-0"
+                          />
+                        )}
+                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{option.label}</span>
                       </label>
                     );
                   })}
                 </nav>
               </div>
-            </CollapsibleSection>
+            </FilterSection>
 
             {/* Developer Filter */}
-            <CollapsibleSection
+            <FilterSection
               title="Developer"
               icon={<DeveloperIcon />}
               expanded={developerExpanded}
@@ -528,30 +503,29 @@ export function Sidebar({
                           onChange={() => handleDeveloperToggle(option.label)}
                           className="sr-only"
                         />
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          {option.logo && (
-                            <Image
-                              src={option.logo}
-                              alt={`${option.label} logo`}
-                              width={16}
-                              height={16}
-                              className="flex-shrink-0 grayscale group-hover:grayscale-0 transition-all opacity-70 group-hover:opacity-100"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = 'none';
-                              }}
-                            />
-                          )}
-                          <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">{option.label}</span>
-                        </div>
+                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                        {option.logo && (
+                          <Image
+                            src={option.logo}
+                            alt={`${option.label} logo`}
+                            width={16}
+                            height={16}
+                            className="flex-shrink-0 grayscale group-hover:grayscale-0 transition-all opacity-70 group-hover:opacity-100"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        )}
+                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{option.label}</span>
                       </label>
                     );
                   })}
                 </nav>
               </div>
-            </CollapsibleSection>
+            </FilterSection>
 
             {/* Network Filter */}
-            <CollapsibleSection
+            <FilterSection
               title="Network"
               icon={<NetworkIcon />}
               expanded={networkExpanded}
@@ -588,46 +562,17 @@ export function Sidebar({
                           onChange={() => handleNetworkToggle(option.label)}
                           className="sr-only"
                         />
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">{option.label}</span>
-                        </div>
+                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{option.label}</span>
                       </label>
                     );
                   })}
                 </nav>
               </div>
-            </CollapsibleSection>
-          </CollapsibleSection>
-
-          {/* Quick Guide Button */}
-          <div className="mb-6">
-            <button
-              onClick={() => setShowQuickGuide(true)}
-              className="w-full px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-              Quick Guide
-            </button>
+            </FilterSection>
           </div>
-
-          {/* Unified Status Box (New) */}
-          <UnifiedStatusBox />
-
-          {/* Individual Status Boxes (Legacy - can be removed later) */}
-          <GRIDHoldingsBox />
-          <XPPointsBox />
-
-
         </div>
       </aside>
-
-      {/* Quick Guide Wizard */}
-      <QuickGuideWizard
-        isOpen={showQuickGuide}
-        onClose={() => setShowQuickGuide(false)}
-      />
     </>
   );
 }

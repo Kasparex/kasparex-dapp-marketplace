@@ -33,7 +33,6 @@ export function calculatePlatformFee(
     customBaseRewards: {
       useCustom: false,
       grtPerKas: 0,
-      lrtPerKas: 0,
       xpPerKas: 0,
     },
     feeSettings: {
@@ -41,7 +40,6 @@ export function calculatePlatformFee(
       useCustomDistribution: false,
       kasparexPercent: 0,
       grtTreasuryPercent: 0,
-      lrtTreasuryPercent: 0,
     },
     nodeProvider: {
       isNodeProvider: false,

@@ -1,6 +1,6 @@
 /**
  * Reward Calculator Logic
- * Calculates GRT, LRT, XP Points, fees, and distributions based on user inputs
+ * Calculates GRT (GRID), XP Points, fees, and distributions based on user inputs (GRT-only)
  */
 
 import type {
@@ -24,7 +24,7 @@ import {
 import type { SupplyMetrics } from './types';
 
 /**
- * Calculate supply exhaustion metrics
+ * Calculate supply exhaustion metrics (GRT only)
  */
 export function calculateSupplyExhaustion(
   inputs: CalculatorInputs,
@@ -32,49 +32,26 @@ export function calculateSupplyExhaustion(
   avgMultiplier: number
 ): {
   daysUntilGRTExhaustion: number;
-  daysUntilLRTExhaustion: number;
   grtProgress: number;
-  lrtProgress: number;
   dailyGRTEmission: number;
-  dailyLRTEmission: number;
 } {
-  const { grtMaxSupply, lrtMaxSupply, dailyKasSpent, numberOfUsers, grtMinted, lrtMinted } = supplyMetrics;
+  const { grtMaxSupply, dailyKasSpent, grtMinted } = supplyMetrics;
   
-  // Calculate base rewards per KAS
   const grtPerKas = inputs.customBaseRewards.useCustom 
     ? inputs.customBaseRewards.grtPerKas 
     : BASE_REWARDS.GRT_PER_KAS;
-  const lrtPerKas = inputs.customBaseRewards.useCustom 
-    ? inputs.customBaseRewards.lrtPerKas 
-    : BASE_REWARDS.LRT_PER_KAS;
 
-  // Calculate daily emissions (total across all users)
   const dailyGRTEmission = dailyKasSpent * grtPerKas * avgMultiplier;
-  const dailyLRTEmission = dailyKasSpent * lrtPerKas * avgMultiplier;
-
-  // Calculate remaining supply
   const remainingGRT = Math.max(0, grtMaxSupply - grtMinted);
-  const remainingLRT = Math.max(0, lrtMaxSupply - lrtMinted);
-
-  // Calculate days until exhaustion
   const daysUntilGRTExhaustion = dailyGRTEmission > 0 
     ? remainingGRT / dailyGRTEmission 
     : Infinity;
-  const daysUntilLRTExhaustion = dailyLRTEmission > 0 
-    ? remainingLRT / dailyLRTEmission 
-    : Infinity;
-
-  // Calculate progress percentages
   const grtProgress = grtMaxSupply > 0 ? (grtMinted / grtMaxSupply) * 100 : 0;
-  const lrtProgress = lrtMaxSupply > 0 ? (lrtMinted / lrtMaxSupply) * 100 : 0;
 
   return {
     daysUntilGRTExhaustion,
-    daysUntilLRTExhaustion,
     grtProgress: Math.min(100, grtProgress),
-    lrtProgress: Math.min(100, lrtProgress),
     dailyGRTEmission,
-    dailyLRTEmission,
   };
 }
 
@@ -92,12 +69,10 @@ export function calculateRewards(
 
   // Determine base reward rates (use custom if enabled, otherwise default)
   const grtPerKas = customBaseRewards.useCustom ? customBaseRewards.grtPerKas : BASE_REWARDS.GRT_PER_KAS;
-  const lrtPerKas = customBaseRewards.useCustom ? customBaseRewards.lrtPerKas : BASE_REWARDS.LRT_PER_KAS;
   const xpPerKas = customBaseRewards.useCustom ? customBaseRewards.xpPerKas : BASE_REWARDS.XP_PER_KAS;
 
-  // Calculate base rewards
+  // Calculate base rewards (GRT-only)
   const baseGRT = kasAmount * grtPerKas;
-  const baseLRT = kasAmount * lrtPerKas;
   const baseXP = kasAmount * xpPerKas;
 
   // Calculate multipliers
@@ -128,7 +103,6 @@ export function calculateRewards(
 
   // Apply multipliers to rewards
   const finalGRT = baseGRT * totalMultiplier;
-  const finalLRT = baseLRT * totalMultiplier;
   // Points use KREX multiplier + NFT multiplier (not node or seasonal)
   const pointsMultiplier = tierConfig.pointsMultiplier * nftMultiplier;
   const finalXP = baseXP * pointsMultiplier;
@@ -161,21 +135,17 @@ export function calculateRewards(
 
   const feeAmount = (kasAmount * feePercent) / 100;
 
-  // Calculate fee distribution (use custom if enabled, otherwise default)
+  // Calculate fee distribution (use custom if enabled, otherwise default) — GRT-only
   const kasparexPercent = inputs.feeSettings.useCustomDistribution
     ? inputs.feeSettings.kasparexPercent
     : DEFAULT_FEE_DISTRIBUTION.KASPAREX;
   const grtTreasuryPercent = inputs.feeSettings.useCustomDistribution
     ? inputs.feeSettings.grtTreasuryPercent
     : DEFAULT_FEE_DISTRIBUTION.GRT_TREASURY;
-  const lrtTreasuryPercent = inputs.feeSettings.useCustomDistribution
-    ? inputs.feeSettings.lrtTreasuryPercent
-    : DEFAULT_FEE_DISTRIBUTION.LRT_TREASURY;
 
   const feeDistribution = {
     kasparex: (feeAmount * kasparexPercent) / 100,
     grtTreasury: (feeAmount * grtTreasuryPercent) / 100,
-    lrtTreasury: (feeAmount * lrtTreasuryPercent) / 100,
   };
 
   // Calculate supply exhaustion if metrics provided
@@ -186,10 +156,8 @@ export function calculateRewards(
 
   return {
     baseGRT,
-    baseLRT,
     baseXP,
     finalGRT,
-    finalLRT,
     finalXP,
     krexMultiplier,
     nftMultiplier,
@@ -260,9 +228,6 @@ export function validateInputs(inputs: Partial<CalculatorInputs>): {
   if (inputs.customBaseRewards?.useCustom) {
     if (inputs.customBaseRewards.grtPerKas < 0) {
       errors.push('GRT per KAS must be positive');
-    }
-    if (inputs.customBaseRewards.lrtPerKas < 0) {
-      errors.push('LRT per KAS must be positive');
     }
     if (inputs.customBaseRewards.xpPerKas < 0) {
       errors.push('XP per KAS must be positive');

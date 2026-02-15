@@ -164,7 +164,7 @@ export function TokensListingSidebar({ }: TokensListingSidebarProps) {
               </h3>
               <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
                 Explore all tokens in the Kasparex ecosystem, including global tokens like KREX and GRID,
-                local dApp tokens, and collaboration tokens.
+                and collaboration tokens.
               </p>
             </div>
 
@@ -211,9 +211,9 @@ export function TokensListingSidebar({ }: TokensListingSidebarProps) {
                   </span>
                 </div>
                 <div>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">Local:</span>
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100">GRID:</span>
                   <span className="text-zinc-600 dark:text-zinc-400 ml-1">
-                    dApp-specific tokens
+                    Global reward token earned across all dApps
                   </span>
                 </div>
                 <div>

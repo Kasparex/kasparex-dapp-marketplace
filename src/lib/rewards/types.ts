@@ -35,7 +35,6 @@ export interface NFTStatus {
 
 export interface CustomBaseRewards {
   grtPerKas: number;
-  lrtPerKas: number;
   xpPerKas: number;
   useCustom: boolean;
 }
@@ -51,16 +50,13 @@ export interface FeeSettings {
   useCustomDistribution: boolean;
   kasparexPercent: number; // Default 60%
   grtTreasuryPercent: number; // Default 20%
-  lrtTreasuryPercent: number; // Default 20%
 }
 
 export interface SupplyMetrics {
   grtMaxSupply: number; // Default 100B
-  lrtMaxSupply: number; // Default 100M
   dailyKasSpent: number; // Default 1000 KAS
   numberOfUsers: number; // Number of active users
   grtMinted: number; // Already minted GRT (for progress bar)
-  lrtMinted: number; // Already minted LRT (for progress bar)
 }
 
 export interface CalculatorInputs {
@@ -76,12 +72,10 @@ export interface CalculatorInputs {
 export interface RewardResult {
   // Base rewards (before multipliers)
   baseGRT: number;
-  baseLRT: number;
   baseXP: number;
   
   // Final rewards (after multipliers)
   finalGRT: number;
-  finalLRT: number;
   finalXP: number;
   
   // Multipliers breakdown
@@ -97,20 +91,16 @@ export interface RewardResult {
   feeDistribution: {
     kasparex: number;
     grtTreasury: number;
-    lrtTreasury: number;
   };
   
   // Points
   pointsMultiplier: number;
   
-  // Supply exhaustion calculations
+  // Supply exhaustion calculations (GRT only)
   supplyMetrics?: {
     daysUntilGRTExhaustion: number;
-    daysUntilLRTExhaustion: number;
     grtProgress: number; // Percentage minted
-    lrtProgress: number; // Percentage minted
     dailyGRTEmission: number;
-    dailyLRTEmission: number;
   };
 }
 
@@ -157,10 +147,9 @@ export const KREX_TIERS: Record<KREXTier, KREXTierConfig> = {
   },
 };
 
-// Base reward rates per 1 KAS
+// Base reward rates per 1 KAS (GRT-only)
 export const BASE_REWARDS = {
   GRT_PER_KAS: 10000,
-  LRT_PER_KAS: 1000,
   XP_PER_KAS: 100,
 } as const;
 
@@ -181,11 +170,10 @@ export const DEFAULT_NODE_FEE_REDUCTION = 0.1; // 0.1% fee reduction for node pr
 export const LIGHT_NODE_COST_REDUCTION = 2; // 2% transaction cost reduction for Light Node
 export const MIRROR_NODE_COST_REDUCTION = 5; // 5% transaction cost reduction for Mirror Node
 
-// Default fee distribution percentages
+// Default fee distribution percentages (GRT-only, no LRT treasury)
 export const DEFAULT_FEE_DISTRIBUTION = {
   KASPAREX: 60,
-  GRT_TREASURY: 20,
-  LRT_TREASURY: 20,
+  GRT_TREASURY: 40,
 } as const;
 
 // Default base fee percentage

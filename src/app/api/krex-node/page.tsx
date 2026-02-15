@@ -109,7 +109,7 @@ export default function KREXNodePage() {
                   <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">Earn Rewards</h3>
                 </div>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Earn GRID rewards, Local Reward Tokens (LRT), and benefit from KREX multipliers
+                  Earn GRID rewards and benefit from KREX multipliers
                 </p>
               </div>
             </div>
@@ -333,24 +333,20 @@ export default function KREXNodePage() {
 
               <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
                 <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                  LRT Rewards (Local)
+                  XP & Perks
                 </h3>
                 <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
                   <li className="flex items-start gap-2">
                     <span className="text-[#02abb8] mt-1">•</span>
-                    <span>Earn Local Reward Tokens per dApp</span>
+                    <span>Earn XP Points for node activity</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[#02abb8] mt-1">•</span>
-                    <span>Proportional to requests served for that dApp</span>
+                    <span>Unlock perks and badges</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[#02abb8] mt-1">•</span>
-                    <span>Also multiplied by KREX tier</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#02abb8] mt-1">•</span>
-                    <span>Example: Serve Heatmap dApp → earn HEAT tokens</span>
+                    <span>Multiplied by KREX tier</span>
                   </li>
                 </ul>
               </div>

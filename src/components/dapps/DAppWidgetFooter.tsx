@@ -7,7 +7,6 @@ import { DApp } from '@/lib/dapps';
 import { useDAppFromContract, mergeDAppData } from '@/lib/dapps/contractData';
 import { CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 import { getCategoryById } from '@/lib/categories';
-import { DAppCardRewards } from '../rewards/DAppCardRewards';
 import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
 import { DAppEmbed } from './DAppEmbed';
@@ -110,13 +109,6 @@ export function DAppWidgetFooter({
     <>
       <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         <div className="flex flex-col gap-4">
-          {/* Token Progress Bar Section - Skip for KAS (native coin, not a reward token) */}
-          {tokenTicker && tokenTicker !== 'KAS' && (
-            <div>
-              <DAppCardRewards tokenTicker={tokenTicker} />
-            </div>
-          )}
-
           {/* Category/Version/ID and Icons Row */}
           <div className="flex items-center justify-between gap-2 flex-wrap">
             {/* Left: Category/Version/ID */}

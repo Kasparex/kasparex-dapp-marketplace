@@ -51,7 +51,7 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
       {
         id: 'ecosystem',
         title: 'The Ecosystem',
-        content: 'Kasparex is more than just a marketplace. It includes KREX Nodes for decentralized hosting, the Kasparex API for coordination, and a comprehensive reward system with GRID tokens and Local Reward Tokens (LRT).',
+        content: 'Kasparex is more than just a marketplace. It includes KREX Nodes for decentralized hosting, the Kasparex API for coordination, and a comprehensive reward system with GRID (Global Reward Token) and XP Points.',
       },
     ],
   },
@@ -65,7 +65,7 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
       {
         id: 'benefits',
         title: 'Benefits of Running a KREX Node',
-        content: 'Running a KREX Node helps reduce hosting costs for the Kasparex platform, increases decentralization and censorship resistance, and earns rewards for operators. Nodes can earn GRID tokens, Local Reward Tokens (LRT), and benefit from KREX multipliers.',
+        content: 'Running a KREX Node helps reduce hosting costs for the Kasparex platform, increases decentralization and censorship resistance, and earns rewards for operators. Nodes can earn GRID tokens and benefit from KREX multipliers.',
       },
       {
         id: 'node-types',
@@ -98,7 +98,7 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
       {
         id: 'reward-types',
         title: 'Types of Rewards',
-        content: 'KREX Node operators can earn two types of rewards: GRID (Global Reward Token) for overall network participation, and LRT (Local Reward Tokens) for serving specific dApps. Both are multiplied by your KREX holdings tier.',
+        content: 'KREX Node operators earn GRID (Global Reward Token) for network participation. Rewards are multiplied by your KREX holdings tier. XP Points are also earned for activity.',
       },
       {
         id: 'reward-calculation',
@@ -172,19 +172,19 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
   'lrt-tokens': {
     sections: [
       {
-        id: 'what-are-lrt',
-        title: 'What are LRT Tokens?',
-        content: 'Local Reward Tokens (LRT) are dApp-specific reward tokens. Each dApp can have its own LRT that is distributed to users and node operators who interact with or serve that specific dApp.',
+        id: 'what-is-grid',
+        title: 'What is GRID?',
+        content: 'GRID (Global Reward Token) is the single reward token for the Kasparex ecosystem. You earn GRID by using any dApp, running KREX Nodes, and participating in the network. There are no per-dApp tokens.',
       },
       {
-        id: 'examples',
-        title: 'Examples',
-        content: 'For example, if you run a KREX Node that serves the Heatmap dApp, you might earn HEAT tokens. If you serve the Raffles dApp, you might earn RAFFLERT tokens. Each dApp defines its own LRT.',
+        id: 'how-to-earn',
+        title: 'How to Earn GRID',
+        content: 'Use dApps, run a KREX Node, complete actions, and participate in community activities. All actions reward GRID. Holding KREX and NFTs multiplies your GRID earnings.',
       },
       {
-        id: 'earning-lrt',
-        title: 'Earning LRT',
-        content: 'LRT tokens are earned proportionally to your participation with that specific dApp. KREX Node operators earn LRT based on requests served for each dApp. Users earn LRT through dApp interactions.',
+        id: 'xp-points',
+        title: 'XP Points',
+        content: 'In addition to GRID, you earn XP Points for activity. XP unlocks perks and badges. Both GRID and XP are multiplied by your KREX tier.',
       },
     ],
   },
@@ -193,7 +193,7 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
       {
         id: 'tier-system',
         title: 'KREX Tier System',
-        content: 'KREX holders are organized into tiers based on their holdings. Higher tiers provide larger multipliers on both GRID and LRT rewards. The tiers range from 1.0x (0 KREX) to 1.5x (10M+ KREX).',
+        content: 'KREX holders are organized into tiers based on their holdings. Higher tiers provide larger multipliers on GRID rewards. The tiers range from 1.0x (0 KREX) to 1.5x (10M+ KREX).',
       },
       {
         id: 'tier-levels',
@@ -203,7 +203,7 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
       {
         id: 'applies-to',
         title: 'What Gets Multiplied?',
-        content: 'KREX multipliers apply to both GRID rewards and all LRT rewards. This means holding KREX increases your earnings across the entire ecosystem, making it beneficial for both users and node operators.',
+        content: 'KREX multipliers apply to GRID rewards. Holding KREX increases your earnings across the entire ecosystem, making it beneficial for both users and node operators.',
       },
     ],
   },

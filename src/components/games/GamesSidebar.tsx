@@ -2,8 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { GameType, GameDifficulty, GameStatus, gameTypes, difficultyLevels, Game } from '@/lib/games/games';
-import { GameInfoPanel } from './GameInfoPanel';
+import { GameType, GameDifficulty, GameStatus, gameTypes, difficultyLevels } from '@/lib/games/games';
 
 interface GamesSidebarProps {
   selectedGameTypes: GameType[];
@@ -21,8 +20,6 @@ interface GamesSidebarProps {
   onSearchChange: (query: string) => void;
   onResetFilters: () => void;
   showCategories?: boolean;
-  showGameInfo?: boolean;
-  game?: Game;
   backLink?: { href: string; label: string };
 }
 
@@ -56,14 +53,12 @@ export function GamesSidebar({
   onSearchChange,
   onResetFilters,
   showCategories = true,
-  showGameInfo = false,
-  game,
   backLink = { href: '/hub', label: 'Go back to Hub' },
 }: GamesSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [gameTypesExpanded, setGameTypesExpanded] = useState(true);
-  const [statusExpanded, setStatusExpanded] = useState(true);
   const [difficultiesExpanded, setDifficultiesExpanded] = useState(true);
+  const [statusExpanded, setStatusExpanded] = useState(true);
   const [costExpanded, setCostExpanded] = useState(false);
 
   // Sidebar hide/show and resize state
@@ -323,28 +318,17 @@ export function GamesSidebar({
               </svg>
             </button>
           </div>
-          {!showGameInfo && (
-            <input
-              type="text"
-              placeholder="Search games..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#02abb8] text-zinc-900 dark:text-zinc-100 mb-3"
-            />
-          )}
+          <input
+            type="text"
+            placeholder="Search games..."
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="w-full px-3 py-2 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#02abb8] text-zinc-900 dark:text-zinc-100 mb-3"
+          />
         </div>
 
         {/* Sidebar Content */}
         <div className="p-4">
-          {showGameInfo && game ? (
-            <>
-              {/* Game Info Panel */}
-              <div className="mb-4">
-                <GameInfoPanel game={game} />
-              </div>
-            </>
-          ) : null}
-
           {showCategories && (
             <>
               {/* Game Types Filter */}
@@ -369,10 +353,9 @@ export function GamesSidebar({
                           onChange={() => handleGameTypeToggle(type as GameType)}
                           className="sr-only"
                         />
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <GameIcon id={type} />
-                          <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">{info.name}</span>
-                        </div>
+                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                        <GameIcon id={type} />
+                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{info.name}</span>
                         <span className="k-sidebar-count">
                           {count}
                         </span>
@@ -404,10 +387,9 @@ export function GamesSidebar({
                           onChange={() => handleDifficultyToggle(difficulty as GameDifficulty)}
                           className="sr-only"
                         />
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <GameIcon id={difficulty} type="difficulty" />
-                          <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">{info.name}</span>
-                        </div>
+                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                        <GameIcon id={difficulty} type="difficulty" />
+                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{info.name}</span>
                         <span className="k-sidebar-count">
                           {count}
                         </span>
@@ -439,10 +421,9 @@ export function GamesSidebar({
                           onChange={() => handleStatusToggle(status)}
                           className="sr-only"
                         />
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <GameIcon id={status} type="status" />
-                          <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">{status.replace('-', ' ')}</span>
-                        </div>
+                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                        <GameIcon id={status} type="status" />
+                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{status.replace('-', ' ')}</span>
                         <span className="k-sidebar-count">
                           {count}
                         </span>

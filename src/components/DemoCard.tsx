@@ -14,7 +14,6 @@ import { DAppIcon } from './dapps/DAppIcon';
 import { StatusIndicator } from './dapps/StatusIndicator';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { getContractAddress } from '@/lib/contracts/addresses';
-import { DAppCardRewards } from './rewards/DAppCardRewards';
 import { DAppFeesModal } from './dapps/DAppFeesModal';
 
 interface DemoCardProps {
@@ -120,7 +119,7 @@ export function DemoCard({ dapp, gradientColors }: DemoCardProps) {
             <StatusIndicator dapp={mergedDApp} size="md" clickable={false} />
           </div>
           <div className="pointer-events-none">
-            <DAppFeesModal dapp={mergedDApp} tokenTicker={tokenTicker} clickable={false} />
+            <DAppFeesModal dapp={mergedDApp} clickable={false} />
           </div>
         </div>
         {/* Top Row: Logo, Titles, and Status Indicator */}
@@ -145,18 +144,6 @@ export function DemoCard({ dapp, gradientColors }: DemoCardProps) {
             </div>
             )}
             
-            {/* Token Row */}
-            {tokenTicker && (
-              <div className="flex items-center gap-2 text-sm">
-                <svg className="w-4 h-4 text-zinc-500 dark:text-zinc-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span className="text-zinc-500 dark:text-zinc-500 font-medium">Token:</span>
-                <span className="text-zinc-900 dark:text-zinc-100 font-bold truncate">
-                  {tokenTicker}
-              </span>
-            </div>
-          )}
           </div>
         </div>
 
@@ -167,13 +154,8 @@ export function DemoCard({ dapp, gradientColors }: DemoCardProps) {
           </p>
       </div>
 
-        {/* Bottom Section: Token Supply, Category/Version/ID and Icons Row - Aligned to bottom */}
+        {/* Bottom Section: Category/Version/ID and Icons Row - Aligned to bottom */}
         <div className="mt-auto">
-          {/* Token Supply Section */}
-          <DAppCardRewards 
-            tokenTicker={tokenTicker}
-          />
-
           {/* Category/Version/ID and Icons Row */}
           <div className="flex items-center justify-between gap-2 flex-wrap mt-2">
             {/* Left: Category/Version/ID */}

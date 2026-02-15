@@ -155,7 +155,7 @@ export default function HubPage() {
 
               <div className="space-y-6 text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed">
                 <p>
-                  Users can earn <strong className="text-zinc-900 dark:text-zinc-100">global reward tokens</strong> (for example, a global reward token like GRT) for using any dApp in the ecosystem, and <strong className="text-zinc-900 dark:text-zinc-100">local reward tokens</strong> that are specific to individual dApps or projects (LRTs).
+                  Users earn <strong className="text-zinc-900 dark:text-zinc-100">GRID</strong> (Global Reward Token) for using any dApp in the ecosystem. Holding KREX and NFTs multiplies your GRID rewards.
                 </p>
                 <p>
                   Holding <strong className="text-zinc-900 dark:text-zinc-100">KREX</strong> and specific <strong className="text-zinc-900 dark:text-zinc-100">NFTs</strong> in the ecosystem can increase multipliers, reduce usage fees on dApps, unlock special sections or premium tools, and give extra perks such as access to certain games, vBlog features, magazines or gated experiences.

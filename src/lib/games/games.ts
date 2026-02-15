@@ -235,27 +235,6 @@ export const placeholderGames: Game[] = [
     likeCount: 0,
     favoriteCount: 0,
   },
-  {
-    id: 'game-snake',
-    name: 'Kasparex Snake',
-    slug: 'kasparex-snake',
-    description: 'Classic Snake game with a Kaspa twist. Eat, grow, and clear 10 levels!',
-    instructions: 'Use arrow keys to control the snake. Eat food to grow and earn points. Avoid walls and your own tail. Complete 10 levels to win big!',
-    gameType: 'arcade',
-    difficulty: 'medium',
-    entryCostKAS: 5,
-    status: 'beta',
-    developer: 'Kasparex',
-    version: '1.0.0',
-    rewardConfig: {
-      gridReward: 10,
-      xpReward: 50,
-    },
-    createdAt: '2025-01-23T10:00:00.000Z',
-    playCount: 0,
-    likeCount: 0,
-    favoriteCount: 0,
-  },
 ];
 
 // Helper functions

@@ -4,7 +4,6 @@ import { useAccount } from 'wagmi';
 import Link from 'next/link';
 import { 
   getDefaultRewardsBreakdown, 
-  getMockLRTSupplyMetrics,
   getMockGRTSupplyMetrics,
   MOCK_REWARDS_CONFIG 
 } from '@/lib/rewards/mockData';
@@ -12,54 +11,32 @@ import { formatLargeNumber, formatNumber } from '@/lib/rewards/calculator';
 import { DEFAULT_FEE_DISTRIBUTION } from '@/lib/rewards/types';
 
 interface DAppRewardsSidebarProps {
-  tokenTicker?: string | null;
   dappName?: string;
 }
 
-export function DAppRewardsSidebar({ tokenTicker, dappName }: DAppRewardsSidebarProps) {
+export function DAppRewardsSidebar({ dappName }: DAppRewardsSidebarProps) {
   const { address, isConnected } = useAccount();
-  const rewards = getDefaultRewardsBreakdown(tokenTicker || undefined);
-  const lrtMetrics = getMockLRTSupplyMetrics();
+  const rewards = getDefaultRewardsBreakdown();
   const grtMetrics = getMockGRTSupplyMetrics();
   
-  // Mock user status (for simulation)
-  const mockKrexTier = 'Tier1'; // Default tier
+  const mockKrexTier = 'Tier1';
   const mockKrexMultiplier = 1;
   const mockNftMultiplier = 1;
   const mockNodeMultiplier = 1;
-  const mockSeasonalMultiplier = 1; // Seasonal boosters are now in a separate component
+  const mockSeasonalMultiplier = 1;
   const mockTotalMultiplier = mockKrexMultiplier * mockNftMultiplier * mockNodeMultiplier * mockSeasonalMultiplier;
   const mockPointsMultiplier = mockKrexMultiplier * mockNftMultiplier;
   
-  // Calculate final fee (with potential reductions)
   const baseFee = MOCK_REWARDS_CONFIG.DEFAULT_FEE_PERCENT;
-  const finalFee = baseFee; // No reductions in default simulation
+  const finalFee = baseFee;
   
-  // Example calculation
   const exampleKasAmount = 1;
   const exampleGRT = exampleKasAmount * rewards.grtPerKas * mockTotalMultiplier;
-  const exampleLRT = exampleKasAmount * rewards.lrtPerKas * mockTotalMultiplier;
   const exampleXP = exampleKasAmount * rewards.xpPerKas * mockPointsMultiplier;
   const exampleFee = (exampleKasAmount * finalFee) / 100;
 
-  const formatDays = (days: number): string => {
-    if (days === Infinity || days > 36500) {
-      return 'Never';
-    }
-    if (days >= 365) {
-      const years = days / 365;
-      return `${years.toFixed(1)} years`;
-    }
-    if (days >= 30) {
-      const months = days / 30;
-      return `${months.toFixed(1)} months`;
-    }
-    return `${Math.round(days)} days`;
-  };
-
   return (
     <>
-      {/* Rewards & Metrics & Fees Box */}
       <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
@@ -67,24 +44,16 @@ export function DAppRewardsSidebar({ tokenTicker, dappName }: DAppRewardsSidebar
           </h3>
         </div>
         <div className="space-y-3">
-          {/* Base Rates */}
+          {/* Base Rates - GRT only */}
           <div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
               Base Rates (per 1 KAS):
             </div>
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-zinc-600 dark:text-zinc-400">GRT (GRID):</span>
+                <span className="text-zinc-600 dark:text-zinc-400">GRID (GRT):</span>
                 <span className="font-medium text-zinc-900 dark:text-zinc-100">
                   {formatLargeNumber(rewards.grtPerKas)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-zinc-600 dark:text-zinc-400">
-                  {rewards.tokenTicker} (LRT):
-                </span>
-                <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                  {formatLargeNumber(rewards.lrtPerKas)}
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs">
@@ -100,7 +69,7 @@ export function DAppRewardsSidebar({ tokenTicker, dappName }: DAppRewardsSidebar
           <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-zinc-600 dark:text-zinc-400">
-                GRT (GRID) Supply
+                GRID Supply
               </span>
               <span className="text-xs text-zinc-500 dark:text-zinc-400">
                 {grtMetrics.progress.toFixed(2)}% minted
@@ -114,27 +83,6 @@ export function DAppRewardsSidebar({ tokenTicker, dappName }: DAppRewardsSidebar
             </div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400">
               {formatLargeNumber(grtMetrics.minted)} / {formatLargeNumber(grtMetrics.maxSupply)}
-            </div>
-          </div>
-
-          {/* LRT Supply Metrics */}
-          <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-zinc-600 dark:text-zinc-400">
-                {rewards.tokenTicker} Supply
-              </span>
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                {lrtMetrics.progress.toFixed(2)}% minted
-              </span>
-            </div>
-            <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2 mb-1">
-              <div
-                className="bg-[#02abb8] h-2 rounded-full transition-all"
-                style={{ width: `${Math.min(100, lrtMetrics.progress)}%` }}
-              />
-            </div>
-            <div className="text-xs text-zinc-500 dark:text-zinc-400">
-              {formatLargeNumber(lrtMetrics.minted)} / {formatLargeNumber(lrtMetrics.maxSupply)}
             </div>
           </div>
 
@@ -173,18 +121,11 @@ export function DAppRewardsSidebar({ tokenTicker, dappName }: DAppRewardsSidebar
                       {DEFAULT_FEE_DISTRIBUTION.GRT_TREASURY}%
                     </span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-600 dark:text-zinc-400">LRT Treasury:</span>
-                    <span className="text-zinc-900 dark:text-zinc-100">
-                      {DEFAULT_FEE_DISTRIBUTION.LRT_TREASURY}%
-                    </span>
-                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Calculator Button */}
           <div className="pt-3 border-t border-zinc-200 dark:border-zinc-700">
             <Link
               href="/rewards-calculator"
@@ -196,7 +137,6 @@ export function DAppRewardsSidebar({ tokenTicker, dappName }: DAppRewardsSidebar
         </div>
       </div>
 
-      {/* Node Provider Rewards Box (Optional) */}
       {mockNodeMultiplier > 1 && (
         <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
           <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
@@ -218,4 +158,3 @@ export function DAppRewardsSidebar({ tokenTicker, dappName }: DAppRewardsSidebar
     </>
   );
 }
-

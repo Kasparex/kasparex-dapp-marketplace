@@ -289,57 +289,11 @@ export function DAppWidgetHeader({
                     )}
                   </div>
                 
-                {/* Token Row */}
-                {tokenTicker && (
-                  <div className="flex items-center gap-2 text-base">
-                    <svg className="w-4 h-4 text-zinc-500 dark:text-zinc-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="text-zinc-500 dark:text-zinc-500 font-medium">Token:</span>
-                    <Link
-                      href={`/tokens/${tokenTicker.toLowerCase()}`}
-                      className="text-zinc-900 dark:text-zinc-100 font-bold truncate hover:text-[#02abb8] dark:hover:text-[#02abb8] transition-colors"
-                      title={`View ${tokenTicker} token page - trading, supply, and rewards information`}
-                      aria-label={`Navigate to ${tokenTicker} token landing page`}
-                    >
-                      {tokenTicker}
-                    </Link>
-                    {tokenAddress && tokenExplorerUrl && (
-                      <>
-                        <span className="text-zinc-400 dark:text-zinc-600">—</span>
-                        <a
-                          href={tokenExplorerUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-zinc-500 dark:text-zinc-400 hover:text-[#02abb8] dark:hover:text-[#02abb8] font-mono transition-colors"
-                          title={tokenAddress}
-                        >
-                          {formatAddress(tokenAddress)}
-                        </a>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleCopyAddress(tokenAddress, 'token');
-                          }}
-                          className="ml-1 p-0.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
-                          title={`Copy: ${tokenAddress}`}
-                          aria-label={`Copy token contract address: ${tokenAddress}`}
-                        >
-                          {copiedTokenAddress ? (
-                            <svg className="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          ) : (
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                          )}
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
+                {/* Rewards: GRID only */}
+                <div className="flex items-center gap-2 text-base">
+                  <span className="text-zinc-500 dark:text-zinc-500 font-medium">Rewards:</span>
+                  <span className="text-zinc-900 dark:text-zinc-100 font-bold">GRID</span>
+                </div>
               </div>
             </div>
           </div>

@@ -13,6 +13,10 @@ import { mergeDAppData } from '@/lib/dapps/contractData';
 import { DAppRewardsSidebar } from './rewards/DAppRewardsSidebar';
 import { DAppActionFlow } from './dapps/DAppActionFlow';
 import { NetworkAvailabilityBox } from './dapps/NetworkAvailabilityBox';
+import { GRIDHoldingsBox } from './rewards/GRIDHoldingsBox';
+import { XPPointsBox } from './rewards/XPPointsBox';
+import { UnifiedStatusBox } from './rewards/UnifiedStatusBox';
+import { QuickGuideWizard } from './rewards/QuickGuideWizard';
 import { getDAppNetworkType } from '@/lib/dapps';
 
 interface DAppSidebarProps {
@@ -63,6 +67,7 @@ const getLinkIcon = (label: string, url: string) => {
 export function DAppSidebar({ dapp }: DAppSidebarProps) {
   const { address: connectedAddress } = useAccount();
   const chainId = useChainId();
+  const [showQuickGuide, setShowQuickGuide] = useState(false);
   // Edit functionality removed
 
   // Sidebar hide/show and resize state
@@ -145,9 +150,6 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
   
   // Merge localStorage data
   const mergedDApp = mergeDAppData(contractData, dapp);
-  
-  // Get token ticker from contract data (only for L2 dApps)
-  const tokenTicker = !isL1DApp ? (contractData?.ticker || null) : null;
 
   return (
     <>
@@ -259,24 +261,44 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
           </div>
         </div>
 
-        <div className={`p-4 ${isHidden ? 'lg:hidden' : ''}`}>
-
+        <div className={`p-4 space-y-6 ${isHidden ? 'lg:hidden' : ''}`}>
             {/* Network Availability */}
-            <NetworkAvailabilityBox dapp={mergedDApp} />
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30 overflow-hidden">
+              <NetworkAvailabilityBox dapp={mergedDApp} />
+            </div>
 
-            {/* Action Flow - Show for all dApps, but tokenTicker will be null for L1 */}
-            <DAppActionFlow dapp={mergedDApp} tokenTicker={tokenTicker} />
+            {/* Action Flow section: steps + GRID/XP/Status/Quick Guide */}
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30 overflow-hidden">
+              <h3 className="px-4 py-3 text-sm font-semibold text-zinc-700 dark:text-zinc-200 uppercase tracking-wider border-b border-zinc-200 dark:border-zinc-800">
+                Action Flow
+              </h3>
+              <div className="p-4 space-y-4">
+                <DAppActionFlow dapp={mergedDApp} />
+                <GRIDHoldingsBox />
+                <XPPointsBox />
+                <UnifiedStatusBox />
+                <button
+                  type="button"
+                  onClick={() => setShowQuickGuide(true)}
+                  className="w-full px-4 py-2 bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors flex items-center justify-center gap-2 text-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  Quick Guide
+                </button>
+              </div>
+            </div>
 
-            {/* Rewards Sidebar - Only show for L2 dApps with token ticker */}
-            {!isL1DApp && tokenTicker && (
-              <DAppRewardsSidebar 
-                tokenTicker={tokenTicker}
-                dappName={mergedDApp.name}
-              />
-            )}
-
+            {/* Rewards Sidebar - GRT-only metrics */}
+            <DAppRewardsSidebar dappName={mergedDApp.name} />
         </div>
       </aside>
+
+      <QuickGuideWizard
+        isOpen={showQuickGuide}
+        onClose={() => setShowQuickGuide(false)}
+      />
 
       {/* Edit functionality removed - dApps are now read-only */}
     </>

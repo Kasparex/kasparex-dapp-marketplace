@@ -84,7 +84,7 @@ function DAppTableRow({ dapp }: DAppTableRowProps) {
       <td className="py-4 px-4">
         <Link href={`/dapps/${slug}`} className="block">
           <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            {tokenTicker || 'N/A'}
+            GRID
           </span>
         </Link>
       </td>
@@ -248,7 +248,7 @@ export function DAppTable({ dapps }: DAppTableProps) {
               className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
               onClick={() => handleSort('token')}
             >
-              Token
+              Rewards
               <SortIcon field="token" />
             </th>
             <th

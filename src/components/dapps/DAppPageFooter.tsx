@@ -86,20 +86,15 @@ export function DAppPageFooter({ dapp }: DAppPageFooterProps) {
               <NetworkAvailabilityBox dapp={mergedDApp} />
             </div>
 
-            {/* Action Flow */}
+            {/* Action Flow - GRT-only */}
             <div>
-              <DAppActionFlow dapp={mergedDApp} tokenTicker={tokenTicker} />
+              <DAppActionFlow dapp={mergedDApp} />
             </div>
 
-            {/* Rewards Sidebar - Only show for L2 dApps with token ticker */}
-            {!isL1DApp && tokenTicker && (
-              <div>
-                <DAppRewardsSidebar 
-                  tokenTicker={tokenTicker}
-                  dappName={mergedDApp.name}
-                />
-              </div>
-            )}
+            {/* Rewards Sidebar - GRT-only */}
+            <div>
+              <DAppRewardsSidebar dappName={mergedDApp.name} />
+            </div>
           </div>
 
           {/* Footer Text - Centered */}

@@ -8,53 +8,46 @@ import { formatLargeNumber } from '@/lib/rewards/calculator';
 
 interface DAppFeesModalProps {
   dapp: DApp;
-  tokenTicker?: string | null;
   clickable?: boolean;
 }
 
-// Mock fees data based on dApp category/name
-function getDAppFees(dapp: DApp, tokenTicker: string): Array<{ action: string; cost: string; rewards: string }> {
+function getDAppFees(dapp: DApp): Array<{ action: string; cost: string; rewards: string }> {
   const name = dapp.name.toLowerCase();
   const category = dapp.category.toLowerCase();
-  const rewards = getDefaultRewardsBreakdown(tokenTicker);
+  const rewards = getDefaultRewardsBreakdown();
 
-  // DAO Voting specific fees
   if (name.includes('dao') || name.includes('voting')) {
     return [
-      { action: 'Proposal', cost: '10 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas * 10)} GRID → ${formatLargeNumber(rewards.lrtPerKas * 10)} ${rewards.tokenTicker} → ${formatLargeNumber(rewards.xpPerKas * 10)} XP` },
-      { action: 'Vote', cost: '1 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas)} GRID → ${formatLargeNumber(rewards.lrtPerKas)} ${rewards.tokenTicker} → ${formatLargeNumber(rewards.xpPerKas)} XP` },
-      { action: 'Change Vote', cost: '1 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas)} GRID → ${formatLargeNumber(rewards.lrtPerKas)} ${rewards.tokenTicker} → ${formatLargeNumber(rewards.xpPerKas)} XP` },
+      { action: 'Proposal', cost: '10 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas * 10)} GRID → ${formatLargeNumber(rewards.xpPerKas * 10)} XP` },
+      { action: 'Vote', cost: '1 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas)} GRID → ${formatLargeNumber(rewards.xpPerKas)} XP` },
+      { action: 'Change Vote', cost: '1 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas)} GRID → ${formatLargeNumber(rewards.xpPerKas)} XP` },
     ];
   }
 
-  // Subscription specific fees
   if (category === 'subscription' || name.includes('subscription')) {
     return [
-      { action: 'Check Subscription', cost: '0.5 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas * 0.5)} GRID → ${formatLargeNumber(rewards.lrtPerKas * 0.5)} ${rewards.tokenTicker} → ${formatLargeNumber(rewards.xpPerKas * 0.5)} XP` },
-      { action: 'Subscribe', cost: '5 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas * 5)} GRID → ${formatLargeNumber(rewards.lrtPerKas * 5)} ${rewards.tokenTicker} → ${formatLargeNumber(rewards.xpPerKas * 5)} XP` },
-      { action: 'Renew', cost: '5 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas * 5)} GRID → ${formatLargeNumber(rewards.lrtPerKas * 5)} ${rewards.tokenTicker} → ${formatLargeNumber(rewards.xpPerKas * 5)} XP` },
+      { action: 'Check Subscription', cost: '0.5 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas * 0.5)} GRID → ${formatLargeNumber(rewards.xpPerKas * 0.5)} XP` },
+      { action: 'Subscribe', cost: '5 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas * 5)} GRID → ${formatLargeNumber(rewards.xpPerKas * 5)} XP` },
+      { action: 'Renew', cost: '5 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas * 5)} GRID → ${formatLargeNumber(rewards.xpPerKas * 5)} XP` },
     ];
   }
 
-  // Payment specific fees
   if (category === 'payment' || name.includes('payment')) {
     return [
-      { action: 'Send Payment', cost: '1 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas)} GRID → ${formatLargeNumber(rewards.lrtPerKas)} ${rewards.tokenTicker} → ${formatLargeNumber(rewards.xpPerKas)} XP` },
-      { action: 'Request Payment', cost: '0.5 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas * 0.5)} GRID → ${formatLargeNumber(rewards.lrtPerKas * 0.5)} ${rewards.tokenTicker} → ${formatLargeNumber(rewards.xpPerKas * 0.5)} XP` },
+      { action: 'Send Payment', cost: '1 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas)} GRID → ${formatLargeNumber(rewards.xpPerKas)} XP` },
+      { action: 'Request Payment', cost: '0.5 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas * 0.5)} GRID → ${formatLargeNumber(rewards.xpPerKas * 0.5)} XP` },
     ];
   }
 
-  // Default fees for other dApps
   return [
-    { action: 'Use dApp', cost: '1 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas)} GRID → ${formatLargeNumber(rewards.lrtPerKas)} ${rewards.tokenTicker} → ${formatLargeNumber(rewards.xpPerKas)} XP` },
-    { action: 'Premium Action', cost: '5 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas * 5)} GRID → ${formatLargeNumber(rewards.lrtPerKas * 5)} ${rewards.tokenTicker} → ${formatLargeNumber(rewards.xpPerKas * 5)} XP` },
+    { action: 'Use dApp', cost: '1 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas)} GRID → ${formatLargeNumber(rewards.xpPerKas)} XP` },
+    { action: 'Premium Action', cost: '5 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas * 5)} GRID → ${formatLargeNumber(rewards.xpPerKas * 5)} XP` },
   ];
 }
 
-export function DAppFeesModal({ dapp, tokenTicker, clickable = true }: DAppFeesModalProps) {
+export function DAppFeesModal({ dapp, clickable = true }: DAppFeesModalProps) {
   const [showModal, setShowModal] = useState(false);
-  const rewards = getDefaultRewardsBreakdown(tokenTicker || undefined);
-  const fees = getDAppFees(dapp, rewards.tokenTicker);
+  const fees = getDAppFees(dapp);
 
   if (!clickable) {
     return (
@@ -79,21 +72,17 @@ export function DAppFeesModal({ dapp, tokenTicker, clickable = true }: DAppFeesM
         </svg>
       </button>
 
-      {/* Fees & Rewards Modal */}
       {showModal && typeof window !== 'undefined' && createPortal(
         <div
           className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
           onClick={() => setShowModal(false)}
         >
-          {/* Backdrop */}
           <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
           
-          {/* Modal Content */}
           <div
             className="relative bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-zinc-200 dark:border-zinc-800"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
             <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
@@ -114,7 +103,6 @@ export function DAppFeesModal({ dapp, tokenTicker, clickable = true }: DAppFeesM
               </button>
             </div>
 
-            {/* Table */}
             <div className="p-6">
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -148,29 +136,25 @@ export function DAppFeesModal({ dapp, tokenTicker, clickable = true }: DAppFeesM
 
               <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                 <p className="text-xs text-blue-700 dark:text-blue-300 mb-2">
-                  💡 Rewards are multiplied based on your KREX tier and NFT holdings. Fees may be reduced for KREX holders.
+                  Rewards are multiplied based on your KREX tier and NFT holdings. Fees may be reduced for KREX holders.
                 </p>
               </div>
 
-              {/* Token Explanation */}
               <div className="mt-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
                 <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-                  Understanding Reward Tokens
+                  Understanding Rewards
                 </h3>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-3">
-                  When you use this dApp, you receive two types of reward tokens:
+                  When you use dApps in the Kasparex ecosystem, you earn GRID (Global Reward Token) and XP Points.
                 </p>
                 <ul className="text-xs text-zinc-600 dark:text-zinc-400 space-y-2 mb-3 list-disc list-inside">
                   <li>
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">GRID (Global Reward Token):</span> Earned across the entire Kasparex ecosystem. Max supply: 100B. Deflationary.
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">GRID (Global Reward Token):</span> Earned across the entire Kasparex ecosystem. Max supply: 100B. Holding KREX and NFTs multiplies your GRID rewards.
                   </li>
                   <li>
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">{rewards.tokenTicker} (Local Reward Token):</span> Earned only through using this specific dApp. Max supply: 100M. Deflationary.
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">XP Points:</span> Earned with every action. Unlock perks and badges as you level up.
                   </li>
                 </ul>
-                <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                  You receive both tokens until their respective supplies are fully minted. Holding KREX and NFTs multiplies your rewards.
-                </p>
               </div>
             </div>
           </div>
@@ -180,4 +164,3 @@ export function DAppFeesModal({ dapp, tokenTicker, clickable = true }: DAppFeesM
     </>
   );
 }
-

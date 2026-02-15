@@ -13,25 +13,23 @@ import { calculateCost, formatCostBreakdown } from '@/lib/payments/calculator';
 
 interface DAppActionFlowProps {
   dapp: DApp;
-  tokenTicker?: string | null;
 }
 
-// Get dApp-specific actions and fees
-function getDAppActions(dapp: DApp, tokenTicker: string): Array<{
+// Get dApp-specific actions and rewards (GRT-only)
+function getDAppActions(dapp: DApp): Array<{
   step: number;
   action: string;
   cost: string;
   costKAS: number;
   baseRewards: {
     grid: number;
-    token: number;
     xp: number;
   };
   nextStep?: string;
 }> {
   const name = dapp.name.toLowerCase();
   const category = dapp.category.toLowerCase();
-  const rewards = getDefaultRewardsBreakdown(tokenTicker);
+  const rewards = getDefaultRewardsBreakdown();
 
   // DAO Voting specific actions
   if (name.includes('dao') || name.includes('voting')) {
@@ -43,7 +41,6 @@ function getDAppActions(dapp: DApp, tokenTicker: string): Array<{
         costKAS: 10,
         baseRewards: {
           grid: rewards.grtPerKas * 10,
-          token: rewards.lrtPerKas * 10,
           xp: rewards.xpPerKas * 10,
         },
         nextStep: 'Wait for voting period',
@@ -55,7 +52,6 @@ function getDAppActions(dapp: DApp, tokenTicker: string): Array<{
         costKAS: 1,
         baseRewards: {
           grid: rewards.grtPerKas,
-          token: rewards.lrtPerKas,
           xp: rewards.xpPerKas,
         },
         nextStep: 'View results',
@@ -73,7 +69,6 @@ function getDAppActions(dapp: DApp, tokenTicker: string): Array<{
         costKAS: 5,
         baseRewards: {
           grid: rewards.grtPerKas * 5,
-          token: rewards.lrtPerKas * 5,
           xp: rewards.xpPerKas * 5,
         },
         nextStep: 'Access content',
@@ -85,7 +80,6 @@ function getDAppActions(dapp: DApp, tokenTicker: string): Array<{
         costKAS: 5,
         baseRewards: {
           grid: rewards.grtPerKas * 5,
-          token: rewards.lrtPerKas * 5,
           xp: rewards.xpPerKas * 5,
         },
         nextStep: 'Continue access',
@@ -103,40 +97,9 @@ function getDAppActions(dapp: DApp, tokenTicker: string): Array<{
         costKAS: 1.01,
         baseRewards: {
           grid: rewards.grtPerKas,
-          token: rewards.lrtPerKas,
           xp: rewards.xpPerKas,
         },
         nextStep: 'Payment processed',
-      },
-    ];
-  }
-
-  // Quiz-to-Earn specific actions (removed - dApp no longer exists)
-  if (false && name.includes('quiz')) {
-    return [
-      {
-        step: 1,
-        action: 'Answer Question',
-        cost: '0.1 KAS',
-        costKAS: 0.1,
-        baseRewards: {
-          grid: rewards.grtPerKas * 0.1,
-          token: rewards.lrtPerKas * 0.1,
-          xp: rewards.xpPerKas * 0.1,
-        },
-        nextStep: 'Check answer',
-      },
-      {
-        step: 2,
-        action: 'Correct Answer',
-        cost: '0 KAS',
-        costKAS: 0,
-        baseRewards: {
-          grid: rewards.grtPerKas * 0.5,
-          token: rewards.lrtPerKas * 0.5,
-          xp: rewards.xpPerKas * 0.5,
-        },
-        nextStep: 'Continue quiz',
       },
     ];
   }
@@ -150,7 +113,6 @@ function getDAppActions(dapp: DApp, tokenTicker: string): Array<{
       costKAS: 1,
       baseRewards: {
         grid: rewards.grtPerKas,
-        token: rewards.lrtPerKas,
         xp: rewards.xpPerKas,
       },
       nextStep: 'Complete action',
@@ -158,13 +120,10 @@ function getDAppActions(dapp: DApp, tokenTicker: string): Array<{
   ];
 }
 
-export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
+export function DAppActionFlow({ dapp }: DAppActionFlowProps) {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
-  const rewards = getDefaultRewardsBreakdown(tokenTicker || undefined);
-  // Use actual token ticker if provided, otherwise use the default from rewards
-  const displayTokenTicker = tokenTicker || rewards.tokenTicker;
-  const actions = getDAppActions(dapp, displayTokenTicker);
+  const actions = getDAppActions(dapp);
   
   // Get KREX tier and multipliers from real balance
   const { balance: krexBalance, tier, isLoading: isKREXLoading } = useKREXBalance();
@@ -220,17 +179,14 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
     (acc, action) => {
       return {
         grid: acc.grid + action.baseRewards.grid * multiplier,
-        token: acc.token + action.baseRewards.token * multiplier,
         xp: acc.xp + action.baseRewards.xp * multiplier,
         totalCost: acc.totalCost + (action.finalCostKAS || action.costKAS),
       };
     },
-    { grid: 0, token: 0, xp: 0, totalCost: 0 }
+    { grid: 0, xp: 0, totalCost: 0 }
   );
 
-  // Get wallet holdings
   const holdings = getMockWalletHoldings(address);
-  const dAppTokenBalance = holdings?.lrtBalances.find(b => b.ticker === displayTokenTicker)?.balance || 0;
 
   return (
     <div className="mb-6">
@@ -255,12 +211,6 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
               <span className="text-zinc-600 dark:text-zinc-400">GRID</span>
               <span className="font-medium text-zinc-900 dark:text-zinc-100">
                 {holdings ? formatLargeNumber(holdings.grt) : '0'}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-zinc-600 dark:text-zinc-400">{displayTokenTicker}</span>
-              <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                {formatLargeNumber(dAppTokenBalance)}
               </span>
             </div>
             <div className="flex items-center justify-between text-xs">
@@ -310,7 +260,6 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
         {actionsWithCalculatedCosts.map((action, index) => {
           const adjustedRewards = {
             grid: action.baseRewards.grid * multiplier,
-            token: action.baseRewards.token * multiplier,
             xp: action.baseRewards.xp * multiplier,
           };
           // Use calculated cost from the new calculator
@@ -376,17 +325,6 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-zinc-600 dark:text-zinc-400">{displayTokenTicker}</span>
-                        <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {formatLargeNumber(adjustedRewards.token)}
-                          {multiplier > 1 && (
-                            <span className="ml-1 text-green-600 dark:text-green-400">
-                              ({multiplier}x)
-                            </span>
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between text-xs">
                         <span className="text-zinc-600 dark:text-zinc-400">XP</span>
                         <span className="font-medium text-[#02abb8]">
                           {formatLargeNumber(adjustedRewards.xp)}
@@ -429,12 +367,6 @@ export function DAppActionFlow({ dapp, tokenTicker }: DAppActionFlowProps) {
                 <span className="text-zinc-600 dark:text-zinc-400">Total GRID</span>
                 <span className="font-medium text-[#02abb8]">
                   {formatLargeNumber(totalPredicted.grid)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-zinc-600 dark:text-zinc-400">Total {displayTokenTicker}</span>
-                <span className="font-medium text-[#02abb8]">
-                  {formatLargeNumber(totalPredicted.token)}
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs">

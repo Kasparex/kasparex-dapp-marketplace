@@ -39,7 +39,7 @@ export const knowledgeBaseCategories: Array<{
   {
     id: 'rewards',
     name: 'Rewards',
-    description: 'GRID, LRT, and multipliers',
+    description: 'GRID and multipliers',
   },
   {
     id: 'glossary',
@@ -110,8 +110,8 @@ export const knowledgeBaseArticles: KnowledgeBaseArticle[] = [
   },
   {
     id: 'lrt-tokens',
-    title: 'Local Reward Tokens (LRT)',
-    description: 'Understanding Local Reward Tokens and how they work.',
+    title: 'Earning GRID',
+    description: 'How to earn and use GRID rewards across the ecosystem.',
     category: 'rewards',
     slug: 'lrt-tokens',
   },

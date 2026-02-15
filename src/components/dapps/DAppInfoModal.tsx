@@ -16,14 +16,13 @@ import { KREX_TIERS, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FE
 import { getDefaultRewardsBreakdown } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 
-// Get dApp-specific actions and fees (duplicated from DAppActionFlow for modal use)
-function getDAppActionsForModal(dapp: DApp, tokenTicker: string): Array<{
+// Get dApp-specific actions for modal (GRT-only)
+function getDAppActionsForModal(dapp: DApp): Array<{
   action: string;
   costKAS: number;
 }> {
   const name = dapp.name.toLowerCase();
   const category = dapp.category.toLowerCase();
-  const rewards = getDefaultRewardsBreakdown(tokenTicker);
 
   // DAO Voting specific actions
   if (name.includes('dao') || name.includes('voting')) {
@@ -110,10 +109,8 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
   costReductionPercent = Math.min(costReductionPercent, 50);
   
   // Get dApp actions for fees table
-  const tokenTicker = contractData?.ticker || null;
-  const rewards = getDefaultRewardsBreakdown(tokenTicker || undefined);
-  const displayTokenTicker = tokenTicker || rewards.tokenTicker;
-  const actions = getDAppActionsForModal(dapp, displayTokenTicker);
+  const rewards = getDefaultRewardsBreakdown();
+  const actions = getDAppActionsForModal(dapp);
 
   // Get deployer info
   const DEFAULT_DEPLOYER = '0x658420Fd88dbd610249a88384f9B1aD387F797c7';

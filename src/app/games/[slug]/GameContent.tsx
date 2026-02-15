@@ -7,7 +7,6 @@ import { GameInfoPanel } from '@/components/games/GameInfoPanel';
 import { RelatedGames } from '@/components/games/RelatedGames';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
 import { GamePayment } from '@/components/games/GamePayment';
-import { SnakeGame } from '@/components/games/snake/SnakeGame';
 import { placeholderGames, GameType, GameDifficulty, GameStatus, Game } from '@/lib/games/games';
 import { getGameTypeCounts, getDifficultyCounts, getStatusCounts, GameFilterState } from '@/lib/games/filtering';
 
@@ -24,7 +23,6 @@ export function GameContent({ game }: GameContentProps) {
     const [selectedStatuses, setSelectedStatuses] = useState<GameStatus[]>([]);
     const [costRange, setCostRange] = useState<{ min: number; max: number } | undefined>();
     const [searchQuery, setSearchQuery] = useState('');
-    const [hasPaid, setHasPaid] = useState(false);
 
     // Get counts for sidebar
     const gameTypeCounts = useMemo(() => {
@@ -79,9 +77,6 @@ export function GameContent({ game }: GameContentProps) {
                     onSearchChange={(q) => { setSearchQuery(q); handleFilterChange(); }}
                     onResetFilters={() => { router.push('/games'); }}
                     backLink={{ href: '/games', label: 'Back to Games' }}
-                    showCategories={false}
-                    showGameInfo={true}
-                    game={game}
                 />
             </div>
 
@@ -104,20 +99,14 @@ export function GameContent({ game }: GameContentProps) {
                     </p>
                 </div>
 
+                {/* Game Info Panel */}
+                <div className="mb-6">
+                    <GameInfoPanel game={game} />
+                </div>
+
                 {/* Payment and Play Section */}
                 <div className="mb-6">
-                    {game.slug === 'kasparex-snake' && hasPaid ? (
-                        <SnakeGame game={game} />
-                    ) : (
-                        <GamePayment 
-                            game={game} 
-                            onPaymentSuccess={() => {
-                                if (game.slug === 'kasparex-snake') {
-                                    setTimeout(() => setHasPaid(true), 2000);
-                                }
-                            }}
-                        />
-                    )}
+                    <GamePayment game={game} />
                 </div>
 
                 {/* Game Embed Area */}
