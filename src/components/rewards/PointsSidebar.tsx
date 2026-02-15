@@ -37,9 +37,6 @@ function RewardFilterIcon({ id, className = '' }: { id: string; className?: stri
 type FilterKey = keyof PointsSidebarProps['filters'];
 
 export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
-  const [perksExpanded, setPerksExpanded] = useState(true);
-  const [badgesExpanded, setBadgesExpanded] = useState(true);
-
   const handleFilterToggle = (key: FilterKey) => {
     onFilterChange({ ...filters, [key]: !filters[key] });
   };
