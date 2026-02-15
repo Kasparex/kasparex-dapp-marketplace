@@ -255,7 +255,7 @@ export function DAppWidgetHeader({
                   <span className="text-zinc-900 dark:text-zinc-100 font-bold truncate">{mergedDApp.name}</span>
                     {dAppExplorerUrl && dAppContractAddress && (
                       <>
-                        <span className="text-zinc-400 dark:text-zinc-600">—</span>
+                        <span className="text-zinc-400 dark:text-zinc-600">-</span>
                         <a
                           href={dAppExplorerUrl}
                           target="_blank"

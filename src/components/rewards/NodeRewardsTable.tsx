@@ -95,7 +95,7 @@ export function NodeRewardsTable({ hasNode, nodeType }: NodeRewardsTableProps) {
       case 'costReduction':
         return `-${nodeType.costReduction}%`;
       default:
-        return '—';
+        return '-';
     }
   };
 

@@ -255,7 +255,7 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
     // But DON'T strip short phrases that might be part of the name (e.g., "Synth Golds – Shining legacy wear")
     if (traitTypeLower.includes('diamond')) {
       // For Diamonds, strip everything after " - " or " – " as they often have long descriptions
-      const dashIndex = normalized.search(/\s*[–—]\s+/);
+      const dashIndex = normalized.search(/\s*[–\u2014]\s+/);
       if (dashIndex > 0) {
         // Check if what comes after is a long description (more than 20 chars suggests description)
         const afterDash = normalized.substring(dashIndex).trim();
@@ -314,7 +314,7 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       
       if (separatorIndex < 0) {
         // Try em dash (en dash or em dash)
-        const emDashMatch = normalized.match(/\s+[–—]\s+/);
+        const emDashMatch = normalized.match(/\s+[–\u2014]\s+/);
         if (emDashMatch && emDashMatch.index !== undefined) {
           separatorIndex = emDashMatch.index;
           separatorLength = emDashMatch[0].length;
@@ -362,7 +362,7 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
     normalized = normalized
       .trim()
       // First, replace em dashes, en dashes, and other dash-like characters with spaces
-      .replace(/[–—――‒―]/g, ' ')
+      .replace(/[\u2010-\u2015\u2212]/g, ' ')
       // Replace " - " (hyphen with spaces - separator) with a space
       .replace(/\s+-\s+/g, ' ')
       // Replace other special characters (except hyphens, underscores, dots) with spaces

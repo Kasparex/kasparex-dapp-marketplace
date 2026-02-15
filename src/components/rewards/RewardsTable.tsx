@@ -253,7 +253,7 @@ export function RewardsTable({ rewards, searchQuery = '', userStatus }: RewardsT
                   {reward.multiplier ? (
                     <span className="font-medium">{reward.multiplier}x</span>
                   ) : (
-                    <span className="text-zinc-400">—</span>
+                    <span className="text-zinc-400">-</span>
                   )}
                 </td>
                 <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
@@ -264,14 +264,14 @@ export function RewardsTable({ rewards, searchQuery = '', userStatus }: RewardsT
                       <span>-{reward.feeReduction}%</span>
                     )
                   ) : (
-                    <span className="text-zinc-400">—</span>
+                    <span className="text-zinc-400">-</span>
                   )}
                 </td>
                 <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
                   {reward.points !== undefined ? (
                     <span>{reward.points} {reward.points === 1 ? 'point' : 'points'}</span>
                   ) : (
-                    <span className="text-zinc-400">—</span>
+                    <span className="text-zinc-400">-</span>
                   )}
                 </td>
                 <td className="py-3 px-4 text-sm">

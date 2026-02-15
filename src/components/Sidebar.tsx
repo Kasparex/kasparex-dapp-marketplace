@@ -1,23 +1,21 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Category, categories } from '@/lib/categories';
 import type { FilterState, DAppStatus } from '@/lib/dapps';
-import { CategoriesIcon, StatusIcon, DeveloperIcon, NetworkIcon } from '@/components/icons/SectionIcons';
+import { CategoriesIcon, StatusIcon, NetworkIcon } from '@/components/icons/SectionIcons';
 import { StatusIndicatorDot, getStatusTypeFromString } from './dapps/StatusIndicatorDot';
 
 interface SidebarProps {
-  categories: Category[]; // Renamed from selectedCategories
+  categories: Category[];
   onCategoryChange: (categories: Category[]) => void;
   filters: Omit<FilterState, 'category'>;
-  onStatusChange: (status: DAppStatus[]) => void; // New prop
-  onDeveloperChange: (developers: string[]) => void; // New prop
-  onNetworkChange: (networks: string[]) => void; // New prop
-  counts: Record<string, number>; // Renamed from categoryCounts, type changed to string
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
+  onStatusChange: (status: DAppStatus[]) => void;
+  onDeveloperChange: (developers: string[]) => void;
+  onNetworkChange: (networks: string[]) => void;
+  counts: Record<string, number>;
   onResetFilters: () => void;
 }
 
@@ -26,14 +24,6 @@ const statusOptions: { value: DAppStatus | 'all'; label: string }[] = [
   { value: 'Mainnet', label: 'Mainnet' },
   { value: 'Testnet', label: 'Testnet' },
   { value: 'Suspended', label: 'Suspended' },
-];
-
-const developerOptions: { label: string; logo?: string }[] = [
-  { label: 'All' },
-  { label: 'Kasparex', logo: '/img/logos/kasparex.png' },
-  { label: 'KaspaCom', logo: '/img/logos/kaspacom.png' },
-  { label: 'KasTools', logo: '/img/logos/kastools.png' },
-  { label: 'Kasplex', logo: '/img/logos/kasplex.png' },
 ];
 
 const networkOptions: { label: string; logo?: string }[] = [
@@ -66,22 +56,17 @@ function CategoryIcon({ id, className = "" }: { id: string; className?: string }
 }
 
 export function Sidebar({
-  categories: selectedCategories, // Destructure `categories` prop as `selectedCategories`
+  categories: selectedCategories,
   onCategoryChange,
   filters,
-  onStatusChange, // New prop
-  onDeveloperChange, // New prop
-  onNetworkChange, // New prop
-  counts, // Renamed from categoryCounts
-  searchQuery,
-  onSearchChange,
+  onStatusChange,
+  onDeveloperChange,
+  onNetworkChange,
+  counts,
   onResetFilters,
 }: SidebarProps) {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const [categoriesExpanded, setCategoriesExpanded] = useState(false);
-  const [statusExpanded, setStatusExpanded] = useState(false);
-  const [developerExpanded, setDeveloperExpanded] = useState(false);
-  const [networkExpanded, setNetworkExpanded] = useState(false);
 
   // Sidebar hide/show and resize state
   const [isHidden, setIsHidden] = useState(false);
@@ -155,24 +140,6 @@ export function Sidebar({
     onStatusChange([]);
   };
 
-  const handleDeveloperToggle = (developer: string) => {
-    const value = developer === 'All' ? 'all' : developer;
-    const currentDeveloper = filters.developer || [];
-    const newDeveloper = currentDeveloper.includes(value)
-      ? currentDeveloper.filter((d) => d !== value)
-      : [...currentDeveloper, value];
-    onDeveloperChange(newDeveloper.filter((d): d is string => d !== 'all')); // Filter out 'all'
-  };
-
-  const handleDeveloperSelectAll = () => {
-    const allDevelopers = developerOptions.filter(opt => opt.label !== 'All').map((opt) => opt.label);
-    onDeveloperChange(allDevelopers);
-  };
-
-  const handleDeveloperDeselectAll = () => {
-    onDeveloperChange([]);
-  };
-
   const handleNetworkToggle = (network: string) => {
     const value = network === 'All' ? 'all' : network;
     const currentNetwork = filters.network || [];
@@ -191,48 +158,10 @@ export function Sidebar({
     onNetworkChange([]);
   };
 
-  const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
-    <svg
-      className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-    </svg>
-  );
-
-  const FilterSection = ({
-    title,
-    icon,
-    expanded,
-    onToggle,
-    children,
-  }: {
-    title: string;
-    icon?: React.ReactNode;
-    expanded: boolean;
-    onToggle: () => void;
-    children: React.ReactNode;
-  }) => (
-    <div className="mb-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30 overflow-hidden">
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-zinc-700 dark:text-zinc-200 uppercase tracking-wider hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors"
-      >
-        <div className="flex items-center gap-2">
-          {icon && (
-            <span className="text-zinc-500 dark:text-zinc-400">{icon}</span>
-          )}
-          <span>{title}</span>
-        </div>
-        <ChevronIcon expanded={expanded} />
-      </button>
-      {expanded && (
-        <div className="px-4 pb-4 pt-0 border-t border-zinc-200 dark:border-zinc-800">
-          {children}
-        </div>
-      )}
+  const SectionHeading = ({ title, icon }: { title: string; icon?: React.ReactNode }) => (
+    <div className="flex items-center gap-2 text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] mb-3 px-1">
+      {icon && <span className="text-violet-500 dark:text-violet-400 opacity-90">{icon}</span>}
+      <span>{title}</span>
     </div>
   );
 
@@ -339,237 +268,99 @@ export function Sidebar({
         }}
       >
         <div className="flex flex-col h-full">
-          <div className="p-4 pb-0 flex-shrink-0">
-            <div className="k-search-container">
-              <input
-                type="text"
-                placeholder="Search dApps..."
-                value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className="k-search-input !h-9"
-              />
-            </div>
+          {/* Header: Back link + Hide button */}
+          <div className={`flex-shrink-0 p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50 dark:bg-zinc-900/50 ${isHidden ? 'lg:hidden' : ''}`}>
+            <Link
+              href={pathname.startsWith('/dapps') ? '/' : '/hub'}
+              className="text-zinc-500 dark:text-zinc-400 hover:text-violet-600 dark:hover:text-violet-400 font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
+            >
+              <svg className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
+              </svg>
+              {pathname.startsWith('/dapps') ? 'Back to dApps' : 'Back to Hub'}
+            </Link>
+            <button
+              onClick={() => setIsHidden(true)}
+              className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-colors"
+              aria-label="Hide sidebar"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
           </div>
 
-          {/* Sidebar Content - Filters only */}
-          <div className={`p-4 overflow-y-auto ${isHidden ? 'lg:hidden' : ''}`}>
-            <FilterSection
-              title="Categories"
-              icon={<CategoriesIcon />}
-              expanded={categoriesExpanded}
-              onToggle={() => setCategoriesExpanded(!categoriesExpanded)}
-            >
-              <div className="mb-4">
-                <div className="flex gap-2 mb-2">
-                  <button
-                    onClick={() => {
-                      const allCategories = categories.map((cat) => cat.id);
-                      onCategoryChange(allCategories);
-                    }}
-                    className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                  >
-                    Select All
-                  </button>
-                  <button
-                    onClick={() => {
-                      onCategoryChange([]);
-                    }}
-                    className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                  >
-                    Deselect All
-                  </button>
-                </div>
-                <nav className="space-y-1">
-                  {categories.map((category) => {
-                    const isChecked = selectedCategories.includes(category.id);
-                    const count = counts[category.id] || 0;
-                    return (
-                      <label
-                        key={category.id}
-                        className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => {
-                            const newCategories = isChecked
-                              ? selectedCategories.filter((c) => c !== category.id)
-                              : [...selectedCategories, category.id];
-                            onCategoryChange(newCategories);
-                          }}
-                          className="sr-only" // Hide native checkbox for premium look
-                        />
-                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                        <CategoryIcon id={category.id} />
-                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{category.name}</span>
-                        <span className="k-sidebar-count">
-                          {count}
-                        </span>
-                      </label>
-                    );
-                  })}
-                </nav>
+          {/* Filters - always open, clean menu */}
+          <div className={`flex-1 overflow-y-auto p-4 ${isHidden ? 'lg:hidden' : ''}`}>
+            {/* Categories */}
+            <div className="mb-6">
+              <SectionHeading title="Categories" icon={<CategoriesIcon />} />
+              <div className="flex gap-2 mb-2">
+                <button type="button" onClick={() => onCategoryChange(categories.map((c) => c.id))} className="text-[10px] px-2 py-1 text-zinc-500 hover:text-violet-600 dark:hover:text-violet-400 font-bold uppercase tracking-wider">Select All</button>
+                <button type="button" onClick={() => onCategoryChange([])} className="text-[10px] px-2 py-1 text-zinc-500 hover:text-violet-600 dark:hover:text-violet-400 font-bold uppercase tracking-wider">Deselect All</button>
               </div>
-            </FilterSection>
+              <nav className="space-y-0.5">
+                {categories.map((category) => {
+                  const isChecked = selectedCategories.includes(category.id);
+                  const count = counts[category.id] || 0;
+                  return (
+                    <label key={category.id} className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}>
+                      <input type="checkbox" checked={isChecked} onChange={() => { const next = isChecked ? selectedCategories.filter((c) => c !== category.id) : [...selectedCategories, category.id]; onCategoryChange(next); }} className="sr-only" />
+                      <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-violet-500 !border-violet-500' : '!bg-zinc-200 dark:!bg-zinc-800'}`} />
+                      <CategoryIcon id={category.id} />
+                      <span className="text-[11px] font-bold uppercase tracking-wider flex-1 truncate">{category.name}</span>
+                      <span className="k-sidebar-count">{count}</span>
+                    </label>
+                  );
+                })}
+              </nav>
+            </div>
 
-            {/* Status Filter */}
-            <FilterSection
-              title="Status"
-              icon={<StatusIcon />}
-              expanded={statusExpanded}
-              onToggle={() => setStatusExpanded(!statusExpanded)}
-            >
-              <div className="mb-4">
-                <div className="flex gap-2 mb-2">
-                  <button
-                    onClick={handleStatusSelectAll}
-                    className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                  >
-                    Select All
-                  </button>
-                  <button
-                    onClick={handleStatusDeselectAll}
-                    className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                  >
-                    Deselect All
-                  </button>
-                </div>
-                <nav className="space-y-1">
-                  {statusOptions.map((option) => {
-                    const currentStatus = filters.status || [];
-                    const isChecked = currentStatus.includes(option.value);
-                    return (
-                      <label
-                        key={option.value}
-                        className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => handleStatusToggle(option.value)}
-                          className="sr-only"
-                        />
-                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                        {option.value !== 'all' && (
-                          <StatusIndicatorDot
-                            statusType={getStatusTypeFromString(option.value)}
-                            size="sm"
-                            className="flex-shrink-0"
-                          />
-                        )}
-                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{option.label}</span>
-                      </label>
-                    );
-                  })}
-                </nav>
+            {/* Status */}
+            <div className="mb-6">
+              <SectionHeading title="Status" icon={<StatusIcon />} />
+              <div className="flex gap-2 mb-2">
+                <button type="button" onClick={handleStatusSelectAll} className="text-[10px] px-2 py-1 text-zinc-500 hover:text-violet-600 dark:hover:text-violet-400 font-bold uppercase tracking-wider">Select All</button>
+                <button type="button" onClick={handleStatusDeselectAll} className="text-[10px] px-2 py-1 text-zinc-500 hover:text-violet-600 dark:hover:text-violet-400 font-bold uppercase tracking-wider">Deselect All</button>
               </div>
-            </FilterSection>
+              <nav className="space-y-0.5">
+                {statusOptions.map((option) => {
+                  const currentStatus = filters.status || [];
+                  const isChecked = currentStatus.includes(option.value);
+                  return (
+                    <label key={option.value} className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}>
+                      <input type="checkbox" checked={isChecked} onChange={() => handleStatusToggle(option.value)} className="sr-only" />
+                      <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-violet-500 !border-violet-500' : '!bg-zinc-200 dark:!bg-zinc-800'}`} />
+                      {option.value !== 'all' && <StatusIndicatorDot statusType={getStatusTypeFromString(option.value)} size="sm" className="flex-shrink-0" />}
+                      <span className="text-[11px] font-bold uppercase tracking-wider flex-1 truncate">{option.label}</span>
+                    </label>
+                  );
+                })}
+              </nav>
+            </div>
 
-            {/* Developer Filter */}
-            <FilterSection
-              title="Developer"
-              icon={<DeveloperIcon />}
-              expanded={developerExpanded}
-              onToggle={() => setDeveloperExpanded(!developerExpanded)}
-            >
-              <div className="mb-4">
-                <div className="flex gap-2 mb-2">
-                  <button
-                    onClick={handleDeveloperSelectAll}
-                    className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                  >
-                    Select All
-                  </button>
-                  <button
-                    onClick={handleDeveloperDeselectAll}
-                    className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                  >
-                    Deselect All
-                  </button>
-                </div>
-                <nav className="space-y-1">
-                  {developerOptions.map((option) => {
-                    const value = option.label === 'All' ? 'all' : option.label;
-                    const currentDeveloper = filters.developer || [];
-                    const isChecked = currentDeveloper.includes(value);
-                    return (
-                      <label
-                        key={option.label}
-                        className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => handleDeveloperToggle(option.label)}
-                          className="sr-only"
-                        />
-                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                        {option.logo && (
-                          <Image
-                            src={option.logo}
-                            alt={`${option.label} logo`}
-                            width={16}
-                            height={16}
-                            className="flex-shrink-0 grayscale group-hover:grayscale-0 transition-all opacity-70 group-hover:opacity-100"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                          />
-                        )}
-                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{option.label}</span>
-                      </label>
-                    );
-                  })}
-                </nav>
+            {/* Network */}
+            <div className="mb-6">
+              <SectionHeading title="Network" icon={<NetworkIcon />} />
+              <div className="flex gap-2 mb-2">
+                <button type="button" onClick={handleNetworkSelectAll} className="text-[10px] px-2 py-1 text-zinc-500 hover:text-violet-600 dark:hover:text-violet-400 font-bold uppercase tracking-wider">Select All</button>
+                <button type="button" onClick={handleNetworkDeselectAll} className="text-[10px] px-2 py-1 text-zinc-500 hover:text-violet-600 dark:hover:text-violet-400 font-bold uppercase tracking-wider">Deselect All</button>
               </div>
-            </FilterSection>
-
-            {/* Network Filter */}
-            <FilterSection
-              title="Network"
-              icon={<NetworkIcon />}
-              expanded={networkExpanded}
-              onToggle={() => setNetworkExpanded(!networkExpanded)}
-            >
-              <div className="mb-4">
-                <div className="flex gap-2 mb-2">
-                  <button
-                    onClick={handleNetworkSelectAll}
-                    className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                  >
-                    Select All
-                  </button>
-                  <button
-                    onClick={handleNetworkDeselectAll}
-                    className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                  >
-                    Deselect All
-                  </button>
-                </div>
-                <nav className="space-y-1">
-                  {networkOptions.map((option) => {
-                    const value = option.label === 'All' ? 'all' : option.label;
-                    const currentNetwork = filters.network || [];
-                    const isChecked = currentNetwork.includes(value);
-                    return (
-                      <label
-                        key={option.label}
-                        className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => handleNetworkToggle(option.label)}
-                          className="sr-only"
-                        />
-                        <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate">{option.label}</span>
-                      </label>
-                    );
-                  })}
-                </nav>
-              </div>
-            </FilterSection>
+              <nav className="space-y-0.5">
+                {networkOptions.map((option) => {
+                  const value = option.label === 'All' ? 'all' : option.label;
+                  const currentNetwork = filters.network || [];
+                  const isChecked = currentNetwork.includes(value);
+                  return (
+                    <label key={option.label} className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}>
+                      <input type="checkbox" checked={isChecked} onChange={() => handleNetworkToggle(option.label)} className="sr-only" />
+                      <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-violet-500 !border-violet-500' : '!bg-zinc-200 dark:!bg-zinc-800'}`} />
+                      <span className="text-[11px] font-bold uppercase tracking-wider flex-1 truncate">{option.label}</span>
+                    </label>
+                  );
+                })}
+              </nav>
+            </div>
           </div>
         </div>
       </aside>

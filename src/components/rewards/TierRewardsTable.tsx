@@ -273,7 +273,7 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
                 Your KREX Balance
               </div>
               <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                {(l1Balance > 0 || l2Balance > 0) ? formatLargeNumber(totalKREX) : '—'}
+                {(l1Balance > 0 || l2Balance > 0) ? formatLargeNumber(totalKREX) : '-'}
               </div>
             </div>
           </div>

@@ -36,7 +36,7 @@ function normalizeTraitValue(value, traitType) {
   
   // Strip long descriptions for Diamonds
   if (traitTypeLower.includes('diamond')) {
-    const dashIndex = normalized.search(/\s*[–—]\s+/);
+    const dashIndex = normalized.search(/\s*[–\u2014]\s+/);
     if (dashIndex > 0) {
       const afterDash = normalized.substring(dashIndex).trim();
       if (afterDash.length > 20) {
@@ -72,7 +72,7 @@ function normalizeTraitValue(value, traitType) {
   // Normalize
   normalized = normalized
     .trim()
-    .replace(/[–—――‒―]/g, ' ')
+    .replace(/[\u2010-\u2015\u2212]/g, ' ')
     .replace(/-/g, ' ') // Replace hyphens with spaces
     .replace(/[^\w\s_.]/g, ' ') // Don't keep hyphens
     .replace(/\s+/g, ' ')

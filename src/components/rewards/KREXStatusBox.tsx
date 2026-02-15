@@ -213,7 +213,7 @@ export function KREXStatusBox() {
                       Your KREX Balance
                     </div>
                     <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                      {isConnected ? (isLoading ? 'Loading...' : formatLargeNumber(balance)) : '—'}
+                      {isConnected ? (isLoading ? 'Loading...' : formatLargeNumber(balance)) : '-'}
                     </div>
                   </div>
                 </div>

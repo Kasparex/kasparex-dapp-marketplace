@@ -162,7 +162,7 @@ export function PointsPageContent({ filters }: PointsPageContentProps) {
                 {isConnected ? 'Your XP Balance' : 'Connect wallet to view XP'}
               </div>
               <div className="text-4xl font-bold text-[#02abb8]">
-                {isConnected ? formatLargeNumber(currentXP) : '—'}
+                {isConnected ? formatLargeNumber(currentXP) : '-'}
               </div>
             </div>
             {nextPerk && (

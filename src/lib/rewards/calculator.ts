@@ -135,7 +135,7 @@ export function calculateRewards(
 
   const feeAmount = (kasAmount * feePercent) / 100;
 
-  // Calculate fee distribution (use custom if enabled, otherwise default) — GRT-only
+  // Calculate fee distribution (use custom if enabled, otherwise default). GRT-only.
   const kasparexPercent = inputs.feeSettings.useCustomDistribution
     ? inputs.feeSettings.kasparexPercent
     : DEFAULT_FEE_DISTRIBUTION.KASPAREX;

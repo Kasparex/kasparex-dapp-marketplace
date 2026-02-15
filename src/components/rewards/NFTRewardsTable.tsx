@@ -219,7 +219,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
       case 'points':
         return `${nftType.points} ${nftType.points === 1 ? 'point' : 'points'}`;
       default:
-        return '—';
+        return '-';
     }
   };
 
@@ -343,7 +343,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
                 Your NFT Balance
               </div>
               <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                {totalCount > 0 ? `${totalCount} NFT${totalCount !== 1 ? 's' : ''}` : '—'}
+                {totalCount > 0 ? `${totalCount} NFT${totalCount !== 1 ? 's' : ''}` : '-'}
               </div>
             </div>
           </div>

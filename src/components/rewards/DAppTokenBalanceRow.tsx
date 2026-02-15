@@ -65,7 +65,7 @@ export function DAppTokenBalanceRow({
             {`${contractAddress.slice(0, 6)}...${contractAddress.slice(-4)}`}
           </a>
         ) : (
-          <span className="text-zinc-400">—</span>
+          <span className="text-zinc-400">-</span>
         )}
       </td>
     </tr>

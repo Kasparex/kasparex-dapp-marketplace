@@ -268,7 +268,7 @@ function TokenTableRow({ token, isConnected, krexBalance }: TokenTableRowProps) 
   );
 
   // Determine which balance to show
-  let displayBalance: string | number = '—';
+  let displayBalance: string | number = '-';
   if (isConnected && address) {
     if (token.id === 'krex' && krexBalance !== undefined) {
       displayBalance = krexBalance > 0 ? formatLargeNumber(krexBalance) : '0';
@@ -341,7 +341,7 @@ function TokenTableRow({ token, isConnected, krexBalance }: TokenTableRowProps) 
             )}
           </div>
         ) : (
-          <span className="text-sm text-zinc-500 dark:text-zinc-400">—</span>
+          <span className="text-sm text-zinc-500 dark:text-zinc-400">-</span>
         )}
       </td>
       <td className="py-4 px-4 text-right">
@@ -350,7 +350,7 @@ function TokenTableRow({ token, isConnected, krexBalance }: TokenTableRowProps) 
             ${formatLargeNumber(marketCap)}
           </span>
         ) : (
-          <span className="text-sm text-zinc-500 dark:text-zinc-400">—</span>
+          <span className="text-sm text-zinc-500 dark:text-zinc-400">-</span>
         )}
       </td>
       {isConnected && (

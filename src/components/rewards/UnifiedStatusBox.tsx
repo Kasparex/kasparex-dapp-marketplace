@@ -249,7 +249,7 @@ export function UnifiedStatusBox() {
                 <div className="text-right">
                   <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">XP Points</div>
                   <div className="text-lg font-bold text-[#02abb8]">
-                    {holdings ? formatLargeNumber(holdings.xp) : '—'}
+                    {holdings ? formatLargeNumber(holdings.xp) : '-'}
                   </div>
                 </div>
               </div>
@@ -522,7 +522,7 @@ export function UnifiedStatusBox() {
                   <div className="flex items-center justify-between">
                     <span className="text-zinc-600 dark:text-zinc-400">XP Points</span>
                     <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                      {holdings ? formatLargeNumber(holdings.xp) : '—'}
+                      {holdings ? formatLargeNumber(holdings.xp) : '-'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -608,7 +608,7 @@ export function UnifiedStatusBox() {
                         Your KREX Balance
                       </div>
                       <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                        {isConnected ? (isKREXLoading ? 'Loading...' : formatLargeNumber(balance)) : '—'}
+                        {isConnected ? (isKREXLoading ? 'Loading...' : formatLargeNumber(balance)) : '-'}
                       </div>
                     </div>
                   </div>
@@ -738,7 +738,7 @@ export function UnifiedStatusBox() {
                                   {regularCount}
                                 </span>
                               ) : (
-                                <span className="text-zinc-400">—</span>
+                                <span className="text-zinc-400">-</span>
                               )}
                             </td>
                             <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
@@ -747,7 +747,7 @@ export function UnifiedStatusBox() {
                                   💎 {diamondCount}
                                 </span>
                               ) : (
-                                <span className="text-zinc-400">—</span>
+                                <span className="text-zinc-400">-</span>
                               )}
                             </td>
                             <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
@@ -756,7 +756,7 @@ export function UnifiedStatusBox() {
                                   ⭐ {rarestCount}
                                 </span>
                               ) : (
-                                <span className="text-zinc-400">—</span>
+                                <span className="text-zinc-400">-</span>
                               )}
                             </td>
                             <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
@@ -765,7 +765,7 @@ export function UnifiedStatusBox() {
                                   {count} NFT{count !== 1 ? 's' : ''}
                                 </span>
                               ) : (
-                                <span className="text-zinc-400">—</span>
+                                <span className="text-zinc-400">-</span>
                               )}
                             </td>
                           </tr>
@@ -790,7 +790,7 @@ export function UnifiedStatusBox() {
                         Your NFT Balance
                       </div>
                       <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                        {isConnected ? (isNFTLoading ? 'Loading...' : `${totalNFTCount} NFT${totalNFTCount !== 1 ? 's' : ''}`) : '—'}
+                        {isConnected ? (isNFTLoading ? 'Loading...' : `${totalNFTCount} NFT${totalNFTCount !== 1 ? 's' : ''}`) : '-'}
                       </div>
                     </div>
                   </div>

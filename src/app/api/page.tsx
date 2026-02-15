@@ -63,13 +63,13 @@ export default function KasparexAPIPage() {
                 <li className="flex items-start gap-3">
                   <span className="text-[#02abb8] mt-1">•</span>
                   <div>
-                    <strong className="text-zinc-900 dark:text-zinc-100">KREX Nodes</strong> are the body — they pin and mirror data
+                    <strong className="text-zinc-900 dark:text-zinc-100">KREX Nodes</strong> are the body: they pin and mirror data
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-[#02abb8] mt-1">•</span>
                   <div>
-                    <strong className="text-zinc-900 dark:text-zinc-100">Kasparex API</strong> is the brain — it tracks, scores, and coordinates them
+                    <strong className="text-zinc-900 dark:text-zinc-100">Kasparex API</strong> is the brain: it tracks, scores, and coordinates them
                   </div>
                 </li>
               </ul>
@@ -88,7 +88,7 @@ export default function KasparexAPIPage() {
               Why is the Kasparex API needed?
             </h2>
             <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-              Without the Kasparex API, KREX Nodes would have no identity, uptime tracking, reward calculation, reputation system, or coordination. Decentralized storage (IPFS/Storacha) alone is blind — the Kasparex API gives structure and reward mechanisms to the network.
+              Without the Kasparex API, KREX Nodes would have no identity, uptime tracking, reward calculation, reputation system, or coordination. Decentralized storage (IPFS/Storacha) alone is blind; the Kasparex API gives structure and reward mechanisms to the network.
             </p>
             
             <div className="grid md:grid-cols-2 gap-4">
