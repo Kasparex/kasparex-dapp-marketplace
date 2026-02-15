@@ -119,8 +119,8 @@ export default function IssueDetailPage() {
                     currentIssueId={issue.id}
                 />
 
-                <main className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto bg-white dark:bg-zinc-950">
-                    <div className="w-full">
+                <main className="flex-1 w-full min-w-0 p-4 sm:p-6 lg:p-12 overflow-y-auto bg-white dark:bg-zinc-950">
+                    <div className="w-full max-w-6xl mx-auto">
                         {/* Breadcrumbs */}
                         <nav className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-2 text-sm text-zinc-500 font-medium">
@@ -137,7 +137,7 @@ export default function IssueDetailPage() {
                             <MagazineDashboardButton variant="breadcrumb" />
                         </nav>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 mb-16">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 mb-16">
                             {/* Issue visual */}
                             <div className="space-y-6">
                                 <div className="relative aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl shadow-cyan-500/10 border border-zinc-200 dark:border-zinc-800">
@@ -271,9 +271,9 @@ export default function IssueDetailPage() {
                         </div>
 
                         {/* Discussion */}
-                        <div className="pt-16 border-t border-zinc-100 dark:border-zinc-800">
-                            <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-8">Discussion & Feedback</h2>
-                            <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl p-12 text-center border border-dashed border-zinc-200 dark:border-zinc-800">
+                        <div className="pt-12 border-t border-zinc-200 dark:border-zinc-800">
+                            <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-6">Discussion & Feedback</h2>
+                            <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl p-8 sm:p-12 text-center border border-dashed border-zinc-200 dark:border-zinc-800">
                                 <p className="text-zinc-500 dark:text-zinc-500 font-medium italic">Comments module coming soon...</p>
                             </div>
                         </div>

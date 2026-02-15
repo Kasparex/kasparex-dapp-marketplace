@@ -13,6 +13,17 @@
   font-optical-sizing: auto;
   font-style: normal;
   font-variation-settings: "slnt" 0;
+  /* Kasparex design tokens */
+  --k-primary: #02abb8;
+  --k-primary-hover: #02919c;
+  --k-control-bg: rgb(255 255 255);
+  --k-control-border: rgb(228 228 231);
+  --k-radius-control: 0.75rem;
+}
+
+.dark {
+  --k-control-bg: rgb(24 24 27);
+  --k-control-border: rgb(39 39 42);
 }
 
 @layer base {
@@ -38,9 +49,10 @@
   --kaspa-black: #231F20;
   --kaspa-gray: #B6B6B6;
   --kaspa-bg: #0a1f1c;
-  /* Turquoise-style dark background */
   --kaspa-bg-light: #0f2a26;
-  /* Lighter turquoise background */
+  --k-primary: #70C7BA;
+  --k-control-bg: rgba(15, 42, 38, 0.8);
+  --k-control-border: rgba(112, 199, 186, 0.2);
 }
 
 .kaspa body {
@@ -367,17 +379,23 @@
   color: #02abb8;
 }
 
-/* Uniform Controls */
+/* Uniform Controls (use design tokens for surface alignment with search) */
 .k-control-btn {
-  @apply h-10 px-4 flex items-center justify-center gap-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-[#02abb8]/30 transition-all active:scale-[0.98];
+  @apply h-10 px-4 flex items-center justify-center gap-2 rounded-xl text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-[#02abb8]/30 transition-all active:scale-[0.98];
+  background-color: var(--k-control-bg);
+  border: 1px solid var(--k-control-border);
 }
 
 .k-control-icon-btn {
-  @apply h-10 w-10 flex items-center justify-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-600 dark:text-zinc-400 hover:text-[#02abb8] hover:border-[#02abb8]/30 transition-all active:scale-95;
+  @apply h-10 w-10 flex items-center justify-center rounded-xl text-zinc-600 dark:text-zinc-400 hover:text-[#02abb8] hover:border-[#02abb8]/30 transition-all active:scale-95;
+  background-color: var(--k-control-bg);
+  border: 1px solid var(--k-control-border);
 }
 
 .k-control-group {
-  @apply flex items-center border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-900;
+  @apply flex items-center rounded-xl overflow-hidden;
+  background-color: var(--k-control-bg);
+  border: 1px solid var(--k-control-border);
 }
 
 .k-search-container {
@@ -389,7 +407,22 @@
 }
 
 .k-search-input {
-  @apply h-10 px-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent transition-all w-full;
+  @apply h-10 px-4 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent transition-all w-full;
+  background-color: var(--k-control-bg);
+  border: 1px solid var(--k-control-border);
+}
+
+/* Standard CTA buttons (hero and primary actions) */
+.k-cta-primary {
+  @apply inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm uppercase tracking-wider transition-all;
+  background-color: var(--k-primary);
+  color: #fff;
+}
+.k-cta-primary:hover {
+  filter: brightness(1.05);
+}
+.k-cta-secondary {
+  @apply inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm uppercase tracking-wider border transition-all text-zinc-300 border-zinc-600 hover:border-[#02abb8]/50 hover:text-white dark:text-zinc-400 dark:border-zinc-500;
 }
 
 /* Base override for unclassed inputs */

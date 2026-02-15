@@ -11,6 +11,7 @@ interface MagazinesSidebarProps {
     categories?: string[];
     selectedCategory?: string;
     onCategoryChange?: (category: string) => void;
+    categoryCounts?: Record<string, number>;
     searchQuery?: string;
     onSearchChange?: (query: string) => void;
     tags?: string[];
@@ -27,6 +28,7 @@ export function MagazinesSidebar({
     categories = [],
     selectedCategory = 'All',
     onCategoryChange,
+    categoryCounts,
     searchQuery = '',
     onSearchChange,
     tags = [],
@@ -218,7 +220,7 @@ export function MagazinesSidebar({
             >
                 <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
                     {/* Header with Back Link and Hide Button */}
-                    <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-black">
+                    <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-white dark:bg-zinc-950">
                         <Link
                             href={isUtility || !pathname.startsWith('/magazines') ? '/magazines' : '/hub'}
                             className="text-zinc-500 hover:text-[#02abb8] font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
@@ -283,9 +285,13 @@ export function MagazinesSidebar({
                                         onClick={() => onCategoryChange?.(cat)}
                                         className={`w-full k-sidebar-item group ${selectedCategory === cat ? 'k-sidebar-item-active' : ''}`}
                                     >
-                                        <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">
-                                            {cat}
+                                        <span className="k-sidebar-icon flex-shrink-0">
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>
                                         </span>
+                                        <span className="text-[11px] font-bold uppercase tracking-wider flex-1 truncate">{cat}</span>
+                                        {categoryCounts?.[cat] != null && (
+                                            <span className="k-sidebar-count">{categoryCounts[cat]}</span>
+                                        )}
                                         {selectedCategory === cat && (
                                             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-[#02abb8] rounded-r-full shadow-[0_0_10px_#02abb8]" />
                                         )}
@@ -338,17 +344,11 @@ export function MagazinesSidebar({
                                         href={`/magazines/${currentMagazine.slug}/${issue.issueNumber}`}
                                         className={`w-full k-sidebar-item group ${currentIssueId === issue.id ? 'k-sidebar-item-active' : ''}`}
                                     >
-                                        <div className="flex-1 min-w-0 pr-2">
-                                            <div className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate mb-0.5">
-                                                {issue.title}
-                                            </div>
-                                            <div className="text-[9px] font-medium text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                                                Issue #{issue.issueNumber}
-                                                {issue.isPurchased && (
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" title="Purchased" />
-                                                )}
-                                            </div>
-                                        </div>
+                                        <span className="k-sidebar-icon flex-shrink-0">
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.247 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                                        </span>
+                                        <span className="text-[11px] font-bold uppercase tracking-wider flex-1 truncate">{issue.title}</span>
+                                        <span className="k-sidebar-count">#{issue.issueNumber}</span>
                                         {currentIssueId === issue.id && (
                                             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#02abb8] rounded-r-full shadow-[0_0_10px_#02abb8]" />
                                         )}
@@ -359,7 +359,7 @@ export function MagazinesSidebar({
                     </div>
 
                     {/* Footer Section */}
-                    <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-black mt-auto">
+                    <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 mt-auto">
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-xl bg-[#02abb8]/10 text-[#02abb8] flex items-center justify-center font-black text-[10px]">
                                 KM

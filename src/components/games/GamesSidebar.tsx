@@ -318,13 +318,15 @@ export function GamesSidebar({
               </svg>
             </button>
           </div>
-          <input
-            type="text"
-            placeholder="Search games..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full px-3 py-2 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#02abb8] text-zinc-900 dark:text-zinc-100 mb-3"
-          />
+          <div className="k-search-container mb-3">
+            <input
+              type="text"
+              placeholder="Search games..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="k-search-input"
+            />
+          </div>
         </div>
 
         {/* Sidebar Content */}
@@ -480,7 +482,7 @@ export function GamesSidebar({
               {/* Reset Filters Button */}
               <button
                 onClick={onResetFilters}
-                className="w-full mt-4 px-4 py-2 text-sm font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                className="w-full mt-4 k-control-btn"
               >
                 Reset Filters
               </button>

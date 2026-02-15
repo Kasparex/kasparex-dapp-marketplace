@@ -488,7 +488,7 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                 });
                 setIsOpen(false);
               }}
-              className="w-full px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+              className="w-full k-control-btn"
             >
               Reset Filters
             </button>

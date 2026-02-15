@@ -61,13 +61,13 @@ export function GameSortFilters({
     <div className="relative flex items-center gap-2">
       {/* View Mode Switcher */}
       {onViewModeChange && (
-        <div className="flex items-center border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
+        <div className="k-control-group">
           <button
             onClick={() => onViewModeChange('grid')}
-            className={`p-2 text-sm font-medium transition-colors ${
+            className={`p-2.5 transition-colors ${
               viewMode === 'grid'
-                ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
-                : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8]'
+                : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'
             }`}
             title="Grid view"
             aria-label="Grid view"
@@ -78,10 +78,10 @@ export function GameSortFilters({
           </button>
           <button
             onClick={() => onViewModeChange('compact')}
-            className={`p-2 text-sm font-medium transition-colors border-l border-zinc-200 dark:border-zinc-800 ${
+            className={`p-2.5 transition-colors border-l border-zinc-200 dark:border-zinc-800 ${
               viewMode === 'compact'
-                ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
-                : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8]'
+                : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'
             }`}
             title="Compact view"
             aria-label="Compact view"
@@ -92,10 +92,10 @@ export function GameSortFilters({
           </button>
           <button
             onClick={() => onViewModeChange('list')}
-            className={`p-2 text-sm font-medium transition-colors border-l border-zinc-200 dark:border-zinc-800 ${
+            className={`p-2.5 transition-colors border-l border-zinc-200 dark:border-zinc-800 ${
               viewMode === 'list'
-                ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
-                : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8]'
+                : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'
             }`}
             title="List view"
             aria-label="List view"
@@ -111,7 +111,7 @@ export function GameSortFilters({
       <div className="relative" ref={sortMenuRef}>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="k-control-btn"
+          className="k-control-btn min-w-[160px]"
         >
           <span className="truncate">{currentLabel}</span>
           <svg
@@ -130,7 +130,7 @@ export function GameSortFilters({
               className="fixed inset-0 z-40"
               onClick={() => setIsOpen(false)}
             />
-            <div className="absolute top-full right-0 mt-1 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-50 overflow-hidden">
+            <div className="absolute top-full right-0 mt-1 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-50 overflow-hidden">
               {sortOptions.map((option) => (
                 <button
                   key={option.value}
@@ -157,10 +157,10 @@ export function GameSortFilters({
         onClick={() => {
           onSortChange(isFavoritesActive ? 'newest' : 'favorites');
         }}
-        className={`flex items-center justify-center p-2 rounded-lg border transition-colors ${
+        className={`k-control-icon-btn ${
           isFavoritesActive
-            ? 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700 text-yellow-600 dark:text-yellow-400'
-            : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+            ? '!bg-yellow-100 dark:!bg-yellow-900/30 !border-yellow-300 dark:!border-yellow-700 text-yellow-600 dark:text-yellow-400'
+            : ''
         }`}
         title={isFavoritesActive ? 'Show All' : 'Show Favorites'}
         aria-label={isFavoritesActive ? 'Show All' : 'Show Favorites'}

@@ -71,7 +71,7 @@ export function VBlogSortFilters({ sortBy, onSortChange, onAddArticle }: VBlogSo
                             className="fixed inset-0 z-40"
                             onClick={() => setIsOpen(false)}
                         />
-                        <div className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-50 overflow-hidden">
+                        <div className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-50 overflow-hidden">
                             {sortOptions.map((option) => (
                                 <button
                                     key={option.value}
@@ -96,7 +96,7 @@ export function VBlogSortFilters({ sortBy, onSortChange, onAddArticle }: VBlogSo
             <div className="relative" ref={plusMenuRef}>
                 <button
                     onClick={() => setIsPlusMenuOpen(!isPlusMenuOpen)}
-                    className="flex items-center justify-center p-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors shadow-sm"
+                    className="k-control-icon-btn"
                     aria-label="More options"
                 >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

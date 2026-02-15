@@ -172,9 +172,9 @@ export default function StorePage() {
                 {(selectedCategories.length > 0 || selectedNetwork !== 'all' || searchQuery) && (
                   <button
                     onClick={handleResetFilters}
-                    className="px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                    className="k-control-btn whitespace-nowrap"
                   >
-                    Reset
+                    Reset Filters
                   </button>
                 )}
               </div>

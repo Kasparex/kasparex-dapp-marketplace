@@ -29,6 +29,14 @@ export default function MagazinesPage() {
         return ['All', ...Array.from(cats)];
     }, [magazines]);
 
+    const categoryCounts = useMemo(() => {
+        const counts: Record<string, number> = { All: magazines.length };
+        magazines.forEach(m => {
+            counts[m.category] = (counts[m.category] ?? 0) + 1;
+        });
+        return counts;
+    }, [magazines]);
+
     // Discover all unique tags from all issues (mock logic for now)
     const allTags = useMemo(() => {
         // In a real app, we might fetch tags from the API
@@ -80,6 +88,7 @@ export default function MagazinesPage() {
                     categories={categories}
                     selectedCategory={selectedCategory}
                     onCategoryChange={setSelectedCategory}
+                    categoryCounts={categoryCounts}
                     searchQuery={searchQuery}
                     onSearchChange={setSearchQuery}
                     tags={allTags}

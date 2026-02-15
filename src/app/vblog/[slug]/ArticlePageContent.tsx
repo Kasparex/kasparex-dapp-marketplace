@@ -27,10 +27,10 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      <div className="flex flex-col min-h-screen bg-white dark:bg-zinc-950">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-[#02abb8] border-t-transparent rounded-full animate-spin" />
         </main>
         <Footer />
       </div>
@@ -44,25 +44,23 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
   const isLinked = article.linkedMagazineId && article.linkedIssueNumber;
 
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="flex flex-col min-h-screen bg-white dark:bg-zinc-950">
       <Header />
 
-      <main className="flex-1">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <Link
-            href="/vblog"
-            className="inline-flex items-center gap-2 text-sm font-bold text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 mb-12 transition-colors uppercase tracking-widest"
-          >
+      <main className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto bg-white dark:bg-zinc-950">
+        <div className="w-full max-w-5xl mx-auto">
+          <nav className="flex items-center gap-2 text-sm text-zinc-500 font-medium mb-8">
+            <Link href="/vblog" className="hover:text-[#02abb8] transition-colors">Articles</Link>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-            Back to Articles
-          </Link>
+            <span className="text-zinc-900 dark:text-zinc-100 truncate">{article.title}</span>
+          </nav>
 
           {isLinked && (
-            <div className="mb-12 p-6 bg-gradient-to-r from-orange-500/10 to-amber-500/10 border border-orange-500/20 rounded-3xl flex items-center justify-between shadow-sm">
+            <div className="mb-8 p-6 bg-gradient-to-r from-orange-500/10 to-amber-500/10 border border-orange-500/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
                   <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5S19.832 5.477 21 6.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
@@ -74,14 +72,14 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
               </div>
               <Link
                 href={`/magazines/issue/${article.linkedMagazineId}/${article.linkedIssueNumber}`}
-                className="px-4 py-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-transform"
+                className="k-control-btn shrink-0"
               >
                 View Magazine
               </Link>
             </div>
           )}
 
-          <div className="space-y-12">
+          <div className="space-y-16">
             <ArticleDetail article={article} />
             <div className="pt-12 border-t border-zinc-200 dark:border-zinc-800">
               <ArticleMetadata article={article} />

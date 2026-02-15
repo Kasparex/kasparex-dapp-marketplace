@@ -184,9 +184,9 @@ export default function VBlogPage() {
                   </p>
                   <button
                     onClick={handleResetFilters}
-                    className="px-6 py-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl font-bold text-sm transition-all"
+                    className="k-control-btn"
                   >
-                    Clear All Filters
+                    Reset Filters
                   </button>
                 </div>
               )}
