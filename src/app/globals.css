@@ -384,6 +384,8 @@
   @apply h-10 px-4 flex items-center justify-center gap-2 rounded-xl text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-[#02abb8]/30 transition-all active:scale-[0.98];
   background-color: var(--k-control-bg);
   border: 1px solid var(--k-control-border);
+  border-left-width: 3px;
+  border-left-color: var(--k-primary);
 }
 
 .k-control-icon-btn {
@@ -410,6 +412,8 @@
   @apply h-10 px-4 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent transition-all w-full;
   background-color: var(--k-control-bg);
   border: 1px solid var(--k-control-border);
+  border-left-width: 3px;
+  border-left-color: var(--k-primary);
 }
 
 /* Standard CTA buttons (hero and primary actions) */
