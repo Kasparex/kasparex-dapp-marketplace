@@ -233,7 +233,7 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
           bg-white dark:bg-zinc-950
           border-r border-zinc-200 dark:border-zinc-800
           transform transition-all duration-300 ease-in-out
-          overflow-y-auto
+          flex flex-col
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           ${isHidden ? 'lg:translate-x-[-100%]' : ''}
         `}
@@ -272,21 +272,21 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
           }
         }}
       >
-        {/* Header with Hide Button and Back Button */}
-        <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
+        {/* Header - sticky */}
+        <div className="flex-shrink-0 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
           <div className="flex items-center justify-between">
             <Link
               href="/"
-              className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium transition-colors text-sm flex items-center gap-1"
+              className="text-zinc-500 dark:text-zinc-400 hover:text-[#02abb8] font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
               </svg>
               Back to dApps
             </Link>
             <button
               onClick={() => setIsHidden(true)}
-              className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+              className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-colors"
               aria-label="Hide sidebar"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -296,7 +296,7 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
           </div>
         </div>
 
-        <div className={`p-4 lg:p-6 ${isHidden ? 'lg:hidden' : ''}`}>
+        <div className={`flex-1 min-h-0 overflow-y-auto p-4 lg:p-6 ${isHidden ? 'lg:hidden' : ''}`}>
           {/* Unified Status Box (New) */}
           <UnifiedStatusBox />
 
@@ -327,8 +327,8 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     onChange={() => handleFilterToggle('unlockedPerks')}
                     className="sr-only"
                   />
-                  <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${filters.unlockedPerks ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                  <RewardFilterIcon id="unlockedPerks" />
+                  <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all !w-5 !h-5 !min-w-[20px] !min-h-[20px] flex-shrink-0 ${filters.unlockedPerks ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                  <span className="flex-shrink-0 inline-flex items-center"><RewardFilterIcon id="unlockedPerks" /></span>
                   <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">
                     Unlocked Perks
                   </span>
@@ -342,8 +342,8 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     onChange={() => handleFilterToggle('lockedPerks')}
                     className="sr-only"
                   />
-                  <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${filters.lockedPerks ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                  <RewardFilterIcon id="lockedPerks" />
+                  <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all !w-5 !h-5 !min-w-[20px] !min-h-[20px] flex-shrink-0 ${filters.lockedPerks ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                  <span className="flex-shrink-0 inline-flex items-center"><RewardFilterIcon id="lockedPerks" /></span>
                   <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">
                     Locked Perks
                   </span>
@@ -374,8 +374,8 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     onChange={() => handleFilterToggle('unlockedBadges')}
                     className="sr-only"
                   />
-                  <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${filters.unlockedBadges ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                  <RewardFilterIcon id="unlockedBadges" />
+                  <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all !w-5 !h-5 !min-w-[20px] !min-h-[20px] flex-shrink-0 ${filters.unlockedBadges ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                  <span className="flex-shrink-0 inline-flex items-center"><RewardFilterIcon id="unlockedBadges" /></span>
                   <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">
                     Unlocked Badges
                   </span>
@@ -389,8 +389,8 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     onChange={() => handleFilterToggle('lockedBadges')}
                     className="sr-only"
                   />
-                  <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${filters.lockedBadges ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                  <RewardFilterIcon id="lockedBadges" />
+                  <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all !w-5 !h-5 !min-w-[20px] !min-h-[20px] flex-shrink-0 ${filters.lockedBadges ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                  <span className="flex-shrink-0 inline-flex items-center"><RewardFilterIcon id="lockedBadges" /></span>
                   <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">
                     Locked Badges
                   </span>
@@ -421,8 +421,8 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     onChange={() => handleFilterToggle('nftPerks')}
                     className="sr-only"
                   />
-                  <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${filters.nftPerks ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                  <RewardFilterIcon id="nftPerks" />
+                  <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all !w-5 !h-5 !min-w-[20px] !min-h-[20px] flex-shrink-0 ${filters.nftPerks ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                  <span className="flex-shrink-0 inline-flex items-center"><RewardFilterIcon id="nftPerks" /></span>
                   <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">
                     NFT Perks
                   </span>
@@ -436,8 +436,8 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
                     onChange={() => handleFilterToggle('nodePerks')}
                     className="sr-only"
                   />
-                  <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${filters.nodePerks ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
-                  <RewardFilterIcon id="nodePerks" />
+                  <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all !w-5 !h-5 !min-w-[20px] !min-h-[20px] flex-shrink-0 ${filters.nodePerks ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}></div>
+                  <span className="flex-shrink-0 inline-flex items-center"><RewardFilterIcon id="nodePerks" /></span>
                   <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">
                     Node Perks
                   </span>

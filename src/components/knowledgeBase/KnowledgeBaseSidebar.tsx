@@ -105,7 +105,7 @@ export function KnowledgeBaseSidebar({
           bg-white dark:bg-zinc-950
           border-r border-zinc-200 dark:border-zinc-800
           transform transition-all duration-300 ease-in-out
-          overflow-y-auto
+          flex flex-col
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           ${isHidden ? 'lg:translate-x-[-100%]' : ''}
         `}
@@ -142,21 +142,21 @@ export function KnowledgeBaseSidebar({
           }
         }}
       >
-        {/* Header with Hide Button and Search */}
-        <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
+        {/* Header - sticky */}
+        <div className="flex-shrink-0 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
           <div className="flex items-center justify-between mb-4">
             <Link
               href="/"
-              className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium transition-colors text-sm flex items-center gap-1"
+              className="text-zinc-500 dark:text-zinc-400 hover:text-[#02abb8] font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
               </svg>
               Back to dApps
             </Link>
             <button
               onClick={() => setIsHidden(true)}
-              className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+              className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-colors"
               aria-label="Hide sidebar"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -173,9 +173,9 @@ export function KnowledgeBaseSidebar({
           />
         </div>
 
-        {/* Categories */}
+        {/* Categories - scrollable */}
         {!isHidden && (
-          <div className="p-4">
+          <div className="flex-1 min-h-0 overflow-y-auto p-4">
             <div className="mb-4">
               <button
                 onClick={() => onCategoryChange('all')}
@@ -185,9 +185,12 @@ export function KnowledgeBaseSidebar({
                     : ''
                 }`}
               >
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <span className="truncate">All Articles</span>
-                </div>
+                <span className="flex-shrink-0 inline-flex items-center k-sidebar-icon">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                  </svg>
+                </span>
+                <span className="text-[11px] font-bold uppercase tracking-wider flex-1 min-w-0 truncate">All Articles</span>
               </button>
             </div>
 
@@ -248,12 +251,10 @@ export function KnowledgeBaseSidebar({
                         : ''
                     }`}
                   >
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <span className="k-sidebar-icon text-zinc-600 dark:text-zinc-400">
-                        {icon}
-                      </span>
-                      <span className="truncate">{category.name}</span>
-                    </div>
+                    <span className="flex-shrink-0 inline-flex items-center k-sidebar-icon text-zinc-600 dark:text-zinc-400">
+                      {icon}
+                    </span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider flex-1 min-w-0 truncate">{category.name}</span>
                   </button>
                 );
               })}

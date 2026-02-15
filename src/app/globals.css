@@ -326,11 +326,20 @@
   @apply space-y-2 mb-6;
 }
 
-/* Premium Sidebar Components */
+/* Premium Sidebar Components - icon and title MUST stay on same line everywhere */
 .k-sidebar-item {
-  @apply w-full relative flex flex-row items-center px-4 py-2.5 rounded-xl transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap;
+  @apply w-full relative flex flex-row items-center px-4 py-2.5 rounded-xl transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap flex-nowrap;
   gap: 0.75rem;
   padding-right: 3rem;
+}
+
+.k-sidebar-item .control__indicator {
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  border: 1px solid transparent;
 }
 
 .k-sidebar-item:hover {

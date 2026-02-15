@@ -228,7 +228,7 @@ export function Sidebar({
           bg-white dark:bg-zinc-950
           border-r border-zinc-200 dark:border-zinc-800
           transform transition-all duration-300 ease-in-out
-          overflow-y-auto
+          flex flex-col
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           ${isHidden ? 'lg:translate-x-[-100%]' : ''}
         `}
@@ -290,8 +290,8 @@ export function Sidebar({
             </button>
           </div>
 
-          {/* Filters - always open, clean menu */}
-          <div className={`flex-1 overflow-y-auto p-4 ${isHidden ? 'lg:hidden' : ''}`}>
+          {/* Filters - scrollable body; header stays sticky */}
+          <div className={`flex-1 min-h-0 overflow-y-auto p-4 ${isHidden ? 'lg:hidden' : ''}`}>
             {/* Categories */}
             <div className="mb-6">
               <SectionHeading title="Categories" icon={<CategoriesIcon />} />
@@ -302,9 +302,9 @@ export function Sidebar({
                   return (
                     <label key={category.id} className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}>
                       <input type="checkbox" checked={isChecked} onChange={() => { const next = isChecked ? selectedCategories.filter((c) => c !== category.id) : [...selectedCategories, category.id]; onCategoryChange(next); }} className="sr-only" />
-                      <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all flex-shrink-0 ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`} />
-                      <CategoryIcon id={category.id} />
-                      <span className="text-[11px] font-bold uppercase tracking-wider flex-1 truncate">{category.name}</span>
+                      <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all !w-5 !h-5 !min-w-[20px] !min-h-[20px] flex-shrink-0 ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`} />
+                      <span className="flex-shrink-0 inline-flex items-center"><CategoryIcon id={category.id} /></span>
+                      <span className="text-[11px] font-bold uppercase tracking-wider flex-1 min-w-0 truncate">{category.name}</span>
                       <span className="k-sidebar-count">{count}</span>
                     </label>
                   );
@@ -322,9 +322,9 @@ export function Sidebar({
                   return (
                     <label key={option.value} className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}>
                       <input type="checkbox" checked={isChecked} onChange={() => handleStatusToggle(option.value)} className="sr-only" />
-                      <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all flex-shrink-0 ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`} />
-                      {option.value !== 'all' && <StatusIndicatorDot statusType={getStatusTypeFromString(option.value)} size="sm" className="flex-shrink-0" />}
-                      <span className="text-[11px] font-bold uppercase tracking-wider flex-1 truncate">{option.label}</span>
+                      <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all !w-5 !h-5 !min-w-[20px] !min-h-[20px] flex-shrink-0 ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`} />
+                      <span className="flex-shrink-0 inline-flex items-center">{option.value !== 'all' && <StatusIndicatorDot statusType={getStatusTypeFromString(option.value)} size="sm" />}</span>
+                      <span className="text-[11px] font-bold uppercase tracking-wider flex-1 min-w-0 truncate">{option.label}</span>
                     </label>
                   );
                 })}
@@ -342,9 +342,9 @@ export function Sidebar({
                   return (
                     <label key={option.label} className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}>
                       <input type="checkbox" checked={isChecked} onChange={() => handleNetworkToggle(option.label)} className="sr-only" />
-                      <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all flex-shrink-0 ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`} />
-                      <span className="k-sidebar-icon flex-shrink-0"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg></span>
-                      <span className="text-[11px] font-bold uppercase tracking-wider flex-1 truncate">{option.label}</span>
+                      <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all !w-5 !h-5 !min-w-[20px] !min-h-[20px] flex-shrink-0 ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`} />
+                      <span className="k-sidebar-icon flex-shrink-0 inline-flex items-center"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg></span>
+                      <span className="text-[11px] font-bold uppercase tracking-wider flex-1 min-w-0 truncate">{option.label}</span>
                     </label>
                   );
                 })}

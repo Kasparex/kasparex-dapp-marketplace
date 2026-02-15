@@ -162,7 +162,7 @@ export function VBlogSidebar({
           bg-white dark:bg-zinc-950
           border-r border-zinc-200 dark:border-zinc-800
           transform transition-all duration-300 ease-in-out
-          overflow-y-auto
+          flex flex-col
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           ${isHidden ? 'lg:translate-x-[-100%]' : ''}
         `}
@@ -199,21 +199,21 @@ export function VBlogSidebar({
           }
         }}
       >
-        {/* Header with Back Link and Hide Button */}
-        <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
+        {/* Header - sticky */}
+        <div className="flex-shrink-0 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
           <div className="flex items-center justify-between mb-4">
             <Link
               href="/hub"
-              className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium transition-colors text-sm flex items-center gap-1"
+              className="text-zinc-500 dark:text-zinc-400 hover:text-[#02abb8] font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
               </svg>
-              Go back to Hub
+              Back to Hub
             </Link>
             <button
               onClick={() => setIsHidden(true)}
-              className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+              className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-colors"
               aria-label="Hide sidebar"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -240,8 +240,8 @@ export function VBlogSidebar({
           </div>
         </div>
 
-        {/* Sidebar Content */}
-        <div className="p-4">
+        {/* Sidebar Content - scrollable */}
+        <div className="flex-1 min-h-0 overflow-y-auto p-4">
           {/* Main Actions */}
           <div className="mb-8 space-y-2">
             <button
@@ -301,11 +301,9 @@ export function VBlogSidebar({
                   : 'text-zinc-700 dark:text-zinc-300'
                   }`}
               >
-                <VBlogCategoryIcon id={null} />
-                <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">All Categories</span>
-                <span className="k-sidebar-count">
-                  {articles.length}
-                </span>
+                <span className="flex-shrink-0 inline-flex items-center"><VBlogCategoryIcon id={null} /></span>
+                <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 min-w-0 truncate text-left">All Categories</span>
+                <span className="k-sidebar-count">{articles.length}</span>
               </button>
               {categories.map((category) => {
                 const count = articles.filter(a => a.category === category).length;
@@ -318,11 +316,9 @@ export function VBlogSidebar({
                       : 'text-zinc-700 dark:text-zinc-300'
                       }`}
                   >
-                    <VBlogCategoryIcon id={category} />
-                    <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">{category}</span>
-                    <span className="k-sidebar-count">
-                      {count}
-                    </span>
+                    <span className="flex-shrink-0 inline-flex items-center"><VBlogCategoryIcon id={category} /></span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 min-w-0 truncate text-left">{category}</span>
+                    <span className="k-sidebar-count">{count}</span>
                   </button>
                 );
               })}

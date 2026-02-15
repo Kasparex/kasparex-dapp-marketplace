@@ -218,30 +218,30 @@ export function MagazinesSidebar({
                     }
                 }}
             >
-                <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
-                    {/* Header with Back Link and Hide Button */}
-                    <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-white dark:bg-zinc-950">
-                        <Link
-                            href={isUtility || !pathname.startsWith('/magazines') ? '/magazines' : '/hub'}
-                            className="text-zinc-500 hover:text-[#02abb8] font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
-                        >
-                            <svg className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
-                            </svg>
-                            {isUtility || !pathname.startsWith('/magazines') ? 'Back to Magazines' : 'Back to Hub'}
-                        </Link>
-                        <button
-                            onClick={() => setIsHidden(true)}
-                            className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
-                            aria-label="Hide sidebar"
-                        >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </button>
-                    </div>
+                {/* Header - sticky */}
+                <div className="flex-shrink-0 p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-white dark:bg-zinc-950">
+                    <Link
+                        href={isUtility || !pathname.startsWith('/magazines') ? '/magazines' : '/hub'}
+                        className="text-zinc-500 hover:text-[#02abb8] font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
+                    >
+                        <svg className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
+                        </svg>
+                        {isUtility || !pathname.startsWith('/magazines') ? 'Back to Magazines' : 'Back to Hub'}
+                    </Link>
+                    <button
+                        onClick={() => setIsHidden(true)}
+                        className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-colors"
+                        aria-label="Hide sidebar"
+                    >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                </div>
 
-                    <div className="flex-1 p-4">
+                {/* Body - scrollable */}
+                <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-4">
                         {/* Utility Mode / Quick Links - Moved to Top */}
                         {(isListing || isUtility) && (
                             <div className="mb-8">
@@ -253,19 +253,19 @@ export function MagazinesSidebar({
                                         href="/magazines/dashboard"
                                         className={`k-sidebar-item group ${pathname === '/magazines/dashboard' ? 'k-sidebar-item-active' : ''}`}
                                     >
-                                        <span className="text-[#02abb8] opacity-80 group-hover:opacity-100">
+                                        <span className="flex-shrink-0 inline-flex items-center text-[#02abb8] opacity-80 group-hover:opacity-100">
                                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                                         </span>
-                                        <span className="text-[11px] font-bold uppercase tracking-wider truncate">My Dashboard</span>
+                                        <span className="text-[11px] font-bold uppercase tracking-wider flex-1 min-w-0 truncate">My Dashboard</span>
                                     </Link>
                                     <Link
                                         href="/magazines/editor"
                                         className={`k-sidebar-item group ${pathname === '/magazines/editor' ? 'k-sidebar-item-active' : ''}`}
                                     >
-                                        <span className="text-[#02abb8] opacity-80 group-hover:opacity-100">
+                                        <span className="flex-shrink-0 inline-flex items-center text-[#02abb8] opacity-80 group-hover:opacity-100">
                                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                                         </span>
-                                        <span className="text-[11px] font-bold uppercase tracking-wider truncate">Create Issue</span>
+                                        <span className="text-[11px] font-bold uppercase tracking-wider flex-1 min-w-0 truncate">Create Issue</span>
                                     </Link>
                                 </nav>
                             </div>
@@ -288,7 +288,7 @@ export function MagazinesSidebar({
                                         <span className="k-sidebar-icon flex-shrink-0">
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>
                                         </span>
-                                        <span className="text-[11px] font-bold uppercase tracking-wider flex-1 truncate">{cat}</span>
+                                        <span className="text-[11px] font-bold uppercase tracking-wider flex-1 min-w-0 truncate">{cat}</span>
                                         {categoryCounts?.[cat] != null && (
                                             <span className="k-sidebar-count">{categoryCounts[cat]}</span>
                                         )}
@@ -347,7 +347,7 @@ export function MagazinesSidebar({
                                         <span className="k-sidebar-icon flex-shrink-0">
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.247 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                                         </span>
-                                        <span className="text-[11px] font-bold uppercase tracking-wider flex-1 truncate">{issue.title}</span>
+                                        <span className="text-[11px] font-bold uppercase tracking-wider flex-1 min-w-0 truncate">{issue.title}</span>
                                         <span className="k-sidebar-count">#{issue.issueNumber}</span>
                                         {currentIssueId === issue.id && (
                                             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#02abb8] rounded-r-full shadow-[0_0_10px_#02abb8]" />
@@ -356,20 +356,19 @@ export function MagazinesSidebar({
                                 ))}
                             </CollapsibleSection>
                         )}
-                    </div>
+                </div>
 
-                    {/* Footer Section */}
-                    <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 mt-auto">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-xl bg-[#02abb8]/10 text-[#02abb8] flex items-center justify-center font-black text-[10px]">
-                                KM
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-[10px] font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-widest truncate">
-                                    Kasparex Mag
-                                </p>
-                                <p className="text-[9px] font-bold text-zinc-500 uppercase">Publishing Suite</p>
-                            </div>
+                {/* Footer - sticky */}
+                <div className="flex-shrink-0 p-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-[#02abb8]/10 text-[#02abb8] flex items-center justify-center font-black text-[10px]">
+                            KM
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[10px] font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-widest truncate">
+                                Kasparex Mag
+                            </p>
+                            <p className="text-[9px] font-bold text-zinc-500 uppercase">Publishing Suite</p>
                         </div>
                     </div>
                 </div>

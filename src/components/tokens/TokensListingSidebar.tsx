@@ -98,7 +98,7 @@ export function TokensListingSidebar({ }: TokensListingSidebarProps) {
           hidden lg:block flex-shrink-0
           fixed lg:sticky top-16 lg:top-0 left-0 z-40
           h-[calc(100vh-4rem)] lg:h-screen
-          overflow-y-auto
+          flex flex-col
           bg-white dark:bg-zinc-950
           border-r border-zinc-200 dark:border-zinc-800
           transition-all duration-300 ease-in-out
@@ -137,15 +137,15 @@ export function TokensListingSidebar({ }: TokensListingSidebarProps) {
           }
         }}
       >
-        {/* Header with Hide Button */}
-        <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
+        {/* Header - sticky */}
+        <div className="flex-shrink-0 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
               Kasparex Tokens
             </h2>
             <button
               onClick={() => setIsHidden(true)}
-              className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+              className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-colors"
               aria-label="Hide sidebar"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -155,7 +155,7 @@ export function TokensListingSidebar({ }: TokensListingSidebarProps) {
           </div>
         </div>
 
-        <div className={`p-4 ${isHidden ? 'lg:hidden' : ''}`}>
+        <div className={`flex-1 min-h-0 overflow-y-auto p-4 ${isHidden ? 'lg:hidden' : ''}`}>
           <div className="space-y-6">
             {/* Info Section */}
             <div className="space-y-3">
@@ -178,22 +178,22 @@ export function TokensListingSidebar({ }: TokensListingSidebarProps) {
                   href="/hub"
                   className="k-sidebar-item text-zinc-600 dark:text-zinc-400 group"
                 >
-                  <TokenLinkIcon id="hub" />
-                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">Back to Hub</span>
+                  <span className="flex-shrink-0 inline-flex items-center"><TokenLinkIcon id="hub" /></span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 min-w-0 truncate text-left">Back to Hub</span>
                 </Link>
                 <Link
                   href="/dapps"
                   className="k-sidebar-item text-zinc-600 dark:text-zinc-400 group"
                 >
-                  <TokenLinkIcon id="dapps" />
-                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">Explore dApps</span>
+                  <span className="flex-shrink-0 inline-flex items-center"><TokenLinkIcon id="dapps" /></span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 min-w-0 truncate text-left">Explore dApps</span>
                 </Link>
                 <Link
                   href="/points"
                   className="k-sidebar-item text-zinc-600 dark:text-zinc-400 group"
                 >
-                  <TokenLinkIcon id="rewards" />
-                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 truncate text-left">View Rewards</span>
+                  <span className="flex-shrink-0 inline-flex items-center"><TokenLinkIcon id="rewards" /></span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 min-w-0 truncate text-left">View Rewards</span>
                 </Link>
               </div>
             </div>

@@ -229,30 +229,30 @@ export function StoreSidebar({
           }
         }}
       >
-        <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
-          {/* Header with Back Link and Hide Button */}
-          <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-white dark:bg-zinc-950">
-            <Link
-              href={isListing ? '/hub' : '/store'}
-              className="text-zinc-500 hover:text-[#02abb8] font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
-            >
-              <svg className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
-              </svg>
-              {isListing ? 'Back to Hub' : 'Back to Store'}
-            </Link>
-            <button
-              onClick={() => setIsHidden(true)}
-              className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
-              aria-label="Hide sidebar"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-          </div>
+        {/* Header - sticky */}
+        <div className="flex-shrink-0 p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-white dark:bg-zinc-950">
+          <Link
+            href={isListing ? '/hub' : '/store'}
+            className="text-zinc-500 hover:text-[#02abb8] font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
+          >
+            <svg className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
+            </svg>
+            {isListing ? 'Back to Hub' : 'Back to Store'}
+          </Link>
+          <button
+            onClick={() => setIsHidden(true)}
+            className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-colors"
+            aria-label="Hide sidebar"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        </div>
 
-          <div className="flex-1 p-4">
+        {/* Body - scrollable */}
+        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-4">
             {/* LISTING MODE: Status & Quick Actions */}
             {isListing && (
               <div className="mb-8">
@@ -264,28 +264,28 @@ export function StoreSidebar({
                     href="/store/dashboard"
                     className="k-sidebar-item group"
                   >
-                    <span className="text-[#02abb8] opacity-80 group-hover:opacity-100">
+                    <span className="flex-shrink-0 inline-flex items-center text-[#02abb8] opacity-80 group-hover:opacity-100">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                     </span>
-                    <span className="text-[11px] font-bold uppercase tracking-wider truncate">My Dashboard</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider flex-1 min-w-0 truncate">My Dashboard</span>
                   </Link>
                   <Link
                     href="/store/create"
                     className="k-sidebar-item group"
                   >
-                    <span className="text-[#02abb8] opacity-80 group-hover:opacity-100">
+                    <span className="flex-shrink-0 inline-flex items-center text-[#02abb8] opacity-80 group-hover:opacity-100">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                     </span>
-                    <span className="text-[11px] font-bold uppercase tracking-wider truncate">Add New</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider flex-1 min-w-0 truncate">Add New</span>
                   </Link>
                   <Link
                     href="/store/dashboard?tab=purchased"
                     className="k-sidebar-item group"
                   >
-                    <span className="text-[#02abb8] opacity-80 group-hover:opacity-100">
+                    <span className="flex-shrink-0 inline-flex items-center text-[#02abb8] opacity-80 group-hover:opacity-100">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                     </span>
-                    <span className="text-[11px] font-bold uppercase tracking-wider truncate">My Purchases</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider flex-1 min-w-0 truncate">My Purchases</span>
                   </Link>
                 </div>
               </div>
@@ -307,12 +307,12 @@ export function StoreSidebar({
                       onClick={() => handleCategoryToggle(cat)}
                       className={`w-full k-sidebar-item group ${isSelected ? 'k-sidebar-item-active' : ''}`}
                     >
-                      <StoreCategoryIcon id={cat} className="mr-2 opacity-70 group-hover:text-[#02abb8]" />
-                      <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">
+                      <span className="flex-shrink-0 inline-flex items-center"><StoreCategoryIcon id={cat} className="opacity-70 group-hover:text-[#02abb8]" /></span>
+                      <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 min-w-0 truncate">
                         {cat}
                       </span>
                       {categoryCounts && (
-                        <span className="ml-auto text-[9px] font-bold text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded-full">
+                        <span className="k-sidebar-count">
                           {categoryCounts[cat] || 0}
                         </span>
                       )}
@@ -387,20 +387,19 @@ export function StoreSidebar({
                 </div>
               </CollapsibleSection>
             )}
-          </div>
+        </div>
 
-          {/* Footer Section */}
-          <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 mt-auto">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-[#02abb8]/10 text-[#02abb8] flex items-center justify-center font-black text-[10px]">
-                KS
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-widest truncate">
-                  Kasparex Store
-                </p>
-                <p className="text-[9px] font-bold text-zinc-500 uppercase">Digital Marketplace</p>
-              </div>
+        {/* Footer - sticky */}
+        <div className="flex-shrink-0 p-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-[#02abb8]/10 text-[#02abb8] flex items-center justify-center font-black text-[10px]">
+              KS
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-widest truncate">
+                Kasparex Store
+              </p>
+              <p className="text-[9px] font-bold text-zinc-500 uppercase">Digital Marketplace</p>
             </div>
           </div>
         </div>
