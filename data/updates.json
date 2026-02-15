@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1771171269-469c766",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Remove em dash from all text and descriptions; use hyphen or rephrase (by Kasparex)",
+      "date": "2026-02-15T17:00:31+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1771168909-adce821",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: LRT removal and dApp UI overhaul: GRT-only rewards, listing hero, sidebar filters, Action Flow (by Kasparex)",
