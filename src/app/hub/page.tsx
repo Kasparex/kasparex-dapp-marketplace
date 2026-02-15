@@ -38,16 +38,10 @@ export default function HubPage() {
                 Your unified gateway to the Kasparex ecosystem. Explore modular dApps, media, games, publishing tools, and infrastructure built around Kaspa.
               </p>
               <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                <Link
-                  href="/dapps"
-                  className="w-full sm:w-auto px-10 py-4 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-[20px] font-black text-xs uppercase tracking-widest hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-300"
-                >
+                <Link href="/dapps" className="k-cta-primary w-full sm:w-auto justify-center">
                   Explore dApps
                 </Link>
-                <Link
-                  href="/points"
-                  className="w-full sm:w-auto px-10 py-4 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-800 rounded-[20px] font-black text-xs uppercase tracking-widest hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all duration-300 shadow-sm"
-                >
+                <Link href="/points" className="k-cta-secondary w-full sm:w-auto justify-center">
                   View Rewards
                 </Link>
               </div>

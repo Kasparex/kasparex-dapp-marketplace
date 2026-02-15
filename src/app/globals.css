@@ -328,10 +328,8 @@
 
 /* Premium Sidebar Components */
 .k-sidebar-item {
-  @apply w-full relative flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap;
-  gap: 1rem;
-  /* Uniform 16px gap */
-  /* Reserve right padding so absolute-positioned count sits inside capsule */
+  @apply w-full relative flex flex-row items-center px-4 py-2.5 rounded-xl transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap;
+  gap: 0.75rem;
   padding-right: 3rem;
 }
 
@@ -384,8 +382,6 @@
   @apply h-10 px-4 flex items-center justify-center gap-2 rounded-xl text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-[#02abb8]/30 transition-all active:scale-[0.98];
   background-color: var(--k-control-bg);
   border: 1px solid var(--k-control-border);
-  border-left-width: 3px;
-  border-left-color: var(--k-primary);
 }
 
 .k-control-icon-btn {
@@ -412,8 +408,6 @@
   @apply h-10 px-4 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent transition-all w-full;
   background-color: var(--k-control-bg);
   border: 1px solid var(--k-control-border);
-  border-left-width: 3px;
-  border-left-color: var(--k-primary);
 }
 
 /* Standard CTA buttons (hero and primary actions) */

@@ -160,7 +160,7 @@ export function Sidebar({
 
   const SectionHeading = ({ title, icon }: { title: string; icon?: React.ReactNode }) => (
     <div className="flex items-center gap-2 text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] mb-3 px-1">
-      {icon && <span className="text-violet-500 dark:text-violet-400 opacity-90">{icon}</span>}
+      {icon && <span className="text-[#02abb8] opacity-90">{icon}</span>}
       <span>{title}</span>
     </div>
   );
@@ -272,7 +272,7 @@ export function Sidebar({
           <div className={`flex-shrink-0 p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50 dark:bg-zinc-900/50 ${isHidden ? 'lg:hidden' : ''}`}>
             <Link
               href={pathname.startsWith('/dapps') ? '/' : '/hub'}
-              className="text-zinc-500 dark:text-zinc-400 hover:text-violet-600 dark:hover:text-violet-400 font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
+              className="text-zinc-500 dark:text-zinc-400 hover:text-[#02abb8] font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
             >
               <svg className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
@@ -295,10 +295,6 @@ export function Sidebar({
             {/* Categories */}
             <div className="mb-6">
               <SectionHeading title="Categories" icon={<CategoriesIcon />} />
-              <div className="flex gap-2 mb-2">
-                <button type="button" onClick={() => onCategoryChange(categories.map((c) => c.id))} className="text-[10px] px-2 py-1 text-zinc-500 hover:text-violet-600 dark:hover:text-violet-400 font-bold uppercase tracking-wider">Select All</button>
-                <button type="button" onClick={() => onCategoryChange([])} className="text-[10px] px-2 py-1 text-zinc-500 hover:text-violet-600 dark:hover:text-violet-400 font-bold uppercase tracking-wider">Deselect All</button>
-              </div>
               <nav className="space-y-0.5">
                 {categories.map((category) => {
                   const isChecked = selectedCategories.includes(category.id);
@@ -306,7 +302,7 @@ export function Sidebar({
                   return (
                     <label key={category.id} className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}>
                       <input type="checkbox" checked={isChecked} onChange={() => { const next = isChecked ? selectedCategories.filter((c) => c !== category.id) : [...selectedCategories, category.id]; onCategoryChange(next); }} className="sr-only" />
-                      <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-violet-500 !border-violet-500' : '!bg-zinc-200 dark:!bg-zinc-800'}`} />
+                      <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all flex-shrink-0 ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`} />
                       <CategoryIcon id={category.id} />
                       <span className="text-[11px] font-bold uppercase tracking-wider flex-1 truncate">{category.name}</span>
                       <span className="k-sidebar-count">{count}</span>
@@ -319,10 +315,6 @@ export function Sidebar({
             {/* Status */}
             <div className="mb-6">
               <SectionHeading title="Status" icon={<StatusIcon />} />
-              <div className="flex gap-2 mb-2">
-                <button type="button" onClick={handleStatusSelectAll} className="text-[10px] px-2 py-1 text-zinc-500 hover:text-violet-600 dark:hover:text-violet-400 font-bold uppercase tracking-wider">Select All</button>
-                <button type="button" onClick={handleStatusDeselectAll} className="text-[10px] px-2 py-1 text-zinc-500 hover:text-violet-600 dark:hover:text-violet-400 font-bold uppercase tracking-wider">Deselect All</button>
-              </div>
               <nav className="space-y-0.5">
                 {statusOptions.map((option) => {
                   const currentStatus = filters.status || [];
@@ -330,7 +322,7 @@ export function Sidebar({
                   return (
                     <label key={option.value} className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}>
                       <input type="checkbox" checked={isChecked} onChange={() => handleStatusToggle(option.value)} className="sr-only" />
-                      <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-violet-500 !border-violet-500' : '!bg-zinc-200 dark:!bg-zinc-800'}`} />
+                      <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all flex-shrink-0 ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`} />
                       {option.value !== 'all' && <StatusIndicatorDot statusType={getStatusTypeFromString(option.value)} size="sm" className="flex-shrink-0" />}
                       <span className="text-[11px] font-bold uppercase tracking-wider flex-1 truncate">{option.label}</span>
                     </label>
@@ -342,10 +334,6 @@ export function Sidebar({
             {/* Network */}
             <div className="mb-6">
               <SectionHeading title="Network" icon={<NetworkIcon />} />
-              <div className="flex gap-2 mb-2">
-                <button type="button" onClick={handleNetworkSelectAll} className="text-[10px] px-2 py-1 text-zinc-500 hover:text-violet-600 dark:hover:text-violet-400 font-bold uppercase tracking-wider">Select All</button>
-                <button type="button" onClick={handleNetworkDeselectAll} className="text-[10px] px-2 py-1 text-zinc-500 hover:text-violet-600 dark:hover:text-violet-400 font-bold uppercase tracking-wider">Deselect All</button>
-              </div>
               <nav className="space-y-0.5">
                 {networkOptions.map((option) => {
                   const value = option.label === 'All' ? 'all' : option.label;
@@ -354,7 +342,8 @@ export function Sidebar({
                   return (
                     <label key={option.label} className={`k-sidebar-item group ${isChecked ? 'k-sidebar-item-active' : ''}`}>
                       <input type="checkbox" checked={isChecked} onChange={() => handleNetworkToggle(option.label)} className="sr-only" />
-                      <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all ${isChecked ? '!bg-violet-500 !border-violet-500' : '!bg-zinc-200 dark:!bg-zinc-800'}`} />
+                      <div className={`control__indicator !static !top-0 !left-0 !transform-none !transition-all flex-shrink-0 ${isChecked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`} />
+                      <span className="k-sidebar-icon flex-shrink-0"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg></span>
                       <span className="text-[11px] font-bold uppercase tracking-wider flex-1 truncate">{option.label}</span>
                     </label>
                   );

@@ -317,20 +317,6 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
             onToggle={() => setPerksExpanded(!perksExpanded)}
           >
             <div className="mb-4">
-              <div className="flex gap-2 mb-2">
-                <button
-                  onClick={() => handleSelectAll('perks')}
-                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                >
-                  Select All
-                </button>
-                <button
-                  onClick={() => handleDeselectAll('perks')}
-                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                >
-                  Deselect All
-                </button>
-              </div>
               <nav className="space-y-1">
                 <label
                   className={`k-sidebar-item group ${filters.unlockedPerks ? 'k-sidebar-item-active' : ''}`}
@@ -378,20 +364,6 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
             onToggle={() => setBadgesExpanded(!badgesExpanded)}
           >
             <div className="mb-4">
-              <div className="flex gap-2 mb-2">
-                <button
-                  onClick={() => handleSelectAll('badges')}
-                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                >
-                  Select All
-                </button>
-                <button
-                  onClick={() => handleDeselectAll('badges')}
-                  className="text-xs px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                >
-                  Deselect All
-                </button>
-              </div>
               <nav className="space-y-1">
                 <label
                   className={`k-sidebar-item group ${filters.unlockedBadges ? 'k-sidebar-item-active' : ''}`}
