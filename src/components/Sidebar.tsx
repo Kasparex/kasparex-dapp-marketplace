@@ -71,9 +71,11 @@ export function Sidebar({
   const pathname = usePathname();
 
   const handleCategoryToggle = (id: string) => {
-    const next = selectedCategories.some((c) => c.id === id)
-      ? selectedCategories.filter((c) => c.id !== id)
-      : [...selectedCategories, categories.find((c) => c.id === id)!].filter(Boolean);
+    const catId = id as Category;
+    const found = categories.find((c) => c.id === catId);
+    const next = selectedCategories.includes(catId)
+      ? selectedCategories.filter((c) => c !== catId)
+      : found ? [...selectedCategories, found.id] : selectedCategories;
     onCategoryChange(next);
   };
 
@@ -114,7 +116,7 @@ export function Sidebar({
           title="Categories"
           sectionIcon={<CategoriesIcon />}
           items={categoryItems}
-          selectedIds={selectedCategories.map((c) => c.id)}
+          selectedIds={selectedCategories}
           onSelect={handleCategoryToggle}
           multi
         />
