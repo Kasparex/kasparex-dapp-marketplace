@@ -19,6 +19,7 @@ import { categories } from '@/lib/categories';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useLikes } from '@/hooks/useLikes';
 import { NetworkSwitcher } from '@/components/NetworkSwitcher';
+import { FilterBar } from '@/components/FilterBar';
 
 const validCategories = categories.map((cat) => cat.id);
 
@@ -240,29 +241,13 @@ function HomeContent() {
               )}
             </div>
 
-            {/* Controls Area */}
+            {/* Controls Area - single row via FilterBar */}
             <div className="flex flex-col gap-4 mb-6">
-              <div className="flex flex-wrap items-center gap-3">
-                {/* Search Bar */}
-                <div className="flex-1 min-w-[200px]">
-                  <div className="k-search-container">
-                    <input
-                      type="text"
-                      placeholder="Search dApps..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="k-search-input"
-                    />
-                  </div>
-                </div>
-
-                {/* Network Switcher */}
-                <NetworkSwitcher
-                  value={networkFilter}
-                  onChange={setNetworkFilter}
-                />
-
-                {/* View Mode Switcher, Sort, Favorites, Plus */}
+              <FilterBar
+                search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search dApps...' }}
+                onReset={handleResetFilters}
+              >
+                <NetworkSwitcher value={networkFilter} onChange={setNetworkFilter} />
                 <SortFilters
                   sortBy={sortBy}
                   onSortChange={setSortBy}
@@ -270,15 +255,7 @@ function HomeContent() {
                   viewMode={viewMode}
                   onViewModeChange={setViewMode}
                 />
-
-                {/* Reset Filters */}
-                <button
-                  onClick={handleResetFilters}
-                  className="k-control-btn whitespace-nowrap"
-                >
-                  Reset Filters
-                </button>
-              </div>
+              </FilterBar>
             </div>
 
             {/* Content Display */}

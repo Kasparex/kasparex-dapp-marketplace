@@ -1,8 +1,12 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { VBlogArticle } from '@/lib/vblog/types';
+import { UnifiedSidebar } from '@/components/UnifiedSidebar';
+import { SidebarSection } from '@/components/sidebar/SidebarSection';
+import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
+import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
+import { SidebarTags } from '@/components/sidebar/SidebarTags';
 
 interface VBlogSidebarProps {
   articles: VBlogArticle[];
@@ -16,11 +20,9 @@ interface VBlogSidebarProps {
   activeView?: 'explore' | 'dashboard';
 }
 
-function VBlogCategoryIcon({ id, className = "" }: { id: string | null; className?: string }) {
-  const iconProps = { className: `k-sidebar-icon ${className}`, strokeWidth: 2, fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" };
-
+function VBlogCategoryIcon({ id, className = '' }: { id: string | null; className?: string }) {
+  const iconProps = { className: `k-sidebar-icon ${className}`, strokeWidth: 2, fill: 'none' as const, viewBox: '0 0 24 24', stroke: 'currentColor' as const };
   if (!id) return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>;
-
   switch (id.toLowerCase()) {
     case 'announcement': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A1.76 1.76 0 015 15.066V15c0 .115.022.23.064.338a.98.98 0 00.936.662H9c.552 0 1 .448 1 1s-.448 1-1 1H7.618a2 2 0 01-1.789-1.106l-.53-.1.53.1zm14.11-6.191A1.76 1.76 0 0021 6.096V6c0-.115-.022-.23-.064-.338a.98.98 0 00-.936-.662H15c-.552 0-1-.448-1-1s.448-1 1-1h1.382a2 2 0 001.789-1.106l.53.1-.53-.1z" /></svg>;
     case 'development': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>;
@@ -30,6 +32,8 @@ function VBlogCategoryIcon({ id, className = "" }: { id: string | null; classNam
     default: return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>;
   }
 }
+
+const ALL_ID = '__all__';
 
 export function VBlogSidebar({
   articles,
@@ -42,327 +46,85 @@ export function VBlogSidebar({
   onCreateArticle,
   activeView = 'explore',
 }: VBlogSidebarProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isHidden, setIsHidden] = useState(false);
-  const [sidebarWidth, setSidebarWidth] = useState(256);
-  const [isResizing, setIsResizing] = useState(false);
-  const sidebarRef = useRef<HTMLDivElement>(null);
+  const categories = Array.from(new Set(articles.map((a) => a.category))).sort();
+  const allTags = Array.from(new Set(articles.flatMap((a) => a.tags))).sort();
 
-  // Load sidebar state from localStorage
-  useEffect(() => {
-    const savedHidden = localStorage.getItem('vblog-sidebar-hidden');
-    const savedWidth = localStorage.getItem('vblog-sidebar-width');
-    if (savedHidden === 'true') setIsHidden(true);
-    if (savedWidth) setSidebarWidth(parseInt(savedWidth, 10));
-  }, []);
+  const categoryItems = [
+    { id: ALL_ID, label: 'All Categories', count: articles.length, icon: <VBlogCategoryIcon id={null} /> },
+    ...categories.map((c) => ({
+      id: c,
+      label: c,
+      count: articles.filter((a) => a.category === c).length,
+      icon: <VBlogCategoryIcon id={c} />,
+    })),
+  ];
 
-  // Save sidebar state to localStorage
-  useEffect(() => {
-    localStorage.setItem('vblog-sidebar-hidden', String(isHidden));
-  }, [isHidden]);
+  const handleCategorySelect = (id: string) => {
+    onCategoryChange(id === ALL_ID ? null : id);
+  };
 
-  useEffect(() => {
-    localStorage.setItem('vblog-sidebar-width', String(sidebarWidth));
-  }, [sidebarWidth]);
-
-  // Handle resize
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizing || !sidebarRef.current) return;
-      const sidebarRect = sidebarRef.current.getBoundingClientRect();
-      const newWidth = e.clientX - sidebarRect.left;
-      if (newWidth >= 200 && newWidth <= 500) {
-        setSidebarWidth(newWidth);
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsResizing(false);
-    };
-
-    if (isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
-    }
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    };
-  }, [isResizing]);
-
-  // Extract unique categories and tags from articles
-  const categories = Array.from(new Set(articles.map(a => a.category))).sort();
-  const allTags = Array.from(new Set(articles.flatMap(a => a.tags))).sort();
+  const header = (onHide: () => void) => (
+    <div className="flex-shrink-0 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
+      <div className="flex items-center justify-between mb-4">
+        <Link
+          href="/hub"
+          className="text-zinc-500 dark:text-zinc-400 hover:text-[#02abb8] font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
+        >
+          <svg className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Hub
+        </Link>
+        <button type="button" onClick={onHide} className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-colors" aria-label="Hide sidebar">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+        </button>
+      </div>
+      <div className="k-search-container">
+        <svg className="k-search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        <input type="text" placeholder="Search articles..." value={searchQuery} onChange={(e) => onSearchChange(e.target.value)} className="k-search-input !h-9 !pl-9" />
+      </div>
+    </div>
+  );
 
   return (
-    <>
-      {/* Mobile menu button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-20 left-4 z-40 p-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-lg"
-        style={{ top: '5.5rem' }}
-        aria-label="Toggle menu"
-      >
-        <svg
-          className="h-6 w-6 text-zinc-900 dark:text-zinc-100"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          {isOpen ? (
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          ) : (
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          )}
-        </svg>
-      </button>
-
-      {/* Mobile overlay */}
-      {isOpen && (
-        <div
-          className="lg:hidden fixed inset-0 z-30 bg-black/50"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-
-      {/* Show Sidebar Button - Fixed when hidden */}
-      {isHidden && (
-        <button
-          onClick={() => setIsHidden(false)}
-          className="hidden lg:block fixed left-0 top-20 z-[60] p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
-          aria-label="Show sidebar"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      )}
-
-      {/* Sidebar */}
-      <aside
-        ref={sidebarRef}
-        className={`
-          fixed lg:sticky top-16 lg:top-0 left-0 z-40
-          h-[calc(100vh-4rem)] lg:h-screen
-          bg-white dark:bg-zinc-950
-          border-r border-zinc-200 dark:border-zinc-800
-          transform transition-all duration-300 ease-in-out
-          flex flex-col
-          ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          ${isHidden ? 'lg:translate-x-[-100%]' : ''}
-        `}
-        style={{
-          width: isHidden ? 0 : `${sidebarWidth}px`,
-          minWidth: isHidden ? 0 : `${sidebarWidth}px`,
-          maxWidth: isHidden ? 0 : `${sidebarWidth}px`,
-          cursor: isResizing ? 'col-resize' : ''
-        }}
-        onMouseMove={(e) => {
-          if (!isHidden && !isResizing && sidebarRef.current) {
-            const rect = sidebarRef.current.getBoundingClientRect();
-            const isOnBorder = e.clientX >= rect.right - 4 && e.clientX <= rect.right;
-            sidebarRef.current.style.cursor = isOnBorder ? 'col-resize' : '';
-            if (isOnBorder) {
-              sidebarRef.current.style.borderRight = '2px solid #06b6d4';
-            } else {
-              sidebarRef.current.style.borderRight = '';
-            }
-          }
-        }}
-        onMouseLeave={() => {
-          if (sidebarRef.current && !isResizing) {
-            sidebarRef.current.style.borderRight = '';
-          }
-        }}
-        onMouseDown={(e) => {
-          if (!isHidden && sidebarRef.current) {
-            const rect = sidebarRef.current.getBoundingClientRect();
-            if (e.clientX >= rect.right - 4 && e.clientX <= rect.right) {
-              e.preventDefault();
-              setIsResizing(true);
-            }
-          }
-        }}
-      >
-        {/* Header - sticky */}
-        <div className="flex-shrink-0 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
-          <div className="flex items-center justify-between mb-4">
-            <Link
-              href="/hub"
-              className="text-zinc-500 dark:text-zinc-400 hover:text-[#02abb8] font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
-            >
-              <svg className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back to Hub
-            </Link>
-            <button
-              onClick={() => setIsHidden(true)}
-              className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-colors"
-              aria-label="Hide sidebar"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-          </div>
-          <div className="k-search-container">
-            <svg
-              className="k-search-icon"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search articles..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="k-search-input !h-9 !pl-9"
-            />
-          </div>
-        </div>
-
-        {/* Sidebar Content - scrollable */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-4">
-          {/* Main Actions */}
-          <div className="mb-8 space-y-2">
-            <button
-              onClick={onCreateArticle}
-              className="w-full flex items-center gap-3 px-4 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl transition-all shadow-lg shadow-orange-500/20 group"
-            >
+    <UnifiedSidebar storageKeyPrefix="vblog" header={header}>
+      <div className="p-4">
+        {onCreateArticle && (
+          <div className="mb-6">
+            <button type="button" onClick={onCreateArticle} className="w-full flex items-center gap-3 px-4 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl transition-all shadow-lg shadow-orange-500/20 group">
               <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                </svg>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
               </div>
               <span className="text-xs font-black uppercase tracking-widest text-left">Create Article</span>
             </button>
-
-            <Link
-              href="/vblog/dashboard"
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all border ${activeView === 'dashboard'
-                  ? 'bg-zinc-900 border-zinc-900 text-white dark:bg-white dark:border-white dark:text-zinc-900 shadow-xl'
-                  : 'bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-orange-500/30 hover:bg-orange-500/5'
-                }`}
-            >
-              <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${activeView === 'dashboard' ? 'bg-orange-500' : 'bg-zinc-100 dark:bg-zinc-800'
-                }`}>
-                <svg className={`w-4 h-4 ${activeView === 'dashboard' ? 'text-white' : 'text-zinc-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-left">Author Dashboard</span>
-            </Link>
-
-            <Link
-              href="/vblog"
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all border ${activeView === 'explore'
-                  ? 'bg-zinc-900 border-zinc-900 text-white dark:bg-white dark:border-white dark:text-zinc-900 shadow-xl'
-                  : 'bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-orange-500/30 hover:bg-orange-500/5'
-                }`}
-            >
-              <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${activeView === 'explore' ? 'bg-orange-500' : 'bg-zinc-100 dark:bg-zinc-800'
-                }`}>
-                <svg className={`w-4 h-4 ${activeView === 'explore' ? 'text-white' : 'text-zinc-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-left">Explore Articles</span>
-            </Link>
           </div>
-          {/* Categories */}
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-zinc-700 dark:text-white opacity-80 uppercase tracking-wider mb-3">
-              Categories
-            </h3>
-            <div className="space-y-1">
-              <button
-                onClick={() => onCategoryChange(null)}
-                className={`k-sidebar-item w-full ${selectedCategory === null
-                  ? 'k-sidebar-item-active font-bold'
-                  : 'text-zinc-700 dark:text-zinc-300'
-                  }`}
-              >
-                <span className="flex-shrink-0 inline-flex items-center"><VBlogCategoryIcon id={null} /></span>
-                <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 min-w-0 truncate text-left">All Categories</span>
-                <span className="k-sidebar-count">{articles.length}</span>
-              </button>
-              {categories.map((category) => {
-                const count = articles.filter(a => a.category === category).length;
-                return (
-                  <button
-                    key={category}
-                    onClick={() => onCategoryChange(category)}
-                    className={`k-sidebar-item w-full ${selectedCategory === category
-                      ? 'k-sidebar-item-active font-bold'
-                      : 'text-zinc-700 dark:text-zinc-300'
-                      }`}
-                  >
-                    <span className="flex-shrink-0 inline-flex items-center"><VBlogCategoryIcon id={category} /></span>
-                    <span className="text-[11px] font-bold uppercase tracking-wider transition-colors flex-1 min-w-0 truncate text-left">{category}</span>
-                    <span className="k-sidebar-count">{count}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Tags */}
-          {allTags.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-sm font-semibold text-zinc-700 dark:text-white opacity-80 uppercase tracking-wider mb-3">
-                Tags
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {allTags.map((tag) => (
-                  <button
-                    key={tag}
-                    onClick={() => onTagToggle(tag)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${selectedTags.includes(tag)
-                      ? 'bg-[#02abb8] text-white'
-                      : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-                      }`}
-                  >
-                    #{tag}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Clear Filters */}
-          {(selectedCategory !== null || selectedTags.length > 0 || searchQuery) && (
-            <button
-              onClick={() => {
-                onCategoryChange(null);
-                onSearchChange('');
-                selectedTags.forEach(tag => onTagToggle(tag));
-              }}
-              className="w-full px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-            >
-              Clear All Filters
-            </button>
-          )}
+        )}
+        <div className="mb-6 space-y-0.5">
+          <SidebarNavItem href="/vblog/dashboard" label="Author Dashboard" active={activeView === 'dashboard'} icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>} />
+          <SidebarNavItem href="/vblog" label="Explore Articles" active={activeView === 'explore'} icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>} />
         </div>
-      </aside>
-    </>
+        <SidebarCategories
+          title="Categories"
+          items={categoryItems}
+          selectedIds={selectedCategory == null ? ALL_ID : selectedCategory}
+          onSelect={handleCategorySelect}
+          multi={false}
+        />
+        {allTags.length > 0 && <SidebarTags title="Tags" tags={allTags} selectedTags={selectedTags} onToggle={onTagToggle} />}
+        {(selectedCategory !== null || selectedTags.length > 0 || searchQuery) && (
+          <button
+            type="button"
+            onClick={() => {
+              onCategoryChange(null);
+              onSearchChange('');
+              selectedTags.forEach((tag) => onTagToggle(tag));
+            }}
+            className="w-full mt-4 k-control-btn"
+          >
+            Clear All Filters
+          </button>
+        )}
+      </div>
+    </UnifiedSidebar>
   );
 }

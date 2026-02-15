@@ -13,6 +13,7 @@ import { VBlogRewardsSection } from '@/components/vblog/VBlogRewardsSection';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { FilterBar } from '@/components/FilterBar';
 
 export default function VBlogPage() {
   const { articles, isLoading, loadArticles } = useVBlog();
@@ -129,18 +130,20 @@ export default function VBlogPage() {
               <VBlogRewardsSection />
 
               {/* Controls Area */}
-              <div className="mt-12 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                <div className="flex items-center gap-3">
+              <div className="mt-12 mb-8 flex flex-col gap-4">
+                <FilterBar
+                  search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search articles...' }}
+                  onReset={handleResetFilters}
+                >
                   <VBlogSortFilters
                     sortBy={sortBy}
                     onSortChange={setSortBy}
                     onAddArticle={() => setIsSubmitModalOpen(true)}
                   />
-                  <p className="text-sm font-bold text-zinc-500">
-                    {filteredArticles.length} Result{filteredArticles.length !== 1 ? 's' : ''}
-                  </p>
-                </div>
-
+                </FilterBar>
+                <p className="text-sm font-bold text-zinc-500">
+                  {filteredArticles.length} Result{filteredArticles.length !== 1 ? 's' : ''}
+                </p>
                 {/* Selected Tags Row (Compact) */}
                 <div className="flex flex-wrap gap-2">
                   {selectedTags.map(tag => (

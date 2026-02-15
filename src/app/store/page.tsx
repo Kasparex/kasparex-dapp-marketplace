@@ -11,6 +11,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getAllProducts } from '@/lib/store/products';
 import { getCategoryCounts } from '@/lib/store/filtering';
 import { ProductSortFilters } from '@/components/store/ProductSortFilters';
+import { FilterBar } from '@/components/FilterBar';
 import { sortProducts, type SortOption } from '@/lib/store/sorting';
 import type { Product, ProductCategory, ProductNetwork } from '@/lib/store/types';
 
@@ -109,25 +110,23 @@ export default function StorePage() {
             <StoreHeader />
 
             {/* Controls Bar */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-              <div className="flex-1">
-                <p className="text-zinc-500 dark:text-zinc-400 font-medium">
-                  {isLoading ? (
-                    'Loading products...'
-                  ) : (
-                    `${filteredAndSortedProducts.length} product${filteredAndSortedProducts.length !== 1 ? 's' : ''} found`
-                  )}
-                </p>
-              </div>
-
-              {/* Filters and Sort Controls */}
-              <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
-                {/* Network Filter */}
+            <div className="flex flex-col gap-4 mb-8">
+              <p className="text-zinc-500 dark:text-zinc-400 font-medium">
+                {isLoading ? (
+                  'Loading products...'
+                ) : (
+                  `${filteredAndSortedProducts.length} product${filteredAndSortedProducts.length !== 1 ? 's' : ''} found`
+                )}
+              </p>
+              <FilterBar
+                search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search products...' }}
+                onReset={handleResetFilters}
+              >
                 <div className="relative">
                   <select
                     value={selectedNetwork}
                     onChange={(e) => setSelectedNetwork(e.target.value as ProductNetwork | 'all')}
-                    className="appearance-none pl-3 pr-8 py-2 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 focus:outline-none hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                    className="h-10 appearance-none pl-3 pr-8 py-2 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 focus:outline-none hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                     aria-label="Filter by network"
                   >
                     <option value="all">Every Network</option>
@@ -138,15 +137,10 @@ export default function StorePage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
-
-                {/* View Mode Controls */}
-                <div className="flex items-center border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden bg-white dark:bg-zinc-900">
+                <div className="flex items-center border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden bg-white dark:bg-zinc-900 h-10">
                   <button
                     onClick={() => setViewMode('grid')}
-                    className={`p-2 transition-colors ${viewMode === 'grid'
-                      ? 'bg-zinc-100 dark:bg-zinc-800 text-violet-500'
-                      : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200'
-                      }`}
+                    className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-zinc-100 dark:bg-zinc-800 text-violet-500' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200'}`}
                     title="Grid view"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
@@ -154,30 +148,14 @@ export default function StorePage() {
                   <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-800" />
                   <button
                     onClick={() => setViewMode('compact')}
-                    className={`p-2 transition-colors ${viewMode === 'compact'
-                      ? 'bg-zinc-100 dark:bg-zinc-800 text-violet-500'
-                      : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200'
-                      }`}
+                    className={`p-2 transition-colors ${viewMode === 'compact' ? 'bg-zinc-100 dark:bg-zinc-800 text-violet-500' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200'}`}
                     title="Compact view"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
                   </button>
                 </div>
-
-                <ProductSortFilters
-                  sortBy={sortBy}
-                  onSortChange={setSortBy}
-                />
-
-                {(selectedCategories.length > 0 || selectedNetwork !== 'all' || searchQuery) && (
-                  <button
-                    onClick={handleResetFilters}
-                    className="k-control-btn whitespace-nowrap"
-                  >
-                    Reset Filters
-                  </button>
-                )}
-              </div>
+                <ProductSortFilters sortBy={sortBy} onSortChange={setSortBy} />
+              </FilterBar>
             </div>
 
             {/* Error State */}

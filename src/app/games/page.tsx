@@ -11,6 +11,7 @@ import { filterGames, getGameTypeCounts, getDifficultyCounts, getStatusCounts, G
 import { sortGames, GameSortOption } from '@/lib/games/sorting';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useLikes } from '@/hooks/useLikes';
+import { FilterBar } from '@/components/FilterBar';
 
 function GamesContent() {
   const [selectedGameTypes, setSelectedGameTypes] = useState<GameType[]>([]);
@@ -177,8 +178,8 @@ function GamesContent() {
             </div>
             <div id="content" className="scroll-mt-4" />
 
-            <div className="mb-6 flex items-start justify-between gap-4">
-              <div className="lg:pl-0 pl-12 flex-1">
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="lg:pl-0 pl-12 flex-1 min-w-0">
                 <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
                   Available games
                 </h2>
@@ -186,8 +187,12 @@ function GamesContent() {
                   {filteredGames.length} game{filteredGames.length !== 1 ? 's' : ''} found
                 </p>
               </div>
-              {/* Action Buttons and Sort Filters */}
-              <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Filter bar: search + sort + reset */}
+              <div className="flex-1 min-w-0">
+              <FilterBar
+                search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search games...' }}
+                onReset={handleResetFilters}
+              >
                 <GameSortFilters
                   sortBy={sortBy}
                   onSortChange={setSortBy}
@@ -195,12 +200,7 @@ function GamesContent() {
                   viewMode={viewMode}
                   onViewModeChange={setViewMode}
                 />
-                <button
-                  onClick={handleResetFilters}
-                  className="k-control-btn whitespace-nowrap"
-                >
-                  Reset Filters
-                </button>
+              </FilterBar>
               </div>
             </div>
 
