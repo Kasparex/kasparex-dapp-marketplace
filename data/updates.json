@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1771168909-adce821",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: LRT removal and dApp UI overhaul: GRT-only rewards, listing hero, sidebar filters, Action Flow (by Kasparex)",
+      "date": "2026-02-15T16:20:16+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1770563245-927dd3e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix Hub cards graphics, add sidebar hover effects, update product cards styling (by Kasparex)",
