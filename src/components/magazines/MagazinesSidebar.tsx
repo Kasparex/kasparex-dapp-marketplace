@@ -84,14 +84,14 @@ export function MagazinesSidebar({
       )}
 
       {isListing && categories.length > 0 && (
-        <SidebarSection title="Categories" icon={<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>}>
-          <SidebarCategories
-            items={categoryItems}
-            selectedIds={selectedCategory}
-            onSelect={(id) => onCategoryChange?.(id)}
-            multi={false}
-          />
-        </SidebarSection>
+        <SidebarCategories
+          title="Categories"
+          sectionIcon={<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>}
+          items={categoryItems}
+          selectedIds={selectedCategory}
+          onSelect={(id) => onCategoryChange?.(id)}
+          multi={false}
+        />
       )}
 
       {isListing && tags.length > 0 && (

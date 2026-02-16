@@ -95,14 +95,14 @@ export function StoreSidebar({
       {isListing && (
         <>
           <SidebarQuickActions items={quickActionsListing} sectionIcon={<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>} />
-          <SidebarSection title="Categories" icon={<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>}>
-            <SidebarCategories
-              items={categoryItems}
-              selectedIds={selectedCategories}
-              onSelect={handleCategoryToggle}
-              multi={true}
-            />
-          </SidebarSection>
+          <SidebarCategories
+            title="Categories"
+            sectionIcon={<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>}
+            items={categoryItems}
+            selectedIds={selectedCategories}
+            onSelect={handleCategoryToggle}
+            multi={true}
+          />
         </>
       )}
 

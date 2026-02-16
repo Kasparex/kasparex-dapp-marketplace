@@ -5,6 +5,7 @@ import { GameType, GameDifficulty, GameStatus, gameTypes, difficultyLevels } fro
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
+import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
 
 interface GamesSidebarProps {
   selectedGameTypes: GameType[];
@@ -128,56 +129,53 @@ export function GamesSidebar({
     </div>
   );
 
+  const gameTypeItems = Object.entries(gameTypes).map(([type, info]) => ({
+    id: type,
+    label: info.name,
+    count: gameTypeCounts[type as GameType] ?? 0,
+    icon: <GameIcon id={type} />,
+  }));
+
+  const difficultyItems = Object.entries(difficultyLevels).map(([d, info]) => ({
+    id: d,
+    label: info.name,
+    count: difficultyCounts[d as GameDifficulty] ?? 0,
+    icon: <GameIcon id={d} type="difficulty" />,
+  }));
+
+  const statusItems = (['beta', 'active', 'coming-soon', 'maintenance'] as GameStatus[]).map((status) => ({
+    id: status,
+    label: status.replace('-', ' '),
+    count: statusCounts[status] ?? 0,
+    icon: <GameIcon id={status} type="status" />,
+  }));
+
   return (
     <UnifiedSidebar storageKeyPrefix="games" header={header}>
       <div className="p-4">
         {showCategories && (
           <>
-            <SidebarSection title="Game Type">
-              <nav className="space-y-0.5">
-                {Object.entries(gameTypes).map(([type, info]) => (
-                  <SidebarNavItem
-                    key={type}
-                    label={info.name}
-                    icon={<GameIcon id={type} />}
-                    count={gameTypeCounts[type as GameType] ?? 0}
-                    checked={selectedGameTypes.includes(type as GameType)}
-                    onCheckedChange={() => handleGameTypeToggle(type as GameType)}
-                    active={selectedGameTypes.includes(type as GameType)}
-                  />
-                ))}
-              </nav>
-            </SidebarSection>
-            <SidebarSection title="Difficulty">
-              <nav className="space-y-0.5">
-                {Object.entries(difficultyLevels).map(([d, info]) => (
-                  <SidebarNavItem
-                    key={d}
-                    label={info.name}
-                    icon={<GameIcon id={d} type="difficulty" />}
-                    count={difficultyCounts[d as GameDifficulty] ?? 0}
-                    checked={selectedDifficulties.includes(d as GameDifficulty)}
-                    onCheckedChange={() => handleDifficultyToggle(d as GameDifficulty)}
-                    active={selectedDifficulties.includes(d as GameDifficulty)}
-                  />
-                ))}
-              </nav>
-            </SidebarSection>
-            <SidebarSection title="Status">
-              <nav className="space-y-0.5">
-                {(['beta', 'active', 'coming-soon', 'maintenance'] as GameStatus[]).map((status) => (
-                  <SidebarNavItem
-                    key={status}
-                    label={status.replace('-', ' ')}
-                    icon={<GameIcon id={status} type="status" />}
-                    count={statusCounts[status] ?? 0}
-                    checked={selectedStatuses.includes(status)}
-                    onCheckedChange={() => handleStatusToggle(status)}
-                    active={selectedStatuses.includes(status)}
-                  />
-                ))}
-              </nav>
-            </SidebarSection>
+            <SidebarCategories
+              title="Game Type"
+              items={gameTypeItems}
+              selectedIds={selectedGameTypes}
+              onSelect={(id) => handleGameTypeToggle(id as GameType)}
+              multi={true}
+            />
+            <SidebarCategories
+              title="Difficulty"
+              items={difficultyItems}
+              selectedIds={selectedDifficulties}
+              onSelect={(id) => handleDifficultyToggle(id as GameDifficulty)}
+              multi={true}
+            />
+            <SidebarCategories
+              title="Status"
+              items={statusItems}
+              selectedIds={selectedStatuses}
+              onSelect={(id) => handleStatusToggle(id as GameStatus)}
+              multi={true}
+            />
             {onCostRangeChange && costRange != null && (
               <SidebarSection title="Entry Cost (KAS)">
                 <div className="space-y-3 px-1">

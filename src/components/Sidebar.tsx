@@ -103,6 +103,21 @@ export function Sidebar({
     icon: <CategoryIcon id={c.id} />,
   }));
 
+  const statusItems = statusOptions.map((opt) => ({
+    id: opt.value,
+    label: opt.label,
+    icon: opt.value !== 'all' ? <StatusIndicatorDot statusType={getStatusTypeFromString(opt.value)} size="sm" /> : undefined,
+  }));
+
+  const networkItems = networkOptions.map((opt) => {
+    const value = opt.label === 'All' ? 'all' : opt.label;
+    return {
+      id: value,
+      label: opt.label,
+      icon: <GlobeIcon />,
+    };
+  });
+
   const backHref = pathname.startsWith('/dapps') ? '/' : '/hub';
   const backLabel = pathname.startsWith('/dapps') ? 'Back to dApps' : 'Back to Hub';
 
@@ -121,42 +136,26 @@ export function Sidebar({
           multi
         />
 
-        <SidebarSection title="Status" icon={<StatusIcon />}>
-          <nav className="space-y-0.5">
-            {statusOptions.map((opt) => {
-              const checked = (filters.status || []).includes(opt.value as DAppStatus);
-              return (
-                <SidebarNavItem
-                  key={opt.value}
-                  label={opt.label}
-                  icon={opt.value !== 'all' ? <StatusIndicatorDot statusType={getStatusTypeFromString(opt.value)} size="sm" /> : undefined}
-                  checked={checked}
-                  onCheckedChange={() => handleStatusToggle(opt.value)}
-                  active={checked}
-                />
-              );
-            })}
-          </nav>
-        </SidebarSection>
+        <SidebarCategories
+          title="Status"
+          sectionIcon={<StatusIcon />}
+          items={statusItems}
+          selectedIds={filters.status || []}
+          onSelect={(id) => handleStatusToggle(id as DAppStatus | 'all')}
+          multi={true}
+        />
 
-        <SidebarSection title="Network" icon={<NetworkIcon />}>
-          <nav className="space-y-0.5">
-            {networkOptions.map((opt) => {
-              const value = opt.label === 'All' ? 'all' : opt.label;
-              const checked = (filters.network || []).includes(value);
-              return (
-                <SidebarNavItem
-                  key={opt.label}
-                  label={opt.label}
-                  icon={<GlobeIcon />}
-                  checked={checked}
-                  onCheckedChange={() => handleNetworkToggle(opt.label)}
-                  active={checked}
-                />
-              );
-            })}
-          </nav>
-        </SidebarSection>
+        <SidebarCategories
+          title="Network"
+          sectionIcon={<NetworkIcon />}
+          items={networkItems}
+          selectedIds={filters.network || []}
+          onSelect={(id) => {
+            const opt = networkOptions.find((o) => (o.label === 'All' ? 'all' : o.label) === id);
+            if (opt) handleNetworkToggle(opt.label);
+          }}
+          multi={true}
+        />
 
         <button type="button" onClick={onResetFilters} className="w-full mt-4 k-control-btn">
           Reset Filters
