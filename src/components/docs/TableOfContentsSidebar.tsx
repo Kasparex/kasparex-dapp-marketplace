@@ -2,8 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { NODEStatusBox } from '../rewards/NODEStatusBox';
-
 interface TableOfContentsSidebarProps {
   items: Array<{
     id: string;
@@ -260,13 +258,6 @@ export function TableOfContentsSidebar({ items }: TableOfContentsSidebarProps) {
                 );
               })}
             </nav>
-          </div>
-        )}
-
-        {/* NODE Status Box */}
-        {!isHidden && (
-          <div className="px-4 pb-4">
-            <NODEStatusBox />
           </div>
         )}
       </aside>

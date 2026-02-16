@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { DevelopmentSidebar } from '@/components/updates/DevelopmentSidebar';
 import { UpdatesTimeline } from '@/components/UpdatesTimeline';
 import { UpdatesEditor, type UpdatesEditorHandle } from '@/components/UpdatesEditor';
 import type { TimelineEntry, Category } from '@/lib/updates';
@@ -35,49 +35,34 @@ export default function UpdatesPage() {
     <div className="flex flex-col min-h-screen">
       <Header />
       
-      <main className="flex-1 p-4 sm:p-6 lg:p-8">
-        <div className="max-w-6xl mx-auto">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 mb-4 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
-            </svg>
-            Back to Categories
-          </Link>
-          
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-            Development Timeline
-          </h1>
-          <p className="text-zinc-600 dark:text-zinc-400 mb-8">
-            Track website developments, tasks, ideas, and bug fixes. Deployments are automatically tracked via GitHub Actions when you push to main.
-          </p>
-          
-          <div className="mb-8">
-            <UpdatesEditor
-              ref={editorRef}
-              onEntryAdded={handleEntryAdded}
-              onEntryUpdated={handleEntryUpdated}
-              onEntryDeleted={handleEntryDeleted}
-            />
-          </div>
+      <main className="flex-1">
+        <div className="flex flex-col lg:flex-row">
+          <DevelopmentSidebar />
+          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6">
+            <div className="max-w-6xl mx-auto">
+              <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+                Development Timeline
+              </h1>
+              <p className="text-zinc-600 dark:text-zinc-400 mb-8">
+                Track website developments, tasks, ideas, and bug fixes. Deployments are automatically tracked via GitHub Actions when you push to main.
+              </p>
+              
+              <div className="mb-8">
+                <UpdatesEditor
+                  ref={editorRef}
+                  onEntryAdded={handleEntryAdded}
+                  onEntryUpdated={handleEntryUpdated}
+                  onEntryDeleted={handleEntryDeleted}
+                />
+              </div>
 
-          <UpdatesTimeline 
-            onEdit={isEditingEnabled ? handleEdit : undefined} 
-            refreshKey={refreshKey}
-            showEditButton={isEditingEnabled}
-          />
+              <UpdatesTimeline 
+                onEdit={isEditingEnabled ? handleEdit : undefined} 
+                refreshKey={refreshKey}
+                showEditButton={isEditingEnabled}
+              />
+            </div>
+          </div>
         </div>
       </main>
 

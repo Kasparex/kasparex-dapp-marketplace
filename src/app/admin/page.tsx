@@ -8,6 +8,7 @@ import { useAccount } from 'wagmi';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Link from 'next/link';
+import { AdminSidebar } from '@/components/admin/AdminSidebar';
 
 // Dynamically import AdminDashboard with no SSR to prevent build-time evaluation
 const AdminDashboard = dynamicImport(
@@ -72,9 +73,12 @@ export default function AdminPage() {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-1 p-4 sm:p-6 lg:p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
+      <main className="flex-1">
+        <div className="flex flex-col lg:flex-row">
+          <AdminSidebar />
+          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6">
+            <div className="max-w-7xl mx-auto">
+              <div className="mb-8">
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
               Admin Dashboard
             </h1>
@@ -119,6 +123,8 @@ export default function AdminPage() {
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
               The legacy Admin Dashboard is being rebuilt as a decentralized dApp. Use specific centers above for active modules.
             </p>
+          </div>
+            </div>
           </div>
         </div>
       </main>

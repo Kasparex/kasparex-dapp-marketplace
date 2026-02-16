@@ -1,17 +1,16 @@
 'use client';
 
-import Link from 'next/link';
 import { knowledgeBaseCategories, type KnowledgeBaseCategory } from '@/lib/knowledgeBase';
-import { NODEStatusBox } from '../rewards/NODEStatusBox';
 import { UnifiedSidebar } from '../UnifiedSidebar';
+import { SidebarHeader } from '../sidebar/SidebarHeader';
 import { SidebarSection } from '../sidebar/SidebarSection';
 import { SidebarCategories } from '../sidebar/SidebarCategories';
 
 interface KnowledgeBaseSidebarProps {
   selectedCategory: KnowledgeBaseCategory | 'all';
   onCategoryChange: (category: KnowledgeBaseCategory | 'all') => void;
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
 }
 
 const categoryIcons: Record<string, React.ReactNode> = {
@@ -62,8 +61,6 @@ const defaultIcon = (
 export function KnowledgeBaseSidebar({
   selectedCategory,
   onCategoryChange,
-  searchQuery,
-  onSearchChange,
 }: KnowledgeBaseSidebarProps) {
   const allItem = {
     id: 'all' as const,
@@ -79,43 +76,19 @@ export function KnowledgeBaseSidebar({
     })),
   ];
 
-  const header = (onHide: () => void) => (
-    <div className="flex-shrink-0 bg-transparent border-b border-zinc-200 dark:border-zinc-800 p-4">
-      <div className="flex items-center justify-between mb-4">
-        <Link
-          href="/"
-          className="text-zinc-500 dark:text-zinc-400 hover:text-[#02abb8] font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
-        >
-          <svg className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
-          </svg>
-          Back to dApps
-        </Link>
-        <button
-          type="button"
-          onClick={onHide}
-          className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-colors"
-          aria-label="Hide sidebar"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-      </div>
-      <div className="k-search-container h-10 overflow-visible">
-        <input
-          type="text"
-          placeholder="Search articles..."
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className={`k-search-input h-10 w-full ${searchQuery.length > 0 ? 'is-typing' : ''}`.trim()}
-        />
-      </div>
-    </div>
-  );
-
   return (
-    <UnifiedSidebar storageKeyPrefix="kb" header={header} defaultWidth={280}>
+    <UnifiedSidebar
+      storageKeyPrefix="kb"
+      header={(onHide) => (
+        <SidebarHeader
+          backHref="/"
+          backLabel="Back to dApps"
+          onHide={onHide}
+          className="bg-white dark:bg-zinc-950"
+        />
+      )}
+      defaultWidth={280}
+    >
       <SidebarSection title="Categories">
         <SidebarCategories
           items={categoryItems}
@@ -124,9 +97,6 @@ export function KnowledgeBaseSidebar({
           multi={false}
         />
       </SidebarSection>
-      <div className="px-4 pb-4 mt-4">
-        <NODEStatusBox />
-      </div>
     </UnifiedSidebar>
   );
 }

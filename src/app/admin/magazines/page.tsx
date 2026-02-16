@@ -8,6 +8,7 @@ import { getAllMagazines, getIssuesForMagazine } from '@/lib/magazines/data';
 import { Magazine, MagazineIssue } from '@/lib/magazines/types';
 import Link from 'next/link';
 import Image from 'next/image';
+import { AdminSidebar } from '@/components/admin/AdminSidebar';
 
 export default function MagazinesAdminPage() {
     const { isAdmin, isConnected } = useAdmin();
@@ -48,20 +49,24 @@ export default function MagazinesAdminPage() {
         <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
             <Header />
 
-            <main className="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-12">
-                <div className="flex items-center justify-between mb-12">
-                    <div>
-                        <h1 className="text-4xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
-                            Magazines <span className="text-emerald-500">Admin</span>
-                        </h1>
-                        <p className="text-zinc-500 text-sm">Platform-wide management of publications, splits, and IPFS assets.</p>
-                    </div>
-                    <div className="flex gap-4">
-                        <Link href="/magazines/editor" className="px-6 py-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl text-sm font-bold shadow-lg shadow-zinc-500/10">
-                            Create System Magazine
-                        </Link>
-                    </div>
-                </div>
+            <main className="flex-1">
+                <div className="flex flex-col lg:flex-row">
+                    <AdminSidebar />
+                    <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6">
+                        <div className="max-w-7xl mx-auto">
+                            <div className="flex items-center justify-between mb-12">
+                                <div>
+                                    <h1 className="text-4xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
+                                        Magazines <span className="text-emerald-500">Admin</span>
+                                    </h1>
+                                    <p className="text-zinc-500 text-sm">Platform-wide management of publications, splits, and IPFS assets.</p>
+                                </div>
+                                <div className="flex gap-4">
+                                    <Link href="/magazines/editor" className="px-6 py-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl text-sm font-bold shadow-lg shadow-zinc-500/10">
+                                        Create System Magazine
+                                    </Link>
+                                </div>
+                            </div>
 
                 {/* Platform Summary Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
@@ -168,6 +173,9 @@ export default function MagazinesAdminPage() {
                                 </div>
                             </div>
                         </section>
+                    </div>
+                </div>
+                        </div>
                     </div>
                 </div>
             </main>

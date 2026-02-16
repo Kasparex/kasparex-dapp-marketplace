@@ -40,21 +40,28 @@ export default function KnowledgeBasePage() {
           <KnowledgeBaseSidebar
             selectedCategory={selectedCategory}
             onCategoryChange={setSelectedCategory}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
           />
 
           {/* Main Content */}
           <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6">
             <div className="max-w-6xl mx-auto">
               {/* Hero Section */}
-              <div className="mb-8">
+              <div className="mb-6">
                 <h1 className="text-4xl sm:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
                   Knowledge Base
                 </h1>
-                <p className="text-lg text-zinc-600 dark:text-zinc-400">
+                <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-4">
                   Everything you need to know about the Kasparex ecosystem
                 </p>
+                <div className="k-search-container h-10 max-w-md overflow-visible">
+                  <input
+                    type="text"
+                    placeholder="Search articles..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className={`k-search-input h-10 w-full ${searchQuery.length > 0 ? 'is-typing' : ''}`.trim()}
+                  />
+                </div>
               </div>
 
               {/* Results Count */}
