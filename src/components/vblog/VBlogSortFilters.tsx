@@ -71,7 +71,7 @@ export function VBlogSortFilters({ sortBy, onSortChange, onAddArticle }: VBlogSo
                             className="fixed inset-0 z-[45]"
                             onClick={() => setIsOpen(false)}
                         />
-                        <div className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[50] overflow-hidden">
+                        <div className="absolute bottom-full left-0 mb-1 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[50] overflow-hidden">
                             {sortOptions.map((option) => (
                                 <button
                                     key={option.value}

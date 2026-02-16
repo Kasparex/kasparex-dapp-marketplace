@@ -126,38 +126,36 @@ export function Sidebar({
       storageKeyPrefix="dapps"
       header={(onHide) => <SidebarHeader backHref={backHref} backLabel={backLabel} onHide={onHide} />}
     >
-      <div className="p-4">
-        <SidebarCategories
-          title="Categories"
-          items={categoryItems}
-          selectedIds={selectedCategories}
-          onSelect={handleCategoryToggle}
-          multi
-        />
+      <SidebarCategories
+        title="Categories"
+        items={categoryItems}
+        selectedIds={selectedCategories}
+        onSelect={handleCategoryToggle}
+        multi
+      />
 
-        <SidebarCategories
-          title="Status"
-          items={statusItems}
-          selectedIds={filters.status || []}
-          onSelect={(id) => handleStatusToggle(id as DAppStatus | 'all')}
-          multi={true}
-        />
+      <SidebarCategories
+        title="Status"
+        items={statusItems}
+        selectedIds={filters.status || []}
+        onSelect={(id) => handleStatusToggle(id as DAppStatus | 'all')}
+        multi={true}
+      />
 
-        <SidebarCategories
-          title="Network"
-          items={networkItems}
-          selectedIds={filters.network || []}
-          onSelect={(id) => {
-            const opt = networkOptions.find((o) => (o.label === 'All' ? 'all' : o.label) === id);
-            if (opt) handleNetworkToggle(opt.label);
-          }}
-          multi={true}
-        />
+      <SidebarCategories
+        title="Network"
+        items={networkItems}
+        selectedIds={filters.network || []}
+        onSelect={(id) => {
+          const opt = networkOptions.find((o) => (o.label === 'All' ? 'all' : o.label) === id);
+          if (opt) handleNetworkToggle(opt.label);
+        }}
+        multi={true}
+      />
 
-        <button type="button" onClick={onResetFilters} className="w-full mt-4 k-control-btn">
-          Reset Filters
-        </button>
-      </div>
+      <button type="button" onClick={onResetFilters} className="w-full mt-4 k-control-btn">
+        Reset Filters
+      </button>
     </UnifiedSidebar>
   );
 }
