@@ -2,7 +2,7 @@
 
 export function VBlogHeader() {
   return (
-    <div className="relative mb-12 py-12 px-6 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-orange-50/50 to-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-transparent">
+    <div className="relative mb-12 py-12 px-6 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-orange-50/50 to-zinc-100 dark:from-zinc-950 dark:via-orange-950/40 dark:to-zinc-950 border border-zinc-200 dark:border-transparent">
       {/* Background Glow */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,#02abb8,transparent_50%)]" />
@@ -10,7 +10,7 @@ export function VBlogHeader() {
       </div>
 
       <div className="relative z-10 max-w-4xl">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-700 dark:text-cyan-400 text-xs font-bold uppercase tracking-widest mb-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-700 dark:text-orange-400 text-xs font-bold uppercase tracking-widest mb-6">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>

@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export function StoreHeader() {
     return (
-        <div className="relative mb-12 py-12 px-6 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-violet-50/50 to-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-transparent">
+        <div className="relative mb-12 py-12 px-6 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-violet-50/50 to-zinc-100 dark:from-zinc-950 dark:via-violet-950/40 dark:to-zinc-950 border border-zinc-200 dark:border-transparent">
             {/* Background Gradients */}
             <div className="absolute inset-0 opacity-20">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,#8b5cf6,transparent_50%)]" />

@@ -6,7 +6,7 @@ export default function StudioStorePage() {
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Premium Halo Header */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-100 via-emerald-50/30 to-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-8 md:p-12">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-100 via-emerald-50/30 to-zinc-100 dark:from-zinc-950 dark:via-emerald-950/30 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800 p-8 md:p-12">
                 {/* Halo Background Glows */}
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/10 blur-[120px] rounded-full -mr-64 -mt-64" />
                 <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-teal-500/5 blur-[100px] rounded-full -ml-48 -mb-48" />

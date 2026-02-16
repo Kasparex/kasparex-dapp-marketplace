@@ -4,7 +4,7 @@ import { MagazineDashboardButton } from './MagazineDashboardButton';
 
 export function MagazineHeader() {
     return (
-        <div className="relative mb-12 py-12 px-6 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-transparent">
+        <div className="relative mb-12 py-12 px-6 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/40 dark:to-zinc-950 border border-zinc-200 dark:border-transparent">
             <div className="absolute inset-0 opacity-20 dark:opacity-20">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,#02abb8,transparent_50%)]" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,#00c2b2,transparent_50%)]" />
