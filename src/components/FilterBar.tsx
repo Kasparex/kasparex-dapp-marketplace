@@ -32,16 +32,18 @@ export function FilterBar({
   children,
   className = '',
 }: FilterBarProps) {
+  const isTyping = (search.value?.length ?? 0) > 0;
+
   return (
-    <div className={`flex flex-nowrap items-center gap-3 min-h-10 overflow-x-auto ${className}`.trim()}>
-      <div className="flex-1 min-w-[200px] shrink-0">
+    <div className={`flex flex-nowrap items-center gap-3 min-h-10 overflow-visible ${className}`.trim()}>
+      <div className="flex-1 min-w-[200px] shrink-0 overflow-visible">
         <div className="k-search-container h-10">
           <input
             type="text"
             placeholder={search.placeholder ?? 'Search...'}
             value={search.value}
             onChange={(e) => search.onChange(e.target.value)}
-            className="k-search-input h-10"
+            className={`k-search-input h-10 ${isTyping ? 'is-typing' : ''}`.trim()}
           />
         </div>
       </div>

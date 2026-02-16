@@ -235,8 +235,8 @@ export function NFTSidebar({
 
           {/* Search field - only show on listing page */}
           {isListingPage && searchQuery !== undefined && onSearchChange && (
-            <div className="mb-4">
-              <div className="k-search-container">
+            <div className="mb-4 overflow-visible">
+              <div className="k-search-container h-9">
                 <svg
                   className="k-search-icon"
                   fill="none"
@@ -255,7 +255,7 @@ export function NFTSidebar({
                   value={searchQuery}
                   onChange={(e) => onSearchChange(e.target.value)}
                   placeholder="Search collections..."
-                  className="k-search-input !h-9 !pl-9"
+                  className={`k-search-input !h-9 !pl-9 ${searchQuery.length > 0 ? 'is-typing' : ''}`.trim()}
                 />
               </div>
             </div>

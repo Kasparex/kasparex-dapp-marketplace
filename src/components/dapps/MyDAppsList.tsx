@@ -74,13 +74,13 @@ export function MyDAppsList({ dApps, isLoading, isEmpty }: MyDAppsListProps) {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 min-w-0">
-          <div className="k-search-container h-10">
+          <div className="k-search-container h-10 overflow-visible">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search dApps..."
-              className="k-search-input h-10 w-full"
+              className={`k-search-input h-10 w-full ${searchQuery.length > 0 ? 'is-typing' : ''}`.trim()}
             />
           </div>
         </div>

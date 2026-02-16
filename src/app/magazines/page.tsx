@@ -103,14 +103,14 @@ export default function MagazinesPage() {
                         {/* Controls Bar: Search and Sort */}
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                             {/* Search Bar - Moved from Sidebar */}
-                            <div className="flex-1 max-w-md">
-                                <div className="k-search-container">
+                            <div className="flex-1 max-w-md overflow-visible">
+                                <div className="k-search-container h-10">
                                     <input
                                         type="text"
                                         placeholder="Search magazines..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="k-search-input"
+                                        className={`k-search-input h-10 ${searchQuery.length > 0 ? 'is-typing' : ''}`.trim()}
                                     />
                                 </div>
                             </div>

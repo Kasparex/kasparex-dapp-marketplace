@@ -102,13 +102,13 @@ export function KnowledgeBaseSidebar({
           </svg>
         </button>
       </div>
-      <div className="k-search-container h-10">
+      <div className="k-search-container h-10 overflow-visible">
         <input
           type="text"
           placeholder="Search articles..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="k-search-input h-10 w-full"
+          className={`k-search-input h-10 w-full ${searchQuery.length > 0 ? 'is-typing' : ''}`.trim()}
         />
       </div>
     </div>

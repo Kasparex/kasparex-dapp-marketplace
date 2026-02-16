@@ -408,35 +408,46 @@
   border: 1px solid var(--k-control-border);
 }
 
+/* Single capsule: one wrapper only, no double borders. Parent must have overflow: visible; no transform. */
 .k-search-container {
   @apply relative flex items-center;
+  overflow: visible;
+  /* No transform - avoids focus ring clipping */
 }
 
 .k-search-icon {
   @apply absolute left-3.5 w-4 h-4 text-zinc-400 pointer-events-none z-10;
 }
 
+/* Styles applied directly to input only - true single capsule */
 .k-search-input {
-  @apply h-10 px-4 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 transition-all w-full;
-  background-color: var(--k-control-bg);
-  border: 1px solid var(--k-control-border);
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: #1a1816;
+  background-clip: padding-box;
   outline: none;
+  @apply h-10 px-4 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 transition-all w-full;
 }
 .k-search-input:focus {
+  box-shadow: 0 0 0 2px rgba(0, 151, 178, 0.35);
+}
+/* Typing state: value length > 0 → add .is-typing, use darker gray */
+.k-search-input.is-typing {
   background-color: var(--k-control-bg);
   border-color: var(--k-control-border);
-  box-shadow: 0 0 0 2px rgba(2, 171, 184, 0.25);
 }
-/* Default: darker background (#1a1816); when typing (focus or has value) use control bg */
-.dark .k-search-input {
-  background-color: #1a1816;
-  border-color: var(--k-control-border);
+.k-search-input.is-typing:focus {
+  box-shadow: 0 0 0 2px rgba(0, 151, 178, 0.35);
 }
-.dark .k-search-input:focus,
-.dark .k-search-input:not(:placeholder-shown) {
+/* Light mode: keep same capsule look, typing uses control bg */
+:root:not(.dark) .k-search-input {
+  background: #f4f4f5;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+:root:not(.dark) .k-search-input.is-typing {
   background-color: var(--k-control-bg);
   border-color: var(--k-control-border);
-  box-shadow: 0 0 0 2px rgba(2, 171, 184, 0.35);
 }
 
 /* Standard CTA buttons (hero and primary actions) */
