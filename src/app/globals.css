@@ -427,11 +427,13 @@
   border-color: var(--k-control-border);
   box-shadow: 0 0 0 2px rgba(2, 171, 184, 0.25);
 }
+/* Default: darker background (#1a1816); when typing (focus or has value) use control bg */
 .dark .k-search-input {
-  background-color: var(--k-control-bg);
+  background-color: #1a1816;
   border-color: var(--k-control-border);
 }
-.dark .k-search-input:focus {
+.dark .k-search-input:focus,
+.dark .k-search-input:not(:placeholder-shown) {
   background-color: var(--k-control-bg);
   border-color: var(--k-control-border);
   box-shadow: 0 0 0 2px rgba(2, 171, 184, 0.35);

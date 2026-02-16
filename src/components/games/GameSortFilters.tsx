@@ -21,7 +21,7 @@ export function GameSortFilters({
   onViewModeChange 
 }: GameSortFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [dropdownStyle, setDropdownStyle] = useState<{ bottom: number; right: number } | null>(null);
+  const [dropdownStyle, setDropdownStyle] = useState<{ top: number; left: number } | null>(null);
   const sortTriggerRef = useRef<HTMLButtonElement>(null);
 
   useLayoutEffect(() => {
@@ -31,8 +31,8 @@ export function GameSortFilters({
     }
     const rect = sortTriggerRef.current.getBoundingClientRect();
     setDropdownStyle({
-      bottom: window.innerHeight - rect.top + 8,
-      right: window.innerWidth - rect.right,
+      top: rect.bottom + 6,
+      left: rect.left,
     });
   }, [isOpen]);
 
@@ -150,7 +150,7 @@ export function GameSortFilters({
               <div
                 data-sort-dropdown
                 className="fixed w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[50] overflow-hidden"
-                style={{ bottom: dropdownStyle.bottom, right: dropdownStyle.right }}
+                style={{ top: dropdownStyle.top, left: dropdownStyle.left }}
               >
                 {sortOptions.map((option) => (
                   <button

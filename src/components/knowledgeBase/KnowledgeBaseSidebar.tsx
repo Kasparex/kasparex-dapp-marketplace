@@ -102,13 +102,15 @@ export function KnowledgeBaseSidebar({
           </svg>
         </button>
       </div>
-      <input
-        type="text"
-        placeholder="Search articles..."
-        value={searchQuery}
-        onChange={(e) => onSearchChange(e.target.value)}
-        className="w-full px-3 py-2 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#02abb8] text-zinc-900 dark:text-zinc-100"
-      />
+      <div className="k-search-container h-10">
+        <input
+          type="text"
+          placeholder="Search articles..."
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="k-search-input h-10 w-full"
+        />
+      </div>
     </div>
   );
 

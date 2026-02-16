@@ -27,12 +27,12 @@ interface SortFiltersProps {
 export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode = 'cards', onViewModeChange }: SortFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
-  const [sortDropdownStyle, setSortDropdownStyle] = useState<{ bottom: number; right: number } | null>(null);
-  const [plusDropdownStyle, setPlusDropdownStyle] = useState<{ bottom: number; right: number } | null>(null);
+  const [sortDropdownStyle, setSortDropdownStyle] = useState<{ top: number; left: number } | null>(null);
+  const [plusDropdownStyle, setPlusDropdownStyle] = useState<{ top: number; left: number } | null>(null);
   const sortTriggerRef = useRef<HTMLButtonElement>(null);
   const plusTriggerRef = useRef<HTMLButtonElement>(null);
 
-  // Position sort dropdown above trigger (fixed so it isn't clipped by overflow)
+  // Position sort dropdown below trigger (proper dropdown menu)
   useLayoutEffect(() => {
     if (!isOpen || !sortTriggerRef.current) {
       setSortDropdownStyle(null);
@@ -40,12 +40,12 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
     }
     const rect = sortTriggerRef.current.getBoundingClientRect();
     setSortDropdownStyle({
-      bottom: window.innerHeight - rect.top + 8,
-      right: window.innerWidth - rect.right,
+      top: rect.bottom + 6,
+      left: rect.left,
     });
   }, [isOpen]);
 
-  // Position plus dropdown above trigger
+  // Position plus dropdown below trigger
   useLayoutEffect(() => {
     if (!isPlusMenuOpen || !plusTriggerRef.current) {
       setPlusDropdownStyle(null);
@@ -53,8 +53,8 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
     }
     const rect = plusTriggerRef.current.getBoundingClientRect();
     setPlusDropdownStyle({
-      bottom: window.innerHeight - rect.top + 8,
-      right: window.innerWidth - rect.right,
+      top: rect.bottom + 6,
+      left: rect.left,
     });
   }, [isPlusMenuOpen]);
 
@@ -187,7 +187,7 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
               <div
                 data-sort-dropdown
                 className="fixed w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[50] overflow-hidden"
-                style={{ bottom: sortDropdownStyle.bottom, right: sortDropdownStyle.right }}
+                style={{ top: sortDropdownStyle.top, left: sortDropdownStyle.left }}
               >
                 {sortOptions.map((option) => (
                   <button
@@ -266,7 +266,7 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
               <div
                 data-plus-dropdown
                 className="fixed w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[50] overflow-hidden"
-                style={{ bottom: plusDropdownStyle.bottom, right: plusDropdownStyle.right }}
+                style={{ top: plusDropdownStyle.top, left: plusDropdownStyle.left }}
               >
                 <Link
                   href="/list-dapp"

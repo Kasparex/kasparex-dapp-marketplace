@@ -18,8 +18,8 @@ interface VBlogSortFiltersProps {
 export function VBlogSortFilters({ sortBy, onSortChange, onAddArticle }: VBlogSortFiltersProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
-    const [sortDropdownStyle, setSortDropdownStyle] = useState<{ bottom: number; left: number } | null>(null);
-    const [plusDropdownStyle, setPlusDropdownStyle] = useState<{ bottom: number; right: number } | null>(null);
+    const [sortDropdownStyle, setSortDropdownStyle] = useState<{ top: number; left: number } | null>(null);
+    const [plusDropdownStyle, setPlusDropdownStyle] = useState<{ top: number; left: number } | null>(null);
     const sortTriggerRef = useRef<HTMLButtonElement>(null);
     const plusTriggerRef = useRef<HTMLButtonElement>(null);
 
@@ -30,7 +30,7 @@ export function VBlogSortFilters({ sortBy, onSortChange, onAddArticle }: VBlogSo
         }
         const rect = sortTriggerRef.current.getBoundingClientRect();
         setSortDropdownStyle({
-            bottom: window.innerHeight - rect.top + 8,
+            top: rect.bottom + 6,
             left: rect.left,
         });
     }, [isOpen]);
@@ -42,8 +42,8 @@ export function VBlogSortFilters({ sortBy, onSortChange, onAddArticle }: VBlogSo
         }
         const rect = plusTriggerRef.current.getBoundingClientRect();
         setPlusDropdownStyle({
-            bottom: window.innerHeight - rect.top + 8,
-            right: window.innerWidth - rect.right,
+            top: rect.bottom + 6,
+            left: rect.left,
         });
     }, [isPlusMenuOpen]);
 
@@ -106,7 +106,7 @@ export function VBlogSortFilters({ sortBy, onSortChange, onAddArticle }: VBlogSo
                             <div
                                 data-sort-dropdown
                                 className="fixed w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[50] overflow-hidden"
-                                style={{ bottom: sortDropdownStyle.bottom, left: sortDropdownStyle.left }}
+                                style={{ top: sortDropdownStyle.top, left: sortDropdownStyle.left }}
                             >
                                 {sortOptions.map((option) => (
                                     <button
@@ -151,7 +151,7 @@ export function VBlogSortFilters({ sortBy, onSortChange, onAddArticle }: VBlogSo
                             <div
                                 data-plus-dropdown
                                 className="fixed w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[50] overflow-hidden"
-                                style={{ bottom: plusDropdownStyle.bottom, right: plusDropdownStyle.right }}
+                                style={{ top: plusDropdownStyle.top, left: plusDropdownStyle.left }}
                             >
                                 <button
                                     type="button"

@@ -350,13 +350,15 @@ export function FeeManagement() {
           <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
             Search and Select dApp
           </label>
-          <input
-            type="text"
-            placeholder="Search dApps by name or contract address..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 mb-3"
-          />
+          <div className="k-search-container h-10 mb-3">
+            <input
+              type="text"
+              placeholder="Search dApps by name or contract address..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="k-search-input h-10 w-full"
+            />
+          </div>
           
           {searchQuery && (
             <div className="max-h-60 overflow-y-auto border border-zinc-200 dark:border-zinc-800 rounded-lg">
