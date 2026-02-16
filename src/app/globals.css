@@ -343,9 +343,7 @@
 }
 
 .k-sidebar-item:hover {
-  @apply bg-zinc-100/80 dark:bg-zinc-800/50;
-  /* On hover, make the text inside the capsule fully white (matching Games) */
-  color: #ffffff;
+  @apply bg-zinc-100/80 dark:bg-zinc-800/50 text-zinc-900 dark:text-zinc-100;
 }
 
 .k-sidebar-item:hover::before {
@@ -362,7 +360,13 @@
 }
 
 .k-sidebar-item-active {
-  @apply bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20;
+  @apply bg-[#02abb8]/10 text-zinc-900 dark:bg-[#02abb8]/20 dark:text-[#02abb8];
+}
+.k-sidebar-item-active .k-sidebar-icon {
+  @apply text-zinc-700 dark:text-[#02abb8];
+}
+.k-sidebar-item-active .k-sidebar-count {
+  @apply text-zinc-600 dark:text-zinc-400;
 }
 
 .k-sidebar-icon {
