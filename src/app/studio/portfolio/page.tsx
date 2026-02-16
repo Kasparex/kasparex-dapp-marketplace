@@ -37,7 +37,7 @@ export default function StudioPortfolioPage() {
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Premium Halo Header */}
-            <div className="relative overflow-hidden rounded-3xl bg-zinc-900 border border-zinc-800 p-8 md:p-12 mb-8">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-100 via-cyan-50/30 to-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-8 md:p-12 mb-8">
                 {/* Halo Background Glows */}
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-500/20 blur-[120px] rounded-full -mr-64 -mt-64" />
                 <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-emerald-500/10 blur-[100px] rounded-full -ml-48 -mb-48" />
@@ -46,21 +46,21 @@ export default function StudioPortfolioPage() {
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div>
                             <div className="flex items-center gap-3 mb-4">
-                                <span className="px-3 py-1 bg-cyan-500/10 text-cyan-400 text-xs font-bold rounded-full uppercase tracking-widest border border-cyan-500/20">
+                                <span className="px-3 py-1 bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 text-xs font-bold rounded-full uppercase tracking-widest border border-cyan-500/20">
                                     Unified Assets
                                 </span>
                             </div>
-                            <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter mb-4">
+                            <h1 className="text-4xl md:text-5xl font-black text-zinc-900 dark:text-white uppercase tracking-tighter mb-4">
                                 My Portfolio
                             </h1>
-                            <p className="text-zinc-400 text-lg max-w-xl">
+                            <p className="text-zinc-600 dark:text-zinc-400 text-lg max-w-xl">
                                 Complete overview of your digital assets and ecosystem status across Kaspa L1 and L2 networks.
                             </p>
                         </div>
 
-                        <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 flex flex-col items-center justify-center min-w-[200px]">
-                            <span className="text-zinc-400 text-xs uppercase font-bold tracking-widest mb-1">Total Multiplier</span>
-                            <div className="text-4xl font-black text-cyan-400 tracking-tighter">
+                        <div className="bg-white/80 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-zinc-200 dark:border-white/10 p-6 flex flex-col items-center justify-center min-w-[200px]">
+                            <span className="text-zinc-500 dark:text-zinc-400 text-xs uppercase font-bold tracking-widest mb-1">Total Multiplier</span>
+                            <div className="text-4xl font-black text-cyan-600 dark:text-cyan-400 tracking-tighter">
                                 {totalMultiplier}x
                             </div>
                             <div className="mt-2 text-[10px] text-zinc-500 font-medium">

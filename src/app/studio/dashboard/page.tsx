@@ -7,7 +7,7 @@ export default function StudioDashboard() {
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Premium Halo Header */}
-            <div className="relative overflow-hidden rounded-3xl bg-zinc-900 border border-zinc-800 p-8 md:p-12 mb-8">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-100 via-orange-50/30 to-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-8 md:p-12 mb-8">
                 {/* Halo Background Glows */}
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/10 blur-[120px] rounded-full -mr-64 -mt-64" />
                 <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#02abb8]/10 blur-[100px] rounded-full -ml-48 -mb-48" />
@@ -16,25 +16,25 @@ export default function StudioDashboard() {
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div>
                             <div className="flex items-center gap-3 mb-4">
-                                <span className="px-3 py-1 bg-orange-500/10 text-orange-400 text-xs font-bold rounded-full uppercase tracking-widest border border-orange-500/20">
+                                <span className="px-3 py-1 bg-orange-500/10 text-orange-700 dark:text-orange-400 text-xs font-bold rounded-full uppercase tracking-widest border border-orange-500/20">
                                     Creator Mode
                                 </span>
                             </div>
-                            <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter mb-4">
+                            <h1 className="text-4xl md:text-5xl font-black text-zinc-900 dark:text-white uppercase tracking-tighter mb-4">
                                 Creator Dashboard
                             </h1>
-                            <p className="text-zinc-400 text-lg max-w-xl">
+                            <p className="text-zinc-600 dark:text-zinc-400 text-lg max-w-xl">
                                 Welcome back to your workspace. Monitor your publishing activity and manage your digital presence.
                             </p>
                         </div>
 
                         <div className="flex gap-4">
-                            <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-5 flex flex-col items-center justify-center min-w-[140px]">
-                                <span className="text-zinc-400 text-[10px] uppercase font-bold tracking-widest mb-1">Total Posts</span>
-                                <div className="text-3xl font-black text-white tracking-tighter">12</div>
+                            <div className="bg-white/80 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-zinc-200 dark:border-white/10 p-5 flex flex-col items-center justify-center min-w-[140px]">
+                                <span className="text-zinc-500 dark:text-zinc-400 text-[10px] uppercase font-bold tracking-widest mb-1">Total Posts</span>
+                                <div className="text-3xl font-black text-zinc-900 dark:text-white tracking-tighter">12</div>
                             </div>
-                            <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-5 flex flex-col items-center justify-center min-w-[140px]">
-                                <span className="text-zinc-400 text-[10px] uppercase font-bold tracking-widest mb-1">Rewards</span>
+                            <div className="bg-white/80 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-zinc-200 dark:border-white/10 p-5 flex flex-col items-center justify-center min-w-[140px]">
+                                <span className="text-zinc-500 dark:text-zinc-400 text-[10px] uppercase font-bold tracking-widest mb-1">Rewards</span>
                                 <div className="text-3xl font-black text-[#02abb8] tracking-tighter">420 KREX</div>
                             </div>
                         </div>

@@ -17,28 +17,48 @@ import { getTokenImageUrl } from '@/lib/tokens/metadata';
 import { TokenLogo } from './TokenLogo';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 
+export type TokenSortField = 'name' | 'symbol' | 'price' | 'marketCap' | 'balance' | 'network' | 'type';
+export type TokenSortDirection = 'asc' | 'desc';
+
 interface TokenListingTableProps {
   tokens: Token[];
+  /** When provided, use these as the displayed list and hide the filter row (sidebar + FilterBar used instead). */
+  displayTokens?: Token[];
+  sortField?: TokenSortField;
+  sortDirection?: TokenSortDirection;
+  onSort?: (field: TokenSortField) => void;
 }
 
-type SortField = 'name' | 'symbol' | 'price' | 'marketCap' | 'balance' | 'network' | 'type';
-type SortDirection = 'asc' | 'desc';
-
-export function TokenListingTable({ tokens }: TokenListingTableProps) {
+export function TokenListingTable({
+  tokens,
+  displayTokens: controlledDisplayTokens,
+  sortField: controlledSortField,
+  sortDirection: controlledSortDirection,
+  onSort: controlledOnSort,
+}: TokenListingTableProps) {
   const { address, isConnected } = useAccount();
   const { balance: krexBalance } = useKREXBalance();
 
-  // Filters
+  const isControlled = controlledDisplayTokens !== undefined;
+
+  // Filters (used only when not controlled)
   const [searchQuery, setSearchQuery] = useState('');
   const [networkFilter, setNetworkFilter] = useState<TokenNetwork | 'all'>('all');
   const [typeFilter, setTypeFilter] = useState<TokenType | 'all'>('all');
 
-  // Sorting
-  const [sortField, setSortField] = useState<SortField>('name');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  // Sorting (used when not controlled)
+  const [sortField, setSortField] = useState<TokenSortField>('name');
+  const [sortDirection, setSortDirection] = useState<TokenSortDirection>('asc');
 
-  // Filter and sort tokens
-  const filteredAndSortedTokens = useMemo(() => {
+  const effectiveSortField = isControlled ? controlledSortField ?? 'name' : sortField;
+  const effectiveSortDirection = isControlled ? controlledSortDirection ?? 'asc' : sortDirection;
+  const handleSort = isControlled ? (controlledOnSort ?? (() => {})) : (field: TokenSortField) => {
+    if (sortField === field) setSortDirection((d) => (d === 'asc' ? 'desc' : 'asc'));
+    else { setSortField(field); setSortDirection('asc'); }
+  };
+
+  // Filter and sort tokens (only when not controlled)
+  const internalFilteredAndSortedTokens = useMemo(() => {
     let filtered = tokens.filter((token) => {
       // Search filter
       if (searchQuery) {
@@ -108,75 +128,64 @@ export function TokenListingTable({ tokens }: TokenListingTableProps) {
     return filtered;
   }, [tokens, searchQuery, networkFilter, typeFilter, sortField, sortDirection]);
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
-  };
+  const filteredAndSortedTokens = isControlled ? (controlledDisplayTokens ?? []) : internalFilteredAndSortedTokens;
 
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field) return null;
+  const SortIcon = ({ field }: { field: TokenSortField }) => {
+    if (effectiveSortField !== field) return null;
     return (
       <span className="ml-1 text-zinc-400">
-        {sortDirection === 'asc' ? '↑' : '↓'}
+        {effectiveSortDirection === 'asc' ? '↑' : '↓'}
       </span>
     );
   };
 
   return (
     <div className="space-y-4">
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        {/* Search */}
-        <div className="flex-1 overflow-visible">
-          <div className="k-search-container h-10">
-            <input
-              type="text"
-              placeholder="Search tokens..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={`k-search-input h-10 w-full ${searchQuery.length > 0 ? 'is-typing' : ''}`.trim()}
-            />
+      {!isControlled && (
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1 overflow-visible">
+            <div className="k-search-container h-10">
+              <input
+                type="text"
+                placeholder="Search tokens..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`k-search-input h-10 w-full ${searchQuery.length > 0 ? 'is-typing' : ''}`.trim()}
+              />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {(['all', 'L1', 'L2'] as const).map((network) => (
+              <button
+                key={network}
+                onClick={() => setNetworkFilter(network)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  networkFilter === network
+                    ? 'bg-[#02abb8] text-white'
+                    : 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                }`}
+              >
+                {network === 'all' ? 'All Networks' : network}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            {(['all', 'global', 'local', 'collab'] as const).map((type) => (
+              <button
+                key={type}
+                onClick={() => setTypeFilter(type)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors capitalize ${
+                  typeFilter === type
+                    ? 'bg-[#02abb8] text-white'
+                    : 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                }`}
+              >
+                {type === 'all' ? 'All Types' : type}
+              </button>
+            ))}
           </div>
         </div>
-
-        {/* Network Filter */}
-        <div className="flex gap-2">
-          {(['all', 'L1', 'L2'] as const).map((network) => (
-            <button
-              key={network}
-              onClick={() => setNetworkFilter(network)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                networkFilter === network
-                  ? 'bg-[#02abb8] text-white'
-                  : 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-              }`}
-            >
-              {network === 'all' ? 'All Networks' : network}
-            </button>
-          ))}
-        </div>
-
-        {/* Type Filter */}
-        <div className="flex gap-2">
-          {(['all', 'global', 'local', 'collab'] as const).map((type) => (
-            <button
-              key={type}
-              onClick={() => setTypeFilter(type)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors capitalize ${
-                typeFilter === type
-                  ? 'bg-[#02abb8] text-white'
-                  : 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-              }`}
-            >
-              {type === 'all' ? 'All Types' : type}
-            </button>
-          ))}
-        </div>
-      </div>
+      )}
 
       {/* Table */}
       <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
