@@ -13,35 +13,35 @@ export default function HubPage() {
 
       <main className="flex-1">
         {/* Premium Hero Section */}
-        <section className="relative overflow-hidden bg-white dark:bg-zinc-950 pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10">
+        <section className="relative overflow-hidden bg-white dark:bg-zinc-950 pt-4 sm:pt-5 lg:pt-6 pb-3 sm:pb-4 lg:pb-5">
           <div className="absolute top-0 right-0 w-[50%] h-full bg-gradient-to-l from-orange-500/10 via-transparent to-transparent hidden dark:block" />
           <div className="absolute bottom-0 left-0 w-[50%] h-full bg-gradient-to-r from-emerald-500/5 via-transparent to-transparent hidden dark:block" />
 
           {/* Brand Visual Layer */}
           <div className="absolute inset-0 z-0">
-            <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-orange-500/5 blur-[120px] rounded-full -translate-x-1/2 -translate-y-1/2" />
-            <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-emerald-500/5 blur-[100px] rounded-full translate-x-1/2 translate-y-1/2" />
+            <div className="absolute top-0 left-1/4 w-[300px] h-[300px] bg-orange-500/5 blur-[60px] rounded-full -translate-x-1/2 -translate-y-1/2" />
+            <div className="absolute bottom-0 right-1/4 w-[250px] h-[250px] bg-emerald-500/5 blur-[50px] rounded-full translate-x-1/2 translate-y-1/2" />
           </div>
 
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="max-w-4xl mx-auto text-center">
-              <div className="inline-block px-4 py-1.5 bg-orange-500/10 border border-orange-500/20 text-orange-500 text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-8">
+              <div className="inline-block px-3 py-1 bg-orange-500/10 border border-orange-500/20 text-orange-500 text-[9px] font-black uppercase tracking-[0.2em] rounded-full mb-4">
                 The Kasparex Ecosystem
               </div>
-              <h1 className="text-5xl sm:text-6xl lg:text-8xl font-black text-zinc-900 dark:text-zinc-100 mb-8 leading-[1.05] uppercase tracking-tighter">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-4 leading-[1.05] uppercase tracking-tighter">
                 Welcome to <br />
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 via-orange-500 to-zinc-900 dark:from-white dark:via-orange-500 dark:to-white bg-[length:200%_auto] animate-gradient-x px-2">
                   Kasparex Hub
                 </span>
               </h1>
-              <p className="text-xl sm:text-2xl text-zinc-600 dark:text-zinc-400 mb-12 leading-relaxed max-w-2xl mx-auto font-medium">
+              <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 mb-6 leading-relaxed max-w-2xl mx-auto font-medium">
                 Your unified gateway to the Kasparex ecosystem. Explore modular dApps, media, games, publishing tools, and infrastructure built around Kaspa.
               </p>
-              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                <Link href="/dapps" className="k-cta-primary w-full sm:w-auto justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <Link href="/dapps" className="k-cta-primary w-full sm:w-auto justify-center text-xs py-2.5 px-5">
                   Explore dApps
                 </Link>
-                <Link href="/points" className="k-cta-secondary w-full sm:w-auto justify-center">
+                <Link href="/points" className="k-cta-secondary w-full sm:w-auto justify-center text-xs py-2.5 px-5">
                   View Rewards
                 </Link>
               </div>

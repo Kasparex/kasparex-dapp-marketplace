@@ -27,7 +27,25 @@ interface SortFiltersProps {
 export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode = 'cards', onViewModeChange }: SortFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
+  const sortMenuRef = useRef<HTMLDivElement>(null);
   const plusMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close sort menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
 
   // Close plus menu when clicking outside
   useEffect(() => {
@@ -110,7 +128,7 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
       )}
 
       {/* Sort Dropdown */}
-      <div className="relative flex-shrink-0">
+      <div className="relative flex-shrink-0" ref={sortMenuRef}>
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="k-control-btn min-w-[160px]"

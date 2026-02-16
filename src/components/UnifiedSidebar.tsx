@@ -188,7 +188,9 @@ export function UnifiedSidebar({
         <div className="flex flex-col h-full">
           <div className="flex-1 min-h-0 overflow-y-auto">
             {header(() => setHidden(true))}
-            {children}
+            <div className="p-4">
+              {children}
+            </div>
           </div>
           {footer != null && <div className="flex-shrink-0">{footer}</div>}
         </div>

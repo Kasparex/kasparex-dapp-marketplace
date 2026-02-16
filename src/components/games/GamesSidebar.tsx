@@ -96,7 +96,7 @@ export function GamesSidebar({
 
   const header = (onHide: () => void) => (
     <div className="flex-shrink-0 bg-transparent border-b border-zinc-200 dark:border-zinc-800 p-4">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between">
         <Link
           href={backLink.href}
           className="text-zinc-500 dark:text-zinc-400 hover:text-[#02abb8] font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
@@ -116,15 +116,6 @@ export function GamesSidebar({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-      </div>
-      <div className="k-search-container">
-        <input
-          type="text"
-          placeholder="Search games..."
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="k-search-input"
-        />
       </div>
     </div>
   );
@@ -152,7 +143,6 @@ export function GamesSidebar({
 
   return (
     <UnifiedSidebar storageKeyPrefix="games" header={header}>
-      <div className="p-4">
         {showCategories && (
           <>
             <SidebarCategories
@@ -213,7 +203,3 @@ export function GamesSidebar({
             </button>
           </>
         )}
-      </div>
-    </UnifiedSidebar>
-  );
-}

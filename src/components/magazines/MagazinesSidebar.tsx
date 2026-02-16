@@ -17,8 +17,6 @@ interface MagazinesSidebarProps {
   selectedCategory?: string;
   onCategoryChange?: (category: string) => void;
   categoryCounts?: Record<string, number>;
-  searchQuery?: string;
-  onSearchChange?: (query: string) => void;
   tags?: string[];
   selectedTags?: string[];
   onTagToggle?: (tag: string) => void;

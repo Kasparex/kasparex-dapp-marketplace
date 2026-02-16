@@ -12,8 +12,6 @@ import { SidebarNavItem } from '../sidebar/SidebarNavItem';
 
 interface StoreSidebarProps {
   mode: 'listing' | 'product' | 'dashboard';
-  searchQuery?: string;
-  onSearchChange?: (query: string) => void;
   categories?: ProductCategory[];
   selectedCategories?: ProductCategory[];
   onCategoryChange?: (categories: ProductCategory[]) => void;

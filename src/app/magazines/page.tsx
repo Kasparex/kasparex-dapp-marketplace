@@ -89,8 +89,6 @@ export default function MagazinesPage() {
                     selectedCategory={selectedCategory}
                     onCategoryChange={setSelectedCategory}
                     categoryCounts={categoryCounts}
-                    searchQuery={searchQuery}
-                    onSearchChange={setSearchQuery}
                     tags={allTags}
                     selectedTags={selectedTags}
                     onTagToggle={handleTagToggle}

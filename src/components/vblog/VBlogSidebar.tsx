@@ -65,7 +65,7 @@ export function VBlogSidebar({
 
   const header = (onHide: () => void) => (
     <div className="flex-shrink-0 bg-transparent border-b border-zinc-200 dark:border-zinc-800 p-4">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between">
         <Link
           href="/hub"
           className="text-zinc-500 dark:text-zinc-400 hover:text-[#02abb8] font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
@@ -79,17 +79,12 @@ export function VBlogSidebar({
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
         </button>
       </div>
-      <div className="k-search-container">
-        <svg className="k-search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-        <input type="text" placeholder="Search articles..." value={searchQuery} onChange={(e) => onSearchChange(e.target.value)} className="k-search-input !h-9 !pl-9" />
-      </div>
     </div>
   );
 
   return (
     <UnifiedSidebar storageKeyPrefix="vblog" header={header}>
-      <div className="p-4">
-        {onCreateArticle && (
+      {onCreateArticle && (
           <div className="mb-6">
             <button type="button" onClick={onCreateArticle} className="w-full flex items-center gap-3 px-4 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl transition-all shadow-lg shadow-orange-500/20 group">
               <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -124,7 +119,3 @@ export function VBlogSidebar({
             Clear All Filters
           </button>
         )}
-      </div>
-    </UnifiedSidebar>
-  );
-}

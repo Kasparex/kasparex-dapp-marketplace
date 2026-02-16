@@ -96,8 +96,6 @@ export default function StorePage() {
       <div className="flex flex-1">
         <StoreSidebar
           mode="listing"
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
           categories={['Software', 'Art', 'Music', 'Templates', 'Other']}
           selectedCategories={selectedCategories}
           onCategoryChange={setSelectedCategories}
