@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import Link from 'next/link';
 
 export type SortOption =
@@ -27,13 +27,42 @@ interface SortFiltersProps {
 export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode = 'cards', onViewModeChange }: SortFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
-  const sortMenuRef = useRef<HTMLDivElement>(null);
-  const plusMenuRef = useRef<HTMLDivElement>(null);
+  const [sortDropdownStyle, setSortDropdownStyle] = useState<{ bottom: number; right: number } | null>(null);
+  const [plusDropdownStyle, setPlusDropdownStyle] = useState<{ bottom: number; right: number } | null>(null);
+  const sortTriggerRef = useRef<HTMLButtonElement>(null);
+  const plusTriggerRef = useRef<HTMLButtonElement>(null);
+
+  // Position sort dropdown above trigger (fixed so it isn't clipped by overflow)
+  useLayoutEffect(() => {
+    if (!isOpen || !sortTriggerRef.current) {
+      setSortDropdownStyle(null);
+      return;
+    }
+    const rect = sortTriggerRef.current.getBoundingClientRect();
+    setSortDropdownStyle({
+      bottom: window.innerHeight - rect.top + 8,
+      right: window.innerWidth - rect.right,
+    });
+  }, [isOpen]);
+
+  // Position plus dropdown above trigger
+  useLayoutEffect(() => {
+    if (!isPlusMenuOpen || !plusTriggerRef.current) {
+      setPlusDropdownStyle(null);
+      return;
+    }
+    const rect = plusTriggerRef.current.getBoundingClientRect();
+    setPlusDropdownStyle({
+      bottom: window.innerHeight - rect.top + 8,
+      right: window.innerWidth - rect.right,
+    });
+  }, [isPlusMenuOpen]);
 
   // Close sort menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target as Node)) {
+      if (sortTriggerRef.current && !sortTriggerRef.current.contains(event.target as Node) &&
+          !(event.target as Element).closest('[data-sort-dropdown]')) {
         setIsOpen(false);
       }
     };
@@ -50,7 +79,8 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
   // Close plus menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (plusMenuRef.current && !plusMenuRef.current.contains(event.target as Node)) {
+      if (plusTriggerRef.current && !plusTriggerRef.current.contains(event.target as Node) &&
+          !(event.target as Element).closest('[data-plus-dropdown]')) {
         setIsPlusMenuOpen(false);
       }
     };
@@ -128,8 +158,10 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
       )}
 
       {/* Sort Dropdown */}
-      <div className="relative flex-shrink-0" ref={sortMenuRef}>
+      <div className="relative flex-shrink-0">
         <button
+          ref={sortTriggerRef}
+          type="button"
           onClick={() => setIsOpen(!isOpen)}
           className="k-control-btn min-w-[160px]"
         >
@@ -149,24 +181,32 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
             <div
               className="fixed inset-0 z-[45]"
               onClick={() => setIsOpen(false)}
+              aria-hidden
             />
-            <div className="absolute bottom-full right-0 mb-1 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[50] overflow-hidden">
-              {sortOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => {
-                    onSortChange(option.value);
-                    setIsOpen(false);
-                  }}
-                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${sortBy === option.value
-                    ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
-                    : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
-                    }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
+            {sortDropdownStyle && (
+              <div
+                data-sort-dropdown
+                className="fixed w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[50] overflow-hidden"
+                style={{ bottom: sortDropdownStyle.bottom, right: sortDropdownStyle.right }}
+              >
+                {sortOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      onSortChange(option.value);
+                      setIsOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${sortBy === option.value
+                      ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
+                      : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
+                      }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </>
         )}
       </div>
@@ -202,8 +242,10 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
       </button>
 
       {/* Plus Button with Dropdown */}
-      <div className="relative" ref={plusMenuRef}>
+      <div className="relative">
         <button
+          ref={plusTriggerRef}
+          type="button"
           onClick={() => setIsPlusMenuOpen(!isPlusMenuOpen)}
           className="k-control-icon-btn"
           aria-label="More options"
@@ -218,23 +260,30 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
             <div
               className="fixed inset-0 z-[45]"
               onClick={() => setIsPlusMenuOpen(false)}
+              aria-hidden
             />
-            <div className="absolute top-full right-0 mt-1 w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[50] overflow-hidden">
-              <Link
-                href="/list-dapp"
-                onClick={() => setIsPlusMenuOpen(false)}
-                className="block w-full text-left px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+            {plusDropdownStyle && (
+              <div
+                data-plus-dropdown
+                className="fixed w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[50] overflow-hidden"
+                style={{ bottom: plusDropdownStyle.bottom, right: plusDropdownStyle.right }}
               >
-                List dApp
-              </Link>
-              <Link
-                href="/build-dapp"
-                onClick={() => setIsPlusMenuOpen(false)}
-                className="block w-full text-left px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-              >
-                Build dApp
-              </Link>
-            </div>
+                <Link
+                  href="/list-dapp"
+                  onClick={() => setIsPlusMenuOpen(false)}
+                  className="block w-full text-left px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  List dApp
+                </Link>
+                <Link
+                  href="/build-dapp"
+                  onClick={() => setIsPlusMenuOpen(false)}
+                  className="block w-full text-left px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  Build dApp
+                </Link>
+              </div>
+            )}
           </>
         )}
       </div>

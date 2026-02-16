@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { GameSortOption } from '@/lib/games/sorting';
 
 export type GameViewMode = 'grid' | 'compact' | 'list';
@@ -21,12 +21,25 @@ export function GameSortFilters({
   onViewModeChange 
 }: GameSortFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const sortMenuRef = useRef<HTMLDivElement>(null);
+  const [dropdownStyle, setDropdownStyle] = useState<{ bottom: number; right: number } | null>(null);
+  const sortTriggerRef = useRef<HTMLButtonElement>(null);
 
-  // Close menu when clicking outside
+  useLayoutEffect(() => {
+    if (!isOpen || !sortTriggerRef.current) {
+      setDropdownStyle(null);
+      return;
+    }
+    const rect = sortTriggerRef.current.getBoundingClientRect();
+    setDropdownStyle({
+      bottom: window.innerHeight - rect.top + 8,
+      right: window.innerWidth - rect.right,
+    });
+  }, [isOpen]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target as Node)) {
+      if (sortTriggerRef.current && !sortTriggerRef.current.contains(event.target as Node) &&
+          !(event.target as Element).closest('[data-sort-dropdown]')) {
         setIsOpen(false);
       }
     };
@@ -108,8 +121,10 @@ export function GameSortFilters({
       )}
 
       {/* Sort Dropdown */}
-      <div className="relative flex-shrink-0" ref={sortMenuRef}>
+      <div className="relative flex-shrink-0">
         <button
+          ref={sortTriggerRef}
+          type="button"
           onClick={() => setIsOpen(!isOpen)}
           className="k-control-btn min-w-[160px]"
         >
@@ -129,25 +144,33 @@ export function GameSortFilters({
             <div
               className="fixed inset-0 z-[45]"
               onClick={() => setIsOpen(false)}
+              aria-hidden
             />
-            <div className="absolute bottom-full right-0 mb-1 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[50] overflow-hidden">
-              {sortOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => {
-                    onSortChange(option.value);
-                    setIsOpen(false);
-                  }}
-                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                    sortBy === option.value
-                      ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
-                      : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
+            {dropdownStyle && (
+              <div
+                data-sort-dropdown
+                className="fixed w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[50] overflow-hidden"
+                style={{ bottom: dropdownStyle.bottom, right: dropdownStyle.right }}
+              >
+                {sortOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      onSortChange(option.value);
+                      setIsOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                      sortBy === option.value
+                        ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
+                        : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </>
         )}
       </div>

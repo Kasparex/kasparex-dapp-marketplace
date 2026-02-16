@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import Link from 'next/link';
 
 export type VBlogSortOption =
@@ -18,23 +18,55 @@ interface VBlogSortFiltersProps {
 export function VBlogSortFilters({ sortBy, onSortChange, onAddArticle }: VBlogSortFiltersProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
-    const plusMenuRef = useRef<HTMLDivElement>(null);
+    const [sortDropdownStyle, setSortDropdownStyle] = useState<{ bottom: number; left: number } | null>(null);
+    const [plusDropdownStyle, setPlusDropdownStyle] = useState<{ bottom: number; right: number } | null>(null);
+    const sortTriggerRef = useRef<HTMLButtonElement>(null);
+    const plusTriggerRef = useRef<HTMLButtonElement>(null);
 
-    // Close plus menu when clicking outside
+    useLayoutEffect(() => {
+        if (!isOpen || !sortTriggerRef.current) {
+            setSortDropdownStyle(null);
+            return;
+        }
+        const rect = sortTriggerRef.current.getBoundingClientRect();
+        setSortDropdownStyle({
+            bottom: window.innerHeight - rect.top + 8,
+            left: rect.left,
+        });
+    }, [isOpen]);
+
+    useLayoutEffect(() => {
+        if (!isPlusMenuOpen || !plusTriggerRef.current) {
+            setPlusDropdownStyle(null);
+            return;
+        }
+        const rect = plusTriggerRef.current.getBoundingClientRect();
+        setPlusDropdownStyle({
+            bottom: window.innerHeight - rect.top + 8,
+            right: window.innerWidth - rect.right,
+        });
+    }, [isPlusMenuOpen]);
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (plusMenuRef.current && !plusMenuRef.current.contains(event.target as Node)) {
+            if (sortTriggerRef.current && !sortTriggerRef.current.contains(event.target as Node) &&
+                !(event.target as Element).closest('[data-sort-dropdown]')) {
+                setIsOpen(false);
+            }
+        };
+        if (isOpen) document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isOpen]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (plusTriggerRef.current && !plusTriggerRef.current.contains(event.target as Node) &&
+                !(event.target as Element).closest('[data-plus-dropdown]')) {
                 setIsPlusMenuOpen(false);
             }
         };
-
-        if (isPlusMenuOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
+        if (isPlusMenuOpen) document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isPlusMenuOpen]);
 
     const sortOptions: { value: VBlogSortOption; label: string }[] = [
@@ -51,6 +83,8 @@ export function VBlogSortFilters({ sortBy, onSortChange, onAddArticle }: VBlogSo
             {/* Sort Dropdown */}
             <div className="relative flex-shrink-0">
                 <button
+                    ref={sortTriggerRef}
+                    type="button"
                     onClick={() => setIsOpen(!isOpen)}
                     className="k-control-btn w-full"
                 >
@@ -67,34 +101,40 @@ export function VBlogSortFilters({ sortBy, onSortChange, onAddArticle }: VBlogSo
 
                 {isOpen && (
                     <>
-                        <div
-                            className="fixed inset-0 z-[45]"
-                            onClick={() => setIsOpen(false)}
-                        />
-                        <div className="absolute bottom-full left-0 mb-1 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[50] overflow-hidden">
-                            {sortOptions.map((option) => (
-                                <button
-                                    key={option.value}
-                                    onClick={() => {
-                                        onSortChange(option.value);
-                                        setIsOpen(false);
-                                    }}
-                                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${sortBy === option.value
-                                        ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
-                                        : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
-                                        }`}
-                                >
-                                    {option.label}
-                                </button>
-                            ))}
-                        </div>
+                        <div className="fixed inset-0 z-[45]" onClick={() => setIsOpen(false)} aria-hidden />
+                        {sortDropdownStyle && (
+                            <div
+                                data-sort-dropdown
+                                className="fixed w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[50] overflow-hidden"
+                                style={{ bottom: sortDropdownStyle.bottom, left: sortDropdownStyle.left }}
+                            >
+                                {sortOptions.map((option) => (
+                                    <button
+                                        key={option.value}
+                                        type="button"
+                                        onClick={() => {
+                                            onSortChange(option.value);
+                                            setIsOpen(false);
+                                        }}
+                                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${sortBy === option.value
+                                            ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
+                                            : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
+                                            }`}
+                                    >
+                                        {option.label}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </>
                 )}
             </div>
 
             {/* Plus Button with Dropdown */}
-            <div className="relative" ref={plusMenuRef}>
+            <div className="relative">
                 <button
+                    ref={plusTriggerRef}
+                    type="button"
                     onClick={() => setIsPlusMenuOpen(!isPlusMenuOpen)}
                     className="k-control-icon-btn"
                     aria-label="More options"
@@ -106,28 +146,32 @@ export function VBlogSortFilters({ sortBy, onSortChange, onAddArticle }: VBlogSo
 
                 {isPlusMenuOpen && (
                     <>
-                        <div
-                            className="fixed inset-0 z-[45]"
-                            onClick={() => setIsPlusMenuOpen(false)}
-                        />
-                        <div className="absolute top-full right-0 mt-1 w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-[50] overflow-hidden">
-                            <button
-                                onClick={() => {
-                                    onAddArticle?.();
-                                    setIsPlusMenuOpen(false);
-                                }}
-                                className="block w-full text-left px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                        <div className="fixed inset-0 z-[45]" onClick={() => setIsPlusMenuOpen(false)} aria-hidden />
+                        {plusDropdownStyle && (
+                            <div
+                                data-plus-dropdown
+                                className="fixed w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[50] overflow-hidden"
+                                style={{ bottom: plusDropdownStyle.bottom, right: plusDropdownStyle.right }}
                             >
-                                Create Article
-                            </button>
-                            <Link
-                                href="/vblog/dashboard"
-                                onClick={() => setIsPlusMenuOpen(false)}
-                                className="block w-full text-left px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-                            >
-                                Author Dashboard
-                            </Link>
-                        </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        onAddArticle?.();
+                                        setIsPlusMenuOpen(false);
+                                    }}
+                                    className="block w-full text-left px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                                >
+                                    Create Article
+                                </button>
+                                <Link
+                                    href="/vblog/dashboard"
+                                    onClick={() => setIsPlusMenuOpen(false)}
+                                    className="block w-full text-left px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                                >
+                                    Author Dashboard
+                                </Link>
+                            </div>
+                        )}
                     </>
                 )}
             </div>
