@@ -58,7 +58,7 @@ export function GameSortFilters({
   const isFavoritesActive = sortBy === 'favorites';
 
   return (
-    <div className="relative flex items-center gap-2">
+    <div className="flex items-center gap-2">
       {/* View Mode Switcher */}
       {onViewModeChange && (
         <div className="k-control-group">
@@ -108,7 +108,7 @@ export function GameSortFilters({
       )}
 
       {/* Sort Dropdown */}
-      <div className="relative" ref={sortMenuRef}>
+      <div className="relative flex-shrink-0" ref={sortMenuRef}>
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="k-control-btn min-w-[160px]"

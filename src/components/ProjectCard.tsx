@@ -39,18 +39,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
       className="block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-[#02abb8]/10 hover:border-[#02abb8]/30 hover:-translate-y-2 transition-all duration-500 relative flex flex-col min-h-[320px] group"
     >
       {/* Premium Gradient Header Visuals */}
-      <div className={`relative w-full h-40 overflow-hidden flex items-center justify-center border-b border-zinc-200/50 dark:border-zinc-800/50 bg-gradient-to-br transition-all duration-700 group-hover:scale-[1.05] ${project.category === 'Publishing' ? 'from-orange-500 to-amber-600' :
-        project.category === 'Media' ? 'from-purple-500 to-pink-600' :
-          project.category === 'Finance' ? 'from-[#02abb8] to-cyan-600' :
-            project.category === 'Entertainment' ? 'from-blue-500 to-indigo-600' :
-              project.category === 'Infrastructure' ? 'from-zinc-700 to-zinc-900' :
-                project.category === 'Creator Tools' ? 'from-cyan-500 to-blue-600' :
-                  project.category === 'Marketplace' ? 'from-[#02abb8] to-teal-600' :
-                    project.category === 'Ecosystem' ? 'from-emerald-500 to-green-600' :
-                      project.category === 'NFTs' ? 'from-pink-500 to-rose-600' :
-                        project.category === 'Utility' ? 'from-indigo-500 to-purple-600' :
-                          'from-zinc-800 to-black'
-        }`}>
+      <div className="relative w-full h-40 overflow-hidden flex items-center justify-center border-b border-zinc-200/50 dark:border-zinc-800/50 bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900 transition-all duration-700 group-hover:scale-[1.05]">
         {/* Animated gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-700" />
         <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] group-hover:opacity-20 transition-opacity duration-700" />

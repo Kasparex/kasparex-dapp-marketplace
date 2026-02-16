@@ -29,7 +29,7 @@ export function ProductCard({ product }: ProductCardProps) {
     <Link href={`/store/${product.slug}`} className="group h-full">
       <div className="h-full flex flex-col bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-[#02abb8]/10 hover:-translate-y-1">
         {/* Product Image */}
-        <div className="relative aspect-[4/3] overflow-hidden bg-zinc-100 dark:bg-zinc-950">
+        <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900">
           {thumbnailUrl ? (
             <img
               src={thumbnailUrl}

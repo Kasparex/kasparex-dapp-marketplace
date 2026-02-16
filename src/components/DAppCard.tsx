@@ -94,7 +94,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
       className="block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all relative flex flex-col min-h-[280px]"
     >
       {/* Featured Image Banner */}
-      <div className="relative w-full h-32 bg-zinc-100/80 dark:bg-zinc-900/95 flex items-center justify-center border-b border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden">
+      <div className="relative w-full h-32 bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900 flex items-center justify-center border-b border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden">
         {mergedDApp.featuredImage || mergedDApp.image ? (
           <div className="absolute inset-0 w-full h-full">
             <img

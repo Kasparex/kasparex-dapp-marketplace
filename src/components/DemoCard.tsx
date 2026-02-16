@@ -96,11 +96,8 @@ export function DemoCard({ dapp, gradientColors }: DemoCardProps) {
       className="block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all relative flex flex-col min-h-[280px]"
     >
 
-      {/* Default dApp Featured Image Banner - with logo colors */}
-      <div 
-        className="relative w-full h-32 flex items-center justify-center border-b border-zinc-200/50 dark:border-zinc-800/50"
-        style={{ backgroundColor: featuredBgRgba }}
-      >
+      {/* Default dApp Featured Image Banner - with gray gradient */}
+      <div className="relative w-full h-32 flex items-center justify-center border-b border-zinc-200/50 dark:border-zinc-800/50 bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900">
         <svg 
           className="w-12 h-12" 
           fill="none" 

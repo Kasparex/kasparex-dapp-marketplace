@@ -328,7 +328,7 @@
 
 /* Premium Sidebar Components - icon and title MUST stay on same line everywhere */
 .k-sidebar-item {
-  @apply w-full relative flex flex-row items-center px-4 py-2.5 rounded-xl transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap flex-nowrap;
+  @apply w-full relative flex flex-row items-center px-2 py-2.5 rounded-xl transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap flex-nowrap;
   gap: 0.75rem;
   padding-right: 3rem;
 }
@@ -379,7 +379,7 @@
 .k-sidebar-count {
   @apply ml-auto text-[10px] px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-900/50 text-zinc-500 dark:text-zinc-400 font-bold flex-shrink-0 border border-zinc-200 dark:border-zinc-800 transition-colors group-hover:border-[#02abb8]/30;
   position: absolute;
-  right: 0.75rem;
+  right: 0.5rem;
   top: 50%;
   transform: translateY(-50%);
 }
@@ -418,8 +418,23 @@
 
 .k-search-input {
   @apply h-10 px-4 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent transition-all w-full;
-  background-color: var(--k-control-bg);
+  background-color: rgb(24 24 27);
   border: 1px solid var(--k-control-border);
+}
+.k-search-input:focus {
+  background-color: var(--k-control-bg);
+}
+.dark .k-search-input {
+  background-color: rgb(24 24 27);
+}
+.dark .k-search-input:focus {
+  background-color: rgb(39 39 42);
+}
+.dark .k-search-input {
+  background-color: rgb(24 24 27);
+}
+.dark .k-search-input:focus {
+  background-color: rgb(39 39 42);
 }
 
 /* Standard CTA buttons (hero and primary actions) */

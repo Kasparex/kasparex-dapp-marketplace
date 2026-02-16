@@ -47,9 +47,9 @@ export function VBlogSortFilters({ sortBy, onSortChange, onAddArticle }: VBlogSo
     const currentLabel = sortOptions.find((opt) => opt.value === sortBy)?.label || 'Sort by...';
 
     return (
-        <div className="relative flex items-center gap-2">
+        <div className="flex items-center gap-2">
             {/* Sort Dropdown */}
-            <div className="relative">
+            <div className="relative flex-shrink-0">
                 <button
                     onClick={() => setIsOpen(!isOpen)}
                     className="k-control-btn w-full"

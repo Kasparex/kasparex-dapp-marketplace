@@ -13,7 +13,7 @@ export default function HubPage() {
 
       <main className="flex-1">
         {/* Premium Hero Section */}
-        <section className="relative overflow-hidden bg-white dark:bg-zinc-950 pt-16 sm:pt-20 lg:pt-24 pb-12 sm:pb-16 lg:pb-20">
+        <section className="relative overflow-hidden bg-white dark:bg-zinc-950 pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10">
           <div className="absolute top-0 right-0 w-[50%] h-full bg-gradient-to-l from-orange-500/10 via-transparent to-transparent hidden dark:block" />
           <div className="absolute bottom-0 left-0 w-[50%] h-full bg-gradient-to-r from-emerald-500/5 via-transparent to-transparent hidden dark:block" />
 

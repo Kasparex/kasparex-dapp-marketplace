@@ -63,7 +63,7 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
   const isFavoritesActive = sortBy === 'favorites';
 
   return (
-    <div className="relative flex items-center gap-2">
+    <div className="flex items-center gap-2">
       {/* View Mode Switcher */}
       {onViewModeChange && (
         <div className="k-control-group">
@@ -110,7 +110,7 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
       )}
 
       {/* Sort Dropdown */}
-      <div className="relative">
+      <div className="relative flex-shrink-0">
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="k-control-btn min-w-[160px]"

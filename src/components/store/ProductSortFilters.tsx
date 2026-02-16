@@ -43,7 +43,7 @@ export function ProductSortFilters({
   const currentLabel = sortOptions.find((opt) => opt.value === sortBy)?.label || 'Sort by...';
 
   return (
-    <div className="relative" ref={sortMenuRef}>
+    <div className="relative flex-shrink-0" ref={sortMenuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="k-control-btn w-full"

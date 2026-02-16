@@ -64,7 +64,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
       className="block bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden hover:shadow-lg transition-all hover:scale-[1.02] group"
     >
       {/* Image */}
-      <div className="aspect-square bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden">
+      <div className="aspect-square bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900 relative overflow-hidden">
         {imageUrl ? (
           <img
             src={imageUrl}
