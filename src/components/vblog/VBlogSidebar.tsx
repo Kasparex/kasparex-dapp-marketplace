@@ -119,3 +119,6 @@ export function VBlogSidebar({
             Clear All Filters
           </button>
         )}
+    </UnifiedSidebar>
+  );
+}
