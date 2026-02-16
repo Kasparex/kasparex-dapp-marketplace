@@ -42,22 +42,8 @@ export function SidebarNavItem({
 
   const content = (
     <>
-      {onCheckedChange != null && (
-        <>
-          <input
-            type="checkbox"
-            checked={checked}
-            onChange={(e) => onCheckedChange(e.target.checked)}
-            className="sr-only"
-            aria-hidden
-          />
-          <div
-            className={`${indicatorClasses} ${checked ? '!bg-[#02abb8] !border-[#02abb8]' : '!bg-zinc-200 dark:!bg-zinc-800'}`}
-          />
-        </>
-      )}
-      {icon != null && <span className="flex-shrink-0 inline-flex items-center k-sidebar-icon">{icon}</span>}
-      <span className="text-[11px] font-bold uppercase tracking-wider flex-1 min-w-0 truncate">{label}</span>
+      {icon != null && <span className="flex-shrink-0 inline-flex items-center justify-center k-sidebar-icon">{icon}</span>}
+      <span className="text-[11px] font-bold uppercase tracking-wider flex-1 min-w-0 truncate leading-tight">{label}</span>
       {count != null && <span className="k-sidebar-count">{count}</span>}
       {children}
     </>

@@ -44,19 +44,7 @@ export function SidebarCategories({
       <nav className="space-y-0.5">
         {items.map((item) => {
           const isChecked = selectedSet.has(item.id);
-          if (multi) {
-            return (
-              <SidebarNavItem
-                key={item.id}
-                label={item.label}
-                icon={item.icon}
-                count={item.count}
-                checked={isChecked}
-                onCheckedChange={() => onSelect(item.id)}
-                active={isChecked}
-              />
-            );
-          }
+          // Always use onClick/active pattern, never checkboxes
           return (
             <SidebarNavItem
               key={item.id}
