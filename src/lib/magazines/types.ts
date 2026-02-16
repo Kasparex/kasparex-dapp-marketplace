@@ -36,4 +36,4 @@ export interface Magazine {
     totalIssues: number;
 }
 
-export type MagazineSortOption = 'newest' | 'oldest' | 'price-low-high' | 'price-high-low' | 'alphabetical-az';
+export type MagazineSortOption = 'newest' | 'oldest' | 'price-low-high' | 'price-high-low' | 'alphabetical-az' | 'alphabetical-za';

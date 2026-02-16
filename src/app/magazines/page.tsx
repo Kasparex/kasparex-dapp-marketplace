@@ -6,6 +6,8 @@ import { Footer } from '@/components/Footer';
 import { MagazineHeader } from '@/components/magazines/MagazineHeader';
 import { MagazineCard } from '@/components/magazines/MagazineCard';
 import { MagazinesSidebar } from '@/components/magazines/MagazinesSidebar';
+import { MagazineSortFilters } from '@/components/magazines/MagazineSortFilters';
+import { FilterBar } from '@/components/FilterBar';
 import { getAllMagazines } from '@/lib/magazines/data';
 import { Magazine, MagazineSortOption } from '@/lib/magazines/types';
 
@@ -50,6 +52,13 @@ export default function MagazinesPage() {
         );
     };
 
+    const handleResetFilters = () => {
+        setSearchQuery('');
+        setSelectedCategory('All');
+        setSelectedTags([]);
+        setSortBy('newest');
+    };
+
     const filteredMagazines = useMemo(() => {
         let filtered = [...magazines];
 
@@ -70,8 +79,10 @@ export default function MagazinesPage() {
 
         // Sort
         filtered.sort((a, b) => {
-            if (sortBy === 'newest') return -1; // Mock: latest on top
+            if (sortBy === 'newest') return (b.totalIssues ?? 0) - (a.totalIssues ?? 0);
+            if (sortBy === 'oldest') return (a.totalIssues ?? 0) - (b.totalIssues ?? 0);
             if (sortBy === 'alphabetical-az') return a.name.localeCompare(b.name);
+            if (sortBy === 'alphabetical-za') return b.name.localeCompare(a.name);
             return 0;
         });
 
@@ -110,40 +121,14 @@ export default function MagazinesPage() {
                             </p>
                         </div>
 
-                        {/* Controls Bar: Search and Sort */}
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                            {/* Search Bar - Moved from Sidebar */}
-                            <div className="flex-1 max-w-md overflow-visible">
-                                <div className="k-search-container h-10">
-                                    <input
-                                        type="text"
-                                        placeholder="Search magazines..."
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className={`k-search-input h-10 ${searchQuery.length > 0 ? 'is-typing' : ''}`.trim()}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Sort UI - Standardized Style */}
-                            <div className="flex items-center gap-2">
-                                <div className="relative group">
-                                    <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 rounded-xl px-1.5 py-1 border border-zinc-200 dark:border-zinc-800">
-                                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-2">Sort</span>
-                                        <select
-                                            value={sortBy}
-                                            onChange={(e) => setSortBy(e.target.value as MagazineSortOption)}
-                                            className="bg-transparent text-xs font-bold focus:outline-none cursor-pointer pr-4 text-zinc-900 dark:text-zinc-100 appearance-none py-1.5"
-                                        >
-                                            <option value="newest" className="bg-white dark:bg-zinc-900">Newest Created</option>
-                                            <option value="alphabetical-az" className="bg-white dark:bg-zinc-900">Alphabetical (A-Z)</option>
-                                        </select>
-                                        <svg className="w-3.5 h-3.5 text-zinc-400 -ml-3 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
+                        {/* Controls Area - FilterBar (dApps pattern) */}
+                        <div className="flex flex-col gap-4 mb-8">
+                            <FilterBar
+                                search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search magazines...' }}
+                                onReset={handleResetFilters}
+                            >
+                                <MagazineSortFilters sortBy={sortBy} onSortChange={setSortBy} />
+                            </FilterBar>
                         </div>
 
                         {isLoading ? (
