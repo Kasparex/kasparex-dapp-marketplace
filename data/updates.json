@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1771271631-e1c3c5b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat: Magazines sidebar pattern, FilterBar+sort, unique category icons (dApps, Magazines, vBlog) (by Kasparex)",
+      "date": "2026-02-16T20:53:09+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1771265921-ac32f38",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: feat: premium Points & Rewards Calculator; page header above sort (Games, Store, Magazines, vBlog, NFT) (by Kasparex)",
