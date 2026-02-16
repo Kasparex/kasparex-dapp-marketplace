@@ -100,6 +100,16 @@ export default function MagazinesPage() {
                             <MagazineHeader />
                         </div>
 
+                        {/* Page Header - above Sorting area (dApps pattern) */}
+                        <div className="mb-6">
+                            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
+                                Available magazines
+                            </h2>
+                            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                                {filteredMagazines.length} magazine{filteredMagazines.length !== 1 ? 's' : ''} found
+                            </p>
+                        </div>
+
                         {/* Controls Bar: Search and Sort */}
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                             {/* Search Bar - Moved from Sidebar */}

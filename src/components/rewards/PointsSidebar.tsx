@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { XPPointsBox } from './XPPointsBox';
 import { KREXStatusBox } from './KREXStatusBox';
 import { NFTStatusBox } from './NFTStatusBox';
@@ -120,6 +121,29 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
           Reset Filters
         </button>
       </div>
+
+      <SidebarSection title="Related">
+        <nav className="space-y-0.5">
+          <Link
+            href="/rewards-calculator"
+            className="k-sidebar-item w-full flex items-center gap-3"
+          >
+            <svg className="k-sidebar-icon w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            <span>Rewards Calculator</span>
+          </Link>
+          <Link
+            href="/hub"
+            className="k-sidebar-item w-full flex items-center gap-3"
+          >
+            <svg className="k-sidebar-icon w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+            <span>Hub</span>
+          </Link>
+        </nav>
+      </SidebarSection>
     </UnifiedSidebar>
   );
 }

@@ -107,15 +107,22 @@ export default function StorePage() {
             {/* Premium Header */}
             <StoreHeader />
 
-            {/* Controls Bar */}
-            <div className="flex flex-col gap-4 mb-8">
-              <p className="text-zinc-500 dark:text-zinc-400 font-medium">
+            {/* Page Header - above Sorting area (dApps pattern) */}
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
+                Available products
+              </h2>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
                 {isLoading ? (
                   'Loading products...'
                 ) : (
                   `${filteredAndSortedProducts.length} product${filteredAndSortedProducts.length !== 1 ? 's' : ''} found`
                 )}
               </p>
+            </div>
+
+            {/* Controls Area */}
+            <div className="flex flex-col gap-4 mb-8">
               <FilterBar
                 search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search products...' }}
                 onReset={handleResetFilters}

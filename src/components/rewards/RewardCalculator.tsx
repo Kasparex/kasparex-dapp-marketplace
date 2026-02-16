@@ -140,15 +140,6 @@ export function RewardCalculator() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-          Reward Calculator
-        </h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Simulate your rewards based on KAS spent, KREX tier, NFT ownership, node provider status, and seasonal boosters.
-        </p>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column: Input Section */}
         <div className="space-y-6">

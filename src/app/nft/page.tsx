@@ -86,6 +86,16 @@ export default function NFTPage() {
             {activeTab === 'collections' ? (
               <section className="py-8 sm:py-12">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                  {/* Page Header - above content (dApps pattern) */}
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
+                      NFT Collections
+                    </h2>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                      {filteredCollections.length} collection{filteredCollections.length !== 1 ? 's' : ''} found
+                    </p>
+                  </div>
+
                   {isPreloading && (
                     <div className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
                       Preloading collection data...

@@ -178,17 +178,18 @@ function GamesContent() {
             </div>
             <div id="content" className="scroll-mt-4" />
 
-            <div className="mb-6 flex flex-col sm:flex-row sm:items-center gap-4">
-              <div className="lg:pl-0 pl-12 flex-1 min-w-0">
-                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-                  Available games
-                </h2>
-                <p className="text-zinc-600 dark:text-zinc-400">
-                  {filteredGames.length} game{filteredGames.length !== 1 ? 's' : ''} found
-                </p>
-              </div>
-              {/* Filter bar: search + sort + reset */}
-              <div className="flex-1 min-w-0">
+            {/* Page Header - above Sorting area (dApps pattern) */}
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
+                Available games
+              </h2>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                {filteredGames.length} game{filteredGames.length !== 1 ? 's' : ''} found
+              </p>
+            </div>
+
+            {/* Controls Area - single row via FilterBar */}
+            <div className="flex flex-col gap-4 mb-6">
               <FilterBar
                 search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search games...' }}
                 onReset={handleResetFilters}
@@ -201,7 +202,6 @@ function GamesContent() {
                   onViewModeChange={setViewMode}
                 />
               </FilterBar>
-              </div>
             </div>
 
             <GameGrid games={displayedGames} viewMode={viewMode} />

@@ -129,8 +129,18 @@ export default function VBlogPage() {
               {/* Dynamic Rewards Section */}
               <VBlogRewardsSection />
 
+              {/* Page Header - above Sorting area (dApps pattern) */}
+              <div className="mt-12 mb-6">
+                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
+                  Available articles
+                </h2>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  {filteredArticles.length} article{filteredArticles.length !== 1 ? 's' : ''} found
+                </p>
+              </div>
+
               {/* Controls Area */}
-              <div className="mt-12 mb-8 flex flex-col gap-4">
+              <div className="mb-8 flex flex-col gap-4">
                 <FilterBar
                   search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search articles...' }}
                   onReset={handleResetFilters}
@@ -141,9 +151,6 @@ export default function VBlogPage() {
                     onAddArticle={() => setIsSubmitModalOpen(true)}
                   />
                 </FilterBar>
-                <p className="text-sm font-bold text-zinc-500">
-                  {filteredArticles.length} Result{filteredArticles.length !== 1 ? 's' : ''}
-                </p>
                 {/* Selected Tags Row (Compact) */}
                 <div className="flex flex-wrap gap-2">
                   {selectedTags.map(tag => (

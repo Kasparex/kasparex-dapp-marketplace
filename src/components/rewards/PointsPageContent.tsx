@@ -3,7 +3,6 @@
 import { useAccount } from 'wagmi';
 import { getMockWalletHoldings } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
-import Link from 'next/link';
 import { BadgesDisplay } from './BadgesDisplay';
 import { type NFTStatus, type NodeProviderStatus } from '@/lib/rewards/types';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -137,23 +136,6 @@ export function PointsPageContent({ filters }: PointsPageContentProps) {
   return (
     <div>
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-              XP Points, Perks & Badges
-            </h1>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Earn points through dApp usage and unlock exclusive benefits
-            </p>
-          </div>
-          <Link
-            href="/rewards-calculator"
-            className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-          >
-            Rewards Calculator
-          </Link>
-        </div>
-
         {/* Current XP Display */}
         <div className="p-6 bg-gradient-to-r from-[#02abb8]/10 to-[#02abb8]/5 rounded-lg border border-[#02abb8]/20 mb-6">
           <div className="flex items-center justify-between">
