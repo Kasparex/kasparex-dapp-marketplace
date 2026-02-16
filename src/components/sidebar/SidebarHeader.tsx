@@ -12,7 +12,7 @@ export interface SidebarHeaderProps {
 export function SidebarHeader({ backHref, backLabel, onHide, className = '' }: SidebarHeaderProps) {
   return (
     <div
-      className={`p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50 dark:bg-zinc-900/50 ${className}`}
+      className={`p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-transparent ${className}`}
     >
       <Link
         href={backHref}

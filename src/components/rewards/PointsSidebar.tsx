@@ -64,14 +64,7 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
       <KREXStatusBox />
       <NFTStatusBox />
 
-      <SidebarSection
-        title="Perks"
-        icon={
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2v-2m0 13V5.5A2.5 2.5 0 1019.5 8V19M12 8l-4-4m4 4l4-4" />
-          </svg>
-        }
-      >
+      <SidebarSection title="Perks">
         <nav className="space-y-0.5">
           <SidebarNavItem
             label="Unlocked Perks"
@@ -88,14 +81,7 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
         </nav>
       </SidebarSection>
 
-      <SidebarSection
-        title="Badges"
-        icon={
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-          </svg>
-        }
-      >
+      <SidebarSection title="Badges">
         <nav className="space-y-0.5">
           <SidebarNavItem
             label="Unlocked Badges"
@@ -112,14 +98,7 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
         </nav>
       </SidebarSection>
 
-      <SidebarSection
-        title="Additional"
-        icon={
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-        }
-      >
+      <SidebarSection title="Additional">
         <nav className="space-y-0.5">
           <SidebarNavItem
             label="NFT Perks"

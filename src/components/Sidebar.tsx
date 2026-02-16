@@ -129,7 +129,6 @@ export function Sidebar({
       <div className="p-4">
         <SidebarCategories
           title="Categories"
-          sectionIcon={<CategoriesIcon />}
           items={categoryItems}
           selectedIds={selectedCategories}
           onSelect={handleCategoryToggle}
@@ -138,7 +137,6 @@ export function Sidebar({
 
         <SidebarCategories
           title="Status"
-          sectionIcon={<StatusIcon />}
           items={statusItems}
           selectedIds={filters.status || []}
           onSelect={(id) => handleStatusToggle(id as DAppStatus | 'all')}
@@ -147,7 +145,6 @@ export function Sidebar({
 
         <SidebarCategories
           title="Network"
-          sectionIcon={<NetworkIcon />}
           items={networkItems}
           selectedIds={filters.network || []}
           onSelect={(id) => {

@@ -29,7 +29,7 @@ export function SidebarQuickActions({
 }: SidebarQuickActionsProps) {
   if (items.length === 0) return null;
   return (
-    <SidebarSection title={title} icon={sectionIcon} className={className}>
+    <SidebarSection title={title} className={className}>
       <nav className="space-y-0.5">
         {items.map((item) => (
           <SidebarNavItem

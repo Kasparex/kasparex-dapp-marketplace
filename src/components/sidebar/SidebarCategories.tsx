@@ -40,7 +40,7 @@ export function SidebarCategories({
       : new Set<string>();
 
   return (
-    <SidebarSection title={title} icon={sectionIcon} className={className}>
+    <SidebarSection title={title} className={className}>
       <nav className="space-y-0.5">
         {items.map((item) => {
           const isChecked = selectedSet.has(item.id);

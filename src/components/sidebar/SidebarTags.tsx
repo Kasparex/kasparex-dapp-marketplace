@@ -22,7 +22,7 @@ export function SidebarTags({
 }: SidebarTagsProps) {
   if (tags.length === 0) return null;
   return (
-    <SidebarSection title={title} icon={sectionIcon} className={className}>
+    <SidebarSection title={title} className={className}>
       <div className="flex flex-wrap gap-2 px-1">
         {tags.map((tag) => {
           const isSelected = selectedTags.includes(tag);

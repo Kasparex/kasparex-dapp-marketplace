@@ -77,7 +77,7 @@ export function StoreSidebar({
   })) ?? [];
 
   const storeFooter = (
-    <div className="flex items-center gap-3 p-4">
+    <div className="flex items-center gap-3 p-4 bg-transparent border-t border-zinc-200 dark:border-zinc-800">
       <div className="w-8 h-8 rounded-xl bg-[#02abb8]/10 text-[#02abb8] flex items-center justify-center font-black text-[10px]">KS</div>
       <div className="flex-1 min-w-0">
         <p className="text-[10px] font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-widest truncate">Kasparex Store</p>
@@ -89,15 +89,14 @@ export function StoreSidebar({
   return (
     <UnifiedSidebar
       storageKeyPrefix="store"
-      header={(onHide) => <SidebarHeader backHref={backHref} backLabel={backLabel} onHide={onHide} className="bg-white dark:bg-zinc-950" />}
+      header={(onHide) => <SidebarHeader backHref={backHref} backLabel={backLabel} onHide={onHide} />}
       footer={storeFooter}
     >
       {isListing && (
         <>
-          <SidebarQuickActions items={quickActionsListing} sectionIcon={<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>} />
+          <SidebarQuickActions items={quickActionsListing} />
           <SidebarCategories
             title="Categories"
-            sectionIcon={<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>}
             items={categoryItems}
             selectedIds={selectedCategories}
             onSelect={handleCategoryToggle}
@@ -107,7 +106,7 @@ export function StoreSidebar({
       )}
 
       {isDashboard && (
-        <SidebarSection title="Seller Panel" icon={<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}>
+        <SidebarSection title="Seller Panel">
           <div className="px-2 py-4 mb-2 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
             <div className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Total Revenue</div>
             <div className="text-2xl font-black text-[#02abb8]">{sellerRevenue.toLocaleString()} KAS</div>

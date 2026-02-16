@@ -80,7 +80,7 @@ export function KnowledgeBaseSidebar({
   ];
 
   const header = (onHide: () => void) => (
-    <div className="flex-shrink-0 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
+    <div className="flex-shrink-0 bg-transparent border-b border-zinc-200 dark:border-zinc-800 p-4">
       <div className="flex items-center justify-between mb-4">
         <Link
           href="/"
