@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1771264122-791ebe5",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: style: single capsule search input (#1a1816, is-typing, focus ring); sort/+ dropdowns absolute (stay with button) (by Kasparex)",
+      "date": "2026-02-16T18:48:15+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1771262562-d6eb756",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: style: search inputs #1a1816 default, dark gray when typing; dropdowns open below trigger (by Kasparex)",
