@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1771265921-ac32f38",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat: premium Points & Rewards Calculator; page header above sort (Games, Store, Magazines, vBlog, NFT) (by Kasparex)",
+      "date": "2026-02-16T19:17:52+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1771264122-791ebe5",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: style: single capsule search input (#1a1816, is-typing, focus ring); sort/+ dropdowns absolute (stay with button) (by Kasparex)",
