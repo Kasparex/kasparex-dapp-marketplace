@@ -58,7 +58,7 @@ export function RevenueTreeLevelModal({
     if (contentType === 'magazine') {
       path = `/magazines/${contentSlug}/1`; // TODO: Get actual issue number
     } else {
-      const pluralMap: Record<typeof contentType, string> = {
+      const pluralMap: Record<'dapp' | 'magazine' | 'vblog' | 'game' | 'store', string> = {
         dapp: 'dapps',
         magazine: 'magazines',
         vblog: 'vblog',
