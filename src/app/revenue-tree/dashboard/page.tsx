@@ -11,7 +11,7 @@ export default function RevenueTreeDashboardPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-1 p-4 sm:p-6 lg:px-16 lg:py-12">
+      <main className="flex-1 flex flex-col">
         <RevenueTreeDashboard />
       </main>
       <Footer />
