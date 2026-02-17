@@ -2,6 +2,7 @@
 
 import { createPortal } from 'react-dom';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 interface RevenueTreeGuideModalProps {
   isOpen: boolean;
