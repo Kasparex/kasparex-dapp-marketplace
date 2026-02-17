@@ -6,19 +6,20 @@ import { Footer } from '@/components/Footer';
 import { RevenueTree } from '@/components/revenue-tree/RevenueTree';
 import { generateMockRevenueTree } from '@/lib/revenue-tree/mockData';
 import { RevenueTreeData } from '@/lib/revenue-tree/types';
-import { useAccount } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
 
 export default function RevenueTreeDemoPage() {
   const { address: userWalletAddress } = useAccount();
+  const chainId = useChainId();
   const [currentStep, setCurrentStep] = useState(1);
   const [demoTree, setDemoTree] = useState<RevenueTreeData | null>(null);
 
   // Initialize demo tree
   useEffect(() => {
     if (userWalletAddress && !demoTree && currentStep === 1) {
-      setDemoTree(generateMockRevenueTree('demo-payment', 'demo-payment', userWalletAddress, false));
+      setDemoTree(generateMockRevenueTree('demo-payment', 'demo-payment', userWalletAddress, chainId, false));
     }
-  }, [userWalletAddress, currentStep, demoTree]);
+  }, [userWalletAddress, currentStep, demoTree, chainId]);
 
   const steps = [
     {
@@ -55,7 +56,7 @@ export default function RevenueTreeDemoPage() {
     if (stepNumber === 1) {
       // Simulate payment
       if (userWalletAddress) {
-        setDemoTree(generateMockRevenueTree('demo-payment', 'demo-payment', userWalletAddress, true));
+        setDemoTree(generateMockRevenueTree('demo-payment', 'demo-payment', userWalletAddress, chainId, true));
       }
       setCurrentStep(2);
     } else if (stepNumber === 2) {
