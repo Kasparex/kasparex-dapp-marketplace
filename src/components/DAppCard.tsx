@@ -168,40 +168,49 @@ export function DAppCard({ dapp }: DAppCardProps) {
       )}
 
       <div className="p-6 relative z-10 flex flex-col flex-1 min-h-0">
-        {/* Title and Network Badge Row */}
-        <div className="mb-4">
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <h3
-              className="text-xl font-black text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors duration-300 flex-1"
-              title={mergedDApp.name}
-            >
-              {mergedDApp.name}
-            </h3>
-          </div>
+        {/* Top Section: Profile Picture on Left, Title and Network on Right */}
+        <div className="flex items-start gap-4 mb-4">
+          {/* Profile Picture - Left Side */}
+          <DAppIcon
+            dAppName={mergedDApp.name}
+            category={mergedDApp.category}
+            size={56}
+            className="flex-shrink-0 rounded-xl"
+          />
 
-          {/* Network Badge - Redesigned */}
-          <div className="flex items-center gap-2 flex-wrap mb-3">
-            <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border-2 ${networkBadgeColor}`}
-              title={`${mergedDApp.name} is deployed on ${networkName}`}
-            >
-              {networkType === 'L1' ? (
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              ) : (
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
-                </svg>
-              )}
-              {networkName}
-            </span>
+          {/* Title and Network - Right Side */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <h3
+                className="text-lg font-black text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors duration-300 flex-1 truncate"
+                title={mergedDApp.name}
+              >
+                {mergedDApp.name}
+              </h3>
 
-            {/* Reward Token Badge */}
+              {/* Network Indicator - Subtle, Right Side */}
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                {networkType === 'L1' ? (
+                  <svg className="w-4 h-4 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+                  </svg>
+                )}
+                <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+                  {networkName}
+                </span>
+              </div>
+            </div>
+
+            {/* Reward Token - Text Only, No Badge */}
             {tokenTicker && (
-              <span className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-[#02abb8]/10 text-[#02abb8] border border-[#02abb8]/20">
-                {tokenTicker} Reward
-              </span>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                <span className="font-medium text-[#02abb8]">{tokenTicker}</span>
+                <span className="ml-1">Reward Token</span>
+              </div>
             )}
           </div>
         </div>
@@ -218,25 +227,25 @@ export function DAppCard({ dapp }: DAppCardProps) {
           <div className="flex items-center justify-between gap-3">
             {/* Left: Category, Version, ID */}
             <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
-              {/* Category with Icon */}
+              {/* Category with Icon - Gray Styling */}
               {category && (
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg bg-[#02abb8]/10 text-[#02abb8] border border-[#02abb8]/20">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
                   <CategoryIcon id={category.id} />
                   <span>{category.name}</span>
                 </div>
               )}
 
-              {/* Version */}
+              {/* Version - Consistent Box Size */}
               {mergedDApp.version && mergedDApp.version !== 'N/A' && (
-                <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded">
+                <div className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded">
                   v{mergedDApp.version.replace(/^v\s*/i, '')}
                 </div>
               )}
 
-              {/* dApp ID */}
-              <span className="text-[10px] text-zinc-500 dark:text-zinc-400 font-mono truncate">
+              {/* dApp ID - Consistent Box Size */}
+              <div className="px-3 py-1.5 text-[10px] font-mono text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 rounded">
                 {mergedDApp.id}
-              </span>
+              </div>
             </div>
 
             {/* Right: Star, Heart, and Open Button */}

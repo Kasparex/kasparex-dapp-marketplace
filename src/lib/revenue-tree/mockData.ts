@@ -5,6 +5,8 @@
  */
 
 import { RevenueTreeData, RevenueTreeLevel } from './types';
+import { generateRevenueTreeLevels, hasUserActivated } from './utils';
+import { getStoredReferral } from './referral';
 
 /**
  * Generate mock revenue tree data for a dApp
@@ -12,44 +14,31 @@ import { RevenueTreeData, RevenueTreeLevel } from './types';
 export function generateMockRevenueTree(
   dappId: string,
   dappSlug: string,
-  userWalletAddress: string,
+  userWalletAddress: string | undefined,
+  chainId: number = 167012,
   isActive: boolean = true
 ): RevenueTreeData {
-  const levels: RevenueTreeLevel[] = [
-    {
-      level: 5,
-      walletAddress: 'kaspa:qtre...john',
-      userCount: 0,
-      sharePercentage: 45,
-    },
-    {
-      level: 4,
-      walletAddress: 'kaspa:qtre...mark',
-      userCount: 0,
-      sharePercentage: 20,
-    },
-    {
-      level: 3,
-      walletAddress: 'kaspa:qtre...paul',
-      userCount: 0,
-      sharePercentage: 10,
-    },
-    {
-      level: 2,
-      walletAddress: 'kaspa:qtre...eric',
-      userCount: 0,
-      sharePercentage: 5,
-    },
-    {
-      level: 1,
-      walletAddress: userWalletAddress,
-      userCount: 0,
-      sharePercentage: 2,
-    },
-  ];
+  const contentType = 'dapp';
+  
+  // Check if user has activated
+  const isActivated = userWalletAddress ? hasUserActivated(userWalletAddress, contentType, dappSlug) : false;
+  
+  // Get referral address if exists
+  const referrerAddress = typeof window !== 'undefined' ? getStoredReferral(contentType, dappSlug) : null;
+  
+  // Generate levels based on activation status and referral chain
+  const levels = generateRevenueTreeLevels(
+    userWalletAddress,
+    chainId,
+    contentType,
+    dappSlug,
+    referrerAddress
+  );
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-  const referralLink = `${baseUrl}/dapps/${dappSlug}?ref=${userWalletAddress}`;
+  const referralLink = userWalletAddress 
+    ? `${baseUrl}/dapps/${dappSlug}?ref=${userWalletAddress}`
+    : `${baseUrl}/dapps/${dappSlug}`;
 
   return {
     dappId,
@@ -57,12 +46,12 @@ export function generateMockRevenueTree(
     contentType: 'dapp',
     contentSlug: dappSlug,
     levels,
-    totalEarned: isActive ? 2625.0 : 0,
-    revenueTreesCount: isActive ? 137 : 0,
+    totalEarned: isActive && isActivated ? 2625.0 : 0,
+    revenueTreesCount: isActive && isActivated ? 137 : 0,
     referralLink,
-    isActive,
-    userWalletAddress,
-    activatedAt: isActive ? new Date().toISOString() : undefined,
+    isActive: isActivated,
+    userWalletAddress: userWalletAddress || '',
+    activatedAt: isActivated ? new Date().toISOString() : undefined,
   };
 }
 
@@ -72,44 +61,31 @@ export function generateMockRevenueTree(
 export function generateMockMagazineRevenueTree(
   magazineSlug: string,
   issueNumber: number,
-  userWalletAddress: string,
+  userWalletAddress: string | undefined,
+  chainId: number = 167012,
   isActive: boolean = true
 ): RevenueTreeData {
-  const levels: RevenueTreeLevel[] = [
-    {
-      level: 5,
-      walletAddress: 'kaspa:qtre...alex',
-      userCount: 2,
-      sharePercentage: 45,
-    },
-    {
-      level: 4,
-      walletAddress: 'kaspa:qtre...john',
-      userCount: 60,
-      sharePercentage: 20,
-    },
-    {
-      level: 3,
-      walletAddress: 'kaspa:qtre...mark',
-      userCount: 35,
-      sharePercentage: 10,
-    },
-    {
-      level: 2,
-      walletAddress: 'kaspa:qtre...paul',
-      userCount: 15,
-      sharePercentage: 5,
-    },
-    {
-      level: 1,
-      walletAddress: userWalletAddress,
-      userCount: 5,
-      sharePercentage: 2,
-    },
-  ];
+  const contentType = 'magazine';
+  
+  // Check if user has activated
+  const isActivated = userWalletAddress ? hasUserActivated(userWalletAddress, contentType, magazineSlug) : false;
+  
+  // Get referral address if exists
+  const referrerAddress = typeof window !== 'undefined' ? getStoredReferral(contentType, magazineSlug) : null;
+  
+  // Generate levels based on activation status and referral chain
+  const levels = generateRevenueTreeLevels(
+    userWalletAddress,
+    chainId,
+    contentType,
+    magazineSlug,
+    referrerAddress
+  );
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-  const referralLink = `${baseUrl}/magazines/${magazineSlug}/${issueNumber}?ref=${userWalletAddress}`;
+  const referralLink = userWalletAddress 
+    ? `${baseUrl}/magazines/${magazineSlug}/${issueNumber}?ref=${userWalletAddress}`
+    : `${baseUrl}/magazines/${magazineSlug}/${issueNumber}`;
 
   return {
     dappId: `magazine-${magazineSlug}-${issueNumber}`,
@@ -118,22 +94,22 @@ export function generateMockMagazineRevenueTree(
     contentSlug: magazineSlug,
     issueNumber,
     levels,
-    totalEarned: isActive ? 1206.0 : 0,
-    revenueTreesCount: isActive ? 1 : 0,
+    totalEarned: isActive && isActivated ? 1206.0 : 0,
+    revenueTreesCount: isActive && isActivated ? 1 : 0,
     referralLink,
-    isActive,
-    userWalletAddress,
-    activatedAt: isActive ? new Date().toISOString() : undefined,
+    isActive: isActivated,
+    userWalletAddress: userWalletAddress || '',
+    activatedAt: isActivated ? new Date().toISOString() : undefined,
   };
 }
 
 /**
  * Get all mock revenue trees for a user
  */
-export function getAllMockRevenueTrees(userWalletAddress: string): RevenueTreeData[] {
+export function getAllMockRevenueTrees(userWalletAddress: string | undefined, chainId: number = 167012): RevenueTreeData[] {
   return [
-    generateMockRevenueTree('simple-payment', 'simple-payment', userWalletAddress, true),
-    generateMockRevenueTree('8', 'voting-tournament-tool', userWalletAddress, false),
-    generateMockMagazineRevenueTree('kaspa-insider', 1, userWalletAddress, true),
+    generateMockRevenueTree('simple-payment', 'simple-payment', userWalletAddress, chainId, true),
+    generateMockRevenueTree('8', 'voting-tournament-tool', userWalletAddress, chainId, false),
+    generateMockMagazineRevenueTree('kaspa-insider', 1, userWalletAddress, chainId, true),
   ];
 }
