@@ -59,14 +59,15 @@ export default async function DAppPage({ params }: PageProps) {
     contractAddress = '';
   }
 
-  const slug = dapp.slug || generateDAppSlug(dapp.name);
+  // Use slug from params (already extracted above)
+  const dappSlug = slug;
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
       
       {/* Referral Tracker */}
-      <ReferralTracker contentType="dapp" contentSlug={slug} />
+      <ReferralTracker contentType="dapp" contentSlug={dappSlug} />
       
       <main className="flex-1 flex flex-col">
         <div className="flex-1 flex flex-col lg:flex-row">
@@ -80,7 +81,7 @@ export default async function DAppPage({ params }: PageProps) {
             
             {/* Comments Section */}
             <div className="mt-8">
-              <CommentsSection articleId={`dapp:${slug}`} />
+              <CommentsSection articleId={`dapp:${dappSlug}`} />
             </div>
           </div>
         </div>
