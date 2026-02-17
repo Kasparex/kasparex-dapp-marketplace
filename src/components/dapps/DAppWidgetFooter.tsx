@@ -21,6 +21,8 @@ interface DAppWidgetFooterProps {
   hideStar?: boolean;
   hideHeart?: boolean;
   hideEmbed?: boolean;
+  /** When true, do not render the category/version/ID/modal/star/heart row (used on dApp page where that row lives in the right column). */
+  hideMetaRow?: boolean;
 }
 
 export function DAppWidgetFooter({ 
@@ -30,6 +32,7 @@ export function DAppWidgetFooter({
   hideStar = false,
   hideHeart = false,
   hideEmbed = false,
+  hideMetaRow = false,
 }: DAppWidgetFooterProps) {
   const chainId = useChainId();
   const [isFooterCollapsed, setIsFooterCollapsed] = useState(false);
@@ -109,7 +112,8 @@ export function DAppWidgetFooter({
     <>
       <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         <div className="flex flex-col gap-4">
-          {/* Category/Version/ID and Icons Row */}
+          {/* Category/Version/ID and Icons Row (hidden on dApp page; shown in right column) */}
+          {!hideMetaRow && (
           <div className="flex items-center justify-between gap-2 flex-wrap">
             {/* Left: Category/Version/ID */}
             <div className="flex items-center gap-2 flex-wrap">
@@ -214,6 +218,7 @@ export function DAppWidgetFooter({
               </div>
             )}
           </div>
+          )}
 
           {/* Footer Text and Collapse Button Row */}
           <div className="flex items-center justify-between">

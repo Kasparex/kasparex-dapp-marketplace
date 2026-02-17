@@ -201,13 +201,9 @@ function HomeContent() {
                     Discover and use decentralized applications on Kaspa. Earn GRID and XP when you interact. Connect a wallet to get started.
                   </p>
                   <div className="flex flex-wrap gap-4">
-                    <a href="#content" className="k-cta-primary">
-                      Explore dApps
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                    <a href="#content" className="px-6 py-2.5 bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-violet-500/20 transition-all">
+                      EXPLORE DAPPS
                     </a>
-                    <Link href="/hub" className="k-cta-secondary">
-                      Go to Hub
-                    </Link>
                   </div>
                 </div>
                 {/* Decorative app-style graphic */}

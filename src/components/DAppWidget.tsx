@@ -114,7 +114,7 @@ export function DAppWidget({
           </div>
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-              <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} />
+              <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideHeader} />
             </div>
           )}
         </div>
@@ -158,7 +158,7 @@ export function DAppWidget({
           </div>
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-              <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} />
+              <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideHeader} />
             </div>
           )}
         </div>
@@ -196,7 +196,8 @@ export function DAppWidget({
               hideIcons={hideIcons} 
               hideStar={hideStar} 
               hideHeart={hideHeart} 
-              hideEmbed={hideEmbed} 
+              hideEmbed={hideEmbed}
+              hideMetaRow={hideHeader}
             />
           )}
         </div>
@@ -240,7 +241,7 @@ export function DAppWidget({
           </div>
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-              <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} />
+              <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideHeader} />
             </div>
           )}
         </div>
@@ -292,7 +293,7 @@ export function DAppWidget({
           </div>
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-              <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} />
+              <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideHeader} />
             </div>
           )}
         </div>
@@ -384,7 +385,7 @@ export function DAppWidget({
             </div>
           </div>
           {!hideFooter && (
-            <DAppWidgetFooter dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} />
+            <DAppWidgetFooter dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideHeader} />
           )}
         </div>
       </>
@@ -470,7 +471,7 @@ export function DAppWidget({
         )}
         {!hideFooter && (
           <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-            <DAppWidgetFooter dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} />
+            <DAppWidgetFooter dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideHeader} />
           </div>
         )}
       </div>
