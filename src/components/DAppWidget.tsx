@@ -280,14 +280,6 @@ export function DAppWidget({
               />
             </div>
           )}
-          
-          {/* Big dApp Title - Under Header */}
-          <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-              {dapp.name}
-            </h1>
-          </div>
-          
           <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
             <SendKASWidget />
           </div>
@@ -421,13 +413,6 @@ export function DAppWidget({
               />
             </div>
           )}
-          
-          {/* Big dApp Title - Under Header */}
-          <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-              {dapp.name}
-            </h1>
-          </div>
           <div 
             className={`relative w-full overflow-hidden ${!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}`}
             style={{ minHeight: '600px' }}

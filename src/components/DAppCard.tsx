@@ -209,15 +209,15 @@ export function DAppCard({ dapp }: DAppCardProps) {
                 </div>
               )}
 
-              {/* Version - Consistent Box Size */}
+              {/* Version - Same rounded corners and border as category badges */}
               {mergedDApp.version && mergedDApp.version !== 'N/A' && (
-                <div className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
                   v{mergedDApp.version.replace(/^v\s*/i, '')}
                 </div>
               )}
 
-              {/* dApp ID - Consistent Box Size */}
-              <div className="px-3 py-1.5 text-[10px] font-mono text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 rounded">
+              {/* dApp ID - Same rounded corners and border as category badges */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-mono rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
                 {mergedDApp.id}
               </div>
             </div>

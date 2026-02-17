@@ -14,7 +14,6 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { CategoryIcon } from './CategoryIcon';
 import { DAppInfoModal } from './DAppInfoModal';
 import { DAppEmbed } from './DAppEmbed';
-import { DAppReferralModal } from './DAppReferralModal';
 
 interface DAppRightColumnProps {
   dapp: DApp;
@@ -83,11 +82,11 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress }: 
             </Link>
           )}
           {mergedDApp.version && mergedDApp.version !== 'N/A' && (
-            <div className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
               v{mergedDApp.version.replace(/^v\s*/i, '')}
             </div>
           )}
-          <div className="px-3 py-1.5 text-[10px] font-mono text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 rounded">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-mono rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
             {mergedDApp.id}
           </div>
           <button
@@ -110,7 +109,6 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress }: 
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
           </button>
-          <DAppReferralModal dapp={mergedDApp} contractAddress={resolvedContractAddress} />
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
           <button
@@ -191,14 +189,20 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress }: 
         </div>
       </div>
 
-      {/* Description - clickable, opens info modal */}
+      {/* Description - slightly longer, no underline, Read more link */}
       <div>
+        <p className="text-zinc-600 dark:text-zinc-400 text-sm lg:text-base leading-relaxed line-clamp-5">
+          {description || 'No description available.'}
+        </p>
         <button
           type="button"
           onClick={() => setShowInfoModal(true)}
-          className="text-left w-full text-zinc-600 dark:text-zinc-400 text-sm lg:text-base leading-relaxed hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors underline decoration-zinc-300 dark:decoration-zinc-600 underline-offset-2 hover:decoration-zinc-500 dark:hover:decoration-zinc-400"
+          className="mt-2 text-sm font-medium text-[#02abb8] hover:text-[#0299a6] dark:hover:text-[#02abb8] transition-colors inline-flex items-center gap-1"
         >
-          {description || 'View full description and details'}
+          Read more
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
         </button>
       </div>
 

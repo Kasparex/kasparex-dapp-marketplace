@@ -165,17 +165,17 @@ export function DemoCard({ dapp, gradientColors }: DemoCardProps) {
                   </div>
               )}
               
-              {/* Version Box */}
+              {/* Version - Same rounded corners and border as category badges */}
               {mergedDApp.version && mergedDApp.version !== 'N/A' && (
-                <div className="px-3 py-1.5 text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded text-center">
-                  {mergedDApp.version.replace(/^v\s*/i, '')}
-                  </div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
+                  v{mergedDApp.version.replace(/^v\s*/i, '')}
+                </div>
               )}
-              
-              {/* dApp ID */}
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+
+              {/* dApp ID - Same rounded corners and border as category badges */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-mono rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
                 {mergedDApp.id}
-              </span>
+              </div>
             </div>
 
             {/* Right: Star/Heart Icons */}

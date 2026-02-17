@@ -58,10 +58,15 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
         onClose={() => setShowCompatibilityModal(false)}
       />
 
-      {/* Two Column Layout: Widget (left) | Info + Actions (right) */}
+      {/* Two Column Layout: Info (left) | Widget (right) - widget on right for better focus */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10">
-        {/* Column 1: dApp Widget only (minimal, premium) */}
-        <div className="space-y-6">
+        {/* Column 1 (left): Logo, Description, Costs/Fees, Revenue Tree */}
+        <div className="order-2 lg:order-1">
+          <DAppRightColumn dapp={dapp} contractAddress={contractAddress} />
+        </div>
+
+        {/* Column 2 (right): dApp Widget and related boxes */}
+        <div className="space-y-6 order-1 lg:order-2">
           <DAppWidget dapp={dapp} hideHeader />
 
           {/* GRID Holdings - GRT-only */}
@@ -96,11 +101,6 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
               <TreasuryBox showPerDApp />
             </div>
           )}
-        </div>
-
-        {/* Column 2: Logo, Description, Actions, Costs/Fees, Rewards, Revenue Tree */}
-        <div>
-          <DAppRightColumn dapp={dapp} contractAddress={contractAddress} />
         </div>
       </div>
     </div>
