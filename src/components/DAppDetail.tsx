@@ -17,7 +17,7 @@ import { GRIDHoldingsBox } from './rewards/GRIDHoldingsBox';
 import { TreasuryBox } from './treasury/TreasuryBox';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 
-import { DAppActionsColumn } from './dapps/DAppActionsColumn';
+import { DAppRightColumn } from './dapps/DAppRightColumn';
 
 interface DAppDetailProps {
   dapp: DApp;
@@ -58,11 +58,11 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
         onClose={() => setShowCompatibilityModal(false)}
       />
 
-      {/* Two Column Layout */}
+      {/* Two Column Layout: Widget (left) | Info + Actions (right) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10">
-        {/* Column 1: dApp Widget */}
+        {/* Column 1: dApp Widget only (minimal, premium) */}
         <div className="space-y-6">
-          <DAppWidget dapp={dapp} />
+          <DAppWidget dapp={dapp} hideHeader />
 
           {/* GRID Holdings - GRT-only */}
           <div>
@@ -98,9 +98,9 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
           )}
         </div>
 
-        {/* Column 2: Actions, Costs/Fees, Revenue Tree */}
+        {/* Column 2: Logo, Description, Actions, Costs/Fees, Rewards, Revenue Tree */}
         <div>
-          <DAppActionsColumn dapp={dapp} contractAddress={contractAddress} />
+          <DAppRightColumn dapp={dapp} contractAddress={contractAddress} />
         </div>
       </div>
     </div>

@@ -1,10 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import { RevenueTreeLevel as RevenueTreeLevelType } from '@/lib/revenue-tree/types';
+import { RevenueTreeLevelModal } from './RevenueTreeLevelModal';
+import { RevenueTreeContentType } from '@/lib/revenue-tree/types';
 
 interface RevenueTreeLevelProps {
   level: RevenueTreeLevelType;
   isCurrentUser?: boolean;
+  contentType: RevenueTreeContentType;
+  contentSlug: string;
 }
 
 /**
@@ -26,7 +31,9 @@ function DotIndicators({ count }: { count: number }) {
   );
 }
 
-export function RevenueTreeLevel({ level, isCurrentUser = false }: RevenueTreeLevelProps) {
+export function RevenueTreeLevel({ level, isCurrentUser = false, contentType, contentSlug }: RevenueTreeLevelProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   // Format wallet address for display
   const formatAddress = (address: string) => {
     if (address.startsWith('kaspa:')) {
@@ -46,13 +53,15 @@ export function RevenueTreeLevel({ level, isCurrentUser = false }: RevenueTreeLe
   const displayAddress = formatAddress(level.walletAddress);
 
   return (
-    <div
-      className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
-        isCurrentUser
-          ? 'bg-purple-500/10 dark:bg-purple-500/20 border-purple-500/30 dark:border-purple-500/50'
-          : 'bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800'
-      }`}
-    >
+    <>
+      <div
+        onClick={() => setIsModalOpen(true)}
+        className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer hover:shadow-md hover:border-[#02abb8]/30 ${
+          isCurrentUser
+            ? 'bg-purple-500/10 dark:bg-purple-500/20 border-purple-500/30 dark:border-purple-500/50'
+            : 'bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800'
+        }`}
+      >
       <div className="flex items-center gap-3 flex-1 min-w-0">
         {/* Level Label */}
         <div className="flex-shrink-0">
@@ -95,6 +104,16 @@ export function RevenueTreeLevel({ level, isCurrentUser = false }: RevenueTreeLe
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Modal */}
+      <RevenueTreeLevelModal
+        level={level}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        isCurrentUser={isCurrentUser}
+        contentType={contentType}
+        contentSlug={contentSlug}
+      />
+    </>
   );
 }

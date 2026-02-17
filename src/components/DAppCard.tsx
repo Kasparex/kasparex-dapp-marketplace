@@ -133,39 +133,23 @@ export function DAppCard({ dapp }: DAppCardProps) {
       href={`/dapps/${slug}`}
       className="group block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-[#02abb8]/10 hover:border-[#02abb8]/30 hover:-translate-y-2 transition-all duration-500 relative flex flex-col min-h-[360px]"
     >
-      {/* Featured Image Banner */}
-      {(mergedDApp.featuredImage || mergedDApp.image) ? (
-        <div className="relative w-full h-40 overflow-hidden border-b border-zinc-200/50 dark:border-zinc-800/50 bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900 transition-all duration-700 group-hover:scale-[1.05]">
-          <img
-            src={mergedDApp.featuredImage || mergedDApp.image}
-            alt={mergedDApp.name}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-700" />
-          
-          {/* Dot Indicator - Top Right Corner */}
-          <div className="absolute top-3 right-3 z-20">
-            <div className={`w-2.5 h-2.5 rounded-full ${getStatusDotColor()} ring-2 ring-white dark:ring-zinc-900 shadow-sm`} />
-          </div>
-        </div>
-      ) : (
-        <div className="relative w-full h-40 overflow-hidden border-b border-zinc-200/50 dark:border-zinc-800/50 bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900 transition-all duration-700 group-hover:scale-[1.05] flex items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-700" />
-          
-          {/* Profile Picture as Fallback */}
-          <DAppIcon
-            dAppName={mergedDApp.name}
-            category={mergedDApp.category}
-            size={80}
-            className="relative z-10 opacity-50 group-hover:opacity-90 transition-all duration-700 transform group-hover:scale-125 group-hover:rotate-6"
-          />
-          
-          {/* Dot Indicator - Top Right Corner */}
-          <div className="absolute top-3 right-3 z-20">
-            <div className={`w-2.5 h-2.5 rounded-full ${getStatusDotColor()} ring-2 ring-white dark:ring-zinc-900 shadow-sm`} />
-          </div>
-        </div>
-      )}
+      {/* Featured Image Banner - Icon Placeholder (like /hub cards) */}
+      <div className="relative w-full h-40 overflow-hidden border-b border-zinc-200/50 dark:border-zinc-800/50 bg-zinc-100/80 dark:bg-zinc-900/95 flex items-center justify-center transition-all duration-700 group-hover:scale-[1.05]">
+        {(mergedDApp.featuredImage || mergedDApp.image) ? (
+          <>
+            <img
+              src={mergedDApp.featuredImage || mergedDApp.image}
+              alt={mergedDApp.name}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-700" />
+          </>
+        ) : (
+          <svg className="w-12 h-12 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        )}
+      </div>
 
       <div className="p-6 relative z-10 flex flex-col flex-1 min-h-0">
         {/* Top Section: Profile Picture on Left, Title and Network on Right */}
@@ -188,7 +172,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
                 {mergedDApp.name}
               </h3>
 
-              {/* Network Indicator - Subtle, Right Side */}
+              {/* Network Indicator with Dot - Right Side */}
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 {networkType === 'L1' ? (
                   <svg className="w-4 h-4 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -202,14 +186,26 @@ export function DAppCard({ dapp }: DAppCardProps) {
                 <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
                   {networkName}
                 </span>
+                {/* Dot Indicator - Next to Network Title */}
+                <div className={`w-2 h-2 rounded-full ${getStatusDotColor()}`} />
               </div>
             </div>
 
-            {/* Reward Token - Text Only, No Badge */}
+            {/* Reward Tokens - Like Games Cards (Icon + Amount) */}
             {tokenTicker && (
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                <span className="font-medium text-[#02abb8]">{tokenTicker}</span>
-                <span className="ml-1">Reward Token</span>
+              <div className="flex items-center gap-4 text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+                <div className="flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="font-medium">100 {tokenTicker}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span className="font-medium">10 XP</span>
+                </div>
               </div>
             )}
           </div>
@@ -248,8 +244,15 @@ export function DAppCard({ dapp }: DAppCardProps) {
               </div>
             </div>
 
-            {/* Right: Star, Heart, and Open Button */}
+            {/* Right: Arrow (on hover) → Star → Heart */}
             <div className="flex items-center gap-1.5 flex-shrink-0">
+              {/* Open dApp Arrow Button - Shows on hover */}
+              <div className="text-[#02abb8] opacity-0 group-hover:opacity-100 transform translate-x-0 group-hover:translate-x-2 transition-all duration-300">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </div>
+
               {/* Star Button (Favorites) */}
               <button
                 onClick={(e) => handleIconClick(e, () => {
@@ -298,13 +301,6 @@ export function DAppCard({ dapp }: DAppCardProps) {
                   </span>
                 )}
               </button>
-
-              {/* Open dApp Arrow Button */}
-              <div className="text-[#02abb8] opacity-0 group-hover:opacity-100 transform translate-x-0 group-hover:translate-x-2 transition-all duration-300">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </div>
             </div>
           </div>
         </div>

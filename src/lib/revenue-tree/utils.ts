@@ -7,8 +7,18 @@
 import { RevenueTreeLevel } from './types';
 import { getStoredReferral } from './referral';
 import { RevenueTreeContentType } from './types';
-import { getContractAddress } from '@/lib/contracts/addresses';
-import { useChainId } from 'wagmi';
+
+/**
+ * Default revenue share wallets (for genesis/non-referral lists)
+ */
+export const DEFAULT_REVENUE_WALLETS = {
+  LEVEL_5: '0xcde1F107D791327189afdDe98E4eeB2D16D1f7da',
+  LEVEL_4: '0xa6E0D2Cb51b52e0e864B5231a7C24d6F2379B0e0',
+  LEVEL_3: '0x33cE8E3D7039741485C5937fAd2a7e508683bf85',
+  LEVEL_2: '0xC0CDEC6323A3f079DDB5D9a463AA1470d0b4b201',
+  LEVEL_1: '0xAb036a6f99892b8B84f1f10a193e4c0d217eB6D3',
+  PLATFORM: '0xb9ffC933C681b45F86A50BF5b5f6D067Ff238B19',
+} as const;
 
 /**
  * Platform wallet addresses (Treasury contracts)
@@ -16,11 +26,11 @@ import { useChainId } from 'wagmi';
  */
 export const PLATFORM_WALLETS = {
   // Kasplex L2 Testnet
-  167012: '0x305B4ee627aD8b12bFCF6427453964771aA30622',
+  167012: DEFAULT_REVENUE_WALLETS.PLATFORM,
   // Kasplex L2 Mainnet
-  202555: '0xDC88585B22f11f4d2b7bbbf0e134E606629C1C40',
+  202555: DEFAULT_REVENUE_WALLETS.PLATFORM,
   // IGRA Galleon Test Mainnet
-  38837: '0x0000000000000000000000000000000000000000', // TODO: Update when deployed
+  38837: DEFAULT_REVENUE_WALLETS.PLATFORM,
 } as const;
 
 /**
@@ -78,25 +88,25 @@ export function generateRevenueTreeLevels(
   const isActivated = userWalletAddress ? hasUserActivated(userWalletAddress, contentType, contentSlug) : false;
   const platformWallet = getPlatformWallet(chainId);
   
-  // If user hasn't activated, show platform wallets
+  // If user hasn't activated, show default revenue wallets (genesis list)
   // But if accessed via referral link, show the referrer in level 2
   if (!isActivated || !userWalletAddress) {
     const levels: RevenueTreeLevel[] = [
       {
         level: 5,
-        walletAddress: platformWallet,
+        walletAddress: DEFAULT_REVENUE_WALLETS.LEVEL_5,
         userCount: 0,
         sharePercentage: 45,
       },
       {
         level: 4,
-        walletAddress: platformWallet,
+        walletAddress: DEFAULT_REVENUE_WALLETS.LEVEL_4,
         userCount: 0,
         sharePercentage: 20,
       },
       {
         level: 3,
-        walletAddress: platformWallet,
+        walletAddress: DEFAULT_REVENUE_WALLETS.LEVEL_3,
         userCount: 0,
         sharePercentage: 10,
       },
@@ -113,16 +123,16 @@ export function generateRevenueTreeLevels(
     } else {
       levels.push({
         level: 2,
-        walletAddress: platformWallet,
+        walletAddress: DEFAULT_REVENUE_WALLETS.LEVEL_2,
         userCount: 0,
         sharePercentage: 5,
       });
     }
     
-    // Level 1 is always platform wallet when not activated
+    // Level 1 is always default wallet when not activated
     levels.push({
       level: 1,
-      walletAddress: platformWallet,
+      walletAddress: DEFAULT_REVENUE_WALLETS.LEVEL_1,
       userCount: 0,
       sharePercentage: 2,
     });
@@ -155,51 +165,51 @@ export function generateRevenueTreeLevels(
     });
     
     // Levels 3-5 would come from the referrer's upline chain
-    // For now, use platform wallets as placeholders
+    // For now, use default revenue wallets as placeholders
     levels.push(
       {
         level: 3,
-        walletAddress: platformWallet,
+        walletAddress: DEFAULT_REVENUE_WALLETS.LEVEL_3,
         userCount: 0,
         sharePercentage: 10,
       },
       {
         level: 4,
-        walletAddress: platformWallet,
+        walletAddress: DEFAULT_REVENUE_WALLETS.LEVEL_4,
         userCount: 0,
         sharePercentage: 20,
       },
       {
         level: 5,
-        walletAddress: platformWallet,
+        walletAddress: DEFAULT_REVENUE_WALLETS.LEVEL_5,
         userCount: 0,
         sharePercentage: 45,
       }
     );
   } else {
-    // No referral, fill remaining levels with platform wallets
+    // No referral, fill remaining levels with default revenue wallets (genesis list)
     levels.push(
       {
         level: 2,
-        walletAddress: platformWallet,
+        walletAddress: DEFAULT_REVENUE_WALLETS.LEVEL_2,
         userCount: 0,
         sharePercentage: 5,
       },
       {
         level: 3,
-        walletAddress: platformWallet,
+        walletAddress: DEFAULT_REVENUE_WALLETS.LEVEL_3,
         userCount: 0,
         sharePercentage: 10,
       },
       {
         level: 4,
-        walletAddress: platformWallet,
+        walletAddress: DEFAULT_REVENUE_WALLETS.LEVEL_4,
         userCount: 0,
         sharePercentage: 20,
       },
       {
         level: 5,
-        walletAddress: platformWallet,
+        walletAddress: DEFAULT_REVENUE_WALLETS.LEVEL_5,
         userCount: 0,
         sharePercentage: 45,
       }
