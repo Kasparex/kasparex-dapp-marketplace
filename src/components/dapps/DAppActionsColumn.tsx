@@ -38,7 +38,7 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
   const { data: nativeBalance } = useBalance({
     address: userWalletAddress,
   });
-  const { balance: krexBalance, tier: krexTier, isLoading: krexLoading } = useKREXBalance();
+  const { balance: krexBalance, isLoading: krexLoading } = useKREXBalance();
 
   const revenueTreeData = generateMockRevenueTree(
     dapp.id,
@@ -59,8 +59,9 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
   // Base cost from dApp / Revenue Tree (e.g. 100 KAS activation)
   const baseCostKas = 100;
   const networkFeeKas = 0.001;
-  // KREX / NFT / NODE discounts (tier-based; integrate with fee contract when available)
-  const krexDiscountPercent = krexTier && krexBalance > 0 ? (krexTier === 'whale' ? 15 : krexTier === 'dolphin' ? 10 : krexTier === 'fish' ? 5 : 0) : 0;
+  // KREX discount from balance (Tier4 100M+ = 15%, Tier3 50M+ = 10%, Tier2 10M+ = 5%, Tier1 = 0%)
+  const krexDiscountPercent =
+    krexBalance >= 100_000_000 ? 15 : krexBalance >= 50_000_000 ? 10 : krexBalance >= 10_000_000 ? 5 : 0;
   const nftDiscountPercent = 0; // TODO: NFT holder check
   const nodeDiscountPercent = 0; // TODO: NODE holder check
   const totalDiscountPercent = Math.min(25, krexDiscountPercent + nftDiscountPercent + nodeDiscountPercent);
