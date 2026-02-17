@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { UnifiedSidebar } from '@/components/sidebar/UnifiedSidebar';
+import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
 import { RevenueTreeContentType } from '@/lib/revenue-tree/types';
