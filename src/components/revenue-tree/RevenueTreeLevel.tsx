@@ -104,6 +104,7 @@ export function RevenueTreeLevel({ level, isCurrentUser = false, contentType, co
           </div>
         </div>
       </div>
+      </div>
 
       {/* Modal */}
       <RevenueTreeLevelModal
