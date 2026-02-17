@@ -25,9 +25,9 @@ export function RevenueTree({ data, userWalletAddress }: RevenueTreeProps) {
       {/* Levels */}
       <div className="space-y-3">
         {sortedLevels.map((level) => {
-          const isCurrentUser = userWalletAddress && 
+          const isCurrentUser = Boolean(userWalletAddress && 
             (level.walletAddress.toLowerCase() === userWalletAddress.toLowerCase() ||
-             level.walletAddress.includes(userWalletAddress.slice(-4)));
+             (userWalletAddress.length >= 4 && level.walletAddress.includes(userWalletAddress.slice(-4)))));
           
           return (
             <RevenueTreeLevel
