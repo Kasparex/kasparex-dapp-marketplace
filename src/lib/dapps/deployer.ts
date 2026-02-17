@@ -73,11 +73,17 @@ export function getExplorerUrl(contractAddress: string, chainId: number): string
   }
 
   if (chainId === 167012) {
-    // Testnet
+    // Kasplex L2 Testnet
     return `https://explorer.testnet.kasplextest.xyz/address/${contractAddress}`;
   } else if (chainId === 202555) {
-    // Mainnet
+    // Kasplex L2 Mainnet
     return `https://explorer.kasplex.org/address/${contractAddress}`;
+  } else if (chainId === 19416) {
+    // IGRA Caravel Testnet
+    return `https://explorer.caravel.igralabs.com/address/${contractAddress}`;
+  } else if (chainId === 38837) {
+    // IGRA Galleon Test Mainnet
+    return `https://explorer.galleon.igralabs.com/address/${contractAddress}`;
   }
 
   return '#';

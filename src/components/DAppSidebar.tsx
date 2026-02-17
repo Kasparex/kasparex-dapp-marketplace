@@ -18,6 +18,8 @@ import { XPPointsBox } from './rewards/XPPointsBox';
 import { UnifiedStatusBox } from './rewards/UnifiedStatusBox';
 import { QuickGuideWizard } from './rewards/QuickGuideWizard';
 import { getDAppNetworkType } from '@/lib/dapps';
+import { SidebarQuickActions } from './sidebar/SidebarQuickActions';
+import { usePathname } from 'next/navigation';
 
 interface DAppSidebarProps {
   dapp: DApp;
@@ -67,8 +69,43 @@ const getLinkIcon = (label: string, url: string) => {
 export function DAppSidebar({ dapp }: DAppSidebarProps) {
   const { address: connectedAddress } = useAccount();
   const chainId = useChainId();
+  const pathname = usePathname();
   const [showQuickGuide, setShowQuickGuide] = useState(false);
   // Edit functionality removed
+
+  // Quick Menu items
+  const quickMenuItems = [
+    {
+      id: 'revenue-tree-dashboard',
+      label: 'Revenue Tree Dashboard',
+      href: '/revenue-tree/dashboard',
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+      ),
+    },
+    {
+      id: 'dashboard',
+      label: 'My Dashboard',
+      href: '/dashboard',
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      ),
+    },
+    {
+      id: 'store',
+      label: 'Store',
+      href: '/store',
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+        </svg>
+      ),
+    },
+  ];
 
   // Sidebar hide/show and resize state
   const [isHidden, setIsHidden] = useState(false);
@@ -261,17 +298,24 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
           </div>
         </div>
 
-        <div className={`p-4 space-y-6 ${isHidden ? 'lg:hidden' : ''}`}>
-            {/* Network Availability - simple section */}
-            <div className="mb-6">
+        <div className={`p-5 space-y-6 ${isHidden ? 'lg:hidden' : ''}`}>
+            {/* Quick Menu */}
+            <SidebarQuickActions
+              title="Quick Menu"
+              items={quickMenuItems}
+              activeId={pathname}
+            />
+
+            {/* Network Availability */}
+            <div>
               <h3 className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] mb-3 px-1">Network</h3>
               <NetworkAvailabilityBox dapp={mergedDApp} />
             </div>
 
-            {/* Action Flow - simple section, premium styling */}
-            <div className="mb-6">
+            {/* Action Flow */}
+            <div>
               <h3 className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] mb-3 px-1">Action Flow</h3>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <DAppActionFlow dapp={mergedDApp} />
                 <GRIDHoldingsBox />
                 <XPPointsBox />
@@ -289,8 +333,8 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
               </div>
             </div>
 
-            {/* Rewards - simple section */}
-            <div className="mb-6">
+            {/* Rewards */}
+            <div>
               <DAppRewardsSidebar dappName={mergedDApp.name} />
             </div>
         </div>

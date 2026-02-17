@@ -88,6 +88,30 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     AdminDashboard: "",
     PromoMintRouter: "0xc76515904e948698F67fCBc64f7d3b4C57602470",
   },
+  igraGalleonTestMainnet: {
+    Treasury: "",
+    FeeCollector: "",
+    DAppRegistry: "",
+    SimplePayment: "",
+    PlatformSubscription: "",
+    DAppSubscription: "",
+    SubscriptionManager: "",
+    AuthorizationRegistry: "",
+    DAOVoting: "",
+    QuizToEarn: "",
+    GRIDToken: "",
+    RewardVault: "",
+    RewardManager: "",
+    ProofOfUtility: "",
+    SecureProofOfUtility: "",
+    FeeHandler: "",
+    AffiliateManager: "",
+    LoyaltyPoints: "",
+    ProfileRegistry: "",
+    UserProfileDashboard: "",
+    AdminDashboard: "",
+    PromoMintRouter: "",
+  },
 };
 
 const DEFAULT_CONTRACT_ADDRESSES = {
@@ -162,6 +186,30 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     UserProfileDashboard: "",
     AdminDashboard: "",
     PromoMintRouter: "0xc76515904e948698F67fCBc64f7d3b4C57602470",
+  },
+  igraGalleonTestMainnet: {
+    Treasury: "",
+    FeeCollector: "",
+    DAppRegistry: "",
+    SimplePayment: "",
+    PlatformSubscription: "",
+    DAppSubscription: "",
+    SubscriptionManager: "",
+    AuthorizationRegistry: "",
+    DAOVoting: "",
+    QuizToEarn: "",
+    GRIDToken: "",
+    RewardVault: "",
+    RewardManager: "",
+    ProofOfUtility: "",
+    SecureProofOfUtility: "",
+    FeeHandler: "",
+    AffiliateManager: "",
+    LoyaltyPoints: "",
+    ProfileRegistry: "",
+    UserProfileDashboard: "",
+    AdminDashboard: "",
+    PromoMintRouter: "",
   },
 };
 
@@ -241,6 +289,31 @@ export const CONTRACT_ADDRESSES = {
     AdminDashboard: getEnvVar('NEXT_PUBLIC_ADMIN_DASHBOARD_ADDRESS_IGRA_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.igraCaravelTestnet.AdminDashboard || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.AdminDashboard,
     PromoMintRouter: getEnvVar('NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.PromoMintRouter,
   },
+  // IGRA Galleon Test Mainnet (Chain ID: 38837)
+  igraGalleonTestMainnet: {
+    Treasury: getEnvVar('NEXT_PUBLIC_TREASURY_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.Treasury,
+    FeeCollector: getEnvVar('NEXT_PUBLIC_FEE_COLLECTOR_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.FeeCollector,
+    DAppRegistry: getEnvVar('NEXT_PUBLIC_DAPP_REGISTRY_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.DAppRegistry,
+    SimplePayment: getEnvVar('NEXT_PUBLIC_SIMPLE_PAYMENT_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.SimplePayment,
+    PlatformSubscription: getEnvVar('NEXT_PUBLIC_PLATFORM_SUBSCRIPTION_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.PlatformSubscription,
+    DAppSubscription: getEnvVar('NEXT_PUBLIC_DAPP_SUBSCRIPTION_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.DAppSubscription,
+    SubscriptionManager: getEnvVar('NEXT_PUBLIC_SUBSCRIPTION_MANAGER_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.SubscriptionManager,
+    AuthorizationRegistry: getEnvVar('NEXT_PUBLIC_AUTHORIZATION_REGISTRY_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.AuthorizationRegistry,
+    DAOVoting: getEnvVar('NEXT_PUBLIC_DAO_VOTING_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.DAOVoting,
+    QuizToEarn: getEnvVar('NEXT_PUBLIC_QUIZ_TO_EARN_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.QuizToEarn,
+    GRIDToken: getEnvVar('NEXT_PUBLIC_GRID_TOKEN_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.GRIDToken,
+    RewardVault: getEnvVar('NEXT_PUBLIC_REWARD_VAULT_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.RewardVault,
+    RewardManager: getEnvVar('NEXT_PUBLIC_REWARD_MANAGER_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.RewardManager,
+    ProofOfUtility: getEnvVar('NEXT_PUBLIC_PROOF_OF_UTILITY_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.ProofOfUtility,
+    SecureProofOfUtility: getEnvVar('NEXT_PUBLIC_SECURE_PROOF_OF_UTILITY_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.SecureProofOfUtility,
+    FeeHandler: getEnvVar('NEXT_PUBLIC_FEE_HANDLER_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.FeeHandler,
+    AffiliateManager: getEnvVar('NEXT_PUBLIC_AFFILIATE_MANAGER_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.AffiliateManager,
+    LoyaltyPoints: getEnvVar('NEXT_PUBLIC_LOYALTY_POINTS_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.LoyaltyPoints,
+    ProfileRegistry: getEnvVar('NEXT_PUBLIC_PROFILE_REGISTRY_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.ProfileRegistry,
+    UserProfileDashboard: getEnvVar('NEXT_PUBLIC_USER_PROFILE_DASHBOARD_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.UserProfileDashboard,
+    AdminDashboard: getEnvVar('NEXT_PUBLIC_ADMIN_DASHBOARD_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.AdminDashboard,
+    PromoMintRouter: getEnvVar('NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.PromoMintRouter,
+  },
 };
 
 /**
@@ -277,6 +350,8 @@ export const getContractAddress = (
     return CONTRACT_ADDRESSES.kasplexL2Testnet[contractName] || "";
   } else if (chainId === 19416) {
     return CONTRACT_ADDRESSES.igraCaravelTestnet[contractName] || "";
+  } else if (chainId === 38837) {
+    return CONTRACT_ADDRESSES.igraGalleonTestMainnet[contractName] || "";
   } else if (chainId === 999999) {
     // vProgs Testnet
     return VPROGS_ADDRESSES.vProgsTestnet[contractName as keyof typeof VPROGS_ADDRESSES.vProgsTestnet] || "";

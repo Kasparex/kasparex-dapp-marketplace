@@ -1,0 +1,100 @@
+'use client';
+
+import { RevenueTreeLevel as RevenueTreeLevelType } from '@/lib/revenue-tree/types';
+
+interface RevenueTreeLevelProps {
+  level: RevenueTreeLevelType;
+  isCurrentUser?: boolean;
+}
+
+/**
+ * Visual representation of dot indicators (network/tree structure)
+ */
+function DotIndicators({ count }: { count: number }) {
+  const maxDots = 8;
+  const displayCount = Math.min(count, maxDots);
+  
+  return (
+    <div className="flex items-center gap-1">
+      {Array.from({ length: displayCount }).map((_, i) => (
+        <div
+          key={i}
+          className="w-1.5 h-1.5 rounded-full bg-zinc-400 dark:bg-zinc-600 opacity-60"
+        />
+      ))}
+    </div>
+  );
+}
+
+export function RevenueTreeLevel({ level, isCurrentUser = false }: RevenueTreeLevelProps) {
+  // Format wallet address for display
+  const formatAddress = (address: string) => {
+    if (address.startsWith('kaspa:')) {
+      const parts = address.split('...');
+      if (parts.length > 1) {
+        return address; // Already formatted
+      }
+      return `${address.slice(0, 10)}...${address.slice(-4)}`;
+    }
+    // EVM address format
+    if (address.startsWith('0x')) {
+      return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    }
+    return address;
+  };
+
+  const displayAddress = formatAddress(level.walletAddress);
+
+  return (
+    <div
+      className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+        isCurrentUser
+          ? 'bg-purple-500/10 dark:bg-purple-500/20 border-purple-500/30 dark:border-purple-500/50'
+          : 'bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800'
+      }`}
+    >
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        {/* Level Label */}
+        <div className="flex-shrink-0">
+          <div className={`text-xs font-black uppercase tracking-widest ${
+            isCurrentUser
+              ? 'text-purple-600 dark:text-purple-400'
+              : 'text-zinc-500 dark:text-zinc-400'
+          }`}>
+            LEVEL {String(level.level).padStart(2, '0')}
+          </div>
+        </div>
+
+        {/* Wallet Address */}
+        <div className="flex-1 min-w-0">
+          <div className={`text-sm font-mono truncate ${
+            isCurrentUser
+              ? 'text-orange-600 dark:text-orange-400 font-bold'
+              : 'text-zinc-700 dark:text-zinc-300'
+          }`}>
+            {displayAddress}
+          </div>
+        </div>
+
+        {/* Dot Indicators */}
+        <div className="flex-shrink-0">
+          <DotIndicators count={level.userCount || 1} />
+        </div>
+      </div>
+
+      {/* User Count and Share */}
+      <div className="flex items-center gap-4 flex-shrink-0 ml-4">
+        <div className="text-right">
+          <div className="text-xs font-bold text-zinc-600 dark:text-zinc-400">
+            Users: <span className="text-yellow-600 dark:text-yellow-400">{level.userCount}</span>
+          </div>
+        </div>
+        <div className="text-right min-w-[80px]">
+          <div className="text-xs font-black text-green-600 dark:text-green-400">
+            {level.sharePercentage}% <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase ml-1">Share</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

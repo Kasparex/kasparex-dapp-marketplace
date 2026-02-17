@@ -17,11 +17,14 @@ import { GRIDHoldingsBox } from './rewards/GRIDHoldingsBox';
 import { TreasuryBox } from './treasury/TreasuryBox';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 
+import { DAppActionsColumn } from './dapps/DAppActionsColumn';
+
 interface DAppDetailProps {
   dapp: DApp;
+  contractAddress?: string;
 }
 
-export function DAppDetail({ dapp }: DAppDetailProps) {
+export function DAppDetail({ dapp, contractAddress }: DAppDetailProps) {
   const [showCompatibilityModal, setShowCompatibilityModal] = useState(false);
   const compatibility = useNetworkCompatibility(dapp);
   const networkWallet = useNetworkAwareWallet(dapp);
@@ -54,42 +57,51 @@ export function DAppDetail({ dapp }: DAppDetailProps) {
         onClose={() => setShowCompatibilityModal(false)}
       />
 
-      {/* dApp Widget */}
-      <DAppWidget dapp={dapp} />
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10">
+        {/* Column 1: dApp Widget */}
+        <div className="space-y-6">
+          <DAppWidget dapp={dapp} />
 
-      {/* GRID Holdings - GRT-only */}
-      <div>
-        <GRIDHoldingsBox />
+          {/* GRID Holdings - GRT-only */}
+          <div>
+            <GRIDHoldingsBox />
+          </div>
+
+          {/* Token Information - Only show for L2 dApps */}
+          {!isL1DApp && mergedContractData?.tokenAddress && mergedContractData.ticker && (
+            <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
+              <TokenDisplay
+                tokenAddress={mergedContractData.tokenAddress}
+                ticker={mergedContractData.ticker}
+                totalSupply={mergedContractData.totalSupply?.toString() || '0'}
+                dAppName={dapp.name}
+              />
+            </div>
+          )}
+
+          {/* Proof of Utility - Only show for L2 dApps */}
+          {!isL1DApp && proofOfUtilityAddress && (
+            <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
+              <ProofOfUtility
+                proofOfUtilityAddress={proofOfUtilityAddress}
+              />
+            </div>
+          )}
+
+          {/* Treasury Box - Only show for L2 dApps */}
+          {!isL1DApp && (
+            <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
+              <TreasuryBox showPerDApp />
+            </div>
+          )}
+        </div>
+
+        {/* Column 2: Actions, Costs/Fees, Revenue Tree */}
+        <div>
+          <DAppActionsColumn dapp={dapp} contractAddress={contractAddress} />
+        </div>
       </div>
-
-      {/* Token Information - Only show for L2 dApps */}
-      {!isL1DApp && mergedContractData?.tokenAddress && mergedContractData.ticker && (
-        <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
-          <TokenDisplay
-            tokenAddress={mergedContractData.tokenAddress}
-            ticker={mergedContractData.ticker}
-            totalSupply={mergedContractData.totalSupply?.toString() || '0'}
-            dAppName={dapp.name}
-          />
-        </div>
-      )}
-
-      {/* Proof of Utility - Only show for L2 dApps */}
-      {!isL1DApp && proofOfUtilityAddress && (
-        <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
-          <ProofOfUtility
-            proofOfUtilityAddress={proofOfUtilityAddress}
-          />
-        </div>
-      )}
-
-      {/* Treasury Box - Only show for L2 dApps */}
-      {!isL1DApp && (
-        <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
-          <TreasuryBox showPerDApp />
-        </div>
-      )}
-
     </div>
   );
 }

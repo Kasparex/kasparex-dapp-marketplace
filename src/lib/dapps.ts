@@ -394,18 +394,27 @@ export function networkNameToChainIds(network: string): number[] {
   }
 
   if (networkLower.includes('igra')) {
-    // Igra L2 networks - currently only testnet available
-    return [CHAIN_IDS.IGRA_CARAVEL_TESTNET];
+    // Igra L2 networks - check for specific network names
+    if (networkLower.includes('galleon')) {
+      // IGRA Galleon Test Mainnet
+      return [CHAIN_IDS.IGRA_GALLEON_TEST_MAINNET];
+    }
+    if (networkLower.includes('caravel')) {
+      // IGRA Caravel Testnet
+      return [CHAIN_IDS.IGRA_CARAVEL_TESTNET];
+    }
+    // Generic Igra - return both available networks
+    return [CHAIN_IDS.IGRA_CARAVEL_TESTNET, CHAIN_IDS.IGRA_GALLEON_TEST_MAINNET];
   }
 
   if (networkLower === 'testnet' || networkLower.includes('testnet')) {
-    // Generic testnet - includes both testnets
+    // Generic testnet - includes all testnets
     return [CHAIN_IDS.KASPLEX_L2_TESTNET, CHAIN_IDS.IGRA_CARAVEL_TESTNET];
   }
 
   if (networkLower === 'mainnet' || networkLower.includes('mainnet')) {
-    // Generic mainnet - currently only Kasplex L2 Mainnet
-    return [CHAIN_IDS.KASPLEX_L2_MAINNET];
+    // Generic mainnet - includes Kasplex L2 Mainnet and IGRA Galleon Test Mainnet
+    return [CHAIN_IDS.KASPLEX_L2_MAINNET, CHAIN_IDS.IGRA_GALLEON_TEST_MAINNET];
   }
 
   // Default: return empty array for unknown networks

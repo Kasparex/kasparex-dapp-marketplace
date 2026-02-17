@@ -2,11 +2,11 @@ import { notFound } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { DAppSidebar } from '@/components/DAppSidebar';
-import { DAppInfoSidebar } from '@/components/dapps/DAppInfoSidebar';
 import { DAppDetail } from '@/components/DAppDetail';
 import { DAppFooter } from '@/components/dapps/DAppFooter';
 import { RelatedDApps } from '@/components/dapps/RelatedDApps';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
+import { ReferralTracker } from '@/components/revenue-tree/ReferralTracker';
 import { placeholderDApps } from '@/lib/dapps';
 import { getDAppBySlug, generateDAppSlug } from '@/lib/utils';
 import { getContractAddress } from '@/lib/contracts/addresses';
@@ -59,31 +59,33 @@ export default async function DAppPage({ params }: PageProps) {
     contractAddress = '';
   }
 
+  const slug = dapp.slug || generateDAppSlug(dapp.name);
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
+      
+      {/* Referral Tracker */}
+      <ReferralTracker contentType="dapp" contentSlug={slug} />
       
       <main className="flex-1 flex flex-col">
         <div className="flex-1 flex flex-col lg:flex-row">
           {/* Left Sidebar - Rewards & Info */}
           <DAppSidebar dapp={dapp} />
 
-          {/* Main Content */}
+          {/* Main Content - Two Column Layout */}
           <div className="flex-1 min-w-0 p-4 sm:p-6 lg:px-16 lg:py-12">
-            <DAppDetail dapp={dapp} />
+            <DAppDetail dapp={dapp} contractAddress={contractAddress} />
             <DAppFooter contractAddress={contractAddress} />
             
             {/* Comments Section */}
             <div className="mt-8">
-              <CommentsSection articleId={`dapp:${dapp.slug || dapp.id}`} />
+              <CommentsSection articleId={`dapp:${slug}`} />
             </div>
           </div>
-
-          {/* Right Sidebar - Info & Actions */}
-          <DAppInfoSidebar dapp={dapp} contractAddress={contractAddress} />
         </div>
 
-        {/* Related dApps - Below 3-column layout */}
+        {/* Related dApps - Below layout */}
         <div className="px-4 sm:px-6 lg:px-8 lg:pl-6 pb-4 sm:pb-6 lg:pb-8">
           <RelatedDApps currentDApp={dapp} />
         </div>
