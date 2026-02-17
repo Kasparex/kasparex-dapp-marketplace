@@ -24,14 +24,15 @@ interface DAppDetailProps {
   contractAddress?: string;
 }
 
-export function DAppDetail({ dapp, contractAddress }: DAppDetailProps) {
+export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppDetailProps) {
   const [showCompatibilityModal, setShowCompatibilityModal] = useState(false);
   const compatibility = useNetworkCompatibility(dapp);
   const networkWallet = useNetworkAwareWallet(dapp);
   const chainId = useChainId();
   
   // Get contract data to check for token
-  let contractAddress = dapp.contractAddress || '';
+  // Use prop if provided, otherwise fall back to dApp's contractAddress or registry
+  let contractAddress = propContractAddress || dapp.contractAddress || '';
   if (!contractAddress) {
     contractAddress = getContractAddress(chainId, 'DAppRegistry') || '';
   }
