@@ -250,7 +250,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     UserProfileDashboard: "",
     AdminDashboard: "",
     PromoMintRouter: "",
-    RevenueTreeManager: "",
+    RevenueTreeManager: "0x002C7eeC68975d41f3f0F7bC8D900Aa45A131aE2",
     FeeRouter: "",
   },
   igraGalleonTestMainnet: {
