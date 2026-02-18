@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { useAccount } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
 import { queryKREXBalance, type KREXBalanceResult } from '@/lib/krex/balance-query';
 import { getKREXTierFromBalance } from '@/lib/krex/tier';
 import type { KREXTier } from '@/lib/rewards/types';
@@ -26,6 +26,7 @@ export interface UseKREXBalanceReturn {
 export function useKREXBalance(): UseKREXBalanceReturn {
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
+  const chainId = useChainId();
   
   const l1Address = kaspaState.address;
   const l2Address = evmAddress || null;
@@ -52,7 +53,7 @@ export function useKREXBalance(): UseKREXBalanceReturn {
     setError(null);
 
     try {
-      const result = await queryKREXBalance(l1Address, l2Address);
+      const result = await queryKREXBalance(l1Address, l2Address, chainId);
       setBalanceData(result);
     } catch (err) {
       console.error('Error fetching KREX balance:', err);
@@ -62,7 +63,7 @@ export function useKREXBalance(): UseKREXBalanceReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [l1Address, l2Address, isWalletConnected]);
+  }, [l1Address, l2Address, isWalletConnected, chainId]);
 
   useEffect(() => {
     fetchKREXBalance();

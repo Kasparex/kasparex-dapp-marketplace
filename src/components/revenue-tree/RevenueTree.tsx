@@ -16,8 +16,11 @@ interface RevenueTreeProps {
 export function RevenueTree({ data, userWalletAddress, isL2Only = true, activationAmount = 0 }: RevenueTreeProps) {
   const chainId = useChainId();
   
-  // Check if user has activated
-  const isActivated = userWalletAddress ? hasUserActivated(userWalletAddress, data.contentType, data.contentSlug) : false;
+  // Unified tree (on-chain): use data.activatedAt. Legacy: use localStorage hasUserActivated.
+  const isActivated =
+    data.contentSlug === 'revenue-tree' && data.activatedAt
+      ? true
+      : (userWalletAddress ? hasUserActivated(userWalletAddress, data.contentType, data.contentSlug) : false);
   
   // Get currency symbol based on chain
   const getCurrencySymbol = () => {

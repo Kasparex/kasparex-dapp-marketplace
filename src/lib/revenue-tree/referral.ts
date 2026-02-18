@@ -7,6 +7,15 @@
 import { RevenueTreeContentType } from './types';
 
 /**
+ * Universal Revenue Tree referral link: /ref/<walletAddress>.
+ * Use this as the single "Revenue Tree" referral link (one per wallet per chain).
+ */
+export function getUniversalReferralLink(walletAddress: string): string {
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  return `${origin}/ref/${walletAddress}`;
+}
+
+/**
  * Generate a referral link for a content item
  */
 export function generateReferralLink(
@@ -66,6 +75,30 @@ export function getStoredReferral(contentType: RevenueTreeContentType, contentSl
   
   const key = `referral:${contentType}:${contentSlug}`;
   return localStorage.getItem(key);
+}
+
+/** Key for global "current referrer" (set by /ref/[address] or any ref landing). */
+export const CURRENT_REFERRER_KEY = 'current_referrer';
+
+/**
+ * Get the current referrer for this visit: URL param ?ref= first, then localStorage current_referrer.
+ * Use when prompting one-time "Set referrer" on-chain.
+ */
+export function getCurrentReferrer(): string | null {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.search);
+  const fromUrl = params.get('ref');
+  if (fromUrl) return fromUrl;
+  return localStorage.getItem(CURRENT_REFERRER_KEY);
+}
+
+/**
+ * Store the current referrer globally (e.g. when landing on /ref/[address]).
+ * When user connects wallet, frontend can prompt setReferrer(referrer) once.
+ */
+export function setCurrentReferrer(referrerAddress: string): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(CURRENT_REFERRER_KEY, referrerAddress);
 }
 
 /**

@@ -2765,3 +2765,114 @@ export const PROMO_MINT_ROUTER_ABI = [
   }
 ] as const;
 
+/** RevenueTreeManager: setReferrer, volume, activation, upline, distributeToUpline */
+export const REVENUE_TREE_MANAGER_ABI = [
+  {
+    type: "function",
+    name: "setReferrer",
+    stateMutability: "nonpayable",
+    inputs: [{ internalType: "address", name: "referrer", type: "address" }],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "referrerOf",
+    stateMutability: "view",
+    inputs: [{ internalType: "address", name: "", type: "address" }],
+    outputs: [{ internalType: "address", name: "", type: "address" }]
+  },
+  {
+    type: "function",
+    name: "lifetimeVolume",
+    stateMutability: "view",
+    inputs: [{ internalType: "address", name: "", type: "address" }],
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }]
+  },
+  {
+    type: "function",
+    name: "activatedAt",
+    stateMutability: "view",
+    inputs: [{ internalType: "address", name: "", type: "address" }],
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }]
+  },
+  {
+    type: "function",
+    name: "getVolumeLast30Days",
+    stateMutability: "view",
+    inputs: [{ internalType: "address", name: "user", type: "address" }],
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }]
+  },
+  {
+    type: "function",
+    name: "isActive",
+    stateMutability: "view",
+    inputs: [{ internalType: "address", name: "user", type: "address" }],
+    outputs: [{ internalType: "bool", name: "", type: "bool" }]
+  },
+  {
+    type: "function",
+    name: "getUpline",
+    stateMutability: "view",
+    inputs: [{ internalType: "address", name: "user", type: "address" }],
+    outputs: [{ internalType: "address[5]", name: "", type: "address[5]" }]
+  },
+  {
+    type: "function",
+    name: "getActivationStatus",
+    stateMutability: "view",
+    inputs: [{ internalType: "address", name: "user", type: "address" }],
+    outputs: [
+      { internalType: "bool", name: "activated", type: "bool" },
+      { internalType: "address[5]", name: "uplineSnapshot", type: "address[5]" }
+    ]
+  },
+  {
+    type: "function",
+    name: "activationThreshold",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }]
+  },
+  {
+    type: "function",
+    name: "activityThreshold",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }]
+  },
+  {
+    type: "event",
+    name: "ReferrerSet",
+    inputs: [
+      { indexed: true, internalType: "address", name: "user", type: "address" },
+      { indexed: true, internalType: "address", name: "referrer", type: "address" }
+    ],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "Activated",
+    inputs: [
+      { indexed: true, internalType: "address", name: "user", type: "address" },
+      { indexed: false, internalType: "address", name: "l1", type: "address" },
+      { indexed: false, internalType: "address", name: "l2", type: "address" },
+      { indexed: false, internalType: "address", name: "l3", type: "address" },
+      { indexed: false, internalType: "address", name: "l4", type: "address" },
+      { indexed: false, internalType: "address", name: "l5", type: "address" }
+    ],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "RevenueDistributed",
+    inputs: [
+      { indexed: true, internalType: "address", name: "payer", type: "address" },
+      { indexed: false, internalType: "uint256", name: "amount", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "level", type: "uint256" },
+      { indexed: true, internalType: "address", name: "recipient", type: "address" },
+      { indexed: false, internalType: "bool", name: "toGenesis", type: "bool" }
+    ],
+    anonymous: false
+  }
+] as const;
+

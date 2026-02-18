@@ -15,6 +15,28 @@ export interface RevenueTreeLevel {
   sharePercentage: number;
 }
 
+/** Unified tree per wallet per chain (on-chain source of truth). */
+export interface UnifiedRevenueTreeData {
+  chainId: number;
+  userWalletAddress: string;
+  /** Upline L1..L5 (L1 = self) */
+  upline: [string, string, string, string, string];
+  lifetimeVolume: string;
+  volumeLast30Days: string;
+  isActive: boolean;
+  activatedAt: string | null;
+  referralLink: string;
+  totalEarned: string;
+  /** Whether referrer is set on-chain (one-time). */
+  referrerSet: boolean;
+  /** Referrer address if set. */
+  referrer: string | null;
+  /** Activation threshold (wei) for display. */
+  activationThreshold: string;
+  /** Activity threshold (wei) for maintenance. */
+  activityThreshold: string;
+}
+
 export interface RevenueTreeData {
   /** dApp ID this tree belongs to */
   dappId: string;

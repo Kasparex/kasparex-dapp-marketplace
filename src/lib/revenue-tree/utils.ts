@@ -4,9 +4,40 @@
  * Helper functions for Revenue Tree activation and wallet management
  */
 
-import { RevenueTreeLevel } from './types';
+import { RevenueTreeLevel, RevenueTreeData, UnifiedRevenueTreeData } from './types';
 import { getStoredReferral } from './referral';
 import { RevenueTreeContentType } from './types';
+import { formatEther } from 'viem';
+
+/** Share percentages L1..L5 (2, 5, 10, 20, 45). */
+const LEVEL_SHARES = [2, 5, 10, 20, 45] as const;
+
+/**
+ * Convert on-chain unified tree to legacy RevenueTreeData for existing UI components.
+ */
+export function unifiedToRevenueTreeData(unified: UnifiedRevenueTreeData | null): RevenueTreeData | null {
+  if (!unified) return null;
+  const levels: RevenueTreeLevel[] = unified.upline.map((walletAddress, i) => ({
+    level: i + 1,
+    walletAddress: walletAddress || '',
+    userCount: 0,
+    sharePercentage: LEVEL_SHARES[i] ?? 0,
+  })).sort((a, b) => b.level - a.level);
+  const totalEarnedNum = parseFloat(unified.totalEarned || '0');
+  return {
+    dappId: 'unified',
+    dappSlug: 'revenue-tree',
+    contentType: 'dapp',
+    contentSlug: 'revenue-tree',
+    levels,
+    totalEarned: totalEarnedNum,
+    revenueTreesCount: 0,
+    referralLink: unified.referralLink,
+    isActive: unified.isActive,
+    userWalletAddress: unified.userWalletAddress,
+    activatedAt: unified.activatedAt ?? undefined,
+  };
+}
 
 /**
  * Default revenue share wallets (for genesis/non-referral lists)

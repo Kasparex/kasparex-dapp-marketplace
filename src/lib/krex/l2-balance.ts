@@ -1,13 +1,11 @@
 /**
  * L2 KREX Balance Query
- * Fetches KREX token balance from Kasplex L2 (ERC-20) using EVM RPC
+ * Fetches KREX/tKREX token balance per chain (Kasplex L2 mainnet, IGRA Galleon Testnet 38836).
  */
 
 import { createPublicClient, http, type Address, formatUnits } from 'viem';
-import { kasplexL2Mainnet } from '@/lib/wagmi';
-
-// KREX ERC-20 contract address on Kasplex L2
-const KREX_TOKEN_ADDRESS = '0x0FD8d408cE707f4E4f8E54193c4C55a3b969834B' as Address;
+import { defineChain } from 'viem';
+import { getL2KREXConfig } from './l2-krex-config';
 
 // Standard ERC-20 ABI (only balanceOf and decimals functions)
 const ERC20_ABI = [
@@ -28,47 +26,48 @@ const ERC20_ABI = [
 ] as const;
 
 /**
- * Query KREX balance from L2 (Kasplex ERC-20) using EVM RPC
+ * Query KREX/tKREX balance from L2 for the given chain.
  * 
  * @param address - EVM address (0x...)
- * @returns KREX balance as number, or 0 if error/invalid address
+ * @param chainId - Chain ID (202555 = Kasplex L2 KREX, 38836 = tKREX when set)
+ * @returns KREX balance as number, or 0 if error / no token on chain
  */
-export async function queryL2KREXBalance(address: string): Promise<number> {
+export async function queryL2KREXBalance(address: string, chainId: number): Promise<number> {
   if (!address || typeof address !== 'string' || !address.startsWith('0x')) {
     console.warn('[KREX L2] Invalid EVM address:', address);
     return 0;
   }
 
+  const config = getL2KREXConfig(chainId);
+  if (!config) return 0;
+
   try {
-    // Create public client for Kasplex L2 Mainnet
+    const chain = defineChain({
+      id: config.chainId,
+      name: 'L2',
+      nativeCurrency: { name: 'KAS', symbol: 'KAS', decimals: 18 },
+      rpcUrls: { default: { http: [config.rpcUrl] } },
+    });
     const publicClient = createPublicClient({
-      chain: kasplexL2Mainnet,
-      transport: http('https://evmrpc.kasplex.org'),
+      chain,
+      transport: http(config.rpcUrl),
     });
 
-    console.log('[KREX L2] Fetching balance for:', address);
-
-    // Get token decimals first (default to 18 if call fails)
     let decimals = 18;
     try {
       const decimalsResult = await publicClient.readContract({
-        address: KREX_TOKEN_ADDRESS,
+        address: config.tokenAddress,
         abi: ERC20_ABI,
         functionName: 'decimals',
       });
-      
-      if (typeof decimalsResult === 'number') {
-        decimals = decimalsResult;
-      } else if (typeof decimalsResult === 'bigint') {
-        decimals = Number(decimalsResult);
-      }
+      if (typeof decimalsResult === 'number') decimals = decimalsResult;
+      else if (typeof decimalsResult === 'bigint') decimals = Number(decimalsResult);
     } catch (error) {
       console.warn('[KREX L2] Could not fetch decimals, using default 18:', error);
     }
 
-    // Get balance
     const balanceResult = await publicClient.readContract({
-      address: KREX_TOKEN_ADDRESS,
+      address: config.tokenAddress,
       abi: ERC20_ABI,
       functionName: 'balanceOf',
       args: [address as Address],

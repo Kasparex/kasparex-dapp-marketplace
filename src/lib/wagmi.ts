@@ -87,8 +87,35 @@ export const igraCaravelTestnet = defineChain({
 });
 
 /**
- * IGRA Galleon Test Mainnet Chain Configuration
- * 
+ * IGRA Galleon Testnet Chain Configuration (38836)
+ * Active testnet; use tKREX ERC-20 for Revenue Tree KREX path.
+ * @see https://igra-labs.gitbook.io/igralabs-docs/quickstart/network-info#galleon-testnet
+ */
+export const igraGalleonTestnet = defineChain({
+  id: 38836,
+  name: 'IGRA Galleon Testnet',
+  network: 'igra-galleon-testnet',
+  nativeCurrency: {
+    name: 'Kaspa',
+    symbol: 'iKAS',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://galleon-testnet.igralabs.com:8545'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Igra Galleon Testnet Explorer',
+      url: 'https://explorer.galleon-testnet.igralabs.com',
+    },
+  },
+  testnet: true,
+});
+
+/**
+ * IGRA Galleon Test Mainnet Chain Configuration (38837)
  * Custom chain definition for IGRA Galleon Test Mainnet network
  */
 export const igraGalleonTestMainnet = defineChain({
@@ -171,6 +198,7 @@ export const CHAIN_IDS = {
   KASPLEX_L2_MAINNET: 202555,
   KASPLEX_L2_TESTNET: 167012,
   IGRA_CARAVEL_TESTNET: 19416,
+  IGRA_GALLEON_TESTNET: 38836,
   IGRA_GALLEON_TEST_MAINNET: 38837,
   VPROGS_TESTNET: 999999,
   VPROGS_MAINNET: 999998,
@@ -183,6 +211,7 @@ export const kaspaChains = [
   kasplexL2Mainnet,
   kasplexL2Testnet,
   igraCaravelTestnet,
+  igraGalleonTestnet,
   igraGalleonTestMainnet,
 ] as const;
 
@@ -236,7 +265,7 @@ if (typeof window !== 'undefined' && (!walletConnectProjectId || walletConnectPr
 export const config = getDefaultConfig({
   appName: 'Kasparex dApps',
   projectId: walletConnectProjectId || 'default-project-id',
-  chains: [kasplexL2Mainnet, kasplexL2Testnet, igraCaravelTestnet, igraGalleonTestMainnet],
+  chains: [kasplexL2Mainnet, kasplexL2Testnet, igraCaravelTestnet, igraGalleonTestnet, igraGalleonTestMainnet],
   ssr: true, // Enable SSR support for Next.js
 });
 

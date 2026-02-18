@@ -4,6 +4,7 @@ pragma solidity ^0.8.28;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./FeeCollector.sol";
+import "./IFeeRouter.sol";
 
 /**
  * @title SimplePayment
@@ -11,8 +12,10 @@ import "./FeeCollector.sol";
  * @notice First dApp demonstrating the fee collection pattern
  */
 contract SimplePayment is Ownable, ReentrancyGuard {
-    // Fee collector contract
+    // Fee collector contract (used when feeRouter is not set)
     FeeCollector public feeCollector;
+    // Optional: when set, fees go through FeeRouter for Revenue Tree distribution
+    IFeeRouter public feeRouter;
 
     // Fee percentage (basis points, 10000 = 100%)
     uint256 public feePercentage;
@@ -27,6 +30,7 @@ contract SimplePayment is Ownable, ReentrancyGuard {
     );
     event FeeCollected(uint256 amount, uint256 timestamp);
     event FeeCollectorUpdated(address indexed oldCollector, address indexed newCollector);
+    event FeeRouterUpdated(address indexed oldRouter, address indexed newRouter);
     event FeePercentageUpdated(uint256 oldPercentage, uint256 newPercentage);
 
     /**
@@ -53,9 +57,13 @@ contract SimplePayment is Ownable, ReentrancyGuard {
         uint256 fee = (msg.value * feePercentage) / 10000;
         uint256 paymentAmount = msg.value - fee;
 
-        // Send fee to fee collector (which forwards to treasury)
+        // Send fee: via FeeRouter (Revenue Tree + treasury) or FeeCollector only
         if (fee > 0) {
-            feeCollector.forwardFee{value: fee}();
+            if (address(feeRouter) != address(0)) {
+                feeRouter.forwardFeeAndRevenue{value: fee}(msg.sender);
+            } else {
+                feeCollector.forwardFee{value: fee}();
+            }
             emit FeeCollected(fee, block.timestamp);
         }
 
@@ -75,6 +83,16 @@ contract SimplePayment is Ownable, ReentrancyGuard {
         address oldCollector = address(feeCollector);
         feeCollector = FeeCollector(_feeCollector);
         emit FeeCollectorUpdated(oldCollector, _feeCollector);
+    }
+
+    /**
+     * @dev Set FeeRouter for Revenue Tree; when set, fees use forwardFeeAndRevenue(payer) instead of FeeCollector.
+     * @param _feeRouter Address of FeeRouter contract, or address(0) to use FeeCollector only
+     */
+    function setFeeRouter(address _feeRouter) external onlyOwner {
+        address oldRouter = address(feeRouter);
+        feeRouter = IFeeRouter(_feeRouter);
+        emit FeeRouterUpdated(oldRouter, _feeRouter);
     }
 
     /**

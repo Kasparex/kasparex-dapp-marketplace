@@ -1,19 +1,20 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useAccount, useChainId, useBalance } from 'wagmi';
+import { formatEther, formatUnits } from 'viem';
 import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { RevenueTree } from '@/components/revenue-tree/RevenueTree';
 import { generateMockRevenueTree } from '@/lib/revenue-tree/mockData';
 import { generateDAppSlug } from '@/lib/utils';
-import { hasUserActivated, markUserActivated } from '@/lib/revenue-tree/utils';
-import { getContractAddress } from '@/lib/contracts/addresses';
+import { unifiedToRevenueTreeData } from '@/lib/revenue-tree/utils';
+import { getCurrentReferrer } from '@/lib/revenue-tree/referral';
+import { useRevenueTree } from '@/hooks/useRevenueTree';
+import { useSetReferrer } from '@/hooks/useSetReferrer';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
-import { formatUnits } from 'viem';
 import { getDAppPaymentConfig } from '@/lib/payments/config';
 import { calculateCost, type CostBreakdown } from '@/lib/payments/calculator';
-import { getStoredTransactions } from '@/lib/transactions/tracker';
 
 interface DAppActionsColumnProps {
   dapp: DApp;
@@ -33,10 +34,24 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
   const { address: userWalletAddress, isConnected } = useAccount();
   const chainId = useChainId();
   const slug = dapp.slug || generateDAppSlug(dapp.name);
-  const [activationAmount, setActivationAmount] = useState(0);
 
   const networkType = getDAppNetworkType(dapp);
   const isL2 = networkType === 'L2';
+
+  const { tree: unifiedTree } = useRevenueTree();
+  const { setReferrer, isPending: setReferrerPending, isConfirming: setReferrerConfirming, isSupported: setReferrerSupported } = useSetReferrer();
+  const pendingReferrer = typeof window !== 'undefined' ? getCurrentReferrer() : null;
+
+  const revenueTreeData = useMemo(() => {
+    const data = unifiedToRevenueTreeData(unifiedTree ?? null);
+    if (data) return data;
+    return generateMockRevenueTree(dapp.id, slug, userWalletAddress ?? undefined, chainId, false);
+  }, [unifiedTree, dapp.id, slug, userWalletAddress, chainId]);
+
+  const activationAmount = useMemo(() => {
+    if (!unifiedTree?.lifetimeVolume) return 0;
+    return parseFloat(formatEther(BigInt(unifiedTree.lifetimeVolume)));
+  }, [unifiedTree?.lifetimeVolume]);
 
   // Connected wallet balances for real fee/reward display
   const { data: nativeBalance } = useBalance({
@@ -77,35 +92,6 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
       };
     });
   }, [paymentConfig, dapp, krexBalance, tier, nftStatus, isConnected]);
-
-  // Calculate total spent for Revenue Tree activation from stored transactions
-  useEffect(() => {
-    if (!userWalletAddress || typeof window === 'undefined') {
-      setActivationAmount(0);
-      return;
-    }
-
-    const transactions = getStoredTransactions();
-    const dappTransactions = transactions.filter(
-      tx => tx.dAppId === dapp.id && tx.userAddress.toLowerCase() === userWalletAddress.toLowerCase() && tx.status === 'confirmed'
-    );
-    
-    const totalSpent = dappTransactions.reduce((sum, tx) => sum + (tx.amount || 0), 0);
-    setActivationAmount(totalSpent);
-
-    // Mark as activated if >= 100 KAS spent
-    if (totalSpent >= 100 && !hasUserActivated(userWalletAddress, 'dapp', slug)) {
-      markUserActivated(userWalletAddress, 'dapp', slug);
-    }
-  }, [userWalletAddress, dapp.id, slug]);
-
-  const revenueTreeData = generateMockRevenueTree(
-    dapp.id,
-    slug,
-    userWalletAddress,
-    chainId,
-    userWalletAddress ? hasUserActivated(userWalletAddress, 'dapp', slug) : false
-  );
 
   const nativeFormatted = nativeBalance
     ? parseFloat(formatUnits(nativeBalance.value, nativeBalance.decimals))
@@ -226,6 +212,21 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
 
       {isL2 && (
         <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
+          {pendingReferrer && !unifiedTree?.referrerSet && setReferrerSupported && userWalletAddress && (
+            <div className="mb-4 p-3 bg-[#02abb8]/10 border border-[#02abb8]/30 rounded-lg">
+              <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-2">
+                Set your referrer once to join the tree: <span className="font-mono text-xs">{pendingReferrer.slice(0, 10)}…{pendingReferrer.slice(-8)}</span>
+              </p>
+              <button
+                type="button"
+                onClick={() => setReferrer(pendingReferrer as `0x${string}`)}
+                disabled={setReferrerPending || setReferrerConfirming}
+                className="px-3 py-1.5 bg-[#02abb8] hover:bg-[#0299a6] text-white text-sm font-bold rounded-lg disabled:opacity-50"
+              >
+                {setReferrerPending || setReferrerConfirming ? 'Confirm in wallet…' : 'Set referrer'}
+              </button>
+            </div>
+          )}
           <RevenueTree
             data={revenueTreeData}
             userWalletAddress={userWalletAddress || undefined}
