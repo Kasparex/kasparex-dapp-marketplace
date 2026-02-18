@@ -5,19 +5,101 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { RevenueTree } from '@/components/revenue-tree/RevenueTree';
 import { generateMockRevenueTree } from '@/lib/revenue-tree/mockData';
-import { RevenueTreeData } from '@/lib/revenue-tree/types';
+import { RevenueTreeData, RevenueTreeLevel, REVENUE_SHARE_PERCENTAGES } from '@/lib/revenue-tree/types';
 import { useAccount, useChainId } from 'wagmi';
+
+type QuickStats = {
+  referrals: number;
+  averageKasPerReferral: number;
+  totalKasVolume: number;
+  estimatedMonthlyRevenue: number;
+  estimatedYearlyRevenue: number;
+};
+
+const REQUIRED_ACTIVATION_KAS = 100;
+
+function rotateLevelsForActivation(tree: RevenueTreeData, userWalletAddress: string): RevenueTreeData {
+  // Sort existing levels ascending (1 → 5)
+  const sorted = [...tree.levels].sort((a, b) => a.level - b.level);
+  const previousWallets = sorted.map((l) => l.walletAddress);
+
+  const shareForLevel: Record<number, number> = {
+    1: REVENUE_SHARE_PERCENTAGES.LEVEL_01,
+    2: REVENUE_SHARE_PERCENTAGES.LEVEL_02,
+    3: REVENUE_SHARE_PERCENTAGES.LEVEL_03,
+    4: REVENUE_SHARE_PERCENTAGES.LEVEL_04,
+    5: REVENUE_SHARE_PERCENTAGES.LEVEL_05,
+  };
+
+  const newLevels: RevenueTreeLevel[] = [];
+
+  // Level 1: current user
+  newLevels.push({
+    level: 1,
+    walletAddress: userWalletAddress,
+    userCount: 0,
+    sharePercentage: shareForLevel[1],
+  });
+
+  // Levels 2–5: shift existing wallets up by one level (drop old level 5)
+  for (let level = 2; level <= 5; level++) {
+    const prevIndex = level - 2; // new L2 gets old L1, etc.
+    const prevWallet = previousWallets[prevIndex] ?? previousWallets[previousWallets.length - 1];
+    newLevels.push({
+      level,
+      walletAddress: prevWallet,
+      userCount: 0,
+      sharePercentage: shareForLevel[level],
+    });
+  }
+
+  return {
+    ...tree,
+    levels: newLevels,
+    isActive: true,
+    userWalletAddress,
+    activatedAt: new Date().toISOString(),
+  };
+}
+
+function simulateQuickStats(tree: RevenueTreeData): QuickStats {
+  const baseReferrals = tree.revenueTreesCount > 0 ? tree.revenueTreesCount : 5;
+  const referrals = baseReferrals + Math.floor(Math.random() * 6); // +0–5
+  const averageKasPerReferral = 100 * (0.5 + Math.random()); // 50–150 KAS
+  const totalKasVolume = referrals * averageKasPerReferral;
+
+  const userLevel = tree.levels.find((l) => l.level === 1);
+  const userShare = userLevel ? userLevel.sharePercentage : REVENUE_SHARE_PERCENTAGES.LEVEL_01;
+
+  // Assume 6–12 full revenue cycles per year
+  const cyclesPerYear = 6 + Math.random() * 6;
+  const estimatedYearlyRevenue = (totalKasVolume * (userShare / 100)) * cyclesPerYear;
+  const estimatedMonthlyRevenue = estimatedYearlyRevenue / 12;
+
+  return {
+    referrals,
+    averageKasPerReferral,
+    totalKasVolume,
+    estimatedMonthlyRevenue,
+    estimatedYearlyRevenue,
+  };
+}
 
 export default function RevenueTreeDemoPage() {
   const { address: userWalletAddress } = useAccount();
   const chainId = useChainId();
   const [currentStep, setCurrentStep] = useState(1);
   const [demoTree, setDemoTree] = useState<RevenueTreeData | null>(null);
+  const [activationAmount, setActivationAmount] = useState(0);
+  const [quickStats, setQuickStats] = useState<QuickStats | null>(null);
+  const [testReferralAddress, setTestReferralAddress] = useState('');
 
   // Initialize demo tree
   useEffect(() => {
     if (userWalletAddress && !demoTree && currentStep === 1) {
-      setDemoTree(generateMockRevenueTree('demo-payment', 'demo-payment', userWalletAddress, chainId, false));
+      const initialTree = generateMockRevenueTree('demo-payment', 'demo-payment', userWalletAddress, chainId, false);
+      setDemoTree(initialTree);
+      setQuickStats(simulateQuickStats(initialTree));
     }
   }, [userWalletAddress, currentStep, demoTree, chainId]);
 
@@ -54,19 +136,32 @@ export default function RevenueTreeDemoPage() {
 
   const handleStepAction = (stepNumber: number) => {
     if (stepNumber === 1) {
-      // Simulate payment
-      if (userWalletAddress) {
-        setDemoTree(generateMockRevenueTree('demo-payment', 'demo-payment', userWalletAddress, chainId, true));
+      // Simulate payment to reach 100 KAS and rotate the tree
+      if (userWalletAddress && demoTree) {
+        const rotated = rotateLevelsForActivation(demoTree, userWalletAddress);
+        setDemoTree(rotated);
+        setActivationAmount(REQUIRED_ACTIVATION_KAS);
+        setQuickStats(simulateQuickStats(rotated));
       }
       setCurrentStep(2);
     } else if (stepNumber === 2) {
-      // Copy link
+      // Copy link (activated referral link)
       if (demoTree) {
         navigator.clipboard.writeText(demoTree.referralLink);
         setCurrentStep(3);
       }
     } else if (stepNumber === 3) {
-      // Simulate referral
+      // Simulate referral using a (possibly) custom referral address
+      if (demoTree) {
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+        const refAddress = (testReferralAddress || userWalletAddress || '').trim();
+        const newReferralLink = refAddress
+          ? `${baseUrl}/dapps/${demoTree.dappSlug}?ref=${refAddress}`
+          : demoTree.referralLink;
+        const updated = { ...demoTree, referralLink: newReferralLink };
+        setDemoTree(updated);
+        setQuickStats(simulateQuickStats(updated));
+      }
       setCurrentStep(4);
     } else if (stepNumber === 4) {
       // View dashboard
@@ -148,14 +243,39 @@ export default function RevenueTreeDemoPage() {
               ))}
             </div>
 
-            {/* Revenue Tree Visualization */}
-            <div className="lg:sticky lg:top-8 h-fit">
+            {/* Revenue Tree Visualization + Quick Stats */}
+            <div className="lg:sticky lg:top-8 h-fit space-y-4">
               <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6">
-                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-6">
+                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-4">
                   Your Revenue Tree
                 </h3>
+
+                {/* Activation Progress (Demo-controlled) */}
+                {userWalletAddress && (
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+                        Activation Progress
+                      </span>
+                      <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400">
+                        {activationAmount.toFixed(2)} / {REQUIRED_ACTIVATION_KAS} KAS
+                      </span>
+                    </div>
+                    <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2.5 overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-[#02abb8] to-emerald-500 h-full transition-all duration-500 rounded-full"
+                        style={{ width: `${Math.min((activationAmount / REQUIRED_ACTIVATION_KAS) * 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {demoTree && userWalletAddress ? (
-                  <RevenueTree data={demoTree} userWalletAddress={userWalletAddress} />
+                  <RevenueTree
+                    data={demoTree}
+                    userWalletAddress={userWalletAddress}
+                    activationAmount={activationAmount}
+                  />
                 ) : (
                   <div className="text-center py-12">
                     <div className="text-zinc-400 dark:text-zinc-600 mb-4">
@@ -171,6 +291,68 @@ export default function RevenueTreeDemoPage() {
                     </p>
                   </div>
                 )}
+              </div>
+
+              {/* Quick Stats + Test Referral Link */}
+              <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 space-y-4">
+                <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-widest mb-1">
+                  Quick Stats
+                </h3>
+                {quickStats ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">Estimated Monthly Revenue</div>
+                      <div className="text-lg font-black text-[#02abb8]">
+                        {quickStats.estimatedMonthlyRevenue.toFixed(2)} KAS
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">Estimated Yearly Revenue</div>
+                      <div className="text-lg font-black text-emerald-500">
+                        {quickStats.estimatedYearlyRevenue.toFixed(2)} KAS
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">Active Referrals</div>
+                      <div className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                        {quickStats.referrals}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">Avg. KAS per Referral</div>
+                      <div className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                        {quickStats.averageKasPerReferral.toFixed(2)} KAS
+                      </div>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">Total Volume (All Levels)</div>
+                      <div className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                        {quickStats.totalKasVolume.toFixed(2)} KAS
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                    Connect your wallet and start the demo to see potential revenue estimates.
+                  </p>
+                )}
+
+                {/* Test Referral Link Input */}
+                <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 space-y-2">
+                  <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">
+                    Test Referral Address
+                  </label>
+                  <input
+                    type="text"
+                    value={testReferralAddress}
+                    onChange={(e) => setTestReferralAddress(e.target.value)}
+                    placeholder="0x... (optional – simulate different referral links)"
+                    className="w-full px-3 py-2 text-xs rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8]"
+                  />
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                    Use this to simulate your referral link rotating through different wallets as the tree grows.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
