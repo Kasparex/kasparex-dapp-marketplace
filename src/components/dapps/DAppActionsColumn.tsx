@@ -122,16 +122,15 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
       {/* Fees & Revenue Share - dynamic per dApp with real actions */}
       <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
         <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-widest mb-2 py-2 border-b border-zinc-100 dark:border-zinc-800">
-          Fees & Revenue Share
+          Fees & Rewards
         </h3>
         
         {actionCosts.length > 0 ? (
           <div className="space-y-4">
             {actionCosts.map(({ actionId, actionName, costBreakdown }) => (
               <div key={actionId} className="space-y-2 pb-4 border-b border-zinc-100 dark:border-zinc-800 last:border-0 last:pb-0">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{actionName}</span>
-                  <span className="text-sm font-bold text-[#02abb8]">{costBreakdown.finalCostWithFee.toFixed(3)} KAS</span>
                 </div>
                 <div className="space-y-1.5 pl-2 text-xs">
                   <div className="flex items-center justify-between text-zinc-600 dark:text-zinc-400">
@@ -154,6 +153,13 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
                       <span>-{(1.0 - costBreakdown.feePercent).toFixed(2)}%</span>
                     </div>
                   )}
+                </div>
+                {/* Total moved below calculations */}
+                <div className="pt-2 mt-2 border-t border-zinc-100 dark:border-zinc-800">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Total</span>
+                    <span className="text-base font-black text-[#02abb8]">{costBreakdown.finalCostWithFee.toFixed(3)} KAS</span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -202,6 +208,7 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
                 {!isConnected ? '—' : krexLoading ? '...' : `${formatFee(krexBalance)} (${krexDiscountPercent}% off)`}
               </span>
             </div>
+            {/* Total moved below calculations */}
             <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Total</span>

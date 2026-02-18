@@ -10,11 +10,8 @@ import { useDAppFromContract } from '@/lib/dapps/contractData';
 // Edit functionality removed - dApps are now read-only
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { mergeDAppData } from '@/lib/dapps/contractData';
-import { DAppRewardsSidebar } from './rewards/DAppRewardsSidebar';
 import { DAppActionFlow } from './dapps/DAppActionFlow';
 import { NetworkAvailabilityBox } from './dapps/NetworkAvailabilityBox';
-import { GRIDHoldingsBox } from './rewards/GRIDHoldingsBox';
-import { XPPointsBox } from './rewards/XPPointsBox';
 import { UnifiedStatusBox } from './rewards/UnifiedStatusBox';
 import { QuickGuideWizard } from './rewards/QuickGuideWizard';
 import { getDAppNetworkType } from '@/lib/dapps';
@@ -78,7 +75,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
   const quickMenuItems = [
     {
       id: 'revenue-tree-dashboard',
-      label: 'Revenue Tree Dashboard',
+      label: 'My Revenue Tree',
       href: '/revenue-tree/dashboard',
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -93,16 +90,6 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-      ),
-    },
-    {
-      id: 'store',
-      label: 'Store',
-      href: '/store',
-      icon: (
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
         </svg>
       ),
     },
@@ -302,8 +289,6 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
               <h3 className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] mb-3 px-1">Action Flow</h3>
               <div className="space-y-3">
                 <DAppActionFlow dapp={mergedDApp} />
-                <GRIDHoldingsBox />
-                <XPPointsBox />
                 <UnifiedStatusBox />
                 <button
                   type="button"
@@ -316,11 +301,6 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
                   Quick Guide
                 </button>
               </div>
-            </div>
-
-            {/* Rewards */}
-            <div>
-              <DAppRewardsSidebar dappName={mergedDApp.name} />
             </div>
         </div>
       </aside>

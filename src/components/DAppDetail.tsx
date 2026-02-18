@@ -14,6 +14,7 @@ import { getContractAddress } from '@/lib/contracts/addresses';
 import { NetworkInfoMessage } from './NetworkInfoMessage';
 import { getDAppNetworkType } from '@/lib/dapps';
 import { GRIDHoldingsBox } from './rewards/GRIDHoldingsBox';
+import { XPPointsBox } from './rewards/XPPointsBox';
 import { TreasuryBox } from './treasury/TreasuryBox';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 
@@ -64,9 +65,10 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
         <div className="space-y-6 lg:col-span-3 order-1">
           <DAppWidget dapp={dapp} hideHeader />
 
-          {/* GRID Holdings - GRT-only */}
-          <div>
+          {/* GRID and XP Status Boxes - Side by Side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <GRIDHoldingsBox />
+            <XPPointsBox />
           </div>
 
           {/* Token Information - Only show for L2 dApps */}

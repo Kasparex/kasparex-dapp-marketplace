@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount, useReadContract, useChainId, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
 import { formatEther } from 'viem';
-import { DAO_VOTING_ABI } from '@/lib/contracts/abis';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { useDAOVoting, Proposal, Vote } from '@/hooks/useDAOVoting';
 import { TransactionTracker } from '@/components/transactions/TransactionTracker';
@@ -32,16 +31,10 @@ export function DAOVotingWidget() {
     voteFee,
     flagThreshold,
     proposalCount,
-    getSubmissionCost,
-    getVoteCost,
     txHash,
     isConfirmed,
     lastActionType,
   } = useDAOVoting();
-
-  // Get calculated costs with discounts
-  const submissionCostBreakdown = getSubmissionCost();
-  const voteCostBreakdown = getVoteCost();
 
   // Load user votes for all proposals
   useEffect(() => {
@@ -52,7 +45,6 @@ export function DAOVotingWidget() {
     const loadUserVotes = async () => {
       const votesMap = new Map<bigint, Vote>();
       for (const proposal of proposals) {
-        // Skip invalid proposals (ID must be > 0 and <= proposalCount)
         if (!proposal.id || proposal.id <= 0n) {
           continue;
         }
@@ -63,10 +55,7 @@ export function DAOVotingWidget() {
             votesMap.set(proposal.id, userVote);
           }
         } catch (err: any) {
-          // Silently skip errors for invalid proposal IDs
-          // This can happen if proposals were deleted or IDs are out of sync
           if (err?.message?.includes('Invalid proposal ID') || err?.shortMessage?.includes('Invalid proposal ID')) {
-            // Expected error for non-existent proposals, skip silently
             continue;
           }
           console.error(`Error loading vote for proposal ${proposal.id}:`, err);
@@ -77,16 +66,6 @@ export function DAOVotingWidget() {
 
     loadUserVotes();
   }, [isConnected, address, contractAddress, proposals, getUserVote]);
-
-  // Read user votes using readContract for each proposal
-  useEffect(() => {
-    if (!isConnected || !address || !contractAddress) {
-      return;
-    }
-
-    // We'll use readContract hooks for each proposal
-    // This is handled in the component rendering
-  }, [isConnected, address, contractAddress]);
 
   const handleSubmitProposal = async () => {
     if (!title.trim() || !description.trim()) {
@@ -125,8 +104,6 @@ export function DAOVotingWidget() {
       } else {
         await vote(proposalId, support);
       }
-      // Refresh after transaction completes (handled by useDAOVoting hook)
-      // Don't block UI with setTimeout
     } catch (err) {
       console.error('Error voting:', err);
     }
@@ -143,7 +120,7 @@ export function DAOVotingWidget() {
 
   if (!isConnected) {
     return (
-      <div className="px-6 py-4 text-center">
+      <div className="px-6 py-8 text-center">
         <p className="text-zinc-600 dark:text-zinc-400 mb-4">
           Please connect your wallet to use DAO Voting
         </p>
@@ -153,7 +130,7 @@ export function DAOVotingWidget() {
 
   if (!contractAddress) {
     return (
-      <div className="px-6 py-4 text-center">
+      <div className="px-6 py-8 text-center">
         <p className="text-zinc-600 dark:text-zinc-400 mb-4">
           DAO Voting contract not deployed on this network
         </p>
@@ -162,92 +139,37 @@ export function DAOVotingWidget() {
   }
 
   return (
-    <div className="px-6 py-4 space-y-6">
-      {/* Header */}
+    <div className="px-6 py-6 space-y-6">
+      {/* Premium Header - Submit Proposal Button */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-white dark:text-zinc-100">DAO Voting</h2>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-            Submit and vote on future dApp ideas for marketplace integration
+          <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+            Proposals {proposalCount !== null && `(${proposalCount.toString()})`}
+          </h3>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+            Submit and vote on future dApp ideas
           </p>
         </div>
         <button
           onClick={() => setShowSubmitForm(!showSubmitForm)}
-          className="px-4 py-2 bg-[#02abb8] text-white rounded-lg hover:bg-[#028a94] transition-colors"
+          className="px-5 py-2.5 bg-[#02abb8] hover:bg-[#028a94] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2"
         >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
           {showSubmitForm ? 'Cancel' : 'Submit Proposal'}
         </button>
       </div>
 
-      {/* Fee Info with Calculated Costs */}
-      {submissionFee && voteFee && (
-        <div className="p-4 bg-zinc-800 dark:bg-zinc-800 rounded-lg border border-zinc-700 dark:border-zinc-700">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-zinc-300 dark:text-zinc-400">Submission Fee:</span>
-              <div className="mt-1">
-                {submissionCostBreakdown && (submissionCostBreakdown.costReductionPercent > 0 || submissionCostBreakdown.feePercent < 1.0) ? (
-                  <div>
-                    <span className="line-through text-zinc-500 text-xs">
-                      {submissionCostBreakdown.baseCost.toFixed(2)} KAS + 1.00% fee
-                    </span>
-                    <span className="ml-2 font-semibold text-green-400">
-                      {submissionCostBreakdown.finalCostWithFee.toFixed(2)} KAS
-                      {submissionCostBreakdown.costReductionPercent > 0 && ` (-${submissionCostBreakdown.costReductionPercent.toFixed(0)}% cost`}
-                      {submissionCostBreakdown.feePercent < 1.0 && `, ${submissionCostBreakdown.feePercent.toFixed(2)}% fee`}
-                      {submissionCostBreakdown.costReductionPercent > 0 || submissionCostBreakdown.feePercent < 1.0 ? ')' : ''}
-                    </span>
-                  </div>
-                ) : (
-                  <span className="font-semibold text-white dark:text-zinc-100">
-                    {formatEther(submissionFee)} KAS
-                  </span>
-                )}
-              </div>
-            </div>
-            <div>
-              <span className="text-zinc-300 dark:text-zinc-400">Vote Fee:</span>
-              <div className="mt-1">
-                {voteCostBreakdown && (voteCostBreakdown.costReductionPercent > 0 || voteCostBreakdown.feePercent < 1.0) ? (
-                  <div>
-                    <span className="line-through text-zinc-500 text-xs">
-                      {voteCostBreakdown.baseCost.toFixed(2)} KAS + 1.00% fee
-                    </span>
-                    <span className="ml-2 font-semibold text-green-400">
-                      {voteCostBreakdown.finalCostWithFee.toFixed(2)} KAS
-                      {voteCostBreakdown.costReductionPercent > 0 && ` (-${voteCostBreakdown.costReductionPercent.toFixed(0)}% cost`}
-                      {voteCostBreakdown.feePercent < 1.0 && `, ${voteCostBreakdown.feePercent.toFixed(2)}% fee`}
-                      {voteCostBreakdown.costReductionPercent > 0 || voteCostBreakdown.feePercent < 1.0 ? ')' : ''}
-                    </span>
-                  </div>
-                ) : (
-                  <span className="font-semibold text-white dark:text-zinc-100">
-                    {formatEther(voteFee)} KAS
-                  </span>
-                )}
-              </div>
-            </div>
-            {flagThreshold && (
-              <div className="col-span-2">
-                <span className="text-zinc-300 dark:text-zinc-400">Flag Threshold:</span>
-                <span className="ml-2 font-semibold text-white dark:text-zinc-100">
-                  {flagThreshold.toString()} yes votes
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Submit Proposal Form */}
+      {/* Submit Proposal Form - Premium Design */}
       {showSubmitForm && (
-        <div className="p-4 bg-zinc-800 dark:bg-zinc-800 rounded-lg border border-zinc-700 dark:border-zinc-700">
-          <h3 className="text-lg font-semibold text-white dark:text-zinc-100 mb-4">
+        <div className="p-6 bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 shadow-lg">
+          <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
             Submit New Proposal
           </h3>
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-zinc-300 dark:text-zinc-300 mb-2">
+              <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
                 Title (max 200 characters)
               </label>
               <input
@@ -256,52 +178,34 @@ export function DAOVotingWidget() {
                 onChange={(e) => setTitle(e.target.value)}
                 maxLength={200}
                 placeholder="Enter proposal title"
-                className="w-full px-4 py-2 border border-zinc-700 dark:border-zinc-700 rounded-lg bg-zinc-800 dark:bg-zinc-800 text-white dark:text-zinc-100 focus:ring-2 focus:ring-[#02abb8] focus:border-transparent"
+                className="w-full px-4 py-3 border-2 border-zinc-300 dark:border-zinc-600 rounded-xl bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-[#02abb8] focus:border-[#02abb8] transition-all"
               />
-              <p className="text-xs text-zinc-400 dark:text-zinc-400 mt-1">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1.5">
                 {title.length}/200 characters
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-zinc-300 dark:text-zinc-300 mb-2">
+              <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
                 Description (max 2000 characters)
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 maxLength={2000}
-                rows={6}
-                placeholder="Describe your dApp idea or concept..."
-                className="w-full px-4 py-2 border border-zinc-700 dark:border-zinc-700 rounded-lg bg-zinc-800 dark:bg-zinc-800 text-white dark:text-zinc-100 focus:ring-2 focus:ring-[#02abb8] focus:border-transparent"
+                rows={8}
+                placeholder="Describe your dApp idea or concept in detail..."
+                className="w-full px-4 py-3 border-2 border-zinc-300 dark:border-zinc-600 rounded-xl bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-[#02abb8] focus:border-[#02abb8] transition-all resize-none"
               />
-              <p className="text-xs text-zinc-400 dark:text-zinc-400 mt-1">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1.5">
                 {description.length}/2000 characters
               </p>
             </div>
-            {submissionFee && (
-              <div className="p-3 bg-blue-900/30 dark:bg-blue-900/20 rounded-lg border border-blue-800/50 dark:border-blue-800">
-                <p className="text-sm text-blue-300 dark:text-blue-400">
-                  {submissionCostBreakdown && (submissionCostBreakdown.costReductionPercent > 0 || submissionCostBreakdown.feePercent < 1.0) ? (
-                    <span>
-                      Submission fee: <span className="line-through text-blue-400/60">{submissionCostBreakdown.baseCost.toFixed(2)} KAS + 1.00% fee</span>{' '}
-                      <span className="text-green-400">{submissionCostBreakdown.finalCostWithFee.toFixed(2)} KAS
-                        {submissionCostBreakdown.costReductionPercent > 0 && ` (-${submissionCostBreakdown.costReductionPercent.toFixed(0)}% cost`}
-                        {submissionCostBreakdown.feePercent < 1.0 && `, ${submissionCostBreakdown.feePercent.toFixed(2)}% fee`}
-                        {submissionCostBreakdown.costReductionPercent > 0 || submissionCostBreakdown.feePercent < 1.0 ? ')' : ''}
-                      </span>
-                    </span>
-                  ) : (
-                    `Submission fee: ${formatEther(submissionFee)} KAS`
-                  )}
-                </p>
-              </div>
-            )}
             <button
               onClick={handleSubmitProposal}
               disabled={isLoading || !title.trim() || !description.trim()}
-              className="w-full px-4 py-2 bg-[#02abb8] text-white rounded-lg hover:bg-[#028a94] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full px-6 py-3.5 bg-[#02abb8] hover:bg-[#028a94] text-white font-bold rounded-xl shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
-              {isLoading ? 'Submitting...' : `Submit Proposal (${submissionFee ? formatEther(submissionFee) : '10'} KAS)`}
+              {isLoading ? 'Submitting...' : 'Submit Proposal'}
             </button>
           </div>
         </div>
@@ -309,8 +213,8 @@ export function DAOVotingWidget() {
 
       {/* Error Message */}
       {error && (
-        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+        <div className="p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl">
+          <p className="text-sm font-medium text-red-700 dark:text-red-400">{error}</p>
         </div>
       )}
 
@@ -328,31 +232,39 @@ export function DAOVotingWidget() {
         </div>
       )}
 
-      {/* Proposals List */}
+      {/* Proposals List - Premium Design */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-            Proposals {proposalCount !== null && `(${proposalCount.toString()})`}
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+            Active Proposals
           </h3>
           <button
             onClick={refreshProposals}
             disabled={isLoading}
-            className="px-3 py-1 text-sm bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 disabled:opacity-50 transition-colors"
+            className="px-4 py-2 text-sm font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 disabled:opacity-50 transition-colors flex items-center gap-2"
           >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
             Refresh
           </button>
         </div>
 
         {isLoading && proposals.length === 0 ? (
-          <div className="text-center py-8">
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#02abb8] mb-3"></div>
             <p className="text-zinc-600 dark:text-zinc-400">Loading proposals...</p>
           </div>
         ) : proposals.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-zinc-600 dark:text-zinc-400">No proposals yet. Be the first to submit one!</p>
+          <div className="text-center py-12 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border-2 border-dashed border-zinc-300 dark:border-zinc-700">
+            <svg className="w-12 h-12 text-zinc-400 dark:text-zinc-600 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p className="text-zinc-600 dark:text-zinc-400 font-medium">No proposals yet</p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-500 mt-1">Be the first to submit one!</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {proposals
               .slice()
               .reverse()
@@ -364,78 +276,96 @@ export function DAOVotingWidget() {
                 return (
                   <div
                     key={proposal.id.toString()}
-                    className="p-4 bg-zinc-800 dark:bg-zinc-800 rounded-lg border border-zinc-700 dark:border-zinc-700"
+                    className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border-2 border-zinc-200 dark:border-zinc-800 shadow-lg hover:shadow-xl transition-all duration-200"
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h4 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                    {/* Proposal Header */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-3">
+                          <h4 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 leading-tight">
                             {proposal.title}
                           </h4>
                           {proposal.isFlagged && (
-                            <span className="px-2 py-1 text-xs font-semibold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 rounded">
-                              Flagged for Review
+                            <span className="px-3 py-1 text-xs font-bold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 rounded-lg border border-yellow-300 dark:border-yellow-700">
+                              ⚠ Flagged
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-zinc-300 dark:text-zinc-400 mb-2">
-                          {proposal.description}
-                        </p>
-                        <div className="flex items-center gap-4 text-xs text-zinc-400 dark:text-zinc-400">
-                          <span>Proposer: {formatAddress(proposal.proposer)}</span>
-                          <span>Created: {formatDate(proposal.createdAt)}</span>
+                        
+                        {/* Proposal Description - More Visible */}
+                        <div className="mb-5">
+                          <p className="text-base text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
+                            {proposal.description}
+                          </p>
+                        </div>
+                        
+                        {/* Proposal Meta */}
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-500 dark:text-zinc-500 mb-4">
+                          <div className="flex items-center gap-1.5">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <span>Proposer: {formatAddress(proposal.proposer)}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>{formatDate(proposal.createdAt)}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Vote Counts */}
-                    <div className="flex items-center gap-4 mb-4">
+                    {/* Vote Counts - Premium Display */}
+                    <div className="flex items-center gap-6 mb-5 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-700">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-green-600 dark:text-green-400">
+                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span className="text-base font-bold text-green-600 dark:text-green-400">
                           Yes: {proposal.yesVotes.toString()}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-red-600 dark:text-red-400">
+                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                        <span className="text-base font-bold text-red-600 dark:text-red-400">
                           No: {proposal.noVotes.toString()}
                         </span>
                       </div>
                       {hasVoted && (
-                        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                        <div className="ml-auto px-3 py-1.5 bg-[#02abb8]/10 text-[#02abb8] rounded-lg text-sm font-semibold">
                           You voted: {userVoteSupport ? 'Yes' : 'No'}
-                        </span>
+                        </div>
                       )}
                     </div>
 
-                    {/* Vote Buttons */}
-                    <div className="flex gap-2">
+                    {/* Vote Buttons - Premium Design */}
+                    <div className="flex gap-3">
                       <button
                         onClick={() => handleVote(proposal.id, true)}
                         disabled={isLoading || !proposal.isActive}
-                        className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                        className={`flex-1 px-6 py-3.5 rounded-xl font-bold text-base transition-all duration-200 ${
                           hasVoted && userVoteSupport
-                            ? 'bg-green-600 text-white'
-                            : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50'
+                            ? 'bg-green-600 text-white shadow-lg'
+                            : 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 border-2 border-green-300 dark:border-green-700'
                         } disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
-                        {hasVoted && userVoteSupport ? '✓ Yes' : 'Vote Yes'}
+                        {hasVoted && userVoteSupport ? '✓ Voted Yes' : 'Vote Yes'}
                       </button>
                       <button
                         onClick={() => handleVote(proposal.id, false)}
                         disabled={isLoading || !proposal.isActive}
-                        className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                        className={`flex-1 px-6 py-3.5 rounded-xl font-bold text-base transition-all duration-200 ${
                           hasVoted && !userVoteSupport
-                            ? 'bg-red-600 text-white'
-                            : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50'
+                            ? 'bg-red-600 text-white shadow-lg'
+                            : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 border-2 border-red-300 dark:border-red-700'
                         } disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
-                        {hasVoted && !userVoteSupport ? '✓ No' : 'Vote No'}
+                        {hasVoted && !userVoteSupport ? '✓ Voted No' : 'Vote No'}
                       </button>
                     </div>
-                    {voteFee && (
-                      <p className="text-xs text-zinc-400 dark:text-zinc-400 mt-2">
-                        Vote fee: {formatEther(voteFee)} KAS
-                        {hasVoted && ' (changing vote)'}
+                    {hasVoted && voteFee && (
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-3 text-center">
+                        Changing your vote costs {formatEther(voteFee)} KAS
                       </p>
                     )}
                   </div>
@@ -447,4 +377,3 @@ export function DAOVotingWidget() {
     </div>
   );
 }
-
