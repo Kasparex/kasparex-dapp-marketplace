@@ -21,7 +21,7 @@ export function calculatePlatformFee(
   // Use rewards calculator to get fee percentage with discounts
   const calculatorInputs: CalculatorInputs = {
     kasAmount: priceKAS,
-    krexTier: krexTier === 'none' ? 'Tier1' : krexTier, // Default to Tier1 if none
+    krexTier: krexTier === 'none' ? 'Tier0' : krexTier, // Default to Tier0 (Inactive) if none
     nftStatus: nftStatus || {
       hasKREXPRIME: false,
       hasPIXELKREX: false,

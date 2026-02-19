@@ -15,7 +15,6 @@ import { useKREXBalance } from './useKREXBalance';
 import { useNFTStatus } from './useNFTStatus';
 import { calculateRewardAmount, type RewardCalculationResult } from '@/lib/rewards/rewardCalculator';
 import { calculateCost, type CostBreakdown } from '@/lib/payments/calculator';
-import { getRecordUsageAndRewardL2Params, generateNonce, getDAppAuthorizationParams } from '@/lib/contracts/proofOfUtility';
 import { recordUsageAndRewardL1 } from '@/lib/rewards/l1Distribution';
 import { recordUsageAndRewardVProgs } from '@/lib/rewards/vprogsDistribution';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -42,7 +41,7 @@ export interface UseAutomatedRewardsReturn {
  * Hook for automated reward distribution
  * 
  * Automatically detects network type and routes to appropriate handler:
- * - L2 (EVM): Uses SecureProofOfUtility contract
+ * - L2 (EVM): No separate reward tx; rewards are distributed by FeeRouter in the same tx. L2 path is a no-op.
  * - L1 (Kaspa Native): Uses backend API
  * - vProgs: Uses vProgs contract abstraction (when available)
  */
@@ -126,45 +125,10 @@ export function useAutomatedRewards(): UseAutomatedRewardsReturn {
 
       // Route to appropriate handler based on network type
       if (networkType === 'L2') {
-        // L2: Use SecureProofOfUtility contract
-        if (!dAppContractAddress || !chainId) {
-          throw new Error('dApp contract address and chain ID required for L2');
-        }
-
-        // Check if dApp is authorized (optional check - contract will enforce)
-        const authParams = getDAppAuthorizationParams(chainId, dAppContractAddress as Address);
-        if (authParams) {
-          // We could check authorization here, but contract will enforce it anyway
-          // For now, proceed with the transaction
-        }
-
-        // Generate nonce for replay protection
-        const nonce = generateNonce();
-
-        // Get transaction parameters
-        const params = getRecordUsageAndRewardL2Params(
-          userAddress as Address,
-          dAppContractAddress as Address,
-          dapp.id,
-          actionType,
-          parseEther(baseActionValue.toString()),
-          txHash,
-          nonce,
-          chainId
-        );
-
-        if (!params) {
-          throw new Error('Failed to get transaction parameters');
-        }
-
-        // Execute transaction using wagmi hook
-        writeContract(params);
-
-        // Wait for transaction (handled by useWaitForTransactionReceipt)
-        // Return success immediately - the hook will handle the waiting
-        return {
-          success: true,
-        };
+        // L2: Rewards are distributed by FeeRouter in the same tx as the payment. No ProofOfUtility call.
+        queryClient.invalidateQueries({ queryKey: ['gridToken'] });
+        queryClient.invalidateQueries({ queryKey: ['tokenBalance'] });
+        return { success: true };
       } else if (networkType === 'L1') {
         // L1: Use backend API
         const result = await recordUsageAndRewardL1(

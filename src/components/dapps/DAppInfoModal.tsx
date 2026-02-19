@@ -151,7 +151,6 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
 
   // Get contract addresses for ecosystem components (only for L2 dApps)
   const gridTokenAddress = !isL1DApp ? (getContractAddress(chainId, 'GRIDToken') || undefined) : undefined;
-  const proofOfUtilityAddress = !isL1DApp ? (getContractAddress(chainId, 'ProofOfUtility') || undefined) : undefined;
   const feeHandlerAddress = !isL1DApp ? (getContractAddress(chainId, 'FeeHandler') || undefined) : undefined;
   const rewardManagerAddress = !isL1DApp ? (getContractAddress(chainId, 'RewardManager') || undefined) : undefined;
   
@@ -512,29 +511,6 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
                           className="text-xs font-mono text-[#02abb8] hover:underline"
                         >
                           {formatAddress(gridTokenAddress)}
-                        </a>
-                      </div>
-                    )}
-
-                    {/* Proof of Utility */}
-                    {proofOfUtilityAddress && (
-                      <div className="relative pl-12">
-                        <div className="absolute left-0 top-1 w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center">
-                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </div>
-                        <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Proof of Utility</h4>
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-2">
-                          Tracks on-chain usage and enables automatic rewards.
-                        </p>
-                        <a
-                          href={getExplorerLink(proofOfUtilityAddress)!}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs font-mono text-[#02abb8] hover:underline"
-                        >
-                          {formatAddress(proofOfUtilityAddress)}
                         </a>
                       </div>
                     )}

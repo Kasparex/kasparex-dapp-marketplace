@@ -9,7 +9,6 @@ import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
 import { useNetworkAwareWallet } from '@/hooks/useNetworkAwareWallet';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
 import { TokenDisplay } from './dapps/TokenDisplay';
-import { ProofOfUtility } from './dapps/ProofOfUtility';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { NetworkInfoMessage } from './NetworkInfoMessage';
 import { getDAppNetworkType } from '@/lib/dapps';
@@ -48,8 +47,6 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
 
   // Get contract addresses for token components (only for L2 dApps)
   const isL1DApp = getDAppNetworkType(dapp) === 'L1';
-  const gridTokenAddress = !isL1DApp ? (getContractAddress(chainId, 'GRIDToken') || undefined) : undefined;
-  const proofOfUtilityAddress = !isL1DApp ? (getContractAddress(chainId, 'ProofOfUtility') || undefined) : undefined;
 
   return (
     <div className="space-y-6">
@@ -79,15 +76,6 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
                 ticker={mergedContractData.ticker}
                 totalSupply={mergedContractData.totalSupply?.toString() || '0'}
                 dAppName={dapp.name}
-              />
-            </div>
-          )}
-
-          {/* Proof of Utility - Only show for L2 dApps */}
-          {!isL1DApp && proofOfUtilityAddress && (
-            <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
-              <ProofOfUtility
-                proofOfUtilityAddress={proofOfUtilityAddress}
               />
             </div>
           )}

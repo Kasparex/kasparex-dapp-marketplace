@@ -21,6 +21,7 @@ import { placeholderDApps } from '@/lib/dapps';
 import { storeTransaction } from '@/lib/transactions/tracker';
 import { TransactionTracker } from '@/components/transactions/TransactionTracker';
 import { RewardStatusBox } from '@/components/rewards/RewardStatusBox';
+import { FeeDisplay } from '@/components/ui/FeeDisplay';
 
 // Define ABI in proper JSON format as fallback to prevent bundling issues
 const SIMPLE_PAYMENT_ABI_FALLBACK = [
@@ -230,7 +231,6 @@ export function SimplePaymentWidget() {
       hasRarestNFT: !!nftStatus?.hasRarestNFT,
       isNodeProvider: false, // TODO: Get from node status hook
       nodeFeeReduction: 0,
-      nodeCostReduction: 0,
     });
   }, [simplePaymentDApp, amount, krexBalance, tier, nftStatus]);
 
@@ -674,6 +674,13 @@ export function SimplePaymentWidget() {
               </div>
             )}
           </div>
+
+          {/* Final fee on CTA */}
+          {paymentCostBreakdown && amount && parseFloat(amount) > 0 && (
+            <div className="pt-2 pb-1">
+              <FeeDisplay breakdown={paymentCostBreakdown} label="You pay" compact />
+            </div>
+          )}
 
           {/* Send Button */}
           <div className="flex gap-3 pt-2">

@@ -9,6 +9,8 @@ import { config } from '@/lib/wagmi';
 import { KaspaWalletProvider } from '@/lib/kaspa/context';
 import { BalanceVisibilityProvider } from '@/hooks/useBalanceVisibility';
 import { getErrorMessage } from '@/lib/utils';
+import { ToasterProvider } from '@/components/ui/Toaster';
+import { TooltipProvider } from '@/components/ui/Tooltip';
 
 // CRITICAL: Global error handler to intercept React Query's error serialization
 // We need to patch React Query's internal error handling to convert function-type errors
@@ -625,11 +627,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <BalanceVisibilityProvider>
-          <KaspaWalletProvider>
-            <RainbowKitProviderWithTheme>
-              {children}
-            </RainbowKitProviderWithTheme>
-          </KaspaWalletProvider>
+          <ToasterProvider>
+            <TooltipProvider>
+              <KaspaWalletProvider>
+                <RainbowKitProviderWithTheme>
+                  {children}
+                </RainbowKitProviderWithTheme>
+              </KaspaWalletProvider>
+            </TooltipProvider>
+          </ToasterProvider>
         </BalanceVisibilityProvider>
       </QueryClientProvider>
     </WagmiProvider>

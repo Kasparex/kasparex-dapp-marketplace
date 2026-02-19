@@ -37,7 +37,8 @@ export function useGRIDToken(gridTokenAddress: string | null | undefined): UseGR
     args: address ? [address] : undefined,
     query: {
       enabled: isConnected && !!address && !!gridTokenAddress,
-      refetchInterval: 30000, // Auto-refresh every 30 seconds
+      refetchInterval: 60000,
+      staleTime: 60_000,
     },
   }) as { data: bigint | undefined; isLoading: boolean; error: Error | null; refetch: () => void };
 

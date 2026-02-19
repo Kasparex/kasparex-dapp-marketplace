@@ -2,12 +2,15 @@
 
 import { useAccount } from 'wagmi';
 import Link from 'next/link';
+import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
 import { getMockWalletHoldings } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 
 export function XPPointsBox() {
   const { address, isConnected } = useAccount();
-  const holdings = isConnected && address ? getMockWalletHoldings(address) : null;
+  const { totalPoints, streakDays, isLoading } = useLoyaltyPoints();
+  const mockHoldings = isConnected && address ? getMockWalletHoldings(address) : null;
+  const points = totalPoints > 0 ? totalPoints : (mockHoldings?.xp ?? 0);
 
   return (
     <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
@@ -30,18 +33,23 @@ export function XPPointsBox() {
             View Perks
           </Link>
         </div>
-      ) : holdings ? (
+      ) : (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs text-zinc-600 dark:text-zinc-400">
               Current Balance
             </span>
             <span className="text-xl font-bold text-[#02abb8]">
-              {formatLargeNumber(holdings.xp)}
+              {isLoading ? '...' : formatLargeNumber(points)}
             </span>
           </div>
+          {streakDays > 0 && (
+            <div className="text-xs text-zinc-500 dark:text-zinc-400">
+              Streak: {streakDays} day{streakDays !== 1 ? 's' : ''}
+            </div>
+          )}
           <div className="text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-200 dark:border-zinc-700">
-            Earn 100 XP per 1 KAS spent
+            Earn points on every on-chain transaction
           </div>
           <Link
             href="/points"
@@ -50,7 +58,7 @@ export function XPPointsBox() {
             View All Perks
           </Link>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

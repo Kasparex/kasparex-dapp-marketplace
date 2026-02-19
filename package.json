@@ -30,6 +30,7 @@
     "hardhat:verify:mainnet": "hardhat run scripts/verify-contracts.js --network kasplexL2Mainnet",
     "hardhat:deploy:promo-router": "hardhat run scripts/deploy-promo-router.js --network igraCaravelTestnet",
     "hardhat:deploy:test-token": "hardhat run scripts/deploy-test-token.js --network igraCaravelTestnet",
+    "hardhat:deploy:tgrid": "hardhat run scripts/deploy-tgrid.js --network igraGalleonTestnet",
     "hardhat:register:promo-token": "hardhat run scripts/register-promo-token.js --network igraCaravelTestnet",
     "hardhat:setup:promo-token": "hardhat run scripts/setup-promo-token.js --network igraCaravelTestnet",
     "hardhat:update:mint-price": "hardhat run scripts/update-mint-price.js --network igraCaravelTestnet",
@@ -50,6 +51,8 @@
     "worker:deploy:production": "cd workers && npm run deploy:production"
   },
   "dependencies": {
+    "@radix-ui/react-toast": "^1.2.4",
+    "@radix-ui/react-tooltip": "^1.1.6",
     "@kluster/kaspa-address": "^0.1.5",
     "@kluster/kaspa-auth": "^0.0.2",
     "@kluster/kaspa-signature": "^0.1.5",

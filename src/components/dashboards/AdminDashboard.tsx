@@ -34,7 +34,7 @@ export function AdminDashboard({
     functionName: 'getPendingOperations',
     query: {
       enabled: isAdmin && !!adminDashboardAddress,
-      refetchInterval: 30000,
+      refetchInterval: 60000,
     },
   }) as { data: string[] | undefined };
 

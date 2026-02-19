@@ -64,7 +64,7 @@ export function useAffiliate(
     args: referralCode && dAppContract ? [referralCode as `0x${string}`, dAppContract as `0x${string}`] : undefined,
     query: {
       enabled: !!referralCode && !!dAppContract && !!affiliateManagerAddress,
-      refetchInterval: 30000, // Auto-refresh every 30 seconds
+      refetchInterval: 60000,
     },
   }) as { data: bigint | undefined; isLoading: boolean; error: Error | null; refetch: () => void };
 
@@ -76,7 +76,7 @@ export function useAffiliate(
     args: referralCode ? [referralCode as `0x${string}`] : undefined,
     query: {
       enabled: !!referralCode && !!affiliateManagerAddress,
-      refetchInterval: 30000,
+      refetchInterval: 60000,
     },
   }) as { data: unknown; isLoading: boolean };
 

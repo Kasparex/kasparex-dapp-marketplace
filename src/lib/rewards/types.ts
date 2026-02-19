@@ -2,14 +2,15 @@
  * Types for the Reward Calculator
  */
 
-export type KREXTier = 'Tier1' | 'Tier2' | 'Tier3' | 'Tier4';
+export type KREXTier = 'Tier0' | 'Tier1' | 'Tier2' | 'Tier3' | 'Tier4';
 
 export interface KREXTierConfig {
   tier: KREXTier;
   minKREX: number;
   multiplier: number;
   feeReduction: number; // Fee reduction from base fee (in percentage points, e.g., 0.1 = -0.1%)
-  costReduction: number; // Transaction cost reduction (as percentage, e.g., 0 = 0%, 2 = 2%, 5 = 5%)
+  /** @deprecated No cost reduction; kept for backward compatibility, always 0 */
+  costReduction: number;
   pointsMultiplier: number;
   label: string;
   description: string;
@@ -105,12 +106,22 @@ export interface RewardResult {
 }
 
 export const KREX_TIERS: Record<KREXTier, KREXTierConfig> = {
-  Tier1: {
-    tier: 'Tier1',
+  Tier0: {
+    tier: 'Tier0',
     minKREX: 0,
     multiplier: 1,
-    feeReduction: 0.1, // -0.1% from base fee
-    costReduction: 0, // 0% transaction cost reduction
+    feeReduction: 0,
+    costReduction: 0,
+    pointsMultiplier: 1,
+    label: 'Inactive',
+    description: 'No KREX held',
+  },
+  Tier1: {
+    tier: 'Tier1',
+    minKREX: 1,
+    multiplier: 1,
+    feeReduction: 0.1,
+    costReduction: 0,
     pointsMultiplier: 1,
     label: 'Tier 1',
     description: '< 10M KREX',
@@ -119,8 +130,8 @@ export const KREX_TIERS: Record<KREXTier, KREXTierConfig> = {
     tier: 'Tier2',
     minKREX: 10_000_000,
     multiplier: 2,
-    feeReduction: 0.2, // -0.2% from base fee
-    costReduction: 2, // 2% transaction cost reduction
+    feeReduction: 0.2,
+    costReduction: 0,
     pointsMultiplier: 2,
     label: 'Tier 2',
     description: '≥ 10M KREX',
@@ -129,8 +140,8 @@ export const KREX_TIERS: Record<KREXTier, KREXTierConfig> = {
     tier: 'Tier3',
     minKREX: 50_000_000,
     multiplier: 5,
-    feeReduction: 0.3, // -0.3% from base fee
-    costReduction: 3, // 3% transaction cost reduction
+    feeReduction: 0.3,
+    costReduction: 0,
     pointsMultiplier: 5,
     label: 'Tier 3',
     description: '≥ 50M KREX',
@@ -139,8 +150,8 @@ export const KREX_TIERS: Record<KREXTier, KREXTierConfig> = {
     tier: 'Tier4',
     minKREX: 100_000_000,
     multiplier: 10,
-    feeReduction: 0.5, // -0.5% from base fee
-    costReduction: 5, // 5% transaction cost reduction
+    feeReduction: 0.5,
+    costReduction: 0,
     pointsMultiplier: 10,
     label: 'Tier 4',
     description: '≥ 100M KREX',
@@ -153,22 +164,27 @@ export const BASE_REWARDS = {
   XP_PER_KAS: 100,
 } as const;
 
-// NFT multipliers and fee reductions
-export const NFT_MULTIPLIER = 1; // +1x multiplier if holding at least 1 NFT from KREXPRIME or PIXELKREX collections
-export const NFT_FEE_REDUCTION = 0.1; // 0.1% fee reduction
-export const NFT_COST_REDUCTION = 1; // 1% transaction cost reduction
-export const DIAMOND_NFT_MULTIPLIER = 3; // +3x multiplier for any Diamond NFT from any collection
-export const DIAMOND_NFT_FEE_REDUCTION = 0.2; // 0.2% fee reduction for Diamond NFTs
-export const DIAMOND_NFT_COST_REDUCTION = 3; // 3% transaction cost reduction
-export const RAREST_NFT_MULTIPLIER = 5; // +5x multiplier for rarest NFT (#515 PIXELKREX or #345 KREXPRIME)
-export const RAREST_NFT_FEE_REDUCTION = 100; // 100% fee reduction = zero-fee mode
-export const RAREST_NFT_COST_REDUCTION = 5; // 5% transaction cost reduction
+// NFT multipliers and fee reductions (no cost reductions)
+export const NFT_MULTIPLIER = 1;
+export const NFT_FEE_REDUCTION = 0.1;
+export const DIAMOND_NFT_MULTIPLIER = 3;
+export const DIAMOND_NFT_FEE_REDUCTION = 0.2;
+export const RAREST_NFT_MULTIPLIER = 5;
+export const RAREST_NFT_FEE_REDUCTION = 100; // zero-fee mode
 
-// Node provider defaults
-export const DEFAULT_NODE_MULTIPLIER = 5; // 5x multiplier for node providers
-export const DEFAULT_NODE_FEE_REDUCTION = 0.1; // 0.1% fee reduction for node providers
-export const LIGHT_NODE_COST_REDUCTION = 2; // 2% transaction cost reduction for Light Node
-export const MIRROR_NODE_COST_REDUCTION = 5; // 5% transaction cost reduction for Mirror Node
+// Node provider defaults (no cost reductions; constants kept for backward compat)
+export const DEFAULT_NODE_MULTIPLIER = 5;
+export const DEFAULT_NODE_FEE_REDUCTION = 0.1;
+/** @deprecated No cost reduction; always 0 */
+export const NFT_COST_REDUCTION = 0;
+/** @deprecated No cost reduction; always 0 */
+export const DIAMOND_NFT_COST_REDUCTION = 0;
+/** @deprecated No cost reduction; always 0 */
+export const RAREST_NFT_COST_REDUCTION = 0;
+/** @deprecated No cost reduction; always 0 */
+export const LIGHT_NODE_COST_REDUCTION = 0;
+/** @deprecated No cost reduction; always 0 */
+export const MIRROR_NODE_COST_REDUCTION = 0;
 
 // Default fee distribution percentages (GRT-only, no LRT treasury)
 export const DEFAULT_FEE_DISTRIBUTION = {

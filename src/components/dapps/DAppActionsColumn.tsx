@@ -82,7 +82,6 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
         hasRarestNFT: !!nftStatus?.hasRarestNFT,
         isNodeProvider: false, // TODO: Get from node status hook
         nodeFeeReduction: 0,
-        nodeCostReduction: 0,
       });
       
       return {

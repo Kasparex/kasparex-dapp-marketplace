@@ -199,7 +199,6 @@ export function useDAOVoting(): UseDAOVotingReturn {
       hasRarestNFT: !!nftStatus?.hasRarestNFT,
       isNodeProvider: false, // TODO: Get from node status hook
       nodeFeeReduction: 0,
-      nodeCostReduction: 0,
     });
   }, [daoVotingDApp, krexBalance, tier, nftStatus]);
 
@@ -219,7 +218,6 @@ export function useDAOVoting(): UseDAOVotingReturn {
       hasRarestNFT: !!nftStatus?.hasRarestNFT,
       isNodeProvider: false, // TODO: Get from node status hook
       nodeFeeReduction: 0,
-      nodeCostReduction: 0,
     });
   }, [daoVotingDApp, krexBalance, tier, nftStatus]);
 

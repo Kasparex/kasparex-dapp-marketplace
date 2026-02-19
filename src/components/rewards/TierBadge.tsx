@@ -10,6 +10,12 @@ interface TierBadgeProps {
 export function TierBadge({ tier, isUnlocked }: TierBadgeProps) {
   const tierConfig = KREX_TIERS[tier];
   const tierColors: Record<string, { bg: string; text: string; darkBg: string; darkText: string }> = {
+    Tier0: {
+      bg: 'bg-zinc-100 dark:bg-zinc-800',
+      text: 'text-zinc-600 dark:text-zinc-400',
+      darkBg: 'dark:bg-zinc-800',
+      darkText: 'dark:text-zinc-400',
+    },
     Tier1: {
       bg: 'bg-blue-100 dark:bg-blue-900/30',
       text: 'text-blue-700 dark:text-blue-300',
@@ -35,7 +41,7 @@ export function TierBadge({ tier, isUnlocked }: TierBadgeProps) {
       darkText: 'dark:text-yellow-300',
     },
   };
-  const colors = tierColors[tier] || tierColors.Tier1;
+  const colors = tierColors[tier] ?? tierColors.Tier0;
 
   return (
     <div className={`inline-flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${isUnlocked

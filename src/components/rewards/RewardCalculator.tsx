@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { CalculatorInputs, KREXTier, NFTStatus, CustomBaseRewards, NodeProviderStatus, SupplyMetrics, FeeSettings } from '@/lib/rewards/types';
-import { BASE_REWARDS, DEFAULT_NODE_MULTIPLIER, DEFAULT_NODE_FEE_REDUCTION, DEFAULT_FEE_DISTRIBUTION, DEFAULT_BASE_FEE_PERCENT } from '@/lib/rewards/types';
+import { KREX_TIERS, BASE_REWARDS, DEFAULT_NODE_MULTIPLIER, DEFAULT_NODE_FEE_REDUCTION, DEFAULT_FEE_DISTRIBUTION, DEFAULT_BASE_FEE_PERCENT } from '@/lib/rewards/types';
 import { calculateRewards, validateInputs } from '@/lib/rewards/calculator';
 import { RewardBreakdown } from './RewardBreakdown';
 import { PointsDisplay } from './PointsDisplay';
@@ -224,7 +224,7 @@ export function RewardCalculator() {
                   KREX Tier
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                  {(['Tier1', 'Tier2', 'Tier3', 'Tier4'] as KREXTier[]).map((tier) => (
+                  {(['Tier0', 'Tier1', 'Tier2', 'Tier3', 'Tier4'] as KREXTier[]).map((tier) => (
                     <button
                       key={tier}
                       type="button"
@@ -235,16 +235,10 @@ export function RewardCalculator() {
                         }`}
                     >
                       <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                        {tier === 'Tier1' ? 'Tier 1' : tier === 'Tier2' ? 'Tier 2' : tier === 'Tier3' ? 'Tier 3' : 'Tier 4'}
+                        {KREX_TIERS[tier].label}
                       </div>
                       <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                        {tier === 'Tier1'
-                          ? '< 10M KREX'
-                          : tier === 'Tier2'
-                            ? '≥ 10M KREX'
-                            : tier === 'Tier3'
-                              ? '≥ 50M KREX'
-                              : '≥ 100M KREX'}
+                        {KREX_TIERS[tier].description}
                       </div>
                     </button>
                   ))}

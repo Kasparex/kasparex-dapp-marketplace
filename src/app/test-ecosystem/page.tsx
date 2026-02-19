@@ -16,7 +16,6 @@ import { getContractAddress } from '@/lib/contracts/addresses';
 // Dynamically import components that might use indexedDB to avoid SSR issues
 const TokenDisplay = nextDynamic(() => import('@/components/dapps/TokenDisplay').then(mod => ({ default: mod.TokenDisplay })), { ssr: false });
 const RewardsDisplay = nextDynamic(() => import('@/components/dapps/RewardsDisplay').then(mod => ({ default: mod.RewardsDisplay })), { ssr: false });
-const ProofOfUtility = nextDynamic(() => import('@/components/dapps/ProofOfUtility').then(mod => ({ default: mod.ProofOfUtility })), { ssr: false });
 const AffiliateWidget = nextDynamic(() => import('@/components/dapps/AffiliateWidget').then(mod => ({ default: mod.AffiliateWidget })), { ssr: false });
 
 function TestEcosystemContent() {
@@ -25,7 +24,6 @@ function TestEcosystemContent() {
 
   // Get contract addresses
   const gridTokenAddress = getContractAddress(chainId, 'GRIDToken');
-  const proofOfUtilityAddress = getContractAddress(chainId, 'ProofOfUtility');
   const rewardManagerAddress = getContractAddress(chainId, 'RewardManager');
   const feeHandlerAddress = getContractAddress(chainId, 'FeeHandler');
   const affiliateManagerAddress = getContractAddress(chainId, 'AffiliateManager');
@@ -82,12 +80,6 @@ function TestEcosystemContent() {
               </span>
             </div>
             <div>
-              <span className="text-zinc-600 dark:text-zinc-400">ProofOfUtility: </span>
-              <span className="text-zinc-900 dark:text-zinc-100">
-                {proofOfUtilityAddress || 'Not found'}
-              </span>
-            </div>
-            <div>
               <span className="text-zinc-600 dark:text-zinc-400">RewardManager: </span>
               <span className="text-zinc-900 dark:text-zinc-100">
                 {rewardManagerAddress || 'Not found'}
@@ -137,15 +129,6 @@ function TestEcosystemContent() {
           <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6 mb-6">
             <RewardsDisplay
               gridTokenAddress={gridTokenAddress}
-            />
-          </div>
-        )}
-
-        {/* Proof of Utility */}
-        {proofOfUtilityAddress && (
-          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6 mb-6">
-            <ProofOfUtility
-              proofOfUtilityAddress={proofOfUtilityAddress}
             />
           </div>
         )}

@@ -1024,6 +1024,35 @@ export const REWARD_MANAGER_ABI = [
   },
   {
     type: "function",
+    name: "distributeRewardDirect",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" },
+      { internalType: "uint256", name: "amountWei", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setGridTreasury",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "_gridTreasury", type: "address" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "setAuthorizedRewardCaller",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "caller", type: "address" },
+      { internalType: "bool", name: "allowed", type: "bool" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
     name: "distributeRewardsBatch",
     stateMutability: "nonpayable",
     inputs: [
@@ -1215,6 +1244,16 @@ export const LOYALTY_POINTS_ABI = [
   {
     type: "function",
     name: "awardPoints",
+    stateMutability: "nonpayable",
+    inputs: [
+      { internalType: "address", name: "user", type: "address" },
+      { internalType: "string", name: "actionType", type: "string" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "awardPointsWithMultiplier",
     stateMutability: "nonpayable",
     inputs: [
       { internalType: "address", name: "user", type: "address" },

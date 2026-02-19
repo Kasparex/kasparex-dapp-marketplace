@@ -6,7 +6,6 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useGRIDToken } from '@/hooks/useGRIDToken';
 import { getContractAddress } from '@/lib/contracts/addresses';
-import { getAllDApps } from '@/lib/dapps';
 import { getMockWalletHoldings } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { type UserRewardStatus } from '@/lib/rewards/dashboard-data';
@@ -15,7 +14,6 @@ import { TierRewardsTable } from './TierRewardsTable';
 import { NFTRewardsTable } from './NFTRewardsTable';
 import { NodeRewardsTable } from './NodeRewardsTable';
 import { PremiumRewardsTable } from './PremiumRewardsTable';
-import { DAppTokenBalanceRow } from './DAppTokenBalanceRow';
 import { TierBadge } from './TierBadge';
 import { KREXBuyWizard } from './KREXBuyWizard';
 import { NFTBuyWizard } from './NFTBuyWizard';
@@ -42,13 +40,15 @@ export function RewardsDashboardContent({
   const [showKREXBuyWizard, setShowKREXBuyWizard] = useState(false);
   const [showNFTBuyWizard, setShowNFTBuyWizard] = useState(false);
 
-  // Get GRID token address and balance
-  const gridTokenAddress = getContractAddress(chainId, 'GRIDToken') || null;
+  // GRID/tGRID only: on 38836 use tGRID if set, else GRIDToken
+  const gridTokenAddress = useMemo(() => {
+    if (chainId === 38836 || chainId === 38837) {
+      const tgrid = getContractAddress(chainId, 'tGRID');
+      if (tgrid) return tgrid;
+    }
+    return getContractAddress(chainId, 'GRIDToken') || null;
+  }, [chainId]);
   const { formattedBalance: gridFormattedBalance, isLoading: isGRIDLoading } = useGRIDToken(gridTokenAddress);
-
-  // Get all dApps with contract addresses
-  const dApps = getAllDApps();
-  const dAppsWithTokens = dApps.filter((dapp) => dapp.contractAddress);
 
 
   const isLoading = isKREXLoading || isNFTLoading || isGRIDLoading;
@@ -286,44 +286,7 @@ export function RewardsDashboardContent({
           </div>
         </div>
 
-        {/* dApp Tokens Section */}
-        {dAppsWithTokens.length > 0 && (
-          <div className="mt-6">
-            <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-              dApp Tokens
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-zinc-200 dark:border-zinc-700">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                      dApp
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                      Token
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                      Balance
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                      Contract
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dAppsWithTokens.map((dapp) => (
-                    <DAppTokenBalanceRow
-                      key={dapp.id}
-                      dappId={dapp.id}
-                      dappName={dapp.name}
-                      contractAddress={dapp.contractAddress || ''}
-                    />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+        {/* LRT/dApp tokens section removed: rewards are GRID/tGRID only */}
       </div>
 
       {/* Rewards Tables */}

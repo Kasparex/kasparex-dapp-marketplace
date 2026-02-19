@@ -23,7 +23,7 @@ export function DAppTokenBalanceRow({
     args: address ? [address] : undefined,
     query: {
       enabled: isConnected && !!address && !!contractAddress,
-      refetchInterval: 30000,
+      refetchInterval: 60000,
     },
   }) as { data: bigint | undefined; isLoading: boolean };
 

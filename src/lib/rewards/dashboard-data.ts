@@ -54,16 +54,18 @@ export function getAllKREXTierRewards(): RewardItem[] {
     id: `krex-${tier.tier}`,
     type: 'krex-tier' as const,
     name: tier.label,
-    description: `Hold ${tier.minKREX === 0 ? 'less than 10M' : `at least ${formatLargeNumber(tier.minKREX)}`} KREX tokens`,
-    requirement: tier.minKREX === 0 ? '< 10M KREX' : `≥ ${formatLargeNumber(tier.minKREX)} KREX`,
+    description: tier.tier === 'Tier0' ? 'No KREX held' : `Hold at least ${formatLargeNumber(tier.minKREX)} KREX tokens`,
+    requirement: tier.tier === 'Tier0' ? 'No KREX' : `≥ ${formatLargeNumber(tier.minKREX)} KREX`,
     multiplier: tier.multiplier,
     feeReduction: tier.feeReduction,
     points: undefined,
-    benefits: [
-      `${tier.multiplier}x reward multiplier`,
-      `-${tier.feeReduction}% fee reduction`,
-      `${tier.pointsMultiplier}x points multiplier`,
-    ],
+    benefits: tier.tier === 'Tier0'
+      ? ['No perks']
+      : [
+          `${tier.multiplier}x reward multiplier`,
+          `-${tier.feeReduction}% fee reduction`,
+          `${tier.pointsMultiplier}x points multiplier`,
+        ],
     isUnlocked: false, // Will be set by getUserRewardStatus
     userStatus: undefined,
   }));

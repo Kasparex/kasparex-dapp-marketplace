@@ -6,7 +6,7 @@
 
 import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { getDAppPaymentConfig, getActionCost } from './config';
-import { KREX_TIERS, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION, type KREXTier } from '@/lib/rewards/types';
+import { KREX_TIERS, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION, type KREXTier } from '@/lib/rewards/types';
 
 export interface CostBreakdown {
   baseCost: number;
@@ -36,7 +36,6 @@ export interface CostCalculatorInputs {
   hasRarestNFT: boolean;
   isNodeProvider?: boolean;
   nodeFeeReduction?: number;
-  nodeCostReduction?: number;
 }
 
 /**
@@ -53,7 +52,6 @@ export function calculateCost(inputs: CostCalculatorInputs): CostBreakdown {
     hasRarestNFT,
     isNodeProvider = false,
     nodeFeeReduction = 0,
-    nodeCostReduction = 0,
   } = inputs;
 
   // Determine network type
@@ -69,7 +67,7 @@ export function calculateCost(inputs: CostCalculatorInputs): CostBreakdown {
   const baseFee = 1.0; // Base fee is 1%
   let feePercent = baseFee;
   
-  // Apply tier-based fee reduction
+  // Apply tier-based fee reduction (Tier0 has 0 reduction)
   if (krexBalance > 0) {
     feePercent = Math.max(0, feePercent - tierConfig.feeReduction);
   }
@@ -88,32 +86,10 @@ export function calculateCost(inputs: CostCalculatorInputs): CostBreakdown {
     feePercent = Math.max(0, feePercent - nodeFeeReduction);
   }
   
-  // Calculate cost reduction percentage
-  let costReductionPercent = 0;
-  if (krexBalance > 0) {
-    costReductionPercent = tierConfig.costReduction;
-  }
-  
-  // Apply NFT cost reductions
-  if (hasRarestNFT) {
-    costReductionPercent += RAREST_NFT_COST_REDUCTION;
-  } else if (hasDiamondNFT) {
-    costReductionPercent += DIAMOND_NFT_COST_REDUCTION;
-  } else if (hasAnyNFT) {
-    costReductionPercent += NFT_COST_REDUCTION;
-  }
-  
-  // Apply node provider cost reduction
-  if (isNodeProvider) {
-    costReductionPercent += nodeCostReduction;
-  }
-  
-  // Cap cost reduction at 50%
-  costReductionPercent = Math.min(costReductionPercent, 50);
-  
-  // Calculate amounts
-  const costReductionAmount = (baseCost * costReductionPercent) / 100;
-  const subtotal = baseCost - costReductionAmount;
+  // No cost reduction: subtotal = base cost, fee applied to base
+  const costReductionPercent = 0;
+  const costReductionAmount = 0;
+  const subtotal = baseCost;
   const feeAmount = (subtotal * feePercent) / 100;
   const finalCost = subtotal;
   const finalCostWithFee = subtotal + feeAmount;
