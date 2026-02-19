@@ -29,7 +29,7 @@ export interface UseLoyaltyPointsResult {
 export function useLoyaltyPoints(loyaltyPointsAddress?: string | null): UseLoyaltyPointsResult {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
-  const contractAddress = loyaltyPointsAddress ?? getContractAddress(chainId, 'LoyaltyPoints') || null;
+  const contractAddress = loyaltyPointsAddress ?? (getContractAddress(chainId, 'LoyaltyPoints') || null);
 
   const { data: loyaltyData, isLoading, error, refetch } = useReadContract({
     address: contractAddress as `0x${string}` | undefined,
