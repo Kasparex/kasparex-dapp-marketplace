@@ -99,8 +99,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
     action();
   };
 
-  // Get network type for badge
-  const networkType = getDAppNetworkType(mergedDApp);
+  // Get network type for badge (networkType already declared above)
   const networkBadgeColor =
     networkType === 'L1'
       ? 'bg-[#02abb8]/20 dark:bg-[#02abb8]/30 text-[#02abb8] border-[#02abb8]/30 dark:border-[#02abb8]/50'
