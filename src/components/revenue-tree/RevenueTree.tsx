@@ -5,6 +5,7 @@ import { RevenueTreeLevel } from './RevenueTreeLevel';
 import { ReferralLinkBox } from './ReferralLinkBox';
 import { hasUserActivated } from '@/lib/revenue-tree/utils';
 import { useChainId } from 'wagmi';
+import { getNativeCurrencySymbol } from '@/lib/wagmi';
 
 interface RevenueTreeProps {
   data: RevenueTreeData;
@@ -22,14 +23,7 @@ export function RevenueTree({ data, userWalletAddress, isL2Only = true, activati
       ? true
       : (userWalletAddress ? hasUserActivated(userWalletAddress, data.contentType, data.contentSlug) : false);
   
-  // Get currency symbol based on chain
-  const getCurrencySymbol = () => {
-    if (chainId === 38837) return 'iKAS'; // IGRA Galleon Test Mainnet
-    if (chainId === 167012) return 'tKAS'; // Kasplex L2 Testnet
-    return 'KAS';
-  };
-  
-  const currencySymbol = getCurrencySymbol();
+  const currencySymbol = getNativeCurrencySymbol(chainId);
   const requiredAmount = 100;
   const progress = Math.min((activationAmount / requiredAmount) * 100, 100);
   

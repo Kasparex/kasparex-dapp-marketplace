@@ -60,7 +60,7 @@ export function calculateCost(inputs: CostCalculatorInputs): CostBreakdown {
   // Determine network type
   const networkType = getDAppNetworkType(dapp);
   
-  // Get base cost: use override (e.g. user-entered amount) or payment config
+  // Base cost = total price user pays (fee-inclusive). Fee is taken from this amount, not added on top.
   const baseCost = overrideBaseCost != null && overrideBaseCost > 0
     ? overrideBaseCost
     : getActionCost(dapp, actionId, networkType);
@@ -91,48 +91,56 @@ export function calculateCost(inputs: CostCalculatorInputs): CostBreakdown {
     feePercent = Math.max(0, feePercent - nodeFeeReduction);
   }
   
-  // No cost reduction: subtotal = base cost, fee applied to base
+  // Fee-inclusive: total = baseCost, fee is a portion of it, recipient gets the rest
   const costReductionPercent = 0;
   const costReductionAmount = 0;
-  const subtotal = baseCost;
-  const feeAmount = (subtotal * feePercent) / 100;
-  const finalCost = subtotal;
-  const finalCostWithFee = subtotal + feeAmount;
+  const totalPaid = baseCost;
+  const feeAmount = (totalPaid * feePercent) / 100;
+  const amountToRecipient = totalPaid - feeAmount;
   
   return {
-    baseCost,
+    baseCost: totalPaid,
     feePercent,
     feeAmount,
     costReductionPercent,
     costReductionAmount,
-    finalCost,
-    finalCostWithFee,
+    finalCost: totalPaid,
+    finalCostWithFee: totalPaid, // Same as baseCost: total price (fee included)
     breakdown: {
-      baseCost,
+      baseCost: totalPaid,
       feeReduction: baseFee - feePercent,
       costReduction: costReductionAmount,
-      subtotal,
+      subtotal: amountToRecipient,
       fee: feeAmount,
-      total: finalCostWithFee,
+      total: totalPaid,
     },
   };
 }
 
 /**
- * Format cost breakdown for display
+ * Format a price for display (clean numbers: 10, 10.5, 1.00, 3.02 — no 1.0001).
  */
-export function formatCostBreakdown(breakdown: CostBreakdown): string {
+export function formatPrice(n: number): string {
+  const fixed = (Math.round(n * 100) / 100).toFixed(2);
+  return fixed.replace(/\.?0+$/, '') || '0';
+}
+
+/**
+ * Format cost breakdown for display (fee-inclusive: total is the price).
+ * @param symbol - Native currency symbol (e.g. KAS, iKAS). Default 'KAS'.
+ */
+export function formatCostBreakdown(breakdown: CostBreakdown, symbol: string = 'KAS'): string {
   const parts: string[] = [];
   
   if (breakdown.costReductionPercent > 0) {
-    parts.push(`${breakdown.baseCost.toFixed(2)} KAS`);
+    parts.push(`${formatPrice(breakdown.baseCost)} ${symbol}`);
     parts.push(`-${breakdown.costReductionPercent.toFixed(1)}%`);
   } else {
-    parts.push(`${breakdown.baseCost.toFixed(2)} KAS`);
+    parts.push(`${formatPrice(breakdown.baseCost)} ${symbol}`);
   }
   
   if (breakdown.feePercent > 0) {
-    parts.push(`+${breakdown.feePercent.toFixed(2)}% fee`);
+    parts.push(`(includes ${breakdown.feePercent.toFixed(2)}% fee)`);
   } else if (breakdown.feePercent === 0 && breakdown.costReductionPercent > 0) {
     parts.push('(zero fee)');
   }

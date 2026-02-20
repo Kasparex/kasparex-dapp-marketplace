@@ -14,7 +14,8 @@ import { useSetReferrer } from '@/hooks/useSetReferrer';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { getDAppPaymentConfig } from '@/lib/payments/config';
-import { calculateCost, type CostBreakdown } from '@/lib/payments/calculator';
+import { calculateCost, formatPrice, type CostBreakdown } from '@/lib/payments/calculator';
+import { getNativeCurrencySymbol } from '@/lib/wagmi';
 
 interface DAppActionsColumnProps {
   dapp: DApp;
@@ -34,6 +35,7 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
   const { address: userWalletAddress, isConnected } = useAccount();
   const chainId = useChainId();
   const slug = dapp.slug || generateDAppSlug(dapp.name);
+  const nativeSymbol = getNativeCurrencySymbol(chainId);
 
   const networkType = getDAppNetworkType(dapp);
   const isL2 = networkType === 'L2';
@@ -118,10 +120,6 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
                   <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{actionName}</span>
                 </div>
                 <div className="space-y-1.5 pl-2 text-xs">
-                  <div className="flex items-center justify-between text-zinc-600 dark:text-zinc-400">
-                    <span>Base cost</span>
-                    <span>{costBreakdown.baseCost.toFixed(2)} KAS</span>
-                  </div>
                   {costBreakdown.costReductionPercent > 0 && (
                     <div className="flex items-center justify-between text-green-600 dark:text-green-400">
                       <span>Cost reduction</span>
@@ -129,10 +127,10 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
                     </div>
                   )}
                   <div className="flex items-center justify-between text-zinc-600 dark:text-zinc-400">
-                    <span>Fee ({costBreakdown.feePercent.toFixed(2)}%)</span>
-                    <span>{costBreakdown.feeAmount.toFixed(4)} KAS</span>
+                    <span>Fee ({costBreakdown.feePercent.toFixed(2)}% included)</span>
+                    <span>{formatPrice(costBreakdown.feeAmount)} {nativeSymbol}</span>
                   </div>
-                  {costBreakdown.feePercent < 1.0 && (
+                  {costBreakdown.feePercent < 1.0 && costBreakdown.feePercent > 0 && (
                     <div className="flex items-center justify-between text-green-600 dark:text-green-400">
                       <span>Fee reduction</span>
                       <span>-{(1.0 - costBreakdown.feePercent).toFixed(2)}%</span>
@@ -143,7 +141,7 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
                 <div className="pt-2 mt-2 border-t border-zinc-100 dark:border-zinc-800">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Total</span>
-                    <span className="text-base font-black text-[#02abb8]">{costBreakdown.finalCostWithFee.toFixed(3)} KAS</span>
+                    <span className="text-base font-black text-[#02abb8]">{formatPrice(costBreakdown.finalCostWithFee)} {nativeSymbol}</span>
                   </div>
                 </div>
               </div>
@@ -173,7 +171,7 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
             
             {isConnected && (
               <p className="text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                Your balance: {formatFee(nativeFormatted)} {nativeBalance?.symbol || 'KAS'}
+                Your balance: {formatFee(nativeFormatted)} {nativeBalance?.symbol || nativeSymbol}
               </p>
             )}
           </div>
@@ -181,11 +179,11 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
           <div className="space-y-3">
             <div className="flex items-center justify-between text-sm">
               <span className="text-zinc-600 dark:text-zinc-400">Base cost</span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">1.0 KAS</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">1.0 {nativeSymbol}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-zinc-600 dark:text-zinc-400">Network fee</span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">~0.001 KAS</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">~0.001 {nativeSymbol}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-zinc-600 dark:text-zinc-400">KREX</span>
@@ -197,12 +195,12 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
             <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Total</span>
-                <span className="text-lg font-black text-[#02abb8]">~1.001 KAS</span>
+                <span className="text-lg font-black text-[#02abb8]">~1.001 {nativeSymbol}</span>
               </div>
             </div>
             {isConnected && (
               <p className="text-xs text-zinc-500 dark:text-zinc-400 pt-1">
-                Your balance: {formatFee(nativeFormatted)} {nativeBalance?.symbol || 'KAS'}
+                Your balance: {formatFee(nativeFormatted)} {nativeBalance?.symbol || nativeSymbol}
               </p>
             )}
           </div>

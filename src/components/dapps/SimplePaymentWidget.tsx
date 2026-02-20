@@ -7,13 +7,14 @@ import { SIMPLE_PAYMENT_ABI as SIMPLE_PAYMENT_ABI_IMPORT, SUBSCRIPTION_MANAGER_A
 import { calculateFee, calculatePaymentAmount, formatKAS, parseKAS } from '@/lib/revenue/feeCalculator';
 import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
 import { CONTRACT_ADDRESSES, getContractAddress } from '@/lib/contracts/addresses';
+import { getNativeCurrencySymbol } from '@/lib/wagmi';
 // Temporarily disable subscriptions to fix errors
 // import { SubscriptionStatus } from '@/components/subscriptions/SubscriptionStatus';
 import { TreasuryAutoDistribute } from '@/components/TreasuryAutoDistribute';
 import { getErrorMessage } from '@/lib/utils';
 import { useSafeError } from '@/hooks/useSafeError';
 import { useMemo, useRef } from 'react';
-import { calculateCost, type CostBreakdown } from '@/lib/payments/calculator';
+import { calculateCost, formatPrice, type CostBreakdown } from '@/lib/payments/calculator';
 import { useAutomatedRewards } from '@/hooks/useAutomatedRewards';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
@@ -324,6 +325,8 @@ export function SimplePaymentWidget() {
   const feeAmount = amountBigInt > 0n ? calculateFee(amountBigInt, feePercentageNum) : 0n;
   const paymentAmount = amountBigInt > 0n ? calculatePaymentAmount(amountBigInt, feePercentageNum) : 0n;
 
+  const nativeSymbol = getNativeCurrencySymbol(chainId);
+
   // Debug logging (after amountBigInt is declared)
   console.log('SimplePaymentWidget Debug:', {
     chainId,
@@ -432,7 +435,7 @@ export function SimplePaymentWidget() {
       if (errorMessage.includes('length') || errorMessage.includes('undefined')) {
         setError('Address validation error. Please check the recipient address format.');
       } else if (errorMessage.includes('insufficient funds') || errorMessage.includes('Insufficient funds')) {
-        setError('Insufficient balance. Make sure you have enough KAS for the payment and gas fees.');
+        setError(`Insufficient balance. Make sure you have enough ${nativeSymbol} for the payment and gas fees.`);
       } else if (errorMessage.includes('user rejected') || errorMessage.includes('User rejected')) {
         setError('Transaction rejected by user');
       } else if (errorMessage.includes('wallet') || errorMessage.includes('connection') || errorMessage.includes('provider')) {
@@ -571,7 +574,7 @@ export function SimplePaymentWidget() {
           {/* Amount Input */}
           <div>
             <label className="k-label flex items-center gap-2 whitespace-nowrap">
-              Amount (<TokenLogoImage tokenId="kas" size={14} /> KAS)
+              Amount (<TokenLogoImage tokenId="kas" size={14} /> {nativeSymbol})
             </label>
             <input
               type="text"
@@ -598,15 +601,6 @@ export function SimplePaymentWidget() {
               <div className="space-y-1 text-sm">
                 {paymentCostBreakdown && (paymentCostBreakdown.costReductionPercent > 0 || paymentCostBreakdown.feePercent < 1.0) ? (
                   <>
-                    <div className="flex justify-between items-center">
-                      <span className="text-zinc-600 dark:text-zinc-400">Base Amount:</span>
-                      <span className="font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1">
-                        <TokenLogoImage tokenId="kas" size={16} />
-                        <span className="line-through text-zinc-400">
-                          {paymentCostBreakdown.baseCost.toFixed(2)} KAS + 1.00% fee
-                        </span>
-                      </span>
-                    </div>
                     {paymentCostBreakdown.costReductionPercent > 0 && (
                       <div className="flex justify-between items-center">
                         <span className="text-zinc-600 dark:text-zinc-400">Cost Reduction:</span>
@@ -624,35 +618,37 @@ export function SimplePaymentWidget() {
                       </div>
                     )}
                     <div className="flex justify-between items-center pt-2 border-t border-zinc-200 dark:border-zinc-800">
-                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">Final Payment:</span>
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">You pay</span>
                       <span className="font-semibold text-green-600 dark:text-green-400 flex items-center gap-1">
                         <TokenLogoImage tokenId="kas" size={16} />
-                        {paymentCostBreakdown.finalCostWithFee.toFixed(2)} KAS
+                        {formatPrice(paymentCostBreakdown.finalCostWithFee)} {nativeSymbol}
                       </span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs text-zinc-500 dark:text-zinc-400">
+                      <span>Fee ({paymentCostBreakdown.feePercent.toFixed(2)}% included)</span>
+                      <span>-{formatPrice(paymentCostBreakdown.feeAmount)} {nativeSymbol}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs text-zinc-500 dark:text-zinc-400">
+                      <span>Recipient receives</span>
+                      <span>{formatPrice(paymentCostBreakdown.breakdown.subtotal)} {nativeSymbol}</span>
                     </div>
                   </>
                 ) : (
                   <>
-                    <div className="flex justify-between items-center">
-                      <span className="text-zinc-600 dark:text-zinc-400">Total Amount:</span>
-                      <span className="font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1">
-                        <TokenLogoImage tokenId="kas" size={16} />
-                        {formatKAS(amountBigInt)} KAS
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-zinc-600 dark:text-zinc-400">Fee ({feePercentageNum / 100}%):</span>
-                      <span className="font-medium text-red-600 dark:text-red-400 flex items-center gap-1">
-                        <TokenLogoImage tokenId="kas" size={16} />
-                        -{formatKAS(feeAmount)} KAS
-                      </span>
-                    </div>
                     <div className="flex justify-between items-center pt-2 border-t border-zinc-200 dark:border-zinc-800">
-                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">Recipient Receives:</span>
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">You pay</span>
                       <span className="font-semibold text-green-600 dark:text-green-400 flex items-center gap-1">
                         <TokenLogoImage tokenId="kas" size={16} />
-                        {formatKAS(paymentAmount)} KAS
+                        {formatPrice(parseFloat(formatKAS(amountBigInt)))} {nativeSymbol}
                       </span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs text-zinc-500 dark:text-zinc-400">
+                      <span>Fee ({feePercentageNum / 100}% included)</span>
+                      <span>-{formatKAS(feeAmount)} {nativeSymbol}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs text-zinc-500 dark:text-zinc-400">
+                      <span>Recipient receives</span>
+                      <span>{formatKAS(paymentAmount)} {nativeSymbol}</span>
                     </div>
                   </>
                 )}

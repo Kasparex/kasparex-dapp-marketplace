@@ -8,6 +8,8 @@ import { Avatar } from '@/components/Avatar';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
 import { useChainId, useAccount } from 'wagmi';
 import { getContractAddress } from '@/lib/contracts/addresses';
+import { getNativeCurrencySymbol } from '@/lib/wagmi';
+import { formatPrice } from '@/lib/payments/calculator';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { SocialIcons } from './SocialIcons';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -61,6 +63,7 @@ interface DAppInfoModalProps {
 
 export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalProps) {
   const chainId = useChainId();
+  const nativeSymbol = getNativeCurrencySymbol(chainId);
   const { address, isConnected } = useAccount();
   const [showDeveloperDropdown, setShowDeveloperDropdown] = useState(false);
   const isL1DApp = getDAppNetworkType(dapp) === 'L1';
@@ -269,9 +272,10 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
                     </thead>
                     <tbody>
                       {actions.map((action, index) => {
-                        const reducedCost = action.costKAS * (1 - costReductionPercent / 100);
-                        const feeAmount = (reducedCost * feePercent) / 100;
-                        const totalCost = reducedCost + feeAmount;
+                        // Fee-inclusive: total paid = action.costKAS (after any cost reduction)
+                        const totalPaid = action.costKAS * (1 - costReductionPercent / 100);
+                        const feeAmount = (totalPaid * feePercent) / 100;
+                        const toRecipient = totalPaid - feeAmount;
                         return (
                           <tr
                             key={index}
@@ -284,32 +288,32 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
                               {costReductionPercent > 0 ? (
                                 <>
                                   <span className="line-through text-zinc-400 dark:text-zinc-600 mr-1">
-                                    {action.costKAS.toFixed(2)}
+                                    {formatPrice(action.costKAS)}
                                   </span>
                                   <span className="text-green-600 dark:text-green-400">
-                                    {reducedCost.toFixed(2)} KAS
+                                    {formatPrice(toRecipient)} {nativeSymbol}
                                   </span>
                                 </>
                               ) : (
-                                `${action.costKAS.toFixed(2)} KAS`
+                                `${formatPrice(toRecipient)} ${nativeSymbol}`
                               )}
                             </td>
                             <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400 text-right">
                               {feePercent < baseFee ? (
                                 <>
                                   <span className="line-through text-zinc-400 dark:text-zinc-600 mr-1">
-                                    {((action.costKAS * baseFee) / 100).toFixed(2)}
+                                    {formatPrice((totalPaid * baseFee) / 100)}
                                   </span>
                                   <span className="text-green-600 dark:text-green-400">
-                                    {feeAmount.toFixed(2)} KAS
+                                    {formatPrice(feeAmount)} {nativeSymbol}
                                   </span>
                                 </>
                               ) : (
-                                `${feeAmount.toFixed(2)} KAS`
+                                `${formatPrice(feeAmount)} ${nativeSymbol}`
                               )}
                             </td>
                             <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-semibold text-right">
-                              {totalCost.toFixed(2)} KAS
+                              {formatPrice(totalPaid)} {nativeSymbol}
                             </td>
                           </tr>
                         );

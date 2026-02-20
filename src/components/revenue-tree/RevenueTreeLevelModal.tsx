@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useChainId } from 'wagmi';
 import { RevenueTreeLevel as RevenueTreeLevelType } from '@/lib/revenue-tree/types';
+import { getNativeCurrencySymbol } from '@/lib/wagmi';
 
 interface RevenueTreeLevelModalProps {
   level: RevenueTreeLevelType;
@@ -20,6 +22,8 @@ export function RevenueTreeLevelModal({
   contentType,
   contentSlug,
 }: RevenueTreeLevelModalProps) {
+  const chainId = useChainId();
+  const nativeSymbol = getNativeCurrencySymbol(chainId);
   const [copied, setCopied] = useState(false);
   const [referralLinksCopied, setReferralLinksCopied] = useState<{ [key: string]: boolean }>({});
 
@@ -174,7 +178,7 @@ export function RevenueTreeLevelModal({
                 all revenue generated from users in this Revenue Tree.
               </p>
               <p>
-                When a user spends at least 100 KAS (or iKAS/tKAS on testnets) in this dApp, revenue is automatically
+                When a user spends at least 100 {nativeSymbol} in this dApp, revenue is automatically
                 distributed across all 5 levels according to their share percentages.
               </p>
               <p>

@@ -9,14 +9,15 @@ import { KREX_TIERS, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FE
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { getDAppPaymentConfig } from '@/lib/payments/config';
-import { calculateCost, formatCostBreakdown } from '@/lib/payments/calculator';
+import { calculateCost, formatCostBreakdown, formatPrice } from '@/lib/payments/calculator';
+import { getNativeCurrencySymbol } from '@/lib/wagmi';
 
 interface DAppActionFlowProps {
   dapp: DApp;
 }
 
 // Get dApp-specific actions and rewards (GRT-only)
-function getDAppActions(dapp: DApp, chainId?: number): Array<{
+function getDAppActions(dapp: DApp, chainId?: number, nativeSymbol: string = 'KAS'): Array<{
   step: number;
   action: string;
   cost: string;
@@ -37,7 +38,7 @@ function getDAppActions(dapp: DApp, chainId?: number): Array<{
       {
         step: 1,
         action: 'Submit Proposal',
-        cost: '10 KAS',
+        cost: `10 ${nativeSymbol}`,
         costKAS: 10,
         baseRewards: {
           grid: rewards.grtPerKas * 10,
@@ -48,7 +49,7 @@ function getDAppActions(dapp: DApp, chainId?: number): Array<{
       {
         step: 2,
         action: 'Cast Vote',
-        cost: '1 KAS',
+        cost: `1 ${nativeSymbol}`,
         costKAS: 1,
         baseRewards: {
           grid: rewards.grtPerKas,
@@ -65,7 +66,7 @@ function getDAppActions(dapp: DApp, chainId?: number): Array<{
       {
         step: 1,
         action: 'Subscribe',
-        cost: '5 KAS',
+        cost: `5 ${nativeSymbol}`,
         costKAS: 5,
         baseRewards: {
           grid: rewards.grtPerKas * 5,
@@ -76,7 +77,7 @@ function getDAppActions(dapp: DApp, chainId?: number): Array<{
       {
         step: 2,
         action: 'Renew Subscription',
-        cost: '5 KAS',
+        cost: `5 ${nativeSymbol}`,
         costKAS: 5,
         baseRewards: {
           grid: rewards.grtPerKas * 5,
@@ -93,8 +94,8 @@ function getDAppActions(dapp: DApp, chainId?: number): Array<{
       {
         step: 1,
         action: 'Send Payment',
-        cost: '1 KAS + 1% fee',
-        costKAS: 1.01,
+        cost: `1 ${nativeSymbol}`,
+        costKAS: 1,
         baseRewards: {
           grid: rewards.grtPerKas,
           xp: rewards.xpPerKas,
@@ -109,7 +110,7 @@ function getDAppActions(dapp: DApp, chainId?: number): Array<{
     {
       step: 1,
       action: 'Use dApp',
-      cost: '1 KAS',
+      cost: `1 ${nativeSymbol}`,
       costKAS: 1,
       baseRewards: {
         grid: rewards.grtPerKas,
@@ -123,7 +124,8 @@ function getDAppActions(dapp: DApp, chainId?: number): Array<{
 export function DAppActionFlow({ dapp }: DAppActionFlowProps) {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
-  const actions = getDAppActions(dapp, chainId);
+  const nativeSymbol = getNativeCurrencySymbol(chainId);
+  const actions = getDAppActions(dapp, chainId, nativeSymbol);
   
   // Get KREX tier and multipliers from real balance
   const { balance: krexBalance, tier, isLoading: isKREXLoading } = useKREXBalance();
@@ -161,7 +163,7 @@ export function DAppActionFlow({ dapp }: DAppActionFlowProps) {
     return {
       ...action,
       calculatedCost: costBreakdown,
-      displayCost: formatCostBreakdown(costBreakdown),
+      displayCost: formatCostBreakdown(costBreakdown, nativeSymbol),
       finalCostKAS: costBreakdown.finalCostWithFee,
     };
   });
@@ -288,20 +290,15 @@ export function DAppActionFlow({ dapp }: DAppActionFlowProps) {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-xs text-zinc-600 dark:text-zinc-400">
                         Cost: <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {calculatedCost && (calculatedCost.costReductionPercent > 0 || calculatedCost.feePercent < 1.0) ? (
-                            <>
-                              <span className="line-through text-zinc-400">
-                                {calculatedCost.baseCost.toFixed(2)} KAS + 1.00% fee
-                              </span>
-                              <span className="ml-1 text-green-600 dark:text-green-400">
-                                {totalCostWithFee.toFixed(2)} KAS
-                                {calculatedCost.costReductionPercent > 0 && ` (-${calculatedCost.costReductionPercent.toFixed(0)}% cost`}
-                                {calculatedCost.feePercent < 1.0 && `, ${calculatedCost.feePercent.toFixed(2)}% fee`}
-                                {calculatedCost.costReductionPercent > 0 || calculatedCost.feePercent < 1.0 ? ')' : ''}
-                              </span>
-                            </>
-                          ) : (
-                            `${totalCostWithFee.toFixed(2)} KAS ${calculatedCost ? `(${calculatedCost.feePercent.toFixed(2)}% fee)` : ''}`
+                          {formatPrice(totalCostWithFee)} {nativeSymbol}
+                          {calculatedCost && calculatedCost.feePercent > 0 && (
+                            <span className="text-zinc-500 dark:text-zinc-400 font-normal"> (includes {calculatedCost.feePercent.toFixed(2)}% fee)</span>
+                          )}
+                          {calculatedCost && (calculatedCost.costReductionPercent > 0 || calculatedCost.feePercent < 1.0) && (
+                            <span className="ml-1 text-green-600 dark:text-green-400">
+                              {calculatedCost.costReductionPercent > 0 && ` -${calculatedCost.costReductionPercent.toFixed(0)}% cost`}
+                              {calculatedCost.feePercent < 1.0 && calculatedCost.feePercent > 0 && `, ${calculatedCost.feePercent.toFixed(2)}% fee`}
+                            </span>
                           )}
                         </span>
                       </span>
@@ -359,7 +356,7 @@ export function DAppActionFlow({ dapp }: DAppActionFlowProps) {
               <div className="flex items-center justify-between text-xs">
                 <span className="text-zinc-600 dark:text-zinc-400">Total Cost</span>
                 <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                  {totalPredicted.totalCost.toFixed(2)} KAS
+                  {formatPrice(totalPredicted.totalCost)} {nativeSymbol}
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs">

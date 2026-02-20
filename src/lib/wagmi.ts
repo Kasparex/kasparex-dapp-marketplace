@@ -246,6 +246,14 @@ export function getChainById(chainId: number): Chain | undefined {
 }
 
 /**
+ * Get the native currency symbol for a chain (e.g. KAS, iKAS on IGRA Galleon).
+ * Use this everywhere we display payment/balance amounts so the UI matches the chain.
+ */
+export function getNativeCurrencySymbol(chainId: number): string {
+  return getChainById(chainId)?.nativeCurrency?.symbol ?? 'KAS';
+}
+
+/**
  * Wagmi Configuration
  * 
  * Configured with Kaspa EVM-compatible chains
