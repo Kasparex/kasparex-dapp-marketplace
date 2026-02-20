@@ -129,8 +129,14 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
   const gridLabel = isTestnet ? 'tGRID' : 'GRID';
   const krexLabel = isTestnet ? 'tKREX' : 'KREX';
   const nativeLabel = chainId === 38836 || chainId === 38837 ? 'iKAS' : (nativeBalance?.symbol || nativeSymbol);
-  const { formattedBalance: gridFormattedBalance, isLoading: gridLoading } = useGRIDToken(gridTokenAddress);
+  const { formattedBalance: gridFormattedBalance, isLoading: gridLoading, totalSupply: gridTotalSupply, maxSupply: gridMaxSupply } = useGRIDToken(gridTokenAddress);
   const gridBalanceNum = parseFloat(gridFormattedBalance || '0');
+
+  const gridProgress = useMemo(() => {
+    if (!gridTotalSupply || !gridMaxSupply || gridMaxSupply === 0n) return null;
+    const pct = Number((gridTotalSupply * 10000n) / gridMaxSupply) / 100;
+    return Math.min(100, pct);
+  }, [gridTotalSupply, gridMaxSupply]);
 
   const balanceRows = useMemo(() => {
     const rows: { token: string; balance: string; loading?: boolean }[] = [];
@@ -172,6 +178,27 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
             </div>
           ))}
         </div>
+        {/* tGRID/GRID supply progress bar */}
+        {gridTokenAddress && gridProgress != null && (
+          <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+            <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 mb-1">
+              <span>{gridLabel} supply</span>
+              <span>{Number.isInteger(gridProgress) ? gridProgress : gridProgress.toFixed(1)}% minted</span>
+            </div>
+            <div className="h-2 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[#02abb8] rounded-full transition-all"
+                style={{ width: `${gridProgress}%` }}
+              />
+            </div>
+          </div>
+        )}
+        {/* 95% / 5% treasury split info */}
+        {gridTokenAddress && (
+          <p className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400">
+            {gridLabel} rewards: 95% to you, 5% to treasury.
+          </p>
+        )}
       </div>
 
       {/* Cost summary for variable-amount dApps (e.g. Simple Payment) */}

@@ -631,6 +631,9 @@ export function SimplePaymentWidget() {
                               (×{mult} tier applied)
                             </div>
                           )}
+                          <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                            {gridLabel}: 95% to you, 5% to treasury.
+                          </div>
                         </div>
                       );
                     })()}
@@ -678,6 +681,9 @@ export function SimplePaymentWidget() {
                               (×{mult} tier applied)
                             </div>
                           )}
+                          <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                            {gridLabel}: 95% to you, 5% to treasury.
+                          </div>
                         </div>
                       );
                     })()}
