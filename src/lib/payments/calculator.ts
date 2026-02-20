@@ -36,6 +36,8 @@ export interface CostCalculatorInputs {
   hasRarestNFT: boolean;
   isNodeProvider?: boolean;
   nodeFeeReduction?: number;
+  /** When set, use this as base cost instead of config (e.g. user-entered amount for Simple Payment). */
+  overrideBaseCost?: number;
 }
 
 /**
@@ -52,13 +54,16 @@ export function calculateCost(inputs: CostCalculatorInputs): CostBreakdown {
     hasRarestNFT,
     isNodeProvider = false,
     nodeFeeReduction = 0,
+    overrideBaseCost,
   } = inputs;
 
   // Determine network type
   const networkType = getDAppNetworkType(dapp);
   
-  // Get base cost from payment config
-  const baseCost = getActionCost(dapp, actionId, networkType);
+  // Get base cost: use override (e.g. user-entered amount) or payment config
+  const baseCost = overrideBaseCost != null && overrideBaseCost > 0
+    ? overrideBaseCost
+    : getActionCost(dapp, actionId, networkType);
   
   // Get KREX tier configuration
   const tierConfig = KREX_TIERS[krexTier];

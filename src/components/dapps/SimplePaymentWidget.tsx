@@ -220,12 +220,12 @@ export function SimplePaymentWidget() {
   // Automated rewards hook
   const { distributeRewardAfterTransaction } = useAutomatedRewards();
 
-  // Calculate payment cost with discounts
+  // Calculate payment cost with discounts (use entered amount as base so breakdown matches actual payment)
   const paymentCostBreakdown = useMemo((): CostBreakdown | null => {
     if (!simplePaymentDApp || !amount || parseFloat(amount) <= 0) {
       return null;
     }
-
+    const amountNum = parseFloat(amount);
     return calculateCost({
       dapp: simplePaymentDApp,
       actionId: 'send-payment',
@@ -238,6 +238,7 @@ export function SimplePaymentWidget() {
       hasRarestNFT: !!nftStatus?.hasRarestNFT,
       isNodeProvider: false, // TODO: Get from node status hook
       nodeFeeReduction: 0,
+      overrideBaseCost: amountNum,
     });
   }, [simplePaymentDApp, amount, krexBalance, tier, nftStatus]);
 
@@ -277,11 +278,12 @@ export function SimplePaymentWidget() {
     console.error('Error accessing CONTRACT_ADDRESSES', e);
   }
 
-  // Hardcode testnet address as fallback if env var is missing
-  // This is a temporary workaround for testing
+  // Hardcode contract addresses as fallback when env vars are missing
   if (!contractAddress && chainId === 167012) {
-    contractAddress = '0x3F19cC54231fB10b1935FA3f04Bec64b8AFeAd85'; // Testnet SimplePayment address
-    console.warn('Using hardcoded testnet contract address');
+    contractAddress = '0x3F19cC54231fB10b1935FA3f04Bec64b8AFeAd85'; // Kasplex L2 Testnet SimplePayment
+  }
+  if (!contractAddress && (chainId === 38836 || chainId === 38837)) {
+    contractAddress = '0x90A9aa9eB4C91b9c7A6eb72248bDe6a9FB6f79ef'; // IGRA Galleon Testnet deployed SimplePayment
   }
 
   if (!subscriptionManagerAddress && chainId === 167012) {
@@ -694,7 +696,7 @@ export function SimplePaymentWidget() {
               <div className="mt-2 p-3 bg-zinc-50 dark:bg-zinc-950 rounded-lg text-xs space-y-1 border border-zinc-200 dark:border-zinc-800">
                 <p className="font-semibold">Debug Info:</p>
                 <p>Contract Address: {contractAddress || '❌ EMPTY - This is why button is disabled!'}</p>
-                <p>Chain ID: {chainId} (Expected: 167012 for Testnet)</p>
+                <p>Chain ID: {chainId} (167012 = Kasplex Testnet, 38836 = IGRA Galleon Testnet)</p>
                 <p>Recipient: {recipientAddress ? '✅ SET' : '❌ EMPTY'}</p>
                 <p>Amount: {amount || '❌ EMPTY'}</p>
                 <p>Amount (BigInt): {amountBigInt.toString()}</p>
