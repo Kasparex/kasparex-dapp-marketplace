@@ -81,11 +81,36 @@ export function getExplorerUrl(contractAddress: string, chainId: number): string
   } else if (chainId === 19416) {
     // IGRA Caravel Testnet
     return `https://explorer.caravel.igralabs.com/address/${contractAddress}`;
+  } else if (chainId === 38836) {
+    return `https://explorer.galleon-testnet.igralabs.com/address/${contractAddress}`;
   } else if (chainId === 38837) {
     // IGRA Galleon Test Mainnet
     return `https://explorer.galleon.igralabs.com/address/${contractAddress}`;
   }
 
+  return '#';
+}
+
+/**
+ * Get block explorer URL for a transaction (EVM tx hash) by chain ID
+ */
+export function getExplorerTxUrlForChain(chainId: number, txHash: string): string {
+  if (!txHash || !txHash.startsWith('0x')) return '#';
+  if (chainId === 167012) {
+    return `https://explorer.testnet.kasplextest.xyz/tx/${txHash}`;
+  }
+  if (chainId === 202555) {
+    return `https://explorer.kasplex.org/tx/${txHash}`;
+  }
+  if (chainId === 19416) {
+    return `https://explorer.caravel.igralabs.com/tx/${txHash}`;
+  }
+  if (chainId === 38836) {
+    return `https://explorer.galleon-testnet.igralabs.com/tx/${txHash}`;
+  }
+  if (chainId === 38837) {
+    return `https://explorer.galleon.igralabs.com/tx/${txHash}`;
+  }
   return '#';
 }
 

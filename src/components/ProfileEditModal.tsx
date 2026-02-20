@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { useAccount, useChainId } from 'wagmi';
 import type { ProfileData } from '@/hooks/useProfile';
 import { useTreasuryPayment } from '@/hooks/useTreasuryPayment';
+import { useToast } from '@/hooks/useToast';
 import { getErrorMessage } from '@/lib/utils';
 import { useSafeError } from '@/hooks/useSafeError';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
@@ -28,6 +29,7 @@ export function ProfileEditModal({
 }: ProfileEditModalProps) {
   const { address: connectedAddress, isConnected } = useAccount();
   const chainId = useChainId();
+  const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
@@ -86,7 +88,9 @@ export function ProfileEditModal({
     isTreasuryAvailable,
   } = useTreasuryPayment({
     amount: '10',
+    showToast: false,
     onSuccess: (txHash) => {
+      toast({ variant: 'success', title: 'Profile updated', description: 'Your profile has been saved.' });
       // Save all data to localStorage
       try {
         const updates: Partial<ProfileData> = {
@@ -121,14 +125,13 @@ export function ProfileEditModal({
       }
     },
     onError: (err) => {
-      // Convert error to string immediately to prevent 'in' operator issues
-      // err is already an Error object from useTreasuryPayment, but we convert it safely
       try {
         const errorMessage = getErrorMessage(err, 'Payment failed');
         setError(errorMessage);
+        toast({ variant: 'error', title: 'Payment failed', description: errorMessage });
       } catch {
-        // Fallback if error conversion fails
         setError('Payment failed');
+        toast({ variant: 'error', title: 'Payment failed', description: 'Payment failed' });
       }
     },
   });

@@ -23,6 +23,8 @@ import { TransactionTracker } from '@/components/transactions/TransactionTracker
 import { RewardStatusBox } from '@/components/rewards/RewardStatusBox';
 import { FeeDisplay } from '@/components/ui/FeeDisplay';
 import { useToast } from '@/hooks/useToast';
+import { TransactionSuccessModal } from '@/components/modals/TransactionSuccessModal';
+import { TransactionErrorModal } from '@/components/modals/TransactionErrorModal';
 
 // Define ABI in proper JSON format as fallback to prevent bundling issues
 const SIMPLE_PAYMENT_ABI_FALLBACK = [
@@ -203,6 +205,10 @@ export function SimplePaymentWidget() {
   const [amount, setAmount] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [showDebugInfo, setShowDebugInfo] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successTxHash, setSuccessTxHash] = useState<string | null>(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorModalMessage, setErrorModalMessage] = useState('');
 
   // Get Simple Payment dApp object
   const simplePaymentDApp = placeholderDApps.find(d => d.slug === 'simple-payment' || d.name.toLowerCase().includes('simple payment'));
@@ -451,6 +457,7 @@ export function SimplePaymentWidget() {
   useEffect(() => {
     if (!displayError) {
       lastToastedErrorRef.current = null;
+      setShowErrorModal(false);
       return;
     }
     const msg = String(displayError);
@@ -461,6 +468,8 @@ export function SimplePaymentWidget() {
       title: 'Payment failed',
       description: msg,
     });
+    setErrorModalMessage(msg);
+    setShowErrorModal(true);
   }, [displayError, toast]);
 
   // Distribute rewards and reset form on success
@@ -471,6 +480,8 @@ export function SimplePaymentWidget() {
         title: 'Payment sent',
         description: 'tGRID and points will be applied shortly. Check your wallet and dashboard.',
       });
+      setSuccessTxHash(hash);
+      setShowSuccessModal(true);
       // Store transaction info before resetting
       const storedAmount = amount;
       const storedRecipient = recipientAddress;
@@ -753,6 +764,20 @@ export function SimplePaymentWidget() {
           )}
         </div>
       )}
+
+      <TransactionSuccessModal
+        isOpen={showSuccessModal && !!successTxHash}
+        onClose={() => { setShowSuccessModal(false); setSuccessTxHash(null); }}
+        txHash={successTxHash ?? ''}
+        chainId={chainId ?? 38836}
+        autoCloseMs={8000}
+      />
+      <TransactionErrorModal
+        isOpen={showErrorModal}
+        onClose={() => { setShowErrorModal(false); setErrorModalMessage(''); }}
+        message={errorModalMessage}
+        title="Payment failed"
+      />
     </div>
   );
 }

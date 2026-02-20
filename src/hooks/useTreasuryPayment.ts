@@ -6,6 +6,7 @@ import { parseEther, type Address } from 'viem';
 import { TREASURY_ABI } from '@/lib/contracts/abis';
 import { CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 import { getErrorMessage } from '@/lib/utils';
+import { useToast } from '@/hooks/useToast';
 
 /**
  * Hardcoded Treasury addresses as fallback
@@ -53,6 +54,10 @@ export interface UseTreasuryPaymentOptions {
    * Optional callback when payment fails
    */
   onError?: (error: Error) => void;
+  /**
+   * When true (default), show success/error toasts. Set to false if caller handles feedback (e.g. modals).
+   */
+  showToast?: boolean;
 }
 
 export interface UseTreasuryPaymentReturn {
@@ -118,9 +123,11 @@ export function useTreasuryPayment({
   amount,
   onSuccess,
   onError,
+  showToast = true,
 }: UseTreasuryPaymentOptions): UseTreasuryPaymentReturn {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
+  const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
   const successCalledRef = useRef(false);
   const errorCalledRef = useRef<string | null>(null);
@@ -181,23 +188,29 @@ export function useTreasuryPayment({
     }
   }, [txHash]);
 
-  // Handle success callback
+  // Handle success callback and optional toast
   useEffect(() => {
-    if (isSuccess && txHash && onSuccess && !successCalledRef.current) {
+    if (isSuccess && txHash && !successCalledRef.current) {
       successCalledRef.current = true;
-      onSuccess(txHash);
+      onSuccess?.(txHash);
+      if (showToast) {
+        toast({ variant: 'success', title: 'Payment sent', description: `Tx: ${txHash.slice(0, 10)}...` });
+      }
     }
-  }, [isSuccess, txHash, onSuccess]);
+  }, [isSuccess, txHash, onSuccess, showToast, toast]);
 
-  // Handle error callback
+  // Handle error callback and optional toast
   // writeError and txError are already strings from useMemo above
   const currentError = error || writeError || txError || null;
   useEffect(() => {
-    if (currentError && onError && errorCalledRef.current !== currentError) {
+    if (currentError && errorCalledRef.current !== currentError) {
       errorCalledRef.current = currentError;
-      onError(new Error(currentError));
+      onError?.(new Error(currentError));
+      if (showToast) {
+        toast({ variant: 'error', title: 'Payment failed', description: currentError });
+      }
     }
-  }, [currentError, onError]);
+  }, [currentError, onError, showToast, toast]);
 
   const pay = async () => {
     if (!isConnected || !address) {
