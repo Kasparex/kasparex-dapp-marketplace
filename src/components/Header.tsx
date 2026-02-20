@@ -7,12 +7,20 @@ import { usePathname } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import { useTheme } from './ThemeProvider';
 import { UserMenu } from './UserMenu';
-import { KasWareWalletButton } from './KasWareWalletButton';
-import { EVMWalletButton } from './EVMWalletButton';
 import { useAdmin } from '@/hooks/useAdmin';
 
 const TestnetBanner = dynamic(
   () => import('./TestnetBanner').then((mod) => ({ default: mod.TestnetBanner })),
+  { ssr: false }
+);
+
+const KasWareWalletButton = dynamic(
+  () => import('./KasWareWalletButton').then((mod) => ({ default: mod.KasWareWalletButton })),
+  { ssr: false }
+);
+
+const EVMWalletButton = dynamic(
+  () => import('./EVMWalletButton').then((mod) => ({ default: mod.EVMWalletButton })),
   { ssr: false }
 );
 import { useBalanceVisibility } from '@/hooks/useBalanceVisibility';
