@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1771613639-4339d3f",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: MAX_SUPPLY type and useEffect deps for Vercel build (by Kasparex)",
+      "date": "2026-02-20T19:53:35+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1771613040-0f11d28",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: add missing usePaymentAmount() and fix useEffect deps in SimplePaymentWidget (by Kasparex)",
