@@ -12,7 +12,7 @@ import { CONTRACT_ADDRESSES, getContractAddress } from '@/lib/contracts/addresse
 import { TreasuryAutoDistribute } from '@/components/TreasuryAutoDistribute';
 import { getErrorMessage } from '@/lib/utils';
 import { useSafeError } from '@/hooks/useSafeError';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { calculateCost, type CostBreakdown } from '@/lib/payments/calculator';
 import { useAutomatedRewards } from '@/hooks/useAutomatedRewards';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -22,6 +22,7 @@ import { storeTransaction } from '@/lib/transactions/tracker';
 import { TransactionTracker } from '@/components/transactions/TransactionTracker';
 import { RewardStatusBox } from '@/components/rewards/RewardStatusBox';
 import { FeeDisplay } from '@/components/ui/FeeDisplay';
+import { useToast } from '@/hooks/useToast';
 
 // Define ABI in proper JSON format as fallback to prevent bundling issues
 const SIMPLE_PAYMENT_ABI_FALLBACK = [
@@ -443,9 +444,33 @@ export function SimplePaymentWidget() {
   const safeTxError = useSafeError(txError);
   const displayError = error || safeWriteError || safeTxError;
 
+  const toast = useToast();
+  const lastToastedErrorRef = useRef<string | null>(null);
+
+  // Error toast when payment fails or is rejected
+  useEffect(() => {
+    if (!displayError) {
+      lastToastedErrorRef.current = null;
+      return;
+    }
+    const msg = String(displayError);
+    if (lastToastedErrorRef.current === msg) return;
+    lastToastedErrorRef.current = msg;
+    toast({
+      variant: 'error',
+      title: 'Payment failed',
+      description: msg,
+    });
+  }, [displayError, toast]);
+
   // Distribute rewards and reset form on success
   useEffect(() => {
     if (isConfirmed && !isConfirming && hash && simplePaymentDApp && contractAddress && address) {
+      toast({
+        variant: 'success',
+        title: 'Payment sent',
+        description: 'tGRID and points will be applied shortly. Check your wallet and dashboard.',
+      });
       // Store transaction info before resetting
       const storedAmount = amount;
       const storedRecipient = recipientAddress;
@@ -494,7 +519,7 @@ export function SimplePaymentWidget() {
         });
       }, 500);
     }
-  }, [isConfirmed, isConfirming, hash, simplePaymentDApp, contractAddress, distributeRewardAfterTransaction, paymentCostBreakdown, amount, recipientAddress, address]);
+  }, [isConfirmed, isConfirming, hash, simplePaymentDApp, contractAddress, distributeRewardAfterTransaction, paymentCostBreakdown, amount, recipientAddress, address, toast]);
 
   // Reset form on success (legacy - kept for compatibility)
   if (isConfirmed && !isLoading && !hash) {
