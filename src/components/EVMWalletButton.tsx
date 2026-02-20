@@ -15,7 +15,7 @@ import { formatUnits } from 'viem';
 import { Avatar } from './Avatar';
 import { useBalanceVisibility, formatBalanceForDisplay } from '@/hooks/useBalanceVisibility';
 import { getChainById } from '@/lib/wagmi';
-import { isTestMode } from '@/lib/network/testMode';
+import { isTestMode } from '@/lib/network/testModeCore';
 
 export function EVMWalletButton() {
   const { address, isConnected } = useAccount();

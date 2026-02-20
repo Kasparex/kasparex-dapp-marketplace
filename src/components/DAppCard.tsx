@@ -21,7 +21,7 @@ import { DAppFeesModal } from './dapps/DAppFeesModal';
 import { StatusIndicator } from './dapps/StatusIndicator';
 import { getStatusTypeFromString } from './dapps/StatusIndicatorDot';
 import { getChainById } from '@/lib/wagmi';
-import { isTestMode } from '@/lib/network/testMode';
+import { isTestMode } from '@/lib/network/testModeCore';
 
 interface DAppCardProps {
   dapp: DApp;

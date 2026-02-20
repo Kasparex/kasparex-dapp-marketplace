@@ -15,7 +15,7 @@ import { getContractAddress } from '@/lib/contracts/addresses';
 import { getDAppPaymentConfig, getActionCost } from '@/lib/payments/config';
 import { calculateCost, formatCostBreakdown, formatPrice } from '@/lib/payments/calculator';
 import { getNativeCurrencySymbol, getChainById } from '@/lib/wagmi';
-import { isTestMode } from '@/lib/network/testMode';
+import { isTestMode } from '@/lib/network/testModeCore';
 
 interface DAppActionFlowProps {
   dapp: DApp;

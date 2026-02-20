@@ -36,6 +36,12 @@ const nextConfig = {
   
   // Webpack configuration for Vercel
   webpack: (config, { isServer, webpack }) => {
+    // Optional deps used by node_modules (MetaMask SDK, WalletConnect/pino) - not needed in browser build
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      '@react-native-async-storage/async-storage': false,
+      'pino-pretty': false,
+    };
     // Exclude Hardhat and contract-related files from client bundle
     if (!isServer) {
       config.resolve.fallback = {

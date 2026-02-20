@@ -1,24 +1,15 @@
 'use client';
 
 /**
- * Single source of truth for "test mode" (testnet).
- * Use this everywhere instead of hardcoding chain IDs.
+ * Hook and re-exports for test mode. Use testModeCore for SSR-safe isTestMode(chain).
  */
-
 import { useChainId } from 'wagmi';
 import { getChainById } from '@/lib/wagmi';
+import { isTestMode, type ChainWithTestnet } from './testModeCore';
 
-export interface ChainWithTestnet {
-  testnet?: boolean;
-}
+export type { ChainWithTestnet };
 
-/**
- * Returns true when the current chain is a testnet.
- * Use for labels (tGRID vs GRID), banners, and test-only logic.
- */
-export function isTestMode(chain: ChainWithTestnet | null | undefined): boolean {
-  return chain?.testnet ?? false;
-}
+export { isTestMode };
 
 /**
  * Hook: true when the connected chain is a testnet.

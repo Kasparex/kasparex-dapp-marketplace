@@ -13,7 +13,7 @@ import { getDAppPaymentConfig } from '@/lib/payments/config';
 import { getDefaultRewardsBreakdown } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { getChainById } from '@/lib/wagmi';
-import { isTestMode } from '@/lib/network/testMode';
+import { isTestMode } from '@/lib/network/testModeCore';
 import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
 import { CategoryIcon } from './CategoryIcon';

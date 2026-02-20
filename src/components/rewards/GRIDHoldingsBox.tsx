@@ -7,7 +7,7 @@ import { useGRIDToken } from '@/hooks/useGRIDToken';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { getChainById } from '@/lib/wagmi';
-import { isTestMode } from '@/lib/network/testMode';
+import { isTestMode } from '@/lib/network/testModeCore';
 import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
 import { getMockGRTSupplyMetrics } from '@/lib/rewards/mockData';
 
