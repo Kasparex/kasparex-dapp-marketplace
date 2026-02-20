@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, Suspense, useRef, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAccount } from 'wagmi';
@@ -8,8 +9,12 @@ import { useTheme } from './ThemeProvider';
 import { UserMenu } from './UserMenu';
 import { KasWareWalletButton } from './KasWareWalletButton';
 import { EVMWalletButton } from './EVMWalletButton';
-import { TestnetBanner } from './TestnetBanner';
 import { useAdmin } from '@/hooks/useAdmin';
+
+const TestnetBanner = dynamic(
+  () => import('./TestnetBanner').then((mod) => ({ default: mod.TestnetBanner })),
+  { ssr: false }
+);
 import { useBalanceVisibility } from '@/hooks/useBalanceVisibility';
 import Link from 'next/link';
 import { hubProjects, type HubProject } from '@/lib/hubProjects';

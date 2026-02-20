@@ -27,7 +27,6 @@ export function DAppActionFlow({ dapp }: DAppActionFlowProps) {
   const nativeSymbol = getNativeCurrencySymbol(chainId);
   const networkType = getDAppNetworkType(dapp);
   const paymentConfig = getDAppPaymentConfig(dapp, networkType);
-  const configActions = paymentConfig?.actions ?? [{ actionId: 'use-dapp', actionName: 'Use dApp', baseCost: 1.0, nextStep: 'Complete action' }];
 
   const chain = useMemo(() => (chainId ? getChainById(chainId) : null), [chainId]);
   const isTestnet = isTestMode(chain);
@@ -55,7 +54,8 @@ export function DAppActionFlow({ dapp }: DAppActionFlowProps) {
 
   // Build steps from payment config only; calculate cost and rewards per action
   const actionsWithCalculatedCosts = useMemo(() => {
-    return configActions.map((configAction, index) => {
+    const actions = paymentConfig?.actions ?? [{ actionId: 'use-dapp', actionName: 'Use dApp', baseCost: 1.0, nextStep: 'Complete action' }];
+    return actions.map((configAction, index) => {
       const actionId = configAction.actionId;
       const costKAS = getActionCost(dapp, actionId, networkType);
       const variableAmount = !!configAction.variableAmount;
@@ -88,7 +88,7 @@ export function DAppActionFlow({ dapp }: DAppActionFlowProps) {
         baseRewards: { grid: baseRewardsGrid, xp: baseRewardsXp },
       };
     });
-  }, [configActions, dapp, networkType, krexBalance, tier, hasAnyNFT, hasDiamondNFT, hasRarestNFT, rewardsBreakdown.grtPerKas, rewardsBreakdown.xpPerKas, nativeSymbol]);
+  }, [paymentConfig, dapp, networkType, krexBalance, tier, hasAnyNFT, hasDiamondNFT, hasRarestNFT, rewardsBreakdown.grtPerKas, rewardsBreakdown.xpPerKas, nativeSymbol]);
 
   const firstActionCost = actionsWithCalculatedCosts[0]?.calculatedCost;
   const feePercent = firstActionCost?.feePercent ?? 1.0;
