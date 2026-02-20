@@ -21,7 +21,6 @@ import { DAppFeesModal } from './dapps/DAppFeesModal';
 import { StatusIndicator } from './dapps/StatusIndicator';
 import { getStatusTypeFromString } from './dapps/StatusIndicatorDot';
 import { getChainById } from '@/lib/wagmi';
-import { isTestMode } from '@/lib/network/testModeCore';
 
 interface DAppCardProps {
   dapp: DApp;
@@ -47,7 +46,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
   const slug = mergedDApp.slug || generateDAppSlug(mergedDApp.name);
   const networkType = getDAppNetworkType(mergedDApp);
   const chain = useMemo(() => (chainId ? getChainById(chainId) : null), [chainId]);
-  const isTestnet = isTestMode(chain);
+  const isTestnet = Boolean(chain?.testnet);
   const dAppRewards = useMemo(() => {
     const config = getDAppPaymentConfig(mergedDApp, networkType);
     const rewards = getDefaultRewardsBreakdown(chainId);

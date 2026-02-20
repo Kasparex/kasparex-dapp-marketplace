@@ -15,7 +15,6 @@ import { getContractAddress } from '@/lib/contracts/addresses';
 import { getDAppPaymentConfig, getActionCost } from '@/lib/payments/config';
 import { calculateCost, formatCostBreakdown, formatPrice } from '@/lib/payments/calculator';
 import { getNativeCurrencySymbol, getChainById } from '@/lib/wagmi';
-import { isTestMode } from '@/lib/network/testModeCore';
 
 interface DAppActionFlowProps {
   dapp: DApp;
@@ -29,7 +28,7 @@ export function DAppActionFlow({ dapp }: DAppActionFlowProps) {
   const paymentConfig = getDAppPaymentConfig(dapp, networkType);
 
   const chain = useMemo(() => (chainId ? getChainById(chainId) : null), [chainId]);
-  const isTestnet = isTestMode(chain);
+  const isTestnet = Boolean(chain?.testnet);
   const gridTokenAddress = useMemo(() => {
     if (isTestnet) {
       const tgrid = getContractAddress(chainId, 'tGRID');

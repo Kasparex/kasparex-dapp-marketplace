@@ -2,7 +2,6 @@
 
 import { useChainId } from 'wagmi';
 import { getChainById } from '@/lib/wagmi';
-import { isTestMode } from '@/lib/network/testModeCore';
 
 /**
  * Global banner shown when the connected chain is a testnet.
@@ -11,7 +10,7 @@ import { isTestMode } from '@/lib/network/testModeCore';
 export function TestnetBanner() {
   const chainId = useChainId();
   const chain = chainId ? getChainById(chainId) : null;
-  const isTestnet = isTestMode(chain);
+  const isTestnet = Boolean(chain?.testnet);
 
   if (!isTestnet) return null;
 

@@ -1,0 +1,12 @@
+---
+description: Always push to remote to trigger Vercel deployment when changes are ready
+alwaysApply: true
+---
+
+# Deploy workflow
+
+When changes are ready for deployment:
+
+- **Push to the remote** (e.g. `main`) to trigger Vercel. Do not ask for confirmation.
+- Commit and push in the same turn when the work is done and the build is expected to pass.
+- Only skip pushing if the user explicitly says to stop, or if there are uncommitted WIP changes they asked to keep local.

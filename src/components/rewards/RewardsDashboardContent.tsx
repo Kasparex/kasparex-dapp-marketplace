@@ -8,7 +8,6 @@ import { useGRIDToken } from '@/hooks/useGRIDToken';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { getMockWalletHoldings } from '@/lib/rewards/mockData';
 import { getChainById } from '@/lib/wagmi';
-import { isTestMode } from '@/lib/network/testModeCore';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { type UserRewardStatus } from '@/lib/rewards/dashboard-data';
 import { KREX_TIERS, NFT_MULTIPLIER, DIAMOND_NFT_MULTIPLIER, RAREST_NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION, LIGHT_NODE_COST_REDUCTION, MIRROR_NODE_COST_REDUCTION } from '@/lib/rewards/types';
@@ -43,7 +42,7 @@ export function RewardsDashboardContent({
   const [showNFTBuyWizard, setShowNFTBuyWizard] = useState(false);
 
   const chain = useMemo(() => (chainId ? getChainById(chainId) : null), [chainId]);
-  const isTestnet = isTestMode(chain);
+  const isTestnet = Boolean(chain?.testnet);
   const gridTokenAddress = useMemo(() => {
     if (isTestnet) {
       const tgrid = getContractAddress(chainId, 'tGRID');

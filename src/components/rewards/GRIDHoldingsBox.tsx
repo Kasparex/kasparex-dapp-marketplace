@@ -7,7 +7,6 @@ import { useGRIDToken } from '@/hooks/useGRIDToken';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { getChainById } from '@/lib/wagmi';
-import { isTestMode } from '@/lib/network/testModeCore';
 import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
 import { getMockGRTSupplyMetrics } from '@/lib/rewards/mockData';
 
@@ -16,7 +15,7 @@ export function GRIDHoldingsBox() {
   const chainId = useChainId();
 
   const chain = useMemo(() => (chainId ? getChainById(chainId) : null), [chainId]);
-  const isTestnet = isTestMode(chain);
+  const isTestnet = Boolean(chain?.testnet);
   const gridTokenAddress = useMemo(() => {
     if (isTestnet) {
       const tgrid = getContractAddress(chainId, 'tGRID');
