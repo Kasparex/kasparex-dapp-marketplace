@@ -20,6 +20,8 @@ import { getContractAddress } from '@/lib/contracts/addresses';
 import { DAppFeesModal } from './dapps/DAppFeesModal';
 import { StatusIndicator } from './dapps/StatusIndicator';
 import { getStatusTypeFromString } from './dapps/StatusIndicatorDot';
+import { getChainById } from '@/lib/wagmi';
+import { isTestMode } from '@/lib/network/testMode';
 
 interface DAppCardProps {
   dapp: DApp;
@@ -44,6 +46,8 @@ export function DAppCard({ dapp }: DAppCardProps) {
   const category = getCategoryById(mergedDApp.category);
   const slug = mergedDApp.slug || generateDAppSlug(mergedDApp.name);
   const networkType = getDAppNetworkType(mergedDApp);
+  const chain = useMemo(() => (chainId ? getChainById(chainId) : null), [chainId]);
+  const isTestnet = isTestMode(chain);
   const dAppRewards = useMemo(() => {
     const config = getDAppPaymentConfig(mergedDApp, networkType);
     const rewards = getDefaultRewardsBreakdown(chainId);
@@ -51,10 +55,9 @@ export function DAppCard({ dapp }: DAppCardProps) {
     const baseCost = firstAction?.baseCost ?? 1;
     const gridReward = Math.round(rewards.grtPerKas * baseCost);
     const xpReward = Math.round(rewards.xpPerKas * baseCost);
-    const isTestnet = chainId === 38836 || chainId === 38837 || chainId === 167012;
     const gridLabel = isTestnet ? 'tGRID' : 'GRID';
     return { gridReward, xpReward, gridLabel };
-  }, [mergedDApp, networkType, chainId]);
+  }, [mergedDApp, networkType, chainId, isTestnet]);
   const { toggleLike, getLikeCount, hasLiked, isWalletConnected: isWalletConnectedForLikes } = useLikes();
   const { toggleFavorite, isFavorite, isWalletConnected: isWalletConnectedForFavorites } = useFavorites();
   const likeCount = getLikeCount(mergedDApp.id);

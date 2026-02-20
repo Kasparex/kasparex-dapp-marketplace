@@ -80,8 +80,9 @@ export function useAutomatedRewards(): UseAutomatedRewardsReturn {
       baseActionValue,
       krexTier: tier,
       multiplier,
+      chainId,
     });
-  }, [krexBalance, tier]);
+  }, [krexBalance, tier, chainId]);
 
   // Distribute reward after successful transaction
   const distributeRewardAfterTransaction = useCallback(async (

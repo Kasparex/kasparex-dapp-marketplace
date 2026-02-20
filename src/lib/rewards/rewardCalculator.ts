@@ -26,6 +26,8 @@ export interface RewardCalculatorInputs {
   baseActionValue: number; // Base action value in KAS (before discounts)
   krexTier: KREXTier;
   multiplier: number; // KREX tier multiplier
+  /** Chain ID for chain-specific rates (e.g. 500 tGRID on Galleon testnet) */
+  chainId?: number;
 }
 
 /**
@@ -34,9 +36,9 @@ export interface RewardCalculatorInputs {
 export function calculateRewardAmount(
   inputs: RewardCalculatorInputs
 ): RewardCalculationResult {
-  const { baseActionValue, multiplier } = inputs;
+  const { baseActionValue, multiplier, chainId } = inputs;
 
-  const rewards = getDefaultRewardsBreakdown();
+  const rewards = getDefaultRewardsBreakdown(chainId);
   const baseGridReward = baseActionValue * rewards.grtPerKas;
   const baseXPReward = baseActionValue * rewards.xpPerKas;
   const finalGridReward = baseGridReward * multiplier;

@@ -1164,8 +1164,8 @@
       ]
     },
     "C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\contracts\\SimplePayment.sol": {
-      "lastModificationDate": 1771442837174,
-      "contentHash": "006b6a332d3256979691c755de602d3a",
+      "lastModificationDate": 1771544419447,
+      "contentHash": "bd155e494d768376c507b21a2f503179",
       "sourceName": "contracts/SimplePayment.sol",
       "solcConfig": {
         "version": "0.8.28",
@@ -1533,8 +1533,8 @@
       ]
     },
     "C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\contracts\\IFeeRouter.sol": {
-      "lastModificationDate": 1771442827507,
-      "contentHash": "7338b0b285a949499150add48ee90897",
+      "lastModificationDate": 1771544419265,
+      "contentHash": "32e1a502a5727948b34774f8a33dc565",
       "sourceName": "contracts/IFeeRouter.sol",
       "solcConfig": {
         "version": "0.8.28",

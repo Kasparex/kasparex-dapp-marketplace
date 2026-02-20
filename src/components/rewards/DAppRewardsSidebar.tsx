@@ -1,6 +1,6 @@
 'use client';
 
-import { useAccount } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
 import Link from 'next/link';
 import { 
   getDefaultRewardsBreakdown, 
@@ -16,7 +16,8 @@ interface DAppRewardsSidebarProps {
 
 export function DAppRewardsSidebar({ dappName }: DAppRewardsSidebarProps) {
   const { address, isConnected } = useAccount();
-  const rewards = getDefaultRewardsBreakdown();
+  const chainId = useChainId();
+  const rewards = getDefaultRewardsBreakdown(chainId);
   const grtMetrics = getMockGRTSupplyMetrics();
   
   const mockKrexTier = 'Tier1';

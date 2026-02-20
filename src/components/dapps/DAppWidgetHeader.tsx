@@ -5,7 +5,7 @@ import { useChainId } from 'wagmi';
 import Image from 'next/image';
 import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { useDAppFromContract, mergeDAppData } from '@/lib/dapps/contractData';
-import { CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
+import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { DAppInfoModal } from './DAppInfoModal';
 
 interface DAppWidgetHeaderProps {
@@ -31,20 +31,9 @@ export function DAppWidgetHeader({
 }: DAppWidgetHeaderProps) {
   const chainId = useChainId();
 
-  // Get contract address if not provided
   let resolvedContractAddress = contractAddress || dapp.contractAddress || '';
-  if (!resolvedContractAddress && dapp.slug === 'simple-payment') {
-    try {
-      if (CONTRACT_ADDRESSES) {
-        resolvedContractAddress = chainId === 202555
-          ? (CONTRACT_ADDRESSES.kasplexL2Mainnet?.SimplePayment || '')
-          : chainId === 167012
-          ? (CONTRACT_ADDRESSES.kasplexL2Testnet?.SimplePayment || '')
-          : '';
-      }
-    } catch (e) {
-      console.warn('Could not get SimplePayment contract address');
-    }
+  if (!resolvedContractAddress) {
+    resolvedContractAddress = getDAppContractAddress(dapp, chainId) || '';
   }
   
   // Fetch contract data

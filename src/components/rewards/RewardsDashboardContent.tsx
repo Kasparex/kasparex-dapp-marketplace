@@ -7,6 +7,8 @@ import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useGRIDToken } from '@/hooks/useGRIDToken';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { getMockWalletHoldings } from '@/lib/rewards/mockData';
+import { getChainById } from '@/lib/wagmi';
+import { isTestMode } from '@/lib/network/testMode';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { type UserRewardStatus } from '@/lib/rewards/dashboard-data';
 import { KREX_TIERS, NFT_MULTIPLIER, DIAMOND_NFT_MULTIPLIER, RAREST_NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION, LIGHT_NODE_COST_REDUCTION, MIRROR_NODE_COST_REDUCTION } from '@/lib/rewards/types';
@@ -40,14 +42,15 @@ export function RewardsDashboardContent({
   const [showKREXBuyWizard, setShowKREXBuyWizard] = useState(false);
   const [showNFTBuyWizard, setShowNFTBuyWizard] = useState(false);
 
-  // GRID/tGRID only: on 38836 use tGRID if set, else GRIDToken
+  const chain = useMemo(() => (chainId ? getChainById(chainId) : null), [chainId]);
+  const isTestnet = isTestMode(chain);
   const gridTokenAddress = useMemo(() => {
-    if (chainId === 38836 || chainId === 38837) {
+    if (isTestnet) {
       const tgrid = getContractAddress(chainId, 'tGRID');
       if (tgrid) return tgrid;
     }
     return getContractAddress(chainId, 'GRIDToken') || null;
-  }, [chainId]);
+  }, [chainId, isTestnet]);
   const { formattedBalance: gridFormattedBalance, isLoading: isGRIDLoading } = useGRIDToken(gridTokenAddress);
 
 

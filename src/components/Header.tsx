@@ -8,6 +8,7 @@ import { useTheme } from './ThemeProvider';
 import { UserMenu } from './UserMenu';
 import { KasWareWalletButton } from './KasWareWalletButton';
 import { EVMWalletButton } from './EVMWalletButton';
+import { TestnetBanner } from './TestnetBanner';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useBalanceVisibility } from '@/hooks/useBalanceVisibility';
 import Link from 'next/link';
@@ -280,6 +281,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-zinc-950/80">
+      <TestnetBanner />
       <div className="flex h-16 items-center justify-between w-full">
         {/* Left side: Logo and Title - no padding, flush to left */}
         <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 lg:pl-6">

@@ -12,6 +12,8 @@ import { getContractAddress } from '@/lib/contracts/addresses';
 import { getDAppPaymentConfig } from '@/lib/payments/config';
 import { getDefaultRewardsBreakdown } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
+import { getChainById } from '@/lib/wagmi';
+import { isTestMode } from '@/lib/network/testMode';
 import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
 import { CategoryIcon } from './CategoryIcon';
@@ -43,6 +45,8 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress }: 
   const isL1DApp = getDAppNetworkType(mergedDApp) === 'L1';
   const networkType = getDAppNetworkType(mergedDApp);
 
+  const chain = useMemo(() => (chainId ? getChainById(chainId) : null), [chainId]);
+  const isTestnet = isTestMode(chain);
   const dAppRewards = useMemo(() => {
     const config = getDAppPaymentConfig(mergedDApp, networkType);
     const rewards = getDefaultRewardsBreakdown(chainId);
@@ -50,10 +54,9 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress }: 
     const baseCost = firstAction?.baseCost ?? 1;
     const gridReward = Math.round(rewards.grtPerKas * baseCost);
     const xpReward = Math.round(rewards.xpPerKas * baseCost);
-    const isTestnet = chainId === 38836 || chainId === 38837 || chainId === 167012;
     const gridLabel = isTestnet ? 'tGRID' : 'GRID';
     return { gridReward, xpReward, gridLabel };
-  }, [mergedDApp, networkType, chainId]);
+  }, [mergedDApp, networkType, chainId, isTestnet]);
 
   let rawTicker: string | null = null;
   if (isL1DApp) {

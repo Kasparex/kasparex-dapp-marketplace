@@ -1,0 +1,7 @@
+{
+  "network": "igraGalleonTestnet",
+  "chainId": 38836,
+  "tGRID": "0x3F19cC54231fB10b1935FA3f04Bec64b8AFeAd85",
+  "rewardVault": "0x658420Fd88dbd610249a88384f9B1aD387F797c7",
+  "deployer": "0x658420Fd88dbd610249a88384f9B1aD387F797c7"
+}

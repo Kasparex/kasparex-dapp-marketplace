@@ -15,6 +15,24 @@
       "outputs": [],
       "stateMutability": "payable",
       "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "payer",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "transactionType",
+          "type": "string"
+        }
+      ],
+      "name": "forwardFeeAndRevenueWithRewards",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
     }
   ],
   "bytecode": "0x",

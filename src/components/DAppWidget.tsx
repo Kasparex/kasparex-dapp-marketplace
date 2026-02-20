@@ -15,7 +15,7 @@ import { SendKREXWidget } from './dapps/SendKREXWidget';
 import { GenesisDappWidget } from './dapps/GenesisDappWidget';
 import { DAppWidgetHeader } from './dapps/DAppWidgetHeader';
 import { DAppWidgetFooter } from './dapps/DAppWidgetFooter';
-import { getContractAddress } from '@/lib/contracts/addresses';
+import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 
 interface DAppWidgetProps {
   dapp: DApp;
@@ -58,24 +58,9 @@ export function DAppWidget({
     }
   };
 
-  // Get contract address (only for L2 dApps)
   let contractAddress = '';
   if (!isL1DApp) {
-    contractAddress = dapp.contractAddress || '';
-    if (!contractAddress && dapp.slug === 'simple-payment') {
-      try {
-        contractAddress = getContractAddress(chainId, 'SimplePayment') || '';
-      } catch (e) {
-        console.warn('Could not get SimplePayment contract address');
-      }
-    }
-    if (!contractAddress && dapp.slug === 'dao-voting') {
-      try {
-        contractAddress = getContractAddress(chainId, 'DAOVoting') || '';
-      } catch (e) {
-        console.warn('Could not get DAOVoting contract address');
-      }
-    }
+    contractAddress = dapp.contractAddress || getDAppContractAddress(dapp, chainId) || '';
   }
 
   // Render SimplePayment widget if it's the Simple Payment dApp

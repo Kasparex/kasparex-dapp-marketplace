@@ -15,6 +15,7 @@ import { formatUnits } from 'viem';
 import { Avatar } from './Avatar';
 import { useBalanceVisibility, formatBalanceForDisplay } from '@/hooks/useBalanceVisibility';
 import { getChainById } from '@/lib/wagmi';
+import { isTestMode } from '@/lib/network/testMode';
 
 export function EVMWalletButton() {
   const { address, isConnected } = useAccount();
@@ -29,7 +30,7 @@ export function EVMWalletButton() {
 
   // Get current network info
   const chain = chainId ? getChainById(chainId) : null;
-  const isTestnet = chain?.testnet ?? false;
+  const isTestnet = isTestMode(chain);
   const isMainnet = !isTestnet;
 
   // Determine dynamic network label and styling
@@ -140,6 +141,11 @@ export function EVMWalletButton() {
               <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
             </svg>
             {networkLabel}
+            {isTestnet && (
+              <span className="ml-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-200/80 dark:bg-amber-800/50 text-amber-900 dark:text-amber-100">
+                Testnet
+              </span>
+            )}
           </button>
           
           {/* Avatar */}

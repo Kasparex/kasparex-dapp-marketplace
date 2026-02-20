@@ -57,10 +57,10 @@ contract SimplePayment is Ownable, ReentrancyGuard {
         uint256 fee = (msg.value * feePercentage) / 10000;
         uint256 paymentAmount = msg.value - fee;
 
-        // Send fee: via FeeRouter (Revenue Tree + treasury) or FeeCollector only
+        // Send fee: via FeeRouter (Revenue Tree + treasury + GRID + points) or FeeCollector only
         if (fee > 0) {
             if (address(feeRouter) != address(0)) {
-                feeRouter.forwardFeeAndRevenue{value: fee}(msg.sender);
+                feeRouter.forwardFeeAndRevenueWithRewards{value: fee}(msg.sender, "dapp-payment");
             } else {
                 feeCollector.forwardFee{value: fee}();
             }

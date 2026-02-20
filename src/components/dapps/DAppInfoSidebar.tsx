@@ -12,7 +12,7 @@ import { Avatar } from '@/components/Avatar';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useDAppFromContract, mergeDAppData } from '@/lib/dapps/contractData';
-import { CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
+import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useLikes } from '@/hooks/useLikes';
@@ -111,23 +111,9 @@ export function DAppInfoSidebar({
   const isTestnet = chain?.testnet ?? false;
   const isMainnet = !isTestnet;
 
-  // Get contract address if not provided (only for L2 dApps)
   let resolvedContractAddress = '';
   if (!isL1DApp) {
-    resolvedContractAddress = contractAddress || dapp.contractAddress || '';
-    if (!resolvedContractAddress && dapp.slug === 'simple-payment') {
-      try {
-        if (CONTRACT_ADDRESSES) {
-          resolvedContractAddress = chainId === 202555
-            ? (CONTRACT_ADDRESSES.kasplexL2Mainnet?.SimplePayment || '')
-            : chainId === 167012
-              ? (CONTRACT_ADDRESSES.kasplexL2Testnet?.SimplePayment || '')
-              : '';
-        }
-      } catch (e) {
-        console.warn('Could not get SimplePayment contract address');
-      }
-    }
+    resolvedContractAddress = contractAddress || dapp.contractAddress || getDAppContractAddress(dapp, chainId) || '';
   }
 
   // Fetch contract data (only for L2 dApps)

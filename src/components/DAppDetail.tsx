@@ -10,6 +10,7 @@ import { useNetworkAwareWallet } from '@/hooks/useNetworkAwareWallet';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
 import { TokenDisplay } from './dapps/TokenDisplay';
 import { getContractAddress } from '@/lib/contracts/addresses';
+import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { NetworkInfoMessage } from './NetworkInfoMessage';
 import { getDAppNetworkType } from '@/lib/dapps';
 import { GRIDHoldingsBox } from './rewards/GRIDHoldingsBox';
@@ -30,16 +31,9 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
   const networkWallet = useNetworkAwareWallet(dapp);
   const chainId = useChainId();
   
-  // Get contract data to check for token
-  // Use prop if provided, otherwise resolve by dApp slug or registry
   let contractAddress = propContractAddress || dapp.contractAddress || '';
   if (!contractAddress && chainId) {
-    const slug = dapp.slug || '';
-    if (slug === 'simple-payment') {
-      contractAddress = getContractAddress(chainId, 'SimplePayment') || '';
-    } else if (slug === 'dao-voting') {
-      contractAddress = getContractAddress(chainId, 'DAOVoting') || '';
-    }
+    contractAddress = getDAppContractAddress(dapp, chainId) || '';
     if (!contractAddress) {
       contractAddress = getContractAddress(chainId, 'DAppRegistry') || '';
     }

@@ -12,6 +12,10 @@ export interface PaymentAction {
   baseCost: number; // in KAS
   costL1?: number; // Optional L1-specific override
   costL2?: number; // Optional L2-specific override
+  /** Optional label for Action Flow (e.g. "Payment processed") */
+  nextStep?: string;
+  /** When true, cost is user-entered (e.g. Simple Payment); show generic step, no fixed cost/reward */
+  variableAmount?: boolean;
 }
 
 export interface PaymentConfig {
@@ -36,6 +40,8 @@ const DEFAULT_PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
         baseCost: 1.0,
         costL1: 1.0,
         costL2: 1.0,
+        nextStep: 'Payment processed',
+        variableAmount: true,
       },
     ],
   },
@@ -73,12 +79,14 @@ const DEFAULT_PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
         actionName: 'Submit Proposal',
         baseCost: 10.0,
         costL2: 10.0,
+        nextStep: 'Wait for voting period',
       },
       {
         actionId: 'cast-vote',
         actionName: 'Cast Vote',
         baseCost: 1.0,
         costL2: 1.0,
+        nextStep: 'View results',
       },
     ],
   },
@@ -92,12 +100,14 @@ const DEFAULT_PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
         actionName: 'Subscribe',
         baseCost: 5.0,
         costL2: 5.0,
+        nextStep: 'Access content',
       },
       {
         actionId: 'renew-subscription',
         actionName: 'Renew Subscription',
         baseCost: 5.0,
         costL2: 5.0,
+        nextStep: 'Continue access',
       },
     ],
   },
@@ -160,6 +170,7 @@ export function getDAppPaymentConfig(
         baseCost: 1.0,
         costL1: 1.0,
         costL2: 1.0,
+        nextStep: 'Complete action',
       },
     ],
   };

@@ -8,7 +8,7 @@ import { DApp } from '@/lib/dapps';
 import { isDeployer } from '@/lib/dapps/deployer';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
 // Edit functionality removed - dApps are now read-only
-import { getContractAddress } from '@/lib/contracts/addresses';
+import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { DAppActionFlow } from './dapps/DAppActionFlow';
 import { NetworkAvailabilityBox } from './dapps/NetworkAvailabilityBox';
@@ -151,17 +151,9 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
   // Check if this is an L1 dApp
   const isL1DApp = getDAppNetworkType(dapp) === 'L1';
 
-  // Get contract address (only for L2 dApps)
   let contractAddress = '';
   if (!isL1DApp) {
-    contractAddress = dapp.contractAddress || '';
-    if (!contractAddress && dapp.slug === 'simple-payment') {
-      try {
-        contractAddress = getContractAddress(chainId, 'SimplePayment') || '';
-      } catch (e) {
-        console.warn('Could not get SimplePayment contract address');
-      }
-    }
+    contractAddress = dapp.contractAddress || getDAppContractAddress(dapp, chainId) || '';
   }
 
   // Fetch contract data to get deployer address (only for L2 dApps)

@@ -5,7 +5,8 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadCont
 import { parseEther, formatEther } from 'viem';
 import { SIMPLE_PAYMENT_ABI as SIMPLE_PAYMENT_ABI_IMPORT, SUBSCRIPTION_MANAGER_ABI } from '@/lib/contracts/abis';
 import { calculateFee, calculatePaymentAmount, formatKAS, parseKAS } from '@/lib/revenue/feeCalculator';
-import { CONTRACT_ADDRESSES, getContractAddress } from '@/lib/contracts/addresses';
+import { getContractAddress } from '@/lib/contracts/addresses';
+import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
 // Temporarily disable subscriptions to fix errors
 // import { SubscriptionStatus } from '@/components/subscriptions/SubscriptionStatus';
@@ -242,53 +243,8 @@ export function SimplePaymentWidget() {
     });
   }, [simplePaymentDApp, amount, krexBalance, tier, nftStatus]);
 
-  // Get contract addresses for current chain
-  // Fallback to direct access if getContractAddress is not available
-  let contractAddress = '';
-  let subscriptionManagerAddress = '';
-
-  try {
-    // Ensure CONTRACT_ADDRESSES exists
-    if (CONTRACT_ADDRESSES && typeof getContractAddress === 'function') {
-      contractAddress = getContractAddress(chainId, 'SimplePayment') || '';
-      subscriptionManagerAddress = getContractAddress(chainId, 'SubscriptionManager') || '';
-    }
-  } catch (e) {
-    console.warn('getContractAddress not available, using fallback', e);
-  }
-
-  // Fallback to direct CONTRACT_ADDRESSES access
-  try {
-    if (!contractAddress && CONTRACT_ADDRESSES) {
-      if (chainId === 202555 && CONTRACT_ADDRESSES.kasplexL2Mainnet) {
-        contractAddress = CONTRACT_ADDRESSES.kasplexL2Mainnet.SimplePayment || '';
-      } else if (chainId === 167012 && CONTRACT_ADDRESSES.kasplexL2Testnet) {
-        contractAddress = CONTRACT_ADDRESSES.kasplexL2Testnet.SimplePayment || '';
-      }
-    }
-
-    if (!subscriptionManagerAddress && CONTRACT_ADDRESSES) {
-      if (chainId === 202555 && CONTRACT_ADDRESSES.kasplexL2Mainnet) {
-        subscriptionManagerAddress = CONTRACT_ADDRESSES.kasplexL2Mainnet.SubscriptionManager || '';
-      } else if (chainId === 167012 && CONTRACT_ADDRESSES.kasplexL2Testnet) {
-        subscriptionManagerAddress = CONTRACT_ADDRESSES.kasplexL2Testnet.SubscriptionManager || '';
-      }
-    }
-  } catch (e) {
-    console.error('Error accessing CONTRACT_ADDRESSES', e);
-  }
-
-  // Hardcode contract addresses as fallback when env vars are missing
-  if (!contractAddress && chainId === 167012) {
-    contractAddress = '0x3F19cC54231fB10b1935FA3f04Bec64b8AFeAd85'; // Kasplex L2 Testnet SimplePayment
-  }
-  if (!contractAddress && (chainId === 38836 || chainId === 38837)) {
-    contractAddress = '0x90A9aa9eB4C91b9c7A6eb72248bDe6a9FB6f79ef'; // IGRA Galleon Testnet deployed SimplePayment
-  }
-
-  if (!subscriptionManagerAddress && chainId === 167012) {
-    subscriptionManagerAddress = '0x0F405c342e9596621430C5f888D673d40111a0ac'; // Testnet SubscriptionManager address
-  }
+  const contractAddress = simplePaymentDApp ? getDAppContractAddress(simplePaymentDApp, chainId) : '';
+  const subscriptionManagerAddress = getContractAddress(chainId, 'SubscriptionManager') || '';
 
   // TEMPORARILY DISABLED: Subscription check to fix errors
   // Check subscription access (only if we have addresses)

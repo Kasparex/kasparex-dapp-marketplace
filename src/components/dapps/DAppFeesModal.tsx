@@ -1,52 +1,37 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { DApp } from '@/lib/dapps';
+import { useChainId } from 'wagmi';
+import { DApp, getDAppNetworkType } from '@/lib/dapps';
+import { getDAppPaymentConfig, getActionCost } from '@/lib/payments/config';
 import { getDefaultRewardsBreakdown } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
+import { getNativeCurrencySymbol } from '@/lib/wagmi';
 
 interface DAppFeesModalProps {
   dapp: DApp;
   clickable?: boolean;
 }
 
-function getDAppFees(dapp: DApp): Array<{ action: string; cost: string; rewards: string }> {
-  const name = dapp.name.toLowerCase();
-  const category = dapp.category.toLowerCase();
-  const rewards = getDefaultRewardsBreakdown();
-
-  if (name.includes('dao') || name.includes('voting')) {
-    return [
-      { action: 'Proposal', cost: '10 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas * 10)} GRID → ${formatLargeNumber(rewards.xpPerKas * 10)} XP` },
-      { action: 'Vote', cost: '1 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas)} GRID → ${formatLargeNumber(rewards.xpPerKas)} XP` },
-      { action: 'Change Vote', cost: '1 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas)} GRID → ${formatLargeNumber(rewards.xpPerKas)} XP` },
-    ];
-  }
-
-  if (category === 'subscription' || name.includes('subscription')) {
-    return [
-      { action: 'Check Subscription', cost: '0.5 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas * 0.5)} GRID → ${formatLargeNumber(rewards.xpPerKas * 0.5)} XP` },
-      { action: 'Subscribe', cost: '5 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas * 5)} GRID → ${formatLargeNumber(rewards.xpPerKas * 5)} XP` },
-      { action: 'Renew', cost: '5 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas * 5)} GRID → ${formatLargeNumber(rewards.xpPerKas * 5)} XP` },
-    ];
-  }
-
-  if (category === 'payment' || name.includes('payment')) {
-    return [
-      { action: 'Send Payment', cost: '1 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas)} GRID → ${formatLargeNumber(rewards.xpPerKas)} XP` },
-    ];
-  }
-
-  return [
-    { action: 'Use dApp', cost: '1 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas)} GRID → ${formatLargeNumber(rewards.xpPerKas)} XP` },
-    { action: 'Premium Action', cost: '5 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas * 5)} GRID → ${formatLargeNumber(rewards.xpPerKas * 5)} XP` },
-  ];
-}
-
 export function DAppFeesModal({ dapp, clickable = true }: DAppFeesModalProps) {
+  const chainId = useChainId();
   const [showModal, setShowModal] = useState(false);
-  const fees = getDAppFees(dapp);
+  const networkType = getDAppNetworkType(dapp);
+  const paymentConfig = getDAppPaymentConfig(dapp, networkType);
+  const nativeSymbol = getNativeCurrencySymbol(chainId);
+  const rewards = getDefaultRewardsBreakdown(chainId);
+  const fees = useMemo(() => {
+    const actions = paymentConfig?.actions ?? [{ actionId: 'use-dapp', actionName: 'Use dApp', baseCost: 1.0 }];
+    return actions.map((a) => {
+      const costKAS = getActionCost(dapp, a.actionId, networkType);
+      return {
+        action: a.actionName,
+        cost: `${costKAS} ${nativeSymbol}`,
+        rewards: `${formatLargeNumber(costKAS * rewards.grtPerKas)} GRID → ${formatLargeNumber(costKAS * rewards.xpPerKas)} XP`,
+      };
+    });
+  }, [dapp, networkType, paymentConfig?.actions, nativeSymbol, rewards.grtPerKas, rewards.xpPerKas]);
 
   if (!clickable) {
     return (

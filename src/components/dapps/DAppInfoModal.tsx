@@ -17,43 +17,7 @@ import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { KREX_TIERS, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION } from '@/lib/rewards/types';
 import { getDefaultRewardsBreakdown } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
-
-// Get dApp-specific actions for modal (GRT-only)
-function getDAppActionsForModal(dapp: DApp): Array<{
-  action: string;
-  costKAS: number;
-}> {
-  const name = dapp.name.toLowerCase();
-  const category = dapp.category.toLowerCase();
-
-  // DAO Voting specific actions
-  if (name.includes('dao') || name.includes('voting')) {
-    return [
-      { action: 'Submit Proposal', costKAS: 10 },
-      { action: 'Cast Vote', costKAS: 1 },
-    ];
-  }
-
-  // Subscription specific actions
-  if (category === 'subscription' || name.includes('subscription')) {
-    return [
-      { action: 'Subscribe', costKAS: 5 },
-      { action: 'Renew Subscription', costKAS: 5 },
-    ];
-  }
-
-  // Payment specific actions
-  if (category === 'payment' || name.includes('payment')) {
-    return [
-      { action: 'Send Payment', costKAS: 1 },
-    ];
-  }
-
-  // Default actions for other dApps
-  return [
-    { action: 'Use dApp', costKAS: 1 },
-  ];
-}
+import { getDAppPaymentConfig, getActionCost } from '@/lib/payments/config';
 
 interface DAppInfoModalProps {
   dapp: DApp;
@@ -111,9 +75,13 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
   }
   costReductionPercent = Math.min(costReductionPercent, 50);
   
-  // Get dApp actions for fees table
-  const rewards = getDefaultRewardsBreakdown();
-  const actions = getDAppActionsForModal(dapp);
+  const rewards = getDefaultRewardsBreakdown(chainId);
+  const networkType = getDAppNetworkType(dapp);
+  const paymentConfig = getDAppPaymentConfig(dapp, networkType);
+  const actions = (paymentConfig?.actions ?? []).map((a) => ({
+    action: a.actionName,
+    costKAS: getActionCost(dapp, a.actionId, networkType),
+  }));
 
   // Get deployer info
   const DEFAULT_DEPLOYER = '0x658420Fd88dbd610249a88384f9B1aD387F797c7';

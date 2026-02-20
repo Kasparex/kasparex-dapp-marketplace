@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { useGRIDToken } from '@/hooks/useGRIDToken';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
+import { getChainById } from '@/lib/wagmi';
+import { isTestMode } from '@/lib/network/testMode';
 import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
 import { getMockGRTSupplyMetrics } from '@/lib/rewards/mockData';
 
@@ -13,28 +15,20 @@ export function GRIDHoldingsBox() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
 
+  const chain = useMemo(() => (chainId ? getChainById(chainId) : null), [chainId]);
+  const isTestnet = isTestMode(chain);
   const gridTokenAddress = useMemo(() => {
-    if (chainId === 38836 || chainId === 38837) {
-      const tgrid = getContractAddress(chainId, 'tGRID');
-      if (tgrid) return tgrid;
-    }
-    if (chainId === 167012) {
+    if (isTestnet) {
       const tgrid = getContractAddress(chainId, 'tGRID');
       if (tgrid) return tgrid;
     }
     return getContractAddress(chainId, 'GRIDToken') || null;
-  }, [chainId]);
-
-  const isTestnetGrid = useMemo(() => {
-    if (!gridTokenAddress) return false;
-    const tgrid = chainId === 38836 || chainId === 38837 ? getContractAddress(chainId, 'tGRID') : chainId === 167012 ? getContractAddress(chainId, 'tGRID') : null;
-    return tgrid ? gridTokenAddress === tgrid : false;
-  }, [chainId, gridTokenAddress]);
+  }, [chainId, isTestnet]);
 
   const { formattedBalance: gridFormattedBalance, isLoading, refetch } = useGRIDToken(gridTokenAddress);
   const grtMetrics = getMockGRTSupplyMetrics();
 
-  const tokenLabel = isTestnetGrid ? 'tGRID' : 'GRID';
+  const tokenLabel = isTestnet ? 'tGRID' : 'GRID';
 
   return (
     <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
