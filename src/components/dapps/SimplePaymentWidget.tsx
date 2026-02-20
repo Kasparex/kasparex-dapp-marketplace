@@ -444,7 +444,7 @@ export function SimplePaymentWidget() {
   const safeTxError = useSafeError(txError);
   const displayError = error || safeWriteError || safeTxError;
 
-  const toast = useToast();
+  const { toast } = useToast();
   const lastToastedErrorRef = useRef<string | null>(null);
 
   // Error toast when payment fails or is rejected
