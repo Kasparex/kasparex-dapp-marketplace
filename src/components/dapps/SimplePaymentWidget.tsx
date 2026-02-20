@@ -221,6 +221,7 @@ export function SimplePaymentWidget() {
 
   // Automated rewards hook
   const { distributeRewardAfterTransaction } = useAutomatedRewards();
+  const { setPaymentAmount } = usePaymentAmount();
 
   // Calculate payment cost with discounts (use entered amount as base so breakdown matches actual payment)
   const paymentCostBreakdown = useMemo((): CostBreakdown | null => {
@@ -495,7 +496,7 @@ export function SimplePaymentWidget() {
         });
       }, 500);
     }
-  }, [isConfirmed, isConfirming, hash, simplePaymentDApp, contractAddress, distributeRewardAfterTransaction, paymentCostBreakdown, amount, recipientAddress, address, toast, setPaymentAmount]);
+  }, [isConfirmed, isConfirming, hash, simplePaymentDApp, contractAddress, distributeRewardAfterTransaction, paymentCostBreakdown, amount, recipientAddress, address, toast]);
 
   // Reset form on success (legacy - kept for compatibility)
   if (isConfirmed && !isLoading && !hash) {
