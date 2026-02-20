@@ -496,6 +496,7 @@ export function SimplePaymentWidget() {
         });
       }, 500);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- setPaymentAmount is stable from context
   }, [isConfirmed, isConfirming, hash, simplePaymentDApp, contractAddress, distributeRewardAfterTransaction, paymentCostBreakdown, amount, recipientAddress, address, toast]);
 
   // Reset form on success (legacy - kept for compatibility)

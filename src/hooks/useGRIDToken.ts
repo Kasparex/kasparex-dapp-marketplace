@@ -54,10 +54,11 @@ export function useGRIDToken(gridTokenAddress: string | null | undefined): UseGR
     },
   }) as { data: bigint | undefined; isLoading: boolean; refetch: () => void };
 
-  // Get max supply (GRID/tGRID contracts have MAX_SUPPLY)
+  // Get max supply (GRID/tGRID have MAX_SUPPLY; ABI type narrows so we suppress)
   const { data: maxSupply } = useReadContract({
     address: gridTokenAddress as `0x${string}`,
     abi: GRID_TOKEN_ABI,
+    // @ts-expect-error GRID_TOKEN_ABI includes MAX_SUPPLY at runtime; type is narrower
     functionName: 'MAX_SUPPLY',
     query: {
       enabled: !!gridTokenAddress,
