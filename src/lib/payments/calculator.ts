@@ -118,29 +118,37 @@ export function calculateCost(inputs: CostCalculatorInputs): CostBreakdown {
 }
 
 /**
- * Format a price for display (clean numbers: 10, 10.5, 1.00, 3.02 — no 1.0001).
+ * Format a price for display (compact: "10" for whole numbers, "10.5" for decimals).
+ * Does not include currency symbol; pass symbol separately when rendering.
  */
 export function formatPrice(n: number): string {
   const fixed = (Math.round(n * 100) / 100).toFixed(2);
   return fixed.replace(/\.?0+$/, '') || '0';
 }
 
+/** Format percent for display: integers as "10", decimals as "0.5" (no trailing zeros). */
+export function formatPercent(p: number): string {
+  if (Number.isInteger(p)) return String(p);
+  const s = p.toFixed(2);
+  return s.replace(/\.?0+$/, '') || '0';
+}
+
 /**
  * Format cost breakdown for display (fee-inclusive: total is the price).
- * @param symbol - Native currency symbol (e.g. KAS, iKAS). Default 'KAS'.
+ * @param symbol - Native currency symbol (e.g. KAS, iKAS). Must be passed by caller.
  */
-export function formatCostBreakdown(breakdown: CostBreakdown, symbol: string = 'KAS'): string {
+export function formatCostBreakdown(breakdown: CostBreakdown, symbol: string): string {
   const parts: string[] = [];
   
   if (breakdown.costReductionPercent > 0) {
     parts.push(`${formatPrice(breakdown.baseCost)} ${symbol}`);
-    parts.push(`-${breakdown.costReductionPercent.toFixed(1)}%`);
+    parts.push(`-${formatPercent(breakdown.costReductionPercent)}%`);
   } else {
     parts.push(`${formatPrice(breakdown.baseCost)} ${symbol}`);
   }
   
   if (breakdown.feePercent > 0) {
-    parts.push(`(includes ${breakdown.feePercent.toFixed(2)}% fee)`);
+    parts.push(`(includes ${formatPercent(breakdown.feePercent)}% fee)`);
   } else if (breakdown.feePercent === 0 && breakdown.costReductionPercent > 0) {
     parts.push('(zero fee)');
   }

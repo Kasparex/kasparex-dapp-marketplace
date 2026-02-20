@@ -71,6 +71,13 @@ contract LoyaltyPoints is Ownable {
     }
 
     /**
+     * @dev Public view for FeeRouter to apply same multiplier to tGRID rewards.
+     */
+    function getTierMultiplierBps(address user) external view returns (uint256) {
+        return _tierMultiplierBps(user);
+    }
+
+    /**
      * @dev Award points with on-chain KREX tier multiplier. Only callable by authorized (e.g. FeeRouter).
      */
     function awardPointsWithMultiplier(address user, string memory actionType) external onlyAuthorized {

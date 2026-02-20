@@ -224,6 +224,10 @@ async function main() {
   const loyaltyPoints = await hre.ethers.getContractAt('LoyaltyPoints', loyaltyPointsAddress);
   await (await loyaltyPoints.setAuthorizedCaller(feeRouterAddress, true, overrides)).wait();
   console.log('   LoyaltyPoints: FeeRouter authorized');
+  if (krexTokenAddress && krexTokenAddress !== hre.ethers.ZeroAddress) {
+    await (await loyaltyPoints.setKREXToken(krexTokenAddress, overrides)).wait();
+    console.log('   LoyaltyPoints: KREX token set (tier multiplier active for tGRID + XP)');
+  }
 
   // 12. Fund RewardManager with tGRID (only if deployer is rewardVault and has balance)
   const fundWei = process.env.FUND_REWARD_MANAGER_WEI ? BigInt(process.env.FUND_REWARD_MANAGER_WEI) : (1000000n * 10n**18n);

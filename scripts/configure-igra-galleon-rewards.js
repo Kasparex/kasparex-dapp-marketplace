@@ -42,6 +42,7 @@ async function main() {
     'LOYALTY_POINTS_ADDRESS',
     'SIMPLE_PAYMENT_ADDRESS',
   ];
+  // KREX_TOKEN_ADDRESS optional: if set, LoyaltyPoints tier multiplier is enabled for tGRID + XP
   for (const key of required) {
     if (!process.env[key]?.trim()) {
       console.error(`Missing required env: ${key}`);
@@ -83,6 +84,11 @@ async function main() {
   const loyaltyPoints = await hre.ethers.getContractAt('LoyaltyPoints', loyaltyPointsAddress);
   await (await loyaltyPoints.setAuthorizedCaller(feeRouterAddress, true, overrides)).wait();
   console.log('   LoyaltyPoints: FeeRouter authorized');
+  const krexTokenAddress = process.env.KREX_TOKEN_ADDRESS?.trim();
+  if (krexTokenAddress) {
+    await (await loyaltyPoints.setKREXToken(krexTokenAddress, overrides)).wait();
+    console.log('   LoyaltyPoints: KREX token set (tier multiplier active)');
+  }
 
   // Optional: fund RewardManager
   const fundWei = process.env.FUND_REWARD_MANAGER_WEI ? BigInt(process.env.FUND_REWARD_MANAGER_WEI) : 0n;

@@ -77,12 +77,20 @@ contract FeeRouter is Ownable {
         if (toTree > 0) revenueTreeManager.distributeToUpline{value: toTree}(payer);
         if (toTreasury > 0) feeCollector.forwardFee{value: toTreasury}();
 
-        uint256 rewardWei = baseRewardWei[transactionType];
-        if (rewardWei > 0 && address(rewardManager) != address(0)) {
-            try rewardManager.distributeRewardDirect(payer, rewardWei) {
-                emit ForwardedWithRewards(payer, msg.value, transactionType, rewardWei);
-            } catch {}
+        uint256 baseWei = baseRewardWei[transactionType];
+        if (baseWei > 0 && address(rewardManager) != address(0) && address(loyaltyPoints) != address(0)) {
+            uint256 multBps = loyaltyPoints.getTierMultiplierBps(payer);
+            uint256 rewardWei = (baseWei * multBps) / BPS;
+            if (rewardWei > 0) {
+                try rewardManager.distributeRewardDirect(payer, rewardWei) {
+                    emit ForwardedWithRewards(payer, msg.value, transactionType, rewardWei);
+                } catch {}
+            }
             // If reward distribution fails (e.g. insufficient tGRID in RewardManager), fee split and points still apply
+        } else if (baseWei > 0 && address(rewardManager) != address(0)) {
+            try rewardManager.distributeRewardDirect(payer, baseWei) {
+                emit ForwardedWithRewards(payer, msg.value, transactionType, baseWei);
+            } catch {}
         }
         if (address(loyaltyPoints) != address(0)) {
             try loyaltyPoints.awardPointsWithMultiplier(payer, transactionType) {} catch {}

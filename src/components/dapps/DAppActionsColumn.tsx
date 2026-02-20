@@ -15,7 +15,7 @@ import { useSetReferrer } from '@/hooks/useSetReferrer';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { getDAppPaymentConfig } from '@/lib/payments/config';
-import { calculateCost, formatPrice, type CostBreakdown } from '@/lib/payments/calculator';
+import { calculateCost, formatPrice, formatPercent, type CostBreakdown } from '@/lib/payments/calculator';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
 
 interface DAppActionsColumnProps {
@@ -23,12 +23,18 @@ interface DAppActionsColumnProps {
   contractAddress?: string;
 }
 
-/** Format number for display (compact). */
+/** Format number for display (integers without decimals, decimals trimmed). */
 function formatFee(value: number): string {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(2)}K`;
-  if (value >= 1) return value.toFixed(2);
-  if (value > 0) return value.toFixed(4);
+  if (value >= 1_000_000) {
+    const v = value / 1_000_000;
+    return Number.isInteger(v) ? `${v}M` : `${v.toFixed(2).replace(/\.?0+$/, '')}M`;
+  }
+  if (value >= 1_000) {
+    const v = value / 1_000;
+    return Number.isInteger(v) ? `${v}K` : `${v.toFixed(2).replace(/\.?0+$/, '')}K`;
+  }
+  if (value >= 1) return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/\.?0+$/, '') || '0';
+  if (value > 0) return value.toFixed(4).replace(/\.?0+$/, '') || '0';
   return '0';
 }
 
@@ -129,17 +135,17 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
                   {costBreakdown.costReductionPercent > 0 && (
                     <div className="flex items-center justify-between text-green-600 dark:text-green-400">
                       <span>Cost reduction</span>
-                      <span>-{costBreakdown.costReductionPercent.toFixed(1)}%</span>
+                      <span>-{formatPercent(costBreakdown.costReductionPercent)}%</span>
                     </div>
                   )}
                   <div className="flex items-center justify-between text-zinc-600 dark:text-zinc-400">
-                    <span>Fee ({costBreakdown.feePercent.toFixed(2)}% included)</span>
+                    <span>Fee ({formatPercent(costBreakdown.feePercent)}% included)</span>
                     <span>{formatPrice(costBreakdown.feeAmount)} {nativeSymbol}</span>
                   </div>
                   {costBreakdown.feePercent < 1.0 && costBreakdown.feePercent > 0 && (
                     <div className="flex items-center justify-between text-green-600 dark:text-green-400">
                       <span>Fee reduction</span>
-                      <span>-{(1.0 - costBreakdown.feePercent).toFixed(2)}%</span>
+                      <span>-{formatPercent(Number((1.0 - costBreakdown.feePercent).toFixed(2)))}%</span>
                     </div>
                   )}
                 </div>

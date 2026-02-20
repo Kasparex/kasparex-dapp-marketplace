@@ -183,19 +183,31 @@ export function formatNumber(num: number, decimals: number = 2): string {
 }
 
 /**
- * Format large number with appropriate suffix (K, M, B)
+ * Format number for display: integers as "100", decimals with minimal places (no trailing zeros).
+ */
+export function formatCompact(num: number): string {
+  if (Number.isInteger(num)) return String(num);
+  const s = num.toFixed(2);
+  return s.replace(/\.?0+$/, '') || '0';
+}
+
+/**
+ * Format large number with appropriate suffix (K, M, B). Integers shown without decimals.
  */
 export function formatLargeNumber(num: number): string {
   if (num >= 1_000_000_000) {
-    return `${(num / 1_000_000_000).toFixed(2)}B`;
+    const v = num / 1_000_000_000;
+    return `${Number.isInteger(v) ? v : v.toFixed(2)}B`;
   }
   if (num >= 1_000_000) {
-    return `${(num / 1_000_000).toFixed(2)}M`;
+    const v = num / 1_000_000;
+    return `${Number.isInteger(v) ? v : v.toFixed(2)}M`;
   }
   if (num >= 1_000) {
-    return `${(num / 1_000).toFixed(2)}K`;
+    const v = num / 1_000;
+    return `${Number.isInteger(v) ? v : v.toFixed(2)}K`;
   }
-  return num.toFixed(2);
+  return Number.isInteger(num) ? String(num) : num.toFixed(2).replace(/\.?0+$/, '') || '0';
 }
 
 /**

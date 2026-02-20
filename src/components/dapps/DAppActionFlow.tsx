@@ -13,7 +13,7 @@ import { useGRIDToken } from '@/hooks/useGRIDToken';
 import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { getDAppPaymentConfig, getActionCost } from '@/lib/payments/config';
-import { calculateCost, formatCostBreakdown, formatPrice } from '@/lib/payments/calculator';
+import { calculateCost, formatCostBreakdown, formatPrice, formatPercent } from '@/lib/payments/calculator';
 import { getNativeCurrencySymbol, getChainById } from '@/lib/wagmi';
 
 interface DAppActionFlowProps {
@@ -157,7 +157,7 @@ export function DAppActionFlow({ dapp }: DAppActionFlowProps) {
                 <div className="flex items-center justify-between text-xs mt-1.5">
                   <span className="text-zinc-600 dark:text-zinc-400">Cost Reduction</span>
                   <span className="font-semibold text-green-600 dark:text-green-400">
-                    -{costReductionPercent.toFixed(0)}%
+                    -{formatPercent(costReductionPercent)}%
                   </span>
                 </div>
               )}
@@ -165,7 +165,7 @@ export function DAppActionFlow({ dapp }: DAppActionFlowProps) {
                 <div className="flex items-center justify-between text-xs mt-1.5">
                   <span className="text-zinc-600 dark:text-zinc-400">Fee Reduction</span>
                   <span className="font-semibold text-green-600 dark:text-green-400">
-                    -{totalFeeReduction.toFixed(2)}%
+                    -{formatPercent(totalFeeReduction)}%
                   </span>
                 </div>
               )}
@@ -173,7 +173,7 @@ export function DAppActionFlow({ dapp }: DAppActionFlowProps) {
                 <div className="flex items-center justify-between text-xs mt-1.5">
                   <span className="text-zinc-600 dark:text-zinc-400">Current Fee</span>
                   <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                    {feePercent.toFixed(2)}%
+                    {formatPercent(feePercent)}%
                   </span>
                 </div>
               )}
@@ -220,12 +220,12 @@ export function DAppActionFlow({ dapp }: DAppActionFlowProps) {
                           Cost: <span className="font-medium text-zinc-900 dark:text-zinc-100">
                             {formatPrice(totalCostWithFee)} {nativeSymbol}
                             {calculatedCost?.feePercent != null && calculatedCost.feePercent > 0 && (
-                              <span className="text-zinc-500 dark:text-zinc-400 font-normal"> (includes {calculatedCost.feePercent.toFixed(2)}% fee)</span>
+                              <span className="text-zinc-500 dark:text-zinc-400 font-normal"> (includes {formatPercent(calculatedCost.feePercent)}% fee)</span>
                             )}
                             {calculatedCost && (calculatedCost.costReductionPercent > 0 || calculatedCost.feePercent < 1.0) && (
                               <span className="ml-1 text-green-600 dark:text-green-400">
-                                {calculatedCost.costReductionPercent > 0 && ` -${calculatedCost.costReductionPercent.toFixed(0)}% cost`}
-                                {calculatedCost.feePercent < 1.0 && calculatedCost.feePercent > 0 && `, ${calculatedCost.feePercent.toFixed(2)}% fee`}
+                                {calculatedCost.costReductionPercent > 0 && ` -${formatPercent(calculatedCost.costReductionPercent)}% cost`}
+                                {calculatedCost.feePercent < 1.0 && calculatedCost.feePercent > 0 && `, ${formatPercent(calculatedCost.feePercent)}% fee`}
                               </span>
                             )}
                           </span>

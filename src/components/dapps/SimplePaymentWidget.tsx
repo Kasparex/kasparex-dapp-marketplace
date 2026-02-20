@@ -14,7 +14,7 @@ import { TreasuryAutoDistribute } from '@/components/TreasuryAutoDistribute';
 import { getErrorMessage } from '@/lib/utils';
 import { useSafeError } from '@/hooks/useSafeError';
 import { useMemo, useRef } from 'react';
-import { calculateCost, formatPrice, type CostBreakdown } from '@/lib/payments/calculator';
+import { calculateCost, formatPrice, formatPercent, type CostBreakdown } from '@/lib/payments/calculator';
 import { useAutomatedRewards } from '@/hooks/useAutomatedRewards';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/useToast';
 import { TransactionSuccessModal } from '@/components/modals/TransactionSuccessModal';
 import { TransactionErrorModal } from '@/components/modals/TransactionErrorModal';
 import { usePaymentAmount } from '@/lib/dapps/PaymentAmountContext';
+import { useQueryClient } from '@tanstack/react-query';
 
 // Define ABI in proper JSON format as fallback to prevent bundling issues
 const SIMPLE_PAYMENT_ABI_FALLBACK = [
@@ -222,6 +223,7 @@ export function SimplePaymentWidget() {
   // Automated rewards hook
   const { distributeRewardAfterTransaction } = useAutomatedRewards();
   const { setPaymentAmount } = usePaymentAmount();
+  const queryClient = useQueryClient();
 
   // Calculate payment cost with discounts (use entered amount as base so breakdown matches actual payment)
   const paymentCostBreakdown = useMemo((): CostBreakdown | null => {
@@ -444,9 +446,13 @@ export function SimplePaymentWidget() {
       });
       setSuccessTxHash(hash);
       setShowSuccessModal(true);
-      // Notify other components to refetch balances (immediate + delayed for FeeRouter reward distribution)
+      // Force refetch of all contract reads (tGRID balance, XP, etc.) so dashboard updates
+      queryClient.invalidateQueries({ predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'readContract' });
       window.dispatchEvent(new CustomEvent('dapp-transaction-success'));
-      setTimeout(() => window.dispatchEvent(new CustomEvent('dapp-transaction-success')), 4000);
+      setTimeout(() => {
+        queryClient.invalidateQueries({ predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'readContract' });
+        window.dispatchEvent(new CustomEvent('dapp-transaction-success'));
+      }, 4000);
       // Store transaction info before resetting
       const storedAmount = amount;
       const storedRecipient = recipientAddress;
@@ -569,7 +575,7 @@ export function SimplePaymentWidget() {
                       <div className="flex justify-between items-center">
                         <span className="text-zinc-600 dark:text-zinc-400">Cost Reduction:</span>
                         <span className="font-medium text-green-600 dark:text-green-400">
-                          -{paymentCostBreakdown.costReductionPercent.toFixed(0)}%
+                          -{formatPercent(paymentCostBreakdown.costReductionPercent)}%
                         </span>
                       </div>
                     )}
@@ -577,7 +583,7 @@ export function SimplePaymentWidget() {
                       <div className="flex justify-between items-center">
                         <span className="text-zinc-600 dark:text-zinc-400">Fee Reduction:</span>
                         <span className="font-medium text-green-600 dark:text-green-400">
-                          {paymentCostBreakdown.feePercent.toFixed(2)}% (reduced from 1.00%)
+                          {formatPercent(paymentCostBreakdown.feePercent)}% (reduced from 1%)
                         </span>
                       </div>
                     )}
@@ -588,7 +594,7 @@ export function SimplePaymentWidget() {
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-xs text-zinc-500 dark:text-zinc-400">
-                      <span>Fee ({paymentCostBreakdown.feePercent.toFixed(2)}% included)</span>
+                      <span>Fee ({formatPercent(paymentCostBreakdown.feePercent)}% included)</span>
                       <span>-{formatPrice(paymentCostBreakdown.feeAmount)} {nativeSymbol}</span>
                     </div>
                     <div className="flex justify-between items-center text-xs text-zinc-500 dark:text-zinc-400">
