@@ -1,13 +1,17 @@
 'use client';
 
-import { useIsTestnet } from '@/lib/network/testMode';
+import { useChainId } from 'wagmi';
+import { getChainById } from '@/lib/wagmi';
+import { isTestMode } from '@/lib/network/testModeCore';
 
 /**
  * Global banner shown when the connected chain is a testnet.
  * Renders a slim bar at the top so users know they are on test tokens (tGRID, etc.).
  */
 export function TestnetBanner() {
-  const isTestnet = useIsTestnet();
+  const chainId = useChainId();
+  const chain = chainId ? getChainById(chainId) : null;
+  const isTestnet = isTestMode(chain);
 
   if (!isTestnet) return null;
 
