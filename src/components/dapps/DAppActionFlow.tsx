@@ -208,8 +208,6 @@ export function DAppActionFlow({ dapp }: DAppActionFlowProps) {
     { grid: 0, xp: 0, totalCost: 0 }
   );
 
-  const holdings = getMockWalletHoldings(address);
-
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-4">
