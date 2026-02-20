@@ -58,12 +58,14 @@ export function getMockWalletHoldings(address: string | undefined) {
 }
 
 /**
- * Get default rewards breakdown for display (GRT-only)
+ * Get default rewards breakdown for display (GRT-only).
+ * Optional chainId: on IGRA Galleon (38836/38837) use deployed base reward (500 tGRID per payment).
  */
-export function getDefaultRewardsBreakdown() {
+export function getDefaultRewardsBreakdown(chainId?: number) {
+  const isGalleon = chainId === 38836 || chainId === 38837;
   return {
     feePercent: MOCK_REWARDS_CONFIG.DEFAULT_FEE_PERCENT,
-    grtPerKas: MOCK_REWARDS_CONFIG.GRT_PER_KAS,
+    grtPerKas: isGalleon ? 500 : MOCK_REWARDS_CONFIG.GRT_PER_KAS,
     xpPerKas: MOCK_REWARDS_CONFIG.XP_PER_KAS,
   };
 }

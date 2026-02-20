@@ -31,10 +31,18 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
   const chainId = useChainId();
   
   // Get contract data to check for token
-  // Use prop if provided, otherwise fall back to dApp's contractAddress or registry
+  // Use prop if provided, otherwise resolve by dApp slug or registry
   let contractAddress = propContractAddress || dapp.contractAddress || '';
-  if (!contractAddress) {
-    contractAddress = getContractAddress(chainId, 'DAppRegistry') || '';
+  if (!contractAddress && chainId) {
+    const slug = dapp.slug || '';
+    if (slug === 'simple-payment') {
+      contractAddress = getContractAddress(chainId, 'SimplePayment') || '';
+    } else if (slug === 'dao-voting') {
+      contractAddress = getContractAddress(chainId, 'DAOVoting') || '';
+    }
+    if (!contractAddress) {
+      contractAddress = getContractAddress(chainId, 'DAppRegistry') || '';
+    }
   }
   const { data: contractData } = useDAppFromContract(
     contractAddress?.startsWith('0x') ? contractAddress : undefined,

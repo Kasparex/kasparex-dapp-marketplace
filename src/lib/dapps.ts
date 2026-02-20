@@ -100,7 +100,7 @@ export const placeholderDApps: DApp[] = [
     security: 'Built with OpenZeppelin contracts for security. All smart contracts use ReentrancyGuard to prevent reentrancy attacks. Fee collection is automated and transparent. Contracts are audited and follow best practices for EVM development.',
     roadmap: 'Q4 2025: Testnet launch and initial testing\nQ1 2026: Mainnet deployment\nQ2 2026: Enhanced features including batch payments and payment scheduling\nQ3 2026: Integration with Token Builder for automatic utility attachment',
     createdAt: '2025-11-05T16:21:29.306Z',
-    supportedChainIds: [167012], // Kasplex L2 Testnet
+    supportedChainIds: [167012, 38836], // Kasplex L2 Testnet, IGRA Galleon Testnet
     // Contract address will be fetched from environment variables via getContractAddress
     // deployerAddress will be fetched from DAppRegistry contract
   },

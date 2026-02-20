@@ -16,7 +16,7 @@ interface DAppActionFlowProps {
 }
 
 // Get dApp-specific actions and rewards (GRT-only)
-function getDAppActions(dapp: DApp): Array<{
+function getDAppActions(dapp: DApp, chainId?: number): Array<{
   step: number;
   action: string;
   cost: string;
@@ -29,7 +29,7 @@ function getDAppActions(dapp: DApp): Array<{
 }> {
   const name = dapp.name.toLowerCase();
   const category = dapp.category.toLowerCase();
-  const rewards = getDefaultRewardsBreakdown();
+  const rewards = getDefaultRewardsBreakdown(chainId);
 
   // DAO Voting specific actions
   if (name.includes('dao') || name.includes('voting')) {
@@ -123,7 +123,7 @@ function getDAppActions(dapp: DApp): Array<{
 export function DAppActionFlow({ dapp }: DAppActionFlowProps) {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
-  const actions = getDAppActions(dapp);
+  const actions = getDAppActions(dapp, chainId);
   
   // Get KREX tier and multipliers from real balance
   const { balance: krexBalance, tier, isLoading: isKREXLoading } = useKREXBalance();
