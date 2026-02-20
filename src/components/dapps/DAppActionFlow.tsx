@@ -3,11 +3,15 @@
 import { useState } from 'react';
 import { useAccount, useChainId } from 'wagmi';
 import { DApp, getDAppNetworkType } from '@/lib/dapps';
-import { getDefaultRewardsBreakdown, getMockWalletHoldings } from '@/lib/rewards/mockData';
+import { useMemo } from 'react';
+import { getDefaultRewardsBreakdown } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { KREX_TIERS, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION, LIGHT_NODE_COST_REDUCTION, MIRROR_NODE_COST_REDUCTION } from '@/lib/rewards/types';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
+import { useGRIDToken } from '@/hooks/useGRIDToken';
+import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
+import { getContractAddress } from '@/lib/contracts/addresses';
 import { getDAppPaymentConfig } from '@/lib/payments/config';
 import { calculateCost, formatCostBreakdown, formatPrice } from '@/lib/payments/calculator';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
@@ -126,19 +130,36 @@ export function DAppActionFlow({ dapp }: DAppActionFlowProps) {
   const chainId = useChainId();
   const nativeSymbol = getNativeCurrencySymbol(chainId);
   const actions = getDAppActions(dapp, chainId, nativeSymbol);
+
+  const gridTokenAddress = useMemo(() => {
+    if (chainId === 38836 || chainId === 38837) {
+      const tgrid = getContractAddress(chainId, 'tGRID');
+      if (tgrid) return tgrid;
+    }
+    if (chainId === 167012) {
+      const tgrid = getContractAddress(chainId, 'tGRID');
+      if (tgrid) return tgrid;
+    }
+    return getContractAddress(chainId, 'GRIDToken') || null;
+  }, [chainId]);
+  const isTestnetGrid = useMemo(() => {
+    if (!gridTokenAddress) return false;
+    const tgrid = chainId === 38836 || chainId === 38837 ? getContractAddress(chainId, 'tGRID') : chainId === 167012 ? getContractAddress(chainId, 'tGRID') : null;
+    return tgrid ? gridTokenAddress === tgrid : false;
+  }, [chainId, gridTokenAddress]);
+  const gridLabel = isTestnetGrid ? 'tGRID' : 'GRID';
+  const { formattedBalance: gridFormattedBalance, isLoading: isGRIDLoading } = useGRIDToken(gridTokenAddress);
+  const { totalPoints: xpPoints, isLoading: isXPLoading } = useLoyaltyPoints();
   
   // Get KREX tier and multipliers from real balance
   const { balance: krexBalance, tier, isLoading: isKREXLoading } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
   const tierConfig = KREX_TIERS[tier];
   const multiplier = tierConfig.multiplier;
-  
-  // Get network type
+
   const networkType = getDAppNetworkType(dapp);
-  
-  // Get payment config for this dApp
   const paymentConfig = getDAppPaymentConfig(dapp, networkType);
-  
+
   // Calculate costs for each action using the new calculator
   const actionsWithCalculatedCosts = actions.map((action, index) => {
     // Map action names to action IDs
@@ -209,15 +230,15 @@ export function DAppActionFlow({ dapp }: DAppActionFlowProps) {
               </span>
             </div>
             <div className="flex items-center justify-between text-xs">
-              <span className="text-zinc-600 dark:text-zinc-400">GRID</span>
+              <span className="text-zinc-600 dark:text-zinc-400">{gridLabel}</span>
               <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                {holdings ? formatLargeNumber(holdings.grt) : '0'}
+                {gridTokenAddress ? (isGRIDLoading ? '...' : (gridFormattedBalance || '0')) : '0'}
               </span>
             </div>
             <div className="flex items-center justify-between text-xs">
               <span className="text-zinc-600 dark:text-zinc-400">XP</span>
               <span className="font-medium text-[#02abb8]">
-                {holdings ? formatLargeNumber(holdings.xp) : '0'}
+                {isXPLoading ? '...' : formatLargeNumber(xpPoints)}
               </span>
             </div>
             <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">

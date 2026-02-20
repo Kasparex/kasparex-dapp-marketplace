@@ -5,7 +5,6 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadCont
 import { parseEther, formatEther } from 'viem';
 import { SIMPLE_PAYMENT_ABI as SIMPLE_PAYMENT_ABI_IMPORT, SUBSCRIPTION_MANAGER_ABI } from '@/lib/contracts/abis';
 import { calculateFee, calculatePaymentAmount, formatKAS, parseKAS } from '@/lib/revenue/feeCalculator';
-import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
 import { CONTRACT_ADDRESSES, getContractAddress } from '@/lib/contracts/addresses';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
 // Temporarily disable subscriptions to fix errors
@@ -574,7 +573,7 @@ export function SimplePaymentWidget() {
           {/* Amount Input */}
           <div>
             <label className="k-label flex items-center gap-2 whitespace-nowrap">
-              Amount (<TokenLogoImage tokenId="kas" size={14} /> {nativeSymbol})
+              Amount ({nativeSymbol})
             </label>
             <input
               type="text"
@@ -619,8 +618,7 @@ export function SimplePaymentWidget() {
                     )}
                     <div className="flex justify-between items-center pt-2 border-t border-zinc-200 dark:border-zinc-800">
                       <span className="font-semibold text-zinc-900 dark:text-zinc-100">You pay</span>
-                      <span className="font-semibold text-green-600 dark:text-green-400 flex items-center gap-1">
-                        <TokenLogoImage tokenId="kas" size={16} />
+                      <span className="font-semibold text-green-600 dark:text-green-400">
                         {formatPrice(paymentCostBreakdown.finalCostWithFee)} {nativeSymbol}
                       </span>
                     </div>
@@ -637,8 +635,7 @@ export function SimplePaymentWidget() {
                   <>
                     <div className="flex justify-between items-center pt-2 border-t border-zinc-200 dark:border-zinc-800">
                       <span className="font-semibold text-zinc-900 dark:text-zinc-100">You pay</span>
-                      <span className="font-semibold text-green-600 dark:text-green-400 flex items-center gap-1">
-                        <TokenLogoImage tokenId="kas" size={16} />
+                      <span className="font-semibold text-green-600 dark:text-green-400">
                         {formatPrice(parseFloat(formatKAS(amountBigInt)))} {nativeSymbol}
                       </span>
                     </div>

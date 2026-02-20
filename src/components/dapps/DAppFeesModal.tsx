@@ -35,7 +35,6 @@ function getDAppFees(dapp: DApp): Array<{ action: string; cost: string; rewards:
   if (category === 'payment' || name.includes('payment')) {
     return [
       { action: 'Send Payment', cost: '1 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas)} GRID → ${formatLargeNumber(rewards.xpPerKas)} XP` },
-      { action: 'Request Payment', cost: '0.5 KAS', rewards: `${formatLargeNumber(rewards.grtPerKas * 0.5)} GRID → ${formatLargeNumber(rewards.xpPerKas * 0.5)} XP` },
     ];
   }
 

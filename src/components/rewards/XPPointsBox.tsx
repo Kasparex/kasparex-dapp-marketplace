@@ -8,15 +8,26 @@ import { formatLargeNumber } from '@/lib/rewards/calculator';
 
 export function XPPointsBox() {
   const { address, isConnected } = useAccount();
-  const { totalPoints, streakDays, isLoading } = useLoyaltyPoints();
+  const { totalPoints, streakDays, isLoading, refetch } = useLoyaltyPoints();
   const mockHoldings = isConnected && address ? getMockWalletHoldings(address) : null;
   const points = totalPoints > 0 ? totalPoints : (mockHoldings?.xp ?? 0);
 
   return (
     <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-      <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-        XP Points
-      </h3>
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+          XP Points
+        </h3>
+        {isConnected && (
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="text-xs font-medium text-[#02abb8] hover:text-[#0199a3] transition-colors"
+          >
+            Refresh
+          </button>
+        )}
+      </div>
       
       {!isConnected ? (
         <div className="text-center py-4">

@@ -37,13 +37,6 @@ const DEFAULT_PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
         costL1: 1.0,
         costL2: 1.0,
       },
-      {
-        actionId: 'request-payment',
-        actionName: 'Request Payment',
-        baseCost: 0.5,
-        costL1: 0.5,
-        costL2: 0.5,
-      },
     ],
   },
   'send-kas': {

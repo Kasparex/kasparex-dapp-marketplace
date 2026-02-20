@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useChainId } from 'wagmi';
 import { DApp, generateSimulatedTicker, getDAppNetworkType } from '@/lib/dapps';
@@ -9,6 +9,9 @@ import { DAppIcon } from './DAppIcon';
 import { DAppActionsColumn } from './DAppActionsColumn';
 import { mergeDAppData, useDAppFromContract } from '@/lib/dapps/contractData';
 import { getContractAddress } from '@/lib/contracts/addresses';
+import { getDAppPaymentConfig } from '@/lib/payments/config';
+import { getDefaultRewardsBreakdown } from '@/lib/rewards/mockData';
+import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
 import { CategoryIcon } from './CategoryIcon';
@@ -38,6 +41,20 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress }: 
 
   const category = getCategoryById(mergedDApp.category);
   const isL1DApp = getDAppNetworkType(mergedDApp) === 'L1';
+  const networkType = getDAppNetworkType(mergedDApp);
+
+  const dAppRewards = useMemo(() => {
+    const config = getDAppPaymentConfig(mergedDApp, networkType);
+    const rewards = getDefaultRewardsBreakdown(chainId);
+    const firstAction = config?.actions?.[0];
+    const baseCost = firstAction?.baseCost ?? 1;
+    const gridReward = Math.round(rewards.grtPerKas * baseCost);
+    const xpReward = Math.round(rewards.xpPerKas * baseCost);
+    const isTestnet = chainId === 38836 || chainId === 38837 || chainId === 167012;
+    const gridLabel = isTestnet ? 'tGRID' : 'GRID';
+    return { gridReward, xpReward, gridLabel };
+  }, [mergedDApp, networkType, chainId]);
+
   let rawTicker: string | null = null;
   if (isL1DApp) {
     if (mergedDApp.slug === 'send-kas' || mergedDApp.name.toLowerCase().includes('send kas')) {
@@ -169,23 +186,21 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress }: 
           <h1 className="text-2xl lg:text-3xl font-black text-zinc-900 dark:text-zinc-100 leading-tight">
             {mergedDApp.name}
           </h1>
-          {/* Reward tokens (same as dApp cards) */}
-          {tokenTicker && (
-            <div className="flex items-center gap-4 text-xs text-zinc-600 dark:text-zinc-400 mt-2">
-              <div className="flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span className="font-medium">100 {tokenTicker}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                <span className="font-medium">10 XP</span>
-              </div>
+          {/* Per-dApp rewards: GRID/tGRID + XP for first action */}
+          <div className="flex items-center gap-4 text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+            <div className="flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="font-medium">{formatLargeNumber(dAppRewards.gridReward)} {dAppRewards.gridLabel}</span>
             </div>
-          )}
+            <div className="flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span className="font-medium">{formatLargeNumber(dAppRewards.xpReward)} XP</span>
+            </div>
+          </div>
         </div>
       </div>
 
