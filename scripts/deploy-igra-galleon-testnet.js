@@ -235,9 +235,9 @@ async function main() {
     await (await tgridContract.transfer(rewardManagerAddress, toTransfer, overrides)).wait();
     console.log('   Transferred', hre.ethers.formatEther(toTransfer), 'tGRID to RewardManager');
   } else if (toTransfer > 0n) {
-    console.log('   REWARD_VAULT is not deployer. Transfer tGRID to RewardManager manually:', rewardManagerAddress);
+    console.log('   REWARD_VAULT is not deployer. Run: npx hardhat run scripts/fund-reward-manager-igra-galleon.js --network igraGalleonTestnet');
   } else {
-    console.log('   Deployer has no tGRID (minted to REWARD_VAULT). Fund RewardManager manually:', rewardManagerAddress);
+    console.log('   Deployer has no tGRID (minted to REWARD_VAULT). Run: npx hardhat run scripts/fund-reward-manager-igra-galleon.js --network igraGalleonTestnet');
   }
 
   // 13. Output

@@ -79,8 +79,10 @@ contract FeeRouter is Ownable {
 
         uint256 rewardWei = baseRewardWei[transactionType];
         if (rewardWei > 0 && address(rewardManager) != address(0)) {
-            rewardManager.distributeRewardDirect(payer, rewardWei);
-            emit ForwardedWithRewards(payer, msg.value, transactionType, rewardWei);
+            try rewardManager.distributeRewardDirect(payer, rewardWei) {
+                emit ForwardedWithRewards(payer, msg.value, transactionType, rewardWei);
+            } catch {}
+            // If reward distribution fails (e.g. insufficient tGRID in RewardManager), fee split and points still apply
         }
         if (address(loyaltyPoints) != address(0)) {
             try loyaltyPoints.awardPointsWithMultiplier(payer, transactionType) {} catch {}
