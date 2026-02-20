@@ -1,14 +1,14 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useAccount, useChainId } from 'wagmi';
 import Link from 'next/link';
-import { 
-  getDefaultRewardsBreakdown, 
-  getMockGRTSupplyMetrics,
-  MOCK_REWARDS_CONFIG 
-} from '@/lib/rewards/mockData';
-import { formatLargeNumber, formatNumber } from '@/lib/rewards/calculator';
+import { getDefaultRewardsBreakdown, MOCK_REWARDS_CONFIG } from '@/lib/rewards/mockData';
+import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { DEFAULT_FEE_DISTRIBUTION } from '@/lib/rewards/types';
+import { useGRIDToken } from '@/hooks/useGRIDToken';
+import { getContractAddress } from '@/lib/contracts/addresses';
+import { getChainById } from '@/lib/wagmi';
 
 interface DAppRewardsSidebarProps {
   dappName?: string;
@@ -18,7 +18,26 @@ export function DAppRewardsSidebar({ dappName }: DAppRewardsSidebarProps) {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const rewards = getDefaultRewardsBreakdown(chainId);
-  const grtMetrics = getMockGRTSupplyMetrics();
+
+  const chain = useMemo(() => (chainId ? getChainById(chainId) : null), [chainId]);
+  const isTestnet = Boolean(chain?.testnet);
+  const gridTokenAddress = useMemo(() => {
+    if (isTestnet) {
+      const tgrid = getContractAddress(chainId, 'tGRID');
+      if (tgrid) return tgrid;
+    }
+    return getContractAddress(chainId, 'GRIDToken') || null;
+  }, [chainId, isTestnet]);
+
+  const { totalSupply, maxSupply, isLoading: gridLoading } = useGRIDToken(gridTokenAddress);
+  const grtMetrics = useMemo(() => {
+    if (totalSupply != null && maxSupply != null && Number(maxSupply) > 0) {
+      const minted = Number(totalSupply) / 1e18;
+      const max = Number(maxSupply) / 1e18;
+      return { minted, maxSupply: max, progress: (minted / max) * 100 };
+    }
+    return null;
+  }, [totalSupply, maxSupply]);
   
   const mockKrexTier = 'Tier1';
   const mockKrexMultiplier = 1;
@@ -66,24 +85,24 @@ export function DAppRewardsSidebar({ dappName }: DAppRewardsSidebarProps) {
             </div>
           </div>
 
-          {/* GRT Supply Metrics */}
+          {/* GRT Supply Metrics - real contract data only */}
           <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-zinc-600 dark:text-zinc-400">
                 GRID Supply
               </span>
               <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                {grtMetrics.progress.toFixed(2)}% minted
+                {grtMetrics ? `${grtMetrics.progress.toFixed(2)}% minted` : (gridLoading ? '...' : '—')}
               </span>
             </div>
             <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2 mb-1">
               <div
                 className="bg-[#02abb8] h-2 rounded-full transition-all"
-                style={{ width: `${Math.min(100, grtMetrics.progress)}%` }}
+                style={{ width: `${grtMetrics ? Math.min(100, grtMetrics.progress) : 0}%` }}
               />
             </div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400">
-              {formatLargeNumber(grtMetrics.minted)} / {formatLargeNumber(grtMetrics.maxSupply)}
+              {grtMetrics ? `${formatLargeNumber(grtMetrics.minted)} / ${formatLargeNumber(grtMetrics.maxSupply)}` : (gridLoading && gridTokenAddress ? '...' : '—')}
             </div>
           </div>
 

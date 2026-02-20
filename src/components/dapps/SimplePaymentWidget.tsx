@@ -26,6 +26,7 @@ import { FeeDisplay } from '@/components/ui/FeeDisplay';
 import { useToast } from '@/hooks/useToast';
 import { TransactionSuccessModal } from '@/components/modals/TransactionSuccessModal';
 import { TransactionErrorModal } from '@/components/modals/TransactionErrorModal';
+import { usePaymentAmount } from '@/lib/dapps/PaymentAmountContext';
 
 // Define ABI in proper JSON format as fallback to prevent bundling issues
 const SIMPLE_PAYMENT_ABI_FALLBACK = [
@@ -442,6 +443,9 @@ export function SimplePaymentWidget() {
       });
       setSuccessTxHash(hash);
       setShowSuccessModal(true);
+      // Notify other components to refetch balances (immediate + delayed for FeeRouter reward distribution)
+      window.dispatchEvent(new CustomEvent('dapp-transaction-success'));
+      setTimeout(() => window.dispatchEvent(new CustomEvent('dapp-transaction-success')), 4000);
       // Store transaction info before resetting
       const storedAmount = amount;
       const storedRecipient = recipientAddress;
@@ -473,6 +477,7 @@ export function SimplePaymentWidget() {
         setRecipientAddress('');
         setAmount('');
         setError(null);
+        setPaymentAmount(null);
       }, 0);
 
       // Distribute rewards after successful transaction (non-blocking)
@@ -490,7 +495,7 @@ export function SimplePaymentWidget() {
         });
       }, 500);
     }
-  }, [isConfirmed, isConfirming, hash, simplePaymentDApp, contractAddress, distributeRewardAfterTransaction, paymentCostBreakdown, amount, recipientAddress, address, toast]);
+  }, [isConfirmed, isConfirming, hash, simplePaymentDApp, contractAddress, distributeRewardAfterTransaction, paymentCostBreakdown, amount, recipientAddress, address, toast, setPaymentAmount]);
 
   // Reset form on success (legacy - kept for compatibility)
   if (isConfirmed && !isLoading && !hash) {
@@ -539,6 +544,8 @@ export function SimplePaymentWidget() {
                 // Allow only numbers and decimal point
                 if (value === '' || /^\d*\.?\d*$/.test(value)) {
                   setAmount(value);
+                  const num = parseFloat(value);
+                  setPaymentAmount(value && !isNaN(num) && num > 0 ? num : null);
                 }
               }}
               placeholder="0.0"
@@ -665,7 +672,7 @@ export function SimplePaymentWidget() {
           {/* Final fee on CTA */}
           {paymentCostBreakdown && amount && parseFloat(amount) > 0 && (
             <div className="pt-2 pb-1">
-              <FeeDisplay breakdown={paymentCostBreakdown} label="You pay" compact />
+              <FeeDisplay breakdown={paymentCostBreakdown} label="You pay" compact currency={nativeSymbol} />
             </div>
           )}
 

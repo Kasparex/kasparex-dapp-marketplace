@@ -7,12 +7,13 @@
 
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { GRID_TOKEN_ABI } from '@/lib/contracts/abis';
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 
 export interface UseGRIDTokenResult {
   balance: bigint | undefined;
   formattedBalance: string;
   totalSupply: bigint | undefined;
+  maxSupply: bigint | undefined;
   totalBurned: bigint | undefined;
   circulatingSupply: bigint | undefined;
   burnPercentage: number;
@@ -43,7 +44,7 @@ export function useGRIDToken(gridTokenAddress: string | null | undefined): UseGR
   }) as { data: bigint | undefined; isLoading: boolean; error: Error | null; refetch: () => void };
 
   // Get total supply
-  const { data: totalSupply, isLoading: isLoadingSupply } = useReadContract({
+  const { data: totalSupply, isLoading: isLoadingSupply, refetch: refetchSupply } = useReadContract({
     address: gridTokenAddress as `0x${string}`,
     abi: GRID_TOKEN_ABI,
     functionName: 'totalSupply',
@@ -51,7 +52,18 @@ export function useGRIDToken(gridTokenAddress: string | null | undefined): UseGR
       enabled: !!gridTokenAddress,
       refetchInterval: 60000,
     },
-  }) as { data: bigint | undefined; isLoading: boolean };
+  }) as { data: bigint | undefined; isLoading: boolean; refetch: () => void };
+
+  // Get max supply (GRID/tGRID contracts have MAX_SUPPLY)
+  const { data: maxSupply } = useReadContract({
+    address: gridTokenAddress as `0x${string}`,
+    abi: GRID_TOKEN_ABI,
+    functionName: 'MAX_SUPPLY',
+    query: {
+      enabled: !!gridTokenAddress,
+      refetchInterval: 60000,
+    },
+  }) as { data: bigint | undefined };
 
   // Get total burned
   const { data: totalBurned, isLoading: isLoadingBurned } = useReadContract({
@@ -123,10 +135,16 @@ export function useGRIDToken(gridTokenAddress: string | null | undefined): UseGR
     return Number(burnPercentageBP) / 100; // Convert from basis points to percentage
   }, [burnPercentageBP]);
 
+  const refetchAll = useCallback(() => {
+    refetch();
+    refetchSupply?.();
+  }, [refetch, refetchSupply]);
+
   return {
     balance,
     formattedBalance,
     totalSupply,
+    maxSupply,
     totalBurned,
     circulatingSupply,
     burnPercentage,
@@ -134,7 +152,7 @@ export function useGRIDToken(gridTokenAddress: string | null | undefined): UseGR
     error: balanceError as Error | null,
     burn,
     isBurning: isBurning || isConfirming,
-    refetch,
+    refetch: refetchAll,
   };
 }
 

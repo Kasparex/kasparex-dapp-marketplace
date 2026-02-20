@@ -1,16 +1,21 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import Link from 'next/link';
 import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
-import { getMockWalletHoldings } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 
 export function XPPointsBox() {
   const { address, isConnected } = useAccount();
   const { totalPoints, streakDays, isLoading, refetch } = useLoyaltyPoints();
-  const mockHoldings = isConnected && address ? getMockWalletHoldings(address) : null;
-  const points = totalPoints > 0 ? totalPoints : (mockHoldings?.xp ?? 0);
+
+  // Refetch on dApp transaction success
+  useEffect(() => {
+    const handler = () => refetch();
+    window.addEventListener('dapp-transaction-success', handler);
+    return () => window.removeEventListener('dapp-transaction-success', handler);
+  }, [refetch]);
 
   return (
     <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
@@ -51,7 +56,7 @@ export function XPPointsBox() {
               Current Balance
             </span>
             <span className="text-xl font-bold text-[#02abb8]">
-              {isLoading ? '...' : formatLargeNumber(points)}
+              {isLoading ? '...' : formatLargeNumber(totalPoints)}
             </span>
           </div>
           {streakDays > 0 && (

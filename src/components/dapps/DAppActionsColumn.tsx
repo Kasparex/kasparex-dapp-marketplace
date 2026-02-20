@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { useAccount, useChainId, useBalance } from 'wagmi';
+import { usePaymentAmount } from '@/lib/dapps/PaymentAmountContext';
 import { formatEther, formatUnits } from 'viem';
 import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { RevenueTree } from '@/components/revenue-tree/RevenueTree';
@@ -36,6 +37,7 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
   const chainId = useChainId();
   const slug = dapp.slug || generateDAppSlug(dapp.name);
   const nativeSymbol = getNativeCurrencySymbol(chainId);
+  const { paymentAmount } = usePaymentAmount();
 
   const networkType = getDAppNetworkType(dapp);
   const isL2 = networkType === 'L2';
@@ -67,11 +69,13 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
     return getDAppPaymentConfig(dapp, networkType);
   }, [dapp, networkType]);
 
-  // Calculate costs for each action
+  // Calculate costs for each action. For variable-amount dApps (e.g. Simple Payment), use payment amount from context.
   const actionCosts = useMemo(() => {
     if (!paymentConfig || !isConnected) return [];
     
     return paymentConfig.actions.map(action => {
+      const isVariableAmount = !!action.variableAmount;
+      const overrideBaseCost = isVariableAmount && paymentAmount != null && paymentAmount > 0 ? paymentAmount : undefined;
       const costBreakdown = calculateCost({
         dapp,
         actionId: action.actionId,
@@ -84,15 +88,17 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
         hasRarestNFT: !!nftStatus?.hasRarestNFT,
         isNodeProvider: false, // TODO: Get from node status hook
         nodeFeeReduction: 0,
+        overrideBaseCost,
       });
       
       return {
         actionId: action.actionId,
         actionName: action.actionName,
         costBreakdown,
+        variableAmount: isVariableAmount,
       };
     });
-  }, [paymentConfig, dapp, krexBalance, tier, nftStatus, isConnected]);
+  }, [paymentConfig, dapp, krexBalance, tier, nftStatus, isConnected, paymentAmount]);
 
   const nativeFormatted = nativeBalance
     ? parseFloat(formatUnits(nativeBalance.value, nativeBalance.decimals))

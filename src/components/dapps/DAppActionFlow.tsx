@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccount, useChainId } from 'wagmi';
 import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { useMemo } from 'react';
@@ -37,8 +37,18 @@ export function DAppActionFlow({ dapp }: DAppActionFlowProps) {
     return getContractAddress(chainId, 'GRIDToken') || null;
   }, [chainId, isTestnet]);
   const gridLabel = isTestnet ? 'tGRID' : 'GRID';
-  const { formattedBalance: gridFormattedBalance, isLoading: isGRIDLoading } = useGRIDToken(gridTokenAddress);
-  const { totalPoints: xpPoints, isLoading: isXPLoading } = useLoyaltyPoints();
+  const { formattedBalance: gridFormattedBalance, isLoading: isGRIDLoading, refetch: refetchGRID } = useGRIDToken(gridTokenAddress);
+  const { totalPoints: xpPoints, isLoading: isXPLoading, refetch: refetchXP } = useLoyaltyPoints();
+
+  // Refetch holdings on dApp transaction success
+  useEffect(() => {
+    const handler = () => {
+      refetchGRID?.();
+      refetchXP?.();
+    };
+    window.addEventListener('dapp-transaction-success', handler);
+    return () => window.removeEventListener('dapp-transaction-success', handler);
+  }, [refetchGRID, refetchXP]);
   const { balance: krexBalance, tier, isLoading: isKREXLoading } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
   const tierConfig = KREX_TIERS[tier];

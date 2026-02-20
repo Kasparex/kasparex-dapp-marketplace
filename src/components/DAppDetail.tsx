@@ -17,6 +17,7 @@ import { GRIDHoldingsBox } from './rewards/GRIDHoldingsBox';
 import { XPPointsBox } from './rewards/XPPointsBox';
 import { TreasuryBox } from './treasury/TreasuryBox';
 import { mergeDAppData } from '@/lib/dapps/contractData';
+import { PaymentAmountProvider } from '@/lib/dapps/PaymentAmountContext';
 
 import { DAppRightColumn } from './dapps/DAppRightColumn';
 
@@ -51,6 +52,7 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
   const isL1DApp = getDAppNetworkType(dapp) === 'L1';
 
   return (
+    <PaymentAmountProvider>
     <div className="space-y-6">
       <NetworkCompatibilityModal
         dapp={dapp}
@@ -96,6 +98,7 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
         </div>
       </div>
     </div>
+    </PaymentAmountProvider>
   );
 }
 

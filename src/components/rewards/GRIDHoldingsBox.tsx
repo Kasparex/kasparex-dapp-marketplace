@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useAccount, useChainId } from 'wagmi';
 import Link from 'next/link';
 import { useGRIDToken } from '@/hooks/useGRIDToken';
@@ -8,7 +8,6 @@ import { getContractAddress } from '@/lib/contracts/addresses';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { getChainById } from '@/lib/wagmi';
 import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
-import { getMockGRTSupplyMetrics } from '@/lib/rewards/mockData';
 
 export function GRIDHoldingsBox() {
   const { address, isConnected } = useAccount();
@@ -24,8 +23,25 @@ export function GRIDHoldingsBox() {
     return getContractAddress(chainId, 'GRIDToken') || null;
   }, [chainId, isTestnet]);
 
-  const { formattedBalance: gridFormattedBalance, isLoading, refetch } = useGRIDToken(gridTokenAddress);
-  const grtMetrics = getMockGRTSupplyMetrics();
+  const { formattedBalance: gridFormattedBalance, totalSupply, maxSupply, isLoading, refetch } = useGRIDToken(gridTokenAddress);
+
+  // Real supply metrics from contract only (no mock fallback)
+  const grtMetrics = useMemo(() => {
+    if (!totalSupply || !maxSupply || Number(maxSupply) === 0) {
+      return null;
+    }
+    const minted = Number(totalSupply) / 1e18;
+    const max = Number(maxSupply) / 1e18;
+    const progress = max > 0 ? (minted / max) * 100 : 0;
+    return { minted, maxSupply: max, progress };
+  }, [totalSupply, maxSupply]);
+
+  // Refetch on dApp transaction success
+  useEffect(() => {
+    const handler = () => refetch();
+    window.addEventListener('dapp-transaction-success', handler);
+    return () => window.removeEventListener('dapp-transaction-success', handler);
+  }, [refetch]);
 
   const tokenLabel = isTestnet ? 'tGRID' : 'GRID';
 
@@ -50,26 +66,26 @@ export function GRIDHoldingsBox() {
       </div>
 
       <div className="space-y-3">
-        {/* Progress Bar Metrics */}
+        {/* Progress Bar Metrics - real contract data only */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-zinc-600 dark:text-zinc-400">
               Max Supply
             </span>
             <span className="text-xs text-zinc-500 dark:text-zinc-400">
-              {grtMetrics.progress.toFixed(2)}% minted
+              {grtMetrics ? `${grtMetrics.progress.toFixed(2)}% minted` : (isLoading ? '...' : '—')}
             </span>
           </div>
 
           <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2 mb-2">
             <div
               className="bg-[#02abb8] h-2 rounded-full transition-all"
-              style={{ width: `${Math.min(100, grtMetrics.progress)}%` }}
+              style={{ width: `${grtMetrics ? Math.min(100, grtMetrics.progress) : 0}%` }}
             />
           </div>
 
           <div className="text-xs text-zinc-500 dark:text-zinc-400">
-            {formatLargeNumber(grtMetrics.minted)} / {formatLargeNumber(grtMetrics.maxSupply)}
+            {grtMetrics ? `${formatLargeNumber(grtMetrics.minted)} / ${formatLargeNumber(grtMetrics.maxSupply)}` : (isLoading && gridTokenAddress ? '...' : '—')}
           </div>
         </div>
 
