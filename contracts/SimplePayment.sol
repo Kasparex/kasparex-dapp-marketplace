@@ -60,7 +60,7 @@ contract SimplePayment is Ownable, ReentrancyGuard {
         // Send fee: via FeeRouter (Revenue Tree + treasury + GRID + points) or FeeCollector only
         if (fee > 0) {
             if (address(feeRouter) != address(0)) {
-                feeRouter.forwardFeeAndRevenueWithRewards{value: fee}(msg.sender, "dapp-payment");
+                feeRouter.forwardFeeAndRevenueWithRewards{value: fee}(msg.sender, "dapp-payment", msg.value);
             } else {
                 feeCollector.forwardFee{value: fee}();
             }

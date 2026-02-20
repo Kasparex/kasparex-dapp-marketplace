@@ -14,9 +14,12 @@ import { useRevenueTree } from '@/hooks/useRevenueTree';
 import { useSetReferrer } from '@/hooks/useSetReferrer';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
+import { useGRIDToken } from '@/hooks/useGRIDToken';
+import { getContractAddress } from '@/lib/contracts/addresses';
 import { getDAppPaymentConfig } from '@/lib/payments/config';
 import { calculateCost, formatPrice, formatPercent, type CostBreakdown } from '@/lib/payments/calculator';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
+import { formatLargeNumber } from '@/lib/rewards/calculator';
 
 interface DAppActionsColumnProps {
   dapp: DApp;
@@ -116,15 +119,67 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
   const nftDiscountPercent = 0; // TODO: NFT holder check
   const nodeDiscountPercent = 0; // TODO: NODE holder check
 
+  // User Balances: GRID/tGRID token address for this chain
+  const gridTokenAddress = useMemo(() => {
+    const tgrid = getContractAddress(chainId, 'tGRID');
+    if (tgrid) return tgrid;
+    return getContractAddress(chainId, 'GRIDToken') || null;
+  }, [chainId]);
+  const isTestnet = chainId === 167012 || chainId === 38836 || chainId === 38837 || chainId === 19416;
+  const gridLabel = isTestnet ? 'tGRID' : 'GRID';
+  const krexLabel = isTestnet ? 'tKREX' : 'KREX';
+  const nativeLabel = chainId === 38836 || chainId === 38837 ? 'iKAS' : (nativeBalance?.symbol || nativeSymbol);
+  const { formattedBalance: gridFormattedBalance, isLoading: gridLoading } = useGRIDToken(gridTokenAddress);
+  const gridBalanceNum = parseFloat(gridFormattedBalance || '0');
+
+  const balanceRows = useMemo(() => {
+    const rows: { token: string; balance: string; loading?: boolean }[] = [];
+    rows.push({
+      token: nativeLabel,
+      balance: isConnected ? formatFee(nativeFormatted) : '—',
+      loading: false,
+    });
+    rows.push({
+      token: krexLabel,
+      balance: !isConnected ? '—' : krexLoading ? '...' : formatLargeNumber(krexBalance),
+      loading: krexLoading,
+    });
+    rows.push({
+      token: gridLabel,
+      balance: !isConnected ? '—' : gridLoading ? '...' : formatLargeNumber(gridBalanceNum),
+      loading: gridLoading,
+    });
+    return rows;
+  }, [isConnected, nativeLabel, nativeFormatted, krexLabel, krexBalance, krexLoading, gridLabel, gridBalanceNum, gridLoading]);
+
   return (
     <div className="space-y-6">
-      {/* Fees & Revenue Share - dynamic per dApp with real actions */}
+      {/* User Balances - simple TOKEN ---- balance containers */}
       <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
-        <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-widest mb-2 py-2 border-b border-zinc-100 dark:border-zinc-800">
-          Fees & Rewards
+        <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-widest mb-3 py-2 border-b border-zinc-100 dark:border-zinc-800">
+          User Balances
         </h3>
-        
-        {actionCosts.length > 0 ? (
+        <div className="space-y-2">
+          {balanceRows.map(({ token, balance, loading }) => (
+            <div
+              key={token}
+              className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg"
+            >
+              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{token}</span>
+              <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums">
+                {loading ? '...' : balance}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Cost summary for variable-amount dApps (e.g. Simple Payment) */}
+      {actionCosts.length > 0 && (
+        <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
+          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-widest mb-2 py-2 border-b border-zinc-100 dark:border-zinc-800">
+            Cost summary
+          </h3>
           <div className="space-y-4">
             {actionCosts.map(({ actionId, actionName, costBreakdown }) => (
               <div key={actionId} className="space-y-2 pb-4 border-b border-zinc-100 dark:border-zinc-800 last:border-0 last:pb-0">
@@ -149,7 +204,6 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
                     </div>
                   )}
                 </div>
-                {/* Total moved below calculations */}
                 <div className="pt-2 mt-2 border-t border-zinc-100 dark:border-zinc-800">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Total</span>
@@ -158,8 +212,6 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
                 </div>
               </div>
             ))}
-            
-            {/* Discount summary */}
             {(krexDiscountPercent > 0 || nftDiscountPercent > 0 || nodeDiscountPercent > 0) && (
               <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 space-y-1.5 text-xs">
                 <div className="flex items-center justify-between text-zinc-600 dark:text-zinc-400">
@@ -180,44 +232,9 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
                 )}
               </div>
             )}
-            
-            {isConnected && (
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                Your balance: {formatFee(nativeFormatted)} {nativeBalance?.symbol || nativeSymbol}
-              </p>
-            )}
           </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-zinc-600 dark:text-zinc-400">Base cost</span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">1.0 {nativeSymbol}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-zinc-600 dark:text-zinc-400">Network fee</span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">~0.001 {nativeSymbol}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-zinc-600 dark:text-zinc-400">KREX</span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                {!isConnected ? '—' : krexLoading ? '...' : `${formatFee(krexBalance)} (${krexDiscountPercent}% off)`}
-              </span>
-            </div>
-            {/* Total moved below calculations */}
-            <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Total</span>
-                <span className="text-lg font-black text-[#02abb8]">~1.001 {nativeSymbol}</span>
-              </div>
-            </div>
-            {isConnected && (
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 pt-1">
-                Your balance: {formatFee(nativeFormatted)} {nativeBalance?.symbol || nativeSymbol}
-              </p>
-            )}
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {isL2 && (
         <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">

@@ -102,8 +102,17 @@ async function main() {
   await (await newFeeRouter.setLoyaltyPoints(newLoyaltyPointsAddress, overrides)).wait();
   const baseRewardWei = process.env.BASE_REWARD_WEI ? BigInt(process.env.BASE_REWARD_WEI) : 500n * 10n ** 18n;
   await (await newFeeRouter.setBaseReward('dapp-payment', baseRewardWei, overrides)).wait();
-  await (await newFeeRouter.setAuthorizedDApp(simplePaymentAddress, true, overrides)).wait();
-  console.log('   RewardManager, LoyaltyPoints, baseReward, SimplePayment authorized');
+  console.log('   RewardManager, LoyaltyPoints, baseReward set');
+
+  console.log('\n3b. Deploying new SimplePayment (payment-amount–scaled rewards)...');
+  const FEE_PERCENTAGE = 100; // 1%
+  const SimplePayment = await hre.ethers.getContractFactory('SimplePayment');
+  const newSimplePaymentAddress = await deployNoEstimate(SimplePayment, [feeCollectorAddress, FEE_PERCENTAGE], overrides);
+  console.log('   New SimplePayment at:', newSimplePaymentAddress);
+  const newSimplePayment = await hre.ethers.getContractAt('SimplePayment', newSimplePaymentAddress);
+  await (await newSimplePayment.setFeeRouter(newFeeRouterAddress, overrides)).wait();
+  await (await newFeeRouter.setAuthorizedDApp(newSimplePaymentAddress, true, overrides)).wait();
+  console.log('   New SimplePayment: FeeRouter set and authorized');
 
   console.log('\n4. Wiring new LoyaltyPoints...');
   const newLoyaltyPoints = await hre.ethers.getContractAt('LoyaltyPoints', newLoyaltyPointsAddress);
@@ -119,18 +128,17 @@ async function main() {
   await (await rtm.setAuthorizedCaller(newFeeRouterAddress, true, overrides)).wait();
   console.log('   Old FeeRouter revoked; new FeeRouter authorized');
 
-  console.log('\n6. Pointing SimplePayment to new FeeRouter...');
-  const simplePayment = await hre.ethers.getContractAt('SimplePayment', simplePaymentAddress);
-  await (await simplePayment.setFeeRouter(newFeeRouterAddress, overrides)).wait();
-  console.log('   SimplePayment.setFeeRouter(new FeeRouter) done');
+  console.log('\n6. Using new SimplePayment (rewards scale by payment amount). Old SimplePayment unchanged.');
 
   const updated = {
     ...dep,
     FeeRouter: newFeeRouterAddress,
     LoyaltyPoints: newLoyaltyPointsAddress,
+    SimplePayment: newSimplePaymentAddress,
     upgradedAt: new Date().toISOString(),
     previousFeeRouter: oldFeeRouterAddress,
     previousLoyaltyPoints: oldLoyaltyPointsAddress,
+    previousSimplePayment: simplePaymentAddress,
   };
   fs.writeFileSync(deploymentPath, JSON.stringify(updated, null, 2));
   console.log('\nDeployment file updated:', deploymentPath);
@@ -138,6 +146,7 @@ async function main() {
   console.log('\n--- Set these in .env and Vercel ---');
   console.log('NEXT_PUBLIC_FEE_ROUTER_ADDRESS_IGRA_GALLEON_TESTNET=' + newFeeRouterAddress);
   console.log('NEXT_PUBLIC_LOYALTY_POINTS_ADDRESS_IGRA_GALLEON_TESTNET=' + newLoyaltyPointsAddress);
+  console.log('NEXT_PUBLIC_SIMPLE_PAYMENT_ADDRESS_IGRA_GALLEON_TESTNET=' + newSimplePaymentAddress);
   console.log('\nDone.');
 }
 

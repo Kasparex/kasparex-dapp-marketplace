@@ -15,6 +15,9 @@ import { getErrorMessage } from '@/lib/utils';
 import { useSafeError } from '@/hooks/useSafeError';
 import { useMemo, useRef } from 'react';
 import { calculateCost, formatPrice, formatPercent, type CostBreakdown } from '@/lib/payments/calculator';
+import { getDefaultRewardsBreakdown } from '@/lib/rewards/mockData';
+import { KREX_TIERS } from '@/lib/rewards/types';
+import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { useAutomatedRewards } from '@/hooks/useAutomatedRewards';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
@@ -601,6 +604,36 @@ export function SimplePaymentWidget() {
                       <span>Recipient receives</span>
                       <span>{formatPrice(paymentCostBreakdown.breakdown.subtotal)} {nativeSymbol}</span>
                     </div>
+                    {(() => {
+                      const paymentNum = parseFloat(amount || '0');
+                      if (paymentNum <= 0) return null;
+                      const rewards = getDefaultRewardsBreakdown(chainId ?? undefined);
+                      const tierConfig = KREX_TIERS[tier];
+                      const mult = tierConfig?.multiplier ?? 1;
+                      const gridReward = Math.round(paymentNum * rewards.grtPerKas * mult);
+                      const xpReward = Math.round(paymentNum * rewards.xpPerKas * mult);
+                      const gridLabel = chainId === 38836 || chainId === 38837 ? 'tGRID' : 'GRID';
+                      return (
+                        <div className="pt-2 mt-2 border-t border-zinc-200 dark:border-zinc-800 space-y-1">
+                          <div className="flex justify-between items-center font-semibold text-zinc-900 dark:text-zinc-100">
+                            <span>You receive</span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs text-zinc-600 dark:text-zinc-400">
+                            <span>{gridLabel}</span>
+                            <span className="font-medium text-[#02abb8]">{formatLargeNumber(gridReward)}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs text-zinc-600 dark:text-zinc-400">
+                            <span>XP points</span>
+                            <span className="font-medium text-[#02abb8]">{formatLargeNumber(xpReward)}</span>
+                          </div>
+                          {mult > 1 && (
+                            <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                              (×{mult} tier applied)
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </>
                 ) : (
                   <>
@@ -618,6 +651,36 @@ export function SimplePaymentWidget() {
                       <span>Recipient receives</span>
                       <span>{formatKAS(paymentAmount)} {nativeSymbol}</span>
                     </div>
+                    {(() => {
+                      const paymentNum = parseFloat(amount || '0');
+                      if (paymentNum <= 0) return null;
+                      const rewards = getDefaultRewardsBreakdown(chainId ?? undefined);
+                      const tierConfig = KREX_TIERS[tier];
+                      const mult = tierConfig?.multiplier ?? 1;
+                      const gridReward = Math.round(paymentNum * rewards.grtPerKas * mult);
+                      const xpReward = Math.round(paymentNum * rewards.xpPerKas * mult);
+                      const gridLabel = chainId === 38836 || chainId === 38837 ? 'tGRID' : 'GRID';
+                      return (
+                        <div className="pt-2 mt-2 border-t border-zinc-200 dark:border-zinc-800 space-y-1">
+                          <div className="flex justify-between items-center font-semibold text-zinc-900 dark:text-zinc-100">
+                            <span>You receive</span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs text-zinc-600 dark:text-zinc-400">
+                            <span>{gridLabel}</span>
+                            <span className="font-medium text-[#02abb8]">{formatLargeNumber(gridReward)}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs text-zinc-600 dark:text-zinc-400">
+                            <span>XP points</span>
+                            <span className="font-medium text-[#02abb8]">{formatLargeNumber(xpReward)}</span>
+                          </div>
+                          {mult > 1 && (
+                            <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                              (×{mult} tier applied)
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </>
                 )}
               </div>

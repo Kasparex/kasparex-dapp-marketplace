@@ -89,6 +89,10 @@ async function main() {
     await (await loyaltyPoints.setKREXToken(krexTokenAddress, overrides)).wait();
     console.log('   LoyaltyPoints: KREX token set (tier multiplier active)');
   }
+  if (typeof loyaltyPoints.setPointsPer1iKAS === 'function') {
+    await (await loyaltyPoints.setPointsPer1iKAS('dapp-payment', 100, overrides)).wait();
+    console.log('   LoyaltyPoints: pointsPer1iKAS(dapp-payment)=100 (XP scales by payment amount)');
+  }
 
   // Optional: fund RewardManager
   const fundWei = process.env.FUND_REWARD_MANAGER_WEI ? BigInt(process.env.FUND_REWARD_MANAGER_WEI) : 0n;

@@ -21,6 +21,7 @@ contract LoyaltyPoints is Ownable {
 
     mapping(address => LoyaltyData) public userLoyalty;
     mapping(string => uint256) public actionPoints;
+    mapping(string => uint256) public pointsPer1iKAS; // e.g. "dapp-payment" => 100 XP per 1 iKAS
     uint256 public streakInterval = 86400;
 
     mapping(address => bool) public authorizedCallers;
@@ -48,6 +49,7 @@ contract LoyaltyPoints is Ownable {
         actionPoints["proposal"] = 50;
         actionPoints["payment"] = 5;
         actionPoints["dapp-payment"] = 5;
+        pointsPer1iKAS["dapp-payment"] = 100;
         actionPoints["product-purchase"] = 10;
         actionPoints["article-creation"] = 20;
         actionPoints["listing"] = 15;
@@ -75,6 +77,36 @@ contract LoyaltyPoints is Ownable {
      */
     function getTierMultiplierBps(address user) external view returns (uint256) {
         return _tierMultiplierBps(user);
+    }
+
+    /**
+     * @dev Award points scaled by payment amount: points = (paymentAmountWei/1e18) * pointsPer1iKAS[actionType] * tierBps/BPS. Only callable by authorized (e.g. FeeRouter).
+     */
+    function awardPointsForPayment(address user, string memory actionType, uint256 paymentAmountWei) external onlyAuthorized {
+        require(user != address(0), "LoyaltyPoints: Invalid user");
+        if (paymentAmountWei == 0) return;
+        uint256 perUnit = pointsPer1iKAS[actionType];
+        if (perUnit == 0) return;
+        uint256 multBps = _tierMultiplierBps(user);
+        uint256 points = (paymentAmountWei * perUnit * multBps) / (1e18 * BPS);
+        if (points == 0) points = 1;
+
+        LoyaltyData storage loyalty = userLoyalty[user];
+        uint256 prevActivity = loyalty.lastActivity;
+        loyalty.totalPoints += points;
+        loyalty.lastActivity = block.timestamp;
+
+        if (prevActivity > 0 && (block.timestamp - prevActivity) >= streakInterval) {
+            loyalty.participationDays++;
+            if ((block.timestamp - prevActivity) < 2 * streakInterval) {
+                loyalty.streakDays++;
+            } else {
+                loyalty.streakDays = 1;
+            }
+            emit StreakUpdated(user, loyalty.streakDays, block.timestamp);
+        }
+
+        emit PointsAwarded(user, actionType, points, loyalty.totalPoints, block.timestamp);
     }
 
     /**
@@ -157,6 +189,10 @@ contract LoyaltyPoints is Ownable {
         uint256 oldPoints = actionPoints[actionType];
         actionPoints[actionType] = points;
         emit ActionPointsUpdated(actionType, oldPoints, points);
+    }
+
+    function setPointsPer1iKAS(string memory actionType, uint256 points) external onlyOwner {
+        pointsPer1iKAS[actionType] = points;
     }
 
     function setStreakInterval(uint256 _interval) external onlyOwner {

@@ -67,10 +67,21 @@ contract FeeRouter is Ownable {
     }
 
     /**
-     * @dev Receive fee, split, then distribute GRID reward and award points for transactionType.
-     * Points failure does not revert; reward failure reverts entire call.
+     * @dev Receive fee, split, then distribute GRID reward and award points. Legacy: no payment amount = fixed reward per tx.
      */
     function forwardFeeAndRevenueWithRewards(address payer, string calldata transactionType) external payable onlyAuthorizedDApp {
+        _forwardFeeAndRevenueWithRewards(payer, transactionType, 0);
+    }
+
+    /**
+     * @dev Receive fee, split, then distribute GRID reward (scaled by paymentAmountWei) and award points (scaled by paymentAmountWei).
+     * paymentAmountWei = total payment in wei (e.g. msg.value from SimplePayment). Reward = (paymentAmountWei/1e18) * baseRewardPer1iKAS * tierBps/BPS.
+     */
+    function forwardFeeAndRevenueWithRewards(address payer, string calldata transactionType, uint256 paymentAmountWei) external payable onlyAuthorizedDApp {
+        _forwardFeeAndRevenueWithRewards(payer, transactionType, paymentAmountWei);
+    }
+
+    function _forwardFeeAndRevenueWithRewards(address payer, string calldata transactionType, uint256 paymentAmountWei) internal {
         if (msg.value == 0) return;
         uint256 toTree = (msg.value * treeBps) / BPS;
         uint256 toTreasury = msg.value - toTree;
@@ -78,22 +89,26 @@ contract FeeRouter is Ownable {
         if (toTreasury > 0) feeCollector.forwardFee{value: toTreasury}();
 
         uint256 baseWei = baseRewardWei[transactionType];
-        if (baseWei > 0 && address(rewardManager) != address(0) && address(loyaltyPoints) != address(0)) {
-            uint256 multBps = loyaltyPoints.getTierMultiplierBps(payer);
-            uint256 rewardWei = (baseWei * multBps) / BPS;
+        uint256 rewardWei;
+        if (baseWei > 0 && address(rewardManager) != address(0)) {
+            uint256 multBps = address(loyaltyPoints) != address(0) ? loyaltyPoints.getTierMultiplierBps(payer) : BPS;
+            if (paymentAmountWei > 0) {
+                rewardWei = (paymentAmountWei * baseWei / 1e18) * multBps / BPS;
+            } else {
+                rewardWei = (baseWei * multBps) / BPS;
+            }
             if (rewardWei > 0) {
                 try rewardManager.distributeRewardDirect(payer, rewardWei) {
                     emit ForwardedWithRewards(payer, msg.value, transactionType, rewardWei);
                 } catch {}
             }
-            // If reward distribution fails (e.g. insufficient tGRID in RewardManager), fee split and points still apply
-        } else if (baseWei > 0 && address(rewardManager) != address(0)) {
-            try rewardManager.distributeRewardDirect(payer, baseWei) {
-                emit ForwardedWithRewards(payer, msg.value, transactionType, baseWei);
-            } catch {}
         }
         if (address(loyaltyPoints) != address(0)) {
-            try loyaltyPoints.awardPointsWithMultiplier(payer, transactionType) {} catch {}
+            if (paymentAmountWei > 0) {
+                try loyaltyPoints.awardPointsForPayment(payer, transactionType, paymentAmountWei) {} catch {}
+            } else {
+                try loyaltyPoints.awardPointsWithMultiplier(payer, transactionType) {} catch {}
+            }
         }
     }
 
