@@ -73,17 +73,32 @@ async function main() {
   await (await feeRouter.setBaseReward('genesis-badge', baseRewardWei, overrides)).wait();
   console.log('   FeeRouter: baseReward(genesis-badge) = 500e18');
 
-  // 3. LoyaltyPoints: XP per 1 iKAS for "genesis-badge"; optional: set tKREX for tier multiplier (tGRID/XP scale by KREX balance)
+  // 3. LoyaltyPoints: XP per 1 iKAS for "genesis-badge"; set tKREX so tier multiplier applies (same as Simple Payment)
   console.log('\n3. Configuring LoyaltyPoints...');
   const loyaltyPoints = await hre.ethers.getContractAt('LoyaltyPoints', loyaltyPointsAddress);
   await (await loyaltyPoints.setPointsPer1iKAS('genesis-badge', 100, overrides)).wait();
   console.log('   LoyaltyPoints: pointsPer1iKAS(genesis-badge) = 100');
-  const krexTokenAddress = process.env.KREX_TOKEN_ADDRESS?.trim();
+  let krexTokenAddress = process.env.KREX_TOKEN_ADDRESS?.trim();
+  if (!krexTokenAddress) {
+    const revTreePath = path.join(__dirname, '..', 'deployments', 'revenue-tree-igraGalleonTestnet.json');
+    if (fs.existsSync(revTreePath)) {
+      const revTree = JSON.parse(fs.readFileSync(revTreePath, 'utf8'));
+      if (revTree.tKREX) {
+        krexTokenAddress = revTree.tKREX;
+        console.log('   Using tKREX from deployments/revenue-tree-igraGalleonTestnet.json:', krexTokenAddress);
+      }
+    }
+  }
   if (krexTokenAddress) {
-    await (await loyaltyPoints.setKREXToken(krexTokenAddress, overrides)).wait();
-    console.log('   LoyaltyPoints: KREX token set (tier multiplier active for tGRID + XP)');
+    const currentKrex = await loyaltyPoints.krexToken();
+    if (currentKrex.toLowerCase() !== krexTokenAddress.toLowerCase()) {
+      await (await loyaltyPoints.setKREXToken(krexTokenAddress, overrides)).wait();
+      console.log('   LoyaltyPoints: KREX token set (tier multiplier active for tGRID + XP for all dApps using this LoyaltyPoints)');
+    } else {
+      console.log('   LoyaltyPoints: KREX token already set (multipliers active)');
+    }
   } else {
-    console.log('   LoyaltyPoints: KREX token not set — set KREX_TOKEN_ADDRESS and re-run step 3 or use configure-igra-galleon-rewards.js to enable multipliers');
+    console.log('   WARNING: LoyaltyPoints KREX token not set — multipliers will be 1x. Set KREX_TOKEN_ADDRESS or run: npx hardhat run scripts/set-loyalty-krex-token.js --network igraGalleonTestnet');
   }
 
   // 4. Write deployment output

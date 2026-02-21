@@ -28,8 +28,16 @@ The script will:
 2. Call `FeeRouter.setAuthorizedDApp(genesisBadgeAddress, true)`.
 3. Call `FeeRouter.setBaseReward("genesis-badge", 500e18)` (500 tGRID per 1 iKAS).
 4. Call `LoyaltyPoints.setPointsPer1iKAS("genesis-badge", 100)` (100 XP per 1 iKAS).
-5. If `KREX_TOKEN_ADDRESS` is set (tKREX on 38836), call `LoyaltyPoints.setKREXToken(...)` so tier multipliers apply to tGRID and XP.
+5. Call `LoyaltyPoints.setKREXToken(...)` so tier multipliers apply to tGRID and XP: uses `KREX_TOKEN_ADDRESS` if set, otherwise tKREX from `deployments/revenue-tree-igraGalleonTestnet.json`.
 6. Write `deployments/genesis-badge-igra-galleon-testnet.json` and print the env line.
+
+**If multiplied rewards are not applied** (e.g. Genesis Badge shows 1x instead of tier multiplier), ensure LoyaltyPoints has the KREX token set on that chain. Run:
+
+```bash
+npx hardhat run scripts/set-loyalty-krex-token.js --network igraGalleonTestnet
+```
+
+Optionally set `LOYALTY_POINTS_ADDRESS` and `KREX_TOKEN_ADDRESS`; on 38836 the script defaults to the usual LoyaltyPoints and tKREX from the revenue-tree deployment.
 
 ## After deploy
 
@@ -48,7 +56,7 @@ If your stack uses different addresses:
 
 - `FEE_ROUTER_ADDRESS` – FeeRouter contract address
 - `LOYALTY_POINTS_ADDRESS` – LoyaltyPoints contract address
-- `KREX_TOKEN_ADDRESS` – tKREX token address on 38836; when set, enables tier multipliers for tGRID and XP (otherwise users get base amounts only)
+- `KREX_TOKEN_ADDRESS` – tKREX token address; when not set on 38836, the deploy script uses tKREX from `deployments/revenue-tree-igraGalleonTestnet.json` so multipliers are enabled by default
 
 Example (with multipliers enabled):
 ```bash
