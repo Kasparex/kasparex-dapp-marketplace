@@ -179,7 +179,7 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
               className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg"
             >
               <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{token}</span>
-              <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums">
+              <span className="text-base font-semibold tabular-nums text-[#02abb8]">
                 {loading ? '...' : balance}
               </span>
             </div>
@@ -298,6 +298,8 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
             userWalletAddress={userWalletAddress || undefined}
             isL2Only={true}
             activationAmount={activationAmount}
+            amountSpent={paymentAmount ?? actionCosts[0]?.costBreakdown?.finalCost ?? 10}
+            treeBps={1000}
           />
         </div>
       )}

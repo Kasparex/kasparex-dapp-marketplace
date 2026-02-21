@@ -1,32 +1,46 @@
 'use client';
 
+import { useState } from 'react';
 import { RevenueTreeData } from '@/lib/revenue-tree/types';
 import { RevenueTreeLevel } from './RevenueTreeLevel';
 import { ReferralLinkBox } from './ReferralLinkBox';
+import { RevenueTreeGuideModal } from './RevenueTreeGuideModal';
 import { hasUserActivated } from '@/lib/revenue-tree/utils';
 import { useChainId } from 'wagmi';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
+
+const DEFAULT_AMOUNT_SPENT = 10;
+const DEFAULT_TREE_BPS = 1000;
 
 interface RevenueTreeProps {
   data: RevenueTreeData;
   userWalletAddress?: string;
   isL2Only?: boolean; // Only show for L2 dApps
   activationAmount?: number; // Amount spent toward activation (default: 100 KAS)
+  /** Amount spent in native token (e.g. payment amount); used to show per-level split. Updates when user changes price. */
+  amountSpent?: number;
+  /** Revenue tree share in BPS (10000 = 100%). Default 1000 = 10%. */
+  treeBps?: number;
 }
 
-export function RevenueTree({ data, userWalletAddress, isL2Only = true, activationAmount = 0 }: RevenueTreeProps) {
+export function RevenueTree({ data, userWalletAddress, isL2Only = true, activationAmount = 0, amountSpent = DEFAULT_AMOUNT_SPENT, treeBps = DEFAULT_TREE_BPS }: RevenueTreeProps) {
   const chainId = useChainId();
-  
+  const [showGuide, setShowGuide] = useState(false);
+
   // Unified tree (on-chain): use data.activatedAt. Legacy: use localStorage hasUserActivated.
   const isActivated =
     data.contentSlug === 'revenue-tree' && data.activatedAt
       ? true
       : (userWalletAddress ? hasUserActivated(userWalletAddress, data.contentType, data.contentSlug) : false);
-  
+
   const currencySymbol = getNativeCurrencySymbol(chainId);
   const requiredAmount = 100;
   const progress = Math.min((activationAmount / requiredAmount) * 100, 100);
-  
+
+  const amountToTree = (amountSpent * treeBps) / 10000;
+  const getLevelShare = (sharePercentage: number) => (amountToTree * sharePercentage) / 100;
+  const formatShortAddress = (addr: string) => (addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '—');
+
   // Sort levels from 5 to 1 (top to bottom)
   const sortedLevels = [...data.levels].sort((a, b) => b.level - a.level);
 
@@ -43,14 +57,54 @@ export function RevenueTree({ data, userWalletAddress, isL2Only = true, activati
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div>
-        <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-widest mb-2 py-2 border-b border-zinc-100 dark:border-zinc-800">
-          Revenue Tree
-        </h3>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4 italic">
-          Rotating revenue share system • 5 levels • Revenue distributed automatically on each payment
-        </p>
+      {/* Header with info button */}
+      <div className="flex items-start justify-between gap-2 border-b border-zinc-100 dark:border-zinc-800 pb-2 mb-2">
+        <div>
+          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-widest py-2">
+            Revenue Tree
+          </h3>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 italic">
+            Rotating revenue share • 5 levels • Distributed automatically on each payment
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowGuide(true)}
+          className="flex-shrink-0 p-2 rounded-lg text-zinc-500 hover:text-[#02abb8] hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+          aria-label="What is Revenue Tree?"
+          title="What is Revenue Tree?"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </button>
+      </div>
+      <RevenueTreeGuideModal isOpen={showGuide} onClose={() => setShowGuide(false)} />
+
+      {/* Per-level iKAS/KAS split (updates with amountSpent) */}
+      <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-800">
+        <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
+          Split per level ({amountSpent} {currencySymbol} spent, {(treeBps / 100).toFixed(0)}% to tree)
+        </div>
+        <div className="space-y-2 font-mono text-xs">
+          {sortedLevels.map((level) => {
+            const share = getLevelShare(level.sharePercentage);
+            return (
+              <div key={level.level} className="space-y-0.5">
+                <div className="flex items-center justify-between text-zinc-700 dark:text-zinc-300">
+                  <span>LEVEL {level.level}</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">Users</span>
+                  <span className="font-semibold text-[#02abb8]">{level.sharePercentage}% Share</span>
+                </div>
+                <div className="flex items-center justify-between text-zinc-600 dark:text-zinc-400 pl-2">
+                  <span className="truncate max-w-[100px]" title={level.walletAddress}>{formatShortAddress(level.walletAddress)}</span>
+                  <span>{level.userCount}</span>
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100 text-[#02abb8]">{share.toFixed(2)} {currencySymbol}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Progress Bar - Show if not activated */}
@@ -102,7 +156,7 @@ export function RevenueTree({ data, userWalletAddress, isL2Only = true, activati
             Total Earned:
           </div>
           <div className="text-lg font-black text-[#02abb8]">
-            {data.totalEarned.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-sm text-zinc-500 dark:text-zinc-400 font-bold">KAS</span>
+            {data.totalEarned.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-sm text-zinc-500 dark:text-zinc-400 font-bold">{currencySymbol}</span>
           </div>
         </div>
         <div className="flex items-center justify-between">
