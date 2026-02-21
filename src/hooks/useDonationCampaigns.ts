@@ -12,6 +12,9 @@ import type { Address } from 'viem';
 const ZERO = '0x0000000000000000000000000000000000000000';
 const MAX_CAMPAIGNS = 100;
 
+// readContract campaigns() returns tuple: [creator, targetWei, deadline, raisedWei, donorCount, ipfsHash, l1Address, active]
+type CampaignTuple = readonly [Address, bigint, bigint, bigint, bigint, string, string, boolean];
+
 export interface DonationCampaignListItem {
   creatorAddress: `0x${string}`;
   targetWei: bigint;
@@ -86,17 +89,17 @@ export function useDonationCampaigns(): {
     const list: DonationCampaignListItem[] = [];
     campaignResults.forEach((r, i) => {
       if (r.status !== 'success' || !r.result || i >= creatorAddresses.length) return;
-      const c = r.result as { creator: string; targetWei: bigint; deadline: bigint; raisedWei: bigint; donorCount: bigint; ipfsHash: string; l1Address: string; active: boolean };
-      if (c.creator === ZERO) return;
+      const t = r.result as unknown as CampaignTuple;
+      if (t[0] === ZERO) return;
       list.push({
         creatorAddress: creatorAddresses[i] as `0x${string}`,
-        targetWei: c.targetWei,
-        deadline: c.deadline,
-        raisedWei: c.raisedWei,
-        donorCount: c.donorCount,
-        ipfsHash: c.ipfsHash,
-        l1Address: c.l1Address,
-        active: c.active,
+        targetWei: t[1],
+        deadline: t[2],
+        raisedWei: t[3],
+        donorCount: t[4],
+        ipfsHash: t[5],
+        l1Address: t[6],
+        active: t[7],
       });
     });
     return list;

@@ -16,6 +16,15 @@ import type { Address } from 'viem';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
 
+// readContract returns tuple: [creator, targetWei, deadline, raisedWei, donorCount, ipfsHash, l1Address, active]
+type CampaignTuple = readonly [Address, bigint, bigint, bigint, bigint, string, string, boolean];
+
+function parseCampaignTuple(data: unknown): { creator: Address; targetWei: bigint; deadline: bigint; raisedWei: bigint; donorCount: bigint; ipfsHash: string; l1Address: string; active: boolean } | null {
+  const t = data as unknown as CampaignTuple | undefined;
+  if (!t || t[0] === ZERO) return null;
+  return { creator: t[0], targetWei: t[1], deadline: t[2], raisedWei: t[3], donorCount: t[4], ipfsHash: t[5], l1Address: t[6], active: t[7] };
+}
+
 export default function DonationsStudioPage() {
   const chainId = useChainId();
   const { address, isConnected } = useAccount();
@@ -35,19 +44,8 @@ export default function DonationsStudioPage() {
     args: address ? [address] : undefined,
   });
 
-  const hasCampaign = campaignOnChain && (campaignOnChain as { creator: string }).creator !== ZERO;
-  const campaign = hasCampaign
-    ? (campaignOnChain as {
-        creator: Address;
-        targetWei: bigint;
-        deadline: bigint;
-        raisedWei: bigint;
-        donorCount: bigint;
-        ipfsHash: string;
-        l1Address: string;
-        active: boolean;
-      })
-    : null;
+  const campaign = parseCampaignTuple(campaignOnChain);
+  const hasCampaign = campaign !== null;
 
   const { writeContract, data: txHash, isPending: isTxPending, error: txError } = useWriteContract();
   const { isLoading: isTxConfirming, isSuccess: isTxSuccess } = useWaitForTransactionReceipt({ hash: txHash });

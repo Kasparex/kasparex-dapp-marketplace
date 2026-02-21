@@ -12,6 +12,15 @@ import type { DonationCampaign, DonationCampaignMetadata } from '@/lib/donations
 
 const ZERO = '0x0000000000000000000000000000000000000000';
 
+// readContract returns tuple: [creator, targetWei, deadline, raisedWei, donorCount, ipfsHash, l1Address, active]
+type CampaignTuple = readonly [Address, bigint, bigint, bigint, bigint, string, string, boolean];
+
+function parseCampaign(data: unknown): CampaignTuple | null {
+  const t = data as unknown as CampaignTuple | undefined;
+  if (!t || t[0] === ZERO) return null;
+  return t;
+}
+
 export function useDonationCampaign(creatorAddress: string | null): {
   campaign: DonationCampaign | null;
   isLoading: boolean;
@@ -35,36 +44,19 @@ export function useDonationCampaign(creatorAddress: string | null): {
     args: creatorAddress ? [creatorAddress as Address] : undefined,
   });
 
-  const ipfsHash = useMemo(() => {
-    if (!campaignOnChain || Array.isArray(campaignOnChain)) return null;
-    const c = campaignOnChain as { creator: string; ipfsHash: string };
-    return c.ipfsHash || null;
-  }, [campaignOnChain]);
-
-  // We don't have useQuery for IPFS in this hook - parent can fetch metadata or we use a simple fetch in useEffect.
-  // For now return campaign without metadata; the page can use fetchJSON(ipfsHash) when ipfsHash is set.
   const campaign: DonationCampaign | null = useMemo(() => {
-    if (!creatorAddress || !escrowAddress || !campaignOnChain) return null;
-    const c = campaignOnChain as {
-      creator: Address;
-      targetWei: bigint;
-      deadline: bigint;
-      raisedWei: bigint;
-      donorCount: bigint;
-      ipfsHash: string;
-      l1Address: string;
-      active: boolean;
-    };
-    if (c.creator === ZERO) return null;
+    if (!creatorAddress || !escrowAddress) return null;
+    const t = parseCampaign(campaignOnChain);
+    if (!t) return null;
     return {
       creatorAddress: creatorAddress as `0x${string}`,
-      targetWei: c.targetWei,
-      deadline: c.deadline,
-      raisedWei: c.raisedWei,
-      donorCount: c.donorCount,
-      ipfsHash: c.ipfsHash,
-      l1Address: c.l1Address,
-      active: c.active,
+      targetWei: t[1],
+      deadline: t[2],
+      raisedWei: t[3],
+      donorCount: t[4],
+      ipfsHash: t[5],
+      l1Address: t[6],
+      active: t[7],
       verified: Boolean(isVerified),
       metadata: null,
     };
