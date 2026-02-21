@@ -119,7 +119,7 @@ export default function DonationsStudioPage() {
         l1KaspaAddress: createForm.l1KaspaAddress.trim(),
       };
       const client = getIPFSClient();
-      const ipfsHash = await client.uploadJSON(metadata as Record<string, unknown>);
+      const ipfsHash = await client.uploadJSON(metadata as unknown as Record<string, unknown>);
       const targetWei = parseEther(createForm.targetKAS);
       const deadline = BigInt(Math.floor(endDate.getTime() / 1000));
       const l1Address = createForm.l1KaspaAddress.trim();
