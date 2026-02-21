@@ -12,7 +12,8 @@ type DAppContractName =
   | 'PlatformSubscription'
   | 'QuizToEarn'
   | 'SubscriptionManager'
-  | 'DAppSubscription';
+  | 'DAppSubscription'
+  | 'GenesisBadge';
 
 const SLUG_TO_CONTRACT: Record<string, DAppContractName> = {
   'simple-payment': 'SimplePayment',
@@ -21,6 +22,7 @@ const SLUG_TO_CONTRACT: Record<string, DAppContractName> = {
   'quiz-to-earn': 'QuizToEarn',
   'subscription': 'SubscriptionManager',
   'dapp-subscription': 'DAppSubscription',
+  'genesis-badge': 'GenesisBadge',
 };
 
 /**

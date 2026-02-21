@@ -42,6 +42,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     AdminDashboard: "",
     RevenueTreeManager: "",
     FeeRouter: "",
+    GenesisBadge: "",
   },
   kasplexL2Testnet: {
     Treasury: "0x305B4ee627aD8b12bFCF6427453964771aA30622",
@@ -67,6 +68,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     AdminDashboard: "0x96c6Bab5EB4633eE33D07070E8d59C5bf3aD6502",
     RevenueTreeManager: "0xF013452C232F0450F3f1eF813B34c41fB01C7b19",
     FeeRouter: "0x1E18a05c14F3962a209e4371A5734766FA0365eB",
+    GenesisBadge: "",
   },
   igraCaravelTestnet: {
     Treasury: "",
@@ -94,6 +96,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     PromoMintRouter: "0xc76515904e948698F67fCBc64f7d3b4C57602470",
     RevenueTreeManager: "",
     FeeRouter: "",
+    GenesisBadge: "",
   },
   igraGalleonTestnet: {
     Treasury: "0xe32a9445F5771DaE70b5148515cFc012621BA101",
@@ -121,6 +124,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     PromoMintRouter: "",
     RevenueTreeManager: "0x5A60E418f6B04bD1eb0AEF8088a6D5DB81FAd0cA",
     FeeRouter: "0x37c98699eEe02Cb89da64C45B8c970174218A745",
+    GenesisBadge: "0xAD3Aa97F7AE16D180A3d35163Bd800b0e039059E",
   },
   igraGalleonTestMainnet: {
     Treasury: "",
@@ -148,6 +152,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     PromoMintRouter: "",
     RevenueTreeManager: "0x002C7eeC68975d41f3f0F7bC8D900Aa45A131aE2",
     FeeRouter: "",
+    GenesisBadge: "",
   },
 };
 
@@ -178,6 +183,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     PromoMintRouter: "",
     RevenueTreeManager: "",
     FeeRouter: "",
+    GenesisBadge: "",
   },
   kasplexL2Testnet: {
     Treasury: "",
@@ -205,6 +211,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     PromoMintRouter: "",
     RevenueTreeManager: "0xF013452C232F0450F3f1eF813B34c41fB01C7b19",
     FeeRouter: "0x1E18a05c14F3962a209e4371A5734766FA0365eB",
+    GenesisBadge: "",
   },
   igraCaravelTestnet: {
     Treasury: "",
@@ -232,6 +239,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     PromoMintRouter: "0xc76515904e948698F67fCBc64f7d3b4C57602470",
     RevenueTreeManager: "",
     FeeRouter: "",
+    GenesisBadge: "",
   },
   igraGalleonTestnet: {
     Treasury: "0xe32a9445F5771DaE70b5148515cFc012621BA101",
@@ -259,6 +267,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     PromoMintRouter: "",
     RevenueTreeManager: "0x5A60E418f6B04bD1eb0AEF8088a6D5DB81FAd0cA",
     FeeRouter: "0x37c98699eEe02Cb89da64C45B8c970174218A745",
+    GenesisBadge: "0xAD3Aa97F7AE16D180A3d35163Bd800b0e039059E",
   },
   igraGalleonTestMainnet: {
     Treasury: "",
@@ -286,6 +295,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     PromoMintRouter: "",
     RevenueTreeManager: "",
     FeeRouter: "",
+    GenesisBadge: "",
   },
 };
 
@@ -317,6 +327,7 @@ export const CONTRACT_ADDRESSES = {
     PromoMintRouter: getEnvVar('NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.PromoMintRouter,
     RevenueTreeManager: getEnvVar('NEXT_PUBLIC_REVENUE_TREE_MANAGER_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.RevenueTreeManager,
     FeeRouter: getEnvVar('NEXT_PUBLIC_FEE_ROUTER_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.FeeRouter,
+    GenesisBadge: getEnvVar('NEXT_PUBLIC_GENESIS_BADGE_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.GenesisBadge,
   },
   // Kasplex L2 Testnet (Chain ID: 167012)
   kasplexL2Testnet: {
@@ -345,6 +356,7 @@ export const CONTRACT_ADDRESSES = {
     PromoMintRouter: getEnvVar('NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.PromoMintRouter,
     RevenueTreeManager: getEnvVar('NEXT_PUBLIC_REVENUE_TREE_MANAGER_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.RevenueTreeManager,
     FeeRouter: getEnvVar('NEXT_PUBLIC_FEE_ROUTER_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.FeeRouter,
+    GenesisBadge: getEnvVar('NEXT_PUBLIC_GENESIS_BADGE_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.GenesisBadge,
   },
   // Igra Caravel Testnet (Chain ID: 19416)
   igraCaravelTestnet: {
@@ -373,6 +385,7 @@ export const CONTRACT_ADDRESSES = {
     PromoMintRouter: getEnvVar('NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.PromoMintRouter,
     RevenueTreeManager: getEnvVar('NEXT_PUBLIC_REVENUE_TREE_MANAGER_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.RevenueTreeManager,
     FeeRouter: getEnvVar('NEXT_PUBLIC_FEE_ROUTER_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.FeeRouter,
+    GenesisBadge: getEnvVar('NEXT_PUBLIC_GENESIS_BADGE_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.GenesisBadge,
   },
   // IGRA Galleon Testnet (Chain ID: 38836)
   igraGalleonTestnet: {
@@ -401,6 +414,7 @@ export const CONTRACT_ADDRESSES = {
     PromoMintRouter: getEnvVar('NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.PromoMintRouter,
     RevenueTreeManager: getEnvVar('NEXT_PUBLIC_REVENUE_TREE_MANAGER_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.RevenueTreeManager,
     FeeRouter: getEnvVar('NEXT_PUBLIC_FEE_ROUTER_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.FeeRouter,
+    GenesisBadge: getEnvVar('NEXT_PUBLIC_GENESIS_BADGE_ADDRESS_IGRA_GALLEON_TESTNET') || getEnvVar('NEXT_PUBLIC_GENESIS_BADGE_ADDRESS_38836') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.GenesisBadge,
   },
   // IGRA Galleon Test Mainnet (Chain ID: 38837)
   igraGalleonTestMainnet: {
@@ -429,6 +443,7 @@ export const CONTRACT_ADDRESSES = {
     PromoMintRouter: getEnvVar('NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.PromoMintRouter,
     RevenueTreeManager: getEnvVar('NEXT_PUBLIC_REVENUE_TREE_MANAGER_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.RevenueTreeManager,
     FeeRouter: getEnvVar('NEXT_PUBLIC_FEE_ROUTER_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.FeeRouter,
+    GenesisBadge: getEnvVar('NEXT_PUBLIC_GENESIS_BADGE_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.GenesisBadge,
   },
 };
 

@@ -69,6 +69,19 @@ const DEFAULT_PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
       },
     ],
   },
+  'genesis-badge': {
+    dappId: 'genesis-badge',
+    networkType: 'L2',
+    actions: [
+      {
+        actionId: 'unlock-or-boost',
+        actionName: 'Unlock or Boost Badge',
+        baseCost: 10.0,
+        costL2: 10.0,
+        nextStep: 'Badge unlocked or boosted',
+      },
+    ],
+  },
   // DAO Voting
   'dao-voting': {
     dappId: 'dao-voting',

@@ -13,6 +13,7 @@ import { DAOVotingWidget } from './dapps/DAOVotingWidget';
 import { SendKASWidget } from './dapps/SendKASWidget';
 import { SendKREXWidget } from './dapps/SendKREXWidget';
 import { GenesisDappWidget } from './dapps/GenesisDappWidget';
+import { GenesisBadgeWidget } from './dapps/GenesisBadgeWidget';
 import { DAppWidgetHeader } from './dapps/DAppWidgetHeader';
 import { DAppWidgetFooter } from './dapps/DAppWidgetFooter';
 import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
@@ -144,6 +145,50 @@ export function DAppWidget({
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
               <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideHeader} />
+            </div>
+          )}
+        </div>
+      </>
+    );
+  }
+
+  // Render Genesis Badge widget if it's the Genesis Badge dApp
+  if (dapp.slug === 'genesis-badge') {
+    return (
+      <>
+        <NetworkCompatibilityModal
+          dapp={dapp}
+          isOpen={showModal}
+          onClose={handleModalClose}
+        />
+        {!networkWallet.isCorrectWalletConnected && (
+          <NetworkInfoMessage 
+            networkType={networkWallet.networkType}
+            message={networkWallet.message}
+            className="mb-4"
+          />
+        )}
+        <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
+          {!hideHeader && (
+            <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}>
+              <DAppWidgetHeader 
+                dapp={dapp} 
+                contractAddress={contractAddress}
+                hideIcons={hideIcons}
+                hideStar={hideStar}
+                hideHeart={hideHeart}
+                hideInfo={hideInfo}
+                hideEmbed={hideEmbed}
+                accentColor={accentColor}
+              />
+            </div>
+          )}
+          <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
+            <GenesisBadgeWidget dapp={dapp} />
+          </div>
+          {!hideFooter && (
+            <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
+              <DAppWidgetFooter dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideHeader} />
             </div>
           )}
         </div>

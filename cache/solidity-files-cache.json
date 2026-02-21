@@ -1164,8 +1164,8 @@
       ]
     },
     "C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\contracts\\SimplePayment.sol": {
-      "lastModificationDate": 1771544419447,
-      "contentHash": "bd155e494d768376c507b21a2f503179",
+      "lastModificationDate": 1771628047059,
+      "contentHash": "20ee7f2b0cc60a7c7c9e0b25c03de54a",
       "sourceName": "contracts/SimplePayment.sol",
       "solcConfig": {
         "version": "0.8.28",
@@ -1371,8 +1371,8 @@
       ]
     },
     "C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\contracts\\LoyaltyPoints.sol": {
-      "lastModificationDate": 1771527160857,
-      "contentHash": "fb8c43e1b0e2f2ebfc227e5a37ab105c",
+      "lastModificationDate": 1771628157405,
+      "contentHash": "62461f39c007358fe69a70417d73abe5",
       "sourceName": "contracts/LoyaltyPoints.sol",
       "solcConfig": {
         "version": "0.8.28",
@@ -1533,8 +1533,8 @@
       ]
     },
     "C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\contracts\\IFeeRouter.sol": {
-      "lastModificationDate": 1771544419265,
-      "contentHash": "32e1a502a5727948b34774f8a33dc565",
+      "lastModificationDate": 1771628046922,
+      "contentHash": "f1f5004209fdedea7fa8710e7cc43e93",
       "sourceName": "contracts/IFeeRouter.sol",
       "solcConfig": {
         "version": "0.8.28",
@@ -1570,8 +1570,8 @@
       ]
     },
     "C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\contracts\\FeeRouter.sol": {
-      "lastModificationDate": 1771527325368,
-      "contentHash": "eeebef0faac1c53f8e8b0c44be2d1a5f",
+      "lastModificationDate": 1771628099321,
+      "contentHash": "39e647c18c6cd6a5b5785207df51832f",
       "sourceName": "contracts/FeeRouter.sol",
       "solcConfig": {
         "version": "0.8.28",
@@ -1691,6 +1691,47 @@
       ],
       "artifacts": [
         "tGRID"
+      ]
+    },
+    "C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\contracts\\GenesisBadge.sol": {
+      "lastModificationDate": 1771675081783,
+      "contentHash": "0fe5b84b9999a9f07000e73bf2a51e19",
+      "sourceName": "contracts/GenesisBadge.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/access/Ownable.sol",
+        "@openzeppelin/contracts/utils/ReentrancyGuard.sol",
+        "./IFeeRouter.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.28"
+      ],
+      "artifacts": [
+        "GenesisBadge"
       ]
     }
   }

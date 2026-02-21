@@ -31,6 +31,7 @@
     "hardhat:deploy:promo-router": "hardhat run scripts/deploy-promo-router.js --network igraCaravelTestnet",
     "hardhat:deploy:test-token": "hardhat run scripts/deploy-test-token.js --network igraCaravelTestnet",
     "hardhat:deploy:tgrid": "hardhat run scripts/deploy-tgrid.js --network igraGalleonTestnet",
+    "hardhat:deploy:genesis-badge": "hardhat run scripts/deploy-genesis-badge.js --network igraGalleonTestnet",
     "hardhat:register:promo-token": "hardhat run scripts/register-promo-token.js --network igraCaravelTestnet",
     "hardhat:setup:promo-token": "hardhat run scripts/setup-promo-token.js --network igraCaravelTestnet",
     "hardhat:update:mint-price": "hardhat run scripts/update-mint-price.js --network igraCaravelTestnet",

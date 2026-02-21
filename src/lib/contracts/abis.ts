@@ -2915,3 +2915,68 @@ export const REVENUE_TREE_MANAGER_ABI = [
   }
 ] as const;
 
+export const GENESIS_BADGE_ABI = [
+  {
+    type: "function",
+    name: "unlockOrBoost",
+    stateMutability: "payable",
+    inputs: [],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "badges",
+    stateMutability: "view",
+    inputs: [{ internalType: "address", name: "", type: "address" }],
+    outputs: [
+      { internalType: "bool", name: "exists", type: "bool" },
+      { internalType: "uint8", name: "themeId", type: "uint8" },
+      { internalType: "uint8", name: "titleId", type: "uint8" },
+      { internalType: "uint256", name: "totalSpentWei", type: "uint256" },
+      { internalType: "uint32", name: "boostCount", type: "uint32" }
+    ]
+  },
+  {
+    type: "function",
+    name: "MIN_PAYMENT_WEI",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }]
+  },
+  {
+    type: "function",
+    name: "THEME_COUNT",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ internalType: "uint8", name: "", type: "uint8" }]
+  },
+  {
+    type: "function",
+    name: "TITLE_COUNT",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ internalType: "uint8", name: "", type: "uint8" }]
+  },
+  {
+    type: "event",
+    name: "BadgeUnlocked",
+    inputs: [
+      { indexed: true, internalType: "address", name: "user", type: "address" },
+      { indexed: false, internalType: "uint8", name: "themeId", type: "uint8" },
+      { indexed: false, internalType: "uint8", name: "titleId", type: "uint8" },
+      { indexed: false, internalType: "uint256", name: "amountWei", type: "uint256" }
+    ],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "BadgeBoosted",
+    inputs: [
+      { indexed: true, internalType: "address", name: "user", type: "address" },
+      { indexed: false, internalType: "uint256", name: "amountWei", type: "uint256" },
+      { indexed: false, internalType: "uint32", name: "newBoostCount", type: "uint32" }
+    ],
+    anonymous: false
+  }
+] as const;
+

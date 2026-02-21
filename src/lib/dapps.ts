@@ -105,6 +105,28 @@ export const placeholderDApps: DApp[] = [
     // deployerAddress will be fetched from DAppRegistry contract
   },
   {
+    id: 'genesis-badge',
+    name: 'Genesis Badge',
+    slug: 'genesis-badge',
+    category: 'general',
+    utility: 'Unlock a unique genesis badge (random theme and title) or boost your existing badge. Each action supports the Revenue Tree and earns tGRID and XP.',
+    process: 'Pay 10 iKAS to unlock a random badge (first time) or boost your badge (subsequent). Revenue splits through the tree; you receive tGRID and XP with your multiplier.',
+    benefits: 'Unique on-chain badge, boost progress, tGRID and XP rewards, Revenue Tree integration. Same user can use unlimited times.',
+    developer: 'Kasparex',
+    developerLinks: [
+      { label: 'Website', url: 'https://www.kasparex.com' },
+      { label: 'Telegram', url: 'https://t.me/kasparex' },
+      { label: 'X (Twitter)', url: 'https://x.com/kasparex' },
+    ],
+    status: 'Testnet',
+    network: 'IGRA Galleon Testnet',
+    networkType: 'L2',
+    provider: 'Kasparex',
+    version: '1.0.0',
+    description: 'Genesis Badge lets you unlock a unique random badge (theme and title) for 10 iKAS, then boost it with more payments. All payments flow through the Revenue Tree and reward you with tGRID and XP. Perfect for testing the ecosystem on IGRA Galleon Testnet.',
+    supportedChainIds: [38836],
+  },
+  {
     id: '12',
     name: 'DAO Voting',
     slug: 'dao-voting',
