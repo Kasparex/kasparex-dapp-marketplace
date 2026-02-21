@@ -98,6 +98,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     RevenueTreeManager: "",
     FeeRouter: "",
     GenesisBadge: "",
+    DonationEscrow: "",
   },
   igraGalleonTestnet: {
     Treasury: "0xe32a9445F5771DaE70b5148515cFc012621BA101",
@@ -245,6 +246,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     RevenueTreeManager: "",
     FeeRouter: "",
     GenesisBadge: "",
+    DonationEscrow: "",
   },
   igraGalleonTestnet: {
     Treasury: "0xe32a9445F5771DaE70b5148515cFc012621BA101",
