@@ -31,13 +31,17 @@ The script will:
 5. Call `LoyaltyPoints.setKREXToken(...)` so tier multipliers apply to tGRID and XP: uses `KREX_TOKEN_ADDRESS` if set, otherwise tKREX from `deployments/revenue-tree-igraGalleonTestnet.json`.
 6. Write `deployments/genesis-badge-igra-galleon-testnet.json` and print the env line.
 
-**If multiplied rewards are not applied** (e.g. Genesis Badge shows 1x instead of tier multiplier), ensure LoyaltyPoints has the KREX token set on that chain. Run:
+### Rewards at 1x only (multipliers not applied)
 
-```bash
-npx hardhat run scripts/set-loyalty-krex-token.js --network igraGalleonTestnet
-```
+On-chain rewards use the **payer’s** tKREX balance on the same chain to determine the tier multiplier. If you see base amounts only (e.g. 500 tGRID and 100 XP per 1 iKAS with no multiplier), **LoyaltyPoints.KREX token is not set** on that chain.
 
-Optionally set `LOYALTY_POINTS_ADDRESS` and `KREX_TOKEN_ADDRESS`; on 38836 the script defaults to the usual LoyaltyPoints and tKREX from the revenue-tree deployment.
+1. **Verify:**  
+   `npx hardhat run scripts/verify-reward-multipliers.js --network igraGalleonTestnet`
+
+2. **Fix:**  
+   `npx hardhat run scripts/set-loyalty-krex-token.js --network igraGalleonTestnet`
+
+   Optionally set `LOYALTY_POINTS_ADDRESS` and `KREX_TOKEN_ADDRESS`; on 38836 the script defaults to the usual LoyaltyPoints and tKREX from `deployments/revenue-tree-igraGalleonTestnet.json`.
 
 ## After deploy
 

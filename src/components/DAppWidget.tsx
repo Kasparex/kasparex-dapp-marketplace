@@ -22,6 +22,8 @@ interface DAppWidgetProps {
   dapp: DApp;
   hideHeader?: boolean;
   hideFooter?: boolean;
+  /** When true, footer does not show category/version/ID row (e.g. on dApp detail page where right column has it). */
+  hideFooterMetaRow?: boolean;
   hideIcons?: boolean;
   hideStar?: boolean;
   hideHeart?: boolean;
@@ -34,6 +36,7 @@ export function DAppWidget({
   dapp,
   hideHeader = false,
   hideFooter = false,
+  hideFooterMetaRow = false,
   hideIcons = false,
   hideStar = false,
   hideHeart = false,
@@ -42,7 +45,6 @@ export function DAppWidget({
   accentColor = '#02abb8',
 }: DAppWidgetProps) {
   const [showModal, setShowModal] = useState(false);
-  const [showHeaderSection, setShowHeaderSection] = useState(true);
   const { isConnected } = useAccount();
   const chainId = useChainId();
   const compatibility = useNetworkCompatibility(dapp);
@@ -83,51 +85,25 @@ export function DAppWidget({
         )}
         <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
           {!hideHeader && (
-            <>
-              {showHeaderSection ? (
-                <div className={`${!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}`}>
-                  <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between">
-                    <span className="text-xs text-zinc-500 dark:text-zinc-500">dApp header</span>
-                    <button
-                      type="button"
-                      onClick={() => setShowHeaderSection(false)}
-                      className="p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors"
-                      aria-label="Hide header"
-                      title="Hide header"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                    </button>
-                  </div>
-                  <DAppWidgetHeader 
-                    dapp={dapp} 
-                    contractAddress={contractAddress}
-                    hideIcons={hideIcons}
-                    hideStar={hideStar}
-                    hideHeart={hideHeart}
-                    hideInfo={hideInfo}
-                    hideEmbed={hideEmbed}
-                    accentColor={accentColor}
-                  />
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setShowHeaderSection(true)}
-                  className="w-full px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border-b border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
-                  aria-label="Show header"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                  <span>Show header</span>
-                </button>
-              )}
-            </>
+            <div className={`${!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}`}>
+              <DAppWidgetHeader 
+                dapp={dapp} 
+                contractAddress={contractAddress}
+                hideIcons={hideIcons}
+                hideStar={hideStar}
+                hideHeart={hideHeart}
+                hideInfo={hideInfo}
+                hideEmbed={hideEmbed}
+                accentColor={accentColor}
+              />
+            </div>
           )}
           <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
             <SimplePaymentWidget />
           </div>
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-              <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideHeader} />
+              <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideFooterMetaRow || hideHeader} />
             </div>
           )}
         </div>
@@ -153,31 +129,16 @@ export function DAppWidget({
         )}
         <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
           {!hideHeader && (
-            <>
-              {showHeaderSection ? (
-                <div className={`${!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}`}>
-                  <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between">
-                    <span className="text-xs text-zinc-500 dark:text-zinc-500">dApp header</span>
-                    <button type="button" onClick={() => setShowHeaderSection(false)} className="p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors" aria-label="Hide header" title="Hide header">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                    </button>
-                  </div>
-                  <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideInfo={hideInfo} hideEmbed={hideEmbed} accentColor={accentColor} />
-                </div>
-              ) : (
-                <button type="button" onClick={() => setShowHeaderSection(true)} className="w-full px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border-b border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 text-sm font-medium flex items-center justify-center gap-2" aria-label="Show header">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                  <span>Show header</span>
-                </button>
-              )}
-            </>
+            <div className={`${!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}`}>
+              <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideInfo={hideInfo} hideEmbed={hideEmbed} accentColor={accentColor} />
+            </div>
           )}
           <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
             <DAOVotingWidget />
           </div>
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-              <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideHeader} />
+              <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideFooterMetaRow || hideHeader} />
             </div>
           )}
         </div>
@@ -203,31 +164,16 @@ export function DAppWidget({
         )}
         <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
           {!hideHeader && (
-            <>
-              {showHeaderSection ? (
-                <div className={`${!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}`}>
-                  <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between">
-                    <span className="text-xs text-zinc-500 dark:text-zinc-500">dApp header</span>
-                    <button type="button" onClick={() => setShowHeaderSection(false)} className="p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors" aria-label="Hide header" title="Hide header">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                    </button>
-                  </div>
-                  <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideInfo={hideInfo} hideEmbed={hideEmbed} accentColor={accentColor} />
-                </div>
-              ) : (
-                <button type="button" onClick={() => setShowHeaderSection(true)} className="w-full px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border-b border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 text-sm font-medium flex items-center justify-center gap-2" aria-label="Show header">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                  <span>Show header</span>
-                </button>
-              )}
-            </>
+            <div className={`${!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}`}>
+              <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideInfo={hideInfo} hideEmbed={hideEmbed} accentColor={accentColor} />
+            </div>
           )}
           <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
             <GenesisBadgeWidget dapp={dapp} />
           </div>
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-              <DAppWidgetFooter dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideHeader} />
+              <DAppWidgetFooter dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideFooterMetaRow || hideHeader} />
             </div>
           )}
         </div>
@@ -246,24 +192,9 @@ export function DAppWidget({
         />
         <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden`}>
           {!hideHeader && (
-            <>
-              {showHeaderSection ? (
-                <div>
-                  <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between">
-                    <span className="text-xs text-zinc-500 dark:text-zinc-500">dApp header</span>
-                    <button type="button" onClick={() => setShowHeaderSection(false)} className="p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors" aria-label="Hide header" title="Hide header">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                    </button>
-                  </div>
-                  <DAppWidgetHeader dapp={dapp} contractAddress={undefined} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideInfo={hideInfo} hideEmbed={hideEmbed} accentColor={accentColor} />
-                </div>
-              ) : (
-                <button type="button" onClick={() => setShowHeaderSection(true)} className="w-full px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border-b border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 text-sm font-medium flex items-center justify-center gap-2" aria-label="Show header">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                  <span>Show header</span>
-                </button>
-              )}
-            </>
+            <div>
+              <DAppWidgetHeader dapp={dapp} contractAddress={undefined} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideInfo={hideInfo} hideEmbed={hideEmbed} accentColor={accentColor} />
+            </div>
           )}
           <GenesisDappWidget />
           {!hideFooter && (
@@ -274,7 +205,7 @@ export function DAppWidget({
               hideStar={hideStar} 
               hideHeart={hideHeart} 
               hideEmbed={hideEmbed}
-              hideMetaRow={hideHeader}
+              hideMetaRow={hideFooterMetaRow || hideHeader}
             />
           )}
         </div>
@@ -300,31 +231,16 @@ export function DAppWidget({
         )}
         <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
           {!hideHeader && (
-            <>
-              {showHeaderSection ? (
-                <div className={`${!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}`}>
-                  <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between">
-                    <span className="text-xs text-zinc-500 dark:text-zinc-500">dApp header</span>
-                    <button type="button" onClick={() => setShowHeaderSection(false)} className="p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors" aria-label="Hide header" title="Hide header">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                    </button>
-                  </div>
-                  <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideInfo={hideInfo} hideEmbed={hideEmbed} accentColor={accentColor} />
-                </div>
-              ) : (
-                <button type="button" onClick={() => setShowHeaderSection(true)} className="w-full px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border-b border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 text-sm font-medium flex items-center justify-center gap-2" aria-label="Show header">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                  <span>Show header</span>
-                </button>
-              )}
-            </>
+            <div className={`${!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}`}>
+              <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideInfo={hideInfo} hideEmbed={hideEmbed} accentColor={accentColor} />
+            </div>
           )}
           <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
             <SendKREXWidget />
           </div>
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-              <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideHeader} />
+              <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideFooterMetaRow || hideHeader} />
             </div>
           )}
         </div>
@@ -350,31 +266,16 @@ export function DAppWidget({
         )}
         <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
           {!hideHeader && (
-            <>
-              {showHeaderSection ? (
-                <div className={`${!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}`}>
-                  <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between">
-                    <span className="text-xs text-zinc-500 dark:text-zinc-500">dApp header</span>
-                    <button type="button" onClick={() => setShowHeaderSection(false)} className="p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors" aria-label="Hide header" title="Hide header">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                    </button>
-                  </div>
-                  <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideInfo={hideInfo} hideEmbed={hideEmbed} accentColor={accentColor} />
-                </div>
-              ) : (
-                <button type="button" onClick={() => setShowHeaderSection(true)} className="w-full px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border-b border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 text-sm font-medium flex items-center justify-center gap-2" aria-label="Show header">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                  <span>Show header</span>
-                </button>
-              )}
-            </>
+            <div className={`${!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}`}>
+              <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideInfo={hideInfo} hideEmbed={hideEmbed} accentColor={accentColor} />
+            </div>
           )}
           <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
             <SendKASWidget />
           </div>
           {!hideFooter && (
             <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-              <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideHeader} />
+              <DAppWidgetFooter dapp={dapp} contractAddress={isL1DApp ? undefined : contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideFooterMetaRow || hideHeader} />
             </div>
           )}
         </div>
@@ -394,24 +295,9 @@ export function DAppWidget({
         
         <div className="w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
           {!hideHeader && (
-            <>
-              {showHeaderSection ? (
-                <div>
-                  <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between">
-                    <span className="text-xs text-zinc-500 dark:text-zinc-500">dApp header</span>
-                    <button type="button" onClick={() => setShowHeaderSection(false)} className="p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors" aria-label="Hide header" title="Hide header">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                    </button>
-                  </div>
-                  <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideInfo={hideInfo} hideEmbed={hideEmbed} accentColor={accentColor} />
-                </div>
-              ) : (
-                <button type="button" onClick={() => setShowHeaderSection(true)} className="w-full px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border-b border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 text-sm font-medium flex items-center justify-center gap-2" aria-label="Show header">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                  <span>Show header</span>
-                </button>
-              )}
-            </>
+            <div>
+              <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideInfo={hideInfo} hideEmbed={hideEmbed} accentColor={accentColor} />
+            </div>
           )}
           <div 
             className="flex flex-col items-center justify-center min-h-[400px] p-8 cursor-pointer"
@@ -474,7 +360,7 @@ export function DAppWidget({
             </div>
           </div>
           {!hideFooter && (
-            <DAppWidgetFooter dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideHeader} />
+            <DAppWidgetFooter dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideFooterMetaRow || hideHeader} />
           )}
         </div>
       </>
@@ -497,24 +383,9 @@ export function DAppWidget({
       )}
         <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!compatibility.isCompatible && isConnected ? 'opacity-60' : ''}`}>
           {!hideHeader && (
-            <>
-              {showHeaderSection ? (
-                <div className={`${!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}`}>
-                  <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between">
-                    <span className="text-xs text-zinc-500 dark:text-zinc-500">dApp header</span>
-                    <button type="button" onClick={() => setShowHeaderSection(false)} className="p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors" aria-label="Hide header" title="Hide header">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                    </button>
-                  </div>
-                  <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideInfo={hideInfo} hideEmbed={hideEmbed} accentColor={accentColor} />
-                </div>
-              ) : (
-                <button type="button" onClick={() => setShowHeaderSection(true)} className="w-full px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border-b border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 text-sm font-medium flex items-center justify-center gap-2" aria-label="Show header">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                  <span>Show header</span>
-                </button>
-              )}
-            </>
+            <div className={`${!compatibility.isCompatible && isConnected ? 'pointer-events-auto' : ''}`}>
+              <DAppWidgetHeader dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideInfo={hideInfo} hideEmbed={hideEmbed} accentColor={accentColor} />
+            </div>
           )}
           <div 
             className={`relative w-full overflow-hidden ${!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}`}
@@ -559,7 +430,7 @@ export function DAppWidget({
         )}
         {!hideFooter && (
           <div className={!compatibility.isCompatible && isConnected ? 'pointer-events-none' : ''}>
-            <DAppWidgetFooter dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideHeader} />
+            <DAppWidgetFooter dapp={dapp} contractAddress={contractAddress} hideIcons={hideIcons} hideStar={hideStar} hideHeart={hideHeart} hideEmbed={hideEmbed} hideMetaRow={hideFooterMetaRow || hideHeader} />
           </div>
         )}
       </div>

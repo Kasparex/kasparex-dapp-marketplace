@@ -98,7 +98,10 @@ async function main() {
       console.log('   LoyaltyPoints: KREX token already set (multipliers active)');
     }
   } else {
-    console.log('   WARNING: LoyaltyPoints KREX token not set — multipliers will be 1x. Set KREX_TOKEN_ADDRESS or run: npx hardhat run scripts/set-loyalty-krex-token.js --network igraGalleonTestnet');
+    console.log('   WARNING: LoyaltyPoints KREX token not set — rewards will be 1x only. To fix:');
+    console.log('     1. Set KREX_TOKEN_ADDRESS to your tKREX address, or');
+    console.log('     2. Ensure deployments/revenue-tree-igraGalleonTestnet.json contains "tKREX", or');
+    console.log('     3. Run: npx hardhat run scripts/set-loyalty-krex-token.js --network igraGalleonTestnet');
   }
 
   // 4. Write deployment output

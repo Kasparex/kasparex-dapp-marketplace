@@ -45,12 +45,9 @@ export function DAppWidgetHeader({
   // Merge contract data
   const mergedDApp = mergeDAppData(contractData, dapp);
 
-  // Short description - priority: description > utility > process (from merged data)
-  const shortDescription = mergedDApp.description || mergedDApp.utility || mergedDApp.process || '';
-
   // Modal state
   const [showInfoModal, setShowInfoModal] = useState(false);
-  /** Show/hide only the featured image section (not the whole header). */
+  /** Show/hide only the featured image section (toggle is the small button on the image). */
   const [showFeaturedImage, setShowFeaturedImage] = useState(true);
 
   return (
@@ -150,26 +147,6 @@ export function DAppWidgetHeader({
           })()}
         </div>
       )}
-
-      <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 relative">
-        {/* Description only - dApp title is shown in the column, not in widget */}
-        <div className="mb-4 relative">
-          {/* Description Section */}
-          {shortDescription && (
-            <div className="mb-3">
-              <button
-                onClick={() => setShowInfoModal(true)}
-                className="text-left w-full"
-              >
-                <p className="text-base text-zinc-600 dark:text-zinc-400 line-clamp-3 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-                  {shortDescription}{' '}
-                  <span className="text-[#02abb8] font-medium">Read more →</span>
-                </p>
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* Info Modal */}
       {showInfoModal && (

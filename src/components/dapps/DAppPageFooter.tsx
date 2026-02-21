@@ -8,7 +8,6 @@ import { useDAppFromContract } from '@/lib/dapps/contractData';
 import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { DAppRewardsSidebar } from '../rewards/DAppRewardsSidebar';
-import { DAppActionFlow } from './DAppActionFlow';
 import { NetworkAvailabilityBox } from './NetworkAvailabilityBox';
 import { getDAppNetworkType } from '@/lib/dapps';
 
@@ -72,15 +71,10 @@ export function DAppPageFooter({ dapp }: DAppPageFooterProps) {
       {/* Footer Content */}
       <div className="px-4 sm:px-6 py-6">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* Network Availability */}
             <div>
               <NetworkAvailabilityBox dapp={mergedDApp} />
-            </div>
-
-            {/* Action Flow - GRT-only */}
-            <div>
-              <DAppActionFlow dapp={mergedDApp} />
             </div>
 
             {/* Rewards Sidebar - GRT-only */}

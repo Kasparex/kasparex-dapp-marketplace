@@ -18,7 +18,7 @@ import { useGRIDToken } from '@/hooks/useGRIDToken';
 import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { getDAppPaymentConfig } from '@/lib/payments/config';
-import { calculateCost, formatPrice, formatPercent, type CostBreakdown } from '@/lib/payments/calculator';
+import { calculateCost, formatPrice, type CostBreakdown } from '@/lib/payments/calculator';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 
@@ -213,68 +213,6 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
           </p>
         )}
       </div>
-
-      {/* Cost summary for variable-amount dApps (e.g. Simple Payment) */}
-      {actionCosts.length > 0 && (
-        <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
-          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-widest mb-2 py-2 border-b border-zinc-100 dark:border-zinc-800">
-            Cost summary
-          </h3>
-          <div className="space-y-4">
-            {actionCosts.map(({ actionId, actionName, costBreakdown }) => (
-              <div key={actionId} className="space-y-2 pb-4 border-b border-zinc-100 dark:border-zinc-800 last:border-0 last:pb-0">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{actionName}</span>
-                </div>
-                <div className="space-y-1.5 pl-2 text-xs">
-                  {costBreakdown.costReductionPercent > 0 && (
-                    <div className="flex items-center justify-between text-green-600 dark:text-green-400">
-                      <span>Cost reduction</span>
-                      <span>-{formatPercent(costBreakdown.costReductionPercent)}%</span>
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between text-zinc-600 dark:text-zinc-400">
-                    <span>Fee ({formatPercent(costBreakdown.feePercent)}% included)</span>
-                    <span>{formatPrice(costBreakdown.feeAmount)} {nativeSymbol}</span>
-                  </div>
-                  {costBreakdown.feePercent < 1.0 && costBreakdown.feePercent > 0 && (
-                    <div className="flex items-center justify-between text-green-600 dark:text-green-400">
-                      <span>Fee reduction</span>
-                      <span>-{formatPercent(Number((1.0 - costBreakdown.feePercent).toFixed(2)))}%</span>
-                    </div>
-                  )}
-                </div>
-                <div className="pt-2 mt-2 border-t border-zinc-100 dark:border-zinc-800">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Total</span>
-                    <span className="text-base font-black text-[#02abb8]">{formatPrice(costBreakdown.finalCostWithFee)} {nativeSymbol}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-            {(krexDiscountPercent > 0 || nftDiscountPercent > 0 || nodeDiscountPercent > 0) && (
-              <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 space-y-1.5 text-xs">
-                <div className="flex items-center justify-between text-zinc-600 dark:text-zinc-400">
-                  <span>KREX discount</span>
-                  <span>{krexDiscountPercent > 0 ? `${krexDiscountPercent}%` : '—'}</span>
-                </div>
-                {nftDiscountPercent > 0 && (
-                  <div className="flex items-center justify-between text-zinc-600 dark:text-zinc-400">
-                    <span>NFT discount</span>
-                    <span>{nftDiscountPercent}%</span>
-                  </div>
-                )}
-                {nodeDiscountPercent > 0 && (
-                  <div className="flex items-center justify-between text-zinc-600 dark:text-zinc-400">
-                    <span>NODE discount</span>
-                    <span>{nodeDiscountPercent}%</span>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {isL2 && (
         <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">

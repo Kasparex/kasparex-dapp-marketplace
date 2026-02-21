@@ -12,7 +12,6 @@ export interface PaymentAction {
   baseCost: number; // in KAS
   costL1?: number; // Optional L1-specific override
   costL2?: number; // Optional L2-specific override
-  /** Optional label for Action Flow (e.g. "Payment processed") */
   nextStep?: string;
   /** When true, cost is user-entered (e.g. Simple Payment); show generic step, no fixed cost/reward */
   variableAmount?: boolean;
