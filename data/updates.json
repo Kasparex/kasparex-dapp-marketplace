@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1771685741-2509a37",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat: Genesis Badge updates, User Balances XP, hide header, Revenue Tree iKAS split. Deploy script: optional KREX_TOKEN for multipliers. (by Kasparex)",
+      "date": "2026-02-21T15:48:08+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1771614687-6efc0fc",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: hardcode SimplePayment address for IGRA Galleon Testnet (38836) (by Kasparex)",
