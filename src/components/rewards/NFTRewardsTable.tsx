@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { createPortal } from 'react-dom';
-import { NFT_MULTIPLIER, DIAMOND_NFT_MULTIPLIER, RAREST_NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION } from '@/lib/rewards/types';
+import { NFT_MULTIPLIER, DIAMOND_NFT_MULTIPLIER, RAREST_NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION } from '@/lib/rewards/types';
 import { NFT_POINTS } from '@/lib/nft/points';
 import type { NFTStatus } from '@/lib/rewards/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
@@ -183,16 +183,6 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
       tooltip: 'Percentage reduction applied to transaction fees. Rarer NFTs provide greater fee savings on all dApp interactions.',
     },
     { 
-      id: 'costReduction', 
-      label: 'Cost Reduction', 
-      icon: (
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-      tooltip: 'Percentage reduction applied to transaction costs (base KAS amount). Rarer NFTs provide greater cost savings on all dApp interactions.',
-    },
-    { 
       id: 'points', 
       label: 'Points', 
       icon: (
@@ -214,8 +204,6 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
         return `+${nftType.multiplier}x`;
       case 'feeReduction':
         return nftType.feeReduction === 100 ? 'Zero Fee' : `-${nftType.feeReduction}%`;
-      case 'costReduction':
-        return `-${nftType.costReduction}%`;
       case 'points':
         return `${nftType.points} ${nftType.points === 1 ? 'point' : 'points'}`;
       default:

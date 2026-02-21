@@ -281,7 +281,8 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
             )}
             {onChainIsBaseOnly && (
               <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                This transaction will distribute the base amount on-chain ({formatLargeNumber(gridRewardOnChain)} {gridLabel}, {formatLargeNumber(xpRewardOnChain)} XP) because your tKREX on this network is 0. Hold tKREX here to receive the full {formatLargeNumber(gridReward)} {gridLabel} and {formatLargeNumber(xpReward)} XP on-chain.
+                On-chain you&apos;ll receive the base amount ({formatLargeNumber(gridRewardOnChain)} {gridLabel}, {formatLargeNumber(xpRewardOnChain)} XP). Bridge tKREX to L2 to get the full ×{multiplier} reward.{' '}
+                <a href="https://katbridge.com/" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:opacity-80">Open KAT Bridge ↗</a>
               </p>
             )}
             {hasBadge && (

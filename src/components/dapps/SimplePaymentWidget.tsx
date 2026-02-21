@@ -219,8 +219,8 @@ export function SimplePaymentWidget() {
   // Get Simple Payment dApp object
   const simplePaymentDApp = placeholderDApps.find(d => d.slug === 'simple-payment' || d.name.toLowerCase().includes('simple payment'));
 
-  // Get user holdings for cost calculation
-  const { balance: krexBalance, tier } = useKREXBalance();
+  // Get user holdings for cost calculation (tier = total KREX; tierForChain = on-chain multiplier for L2)
+  const { balance: krexBalance, l2Balance: krexL2Balance, tier, tierForChain } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
 
   // Automated rewards hook
@@ -610,9 +610,14 @@ export function SimplePaymentWidget() {
                       const rewards = getDefaultRewardsBreakdown(chainId ?? undefined);
                       const tierConfig = KREX_TIERS[tier];
                       const mult = tierConfig?.multiplier ?? 1;
+                      const tierConfigOnChain = KREX_TIERS[tierForChain];
+                      const multOnChain = tierConfigOnChain?.multiplier ?? 1;
                       const gridReward = Math.round(paymentNum * rewards.grtPerKas * mult);
                       const xpReward = Math.round(paymentNum * rewards.xpPerKas * mult);
+                      const gridRewardOnChain = Math.round(paymentNum * rewards.grtPerKas * multOnChain);
+                      const xpRewardOnChain = Math.round(paymentNum * rewards.xpPerKas * multOnChain);
                       const gridLabel = chainId === 38836 || chainId === 38837 ? 'tGRID' : 'GRID';
+                      const onChainIsBaseOnly = mult > 1 && multOnChain === 1 && (krexL2Balance ?? 0) === 0;
                       return (
                         <div className="pt-2 mt-2 border-t border-zinc-200 dark:border-zinc-800 space-y-1">
                           <div className="flex justify-between items-center font-semibold text-zinc-900 dark:text-zinc-100">
@@ -630,6 +635,12 @@ export function SimplePaymentWidget() {
                             <div className="text-xs text-zinc-500 dark:text-zinc-400">
                               (×{mult} tier from total KREX)
                             </div>
+                          )}
+                          {onChainIsBaseOnly && (
+                            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                              On-chain you&apos;ll receive the base amount ({formatLargeNumber(gridRewardOnChain)} {gridLabel}, {formatLargeNumber(xpRewardOnChain)} XP). Bridge tKREX to L2 to get the full ×{mult} reward.{' '}
+                              <a href="https://katbridge.com/" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:opacity-80">Open KAT Bridge ↗</a>
+                            </p>
                           )}
                           <div className="text-xs text-zinc-500 dark:text-zinc-400">
                             {gridLabel}: 95% to you, 5% to treasury.
@@ -660,9 +671,14 @@ export function SimplePaymentWidget() {
                       const rewards = getDefaultRewardsBreakdown(chainId ?? undefined);
                       const tierConfig = KREX_TIERS[tier];
                       const mult = tierConfig?.multiplier ?? 1;
+                      const tierConfigOnChain = KREX_TIERS[tierForChain];
+                      const multOnChain = tierConfigOnChain?.multiplier ?? 1;
                       const gridReward = Math.round(paymentNum * rewards.grtPerKas * mult);
                       const xpReward = Math.round(paymentNum * rewards.xpPerKas * mult);
+                      const gridRewardOnChain = Math.round(paymentNum * rewards.grtPerKas * multOnChain);
+                      const xpRewardOnChain = Math.round(paymentNum * rewards.xpPerKas * multOnChain);
                       const gridLabel = chainId === 38836 || chainId === 38837 ? 'tGRID' : 'GRID';
+                      const onChainIsBaseOnly = mult > 1 && multOnChain === 1 && (krexL2Balance ?? 0) === 0;
                       return (
                         <div className="pt-2 mt-2 border-t border-zinc-200 dark:border-zinc-800 space-y-1">
                           <div className="flex justify-between items-center font-semibold text-zinc-900 dark:text-zinc-100">
@@ -680,6 +696,12 @@ export function SimplePaymentWidget() {
                             <div className="text-xs text-zinc-500 dark:text-zinc-400">
                               (×{mult} tier from total KREX)
                             </div>
+                          )}
+                          {onChainIsBaseOnly && (
+                            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                              On-chain you&apos;ll receive the base amount ({formatLargeNumber(gridRewardOnChain)} {gridLabel}, {formatLargeNumber(xpRewardOnChain)} XP). Bridge tKREX to L2 to get the full ×{mult} reward.{' '}
+                              <a href="https://katbridge.com/" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:opacity-80">Open KAT Bridge ↗</a>
+                            </p>
                           )}
                           <div className="text-xs text-zinc-500 dark:text-zinc-400">
                             {gridLabel}: 95% to you, 5% to treasury.

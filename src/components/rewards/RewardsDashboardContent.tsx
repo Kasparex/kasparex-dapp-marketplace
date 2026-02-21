@@ -5,8 +5,8 @@ import { useAccount, useChainId } from 'wagmi';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useGRIDToken } from '@/hooks/useGRIDToken';
+import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
 import { getContractAddress } from '@/lib/contracts/addresses';
-import { getMockWalletHoldings } from '@/lib/rewards/mockData';
 import { getChainById } from '@/lib/wagmi';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { type UserRewardStatus } from '@/lib/rewards/dashboard-data';
@@ -37,7 +37,7 @@ export function RewardsDashboardContent({
   const chainId = useChainId();
   const { balance: krexBalance, l1Balance, l2Balance, tier: krexTier, isLoading: isKREXLoading } = useKREXBalance();
   const { nftStatus, nftPoints, isLoading: isNFTLoading } = useNFTStatus();
-  const holdings = isConnected && address ? getMockWalletHoldings(address) : null;
+  const { totalPoints: xpPoints } = useLoyaltyPoints();
   const [showKREXBuyWizard, setShowKREXBuyWizard] = useState(false);
   const [showNFTBuyWizard, setShowNFTBuyWizard] = useState(false);
 
@@ -257,21 +257,11 @@ export function RewardsDashboardContent({
                         {fee.toFixed(2)}%
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-zinc-600 dark:text-zinc-400">Cost Reduction</span>
-                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                        {costReductionPercent > 0 ? (
-                          <span className="text-green-600 dark:text-green-400">-{costReductionPercent}%</span>
-                        ) : (
-                          '0%'
-                        )}
-                      </span>
-                    </div>
                     <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
                       <div className="flex items-center justify-between">
                         <span className="text-zinc-600 dark:text-zinc-400">Total XP</span>
                         <span className="font-bold text-[#02abb8] text-lg">
-                          {holdings ? formatLargeNumber(holdings.xp) : '0'}
+                          {formatLargeNumber(xpPoints)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between mt-1">

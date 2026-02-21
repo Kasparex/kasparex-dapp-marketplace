@@ -7,7 +7,7 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { KREX_TIERS, NFT_MULTIPLIER, DIAMOND_NFT_MULTIPLIER, RAREST_NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION, LIGHT_NODE_COST_REDUCTION, MIRROR_NODE_COST_REDUCTION } from '@/lib/rewards/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
-import { getMockWalletHoldings } from '@/lib/rewards/mockData';
+import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
 import { getPartnerCollections } from '@/lib/nft/collections';
 import { NFT_POINTS } from '@/lib/nft/points';
 import { isDiamondNFT } from '@/lib/nft/diamond-detection';
@@ -36,7 +36,7 @@ export function UnifiedStatusBox() {
   const { address, isConnected } = useAccount();
   const { balance, l1Balance, l2Balance, tier: krexTier, isLoading: isKREXLoading } = useKREXBalance();
   const { nftStatus, nfts, nftPoints, isLoading: isNFTLoading } = useNFTStatus();
-  const holdings = isConnected && address ? getMockWalletHoldings(address) : null;
+  const { totalPoints: xpPoints } = useLoyaltyPoints();
 
   // Use real NFT status if available, otherwise use empty status
   const status = nftStatus || {
@@ -249,7 +249,7 @@ export function UnifiedStatusBox() {
                 <div className="text-right">
                   <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">XP Points</div>
                   <div className="text-lg font-bold text-[#02abb8]">
-                    {holdings ? formatLargeNumber(holdings.xp) : '-'}
+                    {formatLargeNumber(xpPoints)}
                   </div>
                 </div>
               </div>
@@ -263,16 +263,6 @@ export function UnifiedStatusBox() {
                     </>
                   ) : (
                     `${feePercent.toFixed(2)}%`
-                  )}
-                </span>
-              </div>
-              <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-between text-xs">
-                <span className="text-zinc-600 dark:text-zinc-400">Cost Reduction</span>
-                <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                  {costReductionPercent > 0 ? (
-                    <span className="text-green-600 dark:text-green-400">-{costReductionPercent}%</span>
-                  ) : (
-                    '0%'
                   )}
                 </span>
               </div>
@@ -522,7 +512,7 @@ export function UnifiedStatusBox() {
                   <div className="flex items-center justify-between">
                     <span className="text-zinc-600 dark:text-zinc-400">XP Points</span>
                     <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                      {holdings ? formatLargeNumber(holdings.xp) : '-'}
+                      {formatLargeNumber(xpPoints)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -556,7 +546,6 @@ export function UnifiedStatusBox() {
                         <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Requirement</th>
                         <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reward Multiplier</th>
                         <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee</th>
-                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Cost Reduction</th>
                         <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Points Multiplier</th>
                       </tr>
                     </thead>
@@ -576,14 +565,11 @@ export function UnifiedStatusBox() {
                               {isUserTier && <span className="ml-2 text-xs text-[#02abb8] font-medium">(Current)</span>}
                             </td>
                             <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                              {tier.minKREX === 0 ? '< 10M' : `≥ ${formatLargeNumber(tier.minKREX)}`}
+                              {tier.minKREX === 0 ? '0 KREX' : `≥ ${formatLargeNumber(tier.minKREX)} KREX`}
                             </td>
                             <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">{tier.multiplier}x</td>
                             <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
                               -{tier.feeReduction}%
-                            </td>
-                            <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                              -{tier.costReduction}%
                             </td>
                             <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">{tier.pointsMultiplier}x</td>
                           </tr>
@@ -644,9 +630,6 @@ export function UnifiedStatusBox() {
                         <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
                           -{NFT_FEE_REDUCTION}%
                         </td>
-                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                          -{NFT_COST_REDUCTION}%
-                        </td>
                         <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
                           {NFT_POINTS.REGULAR} point
                         </td>
@@ -684,9 +667,6 @@ export function UnifiedStatusBox() {
                         </td>
                         <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
                           -{RAREST_NFT_FEE_REDUCTION}% (Zero Fee)
-                        </td>
-                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                          -{RAREST_NFT_COST_REDUCTION}%
                         </td>
                         <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
                           {NFT_POINTS.RAREST} points
@@ -832,9 +812,6 @@ export function UnifiedStatusBox() {
                             </td>
                             <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
                               {node.feeReduction}%
-                            </td>
-                            <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                              -{node.costReduction}%
                             </td>
                           </tr>
                         );

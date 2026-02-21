@@ -7,6 +7,14 @@ interface TierBadgeProps {
   isUnlocked: boolean;
 }
 
+const TIER_BORDER: Record<string, string> = {
+  Tier0: 'border-zinc-400 dark:border-zinc-500',
+  Tier1: 'border-blue-500 dark:border-blue-400',
+  Tier2: 'border-green-500 dark:border-green-400',
+  Tier3: 'border-purple-500 dark:border-purple-400',
+  Tier4: 'border-amber-500 dark:border-amber-400',
+};
+
 export function TierBadge({ tier, isUnlocked }: TierBadgeProps) {
   const tierConfig = KREX_TIERS[tier];
   const tierColors: Record<string, { bg: string; text: string; darkBg: string; darkText: string }> = {
@@ -35,18 +43,19 @@ export function TierBadge({ tier, isUnlocked }: TierBadgeProps) {
       darkText: 'dark:text-purple-300',
     },
     Tier4: {
-      bg: 'bg-yellow-100 dark:bg-yellow-900/30',
-      text: 'text-yellow-700 dark:text-yellow-300',
-      darkBg: 'dark:bg-yellow-900/30',
-      darkText: 'dark:text-yellow-300',
+      bg: 'bg-amber-100 dark:bg-amber-900/30',
+      text: 'text-amber-700 dark:text-amber-300',
+      darkBg: 'dark:bg-amber-900/30',
+      darkText: 'dark:text-amber-300',
     },
   };
   const colors = tierColors[tier] ?? tierColors.Tier0;
+  const borderClass = TIER_BORDER[tier] ?? TIER_BORDER.Tier0;
 
   return (
-    <div className={`inline-flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${isUnlocked
-        ? `${colors.bg} ${colors.text} shadow-sm border border-current/10`
-        : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 opacity-60'
+    <div className={`inline-flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all border ${isUnlocked
+        ? `${colors.bg} ${colors.text} shadow-sm ${borderClass}`
+        : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 opacity-60 border-zinc-300 dark:border-zinc-600'
       }`}>
       {isUnlocked && (
         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">

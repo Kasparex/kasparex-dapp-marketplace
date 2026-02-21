@@ -1,12 +1,26 @@
 'use client';
 
-import { useAccount } from 'wagmi';
-import { getMockWalletHoldings } from '@/lib/rewards/mockData';
+import { useMemo } from 'react';
+import { useAccount, useChainId } from 'wagmi';
+import { useGRIDToken } from '@/hooks/useGRIDToken';
+import { getContractAddress } from '@/lib/contracts/addresses';
+import { getChainById } from '@/lib/wagmi';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 
 export function WalletHoldingsBox() {
   const { address, isConnected } = useAccount();
-  const holdings = isConnected && address ? getMockWalletHoldings(address) : null;
+  const chainId = useChainId();
+  const chain = useMemo(() => (chainId ? getChainById(chainId) : null), [chainId]);
+  const isTestnet = Boolean(chain?.testnet);
+  const gridTokenAddress = useMemo(() => {
+    if (isTestnet) {
+      const tgrid = getContractAddress(chainId, 'tGRID');
+      if (tgrid) return tgrid;
+    }
+    return getContractAddress(chainId, 'GRIDToken') || null;
+  }, [chainId, isTestnet]);
+
+  const { formattedBalance: gridFormattedBalance, isLoading } = useGRIDToken(gridTokenAddress);
 
   return (
     <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
@@ -23,23 +37,26 @@ export function WalletHoldingsBox() {
             GRID (GRT) and balances
           </div>
         </div>
-      ) : holdings ? (
+      ) : gridTokenAddress ? (
         <div className="space-y-3">
-          {/* GRT Balance */}
           <div className="pb-2 border-b border-zinc-200 dark:border-zinc-700">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-zinc-600 dark:text-zinc-400">
                 GRT (GRID)
               </span>
               <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                {formatLargeNumber(holdings.grt)}
+                {isLoading ? '...' : formatLargeNumber(parseFloat(gridFormattedBalance || '0'))}
               </span>
             </div>
           </div>
-
         </div>
-      ) : null}
+      ) : (
+        <div className="text-center py-4">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            GRID token not deployed on this network
+          </p>
+        </div>
+      )}
     </div>
   );
 }
-

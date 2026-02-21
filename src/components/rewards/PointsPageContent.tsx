@@ -2,7 +2,6 @@
 
 import { useAccount } from 'wagmi';
 import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
-import { getMockWalletHoldings } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { BadgesDisplay } from './BadgesDisplay';
 import { type NFTStatus, type NodeProviderStatus } from '@/lib/rewards/types';
@@ -93,8 +92,7 @@ const XP_PERKS: Perk[] = [
 export function PointsPageContent({ filters }: PointsPageContentProps) {
   const { address, isConnected } = useAccount();
   const { totalPoints } = useLoyaltyPoints();
-  const mockHoldings = isConnected && address ? getMockWalletHoldings(address) : null;
-  const currentXP = totalPoints > 0 ? totalPoints : (mockHoldings?.xp ?? 0);
+  const currentXP = totalPoints;
 
   // Get real KREX balance and tier
   const { tier: krexTier } = useKREXBalance();

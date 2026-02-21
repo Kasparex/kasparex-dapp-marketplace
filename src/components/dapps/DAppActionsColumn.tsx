@@ -209,7 +209,8 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
         {/* Base reward calculation info (L2 testnet) */}
         {(chainId === 38836 || chainId === 38837) && (
           <p className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400">
-            Base: 1 {nativeLabel} = 500 {gridLabel}, 1 {nativeLabel} = 100 XP. Tier multiplier applies when tKREX is configured.
+            Base: 1 {nativeLabel} = 500 {gridLabel}, 1 {nativeLabel} = 100 XP. Hold tKREX on this network for tier multiplier.{' '}
+            <a href="https://katbridge.com/" target="_blank" rel="noopener noreferrer" className="text-[#02abb8] hover:underline">KAT Bridge ↗</a>
           </p>
         )}
       </div>

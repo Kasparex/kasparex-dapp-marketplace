@@ -123,15 +123,25 @@ export function EVMWalletButton() {
     return (
       <div className="relative" ref={dropdownRef}>
         <button
+          type="button"
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium relative"
           aria-label="EVM Wallet"
         >
-          {/* Network Badge Button on left - clickable to change network - Bigger with signal icon */}
-          <button
+          {/* Network badge - clickable to change network (span to avoid nested button) */}
+          <span
+            role="button"
+            tabIndex={0}
             onClick={(e) => {
               e.stopPropagation();
               handleChangeNetwork();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.stopPropagation();
+                handleChangeNetwork();
+              }
             }}
             className={`flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-[6px] hover:opacity-90 transition-opacity cursor-pointer shadow-sm ${networkBadgeColorClass}`}
             title="Click to change network"
@@ -145,7 +155,7 @@ export function EVMWalletButton() {
                 Testnet
               </span>
             )}
-          </button>
+          </span>
           
           {/* Avatar */}
           <Avatar address={address} size={20} />

@@ -526,6 +526,8 @@ const queryClient = new QueryClient({
             return;
           }
           const errorStr = getErrorMessage(error, 'An error occurred');
+          // Suppress known benign RainbowKit/wagmi message when already connected
+          if (errorStr?.includes('Connector already connected')) return;
           console.error('Mutation error:', errorStr);
         } catch (err) {
           console.error('Error occurred (conversion failed)');

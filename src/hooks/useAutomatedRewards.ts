@@ -126,9 +126,10 @@ export function useAutomatedRewards(): UseAutomatedRewardsReturn {
 
       // Route to appropriate handler based on network type
       if (networkType === 'L2') {
-        // L2: Rewards are distributed by FeeRouter in the same tx as the payment. No ProofOfUtility call.
-        queryClient.invalidateQueries({ queryKey: ['gridToken'] });
-        queryClient.invalidateQueries({ queryKey: ['tokenBalance'] });
+        // L2: Rewards are distributed by FeeRouter in the same tx (based on tKREX on that chain).
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('dapp-transaction-success'));
+        }
         return { success: true };
       } else if (networkType === 'L1') {
         // L1: Use backend API

@@ -8,7 +8,7 @@ import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useGRIDToken } from '@/hooks/useGRIDToken';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
-import { getMockWalletHoldings } from '@/lib/rewards/mockData';
+import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
 import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
 import { TierBadge } from '@/components/rewards/TierBadge';
 import { KREX_TIERS } from '@/lib/rewards/types';
@@ -27,7 +27,7 @@ export default function StudioPortfolioPage() {
 
     // Rewards Status
     const { nftStatus, nftPoints, isLoading: isNFTLoading } = useNFTStatus();
-    const mockHoldings = (isEVMConnected && evmAddress) ? getMockWalletHoldings(evmAddress) : null;
+    const { totalPoints: xpPoints } = useLoyaltyPoints();
 
     // Multiplier Calculation (Simplified for Portfolio view)
     const krexMultiplier = KREX_TIERS[krexTier].multiplier;
@@ -119,7 +119,7 @@ export default function StudioPortfolioPage() {
                         />
                         <RewardItem
                             label="XP Points"
-                            value={formatLargeNumber(mockHoldings?.xp || 0)}
+                            value={formatLargeNumber(xpPoints)}
                             icon="✨"
                         />
                         <RewardItem

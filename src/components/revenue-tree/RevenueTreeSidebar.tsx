@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useChainId } from 'wagmi';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
+import { getNativeCurrencySymbol } from '@/lib/wagmi';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
 import { RevenueTreeContentType } from '@/lib/revenue-tree/types';
@@ -25,6 +27,8 @@ export function RevenueTreeSidebar({
   totalDownline,
 }: RevenueTreeSidebarProps) {
   const pathname = usePathname();
+  const chainId = useChainId();
+  const nativeSymbol = getNativeCurrencySymbol(chainId);
   const [showGuide, setShowGuide] = useState(false);
 
   const tabItems = [
@@ -80,7 +84,7 @@ export function RevenueTreeSidebar({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs text-zinc-600 dark:text-zinc-400">Total Revenue</span>
-              <span className="text-sm font-black text-[#02abb8]">{totalRevenue.toFixed(2)} KAS</span>
+              <span className="text-sm font-black text-[#02abb8]">{totalRevenue.toFixed(2)} {nativeSymbol}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-zinc-600 dark:text-zinc-400">Active Trees</span>

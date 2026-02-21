@@ -113,8 +113,8 @@ export const KREX_TIERS: Record<KREXTier, KREXTierConfig> = {
     feeReduction: 0,
     costReduction: 0,
     pointsMultiplier: 1,
-    label: 'Inactive',
-    description: 'No KREX held',
+    label: 'Tier 0',
+    description: '0 KREX',
   },
   Tier1: {
     tier: 'Tier1',
@@ -124,7 +124,7 @@ export const KREX_TIERS: Record<KREXTier, KREXTierConfig> = {
     costReduction: 0,
     pointsMultiplier: 1,
     label: 'Tier 1',
-    description: '< 10M KREX',
+    description: '≥ 1 KREX',
   },
   Tier2: {
     tier: 'Tier2',

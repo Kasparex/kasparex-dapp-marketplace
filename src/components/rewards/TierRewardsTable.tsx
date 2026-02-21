@@ -85,16 +85,6 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
       tooltip: 'Percentage reduction applied to transaction fees. Higher tiers provide greater fee savings on all dApp interactions.',
     },
     { 
-      id: 'costReduction', 
-      label: 'Cost Reduction', 
-      icon: (
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-      tooltip: 'Percentage reduction applied to transaction costs (base KAS amount). Higher tiers provide greater cost savings on all dApp interactions.',
-    },
-    { 
       id: 'pointsMultiplier', 
       label: 'Points Multiplier', 
       icon: (
@@ -139,7 +129,7 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
   const getCellValue = (tier: typeof tiers[0], rowId: string) => {
     switch (rowId) {
       case 'requirements':
-        return tier.minKREX === 0 ? '< 10M KREX' : `≥ ${formatLargeNumber(tier.minKREX)} KREX`;
+        return tier.minKREX === 0 ? '0 KREX' : `≥ ${formatLargeNumber(tier.minKREX)} KREX`;
       case 'multiplier':
         // Always show the tier's multiplier value, regardless of wallet connection
         return `${tier.multiplier}x`;
@@ -158,9 +148,6 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
       case 'pointsMultiplier':
         // Always show the tier's points multiplier value, regardless of wallet connection
         return `${tier.pointsMultiplier}x`;
-      case 'costReduction':
-        // Always show the tier's cost reduction value, regardless of wallet connection
-        return tier.costReduction > 0 ? `-${tier.costReduction}%` : '0%';
       case 'tierBadge':
         return true; // All tiers have badges now
       case 'benefit1':
@@ -222,11 +209,13 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
                 {tiers.map((tier) => {
                   const value = getCellValue(tier, row.id);
                   const isUnlocked = isTierUnlocked(tier);
-                  
+                  const isCurrentTier = hasKREX && tier.tier === effectiveTier;
                   return (
                     <td
                       key={tier.tier}
-                      className="border-r border-zinc-200/50 dark:border-zinc-700/50 py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 text-center last:border-r-0"
+                      className={`border-r border-zinc-200/50 dark:border-zinc-700/50 py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 text-center last:border-r-0 ${
+                        isCurrentTier ? 'bg-[#02abb8]/5 dark:bg-[#02abb8]/10' : ''
+                      }`}
                     >
                       {row.id === 'tierBadge' ? (
                         <div className="flex justify-center">

@@ -17,26 +17,12 @@ export default function DashboardPage() {
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-1 flex flex-col lg:flex-row">
-        {/* Sidebar */}
-        <div className="hidden lg:block flex-shrink-0">
-          <RewardsDashboardSidebar
-            filters={filters}
-            searchQuery={searchQuery}
-            onFilterChange={setFilters}
-            onSearchChange={setSearchQuery}
-          />
-        </div>
-        {/* Mobile sidebar */}
-        <div className="lg:hidden">
-          <RewardsDashboardSidebar
-            filters={filters}
-            searchQuery={searchQuery}
-            onFilterChange={setFilters}
-            onSearchChange={setSearchQuery}
-          />
-        </div>
-
-        {/* Main Content */}
+        <RewardsDashboardSidebar
+          filters={filters}
+          searchQuery={searchQuery}
+          onFilterChange={setFilters}
+          onSearchChange={setSearchQuery}
+        />
         <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6">
           <RewardsDashboardContent
             filters={filters}
