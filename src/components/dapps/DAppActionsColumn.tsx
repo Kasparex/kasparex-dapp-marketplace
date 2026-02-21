@@ -15,6 +15,7 @@ import { useSetReferrer } from '@/hooks/useSetReferrer';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useGRIDToken } from '@/hooks/useGRIDToken';
+import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { getDAppPaymentConfig } from '@/lib/payments/config';
 import { calculateCost, formatPrice, formatPercent, type CostBreakdown } from '@/lib/payments/calculator';
@@ -130,6 +131,7 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
   const krexLabel = isTestnet ? 'tKREX' : 'KREX';
   const nativeLabel = chainId === 38836 || chainId === 38837 ? 'iKAS' : (nativeBalance?.symbol || nativeSymbol);
   const { formattedBalance: gridFormattedBalance, isLoading: gridLoading, totalSupply: gridTotalSupply, maxSupply: gridMaxSupply } = useGRIDToken(gridTokenAddress);
+  const { totalPoints: xpPoints, isLoading: xpLoading } = useLoyaltyPoints();
   const gridBalanceNum = parseFloat(gridFormattedBalance || '0');
 
   const gridProgress = useMemo(() => {
@@ -140,6 +142,11 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
 
   const balanceRows = useMemo(() => {
     const rows: { token: string; balance: string; loading?: boolean }[] = [];
+    rows.push({
+      token: 'XP Points',
+      balance: !isConnected ? '—' : xpLoading ? '...' : formatLargeNumber(xpPoints),
+      loading: xpLoading,
+    });
     rows.push({
       token: nativeLabel,
       balance: isConnected ? formatFee(nativeFormatted) : '—',
@@ -156,7 +163,7 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
       loading: gridLoading,
     });
     return rows;
-  }, [isConnected, nativeLabel, nativeFormatted, krexLabel, krexBalance, krexLoading, gridLabel, gridBalanceNum, gridLoading]);
+  }, [isConnected, nativeLabel, nativeFormatted, krexLabel, krexBalance, krexLoading, gridLabel, gridBalanceNum, gridLoading, xpPoints, xpLoading]);
 
   return (
     <div className="space-y-6">
@@ -197,6 +204,12 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
         {gridTokenAddress && (
           <p className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400">
             {gridLabel} rewards: 95% to you, 5% to treasury.
+          </p>
+        )}
+        {/* Base reward calculation info (L2 testnet) */}
+        {(chainId === 38836 || chainId === 38837) && (
+          <p className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400">
+            Base: 1 {nativeLabel} = 500 {gridLabel}, 1 {nativeLabel} = 100 XP. Tier multiplier applies when tKREX is configured.
           </p>
         )}
       </div>

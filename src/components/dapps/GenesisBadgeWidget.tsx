@@ -211,9 +211,38 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
           {hasBadge ? 'Boost your badge and earn more tGRID and XP.' : 'Unlock a unique random badge. Earn tGRID and XP.'}
         </p>
         {hasBadge && (
-          <div className="mt-3 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg inline-block">
-            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{themeName} · {titleName}</p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">Total spent: {totalSpentFormatted} {nativeSymbol} · Boosts: {String(boostCount)}</p>
+          <div
+            className="mt-6 mx-auto max-w-sm rounded-2xl overflow-hidden border-2 border-amber-400/50 dark:border-amber-500/40 shadow-xl"
+            style={{
+              background: 'linear-gradient(145deg, #1a1a2e 0%, #16213e 35%, #0f3460 70%, #1a1a2e 100%)',
+              boxShadow: '0 0 40px rgba(251, 191, 36, 0.15), inset 0 1px 0 rgba(255,255,255,0.08)',
+            }}
+          >
+            <div className="relative px-8 py-10">
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-cyan-500/10" />
+              <div className="relative flex flex-col items-center gap-4">
+                <div
+                  className="w-20 h-20 rounded-full flex items-center justify-center text-4xl"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(251,191,36,0.35) 0%, rgba(34,211,238,0.25) 100%)',
+                    boxShadow: '0 0 30px rgba(251,191,36,0.2)',
+                  }}
+                >
+                  <span aria-hidden>🏅</span>
+                </div>
+                <div>
+                  <p className="text-xl font-black text-white tracking-tight drop-shadow-sm">
+                    {themeName} · {titleName}
+                  </p>
+                  <p className="mt-1 text-sm text-amber-200/90 font-medium">
+                    Total spent: {totalSpentFormatted} {nativeSymbol}
+                  </p>
+                  <p className="text-xs text-cyan-200/80 mt-0.5">
+                    Boosts: {String(boostCount)}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

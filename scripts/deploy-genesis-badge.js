@@ -8,6 +8,7 @@
  *   PRIVATE_KEY - deployer (must be FeeRouter/LoyaltyPoints owner for wiring)
  *   FEE_ROUTER_ADDRESS - (optional) default for 38836: 0x37c98699eEe02Cb89da64C45B8c970174218A745
  *   LOYALTY_POINTS_ADDRESS - (optional) default for 38836: 0x1cF432A52A0f2D09c8E7450CC40E4FC1422E8936
+ *   KREX_TOKEN_ADDRESS - (optional) tKREX address on 38836; when set, LoyaltyPoints tier multiplier is enabled so tGRID/XP scale by KREX tier
  */
 
 const hre = require('hardhat');
@@ -72,11 +73,18 @@ async function main() {
   await (await feeRouter.setBaseReward('genesis-badge', baseRewardWei, overrides)).wait();
   console.log('   FeeRouter: baseReward(genesis-badge) = 500e18');
 
-  // 3. LoyaltyPoints: XP per 1 iKAS for "genesis-badge"
+  // 3. LoyaltyPoints: XP per 1 iKAS for "genesis-badge"; optional: set tKREX for tier multiplier (tGRID/XP scale by KREX balance)
   console.log('\n3. Configuring LoyaltyPoints...');
   const loyaltyPoints = await hre.ethers.getContractAt('LoyaltyPoints', loyaltyPointsAddress);
   await (await loyaltyPoints.setPointsPer1iKAS('genesis-badge', 100, overrides)).wait();
   console.log('   LoyaltyPoints: pointsPer1iKAS(genesis-badge) = 100');
+  const krexTokenAddress = process.env.KREX_TOKEN_ADDRESS?.trim();
+  if (krexTokenAddress) {
+    await (await loyaltyPoints.setKREXToken(krexTokenAddress, overrides)).wait();
+    console.log('   LoyaltyPoints: KREX token set (tier multiplier active for tGRID + XP)');
+  } else {
+    console.log('   LoyaltyPoints: KREX token not set — set KREX_TOKEN_ADDRESS and re-run step 3 or use configure-igra-galleon-rewards.js to enable multipliers');
+  }
 
   // 4. Write deployment output
   const out = {

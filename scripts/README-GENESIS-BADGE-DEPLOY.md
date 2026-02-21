@@ -28,7 +28,8 @@ The script will:
 2. Call `FeeRouter.setAuthorizedDApp(genesisBadgeAddress, true)`.
 3. Call `FeeRouter.setBaseReward("genesis-badge", 500e18)` (500 tGRID per 1 iKAS).
 4. Call `LoyaltyPoints.setPointsPer1iKAS("genesis-badge", 100)` (100 XP per 1 iKAS).
-5. Write `deployments/genesis-badge-igra-galleon-testnet.json` and print the env line.
+5. If `KREX_TOKEN_ADDRESS` is set (tKREX on 38836), call `LoyaltyPoints.setKREXToken(...)` so tier multipliers apply to tGRID and XP.
+6. Write `deployments/genesis-badge-igra-galleon-testnet.json` and print the env line.
 
 ## After deploy
 
@@ -47,9 +48,12 @@ If your stack uses different addresses:
 
 - `FEE_ROUTER_ADDRESS` – FeeRouter contract address
 - `LOYALTY_POINTS_ADDRESS` – LoyaltyPoints contract address
+- `KREX_TOKEN_ADDRESS` – tKREX token address on 38836; when set, enables tier multipliers for tGRID and XP (otherwise users get base amounts only)
 
-Example:
-
+Example (with multipliers enabled):
+```bash
+KREX_TOKEN_ADDRESS=0x305B4ee627aD8b12bFCF6427453964771aA30622 npm run hardhat:deploy:genesis-badge
+```
 ```bash
 FEE_ROUTER_ADDRESS=0x... LOYALTY_POINTS_ADDRESS=0x... npm run hardhat:deploy:genesis-badge
 ```
