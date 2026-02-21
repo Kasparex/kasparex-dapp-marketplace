@@ -47,7 +47,7 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
   const [error, setError] = useState<string | null>(null);
 
   const genesisBadgeDApp = dappProp ?? (typeof window !== 'undefined' ? getGenesisBadgeDApp(require('@/lib/dapps').placeholderDApps) : undefined);
-  const contractAddress = genesisBadgeDApp ? getDAppContractAddressResolver(genesisBadgeDApp, chainId) : '';
+  const contractAddress = genesisBadgeDApp ? getDAppContractAddress(genesisBadgeDApp, chainId) : '';
 
   const { balance: krexBalance, tier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
