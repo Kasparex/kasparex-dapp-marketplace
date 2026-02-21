@@ -1,0 +1,34 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "ILoyaltyPoints",
+  "sourceName": "contracts/DonationEscrow.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "actionType",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "paymentAmountWei",
+          "type": "uint256"
+        }
+      ],
+      "name": "awardPointsForPayment",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

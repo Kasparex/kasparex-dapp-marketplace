@@ -15,9 +15,13 @@ interface SendTransactionModalProps {
   onClose: () => void;
   currentBalance: string | null;
   address: string | null;
+  /** When provided, pre-fill recipient (e.g. for vDonations L1 flow). */
+  initialToAddress?: string;
+  /** When provided, pre-fill amount (e.g. for vDonations L1 flow). */
+  initialAmount?: string;
 }
 
-export function SendTransactionModal({ isOpen, onClose, currentBalance, address }: SendTransactionModalProps) {
+export function SendTransactionModal({ isOpen, onClose, currentBalance, address, initialToAddress, initialAmount }: SendTransactionModalProps) {
   const { state } = useKaspaWallet();
   const { isVisible: isBalanceVisible } = useBalanceVisibility();
   const [toAddress, setToAddress] = useState('');
@@ -35,8 +39,11 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address 
       setPriorityFee('');
       setError(null);
       setTxHash(null);
+    } else if (initialToAddress !== undefined || initialAmount !== undefined) {
+      if (initialToAddress !== undefined) setToAddress(initialToAddress);
+      if (initialAmount !== undefined) setAmount(initialAmount);
     }
-  }, [isOpen]);
+  }, [isOpen, initialToAddress, initialAmount]);
 
   const handleSend = async () => {
     if (!toAddress.trim()) {

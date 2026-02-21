@@ -87,6 +87,9 @@ function getCurrentSectionTitle(pathname: string): string {
   if (pathname.startsWith('/games')) {
     return 'Games';
   }
+  if (pathname.startsWith('/donations')) {
+    return 'vDonations';
+  }
   // Default to dApps
   return 'dApps';
 }
@@ -180,6 +183,11 @@ function getProjectIcon(projectId: string) {
           strokeLinejoin="round"
           d="M3 7l1 2m0 0l2 10a2 2 0 002 2h8a2 2 0 002-2l2-10m-14 0h14M9 21a1 1 0 100-2 1 1 0 000 2zm6 0a1 1 0 100-2 1 1 0 000 2z"
         />
+      </svg>
+    ),
+    'kasparex-vdonations': ({ className = 'w-4 h-4' }) => (
+      <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
       </svg>
     ),
   };

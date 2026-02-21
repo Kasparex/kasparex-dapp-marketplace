@@ -1733,6 +1733,48 @@
       "artifacts": [
         "GenesisBadge"
       ]
+    },
+    "C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\contracts\\DonationEscrow.sol": {
+      "lastModificationDate": 1771710191819,
+      "contentHash": "25fd6bac16bce9b26c7c71d3470e40d1",
+      "sourceName": "contracts/DonationEscrow.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/access/Ownable.sol",
+        "@openzeppelin/contracts/utils/ReentrancyGuard.sol",
+        "./IFeeRouter.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.28"
+      ],
+      "artifacts": [
+        "DonationEscrow",
+        "ILoyaltyPoints"
+      ]
     }
   }
 }

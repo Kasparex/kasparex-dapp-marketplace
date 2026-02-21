@@ -81,6 +81,21 @@ const DEFAULT_PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
       },
     ],
   },
+  // Kasparex vDonations (L2 escrow donations)
+  'vdonations': {
+    dappId: 'vdonations',
+    networkType: 'L2',
+    actions: [
+      {
+        actionId: 'donation',
+        actionName: 'Donate',
+        baseCost: 100,
+        costL2: 100,
+        nextStep: 'Donation recorded',
+        variableAmount: true,
+      },
+    ],
+  },
   // DAO Voting
   'dao-voting': {
     dappId: 'dao-voting',
@@ -169,6 +184,10 @@ export function getDAppPaymentConfig(
   
   if (nameLower.includes('send krex') || slug === 'send-krex') {
     return DEFAULT_PAYMENT_CONFIGS['send-krex'];
+  }
+  
+  if (nameLower.includes('vdonation') || slug === 'vdonations') {
+    return DEFAULT_PAYMENT_CONFIGS['vdonations'];
   }
   
   // Return default action if no specific config found

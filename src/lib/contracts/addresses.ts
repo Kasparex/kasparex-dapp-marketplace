@@ -69,6 +69,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     RevenueTreeManager: "0xF013452C232F0450F3f1eF813B34c41fB01C7b19",
     FeeRouter: "0x1E18a05c14F3962a209e4371A5734766FA0365eB",
     GenesisBadge: "",
+    DonationEscrow: "",
   },
   igraCaravelTestnet: {
     Treasury: "",
@@ -125,6 +126,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     RevenueTreeManager: "0x5A60E418f6B04bD1eb0AEF8088a6D5DB81FAd0cA",
     FeeRouter: "0x37c98699eEe02Cb89da64C45B8c970174218A745",
     GenesisBadge: "0xAD3Aa97F7AE16D180A3d35163Bd800b0e039059E",
+    DonationEscrow: "",
   },
   igraGalleonTestMainnet: {
     Treasury: "",
@@ -153,6 +155,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     RevenueTreeManager: "0x002C7eeC68975d41f3f0F7bC8D900Aa45A131aE2",
     FeeRouter: "",
     GenesisBadge: "",
+    DonationEscrow: "",
   },
 };
 
@@ -184,6 +187,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     RevenueTreeManager: "",
     FeeRouter: "",
     GenesisBadge: "",
+    DonationEscrow: "",
   },
   kasplexL2Testnet: {
     Treasury: "",
@@ -212,6 +216,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     RevenueTreeManager: "0xF013452C232F0450F3f1eF813B34c41fB01C7b19",
     FeeRouter: "0x1E18a05c14F3962a209e4371A5734766FA0365eB",
     GenesisBadge: "",
+    DonationEscrow: "",
   },
   igraCaravelTestnet: {
     Treasury: "",
@@ -268,6 +273,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     RevenueTreeManager: "0x5A60E418f6B04bD1eb0AEF8088a6D5DB81FAd0cA",
     FeeRouter: "0x37c98699eEe02Cb89da64C45B8c970174218A745",
     GenesisBadge: "0xAD3Aa97F7AE16D180A3d35163Bd800b0e039059E",
+    DonationEscrow: "",
   },
   igraGalleonTestMainnet: {
     Treasury: "",
@@ -296,6 +302,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     RevenueTreeManager: "",
     FeeRouter: "",
     GenesisBadge: "",
+    DonationEscrow: "",
   },
 };
 
@@ -328,6 +335,7 @@ export const CONTRACT_ADDRESSES = {
     RevenueTreeManager: getEnvVar('NEXT_PUBLIC_REVENUE_TREE_MANAGER_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.RevenueTreeManager,
     FeeRouter: getEnvVar('NEXT_PUBLIC_FEE_ROUTER_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.FeeRouter,
     GenesisBadge: getEnvVar('NEXT_PUBLIC_GENESIS_BADGE_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.GenesisBadge,
+    DonationEscrow: getEnvVar('NEXT_PUBLIC_DONATION_ESCROW_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.DonationEscrow,
   },
   // Kasplex L2 Testnet (Chain ID: 167012)
   kasplexL2Testnet: {
@@ -357,6 +365,7 @@ export const CONTRACT_ADDRESSES = {
     RevenueTreeManager: getEnvVar('NEXT_PUBLIC_REVENUE_TREE_MANAGER_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.RevenueTreeManager,
     FeeRouter: getEnvVar('NEXT_PUBLIC_FEE_ROUTER_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.FeeRouter,
     GenesisBadge: getEnvVar('NEXT_PUBLIC_GENESIS_BADGE_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.GenesisBadge,
+    DonationEscrow: getEnvVar('NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.DonationEscrow,
   },
   // Igra Caravel Testnet (Chain ID: 19416)
   igraCaravelTestnet: {
@@ -386,6 +395,7 @@ export const CONTRACT_ADDRESSES = {
     RevenueTreeManager: getEnvVar('NEXT_PUBLIC_REVENUE_TREE_MANAGER_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.RevenueTreeManager,
     FeeRouter: getEnvVar('NEXT_PUBLIC_FEE_ROUTER_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.FeeRouter,
     GenesisBadge: getEnvVar('NEXT_PUBLIC_GENESIS_BADGE_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.GenesisBadge,
+    DonationEscrow: getEnvVar('NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_IGRA_CARAVEL_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.DonationEscrow,
   },
   // IGRA Galleon Testnet (Chain ID: 38836)
   igraGalleonTestnet: {
@@ -415,6 +425,7 @@ export const CONTRACT_ADDRESSES = {
     RevenueTreeManager: getEnvVar('NEXT_PUBLIC_REVENUE_TREE_MANAGER_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.RevenueTreeManager,
     FeeRouter: getEnvVar('NEXT_PUBLIC_FEE_ROUTER_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.FeeRouter,
     GenesisBadge: getEnvVar('NEXT_PUBLIC_GENESIS_BADGE_ADDRESS_IGRA_GALLEON_TESTNET') || getEnvVar('NEXT_PUBLIC_GENESIS_BADGE_ADDRESS_38836') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.GenesisBadge,
+    DonationEscrow: getEnvVar('NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_IGRA_GALLEON_TESTNET') || getEnvVar('NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_38836') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.DonationEscrow,
   },
   // IGRA Galleon Test Mainnet (Chain ID: 38837)
   igraGalleonTestMainnet: {
@@ -444,6 +455,7 @@ export const CONTRACT_ADDRESSES = {
     RevenueTreeManager: getEnvVar('NEXT_PUBLIC_REVENUE_TREE_MANAGER_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.RevenueTreeManager,
     FeeRouter: getEnvVar('NEXT_PUBLIC_FEE_ROUTER_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.FeeRouter,
     GenesisBadge: getEnvVar('NEXT_PUBLIC_GENESIS_BADGE_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.GenesisBadge,
+    DonationEscrow: getEnvVar('NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_IGRA_GALLEON') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestMainnet.DonationEscrow,
   },
 };
 

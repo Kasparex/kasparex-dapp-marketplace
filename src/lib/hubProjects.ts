@@ -114,5 +114,13 @@ export const hubProjects: HubProject[] = [
     route: '/store',
     status: 'beta',
   },
+  {
+    id: 'kasparex-vdonations',
+    name: 'Kasparex vDonations',
+    category: 'Creator Tools',
+    description: 'Verifiable donation campaigns. Support creators with KAS (L1 direct) or iKAS (L2 escrow). One campaign per verified wallet.',
+    route: '/donations',
+    status: 'beta',
+  },
 ];
 

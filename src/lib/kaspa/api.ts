@@ -131,3 +131,39 @@ export async function getBalanceInKas(address: string): Promise<number> {
   return sompisToKas(balanceInSompis);
 }
 
+/** Minimal tx shape for L1 verification: at least one output to an address with amount (sompis) */
+export interface KaspaTxOutput {
+  amount?: number | string;
+  scriptPublicKey?: { address?: string };
+  address?: string;
+}
+
+export interface KaspaTxForVerification {
+  transactionId?: string;
+  id?: string;
+  outputs?: KaspaTxOutput[];
+  mass?: number;
+  blockHash?: string;
+}
+
+const KASPA_TX_API = process.env.KASPA_TX_API_URL || 'https://api.kaspa.org';
+
+/**
+ * Fetch a Kaspa L1 transaction by hash (for vDonations L1 verification).
+ * Tries api.kaspa.org or KASPA_TX_API_URL (e.g. explorer API).
+ */
+export async function getTransactionByHash(txHash: string): Promise<KaspaTxForVerification | null> {
+  const hash = txHash.replace(/^0x/, '');
+  if (!/^[0-9a-fA-F]{64}$/.test(hash)) return null;
+  try {
+    const res = await fetch(`${KASPA_TX_API}/v1/transactions/${hash}`, {
+      cache: 'no-store',
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as KaspaTxForVerification;
+  } catch {
+    return null;
+  }
+}
+

@@ -2980,3 +2980,108 @@ export const GENESIS_BADGE_ABI = [
   }
 ] as const;
 
+/** DonationEscrow (Kasparex vDonations): verify, campaigns, donate, claim, claimRefund, recordL1Donation */
+export const DONATION_ESCROW_ABI = [
+  { inputs: [], name: "verify", outputs: [], stateMutability: "payable", type: "function" },
+  {
+    inputs: [
+      { internalType: "string", name: "_ipfsHash", type: "string" },
+      { internalType: "uint256", name: "_targetWei", type: "uint256" },
+      { internalType: "uint256", name: "_deadline", type: "uint256" },
+      { internalType: "string", name: "_l1Address", type: "string" }
+    ],
+    name: "createCampaign",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "address", name: "_creator", type: "address" }],
+    name: "donate",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function"
+  },
+  { inputs: [], name: "claim", outputs: [], stateMutability: "nonpayable", type: "function" },
+  {
+    inputs: [{ internalType: "address", name: "_creator", type: "address" }],
+    name: "claimRefund",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "_creator", type: "address" },
+      { internalType: "bytes32", name: "_txHash", type: "bytes32" },
+      { internalType: "address", name: "_donorL2", type: "address" },
+      { internalType: "uint256", name: "_amountWei", type: "uint256" }
+    ],
+    name: "recordL1Donation",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "address", name: "", type: "address" }],
+    name: "campaigns",
+    outputs: [
+      { internalType: "address", name: "creator", type: "address" },
+      { internalType: "uint256", name: "targetWei", type: "uint256" },
+      { internalType: "uint256", name: "deadline", type: "uint256" },
+      { internalType: "uint256", name: "raisedWei", type: "uint256" },
+      { internalType: "uint256", name: "donorCount", type: "uint256" },
+      { internalType: "string", name: "ipfsHash", type: "string" },
+      { internalType: "string", name: "l1Address", type: "string" },
+      { internalType: "bool", name: "active", type: "bool" }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "address", name: "", type: "address" }],
+    name: "verified",
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "getCreatorCount",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "uint256", name: "index", type: "uint256" }],
+    name: "creatorAt",
+    outputs: [{ internalType: "address", name: "", type: "address" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "", type: "address" },
+      { internalType: "address", name: "", type: "address" }
+    ],
+    name: "contributions",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "feeBps",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "bytes32", name: "", type: "bytes32" }],
+    name: "l1TxRecorded",
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    stateMutability: "view",
+    type: "function"
+  }
+] as const;
+
