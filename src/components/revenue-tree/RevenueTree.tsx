@@ -39,7 +39,6 @@ export function RevenueTree({ data, userWalletAddress, isL2Only = true, activati
 
   const amountToTree = (amountSpent * treeBps) / 10000;
   const getLevelShare = (sharePercentage: number) => (amountToTree * sharePercentage) / 100;
-  const formatShortAddress = (addr: string) => (addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '—');
 
   // Sort levels from 5 to 1 (top to bottom)
   const sortedLevels = [...data.levels].sort((a, b) => b.level - a.level);
@@ -81,32 +80,6 @@ export function RevenueTree({ data, userWalletAddress, isL2Only = true, activati
       </div>
       <RevenueTreeGuideModal isOpen={showGuide} onClose={() => setShowGuide(false)} />
 
-      {/* Per-level iKAS/KAS split (updates with amountSpent) */}
-      <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-800">
-        <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
-          Split per level ({amountSpent} {currencySymbol} spent, {(treeBps / 100).toFixed(0)}% to tree)
-        </div>
-        <div className="space-y-2 font-mono text-xs">
-          {sortedLevels.map((level) => {
-            const share = getLevelShare(level.sharePercentage);
-            return (
-              <div key={level.level} className="space-y-0.5">
-                <div className="flex items-center justify-between text-zinc-700 dark:text-zinc-300">
-                  <span>LEVEL {level.level}</span>
-                  <span className="text-zinc-500 dark:text-zinc-400">Users</span>
-                  <span className="font-semibold text-[#02abb8]">{level.sharePercentage}% Share</span>
-                </div>
-                <div className="flex items-center justify-between text-zinc-600 dark:text-zinc-400 pl-2">
-                  <span className="truncate max-w-[100px]" title={level.walletAddress}>{formatShortAddress(level.walletAddress)}</span>
-                  <span>{level.userCount}</span>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100 text-[#02abb8]">{share.toFixed(2)} {currencySymbol}</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Progress Bar - Show if not activated */}
       {!isActivated && userWalletAddress && (
         <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-800">
@@ -130,13 +103,13 @@ export function RevenueTree({ data, userWalletAddress, isL2Only = true, activati
         </div>
       )}
 
-      {/* Levels */}
+      {/* Levels (with per-level iKAS split inside each capsule) */}
       <div className="space-y-3">
         {sortedLevels.map((level) => {
-          const isCurrentUser = Boolean(userWalletAddress && 
+          const isCurrentUser = Boolean(userWalletAddress &&
             (level.walletAddress.toLowerCase() === userWalletAddress.toLowerCase() ||
              (userWalletAddress.length >= 4 && level.walletAddress.includes(userWalletAddress.slice(-4)))));
-          
+          const levelShareIkas = getLevelShare(level.sharePercentage);
           return (
             <RevenueTreeLevel
               key={level.level}
@@ -144,6 +117,8 @@ export function RevenueTree({ data, userWalletAddress, isL2Only = true, activati
               isCurrentUser={isCurrentUser}
               contentType={data.contentType}
               contentSlug={data.contentSlug}
+              levelShareIkas={levelShareIkas}
+              currencySymbol={currencySymbol}
             />
           );
         })}

@@ -267,7 +267,11 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
               <span>XP points</span>
               <span className="font-medium text-[#02abb8]">{formatLargeNumber(xpReward)}</span>
             </div>
-            {multiplier > 1 && <p className="text-xs text-zinc-500 dark:text-zinc-400">×{multiplier} tier multiplier</p>}
+            {multiplier > 1 && (
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                ×{multiplier} tier multiplier (applied from your <strong>tKREX balance on this network</strong>; hold tKREX here for rewards to use it)
+              </p>
+            )}
             {hasBadge && (
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Badge progress: +1 boost, total spent increases</p>
             )}
