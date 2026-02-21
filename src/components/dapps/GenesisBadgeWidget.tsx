@@ -49,7 +49,7 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
   const genesisBadgeDApp = dappProp ?? (typeof window !== 'undefined' ? getGenesisBadgeDApp(require('@/lib/dapps').placeholderDApps) : undefined);
   const contractAddress = genesisBadgeDApp ? getDAppContractAddress(genesisBadgeDApp, chainId) : '';
 
-  const { balance: krexBalance, tier, tierForChain } = useKREXBalance();
+  const { balance: krexBalance, l2Balance: krexL2Balance, tier, tierForChain } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
   const { distributeRewardAfterTransaction } = useAutomatedRewards();
   const queryClient = useQueryClient();
@@ -96,12 +96,18 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
   const displayError = error || safeWriteError || safeTxError;
 
   const rewardsBreakdown = getDefaultRewardsBreakdown(chainId ?? undefined);
-  // Use tierForChain so "You Receive" matches on-chain: contract uses payer's tKREX on this chain only
-  const tierConfigForRewards = KREX_TIERS[tierForChain];
-  const multiplier = tierConfigForRewards?.multiplier ?? 1;
+  // Payment Breakdown uses total KREX tier (L1 + L2) so it adds up with connected wallets
+  const tierConfig = KREX_TIERS[tier];
+  const multiplier = tierConfig?.multiplier ?? 1;
   const baseCost = 10;
   const gridReward = Math.round(baseCost * rewardsBreakdown.grtPerKas * multiplier);
   const xpReward = Math.round(baseCost * rewardsBreakdown.xpPerKas * multiplier);
+  // On-chain uses only tKREX on this network; show base amounts when L2 balance is 0
+  const tierConfigOnChain = KREX_TIERS[tierForChain];
+  const multiplierOnChain = tierConfigOnChain?.multiplier ?? 1;
+  const gridRewardOnChain = Math.round(baseCost * rewardsBreakdown.grtPerKas * multiplierOnChain);
+  const xpRewardOnChain = Math.round(baseCost * rewardsBreakdown.xpPerKas * multiplierOnChain);
+  const onChainIsBaseOnly = multiplier > 1 && multiplierOnChain === 1 && krexL2Balance === 0;
 
   const handleUnlockOrBoost = async () => {
     setError(null);
@@ -270,12 +276,12 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
             </div>
             {multiplier > 1 && (
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                ×{multiplier} tier multiplier (from your tKREX balance on this network)
+                ×{multiplier} tier multiplier (from your total KREX across connected wallets)
               </p>
             )}
-            {multiplier === 1 && tier !== 'Tier0' && tier !== 'Tier1' && (
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                Hold tKREX on this network to get multiplied rewards (your on-chain tier is 1× here).
+            {onChainIsBaseOnly && (
+              <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                This transaction will distribute the base amount on-chain ({formatLargeNumber(gridRewardOnChain)} {gridLabel}, {formatLargeNumber(xpRewardOnChain)} XP) because your tKREX on this network is 0. Hold tKREX here to receive the full {formatLargeNumber(gridReward)} {gridLabel} and {formatLargeNumber(xpReward)} XP on-chain.
               </p>
             )}
             {hasBadge && (
@@ -356,8 +362,8 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
         onClose={() => { setShowSuccessModal(false); setSuccessTxHash(null); }}
         txHash={successTxHash ?? ''}
         chainId={chainId ?? 38836}
-        gridAmount={formatLargeNumber(gridReward)}
-        pointsEarned={xpReward}
+        gridAmount={formatLargeNumber(onChainIsBaseOnly ? gridRewardOnChain : gridReward)}
+        pointsEarned={onChainIsBaseOnly ? xpRewardOnChain : xpReward}
         autoCloseMs={8000}
       />
       <TransactionErrorModal

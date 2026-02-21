@@ -220,7 +220,7 @@ export function SimplePaymentWidget() {
   const simplePaymentDApp = placeholderDApps.find(d => d.slug === 'simple-payment' || d.name.toLowerCase().includes('simple payment'));
 
   // Get user holdings for cost calculation
-  const { balance: krexBalance, tier, tierForChain } = useKREXBalance();
+  const { balance: krexBalance, tier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
 
   // Automated rewards hook
@@ -608,7 +608,7 @@ export function SimplePaymentWidget() {
                       const paymentNum = parseFloat(amount || '0');
                       if (paymentNum <= 0) return null;
                       const rewards = getDefaultRewardsBreakdown(chainId ?? undefined);
-                      const tierConfig = KREX_TIERS[tierForChain];
+                      const tierConfig = KREX_TIERS[tier];
                       const mult = tierConfig?.multiplier ?? 1;
                       const gridReward = Math.round(paymentNum * rewards.grtPerKas * mult);
                       const xpReward = Math.round(paymentNum * rewards.xpPerKas * mult);
@@ -628,7 +628,7 @@ export function SimplePaymentWidget() {
                           </div>
                           {mult > 1 && (
                             <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                              (×{mult} tier applied)
+                              (×{mult} tier from total KREX)
                             </div>
                           )}
                           <div className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -658,7 +658,7 @@ export function SimplePaymentWidget() {
                       const paymentNum = parseFloat(amount || '0');
                       if (paymentNum <= 0) return null;
                       const rewards = getDefaultRewardsBreakdown(chainId ?? undefined);
-                      const tierConfig = KREX_TIERS[tierForChain];
+                      const tierConfig = KREX_TIERS[tier];
                       const mult = tierConfig?.multiplier ?? 1;
                       const gridReward = Math.round(paymentNum * rewards.grtPerKas * mult);
                       const xpReward = Math.round(paymentNum * rewards.xpPerKas * mult);
@@ -678,7 +678,7 @@ export function SimplePaymentWidget() {
                           </div>
                           {mult > 1 && (
                             <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                              (×{mult} tier applied)
+                              (×{mult} tier from total KREX)
                             </div>
                           )}
                           <div className="text-xs text-zinc-500 dark:text-zinc-400">
