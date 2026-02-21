@@ -104,7 +104,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ success: false, error: 'Transaction not found or API unavailable' }, { status: 404 });
     }
 
-    const outputs = parseTxOutputs(tx);
+    const outputs = parseTxOutputs(tx as Record<string, unknown>);
     const toCreator = outputs.find((o) => o.address === l1AddressNorm && o.amountSompis >= MIN_DONATION_SOMPIS);
     if (!toCreator) {
       return NextResponse.json(
