@@ -179,14 +179,18 @@ export function RevenueTreeGuideModal({ isOpen, onClose }: RevenueTreeGuideModal
             </ul>
           </section>
 
-          {/* Genesis Revenue Tree */}
+          {/* Genesis Wallets / Genesis Levels */}
           <section>
-            <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-3">Genesis Revenue Tree</h3>
+            <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-3">Genesis Wallets &amp; Levels</h3>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed mb-2">
-              The <strong>Genesis Revenue Tree</strong> is the Revenue Tree for the Genesis Badge dApp (and other genesis-type content). When you unlock or boost a Genesis Badge, a share of your payment is distributed to your upline in the same way as for any other dApp: Level 5 receives 45%, Level 4 receives 20%, and so on. Your referral link for Genesis Badge is specific to that content; when someone uses it and pays, you earn from their payment and move up in their tree.
+              <strong>Genesis wallets</strong> (or genesis levels) are five preset platform wallets configured per deployment—one for each level (L1–L5). They are used in two cases:
             </p>
+            <ul className="list-disc list-inside text-sm text-zinc-600 dark:text-zinc-400 space-y-1.5 mb-2 ml-2">
+              <li><strong>First users who do not come from a referral link:</strong> When a user activates without a referrer, their upline slots are filled by the genesis wallets. The revenue split from their payments goes to these five platform wallets instead of to referrers.</li>
+              <li><strong>Inactive upline:</strong> When an upline wallet at a level is inactive (e.g. did not meet maintenance), that level’s share is sent to the same-level genesis wallet instead.</li>
+            </ul>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              Activation and rules are the same: spend the required amount (e.g. 100 iKAS) on Genesis Badge to activate your Genesis Revenue Tree, then share your link to grow your downline and earn from levels 1–5.
+              Genesis wallets are used for platform development, ecosystem funding, and other designated purposes. Once a user has a referrer and an active upline, revenue flows to real referrers at each level as usual.
             </p>
           </section>
 

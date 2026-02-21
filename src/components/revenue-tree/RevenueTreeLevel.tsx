@@ -67,40 +67,29 @@ export function RevenueTreeLevel({ level, isCurrentUser = false, contentType, co
             : 'bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800'
         }`}
       >
-        {/* Line 1: LEVEL — Users — X% Share */}
-        <div className="flex items-center justify-between gap-3 min-w-0">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className={`flex-shrink-0 text-xs font-black uppercase tracking-widest ${
-              isCurrentUser ? 'text-purple-600 dark:text-purple-400' : 'text-zinc-500 dark:text-zinc-400'
-            }`}>
-              LEVEL {String(level.level).padStart(2, '0')}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className={`text-sm font-mono truncate ${
-                isCurrentUser ? 'text-orange-600 dark:text-orange-400 font-bold' : 'text-zinc-700 dark:text-zinc-300'
-              }`}>
-                {displayAddress}
-              </div>
-            </div>
-            <div className="flex-shrink-0">
-              <DotIndicators count={level.userCount || 1} />
-            </div>
+        {/* Line 1: LEVEL XX — X% Share only */}
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <div className={`flex-shrink-0 text-xs font-black uppercase tracking-widest ${
+            isCurrentUser ? 'text-purple-600 dark:text-purple-400' : 'text-zinc-500 dark:text-zinc-400'
+          }`}>
+            LEVEL {String(level.level).padStart(2, '0')}
           </div>
-          <div className="flex-shrink-0 text-right min-w-[80px]">
-            <div className="text-xs font-bold text-zinc-600 dark:text-zinc-400">Users: <span className="text-yellow-600 dark:text-yellow-400">{level.userCount}</span></div>
-            <div className="text-xs font-black text-green-600 dark:text-green-400">
-              {level.sharePercentage}% <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase ml-1">Share</span>
-            </div>
+          <div className="text-xs font-black text-green-600 dark:text-green-400">
+            {level.sharePercentage}% <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase ml-1">Share</span>
           </div>
         </div>
-        {/* Line 2: address — userCount — Y.XX iKAS (when amount provided) */}
-        {showShareIkas && (
-          <div className="flex items-center justify-between gap-2 pl-0 text-xs font-mono text-zinc-600 dark:text-zinc-400 border-t border-zinc-100 dark:border-zinc-800 pt-1.5 mt-0.5">
-            <span className="truncate max-w-[120px]" title={level.walletAddress}>{displayAddress}</span>
-            <span>{level.userCount}</span>
-            <span className="font-semibold text-[#02abb8] tabular-nums">{levelShareIkas.toFixed(2)} {currencySymbol}</span>
-          </div>
-        )}
+        {/* Line 2: address — Users: N — Y.XX iKAS (single row, no duplication) */}
+        <div className="flex items-center justify-between gap-2 min-w-0 text-sm text-zinc-700 dark:text-zinc-300 border-t border-zinc-100 dark:border-zinc-800 pt-1.5 mt-0.5">
+          <span className="truncate flex-1 min-w-0" title={level.walletAddress}>
+            <span className={isCurrentUser ? 'text-orange-600 dark:text-orange-400 font-semibold' : ''}>{displayAddress}</span>
+          </span>
+          <span className="flex-shrink-0 text-xs text-zinc-600 dark:text-zinc-400">Users: <span className="text-yellow-600 dark:text-yellow-400 font-semibold">{level.userCount}</span></span>
+          {showShareIkas ? (
+            <span className="flex-shrink-0 text-sm font-semibold text-[#02abb8] tabular-nums">{levelShareIkas.toFixed(2)} {currencySymbol}</span>
+          ) : (
+            <div className="flex-shrink-0"><DotIndicators count={level.userCount || 1} /></div>
+          )}
+        </div>
       </div>
 
       {/* Modal */}
