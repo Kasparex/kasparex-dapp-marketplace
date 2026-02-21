@@ -47,8 +47,8 @@ export function DAppWidgetHeader({
 
   // Modal state
   const [showInfoModal, setShowInfoModal] = useState(false);
-  /** Show/hide only the featured image section (toggle is the small button on the image). */
-  const [showFeaturedImage, setShowFeaturedImage] = useState(true);
+  /** Show/hide only the featured image section (toggle is the small button on the image). Hidden by default. */
+  const [showFeaturedImage, setShowFeaturedImage] = useState(false);
 
   return (
     <>

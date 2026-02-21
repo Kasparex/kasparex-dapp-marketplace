@@ -49,7 +49,7 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
   const genesisBadgeDApp = dappProp ?? (typeof window !== 'undefined' ? getGenesisBadgeDApp(require('@/lib/dapps').placeholderDApps) : undefined);
   const contractAddress = genesisBadgeDApp ? getDAppContractAddress(genesisBadgeDApp, chainId) : '';
 
-  const { balance: krexBalance, tier } = useKREXBalance();
+  const { balance: krexBalance, tier, tierForChain } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
   const { distributeRewardAfterTransaction } = useAutomatedRewards();
   const queryClient = useQueryClient();
@@ -96,8 +96,9 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
   const displayError = error || safeWriteError || safeTxError;
 
   const rewardsBreakdown = getDefaultRewardsBreakdown(chainId ?? undefined);
-  const tierConfig = KREX_TIERS[tier];
-  const multiplier = tierConfig?.multiplier ?? 1;
+  // Use tierForChain so "You Receive" matches on-chain: contract uses payer's tKREX on this chain only
+  const tierConfigForRewards = KREX_TIERS[tierForChain];
+  const multiplier = tierConfigForRewards?.multiplier ?? 1;
   const baseCost = 10;
   const gridReward = Math.round(baseCost * rewardsBreakdown.grtPerKas * multiplier);
   const xpReward = Math.round(baseCost * rewardsBreakdown.xpPerKas * multiplier);
@@ -269,7 +270,12 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
             </div>
             {multiplier > 1 && (
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                ×{multiplier} tier multiplier (applied from your <strong>tKREX balance on this network</strong>; hold tKREX here for rewards to use it)
+                ×{multiplier} tier multiplier (from your tKREX balance on this network)
+              </p>
+            )}
+            {multiplier === 1 && tier !== 'Tier0' && tier !== 'Tier1' && (
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Hold tKREX on this network to get multiplied rewards (your on-chain tier is 1× here).
               </p>
             )}
             {hasBadge && (

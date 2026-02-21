@@ -67,23 +67,25 @@ export function RevenueTreeLevel({ level, isCurrentUser = false, contentType, co
             : 'bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800'
         }`}
       >
-        {/* Line 1: LEVEL XX — X% Share only */}
+        {/* Line 1: LEVEL XX — X% Share — Users: N */}
         <div className="flex items-center justify-between gap-2 min-w-0">
           <div className={`flex-shrink-0 text-xs font-black uppercase tracking-widest ${
             isCurrentUser ? 'text-purple-600 dark:text-purple-400' : 'text-zinc-500 dark:text-zinc-400'
           }`}>
             LEVEL {String(level.level).padStart(2, '0')}
           </div>
-          <div className="text-xs font-black text-green-600 dark:text-green-400">
-            {level.sharePercentage}% <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase ml-1">Share</span>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="text-xs font-black text-green-600 dark:text-green-400">
+              {level.sharePercentage}% <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase ml-1">Share</span>
+            </span>
+            <span className="text-xs text-zinc-600 dark:text-zinc-400">Users: <span className="text-yellow-600 dark:text-yellow-400 font-semibold">{level.userCount}</span></span>
           </div>
         </div>
-        {/* Line 2: address — Users: N — Y.XX iKAS (single row, no duplication) */}
+        {/* Line 2: address — Y.XX iKAS */}
         <div className="flex items-center justify-between gap-2 min-w-0 text-sm text-zinc-700 dark:text-zinc-300 border-t border-zinc-100 dark:border-zinc-800 pt-1.5 mt-0.5">
           <span className="truncate flex-1 min-w-0" title={level.walletAddress}>
             <span className={isCurrentUser ? 'text-orange-600 dark:text-orange-400 font-semibold' : ''}>{displayAddress}</span>
           </span>
-          <span className="flex-shrink-0 text-xs text-zinc-600 dark:text-zinc-400">Users: <span className="text-yellow-600 dark:text-yellow-400 font-semibold">{level.userCount}</span></span>
           {showShareIkas ? (
             <span className="flex-shrink-0 text-sm font-semibold text-[#02abb8] tabular-nums">{levelShareIkas.toFixed(2)} {currencySymbol}</span>
           ) : (

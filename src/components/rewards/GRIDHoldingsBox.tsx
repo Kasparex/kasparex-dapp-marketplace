@@ -23,7 +23,8 @@ export function GRIDHoldingsBox() {
     return getContractAddress(chainId, 'GRIDToken') || null;
   }, [chainId, isTestnet]);
 
-  const { formattedBalance: gridFormattedBalance, totalSupply, maxSupply, isLoading, refetch } = useGRIDToken(gridTokenAddress);
+  const { balance: gridBalanceWei, totalSupply, maxSupply, isLoading, refetch } = useGRIDToken(gridTokenAddress);
+  const gridBalanceFormatted = gridBalanceWei != null ? formatLargeNumber(Number(gridBalanceWei) / 1e18) : '0';
 
   // Real supply metrics from contract only (no mock fallback)
   const grtMetrics = useMemo(() => {
@@ -97,7 +98,7 @@ export function GRIDHoldingsBox() {
                 Your Balance
               </span>
               <span className="text-xl font-bold text-[#02abb8]">
-                {gridTokenAddress ? (isLoading ? '...' : (gridFormattedBalance || '0')) : '—'}
+                {gridTokenAddress ? (isLoading ? '...' : gridBalanceFormatted) : '—'}
               </span>
             </div>
           </div>

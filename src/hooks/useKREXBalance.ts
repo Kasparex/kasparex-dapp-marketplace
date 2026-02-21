@@ -14,7 +14,10 @@ export interface UseKREXBalanceReturn {
   balance: number;
   l1Balance: number;
   l2Balance: number;
+  /** Tier from total (L1 + L2). Use for fee/cost UI. */
   tier: KREXTier;
+  /** Tier from this chain's balance only. Use for L2 dApp "You Receive" so it matches on-chain rewards. */
+  tierForChain: KREXTier;
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -69,14 +72,17 @@ export function useKREXBalance(): UseKREXBalanceReturn {
     fetchKREXBalance();
   }, [fetchKREXBalance]);
 
-  // Calculate tier from total balance
+  // Tier from total (for fee/cost reductions, status displays)
   const tier = getKREXTierFromBalance(balanceData.total);
+  // Tier from current chain only: on L2 the contract uses payer's tKREX on that chain, so use l2 for reward display
+  const tierForChain = getKREXTierFromBalance(chainId && (chainId === 38836 || chainId === 38837 || chainId === 167012 || chainId === 202555) ? balanceData.l2 : balanceData.total);
 
   return {
     balance: balanceData.total,
     l1Balance: balanceData.l1,
     l2Balance: balanceData.l2,
     tier,
+    tierForChain,
     isLoading,
     error,
     refetch: fetchKREXBalance,

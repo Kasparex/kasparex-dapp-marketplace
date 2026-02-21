@@ -220,7 +220,7 @@ export function SimplePaymentWidget() {
   const simplePaymentDApp = placeholderDApps.find(d => d.slug === 'simple-payment' || d.name.toLowerCase().includes('simple payment'));
 
   // Get user holdings for cost calculation
-  const { balance: krexBalance, tier } = useKREXBalance();
+  const { balance: krexBalance, tier, tierForChain } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
 
   // Automated rewards hook
@@ -608,7 +608,7 @@ export function SimplePaymentWidget() {
                       const paymentNum = parseFloat(amount || '0');
                       if (paymentNum <= 0) return null;
                       const rewards = getDefaultRewardsBreakdown(chainId ?? undefined);
-                      const tierConfig = KREX_TIERS[tier];
+                      const tierConfig = KREX_TIERS[tierForChain];
                       const mult = tierConfig?.multiplier ?? 1;
                       const gridReward = Math.round(paymentNum * rewards.grtPerKas * mult);
                       const xpReward = Math.round(paymentNum * rewards.xpPerKas * mult);
@@ -658,7 +658,7 @@ export function SimplePaymentWidget() {
                       const paymentNum = parseFloat(amount || '0');
                       if (paymentNum <= 0) return null;
                       const rewards = getDefaultRewardsBreakdown(chainId ?? undefined);
-                      const tierConfig = KREX_TIERS[tier];
+                      const tierConfig = KREX_TIERS[tierForChain];
                       const mult = tierConfig?.multiplier ?? 1;
                       const gridReward = Math.round(paymentNum * rewards.grtPerKas * mult);
                       const xpReward = Math.round(paymentNum * rewards.xpPerKas * mult);

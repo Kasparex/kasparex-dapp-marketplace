@@ -130,9 +130,9 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
   const gridLabel = isTestnet ? 'tGRID' : 'GRID';
   const krexLabel = isTestnet ? 'tKREX' : 'KREX';
   const nativeLabel = chainId === 38836 || chainId === 38837 ? 'iKAS' : (nativeBalance?.symbol || nativeSymbol);
-  const { formattedBalance: gridFormattedBalance, isLoading: gridLoading, totalSupply: gridTotalSupply, maxSupply: gridMaxSupply } = useGRIDToken(gridTokenAddress);
+  const { balance: gridBalanceWei, formattedBalance: gridFormattedBalance, isLoading: gridLoading, totalSupply: gridTotalSupply, maxSupply: gridMaxSupply } = useGRIDToken(gridTokenAddress);
   const { totalPoints: xpPoints, isLoading: xpLoading } = useLoyaltyPoints();
-  const gridBalanceNum = parseFloat(gridFormattedBalance || '0');
+  const gridBalanceNum = gridBalanceWei != null ? Number(gridBalanceWei) / 1e18 : 0;
 
   const gridProgress = useMemo(() => {
     if (!gridTotalSupply || !gridMaxSupply || gridMaxSupply === 0n) return null;
