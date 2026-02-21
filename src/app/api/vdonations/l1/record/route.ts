@@ -85,13 +85,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       args: [creatorAddress as Address],
     });
 
+    // readContract returns a tuple: [creator, targetWei, deadline, raisedWei, donorCount, ipfsHash, l1Address, active]
+    type CampaignTuple = readonly [Address, bigint, bigint, bigint, bigint, string, string, boolean];
+    const tuple = campaign as unknown as CampaignTuple;
     const creatorZero = '0x0000000000000000000000000000000000000000';
-    if (!campaign || (campaign as { creator: string }).creator === creatorZero) {
+    if (!tuple || tuple[0] === creatorZero) {
       return NextResponse.json({ success: false, error: 'Campaign not found for this creator' }, { status: 404 });
     }
 
-    const c = campaign as { creator: Address; l1Address: string; active: boolean };
-    const l1AddressNorm = normalizeKaspaAddress(c.l1Address);
+    const l1AddressFromContract = tuple[6];
+    const l1AddressNorm = normalizeKaspaAddress(l1AddressFromContract);
     if (!l1AddressNorm) {
       return NextResponse.json({ success: false, error: 'Campaign has no L1 address' }, { status: 400 });
     }

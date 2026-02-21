@@ -1,29 +1,68 @@
 # Kasparex vDonations — Post-deploy setup
 
-After deploying DonationEscrow (see `scripts/deploy-donation-escrow.js`), complete these steps so L2 donations and L1 recording work correctly.
+After deploying DonationEscrow (see `scripts/deploy-donation-escrow.js`), do the following so L2 donations and L1 recording work.
 
-## 1. FeeRouter
+---
 
-Register DonationEscrow as an authorized dApp so it can forward fees and trigger rewards:
+## Step 1: Register DonationEscrow (FeeRouter + LoyaltyPoints)
 
-- **Contract:** FeeRouter (same network as DonationEscrow, e.g. IGRA Galleon Testnet)
-- **Call:** `setAuthorizedDApp(DonationEscrowAddress, true)` (as FeeRouter owner)
-- Optionally configure base reward for the action type `"donation"` (e.g. `setBaseReward("donation", ...)` if your FeeRouter supports it)
+**You can run this script** (uses the same account that owns FeeRouter and LoyaltyPoints):
 
-## 2. LoyaltyPoints
+```bash
+# From repo root. Ensure .env has PRIVATE_KEY = owner of FeeRouter & LoyaltyPoints.
+# If you deployed DonationEscrow with deploy-donation-escrow.js, deployments/donation-escrow-igra-galleon-testnet.json
+# will exist and the script will read DonationEscrow address from it. Otherwise set:
+#   DONATION_ESCROW_ADDRESS=0xYourDeployedDonationEscrow
 
-Allow DonationEscrow to award points (for L1-recorded donations and optionally for L2 donations if your flow uses it):
+npx hardhat run scripts/setup-vdonations-auth.js --network igraGalleonTestnet
+```
 
-- **Contract:** LoyaltyPoints (same network)
-- **Call:** `setAuthorizedCaller(DonationEscrowAddress, true)` (as LoyaltyPoints owner)
-- Optionally set points per 1 iKAS for the action type `"vdonation-l1"` (or whatever your contract uses for L1 donations)
+This calls:
 
-## 3. Environment
+- **FeeRouter:** `setAuthorizedDApp(DonationEscrowAddress, true)`
+- **LoyaltyPoints:** `setAuthorizedCaller(DonationEscrowAddress, true)`
 
-- **Frontend:** Set `NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_38836` (or `NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_IGRA_GALLEON_TESTNET`) to the deployed DonationEscrow address.
-- **L1 record API:** Set `VDONATIONS_RECORDER_PRIVATE_KEY` to the private key of the wallet that will call `recordL1Donation` (must match the `recorder` set at deploy).
-- **Optional:** `KASPA_TX_API_URL` for Kaspa tx verification (defaults to public API). `NEXT_PUBLIC_VDONATIONS_PLATFORM_L1_ADDRESS` for the platform L1 fee address.
+If you prefer to do it manually (e.g. from a block explorer), use the same two calls with your deployed DonationEscrow address.
 
-## Navigation
+---
 
-vDonations is linked from the Hub (Kasparex vDonations) and from the header section title when on `/donations`. Listing: `/donations`, campaign: `/donations/[creatorAddress]`, studio: `/donations/studio`.
+## Step 2: Environment variables
+
+Set these where the app runs (e.g. Vercel → Project → Settings → Environment Variables).
+
+| Variable | Where | Description |
+|----------|--------|-------------|
+| `NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_38836` | Frontend | Deployed DonationEscrow address (or use `NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_IGRA_GALLEON_TESTNET`) |
+| `VDONATIONS_RECORDER_PRIVATE_KEY` | Backend only | Private key of the wallet set as `recorder` when you deployed DonationEscrow (used by `POST /api/vdonations/l1/record`) |
+
+**Optional:**
+
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_VDONATIONS_PLATFORM_L1_ADDRESS` | Kaspa address for L1 donation platform fees |
+| `KASPA_TX_API_URL` | Kaspa API for tx verification (default: `https://api.kaspa.org`) |
+
+See `.env.example` for the full list.
+
+---
+
+## Summary
+
+1. **Run** `npx hardhat run scripts/setup-vdonations-auth.js --network igraGalleonTestnet` (with `PRIVATE_KEY` and, if needed, `DONATION_ESCROW_ADDRESS`).
+2. **Set** `NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_38836` and `VDONATIONS_RECORDER_PRIVATE_KEY` (and any optional vars) in Vercel (or your host).
+3. Redeploy the app so it picks up the new env.
+
+After that, vDonations is ready to use.
+
+---
+
+## FAQ
+
+**Where is the deployed DonationEscrow address?**  
+If you ran `deploy-donation-escrow.js` on this repo, it wrote `deployments/donation-escrow-igra-galleon-testnet.json` and the script reads the address from there. If you deployed from another machine or the file is missing, use the address from your deploy log or block explorer and set `DONATION_ESCROW_ADDRESS` when running the auth script (or set `NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_38836` in Vercel).
+
+**What is the “recorder” and where do I find its private key?**  
+At deploy time, the script sets `recorder` to `RECORDER_ADDRESS` if you set that env var, otherwise to the **deployer** address. So if you didn’t set `RECORDER_ADDRESS`, the recorder is the deployer. **VDONATIONS_RECORDER_PRIVATE_KEY** should be the private key of that recorder wallet—i.e. the same key as **PRIVATE_KEY** in `.env` if you used the default (deployer as recorder).
+
+**Can the Kaspa address for L1 platform fees be the same as the treasury address?**  
+Yes. If your treasury has a Kaspa (L1) address, you can set `NEXT_PUBLIC_VDONATIONS_PLATFORM_L1_ADDRESS` to that address so L1 donation fees go to the same place.

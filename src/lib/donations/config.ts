@@ -9,8 +9,10 @@ export const VDONATIONS_MIN_VERIFY_WEI = 1n;
 export const VDONATIONS_MIN_FEE_KAS = 1; // minimum platform fee in KAS for L1
 
 /** Platform L1 Kaspa address for L1 donation fees (env: NEXT_PUBLIC_VDONATIONS_PLATFORM_L1_ADDRESS) */
+const DEFAULT_PLATFORM_L1_ADDRESS = 'kaspa:qr54v0692g4csc45z6phshyh2twy5dv73mylx5uqjtpphynvg70vksky9xffw';
+
 export function getPlatformL1Address(): string {
-  return (process.env.NEXT_PUBLIC_VDONATIONS_PLATFORM_L1_ADDRESS || '').trim();
+  return (process.env.NEXT_PUBLIC_VDONATIONS_PLATFORM_L1_ADDRESS || DEFAULT_PLATFORM_L1_ADDRESS).trim();
 }
 
 /** Compute L1 platform fee in KAS (1% of donation, min 1 KAS) */
