@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1771703086-d6783c6",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Dashboard: Tier 0, remove Cost Reduction, KAT bridge link, sidebar layout; bridge note on Simple Payment (by Kasparex)",
+      "date": "2026-02-21T20:43:38+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1771685741-2509a37",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: feat: Genesis Badge updates, User Balances XP, hide header, Revenue Tree iKAS split. Deploy script: optional KREX_TOKEN for multipliers. (by Kasparex)",
