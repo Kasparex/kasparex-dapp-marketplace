@@ -82,6 +82,21 @@ export default function DonationsStudioPage() {
   const [createSubmitting, setCreateSubmitting] = useState(false);
   const [createErrorMsg, setCreateErrorMsg] = useState<string | null>(null);
 
+  const [editForm, setEditForm] = useState<DonationCampaignMetadata & { targetKAS: string; endDate: string }>({
+    title: '',
+    description: '',
+    goals: [],
+    socialLinks: {},
+    l1KaspaAddress: '',
+    targetKAS: '1000',
+    endDate: '',
+  });
+  const [editGoalInput, setEditGoalInput] = useState('');
+  const [editLoadingMeta, setEditLoadingMeta] = useState(false);
+  const [editErrorMsg, setEditErrorMsg] = useState<string | null>(null);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editSubmitting, setEditSubmitting] = useState(false);
+
   const handleVerify = () => {
     if (!escrowAddress) return;
     writeContract({
