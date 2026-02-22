@@ -24,6 +24,7 @@ export default function DonationCampaignPage() {
   const { campaign, isLoading, error, refetch: refetchCampaign } = useDonationCampaign(creatorAddress);
   const [metadata, setMetadata] = useState<DonationCampaignMetadata | null>(null);
   const [metadataLoading, setMetadataLoading] = useState(false);
+  const [previewDonationAmount, setPreviewDonationAmount] = useState(10);
 
   useEffect(() => {
     if (!campaign?.ipfsHash) {
@@ -221,14 +222,14 @@ export default function DonationCampaignPage() {
                       </div>
                     )}
 
-                    <DonationBlock campaign={campaign} onL2DonationConfirmed={refetchCampaign} />
+                    <DonationBlock campaign={campaign} onL2DonationConfirmed={refetchCampaign} onL2AmountChange={setPreviewDonationAmount} />
                   </div>
                 </div>
               </div>
 
               {/* Right column: summary + leaderboard + Revenue Tree - 2/5 */}
               <div className="lg:col-span-2">
-                <DonationCampaignRightColumn campaign={campaign} creatorAddress={creatorAddress} />
+                <DonationCampaignRightColumn campaign={campaign} creatorAddress={creatorAddress} previewDonationAmount={previewDonationAmount} />
               </div>
             </div>
           </div>

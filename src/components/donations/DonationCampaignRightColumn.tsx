@@ -10,9 +10,11 @@ import type { DonationCampaign } from '@/lib/donations/types';
 interface DonationCampaignRightColumnProps {
   campaign: DonationCampaign;
   creatorAddress: string;
+  /** Current L2 donation amount for Revenue Tree share preview (default 10). */
+  previewDonationAmount?: number;
 }
 
-export function DonationCampaignRightColumn({ campaign, creatorAddress }: DonationCampaignRightColumnProps) {
+export function DonationCampaignRightColumn({ campaign, creatorAddress, previewDonationAmount = 10 }: DonationCampaignRightColumnProps) {
   const chainId = useChainId();
   const { address: userWalletAddress } = useAccount();
   const deadlineDate = new Date(Number(campaign.deadline) * 1000);
@@ -64,7 +66,8 @@ export function DonationCampaignRightColumn({ campaign, creatorAddress }: Donati
           userWalletAddress={userWalletAddress ?? undefined}
           isL2Only={true}
           activationAmount={0}
-          amountSpent={10}
+          amountSpent={previewDonationAmount > 0 ? previewDonationAmount : 10}
+          treeBps={1000}
         />
       </div>
     </div>

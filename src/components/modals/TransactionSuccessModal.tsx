@@ -1,7 +1,15 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { getExplorerTxUrlForChain } from '@/lib/dapps/deployer';
+import { CopyableAddress } from '@/components/donations/CopyableAddress';
+import { getExplorerUrl } from '@/lib/dapps/deployer';
+
+export interface TransactionAddressRow {
+  label: string;
+  address: string;
+  explorerUrl?: string;
+}
 
 export interface TransactionSuccessModalProps {
   isOpen: boolean;
@@ -10,6 +18,8 @@ export interface TransactionSuccessModalProps {
   chainId?: number;
   gridAmount?: string;
   pointsEarned?: number;
+  /** Optional addresses to show (e.g. recipient) with copy + explorer. */
+  addresses?: TransactionAddressRow[];
   /** Auto-close after this many ms (default 8000). Set to 0 to disable. */
   autoCloseMs?: number;
 }
@@ -21,8 +31,11 @@ export function TransactionSuccessModal({
   chainId = 38836,
   gridAmount,
   pointsEarned,
+  addresses,
   autoCloseMs = 8000,
 }: TransactionSuccessModalProps) {
+  const [txHashCopied, setTxHashCopied] = useState(false);
+
   useEffect(() => {
     if (!isOpen || autoCloseMs <= 0) return;
     const t = setTimeout(onClose, autoCloseMs);
@@ -32,7 +45,15 @@ export function TransactionSuccessModal({
   if (!isOpen) return null;
 
   const explorerUrl = getExplorerTxUrlForChain(chainId, txHash);
-  const shortHash = txHash.slice(0, 10) + '...' + txHash.slice(-8);
+  const shortHash = txHash.startsWith('0x') ? txHash.slice(0, 10) + '...' + txHash.slice(-8) : txHash.slice(0, 8) + '...' + txHash.slice(-6);
+
+  const copyTxHash = async () => {
+    try {
+      await navigator.clipboard.writeText(txHash);
+      setTxHashCopied(true);
+      setTimeout(() => setTxHashCopied(false), 2000);
+    } catch {}
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -54,9 +75,30 @@ export function TransactionSuccessModal({
           </h2>
         </div>
 
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Transaction hash: <span className="font-mono text-zinc-800 dark:text-zinc-200">{shortHash}</span>
-        </p>
+        <div className="rounded-lg bg-zinc-50 dark:bg-zinc-800/50 p-3 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Transaction hash</span>
+            <div className="flex items-center gap-1">
+              <span className="font-mono text-sm text-zinc-800 dark:text-zinc-200">{shortHash}</span>
+              <button type="button" onClick={copyTxHash} className="p-1 rounded border border-zinc-300 dark:border-zinc-600 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700" title="Copy">
+                {txHashCopied ? <span className="text-emerald-500 text-xs">Copied</span> : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>}
+              </button>
+              {explorerUrl !== '#' && (
+                <a href={explorerUrl} target="_blank" rel="noopener noreferrer" className="p-1 rounded border border-zinc-300 dark:border-zinc-600 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700" title="View in Explorer">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                </a>
+              )}
+            </div>
+          </div>
+          {addresses?.map((row, i) => (
+            <CopyableAddress
+              key={i}
+              label={row.label}
+              value={row.address}
+              explorerUrl={row.explorerUrl ?? (row.address.startsWith('0x') ? getExplorerUrl(row.address, chainId) : undefined)}
+            />
+          ))}
+        </div>
 
         {(gridAmount != null && gridAmount !== '') || (pointsEarned != null && pointsEarned > 0) ? (
           <div className="rounded-lg bg-zinc-50 dark:bg-zinc-800/50 p-3 space-y-1 text-sm">

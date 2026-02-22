@@ -23,6 +23,10 @@ import { useNFTStatus } from '@/hooks/useNFTStatus';
 import type { DonationCampaign } from '@/lib/donations/types';
 import { getErrorMessage } from '@/lib/utils';
 import { getKaspaExplorerAddressUrl } from '@/lib/store/utils';
+import { getExplorerUrl } from '@/lib/dapps/deployer';
+import { CopyableAddress } from '@/components/donations/CopyableAddress';
+import { TransactionSuccessModal } from '@/components/modals/TransactionSuccessModal';
+import { TransactionPendingModal } from '@/components/donations/TransactionPendingModal';
 import type { Address } from 'viem';
 
 /** Minimal DApp shape for vDonations fee calculator (KREX/NFT discounts) */
@@ -45,9 +49,11 @@ interface DonationBlockProps {
   campaign: DonationCampaign;
   /** Called when L2 donation tx is confirmed so campaign/leaderboard can refetch. */
   onL2DonationConfirmed?: () => void;
+  /** Optional: parent can track L2 amount for Revenue Tree preview. */
+  onL2AmountChange?: (amount: number) => void;
 }
 
-export function DonationBlock({ campaign, onL2DonationConfirmed }: DonationBlockProps) {
+export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChange }: DonationBlockProps) {
   const chainId = useChainId();
   const { address: l2Address, isConnected: isL2Connected } = useAccount();
   const { state: kaspaState } = useKaspaWallet();
@@ -60,9 +66,15 @@ export function DonationBlock({ campaign, onL2DonationConfirmed }: DonationBlock
   const [l2Amount, setL2Amount] = useState('');
   const [sendModalStep, setSendModalStep] = useState<'donation' | 'fee' | null>(null);
   const [l1FlowOpen, setL1FlowOpen] = useState(false);
+  const [successModalDismissed, setSuccessModalDismissed] = useState(false);
 
   const { writeContract, data: hash, isPending: isPendingWrite, error: writeError } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
+
+  // When a new tx is submitted, allow success modal to show again
+  useEffect(() => {
+    if (hash) setSuccessModalDismissed(false);
+  }, [hash]);
 
   useEffect(() => {
     if (isConfirmed && onL2DonationConfirmed) onL2DonationConfirmed();
@@ -188,9 +200,24 @@ export function DonationBlock({ campaign, onL2DonationConfirmed }: DonationBlock
           >
             {isPendingWrite || isConfirming ? 'Confirming…' : 'Donate (L2)'}
           </button>
-          {isConfirmed && <p className="text-sm text-emerald-600 dark:text-emerald-400">Donation recorded. Thank you!</p>}
         </div>
       )}
+
+      <TransactionPendingModal
+        isOpen={Boolean(hash && !isConfirmed)}
+        onClose={() => {}}
+        txHash={hash ?? ''}
+        chainId={chainId ?? 38836}
+        title="Donation submitted"
+      />
+      <TransactionSuccessModal
+        isOpen={isConfirmed && Boolean(hash) && !successModalDismissed}
+        onClose={() => setSuccessModalDismissed(true)}
+        txHash={hash ?? ''}
+        chainId={chainId ?? 38836}
+        addresses={isConfirmed && campaign?.creatorAddress ? [{ label: 'Campaign creator (receives funds)', address: campaign.creatorAddress, explorerUrl: chainId ? getExplorerUrl(campaign.creatorAddress, chainId) : undefined }] : undefined}
+        autoCloseMs={0}
+      />
 
       {mode === 'L1' && (
         <div className="space-y-4">
@@ -219,28 +246,12 @@ export function DonationBlock({ campaign, onL2DonationConfirmed }: DonationBlock
           )}
           {l1Address && (
             <div className="rounded-lg bg-zinc-100 dark:bg-zinc-800 p-3 text-sm">
-              <p className="font-medium text-zinc-700 dark:text-zinc-300 mb-1">Creator L1 address</p>
-              <a
-                href={getKaspaExplorerAddressUrl(l1Address)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-mono text-zinc-600 dark:text-zinc-400 break-all hover:text-emerald-600 dark:hover:text-emerald-400 underline"
-              >
-                {l1Address}
-              </a>
+              <CopyableAddress label="Creator L1 address" value={l1Address} explorerUrl={getKaspaExplorerAddressUrl(l1Address)} truncate={false} />
             </div>
           )}
           {platformL1 && (
             <div className="rounded-lg bg-zinc-100 dark:bg-zinc-800 p-3 text-sm">
-              <p className="font-medium text-zinc-700 dark:text-zinc-300 mb-1">Platform fee address</p>
-              <a
-                href={getKaspaExplorerAddressUrl(platformL1)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-mono text-zinc-600 dark:text-zinc-400 break-all hover:text-emerald-600 dark:hover:text-emerald-400 underline"
-              >
-                {platformL1}
-              </a>
+              <CopyableAddress label="Platform fee address" value={platformL1} explorerUrl={getKaspaExplorerAddressUrl(platformL1)} truncate={false} />
             </div>
           )}
           <button
