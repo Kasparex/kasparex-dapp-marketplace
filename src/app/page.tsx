@@ -20,6 +20,7 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { useLikes } from '@/hooks/useLikes';
 import { NetworkSwitcher } from '@/components/NetworkSwitcher';
 import { FilterBar } from '@/components/FilterBar';
+import { AdSlider } from '@/components/ads/AdSlider';
 
 const validCategories = categories.map((cat) => cat.id);
 
@@ -206,14 +207,17 @@ function HomeContent() {
                     </a>
                   </div>
                 </div>
-                {/* Decorative app-style graphic */}
-                <div className="hidden lg:flex items-center justify-center flex-shrink-0 opacity-90">
-                  <div className="relative">
+                {/* Decorative app-style graphic + halo ad slot (right side overlay) */}
+                <div className="hidden lg:flex items-center justify-center flex-shrink-0 relative w-[280px]">
+                  <div className="relative opacity-90 pointer-events-none">
                     <div className="w-48 h-56 rounded-2xl border-2 border-violet-500/30 bg-white/80 dark:bg-zinc-900/80 shadow-2xl shadow-violet-500/10 rotate-3 transform" />
                     <div className="absolute -bottom-2 -right-2 w-40 h-48 rounded-xl border-2 border-amber-500/20 bg-zinc-100/90 dark:bg-zinc-800/90 shadow-xl -rotate-6 transform" />
                     <div className="absolute top-4 left-4 right-4 bottom-4 rounded-lg border border-zinc-300 dark:border-zinc-700/50 flex items-center justify-center">
                       <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">dApp</span>
                     </div>
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-auto">
+                    <AdSlider slotId="HALO_DAPPS_RIGHT" />
                   </div>
                 </div>
               </div>

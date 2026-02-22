@@ -31,6 +31,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'storacha.network',
       },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+      },
     ],
   },
   

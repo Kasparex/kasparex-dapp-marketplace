@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { AdSlot } from '@/components/ads/AdSlot';
 
 interface SidebarItemProps {
     href: string;
@@ -212,6 +213,19 @@ export function StudioSidebar() {
 
                     <section>
                         <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4 px-2">
+                            Ads
+                        </h3>
+                        <nav className="space-y-1">
+                            <SidebarItem
+                                href="/studio/ads"
+                                label="My Ads"
+                                icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" /></svg>}
+                            />
+                        </nav>
+                    </section>
+
+                    <section>
+                        <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4 px-2">
                             Editors
                         </h3>
                         <nav className="space-y-1">
@@ -250,6 +264,11 @@ export function StudioSidebar() {
                             />
                         </nav>
                     </section>
+                </div>
+
+                {/* Ad slot */}
+                <div className="px-2 pb-4">
+                    <AdSlot slotId="SIDEBAR_RANDOM" variant="compact" />
                 </div>
 
                 {/* Footer */}
