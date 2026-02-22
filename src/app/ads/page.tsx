@@ -42,16 +42,17 @@ export default function AdsListingPage() {
   const [sortOpen, setSortOpen] = useState(false);
   const sortRef = useRef<HTMLDivElement>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
-  const [wizardInitialSlotId, setWizardInitialSlotId] = useState<string | undefined>(undefined);
+  const [wizardInitialSlotId, setWizardInitialSlotId] = useState<AdSlotId | undefined>(undefined);
   const searchParams = useSearchParams();
 
   useEffect(() => {
     const take = searchParams.get('take');
     const create = searchParams.get('create');
     const slot = searchParams.get('slot');
-    const initialSlot = take ?? slot ?? undefined;
-    if (initialSlot || create === '1') {
-      setWizardInitialSlotId(initialSlot ?? undefined);
+    const raw = take ?? slot ?? undefined;
+    const validSlot = raw && AD_SLOTS.some((s) => s.id === raw) ? (raw as AdSlotId) : undefined;
+    if (validSlot || create === '1') {
+      setWizardInitialSlotId(validSlot);
       setWizardOpen(true);
     }
   }, [searchParams]);
@@ -91,7 +92,7 @@ export default function AdsListingPage() {
     setSortBy('newest');
   };
 
-  const openCreateWizard = (initialSlotId?: string) => {
+  const openCreateWizard = (initialSlotId?: AdSlotId) => {
     setWizardInitialSlotId(initialSlotId);
     setWizardOpen(true);
   };
