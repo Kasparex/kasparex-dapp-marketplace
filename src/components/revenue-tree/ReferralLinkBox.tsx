@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import type { RevenueTreeContentType } from '@/lib/revenue-tree/types';
 
 interface ReferralLinkBoxProps {
   referralLink: string;
   isActive: boolean;
-  contentType?: 'dapp' | 'magazine' | 'vblog' | 'game' | 'store';
+  contentType?: RevenueTreeContentType;
 }
 
 export function ReferralLinkBox({ referralLink, isActive, contentType = 'dapp' }: ReferralLinkBoxProps) {

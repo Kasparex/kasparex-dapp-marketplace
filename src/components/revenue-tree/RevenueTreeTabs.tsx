@@ -15,6 +15,7 @@ export function RevenueTreeTabs({ activeTab, onTabChange }: RevenueTreeTabsProps
     { id: 'game', label: 'Games' },
     { id: 'store', label: 'Store' },
     { id: 'magazine', label: 'Magazines' },
+    { id: 'donation', label: 'Donations' },
   ];
 
   return (

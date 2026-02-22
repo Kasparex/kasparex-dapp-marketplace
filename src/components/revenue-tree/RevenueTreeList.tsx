@@ -54,6 +54,7 @@ export function RevenueTreeList({ trees, activeTab, amountSpent = DEFAULT_AMOUNT
       vblog: 'vblog',
       game: 'games',
       store: 'store',
+      donation: 'donations',
     };
     return `/${pluralMap[tree.contentType]}/${tree.contentSlug}`;
   };

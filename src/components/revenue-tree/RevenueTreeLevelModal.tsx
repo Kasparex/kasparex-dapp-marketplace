@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useChainId } from 'wagmi';
-import { RevenueTreeLevel as RevenueTreeLevelType } from '@/lib/revenue-tree/types';
+import { RevenueTreeLevel as RevenueTreeLevelType, RevenueTreeContentType } from '@/lib/revenue-tree/types';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
 
 interface RevenueTreeLevelModalProps {
@@ -10,7 +10,7 @@ interface RevenueTreeLevelModalProps {
   isOpen: boolean;
   onClose: () => void;
   isCurrentUser?: boolean;
-  contentType: 'dapp' | 'magazine' | 'vblog' | 'game' | 'store';
+  contentType: RevenueTreeContentType;
   contentSlug: string;
 }
 
@@ -62,12 +62,13 @@ export function RevenueTreeLevelModal({
     if (contentType === 'magazine') {
       path = `/magazines/${contentSlug}/1`; // TODO: Get actual issue number
     } else {
-      const pluralMap: Record<'dapp' | 'magazine' | 'vblog' | 'game' | 'store', string> = {
+      const pluralMap: Record<RevenueTreeContentType, string> = {
         dapp: 'dapps',
         magazine: 'magazines',
         vblog: 'vblog',
         game: 'games',
         store: 'store',
+        donation: 'donations',
       };
       path = `/${pluralMap[contentType]}/${contentSlug}`;
     }
