@@ -103,7 +103,6 @@ export function DonationBlock({ campaign }: DonationBlockProps) {
 
   const handleDonateL2 = () => {
     if (!canDonateL2 || !escrowAddress) return;
-    setRecordError(null);
     writeContract({
       address: escrowAddress as Address,
       abi: DONATION_ESCROW_ABI,
