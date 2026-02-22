@@ -4,71 +4,53 @@ import Link from 'next/link';
 import type { NodeInfo } from '@/lib/nodes/types';
 
 const CARD_CLASS =
-  'bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6';
-
-function statusLabel(status: NodeInfo['status']): string {
-  switch (status) {
-    case 'connected':
-      return 'Registered';
-    case 'disconnected':
-    case 'syncing':
-      return 'Registered (offline)';
-    case 'not_registered':
-    default:
-      return 'Not registered';
-  }
-}
+  'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl sm:rounded-[32px] overflow-hidden shadow-sm p-6';
 
 interface ConnectAndRegisterProps {
   nodeInfo: NodeInfo;
 }
 
 export function ConnectAndRegister({ nodeInfo }: ConnectAndRegisterProps) {
-  const isRegistered = nodeInfo.status !== 'not_registered';
-
   return (
-    <section id="connect-register" className="mb-8">
-      <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-        Connect & Register
-      </h2>
+    <section id="connect-register" className="mb-6">
       <div className={CARD_CLASS}>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <p className="text-zinc-600 dark:text-zinc-400 mb-2">
-              Run a KREX Node on your machine to support the Kasparex ecosystem
-              and earn rewards. Follow the guide to install, start, and register
-              your node.
-            </p>
-            <p className="text-sm text-zinc-500 dark:text-zinc-500">
-              Registration status:{' '}
-              <span
-                className={
-                  isRegistered
-                    ? 'font-medium text-[#02abb8]'
-                    : 'font-medium text-zinc-700 dark:text-zinc-300'
-                }
-              >
-                {statusLabel(nodeInfo.status)}
-              </span>
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3 flex-shrink-0">
-            <Link
-              href="/api/krex-node"
-              className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl text-sm font-medium bg-[#02abb8] hover:bg-[#028a94] text-white transition-colors"
-            >
-              Run a KREX Node
-            </Link>
-            <a
-              href="https://github.com/Kasparex/kasparex-krex-node"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl text-sm font-medium bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 transition-colors"
-            >
-              View on GitHub
-            </a>
-          </div>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-1.5 h-6 bg-[#02abb8] rounded-full" />
+          <h2 className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">
+            Connection guide
+          </h2>
         </div>
+        <p className="text-zinc-600 dark:text-zinc-400 mb-4 text-sm leading-relaxed">
+          Run a KREX Node on your machine to support the Kasparex ecosystem and earn rewards.
+          Install Node.js, clone the repo, then start and register your node.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/api/krex-node"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-[#02abb8] hover:bg-[#028a94] text-white transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+            Run a KREX Node
+          </Link>
+          <a
+            href="https://github.com/Kasparex/kasparex-krex-node"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+            View on GitHub
+          </a>
+        </div>
+        {nodeInfo.status !== 'not_registered' && (
+          <p className="mt-4 text-[10px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider">
+            Registration status: Registered
+          </p>
+        )}
       </div>
     </section>
   );

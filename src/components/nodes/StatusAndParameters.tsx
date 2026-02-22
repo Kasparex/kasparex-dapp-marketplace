@@ -3,7 +3,7 @@
 import type { NodeInfo, NodeMetrics } from '@/lib/nodes/types';
 
 const CARD_CLASS =
-  'bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6';
+  'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl sm:rounded-[32px] overflow-hidden shadow-sm p-6';
 
 function statusDisplay(status: NodeInfo['status']): { label: string; className: string } {
   switch (status) {
@@ -26,9 +26,9 @@ interface StatusAndParametersProps {
 
 function Row({ label, value, valueClassName = '' }: { label: string; value: string | number; valueClassName?: string }) {
   return (
-    <div className="flex justify-between items-center py-2 border-b border-zinc-200 dark:border-zinc-800 last:border-0">
-      <span className="text-sm text-zinc-500 dark:text-zinc-500">{label}</span>
-      <span className={`text-sm font-medium text-zinc-900 dark:text-zinc-100 ${valueClassName}`}>
+    <div className="flex justify-between items-center py-2.5 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
+      <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider">{label}</span>
+      <span className={`text-sm font-semibold text-zinc-900 dark:text-zinc-100 ${valueClassName}`}>
         {value}
       </span>
     </div>
@@ -39,41 +39,26 @@ export function StatusAndParameters({ nodeInfo, metrics }: StatusAndParametersPr
   const status = statusDisplay(nodeInfo.status);
 
   return (
-    <section id="status-parameters" className="mb-8">
-      <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-        Status & Parameters
-      </h2>
+    <section id="status-parameters" className="mb-6">
       <div className={CARD_CLASS}>
-        <div className="grid sm:grid-cols-2 gap-6">
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3">
-              Node
-            </h3>
-            <div className="space-y-0">
-              <Row label="Status" value={status.label} valueClassName={status.className} />
-              {nodeInfo.nodeId && (
-                <Row label="Node ID" value={nodeInfo.nodeId} />
-              )}
-              {nodeInfo.registeredAt && (
-                <Row label="Registered" value={nodeInfo.registeredAt} />
-              )}
-            </div>
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3">
-              Metrics
-            </h3>
-            <div className="space-y-0">
-              <Row label="Uptime" value={`${metrics.uptimePercent}%`} />
-              <Row label="Pinned CIDs" value={metrics.pinnedCids} />
-              {metrics.requestsServed != null && (
-                <Row label="Requests served" value={metrics.requestsServed} />
-              )}
-              {metrics.lastPingAt && (
-                <Row label="Last ping" value={new Date(metrics.lastPingAt).toLocaleString()} />
-              )}
-            </div>
-          </div>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-1.5 h-6 bg-[#02abb8] rounded-full" />
+          <h2 className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">
+            Parameters
+          </h2>
+        </div>
+        <div className="space-y-0">
+          <Row label="Status" value={status.label} valueClassName={status.className} />
+          <Row label="Uptime" value={`${metrics.uptimePercent}%`} />
+          <Row label="Pinned CIDs" value={metrics.pinnedCids} />
+          {metrics.requestsServed != null && (
+            <Row label="Requests served" value={metrics.requestsServed} />
+          )}
+          {metrics.lastPingAt && (
+            <Row label="Last ping" value={new Date(metrics.lastPingAt).toLocaleString()} />
+          )}
+          {nodeInfo.nodeId && <Row label="Node ID" value={nodeInfo.nodeId} />}
+          {nodeInfo.registeredAt && <Row label="Registered" value={nodeInfo.registeredAt} />}
         </div>
       </div>
     </section>
