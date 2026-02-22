@@ -125,6 +125,13 @@ export default function DonationCampaignPage() {
               {/* Left column: campaign content - 3/5 */}
               <div className="lg:col-span-3 space-y-6">
                 <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
+                  <div className="aspect-[16/9] w-full bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden">
+                    <img
+                      src={metadata?.imageHash ? getGatewayUrl(metadata.imageHash) : DEFAULT_DONATION_IMAGE}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                   <div className="p-6 md:p-8">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
                       <h1 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-100">{title}</h1>

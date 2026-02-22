@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { useAccount, useChainId, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -23,7 +23,6 @@ import { useNFTStatus } from '@/hooks/useNFTStatus';
 import type { DonationCampaign } from '@/lib/donations/types';
 import { getErrorMessage } from '@/lib/utils';
 import { getKaspaExplorerAddressUrl } from '@/lib/store/utils';
-import { getExplorerUrl } from '@/lib/dapps/deployer';
 import type { Address } from 'viem';
 
 /** Minimal DApp shape for vDonations fee calculator (KREX/NFT discounts) */
@@ -58,12 +57,6 @@ export function DonationBlock({ campaign }: DonationBlockProps) {
   const [l1AmountKas, setL1AmountKas] = useState('');
   const [l2Amount, setL2Amount] = useState('');
   const [sendModalStep, setSendModalStep] = useState<'donation' | 'fee' | null>(null);
-  const [donationTxHash, setDonationTxHash] = useState('');
-  const [feeTxHash, setFeeTxHash] = useState('');
-  const [recordSubmitting, setRecordSubmitting] = useState(false);
-  const [recordError, setRecordError] = useState<string | null>(null);
-  const [recordSuccess, setRecordSuccess] = useState(false);
-  const [verifyStatus, setVerifyStatus] = useState<'idle' | 'checking' | 'ok' | 'fail'>('idle');
 
   const { writeContract, data: hash, isPending: isPendingWrite, error: writeError } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
@@ -118,73 +111,6 @@ export function DonationBlock({ campaign }: DonationBlockProps) {
       args: [campaign.creatorAddress],
       value: l2AmountWei,
     });
-  };
-
-  const verifyHash = async (hash: string) => {
-    if (!hash || !/^[0-9a-fA-F]{64}$/.test(hash)) return;
-    setVerifyStatus('checking');
-    try {
-      const res = await fetch(`/api/kaspa/transaction/${hash}`);
-      const data = await res.json();
-      setVerifyStatus(res.ok && data?.transaction ? 'ok' : 'fail');
-    } catch {
-      setVerifyStatus('fail');
-    }
-  };
-
-  const handleVerifyHash = () => verifyHash(donationTxHash.replace(/^0x/, '').trim());
-
-  // Auto-verify when user enters a valid 64-char tx hash (debounced)
-  const autoVerifyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    const hash = donationTxHash.replace(/^0x/, '').trim();
-    if (hash.length !== 64 || !/^[0-9a-fA-F]+$/.test(hash)) {
-      if (hash.length > 0) setVerifyStatus('idle');
-      return;
-    }
-    if (autoVerifyTimeoutRef.current) clearTimeout(autoVerifyTimeoutRef.current);
-    autoVerifyTimeoutRef.current = setTimeout(() => {
-      autoVerifyTimeoutRef.current = null;
-      verifyHash(hash);
-    }, 600);
-    return () => {
-      if (autoVerifyTimeoutRef.current) clearTimeout(autoVerifyTimeoutRef.current);
-    };
-  }, [donationTxHash]);
-
-  const handleRecordL1 = async () => {
-    if (!donationTxHash.trim() || !campaign.creatorAddress || !l2Address) {
-      setRecordError('Please connect your L2 wallet and enter the donation transaction hash.');
-      return;
-    }
-    setRecordSubmitting(true);
-    setRecordError(null);
-    setRecordSuccess(false);
-    setVerifyStatus('idle');
-    try {
-      const res = await fetch('/api/vdonations/l1/record', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          donationTxHash: donationTxHash.replace(/^0x/, ''),
-          creatorAddress: campaign.creatorAddress,
-          donorL2Address: l2Address,
-          ...(feeTxHash.trim() && { feeTxHash: feeTxHash.replace(/^0x/, '') }),
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setRecordError(data.error || 'Failed to record donation');
-        return;
-      }
-      setRecordSuccess(true);
-      setDonationTxHash('');
-      setFeeTxHash('');
-    } catch (e) {
-      setRecordError(getErrorMessage(e, 'Failed to record donation'));
-    } finally {
-      setRecordSubmitting(false);
-    }
   };
 
   return (
@@ -263,7 +189,7 @@ export function DonationBlock({ campaign }: DonationBlockProps) {
       {mode === 'L1' && (
         <div className="space-y-4">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Send KAS to the creator (min {VDONATIONS_MIN_DONATION_KAS} KAS), then send the platform fee. After both transactions, paste the <strong>donation</strong> tx hash below and click Verify, then Submit to receive points. (Sending donation and fee in a single transaction is not yet supported by the wallet flow.)
+            Send KAS directly to the creator (min {VDONATIONS_MIN_DONATION_KAS} KAS). Optionally send the platform fee to support the platform.
           </p>
           {!kaspaState.isConnected && (
             <p className="text-amber-600 dark:text-amber-400 text-sm">Connect your Kaspa (L1) wallet to send KAS.</p>
@@ -282,7 +208,7 @@ export function DonationBlock({ campaign }: DonationBlockProps) {
           </div>
           {l1AmountNum >= VDONATIONS_MIN_DONATION_KAS && (
             <div className="text-sm text-zinc-600 dark:text-zinc-400">
-              Platform fee: {l1FeeKas} KAS (1% of donation, min 1 KAS) — sent to the platform address below.
+              Platform fee: {l1FeeKas} KAS (1% of donation, min 1 KAS) — goes to the platform address below.
             </div>
           )}
           {l1Address && (
@@ -328,53 +254,6 @@ export function DonationBlock({ campaign }: DonationBlockProps) {
             >
               Send fee
             </button>
-          </div>
-
-          <div className="border-t border-zinc-200 dark:border-zinc-700 pt-4 mt-4">
-            <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">I&apos;ve donated — get my points</h4>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
-              After sending the donation (and optionally the fee), enter the donation transaction hash. Connect your L2 wallet so we know where to award points.
-            </p>
-            <div className="flex gap-2 mb-2">
-              <input
-                type="text"
-                value={donationTxHash}
-                onChange={(e) => {
-                  setDonationTxHash(e.target.value);
-                  setVerifyStatus('idle');
-                }}
-                placeholder="Donation tx hash (64 hex chars)"
-                className="flex-1 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm font-mono"
-              />
-              <button
-                type="button"
-                onClick={handleVerifyHash}
-                disabled={!donationTxHash.trim() || verifyStatus === 'checking'}
-                className="px-3 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-sm font-medium hover:bg-zinc-300 dark:hover:bg-zinc-600 disabled:opacity-50 shrink-0"
-              >
-                {verifyStatus === 'checking' ? 'Checking…' : verifyStatus === 'ok' ? '✓ Found' : verifyStatus === 'fail' ? 'Not found' : 'Verify'}
-              </button>
-            </div>
-            <input
-              type="text"
-              value={feeTxHash}
-              onChange={(e) => setFeeTxHash(e.target.value)}
-              placeholder="Fee tx hash (optional)"
-              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm font-mono mb-2"
-            />
-            {!l2Address && (
-              <p className="text-amber-600 dark:text-amber-400 text-sm mb-2">Connect L2 wallet to receive points.</p>
-            )}
-            <button
-              type="button"
-              onClick={handleRecordL1}
-              disabled={recordSubmitting || !donationTxHash.trim() || !l2Address}
-              className="px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {recordSubmitting ? 'Submitting…' : 'Submit & get points'}
-            </button>
-            {recordError && <p className="text-sm text-red-600 dark:text-red-400 mt-2">{recordError}</p>}
-            {recordSuccess && <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-2">Recorded. Points awarded to your L2 wallet.</p>}
           </div>
         </div>
       )}

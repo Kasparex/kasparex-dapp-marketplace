@@ -11,7 +11,7 @@ interface DonationLeaderboardProps {
 
 export function DonationLeaderboard({ creatorAddress, limit = 20 }: DonationLeaderboardProps) {
   const chainId = useChainId();
-  const { leaderboard, isLoading } = useDonationLeaderboard(creatorAddress, limit);
+  const { leaderboard, isLoading, error } = useDonationLeaderboard(creatorAddress, limit);
 
   return (
     <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
@@ -22,7 +22,10 @@ export function DonationLeaderboard({ creatorAddress, limit = 20 }: DonationLead
         {isLoading && (
           <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading…</p>
         )}
-        {!isLoading && leaderboard.length === 0 && (
+        {!isLoading && error && (
+          <p className="text-sm text-amber-600 dark:text-amber-400">Could not load donors. Try again later.</p>
+        )}
+        {!isLoading && !error && leaderboard.length === 0 && (
           <p className="text-sm text-zinc-500 dark:text-zinc-400">No L2 donations yet.</p>
         )}
         {!isLoading && leaderboard.length > 0 && (

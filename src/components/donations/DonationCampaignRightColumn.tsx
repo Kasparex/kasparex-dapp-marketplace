@@ -59,9 +59,6 @@ export function DonationCampaignRightColumn({ campaign, creatorAddress }: Donati
       <DonationLeaderboard creatorAddress={creatorAddress} limit={20} />
 
       <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 px-4 pt-3 pb-1">
-          10% of L2 donations to this campaign go to the Revenue Tree (community rewards and referrals).
-        </p>
         <RevenueTree
           data={revenueTreeData}
           userWalletAddress={userWalletAddress ?? undefined}
