@@ -15,12 +15,17 @@ export interface DonorEntry {
 
 const CHAIN_ID = 38836;
 
-export function useDonationLeaderboard(creatorAddress: string | null, limit = 20) {
+/** Refetch only when donorCount or raisedWei change (from campaign), not on every render. */
+export function useDonationLeaderboard(
+  creatorAddress: string | null,
+  limit = 20,
+  options?: { donorCount?: bigint; raisedWei?: bigint }
+) {
   const publicClient = usePublicClient({ chainId: CHAIN_ID });
   const escrowAddress = getContractAddress(CHAIN_ID, 'DonationEscrow');
 
   const { data: leaderboard, isLoading, error } = useQuery({
-    queryKey: ['donation-leaderboard', creatorAddress?.toLowerCase(), limit],
+    queryKey: ['donation-leaderboard', creatorAddress?.toLowerCase(), limit, options?.donorCount?.toString(), options?.raisedWei?.toString()],
     queryFn: async (): Promise<DonorEntry[]> => {
       if (!creatorAddress || !escrowAddress || !publicClient) return [];
       let creator: Address;
@@ -54,7 +59,8 @@ export function useDonationLeaderboard(creatorAddress: string | null, limit = 20
       return sorted;
     },
     enabled: Boolean(creatorAddress && escrowAddress && publicClient),
-    staleTime: 60_000,
+    staleTime: 5 * 60 * 1000, // 5 min — refetch when campaign donorCount/raisedWei change (query key)
+    refetchOnWindowFocus: false,
   });
 
   return { leaderboard: leaderboard ?? [], isLoading, error };

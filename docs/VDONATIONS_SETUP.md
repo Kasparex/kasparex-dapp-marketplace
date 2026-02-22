@@ -71,3 +71,6 @@ Yes. If your treasury has a Kaspa (L1) address, you can set `NEXT_PUBLIC_VDONATI
 
 **Existing DonationEscrow was deployed with 1% fee; how do I switch to 10%?**  
 DonationEscrow owner can call `setFeeBps(1000)` on the DonationEscrow contract. Then run (or re-run) `setup-vdonations-auth.js` so FeeRouter has `setTreeBpsByType("donation", 10000)` — that sends 100% of the 10% fee to Revenue Tree.
+
+**L2 donation went through but the full amount went to the creator / fees don’t reach Revenue Tree?**  
+The contract sends the fee (10%) to `DonationEscrow.feeRouter()`. Check on a block explorer: (1) DonationEscrow’s `feeRouter` must be the same FeeRouter the app uses (see `addresses.ts` for igraGalleonTestnet). (2) On that FeeRouter, `authorizedDApps(DonationEscrow)` must be true and `treeBpsByType("donation")` should be 10000. If DonationEscrow was deployed with an old FeeRouter address, call `DonationEscrow.setFeeRouter(newFeeRouterAddress)` (owner only), then run `setup-vdonations-auth.js` with `FEE_ROUTER_ADDRESS` set to that new address so the script configures the correct router.

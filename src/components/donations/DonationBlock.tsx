@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useAccount, useChainId, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -43,9 +43,11 @@ const VDONATIONS_DAPP = {
 
 interface DonationBlockProps {
   campaign: DonationCampaign;
+  /** Called when L2 donation tx is confirmed so campaign/leaderboard can refetch. */
+  onL2DonationConfirmed?: () => void;
 }
 
-export function DonationBlock({ campaign }: DonationBlockProps) {
+export function DonationBlock({ campaign, onL2DonationConfirmed }: DonationBlockProps) {
   const chainId = useChainId();
   const { address: l2Address, isConnected: isL2Connected } = useAccount();
   const { state: kaspaState } = useKaspaWallet();
@@ -57,16 +59,21 @@ export function DonationBlock({ campaign }: DonationBlockProps) {
   const [l1AmountKas, setL1AmountKas] = useState('');
   const [l2Amount, setL2Amount] = useState('');
   const [sendModalStep, setSendModalStep] = useState<'donation' | 'fee' | null>(null);
+  const [l1FlowOpen, setL1FlowOpen] = useState(false);
 
   const { writeContract, data: hash, isPending: isPendingWrite, error: writeError } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
+
+  useEffect(() => {
+    if (isConfirmed && onL2DonationConfirmed) onL2DonationConfirmed();
+  }, [isConfirmed, onL2DonationConfirmed]);
 
   const { balance: krexBalance, tier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
   const paymentCostBreakdown = useMemo((): CostBreakdown | null => {
     if (!l2Amount || parseFloat(l2Amount) <= 0) return null;
     const amountNum = parseFloat(l2Amount);
-    if (amountNum < 100) return null;
+    if (amountNum < 10) return null;
     return calculateCost({
       dapp: VDONATIONS_DAPP,
       actionId: 'donation',
@@ -144,7 +151,7 @@ export function DonationBlock({ campaign }: DonationBlockProps) {
       {mode === 'L2' && (
         <div className="space-y-4">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Donate iKAS to the escrow. Min {formatEther(VDONATIONS_MIN_DONATION_WEI)} iKAS. You get tGRID/GRID and points with KREX/NFT multipliers.
+            Donate iKAS to the escrow. Min {formatEther(VDONATIONS_MIN_DONATION_WEI)} iKAS (10 iKAS). You get tGRID/GRID and points with KREX/NFT multipliers.
           </p>
           <div className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 p-3 text-sm text-zinc-700 dark:text-zinc-300">
             <p className="font-medium text-zinc-900 dark:text-zinc-100 mb-1">Where does the fee go?</p>
@@ -161,8 +168,8 @@ export function DonationBlock({ campaign }: DonationBlockProps) {
               type="number"
               value={l2Amount}
               onChange={(e) => setL2Amount(e.target.value)}
-              placeholder="100"
-              min="100"
+              placeholder="10"
+              min="10"
               step="1"
               className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
             />
@@ -199,7 +206,7 @@ export function DonationBlock({ campaign }: DonationBlockProps) {
               type="number"
               value={l1AmountKas}
               onChange={(e) => setL1AmountKas(e.target.value)}
-              placeholder="100"
+              placeholder="10"
               min={VDONATIONS_MIN_DONATION_KAS}
               step="1"
               className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
@@ -236,23 +243,37 @@ export function DonationBlock({ campaign }: DonationBlockProps) {
               </a>
             </div>
           )}
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setSendModalStep('donation')}
-              disabled={!canDonateL1}
-              className="px-4 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 font-medium hover:bg-zinc-300 dark:hover:bg-zinc-600 disabled:opacity-50"
-            >
-              Send donation
-            </button>
-            <button
-              type="button"
-              onClick={() => setSendModalStep('fee')}
-              disabled={!canDonateL1 || l1FeeKas <= 0}
-              className="px-4 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 font-medium hover:bg-zinc-300 dark:hover:bg-zinc-600 disabled:opacity-50"
-            >
-              Send fee
-            </button>
+          <button
+            type="button"
+            onClick={() => setL1FlowOpen(true)}
+            disabled={!canDonateL1}
+            className="w-full px-4 py-3 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Donate (L1) — send to creator & platform fee
+          </button>
+        </div>
+      )}
+
+      {/* L1 flow modal: one place to trigger both sends */}
+      {l1FlowOpen && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/50" onClick={() => setL1FlowOpen(false)}>
+          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-xl max-w-md w-full p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center">
+              <h4 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">L1 donation</h4>
+              <button type="button" onClick={() => setL1FlowOpen(false)} className="p-1 rounded text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300" aria-label="Close">×</button>
+            </div>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">Complete both steps. Your wallet will open for each transaction.</p>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                <span className="text-sm text-zinc-700 dark:text-zinc-300">1. Send {l1AmountKas || '—'} KAS to creator</span>
+                <button type="button" onClick={() => setSendModalStep('donation')} disabled={!canDonateL1} className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50">Send</button>
+              </div>
+              <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                <span className="text-sm text-zinc-700 dark:text-zinc-300">2. Send {l1FeeKas > 0 ? l1FeeKas : '—'} KAS platform fee</span>
+                <button type="button" onClick={() => setSendModalStep('fee')} disabled={!canDonateL1 || l1FeeKas <= 0} className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50">Send</button>
+              </div>
+            </div>
+            <button type="button" onClick={() => setL1FlowOpen(false)} className="w-full py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800">Done / Close</button>
           </div>
         </div>
       )}

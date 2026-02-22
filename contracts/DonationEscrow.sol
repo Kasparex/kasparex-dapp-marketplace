@@ -16,7 +16,7 @@ interface ILoyaltyPoints {
 contract DonationEscrow is Ownable, ReentrancyGuard {
     uint256 public constant BPS = 10000;
     uint256 public constant MIN_VERIFY_WEI = 1;
-    uint256 public constant MIN_DONATION_WEI = 100 * 1e18; // 100 iKAS
+    uint256 public constant MIN_DONATION_WEI = 10 * 1e18; // 10 iKAS
 
     struct Campaign {
         address creator;

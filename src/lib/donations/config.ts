@@ -2,8 +2,8 @@
  * Kasparex vDonations config: min amounts, fee BPS, platform L1 address.
  */
 
-export const VDONATIONS_MIN_DONATION_KAS = 100;
-export const VDONATIONS_MIN_DONATION_WEI = 100n * 10n ** 18n; // 100 iKAS
+export const VDONATIONS_MIN_DONATION_KAS = 10;
+export const VDONATIONS_MIN_DONATION_WEI = 10n * 10n ** 18n; // 10 iKAS
 /** L1 platform fee: 1% of donation (min 1 KAS) — used for L1 path only */
 export const VDONATIONS_FEE_BPS = 100; // 1%
 /** L2 platform fee: 10% of donation goes to Revenue Tree (on-chain feeBps = 1000) */

@@ -16,7 +16,8 @@ const hre = require('hardhat');
 const fs = require('fs');
 const path = require('path');
 
-const FEE_ROUTER_38836 = '0x37c98699eEe02Cb89da64C45B8c970174218A745';
+// Use same FeeRouter as app (igraGalleonTestnet) so donation fees distribute to Revenue Tree
+const FEE_ROUTER_38836 = '0xd556624Cd557cb4fA3a23964Ced4838e1ffA6E5A';
 const LOYALTY_POINTS_38836 = '0x1cF432A52A0f2D09c8E7450CC40E4FC1422E8936';
 
 function getOverrides(chainId) {

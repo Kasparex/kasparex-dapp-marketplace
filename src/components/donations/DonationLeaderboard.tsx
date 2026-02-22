@@ -7,11 +7,14 @@ import { useChainId } from 'wagmi';
 interface DonationLeaderboardProps {
   creatorAddress: string;
   limit?: number;
+  /** When these change (e.g. after campaign refetch), leaderboard refetches. */
+  donorCount?: bigint;
+  raisedWei?: bigint;
 }
 
-export function DonationLeaderboard({ creatorAddress, limit = 20 }: DonationLeaderboardProps) {
+export function DonationLeaderboard({ creatorAddress, limit = 20, donorCount, raisedWei }: DonationLeaderboardProps) {
   const chainId = useChainId();
-  const { leaderboard, isLoading, error } = useDonationLeaderboard(creatorAddress, limit);
+  const { leaderboard, isLoading, error } = useDonationLeaderboard(creatorAddress, limit, { donorCount, raisedWei });
 
   return (
     <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">

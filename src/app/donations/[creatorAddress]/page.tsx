@@ -21,7 +21,7 @@ export default function DonationCampaignPage() {
   const params = useParams();
   const chainId = useChainId();
   const creatorAddress = (params?.creatorAddress as string) ?? null;
-  const { campaign, isLoading, error } = useDonationCampaign(creatorAddress);
+  const { campaign, isLoading, error, refetch: refetchCampaign } = useDonationCampaign(creatorAddress);
   const [metadata, setMetadata] = useState<DonationCampaignMetadata | null>(null);
   const [metadataLoading, setMetadataLoading] = useState(false);
 
@@ -221,7 +221,7 @@ export default function DonationCampaignPage() {
                       </div>
                     )}
 
-                    <DonationBlock campaign={campaign} />
+                    <DonationBlock campaign={campaign} onL2DonationConfirmed={refetchCampaign} />
                   </div>
                 </div>
               </div>

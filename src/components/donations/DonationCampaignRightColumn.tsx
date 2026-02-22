@@ -56,9 +56,9 @@ export function DonationCampaignRightColumn({ campaign, creatorAddress }: Donati
         </div>
       </div>
 
-      <DonationLeaderboard creatorAddress={creatorAddress} limit={20} />
+      <DonationLeaderboard creatorAddress={creatorAddress} limit={20} donorCount={campaign.donorCount} raisedWei={campaign.raisedWei} />
 
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
+      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden p-4">
         <RevenueTree
           data={revenueTreeData}
           userWalletAddress={userWalletAddress ?? undefined}
