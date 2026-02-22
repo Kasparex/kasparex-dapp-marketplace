@@ -127,7 +127,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     RevenueTreeManager: "0x5A60E418f6B04bD1eb0AEF8088a6D5DB81FAd0cA",
     FeeRouter: "0x37c98699eEe02Cb89da64C45B8c970174218A745",
     GenesisBadge: "0xAD3Aa97F7AE16D180A3d35163Bd800b0e039059E",
-    DonationEscrow: "",
+    DonationEscrow: "0x8E4eeEB4516fb63329f0DB7f78065b611C4e8119",
   },
   igraGalleonTestMainnet: {
     Treasury: "",
@@ -275,7 +275,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     RevenueTreeManager: "0x5A60E418f6B04bD1eb0AEF8088a6D5DB81FAd0cA",
     FeeRouter: "0x37c98699eEe02Cb89da64C45B8c970174218A745",
     GenesisBadge: "0xAD3Aa97F7AE16D180A3d35163Bd800b0e039059E",
-    DonationEscrow: "",
+    DonationEscrow: "0x8E4eeEB4516fb63329f0DB7f78065b611C4e8119",
   },
   igraGalleonTestMainnet: {
     Treasury: "",

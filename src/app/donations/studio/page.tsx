@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useAccount, useChainId, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useChainId, useSwitchChain, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -12,6 +12,8 @@ import { getIPFSClient } from '@/lib/ipfs/client';
 import { VDONATIONS_MIN_VERIFY_WEI } from '@/lib/donations/config';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { getErrorMessage } from '@/lib/utils';
+import { getChainById } from '@/lib/wagmi';
+import { CHAIN_IDS } from '@/lib/wagmi';
 import type { Address } from 'viem';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
@@ -25,10 +27,14 @@ function parseCampaignTuple(data: unknown): { creator: Address; targetWei: bigin
   return { creator: t[0], targetWei: t[1], deadline: t[2], raisedWei: t[3], donorCount: t[4], ipfsHash: t[5], l1Address: t[6], active: t[7] };
 }
 
+const VDONATIONS_CHAIN_ID = CHAIN_IDS.IGRA_GALLEON_TESTNET; // 38836
+
 export default function DonationsStudioPage() {
   const chainId = useChainId();
   const { address, isConnected } = useAccount();
+  const { switchChain, isPending: isSwitchPending } = useSwitchChain();
   const escrowAddress = getContractAddress(chainId, 'DonationEscrow');
+  const currentChain = chainId ? getChainById(chainId) : null;
 
   const { data: isVerified } = useReadContract({
     address: (escrowAddress || undefined) as Address | undefined,
@@ -168,8 +174,20 @@ export default function DonationsStudioPage() {
         )}
 
         {isConnected && !escrowAddress && (
-          <div className="rounded-xl border border-amber-200 dark:border-amber-800 p-4 text-amber-800 dark:text-amber-200">
-            DonationEscrow is not deployed on this network. Switch to IGRA Galleon Testnet.
+          <div className="rounded-xl border border-amber-200 dark:border-amber-800 p-4 text-amber-800 dark:text-amber-200 space-y-3">
+            <p>
+              vDonations runs on <strong>IGRA Galleon Testnet</strong>. You are currently on{' '}
+              <strong>{currentChain?.name ?? `chain ${chainId}`}</strong>.
+            </p>
+            <p className="text-sm">Switch your wallet to IGRA Galleon Testnet to verify and create campaigns.</p>
+            <button
+              type="button"
+              onClick={() => switchChain?.({ chainId: VDONATIONS_CHAIN_ID })}
+              disabled={isSwitchPending}
+              className="px-4 py-2 rounded-lg bg-amber-600 text-white font-medium hover:bg-amber-700 disabled:opacity-50"
+            >
+              {isSwitchPending ? 'Switching…' : 'Switch to IGRA Galleon Testnet'}
+            </button>
           </div>
         )}
 
