@@ -43,7 +43,7 @@ export function NodesDashboardContent() {
             Krex <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-[#02abb8] dark:from-cyan-400 dark:to-[#02abb8]">Nodes</span>
           </h1>
           <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed">
-            Manage your KREX node: connect and register, monitor status, and track incentives. Data is placeholder until the node system is wired.
+            Manage your KREX node: connect and register, monitor status, and track incentives. Values below are illustrative until the node system is wired.
           </p>
         </div>
       </div>

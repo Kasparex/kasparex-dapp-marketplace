@@ -1,5 +1,6 @@
 /**
  * Mock data for Kasparex Nodes dashboard.
+ * Values are realistic placeholders for when the node system is wired.
  * Replace with API or context when the real node system is available.
  */
 
@@ -13,15 +14,15 @@ import type {
 export const mockNodeInfo: NodeInfo = {
   type: 'mirror',
   status: 'connected',
-  registeredAt: '2025-01-15',
-  nodeId: 'krex-node-xxxx',
+  registeredAt: '2025-02-01',
+  nodeId: 'krex-mirror-a7f2',
 };
 
 export const mockNodeMetrics: NodeMetrics = {
-  uptimePercent: 99.2,
-  pinnedCids: 42,
-  requestsServed: 1250,
-  lastPingAt: '2025-02-22T12:00:00Z',
+  uptimePercent: 98.5,
+  pinnedCids: 128,
+  requestsServed: 3420,
+  lastPingAt: '2025-02-22T14:30:00Z',
 };
 
 export const mockIncentives: Incentives = {
@@ -32,10 +33,12 @@ export const mockIncentives: Incentives = {
   krexTier: '1.0x',
 };
 
+/** Realistic technical requirements for running a KREX node (Light or Mirror). */
 export const mockTechnicalRequirements: TechnicalRequirements = [
-  { label: 'Node.js', value: 'LTS (18.x or 20.x)' },
-  { label: 'RAM', value: '30–60 MB' },
-  { label: 'CPU', value: 'Minimal (~0.2%)' },
-  { label: 'Disk', value: 'Depends on pinned CIDs' },
-  { label: 'Network', value: 'Stable internet' },
+  { label: 'Node.js', value: '20.x or 22.x LTS' },
+  { label: 'RAM', value: '128 MB min; 256 MB recommended' },
+  { label: 'CPU', value: 'Low (I/O-bound)' },
+  { label: 'Disk', value: '≥ 1 GB; more if pinning many CIDs' },
+  { label: 'Network', value: 'Stable outbound; inbound for Mirror' },
+  { label: 'OS', value: 'Linux, macOS, Windows, Raspberry Pi' },
 ];

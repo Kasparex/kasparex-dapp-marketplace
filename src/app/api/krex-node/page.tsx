@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import Link from 'next/link';
-import { TableOfContentsSidebar } from '@/components/docs/TableOfContentsSidebar';
+import { KrexNodeDocSidebar } from '@/components/nodes/KrexNodeDocSidebar';
 
 export const metadata: Metadata = {
   title: 'Run a KREX Node · Join Kasparex',
@@ -11,39 +11,33 @@ export const metadata: Metadata = {
 
 export default function KREXNodePage() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <Header />
-      
-      <main className="flex-1">
-        <div className="flex flex-col lg:flex-row">
-          {/* Left Sidebar - Table of Contents */}
-          <div className="w-full lg:w-64 lg:flex-shrink-0">
-            <TableOfContentsSidebar
-              items={[
-                { id: 'what-is-krex-node', title: 'What is a KREX Node?' },
-                { id: 'node-types', title: 'Node Types' },
-                { id: 'how-to-run', title: 'How to Run a KREX Node' },
-                { id: 'rewards', title: 'How Rewards Work' },
-                { id: 'safety', title: 'Is it Safe?' },
-                { id: 'who-is-this-for', title: 'Who is this for?' },
-              ]}
-            />
-          </div>
 
-          {/* Main Content */}
-          <div className="flex-1 min-w-0 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-          {/* Hero Section */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl sm:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-              Run a KREX Node
-            </h1>
-            <p className="text-xl text-zinc-600 dark:text-zinc-400 mb-2">
-              Join Kasparex
-            </p>
-            <p className="text-lg text-zinc-500 dark:text-zinc-500 max-w-2xl mx-auto">
-              Kasparex is a community-powered layer that keeps the Kasparex dApp Marketplace online, fast, and censorship-resistant.
-            </p>
-          </div>
+      <main className="flex-1 min-h-[calc(100vh-4rem)]">
+        <div className="flex flex-col lg:flex-row h-full">
+          <KrexNodeDocSidebar />
+
+          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
+            <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {/* Hero - aligned with dApps / Nodes styling */}
+              <div className="relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/30 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/20 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800">
+                <div className="absolute inset-0 overflow-hidden">
+                  <div className="absolute top-0 right-0 w-[60%] h-[80%] bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.15),transparent_70%)] rounded-full blur-3xl" />
+                  <div className="absolute bottom-0 left-0 w-[50%] h-[60%] bg-[radial-gradient(ellipse_at_bottom_left,_rgba(2,171,184,0.08),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_bottom_left,_rgba(2,171,184,0.1),transparent_70%)] rounded-full blur-3xl" />
+                </div>
+                <div className="relative z-10 text-center">
+                  <div className="inline-flex gap-2 px-3 py-1.5 rounded-full bg-[#02abb8]/10 border border-[#02abb8]/25 text-[#02abb8] text-[10px] font-black uppercase tracking-[0.2em] mb-6">
+                    Run a node
+                  </div>
+                  <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight tracking-tighter">
+                    Run a <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-[#02abb8] dark:from-cyan-400 dark:to-[#02abb8]">KREX Node</span>
+                  </h1>
+                  <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+                    Kasparex is a community-powered layer that keeps the dApp Marketplace online, fast, and censorship-resistant.
+                  </p>
+                </div>
+              </div>
 
           {/* Key Message */}
           <div className="bg-[#02abb8]/10 dark:bg-[#02abb8]/20 border border-[#02abb8]/30 rounded-lg p-6 mb-12">
@@ -97,7 +91,7 @@ export default function KREXNodePage() {
                   <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">Lightweight</h3>
                 </div>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Uses minimal resources (0.2% CPU, 30-60MB RAM) - runs on any machine or Raspberry Pi
+                  Uses minimal resources (128–256 MB RAM, low CPU) — runs on any machine or Raspberry Pi
                 </p>
               </div>
 
@@ -471,6 +465,7 @@ export default function KREXNodePage() {
               >
                 Learn about the API
               </Link>
+            </div>
             </div>
             </div>
           </div>
