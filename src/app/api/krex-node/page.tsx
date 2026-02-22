@@ -474,7 +474,6 @@ export default function KREXNodePage() {
               </Link>
             </div>
             </div>
-            </div>
           </div>
         </main>
       </div>
