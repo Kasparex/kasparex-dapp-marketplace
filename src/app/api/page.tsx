@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function KasparexAPIPage() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <Header />
       
       <main className="flex-1">
@@ -32,18 +32,28 @@ export default function KasparexAPIPage() {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 min-w-0 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-          {/* Hero Section */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl sm:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-              Kasparex API
-            </h1>
-            <p className="text-xl text-zinc-600 dark:text-zinc-400 mb-2">
-              api.kasparex.com
-            </p>
-            <p className="text-lg text-zinc-500 dark:text-zinc-500 max-w-2xl mx-auto">
-              The coordination brain of the decentralized Kasparex network
-            </p>
+          <div className="flex-1 min-w-0 max-w-4xl mx-auto px-4 sm:px-6 lg:px-12 py-8 sm:py-12">
+          {/* Hero - project style (cyan gradient, same as Nodes) */}
+          <div className="relative mb-12 py-12 px-6 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/40 dark:to-zinc-950 border border-zinc-200 dark:border-transparent">
+            <div className="absolute inset-0 opacity-20">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,#06b6d4,transparent_50%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,#0891b2,transparent_50%)]" />
+            </div>
+            <div className="relative z-10 w-full text-center">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-700 dark:text-cyan-400 text-xs font-bold uppercase tracking-widest mb-6">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500" />
+                </span>
+                api.kasparex.com
+              </div>
+              <h1 className="text-4xl md:text-6xl font-black text-zinc-900 dark:text-white mb-6 leading-tight">
+                Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-500 dark:from-cyan-400 dark:to-cyan-300">API</span>
+              </h1>
+              <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+                The coordination brain of the decentralized Kasparex network
+              </p>
+            </div>
           </div>
 
           {/* What is the API */}
@@ -55,7 +65,7 @@ export default function KasparexAPIPage() {
               The Kasparex API is a lightweight backend service that coordinates KREX Nodes, tracks uptime and performance, calculates rewards (GRID + KREX multipliers), and provides public data for the Kasparex frontend and ecosystem.
             </p>
             
-            <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 mb-6">
+            <div className="p-6 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 mb-6">
               <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
                 Think of it as:
               </h3>
@@ -75,7 +85,7 @@ export default function KasparexAPIPage() {
               </ul>
             </div>
 
-            <div className="p-6 bg-yellow-500/10 dark:bg-yellow-500/20 rounded-lg border border-yellow-500/30">
+            <div className="p-6 bg-yellow-500/10 dark:bg-yellow-500/20 rounded-xl border border-yellow-500/30">
               <p className="text-zinc-600 dark:text-zinc-400">
                 <strong className="text-zinc-900 dark:text-zinc-100">Important:</strong> The Kasparex API does NOT replace Kaspa BlockDAG, Storacha, or IPFS. It simply manages the node network and reward coordination.
               </p>
@@ -92,25 +102,25 @@ export default function KasparexAPIPage() {
             </p>
             
             <div className="grid md:grid-cols-2 gap-4">
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                   <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Node Management</h3>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
                   Allows KREX Nodes to register, send heartbeat pings, and report stats
                 </p>
               </div>
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Reward Engine</h3>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
                   Calculates and distributes GRID rewards with KREX multipliers
                 </p>
               </div>
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                   <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Public Data</h3>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
                   Provides node lists, dApp availability, and network statistics
                 </p>
               </div>
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Coordination</h3>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
                   Organizes how dApps find mirror nodes and ensures graceful fallback
@@ -134,7 +144,7 @@ export default function KasparexAPIPage() {
                 1. Node Management Endpoints
               </h3>
               <div className="space-y-4">
-                <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                <div className="p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                   <div className="flex items-start gap-3 mb-2">
                     <span className="px-2 py-1 bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded text-xs font-mono">POST</span>
                     <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/api/node/register</code>
@@ -154,7 +164,7 @@ export default function KasparexAPIPage() {
                   </div>
                 </div>
 
-                <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                <div className="p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                   <div className="flex items-start gap-3 mb-2">
                     <span className="px-2 py-1 bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded text-xs font-mono">POST</span>
                     <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/api/node/ping</code>
@@ -178,7 +188,7 @@ export default function KasparexAPIPage() {
                   </div>
                 </div>
 
-                <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                <div className="p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                   <div className="flex items-start gap-3 mb-2">
                     <span className="px-2 py-1 bg-green-500/20 text-green-600 dark:text-green-400 rounded text-xs font-mono">GET</span>
                     <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/api/nodes</code>
@@ -196,7 +206,7 @@ export default function KasparexAPIPage() {
                 2. Reward Engine Endpoints
               </h3>
               <div className="space-y-4">
-                <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                <div className="p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                   <div className="flex items-start gap-3 mb-2">
                     <span className="px-2 py-1 bg-green-500/20 text-green-600 dark:text-green-400 rounded text-xs font-mono">GET</span>
                     <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/api/rewards/node/:nodeId</code>
@@ -222,7 +232,7 @@ export default function KasparexAPIPage() {
                   </div>
                 </div>
 
-                <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                <div className="p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                   <div className="flex items-start gap-3 mb-2">
                     <span className="px-2 py-1 bg-green-500/20 text-green-600 dark:text-green-400 rounded text-xs font-mono">GET</span>
                     <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/api/rewards/epoch/:epochId</code>
@@ -240,7 +250,7 @@ export default function KasparexAPIPage() {
                 3. Public Data Endpoints
               </h3>
               <div className="space-y-4">
-                <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                <div className="p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                   <div className="flex items-start gap-3 mb-2">
                     <span className="px-2 py-1 bg-green-500/20 text-green-600 dark:text-green-400 rounded text-xs font-mono">GET</span>
                     <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/api/dapps/availability</code>
@@ -259,7 +269,7 @@ export default function KasparexAPIPage() {
                   </div>
                 </div>
 
-                <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                <div className="p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                   <div className="flex items-start gap-3 mb-2">
                     <span className="px-2 py-1 bg-green-500/20 text-green-600 dark:text-green-400 rounded text-xs font-mono">GET</span>
                     <code className="text-sm font-mono text-zinc-900 dark:text-zinc-100">/api/stats</code>
@@ -289,7 +299,7 @@ export default function KasparexAPIPage() {
               How the Kasparex API Affects Your Project
             </h2>
             <div className="space-y-4">
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-6 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
                   1. Enables Decentralization
                 </h3>
@@ -298,7 +308,7 @@ export default function KasparexAPIPage() {
                 </p>
               </div>
 
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-6 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
                   2. Enables Rewards
                 </h3>
@@ -307,7 +317,7 @@ export default function KasparexAPIPage() {
                 </p>
               </div>
 
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-6 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
                   3. Protects the Marketplace
                 </h3>
@@ -316,7 +326,7 @@ export default function KasparexAPIPage() {
                 </p>
               </div>
 
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-6 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
                   4. Reduces Costs
                 </h3>
@@ -325,7 +335,7 @@ export default function KasparexAPIPage() {
                 </p>
               </div>
 
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-6 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
                   5. Enables Dashboards
                 </h3>
@@ -341,7 +351,7 @@ export default function KasparexAPIPage() {
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
               Technical Summary
             </h2>
-            <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+            <div className="p-6 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
               <p className="text-zinc-600 dark:text-zinc-400 mb-4">
                 Kasparex API is:
               </p>
@@ -382,7 +392,7 @@ export default function KasparexAPIPage() {
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
               Future: vProgs Integration
             </h2>
-            <div className="p-6 bg-[#02abb8]/10 dark:bg-[#02abb8]/20 rounded-lg border border-[#02abb8]/30">
+            <div className="p-6 bg-cyan-500/10 dark:bg-cyan-500/20 rounded-xl border border-cyan-500/30">
               <p className="text-zinc-600 dark:text-zinc-400 mb-4">
                 When Kaspa smart contracts (vProgs) mature, you could migrate some parts of the Kasparex API logic to vProgs:
               </p>
@@ -411,17 +421,17 @@ export default function KasparexAPIPage() {
           </section>
 
           {/* CTA */}
-          <div className="text-center p-8 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+          <div className="text-center p-8 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
             <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
               Learn More
             </h2>
             <p className="text-zinc-600 dark:text-zinc-400 mb-6">
               Explore the Kasparex ecosystem and learn how to run a KREX Node.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
               <Link
                 href="/api/krex-node"
-                className="px-6 py-3 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
+                className="px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl font-bold text-sm transition-colors"
               >
                 Run a KREX Node
               </Link>
@@ -429,10 +439,16 @@ export default function KasparexAPIPage() {
                 href="https://github.com/Kasparex/kasparex-krex-node"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-6 py-3 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium transition-colors"
+                className="px-6 py-3 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 rounded-xl font-bold text-sm border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
               >
                 View on GitHub
               </a>
+              <Link
+                href="/nodes"
+                className="px-6 py-3 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 rounded-xl font-bold text-sm border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              >
+                Nodes Dashboard
+              </Link>
             </div>
           </div>
           </div>

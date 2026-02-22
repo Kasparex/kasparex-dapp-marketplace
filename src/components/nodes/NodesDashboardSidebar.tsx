@@ -86,7 +86,7 @@ export function NodesDashboardSidebar() {
           className="bg-white dark:bg-zinc-950"
         />
       )}
-      defaultWidth={256}
+      defaultWidth={300}
     >
       <div className="flex-1 overflow-y-auto p-4 space-y-8">
         <section>
@@ -101,23 +101,23 @@ export function NodesDashboardSidebar() {
                   href={item.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="k-sidebar-item w-full text-left group flex items-center gap-3"
+                  className="k-sidebar-item w-full text-left group flex items-center gap-3 !px-3"
                 >
-                  <span className="k-sidebar-icon text-zinc-500 dark:text-zinc-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                  <span className="k-sidebar-icon text-zinc-500 dark:text-zinc-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors flex-shrink-0">
                     {ICONS[item.icon]}
                   </span>
-                  <span className="text-[11px] font-bold uppercase tracking-wider truncate">{item.label}</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider min-w-0 break-words">{item.label}</span>
                 </a>
               ) : (
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="k-sidebar-item w-full text-left group flex items-center gap-3"
+                  className="k-sidebar-item w-full text-left group flex items-center gap-3 !px-3"
                 >
-                  <span className="k-sidebar-icon text-zinc-500 dark:text-zinc-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                  <span className="k-sidebar-icon text-zinc-500 dark:text-zinc-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors flex-shrink-0">
                     {ICONS[item.icon]}
                   </span>
-                  <span className="text-[11px] font-bold uppercase tracking-wider truncate">{item.label}</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider min-w-0 break-words">{item.label}</span>
                 </Link>
               )
             )}
@@ -134,12 +134,12 @@ export function NodesDashboardSidebar() {
                 key={section.id}
                 type="button"
                 onClick={() => scrollToSection(section.id)}
-                className="k-sidebar-item w-full text-left group"
+                className="k-sidebar-item w-full text-left group flex items-center gap-3 !px-3"
               >
-                <span className="k-sidebar-icon transition-colors duration-200 text-zinc-500 dark:text-zinc-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400">
+                <span className="k-sidebar-icon transition-colors duration-200 text-zinc-500 dark:text-zinc-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 flex-shrink-0">
                   {ICONS[section.icon] ?? ICONS.node}
                 </span>
-                <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">
+                <span className="text-[11px] font-bold uppercase tracking-wider transition-colors min-w-0 break-words">
                   {section.label}
                 </span>
               </button>

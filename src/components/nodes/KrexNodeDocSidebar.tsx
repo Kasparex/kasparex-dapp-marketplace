@@ -83,7 +83,7 @@ export function KrexNodeDocSidebar() {
           className="bg-white dark:bg-zinc-950"
         />
       )}
-      defaultWidth={256}
+      defaultWidth={300}
     >
       <div className="flex-1 overflow-y-auto p-4 space-y-8">
         <section>
@@ -91,42 +91,42 @@ export function KrexNodeDocSidebar() {
             Quick links
           </h3>
           <nav className="space-y-1">
-            <Link href="/nodes" className="k-sidebar-item w-full text-left group flex items-center gap-3">
-              <span className="k-sidebar-icon text-zinc-500 dark:text-zinc-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+            <Link href="/nodes" className="k-sidebar-item w-full text-left group flex items-center gap-3 !px-3">
+              <span className="k-sidebar-icon text-zinc-500 dark:text-zinc-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors flex-shrink-0">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </span>
-              <span className="text-[11px] font-bold uppercase tracking-wider truncate">Nodes dashboard</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider min-w-0 break-words">Nodes dashboard</span>
             </Link>
-            <Link href="/api" className="k-sidebar-item w-full text-left group flex items-center gap-3">
-              <span className="k-sidebar-icon text-zinc-500 dark:text-zinc-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+            <Link href="/api" className="k-sidebar-item w-full text-left group flex items-center gap-3 !px-3">
+              <span className="k-sidebar-icon text-zinc-500 dark:text-zinc-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors flex-shrink-0">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </span>
-              <span className="text-[11px] font-bold uppercase tracking-wider truncate">API overview</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider min-w-0 break-words">API overview</span>
             </Link>
-            <Link href="/knowledge-base" className="k-sidebar-item w-full text-left group flex items-center gap-3">
-              <span className="k-sidebar-icon text-zinc-500 dark:text-zinc-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+            <Link href="/knowledge-base" className="k-sidebar-item w-full text-left group flex items-center gap-3 !px-3">
+              <span className="k-sidebar-icon text-zinc-500 dark:text-zinc-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors flex-shrink-0">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
               </span>
-              <span className="text-[11px] font-bold uppercase tracking-wider truncate">Knowledge base</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider min-w-0 break-words">Knowledge base</span>
             </Link>
             <a
               href="https://github.com/Kasparex/kasparex-krex-node"
               target="_blank"
               rel="noopener noreferrer"
-              className="k-sidebar-item w-full text-left group flex items-center gap-3"
+              className="k-sidebar-item w-full text-left group flex items-center gap-3 !px-3"
             >
-              <span className="k-sidebar-icon text-zinc-500 dark:text-zinc-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+              <span className="k-sidebar-icon text-zinc-500 dark:text-zinc-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors flex-shrink-0">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
               </span>
-              <span className="text-[11px] font-bold uppercase tracking-wider truncate">GitHub repo</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider min-w-0 break-words">GitHub repo</span>
             </a>
           </nav>
         </section>
@@ -141,12 +141,12 @@ export function KrexNodeDocSidebar() {
                 key={item.id}
                 type="button"
                 onClick={() => scrollTo(item.id)}
-                className={`k-sidebar-item w-full text-left group ${activeId === item.id ? 'bg-cyan-500/10 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-400' : ''}`}
+                className={`k-sidebar-item w-full text-left group flex items-center gap-3 !px-3 ${activeId === item.id ? 'bg-cyan-500/10 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-400' : ''}`}
               >
-                <span className={`k-sidebar-icon transition-colors duration-200 ${activeId === item.id ? 'text-cyan-600 dark:text-cyan-400' : 'text-zinc-500 dark:text-zinc-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400'}`}>
+                <span className={`k-sidebar-icon transition-colors duration-200 flex-shrink-0 ${activeId === item.id ? 'text-cyan-600 dark:text-cyan-400' : 'text-zinc-500 dark:text-zinc-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400'}`}>
                   {ICONS[item.icon] ?? ICONS.node}
                 </span>
-                <span className="text-[11px] font-bold uppercase tracking-wider truncate">
+                <span className="text-[11px] font-bold uppercase tracking-wider min-w-0 break-words">
                   {item.label}
                 </span>
               </button>
