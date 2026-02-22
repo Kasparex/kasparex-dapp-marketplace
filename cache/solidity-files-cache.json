@@ -1570,8 +1570,8 @@
       ]
     },
     "C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\contracts\\FeeRouter.sol": {
-      "lastModificationDate": 1771628099321,
-      "contentHash": "39e647c18c6cd6a5b5785207df51832f",
+      "lastModificationDate": 1771755509483,
+      "contentHash": "c12a3fb896efbe6f087c3565545044ff",
       "sourceName": "contracts/FeeRouter.sol",
       "solcConfig": {
         "version": "0.8.28",
@@ -1735,8 +1735,8 @@
       ]
     },
     "C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\contracts\\DonationEscrow.sol": {
-      "lastModificationDate": 1771710191819,
-      "contentHash": "25fd6bac16bce9b26c7c71d3470e40d1",
+      "lastModificationDate": 1771754202117,
+      "contentHash": "d79bb201f6101fcabdf7ff1f13a180d9",
       "sourceName": "contracts/DonationEscrow.sol",
       "solcConfig": {
         "version": "0.8.28",

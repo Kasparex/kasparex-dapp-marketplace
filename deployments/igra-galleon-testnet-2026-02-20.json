@@ -7,7 +7,7 @@
   "FeeCollector": "0xaC941a612b30Fe15F84a961a1FaCF2Ea5c2ef21E",
   "DAppRegistry": "0x0530c962A17fB4602418087689e762e5989f1D43",
   "RevenueTreeManager": "0x5A60E418f6B04bD1eb0AEF8088a6D5DB81FAd0cA",
-  "FeeRouter": "0x37c98699eEe02Cb89da64C45B8c970174218A745",
+  "FeeRouter": "0xd556624Cd557cb4fA3a23964Ced4838e1ffA6E5A",
   "ProofOfUtility": "0x689Fcc5b3A665745Eb9B1ac03A8A40e9DB2D9e38",
   "RewardManager": "0xD3D759E7d7d0F68C704D973247e254157FEDD825",
   "LoyaltyPoints": "0x1cF432A52A0f2D09c8E7450CC40E4FC1422E8936",
@@ -15,7 +15,8 @@
   "gridTreasury": "0x0808e5ce2f0f6d488975e5f23f1a1c8b6dd53cbc",
   "deployedAt": "2026-02-20T00:19:43.176Z",
   "upgradedAt": "2026-02-20T23:14:43.497Z",
-  "previousFeeRouter": "0x374fa97A64A43c4fC0AD57dBf6EAE7Ee12924B04",
+  "previousFeeRouter": "0xd556624Cd557cb4fA3a23964Ced4838e1ffA6E5A",
   "previousLoyaltyPoints": "0xedAb230E5613B07E72D454a843162E207d451A15",
-  "previousSimplePayment": "0x90A9aa9eB4C91b9c7A6eb72248bDe6a9FB6f79ef"
+  "previousSimplePayment": "0x90A9aa9eB4C91b9c7A6eb72248bDe6a9FB6f79ef",
+  "feeRouterUpgradedAt": "2026-02-22T10:45:16.896Z"
 }

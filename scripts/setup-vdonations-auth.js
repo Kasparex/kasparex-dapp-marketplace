@@ -64,13 +64,22 @@ async function main() {
   await tx1.wait();
   console.log('   Tx:', tx1.hash);
 
-  console.log('\n2. LoyaltyPoints: setAuthorizedCaller(DonationEscrow, true)...');
+  console.log('\n2. FeeRouter: setTreeBpsByType("donation", 10000) so 100% of donation fees go to Revenue Tree...');
+  try {
+    const tx1b = await feeRouter.setTreeBpsByType('donation', 10000, overrides);
+    await tx1b.wait();
+    console.log('   Tx:', tx1b.hash);
+  } catch (err) {
+    console.warn('   Skipped (FeeRouter does not have setTreeBpsByType — deploy upgraded FeeRouter and call setTreeBpsByType("donation", 10000) manually).');
+  }
+
+  console.log('\n3. LoyaltyPoints: setAuthorizedCaller(DonationEscrow, true)...');
   const loyaltyPoints = await hre.ethers.getContractAt('LoyaltyPoints', loyaltyPointsAddress);
   const tx2 = await loyaltyPoints.setAuthorizedCaller(donationEscrowAddress, true, overrides);
   await tx2.wait();
   console.log('   Tx:', tx2.hash);
 
-  console.log('\nDone. DonationEscrow is authorized on FeeRouter and LoyaltyPoints.');
+  console.log('\nDone. DonationEscrow is authorized on FeeRouter and LoyaltyPoints; donation fees (10% of donation) go 100% to Revenue Tree.');
 }
 
 main().catch((err) => {

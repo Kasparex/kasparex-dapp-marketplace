@@ -18,6 +18,8 @@ contract FeeRouter is Ownable {
     RevenueTreeManager public revenueTreeManager;
     FeeCollector public feeCollector;
     uint256 public treeBps;
+    /// @dev Per-transaction-type tree share (bps). When set, overrides global treeBps for that type (e.g. "donation" => 10000 = 100% to tree).
+    mapping(string => uint256) public treeBpsByType;
 
     RewardManager public rewardManager;
     LoyaltyPoints public loyaltyPoints;
@@ -28,6 +30,7 @@ contract FeeRouter is Ownable {
     event Forwarded(address indexed payer, uint256 total, uint256 toTree, uint256 toTreasury);
     event ForwardedWithRewards(address indexed payer, uint256 total, string transactionType, uint256 rewardWei);
     event TreeBpsUpdated(uint256 oldBps, uint256 newBps);
+    event TreeBpsByTypeSet(string transactionType, uint256 treeBps);
     event AuthorizedDAppSet(address indexed dapp, bool allowed);
     event RewardManagerSet(address indexed rm);
     event LoyaltyPointsSet(address indexed lp);
@@ -83,7 +86,9 @@ contract FeeRouter is Ownable {
 
     function _forwardFeeAndRevenueWithRewards(address payer, string calldata transactionType, uint256 paymentAmountWei) internal {
         if (msg.value == 0) return;
-        uint256 toTree = (msg.value * treeBps) / BPS;
+        uint256 bps = treeBpsByType[transactionType] != 0 ? treeBpsByType[transactionType] : treeBps;
+        require(bps <= BPS, "FeeRouter: treeBps must be <= 10000");
+        uint256 toTree = (msg.value * bps) / BPS;
         uint256 toTreasury = msg.value - toTree;
         if (toTree > 0) revenueTreeManager.distributeToUpline{value: toTree}(payer);
         if (toTreasury > 0) feeCollector.forwardFee{value: toTreasury}();
@@ -122,6 +127,16 @@ contract FeeRouter is Ownable {
         uint256 old = treeBps;
         treeBps = _treeBps;
         emit TreeBpsUpdated(old, _treeBps);
+    }
+
+    /**
+     * @dev Set tree share (bps) for a specific transaction type. E.g. setTreeBpsByType("donation", 10000) so 100% of donation fees go to Revenue Tree.
+     * When 0, falls back to global treeBps.
+     */
+    function setTreeBpsByType(string calldata transactionType, uint256 _treeBps) external onlyOwner {
+        require(_treeBps <= BPS, "FeeRouter: treeBps must be <= 10000");
+        treeBpsByType[transactionType] = _treeBps;
+        emit TreeBpsByTypeSet(transactionType, _treeBps);
     }
 
     function setRewardManager(address _rewardManager) external onlyOwner {

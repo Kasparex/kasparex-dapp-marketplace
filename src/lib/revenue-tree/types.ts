@@ -43,7 +43,7 @@ export interface RevenueTreeData {
   /** dApp slug for URL generation */
   dappSlug: string;
   /** Content type */
-  contentType: 'dapp' | 'magazine' | 'vblog' | 'game' | 'store';
+  contentType: 'dapp' | 'magazine' | 'vblog' | 'game' | 'store' | 'donation';
   /** Content slug */
   contentSlug: string;
   /** Issue number (for magazines) */
@@ -79,4 +79,4 @@ export const REVENUE_SHARE_PERCENTAGES = {
 /**
  * Content type for revenue tree
  */
-export type RevenueTreeContentType = 'dapp' | 'magazine' | 'vblog' | 'game' | 'store';
+export type RevenueTreeContentType = 'dapp' | 'magazine' | 'vblog' | 'game' | 'store' | 'donation';

@@ -4,7 +4,10 @@
 
 export const VDONATIONS_MIN_DONATION_KAS = 100;
 export const VDONATIONS_MIN_DONATION_WEI = 100n * 10n ** 18n; // 100 iKAS
+/** L1 platform fee: 1% of donation (min 1 KAS) — used for L1 path only */
 export const VDONATIONS_FEE_BPS = 100; // 1%
+/** L2 platform fee: 10% of donation goes to Revenue Tree (on-chain feeBps = 1000) */
+export const VDONATIONS_L2_FEE_PERCENT = 10;
 export const VDONATIONS_MIN_VERIFY_WEI = 1n;
 export const VDONATIONS_MIN_FEE_KAS = 1; // minimum platform fee in KAS for L1
 

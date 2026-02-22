@@ -68,8 +68,8 @@ export function calculateCost(inputs: CostCalculatorInputs): CostBreakdown {
   // Get KREX tier configuration
   const tierConfig = KREX_TIERS[krexTier];
   
-  // Calculate fee percentage (base fee with reductions)
-  const baseFee = 1.0; // Base fee is 1%
+  // Calculate fee percentage (base fee with reductions). vDonations L2: 10% to Revenue Tree; other dApps: 1%.
+  const baseFee = (dapp.id === 'vdonations' || dapp.slug === 'vdonations') ? 10.0 : 1.0;
   let feePercent = baseFee;
   
   // Apply tier-based fee reduction (Tier0 has 0 reduction)

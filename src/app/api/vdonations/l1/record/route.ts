@@ -28,6 +28,16 @@ function normalizeKaspaAddress(addr: string): string {
   return (addr || '').replace(/^kaspa:/i, '').toLowerCase().trim();
 }
 
+/**
+ * Kaspa addresses can be "base" or "base/payment" (or "base@payment").
+ * APIs may return only the base part. Compare by base part so both forms match.
+ */
+function kaspaAddressBase(addr: string): string {
+  const n = normalizeKaspaAddress(addr);
+  const base = n.split(/[/@]/)[0];
+  return base || n;
+}
+
 /** Extract output amount in sompis and recipient from Kaspa API tx shape (supports multiple API response formats) */
 function parseTxOutputs(tx: Record<string, unknown>): { address: string; amountSompis: number }[] {
   const out: { address: string; amountSompis: number }[] = [];
@@ -36,9 +46,10 @@ function parseTxOutputs(tx: Record<string, unknown>): { address: string; amountS
     (tx as { verboseData?: { outputs?: Array<{ amount?: number | string; scriptPublicKey?: { address?: string }; address?: string }> } }).verboseData?.outputs ??
     [];
   for (const o of outputs) {
-    const amount = o.amount != null ? (typeof o.amount === 'string' ? parseFloat(o.amount) : o.amount) : 0;
+    const rawAmount = o.amount != null ? (typeof o.amount === 'string' ? parseFloat(o.amount) : o.amount) : 0;
+    const amount = typeof rawAmount === 'number' && !isNaN(rawAmount) ? rawAmount : 0;
     const addr = (o.scriptPublicKey?.address ?? o.address ?? '').trim();
-    if (addr && !isNaN(amount)) out.push({ address: normalizeKaspaAddress(addr), amountSompis: amount });
+    if (addr && amount >= 0) out.push({ address: normalizeKaspaAddress(addr), amountSompis: amount });
   }
   return out;
 }
@@ -112,7 +123,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const outputs = parseTxOutputs(tx as Record<string, unknown>);
-    const toCreator = outputs.find((o) => o.address === l1AddressNorm && o.amountSompis >= MIN_DONATION_SOMPIS);
+    const campaignBase = kaspaAddressBase(l1AddressFromContract);
+    const toCreator = outputs.find(
+      (o) =>
+        o.amountSompis >= MIN_DONATION_SOMPIS &&
+        (o.address === l1AddressNorm || kaspaAddressBase(o.address) === campaignBase)
+    );
     if (!toCreator) {
       return NextResponse.json(
         { success: false, error: 'No output to campaign L1 address with amount >= 100 KAS' },

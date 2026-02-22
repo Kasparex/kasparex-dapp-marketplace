@@ -2996,6 +2996,18 @@ export const DONATION_ESCROW_ABI = [
     type: "function"
   },
   {
+    inputs: [
+      { internalType: "string", name: "_ipfsHash", type: "string" },
+      { internalType: "uint256", name: "_targetWei", type: "uint256" },
+      { internalType: "uint256", name: "_deadline", type: "uint256" },
+      { internalType: "string", name: "_l1Address", type: "string" }
+    ],
+    name: "updateCampaign",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
     inputs: [{ internalType: "address", name: "_creator", type: "address" }],
     name: "donate",
     outputs: [],
@@ -3082,6 +3094,16 @@ export const DONATION_ESCROW_ABI = [
     outputs: [{ internalType: "bool", name: "", type: "bool" }],
     stateMutability: "view",
     type: "function"
+  },
+  {
+    type: "event",
+    name: "Donated",
+    inputs: [
+      { name: "creator", type: "address", indexed: true },
+      { name: "donor", type: "address", indexed: true },
+      { name: "amountWei", type: "uint256", indexed: false },
+      { name: "feeWei", type: "uint256", indexed: false }
+    ]
   }
 ] as const;
 

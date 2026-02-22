@@ -126,6 +126,25 @@ contract DonationEscrow is Ownable, ReentrancyGuard {
     }
 
     /**
+     * @dev Update campaign metadata (goals, description, social links via new IPFS hash), target, deadline, or L1 address. Creator only.
+     */
+    function updateCampaign(
+        string calldata _ipfsHash,
+        uint256 _targetWei,
+        uint256 _deadline,
+        string calldata _l1Address
+    ) external nonReentrant {
+        Campaign storage c = campaigns[msg.sender];
+        if (c.creator == address(0)) revert NoCampaign();
+        require(_targetWei > 0, "DonationEscrow: Target must be > 0");
+        require(_deadline > block.timestamp, "DonationEscrow: Deadline must be in future");
+        c.ipfsHash = _ipfsHash;
+        c.targetWei = _targetWei;
+        c.deadline = _deadline;
+        c.l1Address = _l1Address;
+    }
+
+    /**
      * @dev Donate to a campaign. Fee goes to FeeRouter (Revenue Tree + tGRID/GRID + points); rest escrowed.
      */
     function donate(address _creator) external payable nonReentrant {

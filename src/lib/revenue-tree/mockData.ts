@@ -104,6 +104,45 @@ export function generateMockMagazineRevenueTree(
 }
 
 /**
+ * Generate revenue tree data for a donation campaign (contentType 'donation', contentSlug = creatorAddress).
+ */
+export function generateDonationRevenueTree(
+  creatorAddress: string,
+  userWalletAddress: string | undefined,
+  chainId: number = 38836,
+  isActive: boolean = true
+): RevenueTreeData {
+  const contentType = 'donation';
+  const isActivated = userWalletAddress ? hasUserActivated(userWalletAddress, contentType, creatorAddress) : false;
+  const referrerAddress = typeof window !== 'undefined' ? getStoredReferral(contentType, creatorAddress) : null;
+  const levels = generateRevenueTreeLevels(
+    userWalletAddress,
+    chainId,
+    contentType,
+    creatorAddress,
+    referrerAddress
+  );
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const referralLink = userWalletAddress
+    ? `${baseUrl}/donations/${creatorAddress}?ref=${userWalletAddress}`
+    : `${baseUrl}/donations/${creatorAddress}`;
+
+  return {
+    dappId: `donation-${creatorAddress}`,
+    dappSlug: creatorAddress,
+    contentType: 'donation',
+    contentSlug: creatorAddress,
+    levels,
+    totalEarned: isActive && isActivated ? 0 : 0,
+    revenueTreesCount: isActive && isActivated ? 1 : 0,
+    referralLink,
+    isActive: isActivated,
+    userWalletAddress: userWalletAddress || '',
+    activatedAt: isActivated ? new Date().toISOString() : undefined,
+  };
+}
+
+/**
  * Get all mock revenue trees for a user
  */
 export function getAllMockRevenueTrees(userWalletAddress: string | undefined, chainId: number = 167012): RevenueTreeData[] {

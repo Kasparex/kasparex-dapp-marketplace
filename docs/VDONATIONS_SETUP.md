@@ -2,6 +2,8 @@
 
 After deploying DonationEscrow (see `scripts/deploy-donation-escrow.js`), do the following so L2 donations and L1 recording work.
 
+**L2 fee:** DonationEscrow is deployed with a 10% platform fee (`feeBps = 1000`). That entire fee is sent to FeeRouter; when `setTreeBpsByType("donation", 10000)` is set, 100% of it goes to the Revenue Tree (so 10% of each L2 donation goes to the tree).
+
 ---
 
 ## Step 1: Register DonationEscrow (FeeRouter + LoyaltyPoints)
@@ -20,9 +22,10 @@ npx hardhat run scripts/setup-vdonations-auth.js --network igraGalleonTestnet
 This calls:
 
 - **FeeRouter:** `setAuthorizedDApp(DonationEscrowAddress, true)`
+- **FeeRouter:** `setTreeBpsByType("donation", 10000)` — so 100% of donation fees (10% of each L2 donation) go to Revenue Tree
 - **LoyaltyPoints:** `setAuthorizedCaller(DonationEscrowAddress, true)`
 
-If you prefer to do it manually (e.g. from a block explorer), use the same two calls with your deployed DonationEscrow address.
+If you prefer to do it manually (e.g. from a block explorer), use the same three calls with your deployed DonationEscrow address. **Note:** FeeRouter must support `setTreeBpsByType` (per–transaction-type tree share); if you use an older FeeRouter, upgrade or deploy a new one.
 
 ---
 
@@ -66,3 +69,6 @@ At deploy time, the script sets `recorder` to `RECORDER_ADDRESS` if you set that
 
 **Can the Kaspa address for L1 platform fees be the same as the treasury address?**  
 Yes. If your treasury has a Kaspa (L1) address, you can set `NEXT_PUBLIC_VDONATIONS_PLATFORM_L1_ADDRESS` to that address so L1 donation fees go to the same place.
+
+**Existing DonationEscrow was deployed with 1% fee; how do I switch to 10%?**  
+DonationEscrow owner can call `setFeeBps(1000)` on the DonationEscrow contract. Then run (or re-run) `setup-vdonations-auth.js` so FeeRouter has `setTreeBpsByType("donation", 10000)` — that sends 100% of the 10% fee to Revenue Tree.

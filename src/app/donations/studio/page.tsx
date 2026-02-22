@@ -14,6 +14,7 @@ import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { getErrorMessage } from '@/lib/utils';
 import { getChainById } from '@/lib/wagmi';
 import { CHAIN_IDS } from '@/lib/wagmi';
+import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
 import type { Address } from 'viem';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
@@ -63,9 +64,11 @@ export default function DonationsStudioPage() {
   const isVerifyPending = isTxPending || isTxConfirming;
   const isCreatePending = isTxPending || isTxConfirming;
   const isClaimPending = isTxPending || isTxConfirming;
+  const isUpdatePending = isTxPending || isTxConfirming;
   const verifyError = txError;
   const createError = txError;
   const claimError = txError;
+  const updateError = txError;
   const [createForm, setCreateForm] = useState<DonationCampaignMetadata & { targetKAS: string; endDate: string }>({
     title: '',
     description: '',
@@ -149,6 +152,85 @@ export default function DonationsStudioPage() {
       abi: DONATION_ESCROW_ABI,
       functionName: 'claim',
     });
+  };
+
+  const loadEditForm = async () => {
+    if (!campaign?.ipfsHash) return;
+    setEditLoadingMeta(true);
+    setEditErrorMsg(null);
+    try {
+      const meta = await fetchCampaignMetadata(campaign.ipfsHash);
+      const endDate = campaign.deadline ? new Date(Number(campaign.deadline) * 1000).toISOString().slice(0, 16) : '';
+      setEditForm({
+        title: meta?.title ?? '',
+        description: meta?.description ?? '',
+        goals: meta?.goals ?? [],
+        socialLinks: meta?.socialLinks ?? {},
+        l1KaspaAddress: campaign.l1Address?.trim() ?? meta?.l1KaspaAddress ?? '',
+        targetKAS: campaign.targetWei ? formatEther(campaign.targetWei) : '1000',
+        endDate,
+      });
+      setShowEditForm(true);
+    } catch (e) {
+      setEditErrorMsg(getErrorMessage(e, 'Failed to load campaign data'));
+    } finally {
+      setEditLoadingMeta(false);
+    }
+  };
+
+  const addEditGoal = () => {
+    if (!editGoalInput.trim()) return;
+    setEditForm((f) => ({ ...f, goals: [...(f.goals || []), editGoalInput.trim()] }));
+    setEditGoalInput('');
+  };
+
+  const removeEditGoal = (i: number) => {
+    setEditForm((f) => ({ ...f, goals: (f.goals || []).filter((_, j) => j !== i) }));
+  };
+
+  const handleUpdateCampaign = async () => {
+    if (!address || !escrowAddress || !campaign) return;
+    if (!editForm.title.trim() || !editForm.l1KaspaAddress?.trim()) {
+      setEditErrorMsg('Please fill title and L1 Kaspa address.');
+      return;
+    }
+    const targetNum = parseFloat(editForm.targetKAS);
+    if (isNaN(targetNum) || targetNum < 100) {
+      setEditErrorMsg('Target must be at least 100 iKAS.');
+      return;
+    }
+    const endDate = new Date(editForm.endDate);
+    if (isNaN(endDate.getTime()) || endDate.getTime() <= Date.now()) {
+      setEditErrorMsg('Please set a valid future end date.');
+      return;
+    }
+    setEditSubmitting(true);
+    setEditErrorMsg(null);
+    try {
+      const metadata: DonationCampaignMetadata = {
+        title: editForm.title,
+        description: editForm.description || '',
+        goals: editForm.goals?.length ? editForm.goals : undefined,
+        socialLinks: Object.keys(editForm.socialLinks || {}).length ? editForm.socialLinks : undefined,
+        l1KaspaAddress: editForm.l1KaspaAddress.trim(),
+      };
+      const client = getIPFSClient();
+      const ipfsHash = await client.uploadJSON(metadata as unknown as Record<string, unknown>);
+      const targetWei = parseEther(editForm.targetKAS);
+      const deadline = BigInt(Math.floor(endDate.getTime() / 1000));
+      const l1Address = editForm.l1KaspaAddress.trim();
+      writeContract({
+        address: escrowAddress as Address,
+        abi: DONATION_ESCROW_ABI,
+        functionName: 'updateCampaign',
+        args: [ipfsHash, targetWei, deadline, l1Address],
+      });
+      setShowEditForm(false);
+    } catch (e) {
+      setEditErrorMsg(getErrorMessage(e, 'Failed to update campaign'));
+    } finally {
+      setEditSubmitting(false);
+    }
   };
 
   const targetReached = campaign && campaign.raisedWei >= campaign.targetWei;
@@ -337,12 +419,144 @@ export default function DonationsStudioPage() {
                     </p>
                   </div>
                 </div>
-                <Link
-                  href={`/donations/${address}`}
-                  className="inline-block text-emerald-600 dark:text-emerald-400 hover:underline mb-4"
-                >
-                  View public page →
-                </Link>
+                <div className="flex flex-wrap gap-3 mb-4">
+                  <Link
+                    href={`/donations/${address}`}
+                    className="inline-block text-emerald-600 dark:text-emerald-400 hover:underline"
+                  >
+                    View public page →
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={loadEditForm}
+                    disabled={editLoadingMeta}
+                    className="text-emerald-600 dark:text-emerald-400 hover:underline disabled:opacity-50"
+                  >
+                    {editLoadingMeta ? 'Loading…' : 'Edit campaign'}
+                  </button>
+                </div>
+                {showEditForm && (
+                  <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 p-4 mb-4 bg-zinc-50 dark:bg-zinc-800/50">
+                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Edit campaign</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Title</label>
+                        <input
+                          type="text"
+                          value={editForm.title}
+                          onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Description</label>
+                        <textarea
+                          value={editForm.description}
+                          onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
+                          rows={3}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Goals</label>
+                        <div className="flex gap-2 mb-1">
+                          <input
+                            type="text"
+                            value={editGoalInput}
+                            onChange={(e) => setEditGoalInput(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addEditGoal())}
+                            className="flex-1 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
+                            placeholder="Add goal"
+                          />
+                          <button type="button" onClick={addEditGoal} className="px-3 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-sm">Add</button>
+                        </div>
+                        <ul className="space-y-1">
+                          {(editForm.goals || []).map((g, i) => (
+                            <li key={i} className="flex items-center gap-2 text-sm">
+                              <span className="text-zinc-700 dark:text-zinc-300">{g}</span>
+                              <button type="button" onClick={() => removeEditGoal(i)} className="text-red-600 dark:text-red-400 text-xs">Remove</button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Social links (optional)</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          <input
+                            type="text"
+                            value={editForm.socialLinks?.website ?? ''}
+                            onChange={(e) => setEditForm((f) => ({ ...f, socialLinks: { ...f.socialLinks, website: e.target.value || undefined } }))}
+                            className="px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
+                            placeholder="Website"
+                          />
+                          <input
+                            type="text"
+                            value={editForm.socialLinks?.twitter ?? ''}
+                            onChange={(e) => setEditForm((f) => ({ ...f, socialLinks: { ...f.socialLinks, twitter: e.target.value || undefined } }))}
+                            className="px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
+                            placeholder="Twitter"
+                          />
+                          <input
+                            type="text"
+                            value={editForm.socialLinks?.discord ?? ''}
+                            onChange={(e) => setEditForm((f) => ({ ...f, socialLinks: { ...f.socialLinks, discord: e.target.value || undefined } }))}
+                            className="px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
+                            placeholder="Discord"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">L1 Kaspa address</label>
+                        <input
+                          type="text"
+                          value={editForm.l1KaspaAddress}
+                          onChange={(e) => setEditForm((f) => ({ ...f, l1KaspaAddress: e.target.value }))}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm font-mono"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Target (iKAS)</label>
+                          <input
+                            type="number"
+                            value={editForm.targetKAS}
+                            onChange={(e) => setEditForm((f) => ({ ...f, targetKAS: e.target.value }))}
+                            min="100"
+                            className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">End date</label>
+                          <input
+                            type="datetime-local"
+                            value={editForm.endDate}
+                            onChange={(e) => setEditForm((f) => ({ ...f, endDate: e.target.value }))}
+                            className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
+                          />
+                        </div>
+                      </div>
+                      {editErrorMsg && <p className="text-sm text-red-600 dark:text-red-400">{editErrorMsg}</p>}
+                      {updateError && <p className="text-sm text-red-600 dark:text-red-400">{getErrorMessage(updateError, 'Update failed')}</p>}
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={handleUpdateCampaign}
+                          disabled={editSubmitting || isUpdatePending}
+                          className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                          {editSubmitting || isUpdatePending ? 'Updating…' : 'Save changes'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowEditForm(false)}
+                          className="px-4 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 text-sm font-medium"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {canClaim && (
                   <div className="pt-4 border-t border-zinc-200 dark:border-zinc-700">
                     <button

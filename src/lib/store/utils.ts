@@ -28,9 +28,18 @@ export function extractTxId(txHash: string | unknown): string {
 }
 
 /**
- * Build explorer URL for a transaction
+ * Build explorer URL for a Kaspa L1 transaction
  */
 export function getExplorerTxUrl(txHash: string | unknown): string {
   const txId = extractTxId(txHash);
   return `https://explorer.kaspa.org/transactions/${txId}`;
+}
+
+/**
+ * Build explorer URL for a Kaspa L1 address
+ */
+export function getKaspaExplorerAddressUrl(address: string): string {
+  const addr = (address || '').replace(/^kaspa:/i, '').trim();
+  if (!addr) return '#';
+  return `https://explorer.kaspa.org/addresses/${addr}`;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useAccount, useChainId, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -14,6 +14,7 @@ import { getNativeCurrencySymbol } from '@/lib/wagmi';
 import {
   VDONATIONS_MIN_DONATION_KAS,
   VDONATIONS_MIN_DONATION_WEI,
+  VDONATIONS_L2_FEE_PERCENT,
   computeL1FeeKAS,
   getPlatformL1Address,
 } from '@/lib/donations/config';
@@ -21,6 +22,8 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import type { DonationCampaign } from '@/lib/donations/types';
 import { getErrorMessage } from '@/lib/utils';
+import { getKaspaExplorerAddressUrl } from '@/lib/store/utils';
+import { getExplorerUrl } from '@/lib/dapps/deployer';
 import type { Address } from 'viem';
 
 /** Minimal DApp shape for vDonations fee calculator (KREX/NFT discounts) */
@@ -117,12 +120,8 @@ export function DonationBlock({ campaign }: DonationBlockProps) {
     });
   };
 
-  const handleVerifyHash = async () => {
-    const hash = donationTxHash.replace(/^0x/, '').trim();
-    if (!hash || hash.length !== 64) {
-      setVerifyStatus('fail');
-      return;
-    }
+  const verifyHash = async (hash: string) => {
+    if (!hash || !/^[0-9a-fA-F]{64}$/.test(hash)) return;
     setVerifyStatus('checking');
     try {
       const res = await fetch(`/api/kaspa/transaction/${hash}`);
@@ -132,6 +131,26 @@ export function DonationBlock({ campaign }: DonationBlockProps) {
       setVerifyStatus('fail');
     }
   };
+
+  const handleVerifyHash = () => verifyHash(donationTxHash.replace(/^0x/, '').trim());
+
+  // Auto-verify when user enters a valid 64-char tx hash (debounced)
+  const autoVerifyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    const hash = donationTxHash.replace(/^0x/, '').trim();
+    if (hash.length !== 64 || !/^[0-9a-fA-F]+$/.test(hash)) {
+      if (hash.length > 0) setVerifyStatus('idle');
+      return;
+    }
+    if (autoVerifyTimeoutRef.current) clearTimeout(autoVerifyTimeoutRef.current);
+    autoVerifyTimeoutRef.current = setTimeout(() => {
+      autoVerifyTimeoutRef.current = null;
+      verifyHash(hash);
+    }, 600);
+    return () => {
+      if (autoVerifyTimeoutRef.current) clearTimeout(autoVerifyTimeoutRef.current);
+    };
+  }, [donationTxHash]);
 
   const handleRecordL1 = async () => {
     if (!donationTxHash.trim() || !campaign.creatorAddress || !l2Address) {
@@ -202,6 +221,12 @@ export function DonationBlock({ campaign }: DonationBlockProps) {
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             Donate iKAS to the escrow. Min {formatEther(VDONATIONS_MIN_DONATION_WEI)} iKAS. You get tGRID/GRID and points with KREX/NFT multipliers.
           </p>
+          <div className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 p-3 text-sm text-zinc-700 dark:text-zinc-300">
+            <p className="font-medium text-zinc-900 dark:text-zinc-100 mb-1">Where does the fee go?</p>
+            <p>
+              {VDONATIONS_L2_FEE_PERCENT}% of your donation goes to the <strong>Kasparex Revenue Tree</strong> to support community rewards and the referral program. The rest is escrowed for this campaign and goes to the creator when the goal is reached.
+            </p>
+          </div>
           {!isL2Connected && (
             <p className="text-amber-600 dark:text-amber-400 text-sm">Connect your L2 (EVM) wallet to donate.</p>
           )}
@@ -257,19 +282,33 @@ export function DonationBlock({ campaign }: DonationBlockProps) {
           </div>
           {l1AmountNum >= VDONATIONS_MIN_DONATION_KAS && (
             <div className="text-sm text-zinc-600 dark:text-zinc-400">
-              Platform fee: {l1FeeKas} KAS (to platform address)
+              Platform fee: {l1FeeKas} KAS (1% of donation, min 1 KAS) — sent to the platform address below.
             </div>
           )}
           {l1Address && (
             <div className="rounded-lg bg-zinc-100 dark:bg-zinc-800 p-3 text-sm">
               <p className="font-medium text-zinc-700 dark:text-zinc-300 mb-1">Creator L1 address</p>
-              <p className="font-mono text-zinc-600 dark:text-zinc-400 break-all">{l1Address}</p>
+              <a
+                href={getKaspaExplorerAddressUrl(l1Address)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-mono text-zinc-600 dark:text-zinc-400 break-all hover:text-emerald-600 dark:hover:text-emerald-400 underline"
+              >
+                {l1Address}
+              </a>
             </div>
           )}
           {platformL1 && (
             <div className="rounded-lg bg-zinc-100 dark:bg-zinc-800 p-3 text-sm">
               <p className="font-medium text-zinc-700 dark:text-zinc-300 mb-1">Platform fee address</p>
-              <p className="font-mono text-zinc-600 dark:text-zinc-400 break-all">{platformL1}</p>
+              <a
+                href={getKaspaExplorerAddressUrl(platformL1)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-mono text-zinc-600 dark:text-zinc-400 break-all hover:text-emerald-600 dark:hover:text-emerald-400 underline"
+              >
+                {platformL1}
+              </a>
             </div>
           )}
           <div className="flex gap-2">

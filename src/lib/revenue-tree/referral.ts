@@ -37,6 +37,7 @@ export function generateReferralLink(
       vblog: 'vblog',
       game: 'games',
       store: 'store',
+      donation: 'donations',
     };
     path = `/${pluralMap[contentType]}/${slug}`;
   }
