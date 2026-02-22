@@ -19,6 +19,7 @@ import { getExplorerUrl } from '@/lib/dapps/deployer';
 
 export default function DonationCampaignPage() {
   const params = useParams();
+  const chainId = useChainId();
   const creatorAddress = (params?.creatorAddress as string) ?? null;
   const { campaign, isLoading, error } = useDonationCampaign(creatorAddress);
   const [metadata, setMetadata] = useState<DonationCampaignMetadata | null>(null);
