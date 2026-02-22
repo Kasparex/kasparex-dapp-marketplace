@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1771768919-c73769a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: vDonations: transaction UI modals, L2 creator address, interactive Revenue Tree (by Kasparex)",
+      "date": "2026-02-22T14:58:18+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1771703086-d6783c6",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Dashboard: Tier 0, remove Cost Reduction, KAT bridge link, sidebar layout; bridge note on Simple Payment (by Kasparex)",
