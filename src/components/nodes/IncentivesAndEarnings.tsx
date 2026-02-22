@@ -14,7 +14,7 @@ export function IncentivesAndEarnings({ incentives }: IncentivesAndEarningsProps
     <section id="incentives-earnings" className="mb-6">
       <div className={CARD_CLASS}>
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
+          <div className="w-1.5 h-6 bg-cyan-500 rounded-full" />
           <h2 className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">
             Earnings & incentives
           </h2>
@@ -36,11 +36,11 @@ export function IncentivesAndEarnings({ incentives }: IncentivesAndEarningsProps
               {incentives.xpEarned}
             </p>
           </div>
-          <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
-            <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-1">
+          <div className="p-4 rounded-xl bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800">
+            <p className="text-[10px] font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-wider mb-1">
               Current multiplier
             </p>
-            <p className="text-xl font-black text-emerald-700 dark:text-emerald-400 tracking-tight">
+            <p className="text-xl font-black text-cyan-700 dark:text-cyan-400 tracking-tight">
               {incentives.currentMultiplier}x
             </p>
           </div>

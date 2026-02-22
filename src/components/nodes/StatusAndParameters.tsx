@@ -42,7 +42,7 @@ export function StatusAndParameters({ nodeInfo, metrics }: StatusAndParametersPr
     <section id="status-parameters" className="mb-6">
       <div className={CARD_CLASS}>
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
+          <div className="w-1.5 h-6 bg-cyan-500 rounded-full" />
           <h2 className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">
             Parameters
           </h2>
