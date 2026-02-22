@@ -6,8 +6,6 @@ import Image from 'next/image';
 import type { AdSlotId } from '@/lib/ads/types';
 import { getActiveAdsForSlot, getRandomActiveAdForSlot } from '@/lib/ads/mockAds';
 
-const PLACEHOLDER_LINK = '/ads';
-
 type Variant = 'square' | 'compact' | 'footer';
 
 interface AdSlotProps {
@@ -15,13 +13,13 @@ interface AdSlotProps {
   variant?: Variant;
 }
 
-function AdPlaceholder({ variant }: { variant: Variant }) {
+function AdPlaceholder({ slotId, variant }: { slotId: AdSlotId; variant: Variant }) {
   const isCompact = variant === 'compact';
   const isFooter = variant === 'footer';
+  const takeUrl = `/ads?take=${encodeURIComponent(slotId)}`;
   return (
-    <Link
-      href={PLACEHOLDER_LINK}
-      className="flex items-center justify-center rounded-xl border border-dashed border-zinc-200 dark:border-zinc-700/80 bg-zinc-100/80 dark:bg-zinc-800/40 text-zinc-400 dark:text-zinc-500 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-zinc-200/60 dark:hover:bg-zinc-700/50 transition-colors text-center"
+    <div
+      className="flex flex-col items-center justify-center rounded-xl border border-zinc-200/60 dark:border-zinc-700/60 bg-zinc-100/80 dark:bg-zinc-900/95 overflow-hidden text-center transition-all duration-300 hover:border-[#02abb8]/30 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60"
       style={
         isFooter
           ? { minHeight: 72, width: '100%' }
@@ -30,8 +28,19 @@ function AdPlaceholder({ variant }: { variant: Variant }) {
             : { minWidth: 200, minHeight: 200 }
       }
     >
-      <span className="text-xs font-medium px-3 py-2">Ad slot</span>
-    </Link>
+      <div className="flex-1 flex flex-col items-center justify-center p-3 w-full">
+        <svg className="w-8 h-8 text-zinc-400 dark:text-zinc-600 flex-shrink-0 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <span className="text-[10px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium">Available</span>
+        <a
+          href={takeUrl}
+          className="mt-2 text-xs font-semibold text-[#02abb8] hover:text-[#029ca8] hover:underline"
+        >
+          Take this spot
+        </a>
+      </div>
+    </div>
   );
 }
 
