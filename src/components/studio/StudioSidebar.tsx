@@ -269,6 +269,9 @@ export function StudioSidebar() {
                 {/* Ad slot */}
                 <div className="px-2 pb-4">
                     <AdSlot slotId="SIDEBAR_RANDOM" variant="compact" />
+                    <p className="mt-1.5 text-[10px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500 text-center">
+                        Advertisement
+                    </p>
                 </div>
 
                 {/* Footer */}

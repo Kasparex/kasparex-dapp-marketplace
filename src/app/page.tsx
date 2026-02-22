@@ -216,8 +216,11 @@ function HomeContent() {
                       <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">dApp</span>
                     </div>
                   </div>
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-auto">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-auto">
                     <AdSlider slotId="HALO_DAPPS_RIGHT" />
+                    <span className="mt-1.5 text-[10px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                      Advertisement
+                    </span>
                   </div>
                 </div>
               </div>

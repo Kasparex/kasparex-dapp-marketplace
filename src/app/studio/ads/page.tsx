@@ -27,13 +27,19 @@ export default function StudioAdsPage() {
           </p>
           <div className="flex flex-wrap gap-4">
             <Link
-              href="/ads"
+              href="/ads?create=1"
               className="px-6 py-2.5 bg-[#02abb8] hover:bg-[#029ca8] text-white rounded-xl font-bold text-sm transition-colors"
+            >
+              Create ad
+            </Link>
+            <Link
+              href="/ads/overview"
+              className="px-6 py-2.5 border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl font-bold text-sm transition-colors"
             >
               View pricing & slots
             </Link>
             <Link
-              href="/ads/listing"
+              href="/ads"
               className="px-6 py-2.5 border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl font-bold text-sm transition-colors"
             >
               Active campaigns
@@ -56,13 +62,18 @@ export default function StudioAdsPage() {
         {mockMyAds.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {mockMyAds.map((ad) => (
-              <AdCard key={ad.id} ad={ad} />
+              <AdCard
+                key={ad.id}
+                ad={ad}
+                onEdit={() => window.open(`/ads?create=1`, '_self')}
+                onDelete={() => {}}
+              />
             ))}
           </div>
         ) : (
           <div className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 py-12 text-center">
             <p className="text-zinc-600 dark:text-zinc-400">You have no active ads yet.</p>
-            <Link href="/ads" className="mt-2 inline-block text-[#02abb8] font-medium hover:underline">Get started</Link>
+            <Link href="/ads?create=1" className="mt-2 inline-block text-[#02abb8] font-medium hover:underline">Create your first ad</Link>
           </div>
         )}
       </section>

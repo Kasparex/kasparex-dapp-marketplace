@@ -19,7 +19,7 @@ export default function StudioLayout({
                     <StudioSidebar />
 
                     {/* Main Content Area */}
-                    <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
+                    <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
                         <div className="max-w-7xl mx-auto">
                             <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                                 {children}

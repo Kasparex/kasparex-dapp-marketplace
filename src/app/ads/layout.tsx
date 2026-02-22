@@ -12,8 +12,8 @@ export default function AdsLayout({
       <Header />
       <div className="flex flex-1">
         <AdsSidebar />
-        <main className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto bg-white dark:bg-zinc-950 border-l border-zinc-200 dark:border-zinc-800">
-          <div className="max-w-5xl mx-auto">
+        <main className="flex-1 w-full p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto bg-white dark:bg-zinc-950 border-l border-zinc-200 dark:border-zinc-800">
+          <div className="max-w-7xl mx-auto">
             {children}
           </div>
         </main>

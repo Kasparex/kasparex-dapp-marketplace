@@ -21,8 +21,8 @@ const listingIcon = (
 
 export function AdsSidebar() {
   const pathname = usePathname();
-  const isOverview = pathname === '/ads';
-  const isListing = pathname === '/ads/listing';
+  const isListing = pathname === '/ads';
+  const isOverview = pathname === '/ads/overview';
 
   return (
     <UnifiedSidebar
@@ -40,16 +40,16 @@ export function AdsSidebar() {
         <nav className="space-y-0.5">
           <Link href="/ads">
             <SidebarNavItem
-              label="Overview"
-              icon={overviewIcon}
-              active={isOverview}
-            />
-          </Link>
-          <Link href="/ads/listing">
-            <SidebarNavItem
               label="Active campaigns"
               icon={listingIcon}
               active={isListing}
+            />
+          </Link>
+          <Link href="/ads/overview">
+            <SidebarNavItem
+              label="Overview"
+              icon={overviewIcon}
+              active={isOverview}
             />
           </Link>
         </nav>

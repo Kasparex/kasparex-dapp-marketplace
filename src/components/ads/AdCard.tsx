@@ -7,6 +7,8 @@ import { getSlotConfig } from '@/lib/ads/slots';
 
 interface AdCardProps {
   ad: AdEntry;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 function formatExpires(endTime: string): string {
@@ -16,6 +18,18 @@ function formatExpires(endTime: string): string {
   if (days <= 0) return 'Expired';
   if (days === 1) return 'Expires tomorrow';
   return `Expires in ${days} days`;
+}
+
+function getProgressPercent(startTime: string, endTime: string): number {
+  const start = new Date(startTime).getTime();
+  const end = new Date(endTime).getTime();
+  const now = Date.now();
+  if (now >= end) return 0;
+  if (now <= start) return 100;
+  const elapsed = now - start;
+  const total = end - start;
+  const remaining = Math.max(0, 100 - (elapsed / total) * 100);
+  return Math.round(remaining);
 }
 
 function getAspectClass(format: AdFormat): string {
@@ -30,38 +44,78 @@ function getAspectClass(format: AdFormat): string {
   }
 }
 
-export function AdCard({ ad }: AdCardProps) {
+export function AdCard({ ad, onEdit, onDelete }: AdCardProps) {
   const slotConfig = getSlotConfig(ad.slotId);
   const slotLabel = slotConfig?.label ?? ad.slotId;
   const expiresText = formatExpires(ad.endTime);
   const format = ad.format ?? 'rectangle';
   const aspectClass = getAspectClass(format);
+  const progressPercent = getProgressPercent(ad.startTime, ad.endTime);
 
   return (
-    <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 overflow-hidden hover:border-[#02abb8]/50 transition-colors">
+    <div className="group rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 overflow-hidden hover:shadow-xl hover:shadow-zinc-200/50 dark:hover:shadow-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-300">
       <Link
         href={ad.link}
         target="_blank"
         rel="noopener noreferrer sponsored"
-        className={`block relative w-full ${aspectClass} bg-zinc-100 dark:bg-zinc-800`}
+        className={`block relative w-full ${aspectClass} bg-zinc-100/80 dark:bg-zinc-900/95 overflow-hidden`}
       >
         <Image
           src={ad.imageUrl}
           alt={ad.title}
           fill
-          className="object-cover"
+          className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 340px"
           unoptimized
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       </Link>
       <div className="p-4">
-        <h3 className="font-bold text-zinc-900 dark:text-zinc-100 truncate mb-1">{ad.title}</h3>
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <h3 className="font-bold text-zinc-900 dark:text-zinc-100 truncate flex-1 min-w-0">{ad.title}</h3>
+          {(onEdit != null || onDelete != null) && (
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {onEdit != null && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); onEdit(); }}
+                  className="p-1.5 rounded-lg text-zinc-500 hover:text-[#02abb8] hover:bg-[#02abb8]/10 transition-colors"
+                  title="Edit"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+              )}
+              {onDelete != null && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); onDelete(); }}
+                  className="p-1.5 rounded-lg text-zinc-500 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                  title="Delete"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
         <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
           {slotLabel}
         </p>
-        <p className="text-xs font-medium text-amber-600 dark:text-amber-400">
-          {expiresText}
-        </p>
+        <div className="space-y-1.5">
+          <div className="h-1.5 w-full rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-[#02abb8] transition-all duration-500"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+          <p className="text-xs font-medium text-amber-600 dark:text-amber-400">
+            {expiresText}
+          </p>
+        </div>
       </div>
     </div>
   );

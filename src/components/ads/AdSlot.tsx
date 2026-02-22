@@ -118,12 +118,12 @@ export function AdSlot({ slotId, variant = 'square' }: AdSlotProps) {
   }, [isRandomSlot, isFooterSlot, randomAd, allActive]);
 
   if (isFooterSlot) {
-    if (allActive.length === 0) return <AdPlaceholder variant="footer" />;
+    if (allActive.length === 0) return <AdPlaceholder slotId={slotId} variant="footer" />;
     return <AdSlotFooterSingle ad={allActive[0]} />;
   }
 
   const singleAd = adToShow;
-  if (!singleAd) return <AdPlaceholder variant={variant} />;
+  if (!singleAd) return <AdPlaceholder slotId={slotId} variant={variant} />;
 
   if (variant === 'compact') return <AdSlotCompact ad={singleAd} />;
   return <AdSlotSquare ad={singleAd} />;
