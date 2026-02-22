@@ -4,6 +4,9 @@ export type AdSlotId =
   | 'SIDEBAR_RANDOM'
   | 'FOOTER_BLOCK';
 
+/** Visual format / template type for ad display (mosaic layout). */
+export type AdFormat = 'square' | 'rectangle' | 'tall';
+
 export type RotationType = 'static' | 'slider' | 'random';
 
 export interface AdSlotConfig {
@@ -18,6 +21,8 @@ export interface AdSlotConfig {
 export interface AdEntry {
   id: string;
   slotId: AdSlotId;
+  /** Template type for mosaic layout: square, wide rectangle, or tall rectangle. */
+  format: AdFormat;
   imageUrl: string;
   link: string;
   title: string;

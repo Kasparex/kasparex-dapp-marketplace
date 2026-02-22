@@ -21,16 +21,16 @@ function AdPlaceholder({ variant }: { variant: Variant }) {
   return (
     <Link
       href={PLACEHOLDER_LINK}
-      className="flex items-center justify-center rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 text-zinc-500 dark:text-zinc-400 hover:border-[#02abb8] hover:text-[#02abb8] transition-colors text-center"
+      className="flex items-center justify-center rounded-xl border border-dashed border-zinc-200 dark:border-zinc-700/80 bg-zinc-100/80 dark:bg-zinc-800/40 text-zinc-400 dark:text-zinc-500 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-zinc-200/60 dark:hover:bg-zinc-700/50 transition-colors text-center"
       style={
         isFooter
-          ? { minHeight: 80 }
+          ? { minHeight: 72, width: '100%' }
           : isCompact
             ? { minHeight: 120 }
             : { minWidth: 200, minHeight: 200 }
       }
     >
-      <span className="text-xs font-medium px-3 py-2">Ad slot – book at Kasparex Ads</span>
+      <span className="text-xs font-medium px-3 py-2">Ad slot</span>
     </Link>
   );
 }
@@ -77,29 +77,24 @@ function AdSlotCompact({ ad }: { ad: { imageUrl: string; link: string; title: st
   );
 }
 
-function AdSlotFooter({ ads }: { ads: Array<{ imageUrl: string; link: string; title: string }> }) {
+function AdSlotFooterSingle({ ad }: { ad: { imageUrl: string; link: string; title: string } }) {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-4 py-4">
-      {ads.map((ad) => (
-        <Link
-          key={ad.link + ad.title}
-          href={ad.link}
-          target="_blank"
-          rel="noopener noreferrer sponsored"
-          className="relative block w-[200px] h-[100px] rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 hover:ring-2 hover:ring-[#02abb8]/50 transition-all shrink-0"
-          title={ad.title}
-        >
-          <Image
-            src={ad.imageUrl}
-            alt={ad.title}
-            fill
-            className="object-cover"
-            sizes="200px"
-            unoptimized
-          />
-        </Link>
-      ))}
-    </div>
+    <Link
+      href={ad.link}
+      target="_blank"
+      rel="noopener noreferrer sponsored"
+      className="relative block w-full aspect-[32/9] min-h-[72px] max-h-[100px] rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 hover:ring-2 hover:ring-[#02abb8]/30 transition-all"
+      title={ad.title}
+    >
+      <Image
+        src={ad.imageUrl}
+        alt={ad.title}
+        fill
+        className="object-cover"
+        sizes="(max-width: 1024px) 100vw, 1200px"
+        unoptimized
+      />
+    </Link>
   );
 }
 
@@ -124,7 +119,7 @@ export function AdSlot({ slotId, variant = 'square' }: AdSlotProps) {
 
   if (isFooterSlot) {
     if (allActive.length === 0) return <AdPlaceholder variant="footer" />;
-    return <AdSlotFooter ads={allActive} />;
+    return <AdSlotFooterSingle ad={allActive[0]} />;
   }
 
   const singleAd = adToShow;

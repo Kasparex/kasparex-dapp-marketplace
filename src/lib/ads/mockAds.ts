@@ -11,6 +11,7 @@ export const MOCK_ADS: AdEntry[] = [
   {
     id: 'halo-1',
     slotId: 'HALO_DAPPS_RIGHT',
+    format: 'square',
     imageUrl: 'https://placehold.co/400x400/1e3a5f/fff?text=Ad+1',
     link: 'https://kasparex.com',
     title: 'Kasparex Ecosystem',
@@ -21,6 +22,7 @@ export const MOCK_ADS: AdEntry[] = [
   {
     id: 'halo-2',
     slotId: 'HALO_DAPPS_RIGHT',
+    format: 'square',
     imageUrl: 'https://placehold.co/400x400/0d4f3a/fff?text=Ad+2',
     link: 'https://kasparex.com',
     title: 'Build on Kaspa',
@@ -31,6 +33,7 @@ export const MOCK_ADS: AdEntry[] = [
   {
     id: 'halo-3',
     slotId: 'HALO_DAPPS_RIGHT',
+    format: 'square',
     imageUrl: 'https://placehold.co/400x400/4a1d6b/fff?text=Ad+3',
     link: 'https://kasparex.com',
     title: 'KREX Rewards',
@@ -41,6 +44,7 @@ export const MOCK_ADS: AdEntry[] = [
   {
     id: 'sidebar-1',
     slotId: 'SIDEBAR_RANDOM',
+    format: 'rectangle',
     imageUrl: 'https://placehold.co/300x200/2d3748/fff?text=Sidebar',
     link: 'https://kasparex.com/ads',
     title: 'Advertise here',
@@ -50,6 +54,7 @@ export const MOCK_ADS: AdEntry[] = [
   {
     id: 'sidebar-2',
     slotId: 'SIDEBAR_RANDOM',
+    format: 'rectangle',
     imageUrl: 'https://placehold.co/300x200/1a365d/fff?text=Slot',
     link: 'https://kasparex.com/ads',
     title: 'Kasparex Ads',
@@ -59,7 +64,8 @@ export const MOCK_ADS: AdEntry[] = [
   {
     id: 'footer-1',
     slotId: 'FOOTER_BLOCK',
-    imageUrl: 'https://placehold.co/200x100/234e52/fff?text=Footer',
+    format: 'rectangle',
+    imageUrl: 'https://placehold.co/1200x200/374151/9ca3af?text=Footer+Ad',
     link: 'https://kasparex.com/ads',
     title: 'Footer ad',
     startTime: past,
@@ -68,11 +74,22 @@ export const MOCK_ADS: AdEntry[] = [
   {
     id: 'footer-2',
     slotId: 'FOOTER_BLOCK',
-    imageUrl: 'https://placehold.co/200x100/2c5282/fff?text=Ad',
+    format: 'rectangle',
+    imageUrl: 'https://placehold.co/1200x200/4b5563/9ca3af?text=Ecosystem',
     link: 'https://kasparex.com',
     title: 'Ecosystem',
     startTime: past,
     endTime: in14Days,
+  },
+  {
+    id: 'tall-1',
+    slotId: 'SIDEBAR_RANDOM',
+    format: 'tall',
+    imageUrl: 'https://placehold.co/200x300/1f2937/9ca3af?text=Tall',
+    link: 'https://kasparex.com/ads',
+    title: 'Tall format',
+    startTime: past,
+    endTime: in30Days,
   },
 ];
 

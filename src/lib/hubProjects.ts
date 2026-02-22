@@ -122,5 +122,13 @@ export const hubProjects: HubProject[] = [
     route: '/donations',
     status: 'beta',
   },
+  {
+    id: 'kasparex-ads',
+    name: 'Kasparex Ads',
+    category: 'Ecosystem',
+    description: 'Time-locked ad slots across the platform. Pay in KAS, choose a slot and duration, and your ad goes live in halo, sidebar, and footer placements.',
+    route: '/ads',
+    status: 'beta',
+  },
 ];
 

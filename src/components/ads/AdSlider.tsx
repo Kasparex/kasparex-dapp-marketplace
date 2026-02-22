@@ -17,9 +17,9 @@ function SliderPlaceholder() {
   return (
     <Link
       href="/ads"
-      className="flex items-center justify-center rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 text-zinc-500 dark:text-zinc-400 hover:border-[#02abb8] hover:text-[#02abb8] transition-colors min-w-[200px] min-h-[200px]"
+      className="flex items-center justify-center rounded-xl border border-dashed border-zinc-200 dark:border-zinc-700/80 bg-zinc-100/80 dark:bg-zinc-800/40 text-zinc-400 dark:text-zinc-500 hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors min-w-[200px] min-h-[200px]"
     >
-      <span className="text-xs font-medium px-3 py-2">Ad slot – book at Kasparex Ads</span>
+      <span className="text-xs font-medium px-3 py-2">Ad slot</span>
     </Link>
   );
 }

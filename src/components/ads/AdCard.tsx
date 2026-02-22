@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import type { AdEntry } from '@/lib/ads/types';
+import type { AdEntry, AdFormat } from '@/lib/ads/types';
 import { getSlotConfig } from '@/lib/ads/slots';
 
 interface AdCardProps {
@@ -18,10 +18,24 @@ function formatExpires(endTime: string): string {
   return `Expires in ${days} days`;
 }
 
+function getAspectClass(format: AdFormat): string {
+  switch (format) {
+    case 'square':
+      return 'aspect-square';
+    case 'tall':
+      return 'aspect-[3/4]';
+    case 'rectangle':
+    default:
+      return 'aspect-video';
+  }
+}
+
 export function AdCard({ ad }: AdCardProps) {
   const slotConfig = getSlotConfig(ad.slotId);
   const slotLabel = slotConfig?.label ?? ad.slotId;
   const expiresText = formatExpires(ad.endTime);
+  const format = ad.format ?? 'rectangle';
+  const aspectClass = getAspectClass(format);
 
   return (
     <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 overflow-hidden hover:border-[#02abb8]/50 transition-colors">
@@ -29,7 +43,7 @@ export function AdCard({ ad }: AdCardProps) {
         href={ad.link}
         target="_blank"
         rel="noopener noreferrer sponsored"
-        className="block relative aspect-video w-full bg-zinc-100 dark:bg-zinc-800"
+        className={`block relative w-full ${aspectClass} bg-zinc-100 dark:bg-zinc-800`}
       >
         <Image
           src={ad.imageUrl}
