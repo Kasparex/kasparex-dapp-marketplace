@@ -101,7 +101,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const tx = await getTransactionByHash(hashNorm);
     if (!tx) {
-      return NextResponse.json({ success: false, error: 'Transaction not found or API unavailable' }, { status: 404 });
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            'Transaction not found or not yet confirmed. Check that the hash is correct (64 hex characters) and that the transaction has been confirmed on the Kaspa network.',
+        },
+        { status: 404 }
+      );
     }
 
     const outputs = parseTxOutputs(tx as Record<string, unknown>);

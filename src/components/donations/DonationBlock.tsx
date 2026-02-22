@@ -60,6 +60,7 @@ export function DonationBlock({ campaign }: DonationBlockProps) {
   const [recordSubmitting, setRecordSubmitting] = useState(false);
   const [recordError, setRecordError] = useState<string | null>(null);
   const [recordSuccess, setRecordSuccess] = useState(false);
+  const [verifyStatus, setVerifyStatus] = useState<'idle' | 'checking' | 'ok' | 'fail'>('idle');
 
   const { writeContract, data: hash, isPending: isPendingWrite, error: writeError } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
@@ -116,6 +117,22 @@ export function DonationBlock({ campaign }: DonationBlockProps) {
     });
   };
 
+  const handleVerifyHash = async () => {
+    const hash = donationTxHash.replace(/^0x/, '').trim();
+    if (!hash || hash.length !== 64) {
+      setVerifyStatus('fail');
+      return;
+    }
+    setVerifyStatus('checking');
+    try {
+      const res = await fetch(`/api/kaspa/transaction/${hash}`);
+      const data = await res.json();
+      setVerifyStatus(res.ok && data?.transaction ? 'ok' : 'fail');
+    } catch {
+      setVerifyStatus('fail');
+    }
+  };
+
   const handleRecordL1 = async () => {
     if (!donationTxHash.trim() || !campaign.creatorAddress || !l2Address) {
       setRecordError('Please connect your L2 wallet and enter the donation transaction hash.');
@@ -124,6 +141,7 @@ export function DonationBlock({ campaign }: DonationBlockProps) {
     setRecordSubmitting(true);
     setRecordError(null);
     setRecordSuccess(false);
+    setVerifyStatus('idle');
     try {
       const res = await fetch('/api/vdonations/l1/record', {
         method: 'POST',
@@ -220,7 +238,7 @@ export function DonationBlock({ campaign }: DonationBlockProps) {
       {mode === 'L1' && (
         <div className="space-y-4">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Send KAS directly to the creator (min {VDONATIONS_MIN_DONATION_KAS} KAS), then send the platform fee. After both txs, submit the donation tx hash to receive points.
+            Send KAS to the creator (min {VDONATIONS_MIN_DONATION_KAS} KAS), then send the platform fee. After both transactions, paste the <strong>donation</strong> tx hash below and click Verify, then Submit to receive points. (Sending donation and fee in a single transaction is not yet supported by the wallet flow.)
           </p>
           {!kaspaState.isConnected && (
             <p className="text-amber-600 dark:text-amber-400 text-sm">Connect your Kaspa (L1) wallet to send KAS.</p>
@@ -278,13 +296,26 @@ export function DonationBlock({ campaign }: DonationBlockProps) {
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
               After sending the donation (and optionally the fee), enter the donation transaction hash. Connect your L2 wallet so we know where to award points.
             </p>
-            <input
-              type="text"
-              value={donationTxHash}
-              onChange={(e) => setDonationTxHash(e.target.value)}
-              placeholder="Donation tx hash (64 hex chars)"
-              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm font-mono mb-2"
-            />
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={donationTxHash}
+                onChange={(e) => {
+                  setDonationTxHash(e.target.value);
+                  setVerifyStatus('idle');
+                }}
+                placeholder="Donation tx hash (64 hex chars)"
+                className="flex-1 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm font-mono"
+              />
+              <button
+                type="button"
+                onClick={handleVerifyHash}
+                disabled={!donationTxHash.trim() || verifyStatus === 'checking'}
+                className="px-3 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-sm font-medium hover:bg-zinc-300 dark:hover:bg-zinc-600 disabled:opacity-50 shrink-0"
+              >
+                {verifyStatus === 'checking' ? 'Checking…' : verifyStatus === 'ok' ? '✓ Found' : verifyStatus === 'fail' ? 'Not found' : 'Verify'}
+              </button>
+            </div>
             <input
               type="text"
               value={feeTxHash}

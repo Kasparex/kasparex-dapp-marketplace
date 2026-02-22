@@ -148,22 +148,53 @@ export interface KaspaTxForVerification {
 
 const KASPA_TX_API = process.env.KASPA_TX_API_URL || 'https://api.kaspa.org';
 
+/** Normalize API tx response to our shape (supports multiple API formats) */
+function normalizeTxPayload(data: unknown): KaspaTxForVerification | null {
+  if (!data || typeof data !== 'object') return null;
+  const o = data as Record<string, unknown>;
+  const txId = (o.transactionId ?? o.id ?? o.txId) as string | undefined;
+  const outputs =
+    (o.outputs as KaspaTxOutput[] | undefined) ??
+    (o.verboseData as Record<string, unknown>)?.outputs ??
+    (o.subnetworkData as Record<string, unknown>)?.outputs;
+  if (!txId && !outputs) return null;
+  return {
+    transactionId: txId,
+    id: txId,
+    outputs: Array.isArray(outputs) ? outputs : undefined,
+    mass: o.mass as number | undefined,
+    blockHash: o.blockHash as string | undefined,
+  };
+}
+
 /**
  * Fetch a Kaspa L1 transaction by hash (for vDonations L1 verification).
- * Tries api.kaspa.org or KASPA_TX_API_URL (e.g. explorer API).
+ * Tries primary API (api.kaspa.org or KASPA_TX_API_URL), then fallback endpoints.
  */
 export async function getTransactionByHash(txHash: string): Promise<KaspaTxForVerification | null> {
   const hash = txHash.replace(/^0x/, '');
   if (!/^[0-9a-fA-F]{64}$/.test(hash)) return null;
-  try {
-    const res = await fetch(`${KASPA_TX_API}/v1/transactions/${hash}`, {
-      cache: 'no-store',
-      signal: AbortSignal.timeout(15000),
-    });
-    if (!res.ok) return null;
-    return (await res.json()) as KaspaTxForVerification;
-  } catch {
-    return null;
+
+  const endpoints = [
+    `${KASPA_TX_API}/v1/transactions/${hash}`,
+    `${KASPA_TX_API}/transactions/${hash}`,
+  ];
+
+  for (const url of endpoints) {
+    try {
+      const res = await fetch(url, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(12000),
+      });
+      if (!res.ok) continue;
+      const data = (await res.json()) as unknown;
+      const normalized = normalizeTxPayload(data);
+      if (normalized?.outputs?.length !== undefined) return normalized;
+      if (normalized && (normalized.transactionId || normalized.id)) return normalized;
+    } catch {
+      // try next endpoint
+    }
   }
+  return null;
 }
 

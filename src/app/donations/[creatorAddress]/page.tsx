@@ -7,8 +7,11 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useDonationCampaign, fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
 import { DonationBlock } from '@/components/donations/DonationBlock';
+import { DonationsSidebar } from '@/components/donations/DonationsSidebar';
 import { formatEther } from 'viem';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
+import { DEFAULT_DONATION_IMAGE } from '@/lib/donations/constants';
+import { getGatewayUrl } from '@/lib/ipfs/gateway';
 
 export default function DonationCampaignPage() {
   const params = useParams();
@@ -192,9 +195,10 @@ export default function DonationCampaignPage() {
 
             {/* Donation block: L1/L2 toggle and actions */}
             <DonationBlock campaign={campaign} />
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
       <Footer />
     </div>
   );
