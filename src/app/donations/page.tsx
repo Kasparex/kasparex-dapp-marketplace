@@ -83,12 +83,12 @@ export default function DonationsListingPage() {
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">Campaigns</h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              {isLoading ? 'Loading…' : `${filteredCampaigns.length} campaign${filteredCampaigns.length !== 1 ? 's' : ''} found`}
+              {isLoading ? 'Loading...' : `${filteredCampaigns.length} campaign${filteredCampaigns.length !== 1 ? 's' : ''} found`}
             </p>
           </div>
           <div className="flex flex-col gap-4 mb-8">
             <FilterBar
-              search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search campaigns…' }}
+              search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search campaigns...' }}
               onReset={handleResetFilters}
             >
               <DonationSortFilters sortBy={sortBy} onSortChange={setSortBy} />
@@ -161,7 +161,7 @@ function DonationCampaignCard({ campaign }: { campaign: DonationCampaignListItem
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
           <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 truncate max-w-[180px]">
-            {campaign.creatorAddress.slice(0, 6)}…{campaign.creatorAddress.slice(-4)}
+            {campaign.creatorAddress.slice(0, 6)}...{campaign.creatorAddress.slice(-4)}
           </span>
           {campaign.active && (
             <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">

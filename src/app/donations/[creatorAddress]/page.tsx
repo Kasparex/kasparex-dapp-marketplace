@@ -77,7 +77,7 @@ export default function DonationCampaignPage() {
 
   const progress = campaign.targetWei > 0n ? Number((campaign.raisedWei * 10000n) / campaign.targetWei) / 100 : 0;
   const deadlineDate = new Date(Number(campaign.deadline) * 1000);
-  const title = metadata?.title ?? `Campaign ${campaign.creatorAddress.slice(0, 6)}…${campaign.creatorAddress.slice(-4)}`;
+  const title = metadata?.title ?? `Campaign ${campaign.creatorAddress.slice(0, 6)}...${campaign.creatorAddress.slice(-4)}`;
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950">
@@ -104,7 +104,7 @@ export default function DonationCampaignPage() {
             </div>
 
             <p className="text-sm font-mono text-zinc-500 dark:text-zinc-400 mb-6">
-              Creator: {campaign.creatorAddress.slice(0, 10)}…{campaign.creatorAddress.slice(-8)}
+              Creator: {campaign.creatorAddress.slice(0, 10)}...{campaign.creatorAddress.slice(-8)}
             </p>
 
             {/* Stats */}
@@ -135,7 +135,7 @@ export default function DonationCampaignPage() {
             </div>
 
             {/* Description from IPFS */}
-            {metadataLoading && <p className="text-zinc-500 dark:text-zinc-400 text-sm">Loading description…</p>}
+            {metadataLoading && <p className="text-zinc-500 dark:text-zinc-400 text-sm">Loading description...</p>}
             {!metadataLoading && metadata?.description && (
               <div className="prose prose-zinc dark:prose-invert max-w-none mb-6">
                 <p className="whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">{metadata.description}</p>
@@ -198,7 +198,6 @@ export default function DonationCampaignPage() {
             </div>
           </div>
         </main>
-      </div>
       <Footer />
     </div>
   );
