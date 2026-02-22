@@ -95,7 +95,7 @@ export function NodesDashboardSidebar() {
           </h3>
           <nav className="space-y-1">
             {QUICK_LINKS.map((item) =>
-              item.external ? (
+              'external' in item && item.external ? (
                 <a
                   key={item.label}
                   href={item.href}
