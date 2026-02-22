@@ -450,7 +450,7 @@ export default function KREXNodePage() {
             <p className="text-zinc-600 dark:text-zinc-400 mb-6">
               Join Kasparex and help build a decentralized, censorship-resistant dApp marketplace.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
               <a
                 href="https://github.com/Kasparex/kasparex-krex-node"
                 target="_blank"
@@ -459,6 +459,12 @@ export default function KREXNodePage() {
               >
                 View on GitHub
               </a>
+              <Link
+                href="/nodes"
+                className="px-6 py-3 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium transition-colors"
+              >
+                Go to My Dashboard
+              </Link>
               <Link
                 href="/api"
                 className="px-6 py-3 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium transition-colors"
