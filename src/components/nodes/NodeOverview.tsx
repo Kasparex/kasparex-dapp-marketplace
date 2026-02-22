@@ -3,7 +3,7 @@
 import type { NodeInfo, NodeMetrics } from '@/lib/nodes/types';
 
 const CARD_CLASS =
-  'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl sm:rounded-[32px] overflow-hidden shadow-sm p-6';
+  'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 p-6';
 
 const NODE_TYPE_LABELS: Record<string, string> = {
   light: 'Light Node',
@@ -17,7 +17,7 @@ function statusDisplay(status: NodeInfo['status']): { label: string; className: 
     case 'disconnected':
       return { label: 'Disconnected', className: 'text-yellow-600 dark:text-yellow-400' };
     case 'syncing':
-      return { label: 'Syncing', className: 'text-[#02abb8]' };
+      return { label: 'Syncing', className: 'text-emerald-600 dark:text-emerald-400' };
     case 'not_registered':
     default:
       return { label: 'Not registered', className: 'text-zinc-500 dark:text-zinc-500' };
@@ -37,7 +37,7 @@ export function NodeOverview({ nodeInfo, metrics }: NodeOverviewProps) {
     <section id="node-type" className="mb-6">
       <div className={CARD_CLASS}>
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-1.5 h-6 bg-[#02abb8] rounded-full" />
+          <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
           <h2 className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">
             Node overview
           </h2>

@@ -85,7 +85,7 @@ export function NodesDashboardSidebar() {
                 onClick={() => scrollToSection(section.id)}
                 className="k-sidebar-item w-full text-left group"
               >
-                <span className="k-sidebar-icon transition-colors duration-200 text-zinc-500 dark:text-zinc-400 group-hover:text-[#02abb8]">
+                <span className="k-sidebar-icon transition-colors duration-200 text-zinc-500 dark:text-zinc-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
                   {section.icon}
                 </span>
                 <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">

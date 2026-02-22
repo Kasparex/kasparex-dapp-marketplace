@@ -14,33 +14,40 @@ export default function KREXNodePage() {
     <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <Header />
 
-      <main className="flex-1 min-h-[calc(100vh-4rem)]">
-        <div className="flex flex-col lg:flex-row h-full">
+      <div className="flex flex-1">
+        <div className="hidden lg:block flex-shrink-0">
           <KrexNodeDocSidebar />
-
-          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
-            <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-              {/* Hero - aligned with dApps / Nodes styling */}
-              <div className="relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/30 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/20 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800">
-                <div className="absolute inset-0 overflow-hidden">
-                  <div className="absolute top-0 right-0 w-[60%] h-[80%] bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.15),transparent_70%)] rounded-full blur-3xl" />
-                  <div className="absolute bottom-0 left-0 w-[50%] h-[60%] bg-[radial-gradient(ellipse_at_bottom_left,_rgba(2,171,184,0.08),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_bottom_left,_rgba(2,171,184,0.1),transparent_70%)] rounded-full blur-3xl" />
-                </div>
-                <div className="relative z-10 text-center">
-                  <div className="inline-flex gap-2 px-3 py-1.5 rounded-full bg-[#02abb8]/10 border border-[#02abb8]/25 text-[#02abb8] text-[10px] font-black uppercase tracking-[0.2em] mb-6">
-                    Run a node
-                  </div>
-                  <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight tracking-tighter">
-                    Run a <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-[#02abb8] dark:from-cyan-400 dark:to-[#02abb8]">KREX Node</span>
-                  </h1>
-                  <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-                    Kasparex is a community-powered layer that keeps the dApp Marketplace online, fast, and censorship-resistant.
-                  </p>
-                </div>
+        </div>
+        <div className="lg:hidden flex-shrink-0">
+          <KrexNodeDocSidebar />
+        </div>
+        <main className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto">
+          <div className="max-w-4xl mx-auto">
+            {/* Hero - Donations style (emerald gradient) */}
+            <div className="relative mb-12 py-12 px-6 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-emerald-50/50 to-zinc-100 dark:from-zinc-950 dark:via-emerald-950/40 dark:to-zinc-950 border border-zinc-200 dark:border-transparent">
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,#10b981,transparent_50%)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,#059669,transparent_50%)]" />
               </div>
+              <div className="relative z-10 w-full text-center">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold uppercase tracking-widest mb-6">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                  </span>
+                  Run a node
+                </div>
+                <h1 className="text-4xl md:text-6xl font-black text-zinc-900 dark:text-white mb-6 leading-tight">
+                  Run a <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400">KREX Node</span>
+                </h1>
+                <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+                  Kasparex is a community-powered layer that keeps the dApp Marketplace online, fast, and censorship-resistant.
+                </p>
+              </div>
+            </div>
 
           {/* Key Message */}
-          <div className="bg-[#02abb8]/10 dark:bg-[#02abb8]/20 border border-[#02abb8]/30 rounded-lg p-6 mb-12">
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 mb-12">
             <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
               Kasparex works even if nobody runs a node
             </h2>
@@ -59,9 +66,9 @@ export default function KREXNodePage() {
             </p>
             
             <div className="grid md:grid-cols-2 gap-4 mb-6">
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <div className="flex items-center gap-3 mb-2">
-                  <svg className="w-6 h-6 text-[#02abb8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
                   </svg>
                   <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">Pin & Mirror</h3>
@@ -71,9 +78,9 @@ export default function KREXNodePage() {
                 </p>
               </div>
 
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <div className="flex items-center gap-3 mb-2">
-                  <svg className="w-6 h-6 text-[#02abb8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                   <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">Censorship-Resistant</h3>
@@ -83,9 +90,9 @@ export default function KREXNodePage() {
                 </p>
               </div>
 
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <div className="flex items-center gap-3 mb-2">
-                  <svg className="w-6 h-6 text-[#02abb8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                   <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">Lightweight</h3>
@@ -95,9 +102,9 @@ export default function KREXNodePage() {
                 </p>
               </div>
 
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <div className="flex items-center gap-3 mb-2">
-                  <svg className="w-6 h-6 text-[#02abb8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">Earn Rewards</h3>
@@ -115,25 +122,25 @@ export default function KREXNodePage() {
               Node Types
             </h2>
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
                   Light Node
                 </h3>
                 <ul className="space-y-2 text-zinc-600 dark:text-zinc-400 mb-4">
                   <li className="flex items-start gap-2">
-                    <span className="text-[#02abb8] mt-1">•</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 mt-1">•</span>
                     <span>Pins IPFS / Storacha CIDs</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-[#02abb8] mt-1">•</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 mt-1">•</span>
                     <span>Caches dApp metadata locally</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-[#02abb8] mt-1">•</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 mt-1">•</span>
                     <span>Periodically syncs with Kasparex API</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-[#02abb8] mt-1">•</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 mt-1">•</span>
                     <span>Ideal for regular community members</span>
                   </li>
                 </ul>
@@ -144,28 +151,28 @@ export default function KREXNodePage() {
                 </div>
               </div>
 
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 border-[#02abb8]/50">
+              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 border-emerald-500/50">
                 <div className="flex items-center gap-2 mb-3">
                   <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
                     Mirror Node
                   </h3>
-                  <span className="text-xs px-2 py-1 bg-[#02abb8]/20 text-[#02abb8] rounded-full">Recommended</span>
+                  <span className="text-xs px-2 py-1 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full">Recommended</span>
                 </div>
                 <ul className="space-y-2 text-zinc-600 dark:text-zinc-400 mb-4">
                   <li className="flex items-start gap-2">
-                    <span className="text-[#02abb8] mt-1">•</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 mt-1">•</span>
                     <span>Everything Light Node does, plus:</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-[#02abb8] mt-1">•</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 mt-1">•</span>
                     <span>Exposes a small HTTP API (read-only)</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-[#02abb8] mt-1">•</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 mt-1">•</span>
                     <span>Can be used as fallback data source</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-[#02abb8] mt-1">•</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 mt-1">•</span>
                     <span>Ideal for power users and partners</span>
                   </li>
                 </ul>
@@ -184,9 +191,9 @@ export default function KREXNodePage() {
               How to Run a KREX Node
             </h2>
             <div className="space-y-6">
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 bg-[#02abb8] text-white rounded-full flex items-center justify-center font-bold">
+                  <div className="flex-shrink-0 w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold">
                     1
                   </div>
                   <div>
@@ -200,7 +207,7 @@ export default function KREXNodePage() {
                       href="https://nodejs.org"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[#02abb8] hover:underline text-sm font-medium"
+                      className="text-emerald-600 dark:text-emerald-400 hover:underline text-sm font-medium"
                     >
                       Download Node.js →
                     </a>
@@ -208,9 +215,9 @@ export default function KREXNodePage() {
                 </div>
               </div>
 
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 bg-[#02abb8] text-white rounded-full flex items-center justify-center font-bold">
+                  <div className="flex-shrink-0 w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold">
                     2
                   </div>
                   <div>
@@ -227,9 +234,9 @@ export default function KREXNodePage() {
                 </div>
               </div>
 
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 bg-[#02abb8] text-white rounded-full flex items-center justify-center font-bold">
+                  <div className="flex-shrink-0 w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold">
                     3
                   </div>
                   <div>
@@ -246,9 +253,9 @@ export default function KREXNodePage() {
                 </div>
               </div>
 
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 bg-[#02abb8] text-white rounded-full flex items-center justify-center font-bold">
+                  <div className="flex-shrink-0 w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold">
                     4
                   </div>
                   <div>
@@ -268,9 +275,9 @@ export default function KREXNodePage() {
                 </div>
               </div>
 
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 bg-[#02abb8] text-white rounded-full flex items-center justify-center font-bold">
+                  <div className="flex-shrink-0 w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold">
                     5
                   </div>
                   <div>
@@ -301,52 +308,52 @@ export default function KREXNodePage() {
             </p>
             
             <div className="grid md:grid-cols-2 gap-6 mb-6">
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
                   GRID Rewards (Global)
                 </h3>
                 <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
                   <li className="flex items-start gap-2">
-                    <span className="text-[#02abb8] mt-1">•</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 mt-1">•</span>
                     <span>Base reward per epoch based on uptime</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-[#02abb8] mt-1">•</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 mt-1">•</span>
                     <span>Multiplied by pinned files count</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-[#02abb8] mt-1">•</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 mt-1">•</span>
                     <span>Multiplied by requests served (Mirror Nodes)</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-[#02abb8] mt-1">•</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 mt-1">•</span>
                     <span>Multiplied by KREX holdings tier</span>
                   </li>
                 </ul>
               </div>
 
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
                   XP & Perks
                 </h3>
                 <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
                   <li className="flex items-start gap-2">
-                    <span className="text-[#02abb8] mt-1">•</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 mt-1">•</span>
                     <span>Earn XP Points for node activity</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-[#02abb8] mt-1">•</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 mt-1">•</span>
                     <span>Unlock perks and badges</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-[#02abb8] mt-1">•</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 mt-1">•</span>
                     <span>Multiplied by KREX tier</span>
                   </li>
                 </ul>
               </div>
             </div>
 
-            <div className="p-6 bg-[#02abb8]/10 dark:bg-[#02abb8]/20 rounded-lg border border-[#02abb8]/30">
+            <div className="p-6 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-xl border border-emerald-500/30">
               <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
                 KREX Multiplier Tiers
               </h3>
@@ -415,19 +422,19 @@ export default function KREXNodePage() {
               Who is this for?
             </h2>
             <div className="grid md:grid-cols-3 gap-4">
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">KREX Holders</h3>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
                   Support the ecosystem and earn boosted rewards with KREX multipliers
                 </p>
               </div>
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Technical Users</h3>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
                   Enjoy running nodes and contributing to decentralized infrastructure
                 </p>
               </div>
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Partners & Builders</h3>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
                   Ensure extra resilience for your dApps and help the entire marketplace
@@ -437,7 +444,7 @@ export default function KREXNodePage() {
           </section>
 
           {/* CTA */}
-          <div className="text-center p-8 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+          <div className="text-center p-8 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
             <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
               Ready to Get Started?
             </h2>
@@ -449,19 +456,19 @@ export default function KREXNodePage() {
                 href="https://github.com/Kasparex/kasparex-krex-node"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-6 py-3 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
+                className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm transition-colors"
               >
                 View on GitHub
               </a>
               <Link
                 href="/nodes"
-                className="px-6 py-3 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium transition-colors"
+                className="px-6 py-3 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 rounded-xl font-bold text-sm border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
               >
                 Go to My Dashboard
               </Link>
               <Link
                 href="/api"
-                className="px-6 py-3 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium transition-colors"
+                className="px-6 py-3 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 rounded-xl font-bold text-sm border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
               >
                 Learn about the API
               </Link>
@@ -469,8 +476,8 @@ export default function KREXNodePage() {
             </div>
             </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
 
       <Footer />
     </div>

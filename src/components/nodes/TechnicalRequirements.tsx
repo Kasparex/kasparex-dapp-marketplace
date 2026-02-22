@@ -4,7 +4,7 @@ import Link from 'next/link';
 import type { TechnicalRequirements as TechnicalRequirementsType } from '@/lib/nodes/types';
 
 const CARD_CLASS =
-  'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl sm:rounded-[32px] overflow-hidden shadow-sm p-6';
+  'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 p-6';
 
 interface TechnicalRequirementsProps {
   requirements: TechnicalRequirementsType;
@@ -37,7 +37,7 @@ export function TechnicalRequirements({ requirements }: TechnicalRequirementsPro
         </ul>
         <Link
           href="/api/krex-node"
-          className="text-xs font-bold text-[#02abb8] hover:text-[#028a94] uppercase tracking-widest transition-colors"
+          className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline uppercase tracking-widest transition-colors"
         >
           Full setup guide →
         </Link>
