@@ -15,7 +15,7 @@ import { NetworkInfoMessage } from './NetworkInfoMessage';
 import { getDAppNetworkType } from '@/lib/dapps';
 import { GRIDHoldingsBox } from './rewards/GRIDHoldingsBox';
 import { XPPointsBox } from './rewards/XPPointsBox';
-import { TreasuryBox } from './treasury/TreasuryBox';
+import { CommentsSection } from './vblog/CommentsSection';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { PaymentAmountProvider } from '@/lib/dapps/PaymentAmountContext';
 
@@ -84,12 +84,10 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
             </div>
           )}
 
-          {/* Treasury Box - Only show for L2 dApps */}
-          {!isL1DApp && (
-            <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
-              <TreasuryBox showPerDApp />
-            </div>
-          )}
+          {/* Comments - same slot where Treasury was */}
+          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
+            <CommentsSection articleId={`dapp:${dapp.slug || dapp.id || 'unknown'}`} />
+          </div>
         </div>
 
         {/* Column 2 (right, narrower): Logo, Description, Costs/Fees, Revenue Tree - 2/5 width */}

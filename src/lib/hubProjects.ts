@@ -99,6 +99,14 @@ export const hubProjects: HubProject[] = [
     status: 'available',
   },
   {
+    id: 'kasparex-stats',
+    name: 'Kasparex Stats',
+    category: 'Ecosystem',
+    description: 'Treasury, Total Value Locked (TVL), and ecosystem statistics. Real data will replace placeholders in a future update.',
+    route: '/stats',
+    status: 'beta',
+  },
+  {
     id: 'kasparex-nft-tools',
     name: 'Kasparex NFT Tools',
     category: 'NFTs',
