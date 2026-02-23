@@ -127,6 +127,17 @@ export const TREASURY_ABI = [
   }
 ] as const;
 
+/** Minimal ERC20 view ABI for symbol() used by stats/contract params. */
+export const ERC20_VIEW_ABI = [
+  {
+    type: "function",
+    name: "symbol",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ internalType: "string", name: "", type: "string" }],
+  },
+] as const;
+
 export const FEE_COLLECTOR_ABI = [
   {
     type: "function",
