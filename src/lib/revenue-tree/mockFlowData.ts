@@ -27,6 +27,10 @@ export interface MockFlowTreeData {
   referrerSet: boolean;
   referrer: string | null;
   chainId: number;
+  /** Total KAS spent by entire tree (demo only). If present, panel shows "Total KAS spent by tree". */
+  totalTreeVolume?: string;
+  /** Volume per level L1..L5 (wei). Optional for "Total KAS per level" in panel. */
+  volumePerLevel?: [string, string, string, string, string];
 }
 
 const ZERO = '0x0000000000000000000000000000000000000000';
@@ -101,6 +105,14 @@ const MOCK_TREES: MockFlowTreeData[] = [
     referrerSet: true,
     referrer: '0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD',
     chainId: 167012,
+    totalTreeVolume: '8500000000000000000000',
+    volumePerLevel: [
+      '2100000000000000000000',
+      '3200000000000000000000',
+      '1800000000000000000000',
+      '900000000000000000000',
+      '500000000000000000000',
+    ],
   },
   {
     walletSlug: 'wallet-6',
@@ -112,6 +124,14 @@ const MOCK_TREES: MockFlowTreeData[] = [
     referrerSet: true,
     referrer: '0x1234567890123456789012345678901234567890',
     chainId: 167012,
+    totalTreeVolume: '2400000000000000000000',
+    volumePerLevel: [
+      '560000000000000000000',
+      '980000000000000000000',
+      '520000000000000000000',
+      '240000000000000000000',
+      '100000000000000000000',
+    ],
   },
 ];
 

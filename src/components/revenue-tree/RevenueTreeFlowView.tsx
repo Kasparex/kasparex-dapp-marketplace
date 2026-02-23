@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRevenueTree } from '@/hooks/useRevenueTree';
 import { REVENUE_SHARE_PERCENTAGES } from '@/lib/revenue-tree/types';
 import { getMockFlowTree, isDemoWalletSlug } from '@/lib/revenue-tree/mockFlowData';
+import type { UnifiedRevenueTreeData } from '@/lib/revenue-tree/types';
+import type { MockFlowTreeData } from '@/lib/revenue-tree/mockFlowData';
 import { formatEther } from 'viem';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
 
@@ -24,18 +26,22 @@ function formatAddr(addr: string): string {
 export interface RevenueTreeFlowViewProps {
   /** Wallet address (0x...) or demo slug (wallet-1 … wallet-6). */
   walletAddress: string;
+  /** When provided, use this tree instead of fetching (avoids duplicate fetch in layout). */
+  tree?: UnifiedRevenueTreeData | MockFlowTreeData | null;
+  /** When true, content fits inside a column (no max-w-4xl). */
+  embedded?: boolean;
 }
 
-export function RevenueTreeFlowView({ walletAddress }: RevenueTreeFlowViewProps) {
+export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = false }: RevenueTreeFlowViewProps) {
   const { address: connectedAddress } = useAccount();
   const isDemo = isDemoWalletSlug(walletAddress);
   const mockTree = isDemo ? getMockFlowTree(walletAddress) : null;
 
   const { tree: liveTree, isLoading, isSupported } = useRevenueTree(
-    !isDemo && walletAddress.startsWith('0x') ? { userAddress: walletAddress as `0x${string}` } : {}
+    treeProp === undefined && !isDemo && walletAddress.startsWith('0x') ? { userAddress: walletAddress as `0x${string}` } : {}
   );
 
-  const tree = isDemo ? mockTree : liveTree;
+  const tree = treeProp !== undefined ? treeProp : (isDemo ? mockTree : liveTree);
   const chainId = tree?.chainId ?? 167012;
   const symbol = getNativeCurrencySymbol(chainId);
 
@@ -60,9 +66,11 @@ export function RevenueTreeFlowView({ walletAddress }: RevenueTreeFlowViewProps)
   const lifetimeFormatted = tree && 'lifetimeVolume' in tree ? formatEther(BigInt((tree as { lifetimeVolume: string }).lifetimeVolume)) : '0';
   const volume30Formatted = tree && 'volumeLast30Days' in tree ? formatEther(BigInt((tree as { volumeLast30Days: string }).volumeLast30Days)) : '0';
 
+  const wrapperClass = embedded ? 'w-full min-w-0 p-4 sm:p-6 lg:p-8' : 'max-w-4xl mx-auto w-full p-4 sm:p-6 lg:p-8';
+
   if (!isDemo && !connectedAddress && !walletAddress.startsWith('0x')) {
     return (
-      <div className="max-w-4xl mx-auto w-full p-4 sm:p-6 lg:p-8">
+      <div className={wrapperClass}>
         <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-amber-800 dark:text-amber-200 text-sm">
           Connect your wallet or open a demo flow (e.g. /revenue-tree/flow/wallet-1).
         </div>
@@ -70,9 +78,9 @@ export function RevenueTreeFlowView({ walletAddress }: RevenueTreeFlowViewProps)
     );
   }
 
-  if (!isDemo && !isSupported && !isLoading && !liveTree) {
+  if (!isDemo && !tree && (treeProp !== undefined || (!isSupported && !isLoading && !liveTree))) {
     return (
-      <div className="max-w-4xl mx-auto w-full p-4 sm:p-6 lg:p-8">
+      <div className={wrapperClass}>
         <div className="p-4 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-600 dark:text-zinc-400 text-sm">
           Revenue Tree is not deployed on this network, or no tree for this wallet.
         </div>
@@ -81,7 +89,7 @@ export function RevenueTreeFlowView({ walletAddress }: RevenueTreeFlowViewProps)
   }
 
   return (
-    <div className="max-w-4xl mx-auto w-full p-4 sm:p-6 lg:p-8">
+    <div className={wrapperClass}>
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <Link
           href="/revenue-tree/dashboard"
@@ -111,7 +119,7 @@ export function RevenueTreeFlowView({ walletAddress }: RevenueTreeFlowViewProps)
         )}
       </div>
 
-      {!isDemo && isLoading && !liveTree && (
+      {!isDemo && treeProp === undefined && isLoading && !liveTree && (
         <div className="py-12 text-center text-zinc-500 dark:text-zinc-400">
           Loading Revenue Tree…
         </div>

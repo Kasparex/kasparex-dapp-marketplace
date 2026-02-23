@@ -1,6 +1,6 @@
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { RevenueTreeFlowView } from '@/components/revenue-tree/RevenueTreeFlowView';
+import { RevenueTreeFlowLayout } from '@/components/revenue-tree/RevenueTreeFlowLayout';
 
 export const metadata = {
   title: 'Revenue Tree Flow - Kasparex',
@@ -17,7 +17,7 @@ export default async function RevenueTreeFlowWalletPage({ params }: PageProps) {
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-1 flex flex-col">
-        <RevenueTreeFlowView walletAddress={walletAddress} />
+        <RevenueTreeFlowLayout walletAddress={walletAddress} />
       </main>
       <Footer />
     </div>
