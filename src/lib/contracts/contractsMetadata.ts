@@ -165,11 +165,6 @@ const CONTRACT_METADATA: Partial<Record<ContractKey, ContractMetadataEntry>> = {
     category: 'other',
     linksTo: ['Treasury'],
   },
-  FeeRouter: {
-    description: 'Routes fee payments to the appropriate collector or handler.',
-    category: 'core',
-    linksTo: ['FeeCollector', 'FeeHandler'],
-  },
 };
 
 /** All contract keys from addresses (single source: kasplexL2Testnet). */
