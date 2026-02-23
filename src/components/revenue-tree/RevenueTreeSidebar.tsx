@@ -52,6 +52,16 @@ export function RevenueTreeSidebar({
       ),
     },
     {
+      id: 'flow',
+      label: 'Tree Flow',
+      href: '/revenue-tree/flow',
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      ),
+    },
+    {
       id: 'demo',
       label: 'How It Works',
       href: '/revenue-tree/demo',

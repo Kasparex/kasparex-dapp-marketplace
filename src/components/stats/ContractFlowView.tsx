@@ -114,7 +114,7 @@ export function ContractFlowView({
   const keySet = useMemo(() => new Set(contractList.map((c) => c.key)), [contractList]);
 
   const { initialNodes, initialEdges } = useMemo(() => {
-    const nodes: Node[] = contractList.map((c, i) => ({
+    const nodes: Node[] = contractList.map((c) => ({
       id: c.key,
       type: 'contract',
       position: { x: 0, y: 0 },
@@ -128,8 +128,14 @@ export function ContractFlowView({
         }
       }
     }
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(nodes, edges, 'LR');
-    return { initialNodes: layoutedNodes, initialEdges: layoutedEdges };
+    // Reverse edges for layout so execution flow is L→R: Treasury (sink) on left, feeders on right
+    const layoutEdges: Edge[] = edges.map((e) => ({
+      id: `layout-${e.id}`,
+      source: e.target,
+      target: e.source,
+    }));
+    const { nodes: layoutedNodes } = getLayoutedElements(nodes, layoutEdges, 'LR');
+    return { initialNodes: layoutedNodes, initialEdges: edges };
   }, [contractList, chainId, keySet]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -143,7 +149,7 @@ export function ContractFlowView({
   return (
     <div className="space-y-2">
       <p className="text-sm text-zinc-500 dark:text-zinc-400">
-        Informational overview. Arrows show on-chain relationships (linksTo). Read-only — pan and zoom to explore.
+        Execution flow (left → right): Treasury on the left, then contracts that feed into the system. Arrows show on-chain links. Read-only — pan and zoom to explore.
       </p>
       <div className="h-[600px] w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/30">
         <ReactFlow

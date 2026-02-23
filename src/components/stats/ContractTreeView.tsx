@@ -38,50 +38,52 @@ function ContractTreeCard({
   const param1 = p1 ? r1.value : null;
 
   return (
-    <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 p-4 space-y-2">
-      <div>
+    <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 p-4 flex flex-row gap-4 flex-wrap">
+      <div className="flex-1 min-w-0">
         <h4 className="font-semibold text-zinc-900 dark:text-white">{contract.key}</h4>
         <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-0.5">
           {contract.metadata.description}
         </p>
-      </div>
-      {(param0 !== null && param0 !== '—') || (param1 !== null && param1 !== '—') ? (
-        <div className="text-xs text-zinc-500 dark:text-zinc-500 space-y-0.5">
-          {param0 !== null && param0 !== '—' && <div>Params: {param0}</div>}
-          {param1 !== null && param1 !== '—' && <div>{param1}</div>}
-        </div>
-      ) : null}
-      <div className="text-xs font-mono">
-        {contract.explorerUrl !== '#' ? (
-          <a
-            href={contract.explorerUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-violet-600 dark:text-violet-400 hover:underline"
-          >
-            {contract.address.slice(0, 10)}…{contract.address.slice(-8)}
-          </a>
-        ) : (
-          <span className="text-zinc-500 dark:text-zinc-500">
-            {contract.address.slice(0, 10)}…{contract.address.slice(-8)}
-          </span>
+        {(contract.metadata.linksTo ?? []).length > 0 && (
+          <div className="flex flex-wrap gap-1 pt-2 mt-2 border-t border-zinc-100 dark:border-zinc-800">
+            <span className="text-[10px] font-bold uppercase text-zinc-400 dark:text-zinc-500 mr-1">
+              Connects to:
+            </span>
+            {(contract.metadata.linksTo ?? []).map((k) => (
+              <span
+                key={k}
+                className="inline-flex px-2 py-0.5 rounded text-xs bg-violet-500/10 text-violet-700 dark:text-violet-400 border border-violet-500/20"
+              >
+                {k}
+              </span>
+            ))}
+          </div>
         )}
       </div>
-      {(contract.metadata.linksTo ?? []).length > 0 && (
-        <div className="flex flex-wrap gap-1 pt-1 border-t border-zinc-100 dark:border-zinc-800">
-          <span className="text-[10px] font-bold uppercase text-zinc-400 dark:text-zinc-500 mr-1">
-            Connects to:
-          </span>
-          {(contract.metadata.linksTo ?? []).map((k) => (
-            <span
-              key={k}
-              className="inline-flex px-2 py-0.5 rounded text-xs bg-violet-500/10 text-violet-700 dark:text-violet-400 border border-violet-500/20"
+      <div className="flex flex-col items-end gap-1.5 text-right shrink-0">
+        {(param0 !== null && param0 !== '—') || (param1 !== null && param1 !== '—') ? (
+          <div className="text-xs text-zinc-500 dark:text-zinc-500 space-y-0.5">
+            {param0 !== null && param0 !== '—' && <div>Params: {param0}</div>}
+            {param1 !== null && param1 !== '—' && <div>{param1}</div>}
+          </div>
+        ) : null}
+        <div className="text-xs font-mono">
+          {contract.explorerUrl !== '#' ? (
+            <a
+              href={contract.explorerUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-violet-600 dark:text-violet-400 hover:underline"
             >
-              {k}
+              {contract.address.slice(0, 10)}…{contract.address.slice(-8)}
+            </a>
+          ) : (
+            <span className="text-zinc-500 dark:text-zinc-500">
+              {contract.address.slice(0, 10)}…{contract.address.slice(-8)}
             </span>
-          ))}
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
