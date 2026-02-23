@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import Link from 'next/link';
 import { useRevenueTree } from '@/hooks/useRevenueTree';
@@ -9,6 +10,7 @@ import type { UnifiedRevenueTreeData } from '@/lib/revenue-tree/types';
 import type { MockFlowTreeData } from '@/lib/revenue-tree/mockFlowData';
 import { formatEther } from 'viem';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
+import { RevenueTreeFlowLevelModal } from './RevenueTreeFlowLevelModal';
 
 const LEVEL_SHARES_L1_TO_L5 = [
   REVENUE_SHARE_PERCENTAGES.LEVEL_01,
@@ -44,6 +46,15 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
   const { address: connectedAddress } = useAccount();
   const isDemo = isDemoWalletSlug(walletAddress);
   const mockTree = isDemo ? getMockFlowTree(walletAddress) : null;
+  const [modalRow, setModalRow] = useState<{
+    level: number;
+    sharePct: number;
+    wallet: string;
+    isYou: boolean;
+    treesAtLevel: number;
+    revenueShareWei?: string;
+    treeSlugsAtLevel: string[];
+  } | null>(null);
 
   const { tree: liveTree, isLoading, isSupported } = useRevenueTree(
     treeProp === undefined && !isDemo && walletAddress.startsWith('0x') ? { userAddress: walletAddress as `0x${string}` } : {}
@@ -53,17 +64,19 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
   const chainId = tree?.chainId ?? 167012;
   const symbol = getNativeCurrencySymbol(chainId);
 
-  /** Row data: level 1..5, sharePct, wallet, isYou, treesAtLevel, revenueShareWei */
+  /** Row data: level, sharePct, wallet, isYou, treesAtLevel, revenueShareWei, treeSlugsAtLevel */
   const levelsL1ToL5 =
     tree && 'upline' in tree
       ? [
-          { level: 1, sharePct: LEVEL_SHARES_L1_TO_L5[0], wallet: (tree as { upline: string[] }).upline[0] ?? '', isYou: true, treesAtLevel: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[0] ?? 0, revenueShareWei: (mockTree as MockFlowTreeData | undefined)?.revenueShareByLevelWei?.[0] },
-          { level: 2, sharePct: LEVEL_SHARES_L1_TO_L5[1], wallet: (tree as { upline: string[] }).upline[1] ?? '', isYou: false, treesAtLevel: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[1] ?? 0, revenueShareWei: (mockTree as MockFlowTreeData | undefined)?.revenueShareByLevelWei?.[1] },
-          { level: 3, sharePct: LEVEL_SHARES_L1_TO_L5[2], wallet: (tree as { upline: string[] }).upline[2] ?? '', isYou: false, treesAtLevel: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[2] ?? 0, revenueShareWei: (mockTree as MockFlowTreeData | undefined)?.revenueShareByLevelWei?.[2] },
-          { level: 4, sharePct: LEVEL_SHARES_L1_TO_L5[3], wallet: (tree as { upline: string[] }).upline[3] ?? '', isYou: false, treesAtLevel: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[3] ?? 0, revenueShareWei: (mockTree as MockFlowTreeData | undefined)?.revenueShareByLevelWei?.[3] },
-          { level: 5, sharePct: LEVEL_SHARES_L1_TO_L5[4], wallet: (tree as { upline: string[] }).upline[4] ?? '', isYou: false, treesAtLevel: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[4] ?? 0, revenueShareWei: (mockTree as MockFlowTreeData | undefined)?.revenueShareByLevelWei?.[4] },
+          { level: 1, sharePct: LEVEL_SHARES_L1_TO_L5[0], wallet: (tree as { upline: string[] }).upline[0] ?? '', isYou: true, treesAtLevel: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[0] ?? 0, revenueShareWei: (mockTree as MockFlowTreeData | undefined)?.revenueShareByLevelWei?.[0], treeSlugsAtLevel: (mockTree as MockFlowTreeData | undefined)?.treeSlugsWhereOwnerAtLevel?.[0] ?? [] },
+          { level: 2, sharePct: LEVEL_SHARES_L1_TO_L5[1], wallet: (tree as { upline: string[] }).upline[1] ?? '', isYou: false, treesAtLevel: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[1] ?? 0, revenueShareWei: (mockTree as MockFlowTreeData | undefined)?.revenueShareByLevelWei?.[1], treeSlugsAtLevel: (mockTree as MockFlowTreeData | undefined)?.treeSlugsWhereOwnerAtLevel?.[1] ?? [] },
+          { level: 3, sharePct: LEVEL_SHARES_L1_TO_L5[2], wallet: (tree as { upline: string[] }).upline[2] ?? '', isYou: false, treesAtLevel: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[2] ?? 0, revenueShareWei: (mockTree as MockFlowTreeData | undefined)?.revenueShareByLevelWei?.[2], treeSlugsAtLevel: (mockTree as MockFlowTreeData | undefined)?.treeSlugsWhereOwnerAtLevel?.[2] ?? [] },
+          { level: 4, sharePct: LEVEL_SHARES_L1_TO_L5[3], wallet: (tree as { upline: string[] }).upline[3] ?? '', isYou: false, treesAtLevel: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[3] ?? 0, revenueShareWei: (mockTree as MockFlowTreeData | undefined)?.revenueShareByLevelWei?.[3], treeSlugsAtLevel: (mockTree as MockFlowTreeData | undefined)?.treeSlugsWhereOwnerAtLevel?.[3] ?? [] },
+          { level: 5, sharePct: LEVEL_SHARES_L1_TO_L5[4], wallet: (tree as { upline: string[] }).upline[4] ?? '', isYou: false, treesAtLevel: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[4] ?? 0, revenueShareWei: (mockTree as MockFlowTreeData | undefined)?.revenueShareByLevelWei?.[4], treeSlugsAtLevel: (mockTree as MockFlowTreeData | undefined)?.treeSlugsWhereOwnerAtLevel?.[4] ?? [] },
         ]
       : [];
+
+  const treeIdLabel = isDemo && walletAddress ? (DEMO_LABELS[walletAddress] ?? walletAddress) : (walletAddress ? formatAddr(walletAddress) : '—');
 
   /** Primary layout: Level 5 at TOP, Level 1 at BOTTOM (reverse for display). */
   const rowsTopToBottom = [...levelsL1ToL5].reverse();
@@ -156,32 +169,37 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
             </div>
           </div>
 
-          {/* Table: Level (with wallet under) | Share % | Trees (you at this level) | Your share */}
+          {/* Table: Level | Tree ID | Share / Wallet | Trees (you at this level) | Share in KAS */}
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/30 overflow-hidden">
-            <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 gap-y-0 px-4 py-3 bg-zinc-100 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-700 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-              <div>Level · Share · Wallet</div>
+            <div className="grid grid-cols-[auto_auto_1fr_auto_auto] gap-x-4 gap-y-0 px-4 py-3 bg-zinc-100 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-700 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              <div>Level</div>
+              <div>Tree ID</div>
+              <div>Share / Wallet</div>
               <div title="Number of active trees where your wallet appears at this level; you earn this level's share from their payments." className="cursor-help border-b border-dotted border-zinc-400">
                 Trees (you at this level)
               </div>
-              <div>Your share</div>
+              <div>Share in {symbol}</div>
             </div>
             {rowsTopToBottom.map((row) => (
-              <div
+              <button
+                type="button"
                 key={row.level}
-                className={`grid grid-cols-[1fr_auto_auto] gap-x-4 gap-y-0 px-4 py-3 border-b border-zinc-200 dark:border-zinc-700 last:border-b-0 items-center ${row.isYou ? 'bg-[#02abb8]/5 dark:bg-[#02abb8]/10' : ''}`}
+                onClick={() => setModalRow(row)}
+                className={`w-full grid grid-cols-[auto_auto_1fr_auto_auto] gap-x-4 gap-y-0 px-4 py-3 border-b border-zinc-200 dark:border-zinc-700 last:border-b-0 items-center text-left cursor-pointer hover:bg-[#02abb8]/5 dark:hover:bg-[#02abb8]/10 transition-colors ${row.isYou ? 'bg-[#02abb8]/5 dark:bg-[#02abb8]/10' : ''}`}
               >
+                <div className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#02abb8]/20 text-[#02abb8] font-black text-sm">
+                  {row.level}
+                </div>
+                <div className="font-semibold text-zinc-700 dark:text-zinc-300 text-sm">
+                  {treeIdLabel}
+                </div>
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#02abb8]/20 text-[#02abb8] font-black text-sm">
-                      {row.level}
-                    </span>
-                    <span className="font-semibold text-zinc-900 dark:text-white">{row.sharePct}%</span>
-                  </div>
-                  <div className="font-mono text-xs text-zinc-600 dark:text-zinc-400 truncate mt-0.5 pl-10" title={row.wallet}>
+                  <div className="font-semibold text-zinc-900 dark:text-white">{row.sharePct}%</div>
+                  <div className="font-mono text-xs text-zinc-600 dark:text-zinc-400 truncate" title={row.wallet}>
                     {row.wallet ? walletDisplay(row.wallet, isDemo) : '—'}
                   </div>
                 </div>
-                <div className="text-sm text-zinc-600 dark:text-zinc-400 tabular-nums" title="Active trees where your wallet is at this level">
+                <div className="text-sm text-zinc-600 dark:text-zinc-400 tabular-nums">
                   {row.treesAtLevel > 0 ? row.treesAtLevel : '—'}
                 </div>
                 <div className="text-sm font-semibold text-[#02abb8] tabular-nums">
@@ -189,9 +207,18 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
                     ? `${parseFloat(formatEther(BigInt(row.revenueShareWei))).toLocaleString(undefined, { maximumFractionDigits: 2 })} ${symbol}`
                     : '—'}
                 </div>
-              </div>
+              </button>
             ))}
           </div>
+
+          <RevenueTreeFlowLevelModal
+            isOpen={!!modalRow}
+            onClose={() => setModalRow(null)}
+            row={modalRow ? { level: modalRow.level, sharePct: modalRow.sharePct, wallet: modalRow.wallet, isYou: modalRow.isYou, treesAtLevel: modalRow.treesAtLevel, revenueShareWei: modalRow.revenueShareWei, treeSlugsAtLevel: modalRow.treeSlugsAtLevel } : null}
+            treeIdLabel={treeIdLabel}
+            symbol={symbol}
+            walletDisplay={(addr) => walletDisplay(addr, isDemo)}
+          />
 
           <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
             When you spend, your tree is used: you (L1) get 2%, L2–L5 get 5–45% (or Genesis if empty). When someone pays through your referral link, you are L2 in their tree and get 5%; the same continues up the chain.

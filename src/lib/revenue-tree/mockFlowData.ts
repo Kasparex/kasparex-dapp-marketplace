@@ -33,6 +33,8 @@ export interface MockFlowTreeData {
   volumePerLevel?: [string, string, string, string, string];
   /** Estimated revenue (wei) for this wallet at each level (share% × volume from trees where owner at that level). L1..L5. */
   revenueShareByLevelWei?: [string, string, string, string, string];
+  /** Tree slugs (wallet-1 … wallet-6) where this wallet appears at each level L1..L5. Used for modal "open this tree" links. */
+  treeSlugsWhereOwnerAtLevel?: [string[], string[], string[], string[], string[]];
 }
 
 const GEN1 = '0xAb036a6f99892b8B84f1f10a193e4c0d217eB6D3';
@@ -74,6 +76,7 @@ const MOCK_TREES: MockFlowTreeData[] = [
     totalTreeVolume: wei(2070),
     volumePerLevel: [VOL_A, VOL_B, VOL_C, VOL_D, VOL_E],
     revenueShareByLevelWei: [wei(3), wei(21), wei(89), wei(40), wei(139.5)],
+    treeSlugsWhereOwnerAtLevel: [['wallet-1'], ['wallet-2'], ['wallet-3'], ['wallet-4'], ['wallet-5']],
   },
   {
     walletSlug: 'wallet-2',
@@ -88,6 +91,7 @@ const MOCK_TREES: MockFlowTreeData[] = [
     totalTreeVolume: wei(1920),
     volumePerLevel: [VOL_B, VOL_C, VOL_D, VOL_E, VOL_F],
     revenueShareByLevelWei: [wei(8.4), wei(44.5), wei(20), wei(62), wei(45)],
+    treeSlugsWhereOwnerAtLevel: [['wallet-2'], ['wallet-3'], ['wallet-4'], ['wallet-5'], ['wallet-6']],
   },
   {
     walletSlug: 'wallet-3',
@@ -102,6 +106,7 @@ const MOCK_TREES: MockFlowTreeData[] = [
     totalTreeVolume: wei(1500),
     volumePerLevel: [VOL_C, VOL_D, VOL_E, VOL_F, '0'],
     revenueShareByLevelWei: [wei(17.8), wei(10), wei(31), wei(45), '0'],
+    treeSlugsWhereOwnerAtLevel: [['wallet-3'], ['wallet-4'], ['wallet-5'], [], []],
   },
   {
     walletSlug: 'wallet-4',
@@ -116,6 +121,7 @@ const MOCK_TREES: MockFlowTreeData[] = [
     totalTreeVolume: wei(610),
     volumePerLevel: [VOL_D, VOL_E, VOL_F, '0', '0'],
     revenueShareByLevelWei: [wei(4), wei(15.5), wei(10), '0', '0'],
+    treeSlugsWhereOwnerAtLevel: [['wallet-4'], ['wallet-5'], ['wallet-6'], [], []],
   },
   {
     walletSlug: 'wallet-5',
@@ -130,6 +136,7 @@ const MOCK_TREES: MockFlowTreeData[] = [
     totalTreeVolume: wei(410),
     volumePerLevel: [VOL_E, VOL_F, '0', '0', '0'],
     revenueShareByLevelWei: [wei(6.2), wei(5), '0', '0', '0'],
+    treeSlugsWhereOwnerAtLevel: [['wallet-5'], ['wallet-6'], [], [], []],
   },
   {
     walletSlug: 'wallet-6',
@@ -144,6 +151,7 @@ const MOCK_TREES: MockFlowTreeData[] = [
     totalTreeVolume: VOL_F,
     volumePerLevel: [VOL_F, '0', '0', '0', '0'],
     revenueShareByLevelWei: [wei(2), '0', '0', '0', '0'],
+    treeSlugsWhereOwnerAtLevel: [['wallet-6'], [], [], [], []],
   },
 ];
 
