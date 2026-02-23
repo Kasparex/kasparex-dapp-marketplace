@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { StatsSidebar } from '@/components/stats/StatsSidebar';
 import { StatsPageContent } from '@/components/stats/StatsPageContent';
 
 export const metadata: Metadata = {
@@ -14,8 +15,17 @@ export default function StatsPage() {
     <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <Header />
 
-      <main className="flex-1">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <main className="flex-1 flex flex-col lg:flex-row">
+        {/* Global sidebar */}
+        <div className="hidden lg:block flex-shrink-0">
+          <StatsSidebar />
+        </div>
+        <div className="lg:hidden">
+          <StatsSidebar />
+        </div>
+
+        {/* Main content */}
+        <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto">
           <div className="max-w-4xl mx-auto">
             {/* Hero */}
             <div className="relative mb-12 py-12 px-6 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/40 dark:to-zinc-950 border border-zinc-200 dark:border-transparent">

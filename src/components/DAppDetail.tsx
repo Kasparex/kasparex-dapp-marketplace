@@ -84,8 +84,8 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
             </div>
           )}
 
-          {/* Comments - same slot where Treasury was */}
-          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-6">
+          {/* Comments - same location as before, no box */}
+          <div className="mt-8">
             <CommentsSection articleId={`dapp:${dapp.slug || dapp.id || 'unknown'}`} />
           </div>
         </div>
