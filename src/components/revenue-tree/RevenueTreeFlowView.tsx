@@ -169,29 +169,29 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
             </div>
           </div>
 
-          {/* Table: Level | Tree ID | Share / Wallet | Trees (you at this level) | Share in KAS */}
+          {/* Table: Levels | IDs (numeric) | Share / Wallets | Trees (you at this level) | Share in KAS — same columns for every row */}
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/30 overflow-hidden">
-            <div className="grid grid-cols-[auto_auto_1fr_auto_auto] gap-x-4 gap-y-0 px-4 py-3 bg-zinc-100 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-700 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-              <div>Level</div>
-              <div>Tree ID</div>
-              <div>Share / Wallet</div>
-              <div title="Number of active trees where your wallet appears at this level; you earn this level's share from their payments." className="cursor-help border-b border-dotted border-zinc-400">
+            <div className="grid grid-cols-[80px_80px_1fr_120px_100px] gap-x-3 px-4 py-3 bg-zinc-100 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-700 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              <div className="text-left">Levels</div>
+              <div className="text-left">IDs (numeric)</div>
+              <div className="text-left min-w-0">Share / Wallets</div>
+              <div className="text-left" title="Number of active trees where your wallet appears at this level; you earn this level's share from their payments.">
                 Trees (you at this level)
               </div>
-              <div>Share in {symbol}</div>
+              <div className="text-right">Share in {symbol}</div>
             </div>
             {rowsTopToBottom.map((row) => (
               <button
                 type="button"
                 key={row.level}
                 onClick={() => setModalRow(row)}
-                className={`w-full grid grid-cols-[auto_auto_1fr_auto_auto] gap-x-4 gap-y-0 px-4 py-3 border-b border-zinc-200 dark:border-zinc-700 last:border-b-0 items-center text-left cursor-pointer hover:bg-[#02abb8]/5 dark:hover:bg-[#02abb8]/10 transition-colors ${row.isYou ? 'bg-[#02abb8]/5 dark:bg-[#02abb8]/10' : ''}`}
+                className={`w-full grid grid-cols-[80px_80px_1fr_120px_100px] gap-x-3 px-4 py-3 border-b border-zinc-200 dark:border-zinc-700 last:border-b-0 items-center text-left cursor-pointer hover:bg-[#02abb8]/5 dark:hover:bg-[#02abb8]/10 transition-colors ${row.isYou ? 'bg-[#02abb8]/5 dark:bg-[#02abb8]/10' : ''}`}
               >
                 <div className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#02abb8]/20 text-[#02abb8] font-black text-sm">
                   {row.level}
                 </div>
-                <div className="font-semibold text-zinc-700 dark:text-zinc-300 text-sm">
-                  {treeIdLabel}
+                <div className="font-mono text-sm tabular-nums text-zinc-700 dark:text-zinc-300">
+                  {row.level}
                 </div>
                 <div className="min-w-0">
                   <div className="font-semibold text-zinc-900 dark:text-white">{row.sharePct}%</div>
@@ -202,7 +202,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
                 <div className="text-sm text-zinc-600 dark:text-zinc-400 tabular-nums">
                   {row.treesAtLevel > 0 ? row.treesAtLevel : '—'}
                 </div>
-                <div className="text-sm font-semibold text-[#02abb8] tabular-nums">
+                <div className="text-sm font-semibold text-[#02abb8] tabular-nums text-right">
                   {row.revenueShareWei
                     ? `${parseFloat(formatEther(BigInt(row.revenueShareWei))).toLocaleString(undefined, { maximumFractionDigits: 2 })} ${symbol}`
                     : '—'}
