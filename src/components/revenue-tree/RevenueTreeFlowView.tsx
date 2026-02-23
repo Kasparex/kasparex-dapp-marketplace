@@ -81,9 +81,6 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
   /** Primary layout: Level 5 at TOP, Level 1 at BOTTOM (reverse for display). */
   const rowsTopToBottom = [...levelsL1ToL5].reverse();
 
-  const referrer = tree && 'referrer' in tree ? (tree as { referrer: string | null }).referrer : null;
-  const referrerSet = tree && 'referrerSet' in tree ? (tree as { referrerSet: boolean }).referrerSet : false;
-  const hasReferrer = referrerSet && referrer;
   const lifetimeFormatted = tree && 'lifetimeVolume' in tree ? formatEther(BigInt((tree as { lifetimeVolume: string }).lifetimeVolume)) : '0';
   const volume30Formatted = tree && 'volumeLast30Days' in tree ? formatEther(BigInt((tree as { volumeLast30Days: string }).volumeLast30Days)) : '0';
 
@@ -93,7 +90,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
     return (
       <div className={wrapperClass}>
         <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-amber-800 dark:text-amber-200 text-sm">
-          Connect your wallet or open a demo flow (e.g. /revenue-tree/flow/A).
+          Connect wallet or open a demo (e.g. flow/A).
         </div>
       </div>
     );
@@ -103,7 +100,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
     return (
       <div className={wrapperClass}>
         <div className="p-4 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-600 dark:text-zinc-400 text-sm">
-          Revenue Tree is not deployed on this network, or no tree for this wallet.
+          No tree on this network or for this wallet.
         </div>
       </div>
     );
@@ -116,7 +113,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
           href="/revenue-tree/dashboard"
           className="text-sm font-medium text-[#02abb8] hover:underline"
         >
-          ← Back to Revenue Tree Dashboard
+          ← Dashboard
         </Link>
         {connectedAddress && walletAddress.startsWith('0x') && connectedAddress.toLowerCase() === walletAddress.toLowerCase() && (
           <span className="text-xs text-zinc-500 dark:text-zinc-400">(Your tree)</span>
@@ -125,7 +122,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
 
       {!isDemo && treeProp === undefined && isLoading && !liveTree && (
         <div className="py-12 text-center text-zinc-500 dark:text-zinc-400">
-          Loading Revenue Tree…
+          Loading…
         </div>
       )}
 
@@ -140,20 +137,20 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
                 You (L1 — 2%)
               </div>
               <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                When you spend, your tree is used: you get 2%, L2–L5 get their share
+                Your spend uses this tree; you get 2%, L2–L5 get their share.
               </div>
             </div>
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 p-4">
               <div className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">
-                Referrer
+                Tree ID
               </div>
-              <div className="text-sm font-mono text-zinc-900 dark:text-white truncate" title={referrer ?? ''}>
-                {hasReferrer ? formatAddr(referrer!) : '—'}
+              <div className="text-lg font-bold font-mono text-zinc-900 dark:text-white truncate" title={walletAddress}>
+                {treeIdLabel}
               </div>
             </div>
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 p-4">
               <div className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">
-                Lifetime volume
+                Lifetime vol.
               </div>
               <div className="text-lg font-bold text-[#02abb8]">
                 {lifetimeFormatted} {symbol}
@@ -161,7 +158,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
             </div>
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 p-4">
               <div className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">
-                Volume (30d)
+                30d vol.
               </div>
               <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
                 {volume30Formatted} {symbol}
@@ -169,15 +166,12 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
             </div>
           </div>
 
-          {/* Table: Levels | IDs (numeric) | Share / Wallets | Trees (you at this level) | Share in KAS — same columns for every row */}
+          {/* Table: Levels | Share / Wallets | Trees (you at this level) | Share in KAS */}
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/30 overflow-hidden">
-            <div className="grid grid-cols-[80px_80px_1fr_120px_100px] gap-x-3 px-4 py-3 bg-zinc-100 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-700 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            <div className="grid grid-cols-[80px_1fr_100px_100px] gap-x-3 px-4 py-3 bg-zinc-100 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-700 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               <div className="text-left">Levels</div>
-              <div className="text-left">IDs (numeric)</div>
               <div className="text-left min-w-0">Share / Wallets</div>
-              <div className="text-left" title="Number of active trees where your wallet appears at this level; you earn this level's share from their payments.">
-                Trees (you at this level)
-              </div>
+              <div className="text-left" title="Trees where you're at this level">Trees</div>
               <div className="text-right">Share in {symbol}</div>
             </div>
             {rowsTopToBottom.map((row) => (
@@ -185,12 +179,9 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
                 type="button"
                 key={row.level}
                 onClick={() => setModalRow(row)}
-                className={`w-full grid grid-cols-[80px_80px_1fr_120px_100px] gap-x-3 px-4 py-3 border-b border-zinc-200 dark:border-zinc-700 last:border-b-0 items-center text-left cursor-pointer hover:bg-[#02abb8]/5 dark:hover:bg-[#02abb8]/10 transition-colors ${row.isYou ? 'bg-[#02abb8]/5 dark:bg-[#02abb8]/10' : ''}`}
+                className={`w-full grid grid-cols-[80px_1fr_100px_100px] gap-x-3 px-4 py-3 border-b border-zinc-200 dark:border-zinc-700 last:border-b-0 items-center text-left cursor-pointer hover:bg-[#02abb8]/5 dark:hover:bg-[#02abb8]/10 transition-colors ${row.isYou ? 'bg-[#02abb8]/5 dark:bg-[#02abb8]/10' : ''}`}
               >
                 <div className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#02abb8]/20 text-[#02abb8] font-black text-sm">
-                  {row.level}
-                </div>
-                <div className="font-mono text-sm tabular-nums text-zinc-700 dark:text-zinc-300">
                   {row.level}
                 </div>
                 <div className="min-w-0">
@@ -221,11 +212,11 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
           />
 
           <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
-            When you spend, your tree is used: you (L1) get 2%, L2–L5 get 5–45% (or Genesis if empty). When someone pays through your referral link, you are L2 in their tree and get 5%; the same continues up the chain.
+            Your spend uses this tree (you 2%, L2–L5 get 5–45%). Referrals put you at L2+ in their trees; you earn that level’s share.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-2 items-center">
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">Demo flow (A → B → C → …):</span>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">Demo:</span>
             {(['wallet-1', 'wallet-2', 'wallet-3', 'wallet-4', 'wallet-5', 'wallet-6'] as const).map((slug) => (
               <Link
                 key={slug}

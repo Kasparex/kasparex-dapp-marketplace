@@ -63,29 +63,26 @@ export function RevenueTreeFlowLevelModal({
 
         <div className="p-6 space-y-4">
           <div className="rounded-lg bg-zinc-50 dark:bg-zinc-800/50 p-3 text-sm">
-            <div className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">Parameters</div>
             <ul className="space-y-1 text-zinc-700 dark:text-zinc-300">
-              <li><span className="text-zinc-500 dark:text-zinc-400">Level:</span> {row.level}</li>
-              <li><span className="text-zinc-500 dark:text-zinc-400">Share:</span> {row.sharePct}%</li>
-              <li><span className="text-zinc-500 dark:text-zinc-400">Wallet at this level:</span> <span className="font-mono">{walletDisplay(row.wallet)}</span></li>
-              <li><span className="text-zinc-500 dark:text-zinc-400">Share in {symbol}:</span> {shareInKas} {symbol}</li>
-              <li><span className="text-zinc-500 dark:text-zinc-400">Trees (you at this level):</span> {row.treesAtLevel}</li>
+              <li><span className="text-zinc-500 dark:text-zinc-400">Level:</span> {row.level} · <span className="text-zinc-500 dark:text-zinc-400">Share:</span> {row.sharePct}%</li>
+              <li><span className="text-zinc-500 dark:text-zinc-400">Wallet:</span> <span className="font-mono">{walletDisplay(row.wallet)}</span></li>
+              <li><span className="text-zinc-500 dark:text-zinc-400">Share in {symbol}:</span> {shareInKas} {symbol} · <span className="text-zinc-500 dark:text-zinc-400">Trees:</span> {row.treesAtLevel}</li>
             </ul>
           </div>
 
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             {row.level === 1
-              ? 'You are at Level 1 in your own tree. When you spend, you receive this share.'
-              : `You appear at Level ${row.level} in the trees below. When those tree owners spend, you receive ${row.sharePct}% of the payment.`}
+              ? 'Your tree. When you spend, you get this share.'
+              : `You’re at L${row.level} in the trees below; you get ${row.sharePct}% when they spend.`}
           </p>
 
           {row.treeSlugsAtLevel.length > 0 && (
             <div>
               <div className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
-                Trees where your wallet is at Level {row.level}
+                Trees where you’re at L{row.level}
               </div>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
-                Click a tree to open its flow page and simulate the demo.
+                Open a tree to view its flow.
               </p>
               <ul className="space-y-1">
                 {row.treeSlugsAtLevel.map((slug) => (
@@ -95,8 +92,7 @@ export function RevenueTreeFlowLevelModal({
                       className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#02abb8]/10 dark:bg-[#02abb8]/20 border border-[#02abb8]/20 text-[#02abb8] font-medium text-sm hover:bg-[#02abb8]/20 dark:hover:bg-[#02abb8]/30 transition-colors"
                       onClick={onClose}
                     >
-                      Tree {DEMO_LABELS[slug] ?? slug}
-                      <span className="text-xs text-zinc-500 dark:text-zinc-400">→ open flow</span>
+                      Tree {DEMO_LABELS[slug] ?? slug} →
                     </Link>
                   </li>
                 ))}
@@ -106,7 +102,7 @@ export function RevenueTreeFlowLevelModal({
 
           {row.treeSlugsAtLevel.length === 0 && row.treesAtLevel === 0 && (
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              No other trees have your wallet at this level in the demo.
+              No trees with you at this level.
             </p>
           )}
         </div>

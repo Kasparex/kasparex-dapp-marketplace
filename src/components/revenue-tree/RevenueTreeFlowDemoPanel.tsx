@@ -27,7 +27,7 @@ export function RevenueTreeFlowDemoPanel({ tree, symbol }: RevenueTreeFlowDemoPa
         <div className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-3">
           Demo calculations
         </div>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">No tree data — connect a wallet or open a demo flow.</p>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">No tree data. Connect wallet or open demo.</p>
       </div>
     );
   }
@@ -58,21 +58,19 @@ export function RevenueTreeFlowDemoPanel({ tree, symbol }: RevenueTreeFlowDemoPa
           Demo calculations
         </div>
         <div className="space-y-4 text-sm">
-          {/* Total referred users */}
           <div>
-            <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-0.5">Total referred users in tree</div>
+            <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-0.5">Referred in tree</div>
             <div className="text-lg font-bold text-zinc-900 dark:text-white">
               {totalReferred !== null ? totalReferred : '—'}
             </div>
             {totalReferred === null && (
-              <div className="text-xs text-zinc-400 dark:text-zinc-500">Not available on-chain (V1)</div>
+              <div className="text-xs text-zinc-400 dark:text-zinc-500">N/A on-chain (V1)</div>
             )}
           </div>
 
-          {/* Total KAS: tree and/or root */}
           <div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-0.5">
-              {totalTreeVolumeNum !== null ? 'Total KAS spent by tree' : 'Your volume (your payments)'}
+              {totalTreeVolumeNum !== null ? 'Tree total spent' : 'Your volume'}
             </div>
             <div className="text-lg font-bold text-[#02abb8]">
               {totalTreeVolumeNum !== null
@@ -98,32 +96,22 @@ export function RevenueTreeFlowDemoPanel({ tree, symbol }: RevenueTreeFlowDemoPa
             </div>
           )}
 
-          {/* Your share when you spend (L1: 2%) */}
           <div>
-            <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-0.5">
-              Your share from your activity (L1: {L1_SHARE_PCT}%)
-            </div>
+            <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-0.5">Your share (L1: {L1_SHARE_PCT}%)</div>
             <div className="text-lg font-bold text-[#02abb8]">
               {yourShareFromYourSpend.toLocaleString(undefined, { maximumFractionDigits: 4 })} {symbol}
             </div>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
-              When you spend, your tree is used; you (L1) receive {L1_SHARE_PCT}% of that payment.
-            </p>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">Your spend uses this tree; you get {L1_SHARE_PCT}%.</p>
           </div>
 
-          {/* Share when your referrals spend (you are L2 in their tree) */}
           <div>
-            <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-0.5">
-              Estimated share from referral activity (L2: {REFERRAL_SHARE_PCT}%)
-            </div>
+            <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-0.5">From referrals (L2: {REFERRAL_SHARE_PCT}%)</div>
             <div className="text-lg font-bold text-green-600 dark:text-green-400">
               {estimatedReferralShare > 0
                 ? `${estimatedReferralShare.toLocaleString(undefined, { maximumFractionDigits: 4 })} ${symbol}`
                 : `— ${symbol}`}
             </div>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
-              When someone pays through your referral link, you are L2 in their tree and receive {REFERRAL_SHARE_PCT}% of that payment.
-            </p>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">Referrals put you at L2; you get {REFERRAL_SHARE_PCT}% of their spend.</p>
           </div>
         </div>
       </div>

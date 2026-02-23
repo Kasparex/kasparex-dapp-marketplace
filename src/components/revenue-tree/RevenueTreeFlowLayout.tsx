@@ -90,7 +90,7 @@ export function RevenueTreeFlowLayout({ walletAddress }: RevenueTreeFlowLayoutPr
               Revenue Tree Flow
             </h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
-              Your tree is created at activation: L1=you, L2=your referrer, L3=referrer’s L2, L4=referrer’s L3, L5=referrer’s L4 (Genesis fills gaps). When you spend, this tree is used: you (L1) get 2%, L2–L5 get 5–45%. When someone you referred spends, you are L2 in their tree and get 5% of that payment; the same continues up the chain.
+              L1=you, L2=referrer, L3–L5 up the chain (Genesis fills gaps). Your spend uses this tree (2% you, 5–45% L2–L5). Referrals put you at L2+ in their trees.
             </p>
             <div className="rounded-lg bg-[#02abb8]/15 dark:bg-[#02abb8]/20 border border-[#02abb8]/40 px-3 py-2.5">
               <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Tree for:</span>
@@ -100,7 +100,7 @@ export function RevenueTreeFlowLayout({ walletAddress }: RevenueTreeFlowLayoutPr
             </div>
             {isDemo && (
               <p className="mt-3 text-sm text-amber-600 dark:text-amber-400">
-                Demo data — different structures and user distributions for illustration.
+                Demo data.
               </p>
             )}
           </div>
