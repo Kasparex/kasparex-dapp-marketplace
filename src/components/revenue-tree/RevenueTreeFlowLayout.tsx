@@ -12,6 +12,12 @@ import { RevenueTreeFlowView } from './RevenueTreeFlowView';
 import { RevenueTreeFlowDemoPanel } from './RevenueTreeFlowDemoPanel';
 import { RevenueTreeContentType } from '@/lib/revenue-tree/types';
 
+function formatWalletDisplay(walletAddress: string, isDemo: boolean): string {
+  if (isDemo) return walletAddress;
+  if (!walletAddress || walletAddress === '0x0000000000000000000000000000000000000000') return '—';
+  return `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}`;
+}
+
 export interface RevenueTreeFlowLayoutProps {
   walletAddress: string;
 }
@@ -77,7 +83,27 @@ export function RevenueTreeFlowLayout({ walletAddress }: RevenueTreeFlowLayoutPr
         <div className="flex-1 min-w-0">
           <RevenueTreeFlowView walletAddress={walletAddress} tree={tree} embedded />
         </div>
-        <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 lg:sticky lg:top-8 h-fit">
+        <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 lg:sticky lg:top-8 h-fit space-y-4">
+          {/* Flow header: title, description, Tree for (highlighted), demo note */}
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 p-4">
+            <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
+              Revenue Tree Flow
+            </h2>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
+              When you spend, you do not receive a share. The revenue is distributed to the wallets in this tree (your referrers at L2–L5). If nobody referred you, those shares go to Genesis. When someone pays through your referral link, you are in their tree and you receive that level’s share; the same continues up the referral chain.
+            </p>
+            <div className="rounded-lg bg-[#02abb8]/15 dark:bg-[#02abb8]/20 border border-[#02abb8]/40 px-3 py-2.5">
+              <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Tree for:</span>
+              <div className="text-base font-bold text-[#02abb8] mt-0.5 font-mono break-all" title={walletAddress}>
+                {formatWalletDisplay(walletAddress, isDemo)}
+              </div>
+            </div>
+            {isDemo && (
+              <p className="mt-3 text-sm text-amber-600 dark:text-amber-400">
+                Demo data — different structures and user distributions for illustration.
+              </p>
+            )}
+          </div>
           <RevenueTreeFlowDemoPanel tree={tree} symbol={symbol} />
         </div>
       </div>

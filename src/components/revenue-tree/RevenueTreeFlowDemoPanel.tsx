@@ -5,7 +5,8 @@ import type { UnifiedRevenueTreeData } from '@/lib/revenue-tree/types';
 import type { MockFlowTreeData } from '@/lib/revenue-tree/mockFlowData';
 import { REVENUE_SHARE_PERCENTAGES } from '@/lib/revenue-tree/types';
 
-const OWNER_SHARE_PCT = REVENUE_SHARE_PERCENTAGES.LEVEL_01; // 2%
+/** When your referrals spend, you are typically L2 in their tree and receive this share. */
+const REFERRAL_SHARE_PCT = REVENUE_SHARE_PERCENTAGES.LEVEL_02; // 5%
 
 function isMockTree(tree: UnifiedRevenueTreeData | MockFlowTreeData | null): tree is MockFlowTreeData {
   return tree !== null && 'userCounts' in tree;
@@ -32,7 +33,6 @@ export function RevenueTreeFlowDemoPanel({ tree, symbol }: RevenueTreeFlowDemoPa
 
   const lifetimeWei = 'lifetimeVolume' in tree ? BigInt(tree.lifetimeVolume) : BigInt(0);
   const lifetimeNum = parseFloat(formatEther(lifetimeWei));
-  const potentialShare = (OWNER_SHARE_PCT / 100) * lifetimeNum;
 
   const totalReferred = isMockTree(tree)
     ? Math.max(0, tree.userCounts.reduce((a, b) => a + b, 0) - 1)
@@ -42,6 +42,8 @@ export function RevenueTreeFlowDemoPanel({ tree, symbol }: RevenueTreeFlowDemoPa
     ? BigInt(tree.totalTreeVolume)
     : null;
   const totalTreeVolumeNum = totalTreeVolumeWei !== null ? parseFloat(formatEther(totalTreeVolumeWei)) : null;
+  const downlineVolumeNum = totalTreeVolumeNum != null && totalTreeVolumeNum > lifetimeNum ? totalTreeVolumeNum - lifetimeNum : 0;
+  const estimatedReferralShare = (REFERRAL_SHARE_PCT / 100) * downlineVolumeNum;
 
   const volumePerLevel = isMockTree(tree) && tree.volumePerLevel
     ? tree.volumePerLevel.map((v) => parseFloat(formatEther(BigInt(v))))
@@ -68,7 +70,7 @@ export function RevenueTreeFlowDemoPanel({ tree, symbol }: RevenueTreeFlowDemoPa
           {/* Total KAS: tree and/or root */}
           <div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-0.5">
-              {totalTreeVolumeNum !== null ? 'Total KAS spent by tree' : 'Your volume (L1)'}
+              {totalTreeVolumeNum !== null ? 'Total KAS spent by tree' : 'Your volume (your payments)'}
             </div>
             <div className="text-lg font-bold text-[#02abb8]">
               {totalTreeVolumeNum !== null
@@ -94,16 +96,18 @@ export function RevenueTreeFlowDemoPanel({ tree, symbol }: RevenueTreeFlowDemoPa
             </div>
           )}
 
-          {/* Potential revenue share for wallet owner (2% of L1 volume) */}
+          {/* Share you receive when your referrals spend (you are L2 in their tree) */}
           <div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-0.5">
-              Your share ({OWNER_SHARE_PCT}% of your volume)
+              Estimated share from referral activity
             </div>
             <div className="text-lg font-bold text-green-600 dark:text-green-400">
-              {potentialShare.toLocaleString(undefined, { maximumFractionDigits: 4 })} {symbol}
+              {estimatedReferralShare > 0
+                ? `${estimatedReferralShare.toLocaleString(undefined, { maximumFractionDigits: 4 })} ${symbol}`
+                : `— ${symbol}`}
             </div>
             <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
-              L1 earns {OWNER_SHARE_PCT}% of payments attributed to you.
+              When someone pays through your referral link, you are in their tree (e.g. L2) and receive {REFERRAL_SHARE_PCT}% of that payment. You do not receive a share from your own spend.
             </p>
           </div>
         </div>

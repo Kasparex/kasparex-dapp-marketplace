@@ -102,23 +102,6 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
         )}
       </div>
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
-          Revenue Tree Flow
-        </h1>
-        <p className="text-zinc-600 dark:text-zinc-400 mb-2">
-          Level 1 at the bottom (you), Level 5 at the top. Revenue flows upward to referrers.
-        </p>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 font-mono truncate">
-          Tree for: {isDemo ? walletAddress : formatAddr(walletAddress)}
-        </p>
-        {isDemo && (
-          <p className="mt-2 text-sm text-amber-600 dark:text-amber-400">
-            Demo data — different structures and user distributions for illustration.
-          </p>
-        )}
-      </div>
-
       {!isDemo && treeProp === undefined && isLoading && !liveTree && (
         <div className="py-12 text-center text-zinc-500 dark:text-zinc-400">
           Loading Revenue Tree…
@@ -133,10 +116,10 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
                 Position
               </div>
               <div className="text-lg font-bold text-zinc-900 dark:text-white">
-                Level 1 (2% share)
+                You (payer)
               </div>
               <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                Base of this tree
+                Revenue from your payments goes to L2–L5 (or Genesis)
               </div>
             </div>
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 p-4">
@@ -214,7 +197,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
           </div>
 
           <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
-            Revenue flows upward: Level 1 (you) earns 2%; when you earn, Level 2–5 referrers receive their share.
+            When you spend, the share goes to the wallets above (L2–L5 or Genesis), not to you. You earn when someone pays through your referral link — you are in their tree and receive that level’s share; the same continues up the chain.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-2 items-center">

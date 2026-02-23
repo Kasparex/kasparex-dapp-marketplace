@@ -92,6 +92,32 @@ export function RevenueTreeSidebar({
           />
         )}
       >
+        {/* Quick Links — at top */}
+        <div className="mb-6">
+          <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3 px-1">
+            Quick Links
+          </div>
+          <nav className="space-y-0.5">
+            {quickLinks.map((link) => {
+              const isActive = link.id === 'flow' ? pathname.startsWith('/revenue-tree/flow') : pathname === link.href;
+              return (
+              <Link
+                key={link.id}
+                href={link.href}
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'bg-[#02abb8]/10 text-[#02abb8] border border-[#02abb8]/20'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
+                }`}
+              >
+                {link.icon}
+                <span>{link.label}</span>
+              </Link>
+              );
+            })}
+          </nav>
+        </div>
+
         {/* Quick Stats */}
         <div className="mb-6 p-4 bg-gradient-to-br from-[#02abb8]/10 to-purple-500/10 rounded-xl border border-[#02abb8]/20">
           <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">
@@ -125,32 +151,6 @@ export function RevenueTreeSidebar({
           onSelect={(id) => onTabChange(id as RevenueTreeContentType | 'all')}
           multi={false}
         />
-
-        {/* Quick Links */}
-        <div className="mt-6">
-          <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3 px-1">
-            Quick Links
-          </div>
-          <nav className="space-y-0.5">
-            {quickLinks.map((link) => {
-              const isActive = link.id === 'flow' ? pathname.startsWith('/revenue-tree/flow') : pathname === link.href;
-              return (
-              <Link
-                key={link.id}
-                href={link.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-[#02abb8]/10 text-[#02abb8] border border-[#02abb8]/20'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
-                }`}
-              >
-                {link.icon}
-                <span>{link.label}</span>
-              </Link>
-              );
-            })}
-          </nav>
-        </div>
 
         {/* Guide Button */}
         <button
