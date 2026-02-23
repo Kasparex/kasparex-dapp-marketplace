@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { formatEther } from 'viem';
 import { useRevenueTree } from '@/hooks/useRevenueTree';
-import { getMockFlowTree, isDemoWalletSlug } from '@/lib/revenue-tree/mockFlowData';
+import { getMockFlowTree, isDemoWalletSlug, DEMO_LABELS } from '@/lib/revenue-tree/mockFlowData';
 import type { UnifiedRevenueTreeData } from '@/lib/revenue-tree/types';
 import type { MockFlowTreeData } from '@/lib/revenue-tree/mockFlowData';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
@@ -13,7 +13,7 @@ import { RevenueTreeFlowDemoPanel } from './RevenueTreeFlowDemoPanel';
 import { RevenueTreeContentType } from '@/lib/revenue-tree/types';
 
 function formatWalletDisplay(walletAddress: string, isDemo: boolean): string {
-  if (isDemo) return walletAddress;
+  if (isDemo && DEMO_LABELS[walletAddress]) return DEMO_LABELS[walletAddress];
   if (!walletAddress || walletAddress === '0x0000000000000000000000000000000000000000') return '—';
   return `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}`;
 }
@@ -32,8 +32,8 @@ function getSidebarStats(tree: UnifiedRevenueTreeData | MockFlowTreeData | null)
       : 0;
   const activeTrees = tree.isActive ? 1 : 0;
   const totalDownline =
-    tree && 'userCounts' in tree
-      ? Math.max(0, tree.userCounts.reduce((a, b) => a + b, 0) - 1)
+    tree && 'treesWhereOwnerAtLevel' in tree
+      ? tree.treesWhereOwnerAtLevel.slice(1).reduce((a, b) => a + b, 0)
       : 0;
   return { totalRevenue, activeTrees, totalDownline };
 }

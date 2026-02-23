@@ -1,7 +1,7 @@
 /**
- * Mock Revenue Tree flow data for demo routes: wallet-1 … wallet-6.
- * Matches UnifiedRevenueTreeData shape plus userCount per level (L1..L5).
- * Used by /revenue-tree/flow/[walletAddress] for demo slugs.
+ * Mock Revenue Tree flow data for demo routes: A (wallet-1), B (wallet-2), … F (wallet-6).
+ * Chain: A activated first, B through A, C through B, D through C, E through D, F through E.
+ * Upline push-up: when B activates, B's tree = L1=B, L2=A, L3=Gen, L4=Gen, L5=Gen; etc.
  */
 
 import { REVENUE_SHARE_PERCENTAGES } from './types';
@@ -15,127 +15,147 @@ const LEVEL_SHARES = [
 ] as const;
 
 export interface MockFlowTreeData {
-  /** Wallet slug (e.g. wallet-1) */
+  /** Wallet slug (wallet-1 … wallet-6); display label A … F */
   walletSlug: string;
-  /** L1=self, L2..L5 upline */
+  /** L1=self, L2..L5 upline (pushed up at activation) */
   upline: [string, string, string, string, string];
-  /** User count at each level L1..L5 */
-  userCounts: [number, number, number, number, number];
+  /** Number of active trees where this wallet appears at each level (L1..L5). You earn this level's share from those trees' payments. */
+  treesWhereOwnerAtLevel: [number, number, number, number, number];
   lifetimeVolume: string;
   volumeLast30Days: string;
   isActive: boolean;
   referrerSet: boolean;
   referrer: string | null;
   chainId: number;
-  /** Total KAS spent by entire tree (demo only). If present, panel shows "Total KAS spent by tree". */
+  /** Total KAS spent by tree (demo). */
   totalTreeVolume?: string;
-  /** Volume per level L1..L5 (wei). Optional for "Total KAS per level" in panel. */
+  /** Volume per level L1..L5 (wei). */
   volumePerLevel?: [string, string, string, string, string];
+  /** Estimated revenue (wei) for this wallet at each level (share% × volume from trees where owner at that level). L1..L5. */
+  revenueShareByLevelWei?: [string, string, string, string, string];
 }
 
-const ZERO = '0x0000000000000000000000000000000000000000';
 const GEN1 = '0xAb036a6f99892b8B84f1f10a193e4c0d217eB6D3';
 const GEN2 = '0xC0CDEC6323A3f079DDB5D9a463AA1470d0b4b201';
 const GEN3 = '0x33cE8E3D7039741485C5937fAd2a7e508683bf85';
 const GEN4 = '0xa6E0D2Cb51b52e0e864B5231a7C24d6F2379B0e0';
 const GEN5 = '0xcde1F107D791327189afdDe98E4eeB2D16D1f7da';
 
-/** Demo wallet addresses (L1 = "this user" per demo). */
-const DEMO_L1 = {
-  'wallet-1': '0x1111111111111111111111111111111111111111',
-  'wallet-2': '0x2222222222222222222222222222222222222222',
-  'wallet-3': '0x3333333333333333333333333333333333333333',
-  'wallet-4': '0x4444444444444444444444444444444444444444',
-  'wallet-5': '0x5555555555555555555555555555555555555555',
-  'wallet-6': '0x6666666666666666666666666666666666666666',
-} as const;
+const ADDR_A = '0x1111111111111111111111111111111111111111';
+const ADDR_B = '0x2222222222222222222222222222222222222222';
+const ADDR_C = '0x3333333333333333333333333333333333333333';
+const ADDR_D = '0x4444444444444444444444444444444444444444';
+const ADDR_E = '0x5555555555555555555555555555555555555555';
+const ADDR_F = '0x6666666666666666666666666666666666666666';
+
+function wei(kas: number): string {
+  return BigInt(Math.round(kas * 1e18)).toString();
+}
+
+// A: 150, B: 420, C: 890, D: 200, E: 310, F: 100 KAS
+const VOL_A = wei(150);
+const VOL_B = wei(420);
+const VOL_C = wei(890);
+const VOL_D = wei(200);
+const VOL_E = wei(310);
+const VOL_F = wei(100);
 
 const MOCK_TREES: MockFlowTreeData[] = [
   {
     walletSlug: 'wallet-1',
-    upline: [DEMO_L1['wallet-1'], GEN2, GEN3, GEN4, GEN5],
-    userCounts: [1, 0, 0, 0, 0],
-    lifetimeVolume: '150000000000000000000',
-    volumeLast30Days: '25000000000000000000',
+    upline: [ADDR_A, GEN1, GEN2, GEN3, GEN4],
+    treesWhereOwnerAtLevel: [1, 1, 1, 1, 1],
+    lifetimeVolume: VOL_A,
+    volumeLast30Days: wei(25),
     isActive: true,
-    referrerSet: true,
-    referrer: GEN2,
-    chainId: 167012,
-  },
-  {
-    walletSlug: 'wallet-2',
-    upline: [DEMO_L1['wallet-2'], '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', GEN3, GEN4, GEN5],
-    userCounts: [1, 3, 0, 0, 0],
-    lifetimeVolume: '420000000000000000000',
-    volumeLast30Days: '80000000000000000000',
-    isActive: true,
-    referrerSet: true,
-    referrer: '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-    chainId: 167012,
-  },
-  {
-    walletSlug: 'wallet-3',
-    upline: [DEMO_L1['wallet-3'], '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB', '0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC', GEN4, GEN5],
-    userCounts: [1, 5, 2, 0, 0],
-    lifetimeVolume: '890000000000000000000',
-    volumeLast30Days: '120000000000000000000',
-    isActive: true,
-    referrerSet: true,
-    referrer: '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
-    chainId: 167012,
-  },
-  {
-    walletSlug: 'wallet-4',
-    upline: [DEMO_L1['wallet-4'], GEN2, GEN3, GEN4, GEN5],
-    userCounts: [1, 0, 0, 0, 0],
-    lifetimeVolume: '0',
-    volumeLast30Days: '0',
-    isActive: false,
     referrerSet: false,
     referrer: null,
     chainId: 167012,
+    totalTreeVolume: wei(2070),
+    volumePerLevel: [VOL_A, VOL_B, VOL_C, VOL_D, VOL_E],
+    revenueShareByLevelWei: [wei(3), wei(21), wei(89), wei(40), wei(139.5)],
+  },
+  {
+    walletSlug: 'wallet-2',
+    upline: [ADDR_B, ADDR_A, GEN1, GEN2, GEN3],
+    treesWhereOwnerAtLevel: [1, 1, 1, 1, 1],
+    lifetimeVolume: VOL_B,
+    volumeLast30Days: wei(80),
+    isActive: true,
+    referrerSet: true,
+    referrer: ADDR_A,
+    chainId: 167012,
+    totalTreeVolume: wei(1920),
+    volumePerLevel: [VOL_B, VOL_C, VOL_D, VOL_E, VOL_F],
+    revenueShareByLevelWei: [wei(8.4), wei(44.5), wei(20), wei(62), wei(45)],
+  },
+  {
+    walletSlug: 'wallet-3',
+    upline: [ADDR_C, ADDR_B, ADDR_A, GEN1, GEN2],
+    treesWhereOwnerAtLevel: [1, 1, 1, 1, 0],
+    lifetimeVolume: VOL_C,
+    volumeLast30Days: wei(120),
+    isActive: true,
+    referrerSet: true,
+    referrer: ADDR_B,
+    chainId: 167012,
+    totalTreeVolume: wei(1500),
+    volumePerLevel: [VOL_C, VOL_D, VOL_E, VOL_F, '0'],
+    revenueShareByLevelWei: [wei(17.8), wei(10), wei(31), wei(45), '0'],
+  },
+  {
+    walletSlug: 'wallet-4',
+    upline: [ADDR_D, ADDR_C, ADDR_B, ADDR_A, GEN1],
+    treesWhereOwnerAtLevel: [1, 1, 1, 0, 0],
+    lifetimeVolume: VOL_D,
+    volumeLast30Days: wei(20),
+    isActive: true,
+    referrerSet: true,
+    referrer: ADDR_C,
+    chainId: 167012,
+    totalTreeVolume: wei(610),
+    volumePerLevel: [VOL_D, VOL_E, VOL_F, '0', '0'],
+    revenueShareByLevelWei: [wei(4), wei(15.5), wei(10), '0', '0'],
   },
   {
     walletSlug: 'wallet-5',
-    upline: [DEMO_L1['wallet-5'], '0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD', '0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE', '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF', GEN5],
-    userCounts: [1, 12, 8, 3, 0],
-    lifetimeVolume: '2100000000000000000000',
-    volumeLast30Days: '340000000000000000000',
+    upline: [ADDR_E, ADDR_D, ADDR_C, ADDR_B, ADDR_A],
+    treesWhereOwnerAtLevel: [1, 1, 0, 0, 0],
+    lifetimeVolume: VOL_E,
+    volumeLast30Days: wei(34),
     isActive: true,
     referrerSet: true,
-    referrer: '0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD',
+    referrer: ADDR_D,
     chainId: 167012,
-    totalTreeVolume: '8500000000000000000000',
-    volumePerLevel: [
-      '2100000000000000000000',
-      '3200000000000000000000',
-      '1800000000000000000000',
-      '900000000000000000000',
-      '500000000000000000000',
-    ],
+    totalTreeVolume: wei(410),
+    volumePerLevel: [VOL_E, VOL_F, '0', '0', '0'],
+    revenueShareByLevelWei: [wei(6.2), wei(5), '0', '0', '0'],
   },
   {
     walletSlug: 'wallet-6',
-    upline: [DEMO_L1['wallet-6'], '0x1234567890123456789012345678901234567890', '0x2345678901234567890123456789012345678901', '0x3456789012345678901234567890123456789012', '0x4567890123456789012345678901234567890123'],
-    userCounts: [1, 7, 4, 2, 1],
-    lifetimeVolume: '560000000000000000000',
-    volumeLast30Days: '90000000000000000000',
+    upline: [ADDR_F, ADDR_E, ADDR_D, ADDR_C, ADDR_B],
+    treesWhereOwnerAtLevel: [1, 0, 0, 0, 0],
+    lifetimeVolume: VOL_F,
+    volumeLast30Days: wei(9),
     isActive: true,
     referrerSet: true,
-    referrer: '0x1234567890123456789012345678901234567890',
+    referrer: ADDR_E,
     chainId: 167012,
-    totalTreeVolume: '2400000000000000000000',
-    volumePerLevel: [
-      '560000000000000000000',
-      '980000000000000000000',
-      '520000000000000000000',
-      '240000000000000000000',
-      '100000000000000000000',
-    ],
+    totalTreeVolume: VOL_F,
+    volumePerLevel: [VOL_F, '0', '0', '0', '0'],
+    revenueShareByLevelWei: [wei(2), '0', '0', '0', '0'],
   },
 ];
 
 const DEMO_SLUGS = ['wallet-1', 'wallet-2', 'wallet-3', 'wallet-4', 'wallet-5', 'wallet-6'] as const;
+export const DEMO_LABELS: Record<string, string> = {
+  'wallet-1': 'A',
+  'wallet-2': 'B',
+  'wallet-3': 'C',
+  'wallet-4': 'D',
+  'wallet-5': 'E',
+  'wallet-6': 'F',
+};
 
 export function isDemoWalletSlug(slug: string): slug is (typeof DEMO_SLUGS)[number] {
   return DEMO_SLUGS.includes(slug as (typeof DEMO_SLUGS)[number]);
@@ -147,6 +167,20 @@ export function getMockFlowTree(walletSlug: string): MockFlowTreeData | null {
 
 export function getDemoSlugs(): readonly string[] {
   return DEMO_SLUGS;
+}
+
+const ADDR_TO_LABEL: Record<string, string> = {
+  [ADDR_A.toLowerCase()]: 'A',
+  [ADDR_B.toLowerCase()]: 'B',
+  [ADDR_C.toLowerCase()]: 'C',
+  [ADDR_D.toLowerCase()]: 'D',
+  [ADDR_E.toLowerCase()]: 'E',
+  [ADDR_F.toLowerCase()]: 'F',
+};
+
+export function getDemoWalletLabel(addr: string): string | null {
+  if (!addr) return null;
+  return ADDR_TO_LABEL[addr.toLowerCase()] ?? null;
 }
 
 export { LEVEL_SHARES as MOCK_LEVEL_SHARES };

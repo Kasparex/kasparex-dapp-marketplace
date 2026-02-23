@@ -10,7 +10,7 @@ const L1_SHARE_PCT = REVENUE_SHARE_PERCENTAGES.LEVEL_01; // 2% — you when you 
 const REFERRAL_SHARE_PCT = REVENUE_SHARE_PERCENTAGES.LEVEL_02; // 5%
 
 function isMockTree(tree: UnifiedRevenueTreeData | MockFlowTreeData | null): tree is MockFlowTreeData {
-  return tree !== null && 'userCounts' in tree;
+  return tree !== null && ('treesWhereOwnerAtLevel' in tree || 'userCounts' in tree);
 }
 
 export interface RevenueTreeFlowDemoPanelProps {
@@ -35,9 +35,11 @@ export function RevenueTreeFlowDemoPanel({ tree, symbol }: RevenueTreeFlowDemoPa
   const lifetimeWei = 'lifetimeVolume' in tree ? BigInt(tree.lifetimeVolume) : BigInt(0);
   const lifetimeNum = parseFloat(formatEther(lifetimeWei));
 
-  const totalReferred = isMockTree(tree)
-    ? Math.max(0, tree.userCounts.reduce((a, b) => a + b, 0) - 1)
-    : null;
+  const totalReferred = isMockTree(tree) && 'treesWhereOwnerAtLevel' in tree
+    ? tree.treesWhereOwnerAtLevel[1]
+    : isMockTree(tree) && 'userCounts' in tree
+      ? Math.max(0, tree.userCounts.reduce((a, b) => a + b, 0) - 1)
+      : null;
 
   const totalTreeVolumeWei = isMockTree(tree) && tree.totalTreeVolume
     ? BigInt(tree.totalTreeVolume)

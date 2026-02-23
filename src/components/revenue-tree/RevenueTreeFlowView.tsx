@@ -4,7 +4,7 @@ import { useAccount } from 'wagmi';
 import Link from 'next/link';
 import { useRevenueTree } from '@/hooks/useRevenueTree';
 import { REVENUE_SHARE_PERCENTAGES } from '@/lib/revenue-tree/types';
-import { getMockFlowTree, isDemoWalletSlug } from '@/lib/revenue-tree/mockFlowData';
+import { getMockFlowTree, isDemoWalletSlug, DEMO_LABELS, getDemoWalletLabel } from '@/lib/revenue-tree/mockFlowData';
 import type { UnifiedRevenueTreeData } from '@/lib/revenue-tree/types';
 import type { MockFlowTreeData } from '@/lib/revenue-tree/mockFlowData';
 import { formatEther } from 'viem';
@@ -21,6 +21,14 @@ const LEVEL_SHARES_L1_TO_L5 = [
 function formatAddr(addr: string): string {
   if (!addr || addr === '0x0000000000000000000000000000000000000000') return '—';
   return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
+}
+
+function walletDisplay(wallet: string, isDemo: boolean): string {
+  if (isDemo && wallet) {
+    const label = getDemoWalletLabel(wallet);
+    if (label) return label;
+  }
+  return formatAddr(wallet);
 }
 
 export interface RevenueTreeFlowViewProps {
@@ -45,15 +53,15 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
   const chainId = tree?.chainId ?? 167012;
   const symbol = getNativeCurrencySymbol(chainId);
 
-  /** Row data: level 1..5, sharePct, wallet, isYou (L1 = this tree's root), userCount */
+  /** Row data: level 1..5, sharePct, wallet, isYou, treesAtLevel, revenueShareWei */
   const levelsL1ToL5 =
     tree && 'upline' in tree
       ? [
-          { level: 1, sharePct: LEVEL_SHARES_L1_TO_L5[0], wallet: (tree as { upline: string[] }).upline[0] ?? '', isYou: true, userCount: mockTree?.userCounts?.[0] ?? 0 },
-          { level: 2, sharePct: LEVEL_SHARES_L1_TO_L5[1], wallet: (tree as { upline: string[] }).upline[1] ?? '', isYou: false, userCount: mockTree?.userCounts?.[1] ?? 0 },
-          { level: 3, sharePct: LEVEL_SHARES_L1_TO_L5[2], wallet: (tree as { upline: string[] }).upline[2] ?? '', isYou: false, userCount: mockTree?.userCounts?.[2] ?? 0 },
-          { level: 4, sharePct: LEVEL_SHARES_L1_TO_L5[3], wallet: (tree as { upline: string[] }).upline[3] ?? '', isYou: false, userCount: mockTree?.userCounts?.[3] ?? 0 },
-          { level: 5, sharePct: LEVEL_SHARES_L1_TO_L5[4], wallet: (tree as { upline: string[] }).upline[4] ?? '', isYou: false, userCount: mockTree?.userCounts?.[4] ?? 0 },
+          { level: 1, sharePct: LEVEL_SHARES_L1_TO_L5[0], wallet: (tree as { upline: string[] }).upline[0] ?? '', isYou: true, treesAtLevel: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[0] ?? 0, revenueShareWei: (mockTree as MockFlowTreeData | undefined)?.revenueShareByLevelWei?.[0] },
+          { level: 2, sharePct: LEVEL_SHARES_L1_TO_L5[1], wallet: (tree as { upline: string[] }).upline[1] ?? '', isYou: false, treesAtLevel: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[1] ?? 0, revenueShareWei: (mockTree as MockFlowTreeData | undefined)?.revenueShareByLevelWei?.[1] },
+          { level: 3, sharePct: LEVEL_SHARES_L1_TO_L5[2], wallet: (tree as { upline: string[] }).upline[2] ?? '', isYou: false, treesAtLevel: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[2] ?? 0, revenueShareWei: (mockTree as MockFlowTreeData | undefined)?.revenueShareByLevelWei?.[2] },
+          { level: 4, sharePct: LEVEL_SHARES_L1_TO_L5[3], wallet: (tree as { upline: string[] }).upline[3] ?? '', isYou: false, treesAtLevel: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[3] ?? 0, revenueShareWei: (mockTree as MockFlowTreeData | undefined)?.revenueShareByLevelWei?.[3] },
+          { level: 5, sharePct: LEVEL_SHARES_L1_TO_L5[4], wallet: (tree as { upline: string[] }).upline[4] ?? '', isYou: false, treesAtLevel: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[4] ?? 0, revenueShareWei: (mockTree as MockFlowTreeData | undefined)?.revenueShareByLevelWei?.[4] },
         ]
       : [];
 
@@ -72,7 +80,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
     return (
       <div className={wrapperClass}>
         <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-amber-800 dark:text-amber-200 text-sm">
-          Connect your wallet or open a demo flow (e.g. /revenue-tree/flow/wallet-1).
+          Connect your wallet or open a demo flow (e.g. /revenue-tree/flow/A).
         </div>
       </div>
     );
@@ -148,49 +156,38 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
             </div>
           </div>
 
-          {/* Primary layout: Level 5 (top) → Level 1 (bottom) */}
+          {/* Table: Level (with wallet under) | Share % | Trees (you at this level) | Your share */}
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/30 overflow-hidden">
-            <div className="grid grid-cols-[auto_1fr_1fr_auto_1fr] gap-x-4 gap-y-0 px-4 py-3 bg-zinc-100 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-700 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-              <div>Level</div>
-              <div>Revenue share</div>
-              <div>Wallet / Referrer</div>
-              <div>Users</div>
-              <div>Role</div>
+            <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 gap-y-0 px-4 py-3 bg-zinc-100 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-700 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              <div>Level · Share · Wallet</div>
+              <div title="Number of active trees where your wallet appears at this level; you earn this level's share from their payments." className="cursor-help border-b border-dotted border-zinc-400">
+                Trees (you at this level)
+              </div>
+              <div>Your share</div>
             </div>
-            {rowsTopToBottom.map((row, index) => (
+            {rowsTopToBottom.map((row) => (
               <div
                 key={row.level}
-                className={`grid grid-cols-[auto_1fr_1fr_auto_1fr] gap-x-4 gap-y-2 px-4 py-4 border-b border-zinc-200 dark:border-zinc-700 last:border-b-0 items-center ${row.isYou ? 'bg-[#02abb8]/5 dark:bg-[#02abb8]/10' : ''}`}
+                className={`grid grid-cols-[1fr_auto_auto] gap-x-4 gap-y-0 px-4 py-3 border-b border-zinc-200 dark:border-zinc-700 last:border-b-0 items-center ${row.isYou ? 'bg-[#02abb8]/5 dark:bg-[#02abb8]/10' : ''}`}
               >
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#02abb8]/20 text-[#02abb8] font-black text-sm">
-                    {row.level}
-                  </span>
-                  {index < rowsTopToBottom.length - 1 && (
-                    <span className="text-zinc-400 dark:text-zinc-500">↓</span>
-                  )}
-                </div>
-                <div className="font-semibold text-zinc-900 dark:text-white">
-                  {row.sharePct}%
-                </div>
-                <div className="font-mono text-sm text-zinc-700 dark:text-zinc-300 truncate" title={row.wallet}>
-                  {row.wallet ? formatAddr(row.wallet) : '—'}
-                </div>
-                <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                  {row.userCount > 0 ? row.userCount : '—'}
-                </div>
-                <div className="text-sm">
-                  {row.isYou ? (
-                    <span className="inline-flex px-2 py-0.5 rounded bg-green-500/20 text-green-700 dark:text-green-400 font-medium">
-                      You
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#02abb8]/20 text-[#02abb8] font-black text-sm">
+                      {row.level}
                     </span>
-                  ) : row.wallet && row.wallet !== '0x0000000000000000000000000000000000000000' ? (
-                    <span className="inline-flex px-2 py-0.5 rounded bg-purple-500/20 text-purple-700 dark:text-purple-400">
-                      Referrer
-                    </span>
-                  ) : (
-                    <span className="text-zinc-400 dark:text-zinc-500">—</span>
-                  )}
+                    <span className="font-semibold text-zinc-900 dark:text-white">{row.sharePct}%</span>
+                  </div>
+                  <div className="font-mono text-xs text-zinc-600 dark:text-zinc-400 truncate mt-0.5 pl-10" title={row.wallet}>
+                    {row.wallet ? walletDisplay(row.wallet, isDemo) : '—'}
+                  </div>
+                </div>
+                <div className="text-sm text-zinc-600 dark:text-zinc-400 tabular-nums" title="Active trees where your wallet is at this level">
+                  {row.treesAtLevel > 0 ? row.treesAtLevel : '—'}
+                </div>
+                <div className="text-sm font-semibold text-[#02abb8] tabular-nums">
+                  {row.revenueShareWei
+                    ? `${parseFloat(formatEther(BigInt(row.revenueShareWei))).toLocaleString(undefined, { maximumFractionDigits: 2 })} ${symbol}`
+                    : '—'}
                 </div>
               </div>
             ))}
@@ -201,14 +198,14 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
           </p>
 
           <div className="mt-6 flex flex-wrap gap-2 items-center">
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">Demo flows:</span>
-            {['wallet-1', 'wallet-2', 'wallet-3', 'wallet-4', 'wallet-5', 'wallet-6'].map((slug) => (
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">Demo flow (A → B → C → …):</span>
+            {(['wallet-1', 'wallet-2', 'wallet-3', 'wallet-4', 'wallet-5', 'wallet-6'] as const).map((slug) => (
               <Link
                 key={slug}
                 href={`/revenue-tree/flow/${slug}`}
                 className={`text-sm font-medium px-2 py-1 rounded ${walletAddress === slug ? 'bg-[#02abb8]/20 text-[#02abb8]' : 'text-violet-600 dark:text-violet-400 hover:underline'}`}
               >
-                {slug}
+                {DEMO_LABELS[slug] ?? slug}
               </Link>
             ))}
           </div>
