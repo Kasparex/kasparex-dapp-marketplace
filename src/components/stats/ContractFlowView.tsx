@@ -44,8 +44,8 @@ function getLayoutedElements(
     const pos = dagreGraph.node(node.id);
     return {
       ...node,
-      targetPosition: isHorizontal ? ('left' as const) : ('top' as const),
-      sourcePosition: isHorizontal ? ('right' as const) : ('bottom' as const),
+      targetPosition: (isHorizontal ? 'left' : 'top') as Node['targetPosition'],
+      sourcePosition: (isHorizontal ? 'right' : 'bottom') as Node['sourcePosition'],
       position: {
         x: pos.x - NODE_WIDTH / 2,
         y: pos.y - NODE_HEIGHT / 2,
@@ -53,7 +53,7 @@ function getLayoutedElements(
     };
   });
 
-  return { nodes: newNodes, edges };
+  return { nodes: newNodes as Node[], edges };
 }
 
 function ContractNode({ data, id }: NodeProps<{ contract: ContractListItem; chainId: number }>) {
