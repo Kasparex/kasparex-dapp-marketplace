@@ -30,7 +30,7 @@ export function StatsCard({
       className={
         'rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800/50 p-5 ' +
         (href
-          ? 'hover:border-cyan-500/30 dark:hover:border-cyan-500/30 transition-colors '
+          ? 'hover:border-violet-500/30 dark:hover:border-violet-500/30 transition-colors '
           : '') +
         className
       }

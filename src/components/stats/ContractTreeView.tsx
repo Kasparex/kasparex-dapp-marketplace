@@ -29,23 +29,11 @@ function ContractTreeCard({
 
   return (
     <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 p-4 space-y-2">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <h4 className="font-semibold text-zinc-900 dark:text-white">{contract.key}</h4>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-0.5">
-            {contract.metadata.description}
-          </p>
-        </div>
-        {contract.explorerUrl !== '#' && (
-          <a
-            href={contract.explorerUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs font-medium text-cyan-600 dark:text-cyan-400 hover:underline shrink-0"
-          >
-            Explorer →
-          </a>
-        )}
+      <div>
+        <h4 className="font-semibold text-zinc-900 dark:text-white">{contract.key}</h4>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-0.5">
+          {contract.metadata.description}
+        </p>
       </div>
       {(param0 !== null && param0 !== '—') || (param1 !== null && param1 !== '—') ? (
         <div className="text-xs text-zinc-500 dark:text-zinc-500 space-y-0.5">
@@ -53,8 +41,21 @@ function ContractTreeCard({
           {param1 !== null && param1 !== '—' && <div>{param1}</div>}
         </div>
       ) : null}
-      <div className="text-xs font-mono text-zinc-500 dark:text-zinc-500">
-        {contract.address.slice(0, 10)}…{contract.address.slice(-8)}
+      <div className="text-xs font-mono">
+        {contract.explorerUrl !== '#' ? (
+          <a
+            href={contract.explorerUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-violet-600 dark:text-violet-400 hover:underline"
+          >
+            {contract.address.slice(0, 10)}…{contract.address.slice(-8)}
+          </a>
+        ) : (
+          <span className="text-zinc-500 dark:text-zinc-500">
+            {contract.address.slice(0, 10)}…{contract.address.slice(-8)}
+          </span>
+        )}
       </div>
       {(contract.metadata.linksTo ?? []).length > 0 && (
         <div className="flex flex-wrap gap-1 pt-1 border-t border-zinc-100 dark:border-zinc-800">
@@ -64,7 +65,7 @@ function ContractTreeCard({
           {(contract.metadata.linksTo ?? []).map((k) => (
             <span
               key={k}
-              className="inline-flex px-2 py-0.5 rounded text-xs bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20"
+              className="inline-flex px-2 py-0.5 rounded text-xs bg-violet-500/10 text-violet-700 dark:text-violet-400 border border-violet-500/20"
             >
               {k}
             </span>

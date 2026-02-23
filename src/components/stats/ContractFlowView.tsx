@@ -20,28 +20,28 @@ import type { ContractListItem } from './SmartContractsPage';
 const NODE_WIDTH = 260;
 const NODE_HEIGHT = 140;
 
-const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-
 function getLayoutedElements(
   nodes: Node[],
   edges: Edge[],
   direction: 'TB' | 'LR' = 'TB'
 ): { nodes: Node[]; edges: Edge[] } {
+  if (nodes.length === 0) return { nodes: [], edges };
+  const g = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
   const isHorizontal = direction === 'LR';
-  dagreGraph.setGraph({ rankdir: direction, nodesep: 40, ranksep: 60 });
+  g.setGraph({ rankdir: direction, nodesep: 40, ranksep: 60 });
 
   nodes.forEach((node) => {
-    dagreGraph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
+    g.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
   });
 
   edges.forEach((edge) => {
-    dagreGraph.setEdge(edge.source, edge.target);
+    g.setEdge(edge.source, edge.target);
   });
 
-  dagre.layout(dagreGraph);
+  dagre.layout(g);
 
   const newNodes = nodes.map((node) => {
-    const pos = dagreGraph.node(node.id);
+    const pos = g.node(node.id);
     return {
       ...node,
       targetPosition: (isHorizontal ? 'left' : 'top') as Node['targetPosition'],
@@ -74,8 +74,21 @@ function ContractNode({ data, id }: NodeProps<{ contract: ContractListItem; chai
       <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 line-clamp-2">
         {contract.metadata.description}
       </p>
-      <div className="mt-2 text-[10px] font-mono text-zinc-400 dark:text-zinc-500 truncate">
-        {contract.address.slice(0, 8)}…{contract.address.slice(-6)}
+      <div className="mt-2">
+        {contract.explorerUrl !== '#' ? (
+          <a
+            href={contract.explorerUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[10px] font-mono text-violet-600 dark:text-violet-400 hover:underline truncate block"
+          >
+            {contract.address.slice(0, 8)}…{contract.address.slice(-6)}
+          </a>
+        ) : (
+          <span className="text-[10px] font-mono text-zinc-400 dark:text-zinc-500 truncate block">
+            {contract.address.slice(0, 8)}…{contract.address.slice(-6)}
+          </span>
+        )}
       </div>
       {(param0 !== null && param0 !== '—') || (param1 !== null && param1 !== '—') ? (
         <div className="mt-1.5 text-[10px] text-zinc-600 dark:text-zinc-400">
@@ -83,16 +96,6 @@ function ContractNode({ data, id }: NodeProps<{ contract: ContractListItem; chai
           {param1 !== null && param1 !== '—' && <div>{param1}</div>}
         </div>
       ) : null}
-      {contract.explorerUrl !== '#' && (
-        <a
-          href={contract.explorerUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-2 inline-block text-[10px] font-medium text-cyan-600 dark:text-cyan-400 hover:underline"
-        >
-          View in Explorer →
-        </a>
-      )}
     </div>
   );
 }
@@ -138,7 +141,7 @@ export function ContractFlowView({
   }, [initialNodes, initialEdges, setNodes, setEdges]);
 
   return (
-    <div className="min-h-[500px] w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/30">
+    <div className="h-[600px] w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/30">
       <ReactFlow
         nodes={nodes}
         edges={edges}

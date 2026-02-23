@@ -54,21 +54,18 @@ function ContractTableRow({
       <td className="py-3 px-3 text-sm text-zinc-600 dark:text-zinc-400">
         {paramsStr}
       </td>
-      <td className="py-3 px-3 text-sm font-mono text-zinc-600 dark:text-zinc-400">
-        {truncate(contract.address)}
-      </td>
-      <td className="py-3 px-3">
+      <td className="py-3 px-3 text-sm font-mono">
         {contract.explorerUrl !== '#' ? (
           <a
             href={contract.explorerUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-cyan-600 dark:text-cyan-400 hover:underline text-sm"
+            className="text-violet-600 dark:text-violet-400 hover:underline"
           >
-            Explorer
+            {truncate(contract.address)}
           </a>
         ) : (
-          '—'
+          <span className="text-zinc-600 dark:text-zinc-400">{truncate(contract.address)}</span>
         )}
       </td>
       <td className="py-3 px-3">
@@ -76,7 +73,7 @@ function ContractTableRow({
           {(contract.metadata.linksTo ?? []).map((k) => (
             <span
               key={k}
-              className="inline-flex px-2 py-0.5 rounded text-xs bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20"
+              className="inline-flex px-2 py-0.5 rounded text-xs bg-violet-500/10 text-violet-700 dark:text-violet-400 border border-violet-500/20"
             >
               {k}
             </span>
@@ -114,9 +111,6 @@ export function ContractTableView({
             </th>
             <th className="py-3 px-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               Address
-            </th>
-            <th className="py-3 px-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-              Explorer
             </th>
             <th className="py-3 px-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               Connects to
