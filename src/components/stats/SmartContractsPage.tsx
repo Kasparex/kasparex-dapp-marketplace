@@ -21,7 +21,7 @@ export interface ContractListItem {
   explorerUrl: string;
 }
 
-const TABS = ['Flow', 'Tree view', 'Table view'] as const;
+const TABS = ['Tree view', 'Table view', 'Flow'] as const;
 type TabId = (typeof TABS)[number];
 
 function buildContractList(chainId: number): ContractListItem[] {
@@ -36,7 +36,7 @@ function buildContractList(chainId: number): ContractListItem[] {
 
 export function SmartContractsPage() {
   const chainId = useChainId();
-  const [tab, setTab] = useState<TabId>('Flow');
+  const [tab, setTab] = useState<TabId>('Tree view');
 
   const contractList = useMemo(() => {
     if (typeof chainId === 'number' && chainId > 0) {
@@ -71,9 +71,9 @@ export function SmartContractsPage() {
         </p>
       ) : (
         <>
-          {tab === 'Flow' && <ContractFlowView contractList={contractList} chainId={chainId} />}
           {tab === 'Tree view' && <ContractTreeView contractList={contractList} chainId={chainId} />}
           {tab === 'Table view' && <ContractTableView contractList={contractList} chainId={chainId} />}
+          {tab === 'Flow' && <ContractFlowView contractList={contractList} chainId={chainId} />}
         </>
       )}
     </section>

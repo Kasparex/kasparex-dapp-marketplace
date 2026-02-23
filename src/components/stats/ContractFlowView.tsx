@@ -128,7 +128,7 @@ export function ContractFlowView({
         }
       }
     }
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(nodes, edges, 'TB');
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(nodes, edges, 'LR');
     return { initialNodes: layoutedNodes, initialEdges: layoutedEdges };
   }, [contractList, chainId, keySet]);
 
@@ -141,8 +141,12 @@ export function ContractFlowView({
   }, [initialNodes, initialEdges, setNodes, setEdges]);
 
   return (
-    <div className="h-[600px] w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/30">
-      <ReactFlow
+    <div className="space-y-2">
+      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        Informational overview. Arrows show on-chain relationships (linksTo). Read-only — pan and zoom to explore.
+      </p>
+      <div className="h-[600px] w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/30">
+        <ReactFlow
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
@@ -152,10 +156,16 @@ export function ContractFlowView({
         fitView
         fitViewOptions={fitViewOptions}
         proOptions={{ hideAttribution: true }}
+        nodesDraggable={false}
+        nodesConnectable={false}
+        elementsSelectable={false}
+        panOnDrag
+        zoomOnScroll
       >
         <Background />
         <Controls />
       </ReactFlow>
+      </div>
     </div>
   );
 }

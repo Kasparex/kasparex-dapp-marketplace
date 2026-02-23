@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import { useContractParam } from '@/hooks/useContractParams';
 import type { ContractListItem } from './SmartContractsPage';
 
@@ -11,6 +12,15 @@ const CATEGORY_LABELS: Record<string, string> = {
   rewards: 'Rewards',
   other: 'Other',
 };
+
+export type TreeSortOption = 'category' | 'name-asc' | 'name-desc';
+
+function sortContracts(list: ContractListItem[], sort: TreeSortOption): ContractListItem[] {
+  const copy = [...list];
+  if (sort === 'name-asc') return copy.sort((a, b) => a.key.localeCompare(b.key));
+  if (sort === 'name-desc') return copy.sort((a, b) => b.key.localeCompare(a.key));
+  return copy;
+}
 
 function ContractTreeCard({
   contract,
@@ -83,29 +93,54 @@ export function ContractTreeView({
   contractList: ContractListItem[];
   chainId: number;
 }) {
-  const byCategory = new Map<string, ContractListItem[]>();
-  for (const c of contractList) {
-    const cat = c.metadata.category;
-    if (!byCategory.has(cat)) byCategory.set(cat, []);
-    byCategory.get(cat)!.push(c);
-  }
+  const [sortBy, setSortBy] = useState<TreeSortOption>('category');
+
+  const byCategory = useMemo(() => {
+    const map = new Map<string, ContractListItem[]>();
+    for (const c of contractList) {
+      const cat = c.metadata.category;
+      if (!map.has(cat)) map.set(cat, []);
+      map.get(cat)!.push(c);
+    }
+    const order = ['core', 'registry', 'dapp', 'tokens', 'rewards', 'other'];
+    order.forEach((cat) => {
+      const list = map.get(cat);
+      if (list) map.set(cat, sortContracts(list, sortBy));
+    });
+    return map;
+  }, [contractList, sortBy]);
+
   const order = ['core', 'registry', 'dapp', 'tokens', 'rewards', 'other'];
   const categories = order.filter((c) => byCategory.has(c));
 
   return (
-    <div className="space-y-8">
-      {categories.map((cat) => (
-        <section key={cat}>
-          <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-3">
-            {CATEGORY_LABELS[cat] ?? cat}
-          </h3>
-          <div className="space-y-3">
-            {byCategory.get(cat)!.map((contract) => (
-              <ContractTreeCard key={contract.key} contract={contract} chainId={chainId} />
-            ))}
-          </div>
-        </section>
-      ))}
+    <div className="space-y-6">
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-sm text-zinc-500 dark:text-zinc-400">Sort:</span>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as TreeSortOption)}
+          className="rounded-lg border border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-sm text-zinc-700 dark:text-zinc-300 px-3 py-1.5 focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
+        >
+          <option value="category">Category (default)</option>
+          <option value="name-asc">Name A–Z</option>
+          <option value="name-desc">Name Z–A</option>
+        </select>
+      </div>
+      <div className="space-y-8">
+        {categories.map((cat) => (
+          <section key={cat}>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-3">
+              {CATEGORY_LABELS[cat] ?? cat}
+            </h3>
+            <div className="space-y-3">
+              {byCategory.get(cat)!.map((contract) => (
+                <ContractTreeCard key={contract.key} contract={contract} chainId={chainId} />
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
     </div>
   );
 }
