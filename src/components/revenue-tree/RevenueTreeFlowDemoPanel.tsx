@@ -5,7 +5,8 @@ import type { UnifiedRevenueTreeData } from '@/lib/revenue-tree/types';
 import type { MockFlowTreeData } from '@/lib/revenue-tree/mockFlowData';
 import { REVENUE_SHARE_PERCENTAGES } from '@/lib/revenue-tree/types';
 
-/** When your referrals spend, you are typically L2 in their tree and receive this share. */
+const L1_SHARE_PCT = REVENUE_SHARE_PERCENTAGES.LEVEL_01; // 2% — you when you spend
+/** When your referrals spend, you are L2 in their tree and receive this share. */
 const REFERRAL_SHARE_PCT = REVENUE_SHARE_PERCENTAGES.LEVEL_02; // 5%
 
 function isMockTree(tree: UnifiedRevenueTreeData | MockFlowTreeData | null): tree is MockFlowTreeData {
@@ -43,6 +44,7 @@ export function RevenueTreeFlowDemoPanel({ tree, symbol }: RevenueTreeFlowDemoPa
     : null;
   const totalTreeVolumeNum = totalTreeVolumeWei !== null ? parseFloat(formatEther(totalTreeVolumeWei)) : null;
   const downlineVolumeNum = totalTreeVolumeNum != null && totalTreeVolumeNum > lifetimeNum ? totalTreeVolumeNum - lifetimeNum : 0;
+  const yourShareFromYourSpend = (L1_SHARE_PCT / 100) * lifetimeNum;
   const estimatedReferralShare = (REFERRAL_SHARE_PCT / 100) * downlineVolumeNum;
 
   const volumePerLevel = isMockTree(tree) && tree.volumePerLevel
@@ -96,10 +98,23 @@ export function RevenueTreeFlowDemoPanel({ tree, symbol }: RevenueTreeFlowDemoPa
             </div>
           )}
 
-          {/* Share you receive when your referrals spend (you are L2 in their tree) */}
+          {/* Your share when you spend (L1: 2%) */}
           <div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-0.5">
-              Estimated share from referral activity
+              Your share from your activity (L1: {L1_SHARE_PCT}%)
+            </div>
+            <div className="text-lg font-bold text-[#02abb8]">
+              {yourShareFromYourSpend.toLocaleString(undefined, { maximumFractionDigits: 4 })} {symbol}
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
+              When you spend, your tree is used; you (L1) receive {L1_SHARE_PCT}% of that payment.
+            </p>
+          </div>
+
+          {/* Share when your referrals spend (you are L2 in their tree) */}
+          <div>
+            <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-0.5">
+              Estimated share from referral activity (L2: {REFERRAL_SHARE_PCT}%)
             </div>
             <div className="text-lg font-bold text-green-600 dark:text-green-400">
               {estimatedReferralShare > 0
@@ -107,7 +122,7 @@ export function RevenueTreeFlowDemoPanel({ tree, symbol }: RevenueTreeFlowDemoPa
                 : `— ${symbol}`}
             </div>
             <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
-              When someone pays through your referral link, you are in their tree (e.g. L2) and receive {REFERRAL_SHARE_PCT}% of that payment. You do not receive a share from your own spend.
+              When someone pays through your referral link, you are L2 in their tree and receive {REFERRAL_SHARE_PCT}% of that payment.
             </p>
           </div>
         </div>

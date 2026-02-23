@@ -116,10 +116,10 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
                 Position
               </div>
               <div className="text-lg font-bold text-zinc-900 dark:text-white">
-                You (payer)
+                You (L1 — 2%)
               </div>
               <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                Revenue from your payments goes to L2–L5 (or Genesis)
+                When you spend, your tree is used: you get 2%, L2–L5 get their share
               </div>
             </div>
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 p-4">
@@ -197,7 +197,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
           </div>
 
           <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
-            When you spend, the share goes to the wallets above (L2–L5 or Genesis), not to you. You earn when someone pays through your referral link — you are in their tree and receive that level’s share; the same continues up the chain.
+            When you spend, your tree is used: you (L1) get 2%, L2–L5 get 5–45% (or Genesis if empty). When someone pays through your referral link, you are L2 in their tree and get 5%; the same continues up the chain.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-2 items-center">

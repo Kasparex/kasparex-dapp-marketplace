@@ -90,7 +90,7 @@ export function RevenueTreeFlowLayout({ walletAddress }: RevenueTreeFlowLayoutPr
               Revenue Tree Flow
             </h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
-              When you spend, you do not receive a share. The revenue is distributed to the wallets in this tree (your referrers at L2–L5). If nobody referred you, those shares go to Genesis. When someone pays through your referral link, you are in their tree and you receive that level’s share; the same continues up the referral chain.
+              Your tree is created at activation: L1=you, L2=your referrer, L3=referrer’s L2, L4=referrer’s L3, L5=referrer’s L4 (Genesis fills gaps). When you spend, this tree is used: you (L1) get 2%, L2–L5 get 5–45%. When someone you referred spends, you are L2 in their tree and get 5% of that payment; the same continues up the chain.
             </p>
             <div className="rounded-lg bg-[#02abb8]/15 dark:bg-[#02abb8]/20 border border-[#02abb8]/40 px-3 py-2.5">
               <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Tree for:</span>
