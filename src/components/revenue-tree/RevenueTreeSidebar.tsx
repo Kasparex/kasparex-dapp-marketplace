@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useChainId } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
@@ -28,8 +28,14 @@ export function RevenueTreeSidebar({
 }: RevenueTreeSidebarProps) {
   const pathname = usePathname();
   const chainId = useChainId();
+  const { address } = useAccount();
   const nativeSymbol = getNativeCurrencySymbol(chainId);
   const [showGuide, setShowGuide] = useState(false);
+
+  const flowHref = useMemo(
+    () => (address ? `/revenue-tree/flow/${address}` : '/revenue-tree/flow'),
+    [address]
+  );
 
   const tabItems = [
     { id: 'all', label: 'All Trees', count: activeTrees },
@@ -54,7 +60,7 @@ export function RevenueTreeSidebar({
     {
       id: 'flow',
       label: 'Tree Flow',
-      href: '/revenue-tree/flow',
+      href: flowHref,
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -126,12 +132,14 @@ export function RevenueTreeSidebar({
             Quick Links
           </div>
           <nav className="space-y-0.5">
-            {quickLinks.map((link) => (
+            {quickLinks.map((link) => {
+              const isActive = link.id === 'flow' ? pathname.startsWith('/revenue-tree/flow') : pathname === link.href;
+              return (
               <Link
                 key={link.id}
                 href={link.href}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  pathname === link.href
+                  isActive
                     ? 'bg-[#02abb8]/10 text-[#02abb8] border border-[#02abb8]/20'
                     : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
                 }`}
@@ -139,7 +147,8 @@ export function RevenueTreeSidebar({
                 {link.icon}
                 <span>{link.label}</span>
               </Link>
-            ))}
+              );
+            })}
           </nav>
         </div>
 
