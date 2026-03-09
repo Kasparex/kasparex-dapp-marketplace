@@ -126,17 +126,28 @@ export function useAutomatedRewards(): UseAutomatedRewardsReturn {
 
       // Route to appropriate handler based on network type
       if (networkType === 'L2') {
-        // L2: Rewards are distributed by FeeRouter in the same tx (based on tKREX on that chain).
+        // L2: Rewards are distributed by FeeRouter for KAS, but tGRID/XP points are NOT minted by the router.
+        // We must still hit the backend API to award tGRID and XP to the user's profile.
+        const result = await recordUsageAndRewardL1(
+          userAddress as string,
+          dapp.id,
+          actionType,
+          baseActionValue,
+          txHash
+        );
+
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('dapp-transaction-success'));
         }
 
-        // Refresh balances after successful transaction
-        queryClient.invalidateQueries({ queryKey: ['gridToken'] });
-        queryClient.invalidateQueries({ queryKey: ['dAppToken'] });
-        queryClient.invalidateQueries({ queryKey: ['tokenBalance'] });
+        if (result.success) {
+          // Refresh balances after successful transaction
+          queryClient.invalidateQueries({ queryKey: ['gridToken'] });
+          queryClient.invalidateQueries({ queryKey: ['dAppToken'] });
+          queryClient.invalidateQueries({ queryKey: ['tokenBalance'] });
+        }
 
-        return { success: true };
+        return result;
       } else if (networkType === 'L1') {
         // L1: Use backend API
         const result = await recordUsageAndRewardL1(

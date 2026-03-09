@@ -18,10 +18,10 @@ const fs = require('fs');
 const path = require('path');
 
 const LEVELS = 5;
-const BPS_100_KAS = 100n * 10n**18n;
-const BPS_1000_KAS = 1000n * 10n**18n;
-const KREX_10M = 10n * 10n**6n * 10n**18n;
-const KREX_MIN_100 = 100n * 10n**18n;
+const BPS_100_KAS = 100n * 10n ** 18n;
+const BPS_1000_KAS = 1000n * 10n ** 18n;
+const KREX_10M = 10n * 10n ** 6n * 10n ** 18n;
+const KREX_MIN_100 = 100n * 10n ** 18n;
 
 const TEST_GENESIS = [
   '0xAb036a6f99892b8B84f1f10a193e4c0d217eB6D3',
@@ -93,14 +93,17 @@ async function main() {
     console.log('   tKREX deployed to:', krexTokenAddress);
   }
 
-  console.log('\n2. Deploying RevenueTreeManager...');
+  console.log('\n2. Deploying RevenueTreeManager Proxy...');
   const RevenueTreeManager = await hre.ethers.getContractFactory('RevenueTreeManager');
-  const rtmAddress = await deployNoEstimate(
+  const txOverrides = { ...feeOverrides, gasLimit: 8000000n };
+  const rtmProxy = await hre.upgrades.deployProxy(
     RevenueTreeManager,
     [genesis, platformWallet, krexTokenAddress, BPS_100_KAS, BPS_1000_KAS, KREX_10M, KREX_MIN_100],
-    feeOverrides
+    { txOverrides }
   );
-  console.log('   RevenueTreeManager at:', rtmAddress);
+  await rtmProxy.waitForDeployment();
+  const rtmAddress = await rtmProxy.getAddress();
+  console.log('   RevenueTreeManager (Proxy) at:', rtmAddress);
 
   let feeRouterAddress = '';
   if (feeCollectorAddress) {

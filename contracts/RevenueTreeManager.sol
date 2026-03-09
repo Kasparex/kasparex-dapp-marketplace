@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
@@ -11,7 +12,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * @notice One tree per wallet; upline immutable at activation; revenue to upline or matched Genesis when inactive.
  * Version 5 Design: Pull payment for platform, tiered activity maintenance, Push-Up Rule activation, anti-spam.
  */
-contract RevenueTreeManager is Ownable, ReentrancyGuard {
+contract RevenueTreeManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     // --- Constants ---
     uint256 public constant BPS = 10000;
     uint256 public constant SECONDS_PER_DAY = 86400;
@@ -79,7 +80,12 @@ contract RevenueTreeManager is Ownable, ReentrancyGuard {
      * @param _minVolumePerCall Anti-spam volume floor per transaction
      * @param _krexMinVolumeFloor Absolute minimum volume required with max KREX discount
      */
-    constructor(
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(
         address[] memory _genesisWallets,
         address _platformWallet,
         address _krexToken,
@@ -87,7 +93,10 @@ contract RevenueTreeManager is Ownable, ReentrancyGuard {
         uint256 _baseActivityThreshold,
         uint256 _minVolumePerCall,
         uint256 _krexMinVolumeFloor
-    ) Ownable(msg.sender) {
+    ) public initializer {
+        __Ownable_init(msg.sender);
+        __ReentrancyGuard_init();
+
         if (_platformWallet == address(0)) revert InvalidAddress();
         
         numLevels = 5;
