@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773070469-ae64a81",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: Type errors in RevenueTree and mockData from removed hasUserActivated (by Kasparex)",
+      "date": "2026-03-09T16:34:07+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773070091-04e4dba",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: feat: Revenue Tree Manager v5 implementation & UI updates (by Kasparex)",
