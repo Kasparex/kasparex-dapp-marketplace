@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773074105-0d647de",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix(simulator): add potential earnings correctly and redeploy testnet contracts (by Kasparex)",
+      "date": "2026-03-09T17:34:44+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773072639-a7d41ca",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix(rewards): Correct 5 iKAS volume bug, tGRID L2 UI sync, sidebar link, & 0x multiplier (by Kasparex)",
