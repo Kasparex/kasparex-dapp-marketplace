@@ -81,8 +81,8 @@
 - **KREX balance ≥ 10,000,000** (10M) in wallet on that chain, **and**
 - **Volume in last 30 days ≥ 100 KAS** on that chain.
 
-- If **Path 1** OR **Path 2** is satisfied → user is **active**.
-- If neither is satisfied → user is **inactive**.
+- If **Path 1** OR **Path 2** is satisfied → user's tree is **active**.
+- If neither is satisfied → user's tree is **inactive**.
 
 ### 4.2 KREX for V1
 
@@ -139,7 +139,7 @@
 
 ### 6.2 Universal Link
 
-- One link per wallet: e.g. `https://kasparex.com/ref/<wallet_address>`.
+- One link per wallet: e.g. `/ref/<wallet_address>`.
 - Works across all dApps on that chain; no per-dApp referral links for V1.
 
 ---

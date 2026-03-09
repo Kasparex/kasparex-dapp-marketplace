@@ -15,25 +15,16 @@ export interface UseRevenueTreeOptions {
 }
 
 export interface UseRevenueTreeReturn {
-  /** Unified tree data when contract is available and data loaded. */
   tree: UnifiedRevenueTreeData | null;
-  /** Raw referrer address (on-chain). */
   referrer: string | null;
-  /** Lifetime volume (wei string). */
   lifetimeVolume: bigint | null;
-  /** Volume in last 30 days (wei string). */
   volumeLast30Days: bigint | null;
-  /** Whether user is active (maintenance). */
-  isActive: boolean | null;
-  /** Activation threshold from contract (wei). */
+  isActiveAtLevel: boolean[] | null;
   activationThreshold: bigint | null;
-  /** Activity threshold from contract (wei). */
-  activityThreshold: bigint | null;
-  /** Whether any contract read is still loading. */
+  baseActivityThreshold: bigint | null;
+  minVolumePerCall: bigint | null;
   isLoading: boolean;
-  /** Whether RevenueTreeManager is deployed on this chain. */
   isSupported: boolean;
-  /** Error from contract reads. */
   error: string | null;
 }
 
@@ -78,10 +69,20 @@ export function useRevenueTree(options: UseRevenueTreeOptions = {}): UseRevenueT
     query: { enabled: isSupported && !!userAddress },
   });
 
-  const { data: isActiveRaw, isLoading: loadingActive } = useReadContract({
+  // For a unified approach, we check L1 base activity as general "isActive" for simplistic views.
+  // We check up to L5 via independent hooks or just load for Level 0 (L1) representing basic activity.
+  const { data: isActiveL1Raw, isLoading: loadingActive } = useReadContract({
     address: contractAddress ? (contractAddress as `0x${string}`) : undefined,
     abi: REVENUE_TREE_MANAGER_ABI,
-    functionName: 'isActive',
+    functionName: 'isActiveAtLevel',
+    args: userAddress ? [userAddress, 0n] : undefined,
+    query: { enabled: isSupported && !!userAddress },
+  });
+
+  const { data: totalReceivedRaw, isLoading: loadingTotalReceived } = useReadContract({
+    address: contractAddress ? (contractAddress as `0x${string}`) : undefined,
+    abi: REVENUE_TREE_MANAGER_ABI,
+    functionName: 'totalReceived',
     args: userAddress ? [userAddress] : undefined,
     query: { enabled: isSupported && !!userAddress },
   });
@@ -101,10 +102,17 @@ export function useRevenueTree(options: UseRevenueTreeOptions = {}): UseRevenueT
     query: { enabled: isSupported },
   });
 
-  const { data: activityThresholdRaw } = useReadContract({
+  const { data: baseActivityThresholdRaw } = useReadContract({
     address: contractAddress ? (contractAddress as `0x${string}`) : undefined,
     abi: REVENUE_TREE_MANAGER_ABI,
-    functionName: 'activityThreshold',
+    functionName: 'baseActivityThreshold',
+    query: { enabled: isSupported },
+  });
+
+  const { data: minVolumePerCallRaw } = useReadContract({
+    address: contractAddress ? (contractAddress as `0x${string}`) : undefined,
+    abi: REVENUE_TREE_MANAGER_ABI,
+    functionName: 'minVolumePerCall',
     query: { enabled: isSupported },
   });
 
@@ -114,33 +122,41 @@ export function useRevenueTree(options: UseRevenueTreeOptions = {}): UseRevenueT
     loadingActivated ||
     loadingVolume30 ||
     loadingActive ||
-    loadingStatus;
+    loadingStatus ||
+    loadingTotalReceived;
 
   const tree = useMemo((): UnifiedRevenueTreeData | null => {
     if (!userAddress || !isSupported) return null;
     const addr = userAddress as string;
+
+    // Convert readonly [string, ...] array to standard array
     const uplineSnapshot = activationStatusRaw
-      ? (activationStatusRaw[1] as readonly [string, string, string, string, string])
-      : (['', '', '', '', ''] as const);
-    const activated = activationStatusRaw ? activationStatusRaw[0] : false;
+      ? [...(activationStatusRaw[1] as readonly string[])]
+      : ['', '', '', '', ''];
+
     const lifetimeVolume = lifetimeVolumeRaw ?? BigInt(0);
     const volumeLast30 = volumeLast30Raw ?? BigInt(0);
     const activationThreshold = activationThresholdRaw ?? BigInt(0);
-    const activityThreshold = activityThresholdRaw ?? BigInt(0);
+    const baseActivityThreshold = baseActivityThresholdRaw ?? BigInt(0);
+    const minVolPerCall = minVolumePerCallRaw ?? BigInt(0);
+
+    const isL1Active = isActiveL1Raw ?? false;
+
     return {
       chainId,
       userWalletAddress: addr,
-      upline: [...uplineSnapshot],
+      upline: uplineSnapshot,
       lifetimeVolume: String(lifetimeVolume),
       volumeLast30Days: String(volumeLast30),
-      isActive: isActiveRaw ?? false,
+      isActiveAtLevel: [isL1Active, isL1Active, isL1Active, isL1Active, isL1Active], // Mock advanced tiers for now until multicall added
       activatedAt: activatedAtRaw && activatedAtRaw > 0n ? String(activatedAtRaw) : null,
       referralLink: getUniversalReferralLink(addr),
-      totalEarned: '0', // from events/indexer later
+      totalEarned: String(totalReceivedRaw ?? BigInt(0)),
       referrerSet: referrerOf != null && referrerOf !== '0x0000000000000000000000000000000000000000',
-      referrer: referrerOf && referrerOf !== '0x0000000000000000000000000000000000000000' ? referrerOf : null,
+      referrer: referrerOf && referrerOf !== '0x0000000000000000000000000000000000000000' ? (referrerOf as string) : null,
       activationThreshold: String(activationThreshold),
-      activityThreshold: String(activityThreshold),
+      baseActivityThreshold: String(baseActivityThreshold),
+      minVolumePerCall: String(minVolPerCall),
     };
   }, [
     userAddress,
@@ -149,21 +165,24 @@ export function useRevenueTree(options: UseRevenueTreeOptions = {}): UseRevenueT
     referrerOf,
     lifetimeVolumeRaw,
     volumeLast30Raw,
-    isActiveRaw,
+    isActiveL1Raw,
+    totalReceivedRaw,
     activatedAtRaw,
     activationStatusRaw,
     activationThresholdRaw,
-    activityThresholdRaw,
+    baseActivityThresholdRaw,
+    minVolumePerCallRaw
   ]);
 
   return {
     tree,
-    referrer: referrerOf && referrerOf !== '0x0000000000000000000000000000000000000000' ? referrerOf : null,
+    referrer: referrerOf && referrerOf !== '0x0000000000000000000000000000000000000000' ? (referrerOf as string) : null,
     lifetimeVolume: lifetimeVolumeRaw ?? null,
     volumeLast30Days: volumeLast30Raw ?? null,
-    isActive: isActiveRaw ?? null,
+    isActiveAtLevel: tree?.isActiveAtLevel ?? null,
     activationThreshold: activationThresholdRaw ?? null,
-    activityThreshold: activityThresholdRaw ?? null,
+    baseActivityThreshold: baseActivityThresholdRaw ?? null,
+    minVolumePerCall: minVolumePerCallRaw ?? null,
     isLoading,
     isSupported,
     error: null,

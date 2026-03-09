@@ -5,7 +5,6 @@ import { RevenueTreeData } from '@/lib/revenue-tree/types';
 import { RevenueTreeLevel } from './RevenueTreeLevel';
 import { ReferralLinkBox } from './ReferralLinkBox';
 import { RevenueTreeGuideModal } from './RevenueTreeGuideModal';
-import { hasUserActivated } from '@/lib/revenue-tree/utils';
 import { useChainId } from 'wagmi';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
 
@@ -27,11 +26,8 @@ export function RevenueTree({ data, userWalletAddress, isL2Only = true, activati
   const chainId = useChainId();
   const [showGuide, setShowGuide] = useState(false);
 
-  // Unified tree (on-chain): use data.activatedAt. Legacy: use localStorage hasUserActivated.
-  const isActivated =
-    data.contentSlug === 'revenue-tree' && data.activatedAt
-      ? true
-      : (userWalletAddress ? hasUserActivated(userWalletAddress, data.contentType, data.contentSlug) : false);
+  // Unified tree (on-chain): use data.isActive directly from the transformed object
+  const isActivated = data.isActive;
 
   const currencySymbol = getNativeCurrencySymbol(chainId);
   const requiredAmount = 100;
@@ -108,7 +104,7 @@ export function RevenueTree({ data, userWalletAddress, isL2Only = true, activati
         {sortedLevels.map((level) => {
           const isCurrentUser = Boolean(userWalletAddress &&
             (level.walletAddress.toLowerCase() === userWalletAddress.toLowerCase() ||
-             (userWalletAddress.length >= 4 && level.walletAddress.includes(userWalletAddress.slice(-4)))));
+              (userWalletAddress.length >= 4 && level.walletAddress.includes(userWalletAddress.slice(-4)))));
           const levelShareIkas = getLevelShare(level.sharePercentage);
           return (
             <RevenueTreeLevel

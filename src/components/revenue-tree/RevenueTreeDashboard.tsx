@@ -7,6 +7,8 @@ import { RevenueTreeStats } from './RevenueTreeStats';
 import { RevenueTreeTabs } from './RevenueTreeTabs';
 import { RevenueTreeList } from './RevenueTreeList';
 import { RevenueTreeSidebar } from './RevenueTreeSidebar';
+import { RevenueTreeSimulator } from './RevenueTreeSimulator';
+import { RevenueTreeNetworkNudge } from './RevenueTreeNetworkNudge';
 import { RevenueTreeContentType } from '@/lib/revenue-tree/types';
 import { useRevenueTree } from '@/hooks/useRevenueTree';
 import { unifiedToRevenueTreeData } from '@/lib/revenue-tree/utils';
@@ -59,10 +61,10 @@ export function RevenueTreeDashboard() {
         <div className="space-y-6">
           {/* Header */}
           <div>
-            <h1 className="text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
+            <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
               Revenue Tree Dashboard
             </h1>
-            <p className="text-zinc-600 dark:text-zinc-400">
+            <p className="text-zinc-600 dark:text-zinc-400 text-sm sm:text-base">
               One tree per wallet • Activation at 100 KAS • Maintenance 1000 KAS/30d or 10M KREX + 100 KAS/30d
             </p>
           </div>
@@ -81,13 +83,18 @@ export function RevenueTreeDashboard() {
 
           {(userWalletAddress && isSupported) && (
             <>
-              {/* Stats Panels */}
+              {/* Network Nudge (hidden if referrer is active) */}
+              <RevenueTreeNetworkNudge />
+
               <RevenueTreeStats
                 totalRevenue={totalRevenue}
                 activeTrees={activeTrees}
                 totalDownline={totalDownline}
                 totalVolume={totalVolume}
               />
+
+              {/* The Payment Simulator */}
+              <RevenueTreeSimulator tree={tree} isLoading={isLoading} />
 
               {/* Tabs (single tree: "All" only) */}
               <RevenueTreeTabs activeTab={activeTab} onTabChange={setActiveTab} />

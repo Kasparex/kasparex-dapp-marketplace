@@ -46,6 +46,14 @@ export function RevenueTreeSidebar({
     { id: 'magazine', label: 'Magazines', count: 0 },
   ];
 
+  const handleCopyLink = () => {
+    if (!address) return;
+    const domain = typeof window !== 'undefined' ? window.location.origin : '';
+    const link = `${domain}/revenue-tree?ref=${address}`;
+    navigator.clipboard.writeText(link);
+    // In a deeper implementation, could trigger a toast notification here.
+  };
+
   const quickLinks = [
     {
       id: 'dashboard',
@@ -101,18 +109,17 @@ export function RevenueTreeSidebar({
             {quickLinks.map((link) => {
               const isActive = link.id === 'flow' ? pathname.startsWith('/revenue-tree/flow') : pathname === link.href;
               return (
-              <Link
-                key={link.id}
-                href={link.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
+                <Link
+                  key={link.id}
+                  href={link.href}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
                     ? 'bg-[#02abb8]/10 text-[#02abb8] border border-[#02abb8]/20'
                     : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
-                }`}
-              >
-                {link.icon}
-                <span>{link.label}</span>
-              </Link>
+                    }`}
+                >
+                  {link.icon}
+                  <span>{link.label}</span>
+                </Link>
               );
             })}
           </nav>
@@ -132,11 +139,27 @@ export function RevenueTreeSidebar({
               <span className="text-xs text-zinc-600 dark:text-zinc-400">Active Trees</span>
               <span className="text-sm font-black text-green-600 dark:text-green-400">{activeTrees}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-zinc-600 dark:text-zinc-400">Downline Users</span>
-              <span className="text-sm font-black text-purple-600 dark:text-purple-400">{totalDownline}</span>
-            </div>
           </div>
+        </div>
+
+        {/* Network Growth Block */}
+        <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-700">
+          <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
+            Grow Your Tree
+          </div>
+          <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-3">
+            Share your link. You&apos;ll become L1 (earning 2%) in your friend&apos;s trees forever!
+          </p>
+          <button
+            onClick={handleCopyLink}
+            disabled={!address}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:border-[#02abb8] dark:hover:border-[#02abb8] text-zinc-900 dark:text-white rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg className="w-4 h-4 text-[#02abb8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            {address ? 'Copy Invite Link' : 'Connect Wallet'}
+          </button>
         </div>
 
         {/* Content Type Filters */}

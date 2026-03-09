@@ -1450,50 +1450,9 @@
         "CommentCredits"
       ]
     },
-    "C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\contracts\\AffiliateManager.sol": {
-      "lastModificationDate": 1762879069572,
-      "contentHash": "de0180b24dbfd12c516e02405deee3bc",
-      "sourceName": "contracts/AffiliateManager.sol",
-      "solcConfig": {
-        "version": "0.8.28",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "viaIR": true,
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/access/Ownable.sol",
-        "@openzeppelin/contracts/utils/ReentrancyGuard.sol",
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.28"
-      ],
-      "artifacts": [
-        "AffiliateManager"
-      ]
-    },
     "C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\contracts\\RevenueTreeManager.sol": {
-      "lastModificationDate": 1771442727917,
-      "contentHash": "fadb556d516d290a3dda57b297ba0b53",
+      "lastModificationDate": 1773060901030,
+      "contentHash": "54becdd655efbb528eb187997fe07720",
       "sourceName": "contracts/RevenueTreeManager.sol",
       "solcConfig": {
         "version": "0.8.28",
@@ -1735,8 +1694,8 @@
       ]
     },
     "C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\contracts\\DonationEscrow.sol": {
-      "lastModificationDate": 1771754202117,
-      "contentHash": "d79bb201f6101fcabdf7ff1f13a180d9",
+      "lastModificationDate": 1771763971563,
+      "contentHash": "9d0655e357b594cc86646b485911e1bf",
       "sourceName": "contracts/DonationEscrow.sol",
       "solcConfig": {
         "version": "0.8.28",

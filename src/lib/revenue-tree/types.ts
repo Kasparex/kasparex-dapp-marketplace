@@ -19,11 +19,12 @@ export interface RevenueTreeLevel {
 export interface UnifiedRevenueTreeData {
   chainId: number;
   userWalletAddress: string;
-  /** Upline L1..L5 (L1 = self) */
-  upline: [string, string, string, string, string];
+  /** Upline snapshot L1..numLevels (L1 = direct referrer). */
+  upline: string[];
   lifetimeVolume: string;
   volumeLast30Days: string;
-  isActive: boolean;
+  /** Activity status per level */
+  isActiveAtLevel: boolean[];
   activatedAt: string | null;
   referralLink: string;
   totalEarned: string;
@@ -33,8 +34,10 @@ export interface UnifiedRevenueTreeData {
   referrer: string | null;
   /** Activation threshold (wei) for display. */
   activationThreshold: string;
-  /** Activity threshold (wei) for maintenance. */
-  activityThreshold: string;
+  /** Base activity threshold (wei) for maintenance. */
+  baseActivityThreshold: string;
+  /** Minimum transaction amount to count toward volume */
+  minVolumePerCall: string;
 }
 
 export interface RevenueTreeData {
