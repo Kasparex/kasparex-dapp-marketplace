@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773072639-a7d41ca",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix(rewards): Correct 5 iKAS volume bug, tGRID L2 UI sync, sidebar link, & 0x multiplier (by Kasparex)",
+      "date": "2026-03-09T17:10:20+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773070469-ae64a81",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: Type errors in RevenueTree and mockData from removed hasUserActivated (by Kasparex)",
