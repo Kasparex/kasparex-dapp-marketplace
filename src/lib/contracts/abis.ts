@@ -3194,6 +3194,11 @@ export const REVENUE_TREE_MANAGER_ABI = [
         "internalType": "address",
         "name": "payer",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalVolume",
+        "type": "uint256"
       }
     ],
     "name": "distributeToUpline",
@@ -3813,6 +3818,7 @@ export const REVENUE_TREE_MANAGER_ABI = [
     "type": "receive"
   }
 ] as const;
+
 
 
 export const GENESIS_BADGE_ABI = [

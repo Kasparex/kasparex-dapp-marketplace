@@ -143,16 +143,17 @@ contract RevenueTreeManager is Ownable, ReentrancyGuard {
 
     /**
      * @dev Distribute msg.value to payer's upline (Push-up). Platform gets pull-payout.
+     * @param totalVolume The full transactional value processed (e.g. 10 iKAS), used for tier maintenance. msg.value is only the tree's split (e.g. 5 iKAS).
      */
-    function distributeToUpline(address payer) external payable onlyAuthorized nonReentrant {
+    function distributeToUpline(address payer, uint256 totalVolume) external payable onlyAuthorized nonReentrant {
         if (payer == address(0) || msg.value == 0) return;
 
         uint256 dayIndex = block.timestamp / SECONDS_PER_DAY;
         
         // Anti-spam volume rule
-        if (msg.value >= minVolumePerCall) {
-            lifetimeVolume[payer] += msg.value;
-            volumeByDay[payer][dayIndex] += msg.value;
+        if (totalVolume >= minVolumePerCall) {
+            lifetimeVolume[payer] += totalVolume;
+            volumeByDay[payer][dayIndex] += totalVolume;
         }
 
         // Activate if crossing threshold

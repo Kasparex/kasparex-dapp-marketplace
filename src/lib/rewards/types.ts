@@ -74,18 +74,18 @@ export interface RewardResult {
   // Base rewards (before multipliers)
   baseGRT: number;
   baseXP: number;
-  
+
   // Final rewards (after multipliers)
   finalGRT: number;
   finalXP: number;
-  
+
   // Multipliers breakdown
   krexMultiplier: number;
   nftMultiplier: number; // From NFT ownership
   nodeMultiplier: number; // From node provider status
   seasonalMultiplier: number;
   totalMultiplier: number; // All multipliers combined
-  
+
   // Fees
   feePercent: number;
   feeAmount: number;
@@ -93,10 +93,10 @@ export interface RewardResult {
     kasparex: number;
     grtTreasury: number;
   };
-  
+
   // Points
   pointsMultiplier: number;
-  
+
   // Supply exhaustion calculations (GRT only)
   supplyMetrics?: {
     daysUntilGRTExhaustion: number;
@@ -109,10 +109,10 @@ export const KREX_TIERS: Record<KREXTier, KREXTierConfig> = {
   Tier0: {
     tier: 'Tier0',
     minKREX: 0,
-    multiplier: 1,
+    multiplier: 0,
     feeReduction: 0,
     costReduction: 0,
-    pointsMultiplier: 1,
+    pointsMultiplier: 0,
     label: 'Tier 0',
     description: '0 KREX',
   },

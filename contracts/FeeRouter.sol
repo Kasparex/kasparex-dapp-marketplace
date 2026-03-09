@@ -64,7 +64,7 @@ contract FeeRouter is Ownable {
         if (msg.value == 0) return;
         uint256 toTree = (msg.value * treeBps) / BPS;
         uint256 toTreasury = msg.value - toTree;
-        if (toTree > 0) revenueTreeManager.distributeToUpline{value: toTree}(payer);
+        if (toTree > 0) revenueTreeManager.distributeToUpline{value: toTree}(payer, msg.value);
         if (toTreasury > 0) feeCollector.forwardFee{value: toTreasury}();
         emit Forwarded(payer, msg.value, toTree, toTreasury);
     }
@@ -90,7 +90,7 @@ contract FeeRouter is Ownable {
         require(bps <= BPS, "FeeRouter: treeBps must be <= 10000");
         uint256 toTree = (msg.value * bps) / BPS;
         uint256 toTreasury = msg.value - toTree;
-        if (toTree > 0) revenueTreeManager.distributeToUpline{value: toTree}(payer);
+        if (toTree > 0) revenueTreeManager.distributeToUpline{value: toTree}(payer, msg.value);
         if (toTreasury > 0) feeCollector.forwardFee{value: toTreasury}();
 
         uint256 baseWei = baseRewardWei[transactionType];

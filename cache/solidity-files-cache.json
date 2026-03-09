@@ -1451,8 +1451,8 @@
       ]
     },
     "C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\contracts\\RevenueTreeManager.sol": {
-      "lastModificationDate": 1773060901030,
-      "contentHash": "54becdd655efbb528eb187997fe07720",
+      "lastModificationDate": 1773072359506,
+      "contentHash": "da50b345b18de789a745c24c4d45cd48",
       "sourceName": "contracts/RevenueTreeManager.sol",
       "solcConfig": {
         "version": "0.8.28",
@@ -1529,8 +1529,8 @@
       ]
     },
     "C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\contracts\\FeeRouter.sol": {
-      "lastModificationDate": 1771755509483,
-      "contentHash": "c12a3fb896efbe6f087c3565545044ff",
+      "lastModificationDate": 1773072375302,
+      "contentHash": "6c9d41d2bc11f5894b4216a2f00f6dc2",
       "sourceName": "contracts/FeeRouter.sol",
       "solcConfig": {
         "version": "0.8.28",

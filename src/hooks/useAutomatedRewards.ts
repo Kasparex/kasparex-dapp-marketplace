@@ -52,10 +52,10 @@ export function useAutomatedRewards(): UseAutomatedRewardsReturn {
   const { balance: krexBalance, tier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
   const queryClient = useQueryClient();
-  
+
   const [isDistributing, setIsDistributing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const { writeContract, data: rewardTxHash, isPending: isPendingReward } = useWriteContract();
   const { isLoading: isConfirmingReward, isSuccess: isRewardSuccess } = useWaitForTransactionReceipt({
     hash: rewardTxHash,
@@ -103,7 +103,7 @@ export function useAutomatedRewards(): UseAutomatedRewardsReturn {
     try {
       // Determine network type
       const networkType = getDAppNetworkType(dapp);
-      
+
       // Get user address based on network
       let userAddress: Address | string;
       if (networkType === 'L2') {
@@ -130,6 +130,12 @@ export function useAutomatedRewards(): UseAutomatedRewardsReturn {
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('dapp-transaction-success'));
         }
+
+        // Refresh balances after successful transaction
+        queryClient.invalidateQueries({ queryKey: ['gridToken'] });
+        queryClient.invalidateQueries({ queryKey: ['dAppToken'] });
+        queryClient.invalidateQueries({ queryKey: ['tokenBalance'] });
+
         return { success: true };
       } else if (networkType === 'L1') {
         // L1: Use backend API
