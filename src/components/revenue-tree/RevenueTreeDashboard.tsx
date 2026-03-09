@@ -94,7 +94,7 @@ export function RevenueTreeDashboard() {
               />
 
               {/* The Payment Simulator */}
-              <RevenueTreeSimulator tree={tree} isLoading={isLoading} />
+              <RevenueTreeSimulator />
 
               {/* Tabs (single tree: "All" only) */}
               <RevenueTreeTabs activeTab={activeTab} onTabChange={setActiveTab} />
