@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773077082-bba0743",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat: upgradeable revenue tree, redesign simulator, and fix tGRID l2 tracking (by Kasparex)",
+      "date": "2026-03-09T18:24:21+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773074105-0d647de",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix(simulator): add potential earnings correctly and redeploy testnet contracts (by Kasparex)",
