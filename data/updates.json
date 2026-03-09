@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773078015-d712136",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: remove outdated props from RevenueTreeSimulator (by Kasparex)",
+      "date": "2026-03-09T18:39:19+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773077082-bba0743",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: feat: upgradeable revenue tree, redesign simulator, and fix tGRID l2 tracking (by Kasparex)",
