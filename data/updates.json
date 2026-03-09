@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773070091-04e4dba",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat: Revenue Tree Manager v5 implementation & UI updates (by Kasparex)",
+      "date": "2026-03-09T16:26:36+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1771768919-c73769a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: vDonations: transaction UI modals, L2 creator address, interactive Revenue Tree (by Kasparex)",
