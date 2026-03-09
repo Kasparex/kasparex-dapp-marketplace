@@ -157,11 +157,17 @@ export function RevenueTreeSimulator({ tree, isLoading }: RevenueTreeSimulatorPr
                                     </div>
 
                                     {/* Right: Currency amount */}
-                                    <div className="mt-2 sm:mt-0 shrink-0 font-bold text-lg tabular-nums">
-                                        <span className={goesToGenesis ? 'text-zinc-500 dark:text-zinc-400' : 'text-[#02abb8]'}>
-                                            {amountOut > 0 ? `+${amountOut.toLocaleString(undefined, { maximumFractionDigits: 4 })}` : '0'}
-                                        </span>
-                                        <span className={`text-xs ml-1 ${goesToGenesis ? 'text-zinc-400' : 'text-[#02abb8]/70'}`}>{symbol}</span>
+                                    <div className="mt-2 sm:mt-0 shrink-0 font-bold text-lg tabular-nums flex flex-col items-end">
+                                        <div className="flex items-center">
+                                            <span className={goesToGenesis ? 'text-zinc-500 dark:text-zinc-400' : 'text-[#02abb8]'}>
+                                                {amountOut > 0 ? `+${amountOut.toLocaleString(undefined, { maximumFractionDigits: 4 })}` : '0'}
+                                            </span>
+                                            <span className={`text-xs ml-1 ${goesToGenesis ? 'text-zinc-400' : 'text-[#02abb8]/70'}`}>{symbol}</span>
+                                        </div>
+                                        {/* Added Potential Earnings */}
+                                        <div className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">
+                                            Potential Earnings: {amountOut > 0 ? `+${amountOut.toLocaleString(undefined, { maximumFractionDigits: 4 })}` : '0'} {symbol}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
