@@ -30,7 +30,10 @@ function getSidebarStats(tree: UnifiedRevenueTreeData | MockFlowTreeData | null)
     tree && 'totalEarned' in tree && tree.totalEarned
       ? parseFloat(formatEther(BigInt(tree.totalEarned)))
       : 0;
-  const activeTrees = tree.isActive ? 1 : 0;
+  const activeTrees =
+    tree && 'activatedAt' in tree
+      ? (tree.activatedAt ? 1 : 0)
+      : (tree && 'isActive' in tree ? ((tree as any).isActive ? 1 : 0) : 0);
   const totalDownline =
     tree && 'treesWhereOwnerAtLevel' in tree
       ? tree.treesWhereOwnerAtLevel.slice(1).reduce((a, b) => a + b, 0)

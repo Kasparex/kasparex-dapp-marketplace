@@ -5,7 +5,7 @@
  */
 
 import { RevenueTreeData, RevenueTreeLevel } from './types';
-import { generateRevenueTreeLevels, hasUserActivated } from './utils';
+import { generateRevenueTreeLevels } from './utils';
 import { getStoredReferral } from './referral';
 
 /**
@@ -19,13 +19,13 @@ export function generateMockRevenueTree(
   isActive: boolean = true
 ): RevenueTreeData {
   const contentType = 'dapp';
-  
+
   // Check if user has activated
-  const isActivated = userWalletAddress ? hasUserActivated(userWalletAddress, contentType, dappSlug) : false;
-  
+  const isActivated = userWalletAddress ? true : false;
+
   // Get referral address if exists
   const referrerAddress = typeof window !== 'undefined' ? getStoredReferral(contentType, dappSlug) : null;
-  
+
   // Generate levels based on activation status and referral chain
   const levels = generateRevenueTreeLevels(
     userWalletAddress,
@@ -36,7 +36,7 @@ export function generateMockRevenueTree(
   );
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-  const referralLink = userWalletAddress 
+  const referralLink = userWalletAddress
     ? `${baseUrl}/dapps/${dappSlug}?ref=${userWalletAddress}`
     : `${baseUrl}/dapps/${dappSlug}`;
 
@@ -66,13 +66,13 @@ export function generateMockMagazineRevenueTree(
   isActive: boolean = true
 ): RevenueTreeData {
   const contentType = 'magazine';
-  
+
   // Check if user has activated
-  const isActivated = userWalletAddress ? hasUserActivated(userWalletAddress, contentType, magazineSlug) : false;
-  
+  const isActivated = userWalletAddress ? true : false;
+
   // Get referral address if exists
   const referrerAddress = typeof window !== 'undefined' ? getStoredReferral(contentType, magazineSlug) : null;
-  
+
   // Generate levels based on activation status and referral chain
   const levels = generateRevenueTreeLevels(
     userWalletAddress,
@@ -83,7 +83,7 @@ export function generateMockMagazineRevenueTree(
   );
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-  const referralLink = userWalletAddress 
+  const referralLink = userWalletAddress
     ? `${baseUrl}/magazines/${magazineSlug}/${issueNumber}?ref=${userWalletAddress}`
     : `${baseUrl}/magazines/${magazineSlug}/${issueNumber}`;
 
@@ -113,7 +113,7 @@ export function generateDonationRevenueTree(
   isActive: boolean = true
 ): RevenueTreeData {
   const contentType = 'donation';
-  const isActivated = userWalletAddress ? hasUserActivated(userWalletAddress, contentType, creatorAddress) : false;
+  const isActivated = userWalletAddress ? true : false;
   const referrerAddress = typeof window !== 'undefined' ? getStoredReferral(contentType, creatorAddress) : null;
   const levels = generateRevenueTreeLevels(
     userWalletAddress,
