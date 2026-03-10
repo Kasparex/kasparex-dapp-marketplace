@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773160073-d4377c8",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat: match Tree Flow tables and add info modals (by Kasparex)",
+      "date": "2026-03-10T17:27:20+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773078015-d712136",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: remove outdated props from RevenueTreeSimulator (by Kasparex)",
