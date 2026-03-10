@@ -42,10 +42,64 @@ export interface RevenueTreeFlowViewProps {
   embedded?: boolean;
 }
 
+interface InfoModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  content: string;
+}
+
+function InfoModal({ isOpen, onClose, title, content }: InfoModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="bg-white dark:bg-zinc-900 rounded-xl max-w-sm w-full p-6 shadow-xl border border-zinc-200 dark:border-zinc-700 animate-in fade-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold text-zinc-900 dark:text-white">{title}</h3>
+          <button onClick={onClose} className="text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed">
+          {content}
+        </p>
+        <button
+          onClick={onClose}
+          className="mt-6 w-full py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white rounded-lg font-medium transition-colors"
+        >
+          Got it
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function InfoIcon({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      className="inline-flex items-center justify-center w-4 h-4 ml-1.5 text-zinc-400 hover:text-[#02abb8] bg-zinc-100 hover:bg-[#02abb8]/10 dark:bg-zinc-800 dark:hover:bg-[#02abb8]/20 rounded-full transition-colors"
+      title="More information"
+    >
+      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </button>
+  );
+}
+
 export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = false }: RevenueTreeFlowViewProps) {
   const { address: connectedAddress } = useAccount();
   const isDemo = isDemoWalletSlug(walletAddress);
   const mockTree = isDemo ? getMockFlowTree(walletAddress) : null;
+  const [activeModal, setActiveModal] = useState<string | null>(null);
   const [modalRow, setModalRow] = useState<{
     level: number;
     sharePct: number;
@@ -166,58 +220,117 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
             </div>
           </div>
 
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/30 overflow-hidden">
-            <div className="hidden sm:grid sm:grid-cols-[80px_1fr_100px_100px] gap-x-3 px-4 py-3 bg-zinc-100 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-700 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-              <div className="text-left">Levels</div>
-              <div className="text-left min-w-0">Share / Wallets</div>
-              <div className="text-left" title="Trees where you're at this level">Trees</div>
-              <div className="text-right">Share in {symbol}</div>
-            </div>
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden relative">
+            <InfoModal
+              isOpen={activeModal === 'level'}
+              onClose={() => setActiveModal(null)}
+              title="Level"
+              content="The level of separation between you and the referenced upline user."
+            />
+            <InfoModal
+              isOpen={activeModal === 'share'}
+              onClose={() => setActiveModal(null)}
+              title="Share %"
+              content="The precise percentage of your dApp spending volume that gets pushed up to this specific level."
+            />
+            <InfoModal
+              isOpen={activeModal === 'wallet'}
+              onClose={() => setActiveModal(null)}
+              title="Wallet (Referrer)"
+              content="The address of the user positioned at this level in your upline. Inactive or empty positions automatically route to Genesis."
+            />
+            <InfoModal
+              isOpen={activeModal === 'active'}
+              onClose={() => setActiveModal(null)}
+              title="Active Downline"
+              content="The number of active Revenue Trees where you are positioned precisely at this depth."
+            />
+            <InfoModal
+              isOpen={activeModal === 'network'}
+              onClose={() => setActiveModal(null)}
+              title="Network Share"
+              content="Your cumulative earnings generated by users residing at this depth in your network."
+            />
 
-            {rowsTopToBottom.map((row) => {
-              const isActiveNode = tree && 'isActiveAtLevel' in tree && tree.isActiveAtLevel[row.level - 1];
-              const isRealWallet = row.wallet && row.wallet !== '0x0000000000000000000000000000000000000000';
-              const receives = isActiveNode && isRealWallet;
-
-              return (
-                <button
-                  type="button"
-                  key={row.level}
-                  onClick={() => setModalRow(row)}
-                  className="w-full flex flex-col sm:grid sm:grid-cols-[80px_1fr_100px_100px] gap-2 sm:gap-x-3 px-4 py-3 border-b border-zinc-200 dark:border-zinc-700 last:border-b-0 items-start sm:items-center text-left cursor-pointer hover:bg-[#02abb8]/5 dark:hover:bg-[#02abb8]/10 transition-colors"
-                >
-                  <div className="flex items-center gap-3 sm:block">
-                    <div className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#02abb8]/20 text-[#02abb8] font-black text-sm">
-                      {row.level}
-                    </div>
-                    <div className="sm:hidden font-semibold text-zinc-900 dark:text-white">{row.sharePct}% Share</div>
-                  </div>
-
-                  <div className="min-w-0 w-full pl-11 sm:pl-0">
-                    <div className="hidden sm:block font-semibold text-zinc-900 dark:text-white">{row.sharePct}%</div>
-                    <div className="flex items-center gap-2">
-                      <div className={`font-mono text-xs truncate ${!receives ? 'text-zinc-400 line-through' : 'text-zinc-600 dark:text-zinc-400'}`} title={row.wallet}>
-                        {row.wallet ? walletDisplay(row.wallet, isDemo) : '—'}
+            <div className="p-4 sm:p-6 bg-zinc-50/50 dark:bg-zinc-900/50 overflow-x-auto">
+              <table className="w-full text-left min-w-[500px]">
+                <thead>
+                  <tr className="border-b border-zinc-200 dark:border-zinc-700 text-sm text-zinc-500 dark:text-zinc-400">
+                    <th className="pb-3 font-medium">
+                      <div className="flex items-center">
+                        Level <InfoIcon onClick={() => setActiveModal('level')} />
                       </div>
-                      {!receives && <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-500 shrink-0">Genesis</span>}
-                    </div>
-                  </div>
+                    </th>
+                    <th className="pb-3 font-medium">
+                      <div className="flex items-center">
+                        Share % <InfoIcon onClick={() => setActiveModal('share')} />
+                      </div>
+                    </th>
+                    <th className="pb-3 font-medium">
+                      <div className="flex items-center">
+                        Wallet (Referrer) <InfoIcon onClick={() => setActiveModal('wallet')} />
+                      </div>
+                    </th>
+                    <th className="pb-3 font-medium w-36">
+                      <div className="flex items-center">
+                        Active Downline <InfoIcon onClick={() => setActiveModal('active')} />
+                      </div>
+                    </th>
+                    <th className="pb-3 font-medium text-right">
+                      <div className="flex items-center justify-end">
+                        Network Share <InfoIcon onClick={() => setActiveModal('network')} />
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                  {rowsTopToBottom.map((row) => {
+                    const isActiveNode = tree && 'isActiveAtLevel' in tree && tree.isActiveAtLevel[row.level - 1];
+                    const isRealWallet = row.wallet && row.wallet !== '0x0000000000000000000000000000000000000000';
+                    const receives = isActiveNode && isRealWallet;
 
-                  <div className="hidden sm:block text-sm text-zinc-600 dark:text-zinc-400 tabular-nums">
-                    {row.treesAtLevel > 0 ? row.treesAtLevel : '—'}
-                  </div>
-
-                  <div className="w-full sm:w-auto pl-11 sm:pl-0 flex justify-between sm:block text-sm tabular-nums">
-                    <span className="sm:hidden text-zinc-500">Tree Share:</span>
-                    <span className={`font-semibold ${!receives ? 'text-zinc-400' : 'text-[#02abb8]'}`}>
-                      {row.revenueShareWei
-                        ? `${parseFloat(formatEther(BigInt(row.revenueShareWei))).toLocaleString(undefined, { maximumFractionDigits: 2 })} ${symbol}`
-                        : '—'}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
+                    return (
+                      <tr
+                        key={row.level}
+                        className="text-sm cursor-pointer hover:bg-[#02abb8]/5 dark:hover:bg-[#02abb8]/10 transition-colors"
+                        onClick={() => setModalRow(row)}
+                      >
+                        <td className="py-4">
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center justify-center w-8 h-8 rounded-full font-black text-xs bg-[#02abb8]/10 text-[#02abb8]">
+                              L{row.level}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 font-semibold text-zinc-900 dark:text-zinc-100">
+                          {row.sharePct}%
+                        </td>
+                        <td className="py-4 font-mono text-zinc-600 dark:text-zinc-400">
+                          <div className="flex items-center gap-2">
+                            <span className={`truncate ${!receives ? 'text-zinc-400 line-through' : 'text-zinc-600 dark:text-zinc-400'}`} title={row.wallet}>
+                              {row.wallet ? walletDisplay(row.wallet, isDemo) : '—'}
+                            </span>
+                            {!receives && <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-500 shrink-0">Genesis</span>}
+                          </div>
+                        </td>
+                        <td className="py-4">
+                          <div className="font-semibold text-zinc-900 dark:text-white tabular-nums">
+                            {row.treesAtLevel > 0 ? row.treesAtLevel.toLocaleString() : '—'}
+                          </div>
+                        </td>
+                        <td className="py-4 text-right">
+                          <div className={`font-bold tabular-nums ${!receives ? 'text-zinc-400' : 'text-[#02abb8]'}`}>
+                            {row.revenueShareWei
+                              ? `${parseFloat(formatEther(BigInt(row.revenueShareWei))).toLocaleString(undefined, { maximumFractionDigits: 2 })} ${symbol}`
+                              : '—'}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <RevenueTreeFlowLevelModal

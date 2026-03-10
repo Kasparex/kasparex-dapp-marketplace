@@ -13,6 +13,59 @@ const LEVEL_SHARES = [
     REVENUE_SHARE_PERCENTAGES.LEVEL_05,
 ];
 
+interface InfoModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    title: string;
+    content: string;
+}
+
+function InfoModal({ isOpen, onClose, title, content }: InfoModalProps) {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+            <div
+                className="bg-white dark:bg-zinc-900 rounded-xl max-w-sm w-full p-6 shadow-xl border border-zinc-200 dark:border-zinc-700 animate-in fade-in zoom-in-95 duration-200"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-bold text-zinc-900 dark:text-white">{title}</h3>
+                    <button onClick={onClose} className="text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed">
+                    {content}
+                </p>
+                <button
+                    onClick={onClose}
+                    className="mt-6 w-full py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white rounded-lg font-medium transition-colors"
+                >
+                    Got it
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function InfoIcon({ onClick }: { onClick: () => void }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className="inline-flex items-center justify-center w-4 h-4 ml-1.5 text-zinc-400 hover:text-[#02abb8] bg-zinc-100 hover:bg-[#02abb8]/10 dark:bg-zinc-800 dark:hover:bg-[#02abb8]/20 rounded-full transition-colors"
+            title="More information"
+        >
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </button>
+    );
+}
+
 export function RevenueTreeSimulator() {
     const chainId = useChainId();
     const symbol = getNativeCurrencySymbol(chainId);
@@ -20,6 +73,9 @@ export function RevenueTreeSimulator() {
     // State for the calculator
     const [averageSpend, setAverageSpend] = useState<string>('100');
     const [levelUsers, setLevelUsers] = useState<number[]>([10, 50, 100, 250, 500]);
+
+    // Modal state
+    const [activeModal, setActiveModal] = useState<string | null>(null);
 
     const handleUserChange = (index: number, value: string) => {
         const newUsers = [...levelUsers];
@@ -33,7 +89,40 @@ export function RevenueTreeSimulator() {
     let totalUsers = 0;
 
     return (
-        <div className="rounded-xl border border-[#02abb8]/30 dark:border-[#02abb8]/20 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden">
+        <div className="rounded-xl border border-[#02abb8]/30 dark:border-[#02abb8]/20 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden relative">
+
+            {/* Modals */}
+            <InfoModal
+                isOpen={activeModal === 'level'}
+                onClose={() => setActiveModal(null)}
+                title="Level"
+                content="The level of separation between you and the referred user. Level 1 means you directly referred them. Level 2 means your Level 1 referral invited them, and so on."
+            />
+            <InfoModal
+                isOpen={activeModal === 'share'}
+                onClose={() => setActiveModal(null)}
+                title="Share %"
+                content="The precise percentage of the transaction volume that you receive as a direct payout when users on this level spend inside a qualified dApp."
+            />
+            <InfoModal
+                isOpen={activeModal === 'earningsPer'}
+                onClose={() => setActiveModal(null)}
+                title="Earnings per User"
+                content="The estimated amount you earn from a single user on this specific level, assuming they spend the 'Avg Spend' amount."
+            />
+            <InfoModal
+                isOpen={activeModal === 'referred'}
+                onClose={() => setActiveModal(null)}
+                title="Referred Users"
+                content="The total number of active users residing at this depth in your referral network."
+            />
+            <InfoModal
+                isOpen={activeModal === 'potential'}
+                onClose={() => setActiveModal(null)}
+                title="Potential Earnings"
+                content="The total cumulative earnings generated by all users on this specific level (Earnings per User multiplied by Referred Users)."
+            />
+
             <div className="p-4 sm:p-6 border-b border-zinc-200 dark:border-zinc-700 bg-gradient-to-r from-[#02abb8]/5 to-transparent">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
@@ -71,11 +160,31 @@ export function RevenueTreeSimulator() {
                 <table className="w-full text-left min-w-[500px]">
                     <thead>
                         <tr className="border-b border-zinc-200 dark:border-zinc-700 text-sm text-zinc-500 dark:text-zinc-400">
-                            <th className="pb-3 font-medium">Level</th>
-                            <th className="pb-3 font-medium">Share %</th>
-                            <th className="pb-3 font-medium">Earnings per User</th>
-                            <th className="pb-3 font-medium w-32">Referred Users</th>
-                            <th className="pb-3 font-medium text-right">Potential Earnings</th>
+                            <th className="pb-3 font-medium">
+                                <div className="flex items-center">
+                                    Level <InfoIcon onClick={() => setActiveModal('level')} />
+                                </div>
+                            </th>
+                            <th className="pb-3 font-medium">
+                                <div className="flex items-center">
+                                    Share % <InfoIcon onClick={() => setActiveModal('share')} />
+                                </div>
+                            </th>
+                            <th className="pb-3 font-medium">
+                                <div className="flex items-center">
+                                    Earnings per User <InfoIcon onClick={() => setActiveModal('earningsPer')} />
+                                </div>
+                            </th>
+                            <th className="pb-3 font-medium w-32">
+                                <div className="flex items-center">
+                                    Referred Users <InfoIcon onClick={() => setActiveModal('referred')} />
+                                </div>
+                            </th>
+                            <th className="pb-3 font-medium text-right">
+                                <div className="flex items-center justify-end">
+                                    Potential Earnings <InfoIcon onClick={() => setActiveModal('potential')} />
+                                </div>
+                            </th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">

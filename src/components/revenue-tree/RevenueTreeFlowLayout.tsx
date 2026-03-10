@@ -81,34 +81,9 @@ export function RevenueTreeFlowLayout({ walletAddress }: RevenueTreeFlowLayoutPr
         />
       </div>
 
-      {/* Main: two columns — table (left) | demo panel (right) */}
-      <div className="flex-1 min-w-0 flex flex-col lg:flex-row gap-4 lg:gap-6 p-4 sm:p-6 lg:p-8 lg:pl-6">
-        <div className="flex-1 min-w-0">
-          <RevenueTreeFlowView walletAddress={walletAddress} tree={tree} embedded />
-        </div>
-        <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 lg:sticky lg:top-8 h-fit space-y-4">
-          {/* Flow header: title, description, Tree for (highlighted), demo note */}
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 p-4">
-            <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
-              Revenue Tree Flow
-            </h2>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
-              L1=you, L2=referrer, L3–L5 up the chain (Genesis fills gaps). Your spend uses this tree (2% you, 5–45% L2–L5). Referrals put you at L2+ in their trees.
-            </p>
-            <div className="rounded-lg bg-[#02abb8]/15 dark:bg-[#02abb8]/20 border border-[#02abb8]/40 px-3 py-2.5">
-              <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Tree for:</span>
-              <div className="text-base font-bold text-[#02abb8] mt-0.5 font-mono break-all" title={walletAddress}>
-                {formatWalletDisplay(walletAddress, isDemo)}
-              </div>
-            </div>
-            {isDemo && (
-              <p className="mt-3 text-sm text-amber-600 dark:text-amber-400">
-                Demo data.
-              </p>
-            )}
-          </div>
-          <RevenueTreeFlowDemoPanel tree={tree} symbol={symbol} />
-        </div>
+      {/* Main: table only */}
+      <div className="flex-1 min-w-0 flex flex-col p-4 sm:p-6 lg:p-8 lg:pl-6">
+        <RevenueTreeFlowView walletAddress={walletAddress} tree={tree} />
       </div>
     </div>
   );
