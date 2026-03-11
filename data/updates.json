@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773235460-52f25d6",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Cleanup obsolete Revenue Tree files (by Kasparex)",
+      "date": "2026-03-11T14:24:03+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773235362-b51a5b0",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Revenue Tree slug updates and UI refinements (by Kasparex)",
