@@ -114,33 +114,33 @@ export default function RevenueTreeDemoPage() {
     },
     {
       number: 2,
-      title: 'Phase 2: Invite Bob',
-      description: 'Your link is ready. Share it with Bob. He will appear on your Level 1 (L1).',
-      action: levelUsers[0] > 0 ? 'Bob Referred' : 'Invite Bob',
+      title: 'Phase 2: Network Seeding',
+      description: 'Your link is ready. Alice refers Bob and Dave. They both appear on your Level 1 (L1).',
+      action: levelUsers[0] > 0 ? 'Referrals Added' : 'Invite Bob & Dave',
       completed: levelUsers[0] > 0,
       disabled: !isMockActivated,
     },
     {
       number: 3,
-      title: 'Phase 3: Bob Activates',
-      description: 'Bob spends 100 KAS. Because you are active, you receive 2% (2 KAS) natively.',
+      title: 'Phase 3: Revenue Flow',
+      description: 'Bob spends 100 KAS. Because Alice is active, she receives 2% (2 KAS) natively.',
       action: currentStep > 3 ? 'Commission Earned' : 'Bob Pays 100 KAS',
       completed: currentStep > 3,
       disabled: levelUsers[0] === 0,
     },
     {
       number: 4,
-      title: 'Phase 4: Charlie Joins',
-      description: 'Bob refers Charlie. Charlie is your L2. Bob earns 2%, you earn 5% from Charlie.',
-      action: currentStep > 4 ? 'Network Scaled' : 'Charlie Activates',
+      title: 'Phase 4: Network Depth',
+      description: 'Bob refers Charlie and Dave refers Eve. Your network now spans 2 levels deep and 2 users wide.',
+      action: currentStep > 4 ? 'Depth Increased' : 'Grow to Level 2',
       completed: currentStep > 4,
       disabled: currentStep < 4,
     },
     {
       number: 5,
-      title: 'Phase 5: Exponential Scale',
-      description: 'Watch your tree grow from 3 users to hundreds. Maximize your rewards by maintaining your active status.',
-      action: levelUsers[4] > 0 ? 'Fully Scaled' : 'Simulate 5 Levels',
+      title: 'Phase 5: Full 5-Level Scale',
+      description: 'The tree scales to Henry at Level 5. Observe how revenue propagates through the entire chain back to Alice.',
+      action: levelUsers[4] > 0 ? 'Fully Scaled' : 'Simulate L5 payment',
       completed: levelUsers[4] > 0,
       disabled: currentStep < 5,
     },
@@ -157,19 +157,20 @@ export default function RevenueTreeDemoPage() {
       addLog('Alice activated! She is now L1 root.', 'success');
       setCurrentStep(2);
     } else if (stepNumber === 2) {
-      setLevelUsers([1, 0, 0, 0, 0]);
-      addLog('Bob joined Alice\'s network via referral link.', 'info');
+      setLevelUsers([2, 0, 0, 0, 0]);
+      addLog('Bob and Dave joined Alice\'s network as direct referrals.', 'info');
       setCurrentStep(3);
     } else if (stepNumber === 3) {
       addLog('Bob spent 100 KAS. Alice earned 2 KAS!', 'money');
       setCurrentStep(4);
     } else if (stepNumber === 4) {
-      setLevelUsers([1, 1, 0, 0, 0]);
-      addLog('Charlie activated. Bob earned 2 KAS, Alice earned 5 KAS!', 'money');
+      setLevelUsers([2, 2, 0, 0, 0]);
+      addLog('Charlie and Eve join. Alice now has nodes at Level 2.', 'info');
       setCurrentStep(5);
     } else if (stepNumber === 5) {
-      setLevelUsers([12, 144, 1728, 5000, 10000]);
-      addLog('Tree exploded! Alice is now receiving network shares from 5 levels.', 'success');
+      setLevelUsers([2, 2, 1, 1, 1]);
+      addLog('Henry joined at Level 5! Simulating deep revenue propagation...', 'success');
+      addLog('Henry paid 100 KAS. Alice earns 45% (45 KAS) from L5!', 'money');
       setCurrentStep(6);
     }
   };
@@ -212,37 +213,6 @@ export default function RevenueTreeDemoPage() {
               <p className="text-zinc-600 dark:text-zinc-400 text-sm sm:text-base">
                 Experience the logic of our native revenue distribution system. Follow the interactive steps to activate your tree and simulate growth.
               </p>
-            </div>
-
-            {/* Story Visualization & Log */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                    <RevenueTreeFlowStory currentStep={currentStep} />
-                </div>
-                <div className="bg-zinc-50 dark:bg-zinc-950 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col overflow-hidden">
-                    <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-                        <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Network Event Log</h4>
-                    </div>
-                    <div className="flex-1 p-4 space-y-3 overflow-y-auto">
-                        {storyLog.map((log, i) => (
-                            <div key={i} className={`text-xs p-2.5 rounded-xl border animate-in fade-in slide-in-from-right-4 duration-300 ${
-                                log.type === 'money' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' :
-                                log.type === 'success' ? 'bg-[#02abb8]/10 border-[#02abb8]/20 text-[#02abb8]' :
-                                'bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-500'
-                            }`}>
-                                <div className="flex items-start gap-2">
-                                    <span className="mt-0.5">{log.type === 'money' ? '💰' : log.type === 'success' ? '✨' : '📝'}</span>
-                                    <p className="font-bold leading-relaxed">{log.msg}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="p-4 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800">
-                        <p className="text-[10px] font-bold text-zinc-400 uppercase text-center italic tracking-tight">
-                            Real-time smart contract events simulated
-                        </p>
-                    </div>
-                </div>
             </div>
 
             {/* Interactive Wizard */}
@@ -291,6 +261,37 @@ export default function RevenueTreeDemoPage() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Story Visualization & Log */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                    <RevenueTreeFlowStory currentStep={currentStep} />
+                </div>
+                <div className="bg-zinc-50 dark:bg-zinc-950 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col overflow-hidden">
+                    <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+                        <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Network Event Log</h4>
+                    </div>
+                    <div className="flex-1 p-4 space-y-3 overflow-y-auto max-h-[480px]">
+                        {storyLog.map((log, i) => (
+                            <div key={i} className={`text-xs p-2.5 rounded-xl border animate-in fade-in slide-in-from-right-4 duration-300 ${
+                                log.type === 'money' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' :
+                                log.type === 'success' ? 'bg-[#02abb8]/10 border-[#02abb8]/20 text-[#02abb8]' :
+                                'bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-500'
+                            }`}>
+                                <div className="flex items-start gap-2">
+                                    <span className="mt-0.5">{log.type === 'money' ? '💰' : log.type === 'success' ? '✨' : '📝'}</span>
+                                    <p className="font-bold leading-relaxed">{log.msg}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="p-4 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800">
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase text-center italic tracking-tight">
+                            Real-time smart contract events simulated
+                        </p>
+                    </div>
+                </div>
             </div>
 
             {/* Dashboard Content */}
