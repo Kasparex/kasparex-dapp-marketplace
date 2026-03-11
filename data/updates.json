@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773234119-21fc68e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix(revenue-tree): fix type error by updating useRevenueTree calls to use address property (by Kasparex)",
+      "date": "2026-03-11T14:01:41+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773233629-696c225",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: feat(revenue-tree): migrate to /tree slug, support public address viewing, and redesign level modals (by Kasparex)",
