@@ -81,13 +81,15 @@ export function RevenueTreeLevelModal({
             <div className="flex items-center justify-center w-10 h-10 rounded-xl font-black text-lg bg-[#02abb8] text-white shadow-lg shadow-[#02abb8]/20">
               L{level.level}
             </div>
-            <div>
-                <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight leading-none">
-                    Structural Level Details
-                </h3>
-                <div className="flex items-center gap-2 mt-1.5">
-                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Requirements:</span>
-                    <span className="text-xs font-bold text-[#02abb8] bg-[#02abb8]/10 px-2 py-0.5 rounded-full">{reqTxt}</span>
+            <div className="flex-1 flex flex-col min-w-0">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight leading-none">
+                        Structural Level Details
+                    </h3>
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest whitespace-nowrap">Requirements:</span>
+                        <span className="text-xs font-bold text-[#02abb8] bg-[#02abb8]/10 px-2.5 py-1 rounded-full whitespace-nowrap">{reqTxt}</span>
+                    </div>
                 </div>
             </div>
           </div>

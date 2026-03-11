@@ -10,7 +10,7 @@ import type { UnifiedRevenueTreeData } from '@/lib/revenue-tree/types';
 import type { MockFlowTreeData } from '@/lib/revenue-tree/mockFlowData';
 import { formatEther } from 'viem';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
-import { RevenueTreeFlowLevelModal } from './RevenueTreeFlowLevelModal';
+import { RevenueTreeLevelModal } from './RevenueTreeLevelModal';
 
 const LEVEL_SHARES_L1_TO_L5 = [
   REVENUE_SHARE_PERCENTAGES.LEVEL_01,
@@ -102,12 +102,10 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [modalRow, setModalRow] = useState<{
     level: number;
-    sharePct: number;
-    wallet: string;
-    isYou: boolean;
-    treesAtLevel: number;
-    revenueShareWei?: string;
-    treeSlugsAtLevel: string[];
+    sharePercentage: number;
+    walletAddress: string;
+    userCount: number;
+    isActive: boolean;
   } | null>(null);
 
   const { tree: liveTree, isLoading, isSupported } = useRevenueTree(
@@ -122,11 +120,11 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
   const levelsL1ToL5 =
     tree && 'upline' in tree
       ? [
-        { level: 1, sharePct: LEVEL_SHARES_L1_TO_L5[0], wallet: (tree as { upline: string[] }).upline[0] ?? '', isYou: true, treesAtLevel: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[0] ?? 0, revenueShareWei: (mockTree as MockFlowTreeData | undefined)?.revenueShareByLevelWei?.[0], treeSlugsAtLevel: (mockTree as MockFlowTreeData | undefined)?.treeSlugsWhereOwnerAtLevel?.[0] ?? [] },
-        { level: 2, sharePct: LEVEL_SHARES_L1_TO_L5[1], wallet: (tree as { upline: string[] }).upline[1] ?? '', isYou: false, treesAtLevel: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[1] ?? 0, revenueShareWei: (mockTree as MockFlowTreeData | undefined)?.revenueShareByLevelWei?.[1], treeSlugsAtLevel: (mockTree as MockFlowTreeData | undefined)?.treeSlugsWhereOwnerAtLevel?.[1] ?? [] },
-        { level: 3, sharePct: LEVEL_SHARES_L1_TO_L5[2], wallet: (tree as { upline: string[] }).upline[2] ?? '', isYou: false, treesAtLevel: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[2] ?? 0, revenueShareWei: (mockTree as MockFlowTreeData | undefined)?.revenueShareByLevelWei?.[2], treeSlugsAtLevel: (mockTree as MockFlowTreeData | undefined)?.treeSlugsWhereOwnerAtLevel?.[2] ?? [] },
-        { level: 4, sharePct: LEVEL_SHARES_L1_TO_L5[3], wallet: (tree as { upline: string[] }).upline[3] ?? '', isYou: false, treesAtLevel: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[3] ?? 0, revenueShareWei: (mockTree as MockFlowTreeData | undefined)?.revenueShareByLevelWei?.[3], treeSlugsAtLevel: (mockTree as MockFlowTreeData | undefined)?.treeSlugsWhereOwnerAtLevel?.[3] ?? [] },
-        { level: 5, sharePct: LEVEL_SHARES_L1_TO_L5[4], wallet: (tree as { upline: string[] }).upline[4] ?? '', isYou: false, treesAtLevel: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[4] ?? 0, revenueShareWei: (mockTree as MockFlowTreeData | undefined)?.revenueShareByLevelWei?.[4], treeSlugsAtLevel: (mockTree as MockFlowTreeData | undefined)?.treeSlugsWhereOwnerAtLevel?.[4] ?? [] },
+        { level: 1, sharePercentage: LEVEL_SHARES_L1_TO_L5[0], walletAddress: (tree as { upline: string[] }).upline[0] ?? '', userCount: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[0] ?? 0, isActive: (tree as any).isActiveAtLevel?.[0] ?? true },
+        { level: 2, sharePercentage: LEVEL_SHARES_L1_TO_L5[1], walletAddress: (tree as { upline: string[] }).upline[1] ?? '', userCount: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[1] ?? 0, isActive: (tree as any).isActiveAtLevel?.[1] ?? false },
+        { level: 3, sharePercentage: LEVEL_SHARES_L1_TO_L5[2], walletAddress: (tree as { upline: string[] }).upline[2] ?? '', userCount: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[2] ?? 0, isActive: (tree as any).isActiveAtLevel?.[2] ?? false },
+        { level: 4, sharePercentage: LEVEL_SHARES_L1_TO_L5[3], walletAddress: (tree as { upline: string[] }).upline[3] ?? '', userCount: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[3] ?? 0, isActive: (tree as any).isActiveAtLevel?.[3] ?? false },
+        { level: 5, sharePercentage: LEVEL_SHARES_L1_TO_L5[4], walletAddress: (tree as { upline: string[] }).upline[4] ?? '', userCount: (mockTree as MockFlowTreeData | undefined)?.treesWhereOwnerAtLevel?.[4] ?? 0, isActive: (tree as any).isActiveAtLevel?.[4] ?? false },
       ]
       : [];
 
@@ -164,7 +162,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
     <div className={wrapperClass}>
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <Link
-          href="/revenue-tree/dashboard"
+          href="/tree/dashboard"
           className="text-sm font-medium text-[#02abb8] hover:underline"
         >
           ← Dashboard
@@ -286,7 +284,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
                 <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
                   {rowsTopToBottom.map((row) => {
                     const isActiveNode = tree && 'isActiveAtLevel' in tree && tree.isActiveAtLevel[row.level - 1];
-                    const isRealWallet = row.wallet && row.wallet !== '0x0000000000000000000000000000000000000000';
+                    const isRealWallet = row.walletAddress && row.walletAddress !== '0x0000000000000000000000000000000000000000';
                     const receives = isActiveNode && isRealWallet;
 
                     return (
@@ -303,25 +301,25 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
                           </div>
                         </td>
                         <td className="py-4 font-semibold text-zinc-900 dark:text-zinc-100">
-                          {row.sharePct}%
+                          {row.sharePercentage}%
                         </td>
                         <td className="py-4 font-mono text-zinc-600 dark:text-zinc-400">
                           <div className="flex items-center gap-2">
-                            <span className={`truncate ${!receives ? 'text-zinc-400 line-through' : 'text-zinc-600 dark:text-zinc-400'}`} title={row.wallet}>
-                              {row.wallet ? walletDisplay(row.wallet, isDemo) : '—'}
+                            <span className={`truncate ${!receives ? 'text-zinc-400 line-through' : 'text-zinc-600 dark:text-zinc-400'}`} title={row.walletAddress}>
+                              {row.walletAddress ? walletDisplay(row.walletAddress, isDemo) : '—'}
                             </span>
                             {!receives && <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-500 shrink-0">Genesis</span>}
                           </div>
                         </td>
                         <td className="py-4">
                           <div className="font-semibold text-zinc-900 dark:text-white tabular-nums">
-                            {row.treesAtLevel > 0 ? row.treesAtLevel.toLocaleString() : '—'}
+                            {row.userCount > 0 ? row.userCount.toLocaleString() : '—'}
                           </div>
                         </td>
                         <td className="py-4 text-right">
                           <div className={`font-bold tabular-nums ${!receives ? 'text-zinc-400' : 'text-[#02abb8]'}`}>
-                            {row.revenueShareWei
-                              ? `${parseFloat(formatEther(BigInt(row.revenueShareWei))).toLocaleString(undefined, { maximumFractionDigits: 2 })} ${symbol}`
+                            {row.userCount > 0
+                              ? `+${(row.userCount * 1.5).toFixed(2)} ${symbol}`
                               : '—'}
                           </div>
                         </td>
@@ -333,13 +331,12 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
             </div>
           </div>
 
-          <RevenueTreeFlowLevelModal
+          <RevenueTreeLevelModal
             isOpen={!!modalRow}
             onClose={() => setModalRow(null)}
-            row={modalRow ? { level: modalRow.level, sharePct: modalRow.sharePct, wallet: modalRow.wallet, isYou: modalRow.isYou, treesAtLevel: modalRow.treesAtLevel, revenueShareWei: modalRow.revenueShareWei, treeSlugsAtLevel: modalRow.treeSlugsAtLevel } : null}
-            treeIdLabel={treeIdLabel}
-            symbol={symbol}
-            walletDisplay={(addr) => walletDisplay(addr, isDemo)}
+            level={modalRow || { level: 1, walletAddress: '', sharePercentage: 0, userCount: 0, isActive: false }}
+            contentType="dapp"
+            contentSlug="flow"
           />
 
           <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
@@ -351,7 +348,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
             {(['wallet-1', 'wallet-2', 'wallet-3', 'wallet-4', 'wallet-5', 'wallet-6'] as const).map((slug) => (
               <Link
                 key={slug}
-                href={`/tree/flow/${slug}`}
+                href={`/tree/${slug}`}
                 className={`text-sm font-medium px-2 py-1 rounded ${walletAddress === slug ? 'bg-[#02abb8]/20 text-[#02abb8]' : 'text-violet-600 dark:text-violet-400 hover:underline'}`}
               >
                 {DEMO_LABELS[slug] ?? slug}

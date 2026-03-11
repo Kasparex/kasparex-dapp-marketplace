@@ -40,14 +40,12 @@ export function RevenueTreeLevel({ level, isCurrentUser = false, contentType, co
 
   // Format wallet address for display
   const formatAddress = (address: string) => {
+    if (!address || address === '0x0000000000000000000000000000000000000000') return 'Structural Node';
     if (address.startsWith('kaspa:')) {
       const parts = address.split('...');
-      if (parts.length > 1) {
-        return address; // Already formatted
-      }
+      if (parts.length > 1) return address;
       return `${address.slice(0, 10)}...${address.slice(-4)}`;
     }
-    // EVM address format
     if (address.startsWith('0x')) {
       return `${address.slice(0, 6)}...${address.slice(-4)}`;
     }
@@ -61,46 +59,51 @@ export function RevenueTreeLevel({ level, isCurrentUser = false, contentType, co
     <>
       <div
         onClick={() => setIsModalOpen(true)}
-        className={`flex flex-col gap-1 p-3 rounded-xl border transition-all cursor-pointer hover:shadow-md hover:border-[#02abb8]/30 ${
+        className={`group relative flex flex-col gap-2 p-4 rounded-2xl border transition-all cursor-pointer hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] ${
           isCurrentUser
-            ? 'bg-purple-500/10 dark:bg-purple-500/20 border-purple-500/30 dark:border-purple-500/50'
-            : 'bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800'
+            ? 'bg-purple-500/5 dark:bg-purple-500/10 border-purple-500/40 shadow-lg shadow-purple-500/5'
+            : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm'
         }`}
       >
-        {/* Line 1: LEVEL XX — Status — X% Share — Users: N */}
-        <div className="flex items-center justify-between gap-2 min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className={`flex-shrink-0 text-xs font-black uppercase tracking-widest ${
-              isCurrentUser ? 'text-purple-600 dark:text-purple-400' : 'text-zinc-500 dark:text-zinc-400'
-            }`}>
-              LEVEL {String(level.level).padStart(2, '0')}
+        <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+                <div className={`flex items-center justify-center w-8 h-8 rounded-full font-black text-[10px] shadow-inner ${
+                    isCurrentUser ? 'bg-purple-600 text-white' : 'bg-[#02abb8] text-white'
+                }`}>
+                    L{level.level}
+                </div>
+                <div 
+                    className={`w-2.5 h-2.5 rounded-full ring-4 ${
+                        level.isActive 
+                            ? 'bg-emerald-500 ring-emerald-500/20 shadow-[0_0_12px_rgba(16,185,129,0.5)]' 
+                            : 'bg-zinc-300 dark:bg-zinc-700 ring-zinc-100 dark:ring-zinc-800'
+                    }`}
+                />
             </div>
-            <div 
-              className={`w-2 h-2 rounded-full shrink-0 ${level.isActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-zinc-300 dark:bg-zinc-700'}`}
-              title={level.isActive ? 'Active' : 'Inactive (Genesis receives)'}
-            />
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <span className="text-xs font-black text-green-600 dark:text-green-400">
-              {level.sharePercentage}% <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase ml-1">Share</span>
+            <div className="flex flex-col items-end">
+                <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">{level.sharePercentage}% SHARE</span>
+                <span className="text-xs font-black text-zinc-900 dark:text-zinc-100">{level.userCount} USERS</span>
+            </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-3 mt-1">
+            <span className="text-sm font-mono font-bold text-zinc-600 dark:text-zinc-400 truncate">
+                {displayAddress}
             </span>
-            <span className="text-xs text-zinc-600 dark:text-zinc-400">Users: <span className="text-yellow-600 dark:text-yellow-400 font-semibold">{level.userCount}</span></span>
-          </div>
+            {showShareIkas && (
+                <div className="px-3 py-1 bg-[#02abb8]/10 rounded-full border border-[#02abb8]/20">
+                    <span className="text-sm font-black text-[#02abb8] tabular-nums">+{levelShareIkas.toFixed(2)} {currencySymbol}</span>
+                </div>
+            )}
         </div>
-        {/* Line 2: address — Y.XX iKAS */}
-        <div className="flex items-center justify-between gap-2 min-w-0 text-sm text-zinc-700 dark:text-zinc-300 border-t border-zinc-100 dark:border-zinc-800 pt-1.5 mt-0.5">
-          <span className="truncate flex-1 min-w-0" title={level.walletAddress}>
-            <span className={isCurrentUser ? 'text-orange-600 dark:text-orange-400 font-semibold' : ''}>{displayAddress}</span>
-          </span>
-          {showShareIkas ? (
-            <span className="flex-shrink-0 text-sm font-semibold text-[#02abb8] tabular-nums">{levelShareIkas.toFixed(2)} {currencySymbol}</span>
-          ) : (
-            <div className="flex-shrink-0"><DotIndicators count={level.userCount || 1} /></div>
-          )}
-        </div>
+
+        {isCurrentUser && (
+            <div className="absolute -top-2 -right-2 px-2 py-1 bg-purple-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg shadow-lg">
+                Your Slot
+            </div>
+        )}
       </div>
 
-      {/* Modal */}
       <RevenueTreeLevelModal
         level={level}
         isOpen={isModalOpen}

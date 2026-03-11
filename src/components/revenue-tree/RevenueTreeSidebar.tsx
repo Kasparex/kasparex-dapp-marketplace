@@ -34,7 +34,7 @@ export function RevenueTreeSidebar({
   const [showGuide, setShowGuide] = useState(false);
 
   const flowHref = useMemo(
-    () => (address ? `/tree/flow/${address}` : '/tree/flow'),
+    () => (address ? `/tree/${address}` : '/tree/dashboard'),
     [address]
   );
 
@@ -48,7 +48,7 @@ export function RevenueTreeSidebar({
   const handleCopyLink = () => {
     if (!address) return;
     const domain = typeof window !== 'undefined' ? window.location.origin : '';
-    const link = `${domain}/revenue-tree?ref=${address}`;
+    const link = `${domain}/tree?ref=${address}`;
     navigator.clipboard.writeText(link);
     // In a deeper implementation, could trigger a toast notification here.
   };
@@ -106,7 +106,9 @@ export function RevenueTreeSidebar({
           </div>
           <nav className="space-y-0.5">
             {quickLinks.map((link) => {
-              const isActive = link.id === 'flow' ? pathname.startsWith('/tree/flow') : pathname === link.href;
+              const isActive = link.id === 'flow' 
+                ? (pathname.startsWith('/tree/') && pathname !== '/tree/dashboard' && pathname !== '/tree/demo') 
+                : pathname === link.href;
               return (
                 <Link
                   key={link.id}

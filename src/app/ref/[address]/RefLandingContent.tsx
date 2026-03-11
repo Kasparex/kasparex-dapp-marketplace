@@ -35,7 +35,7 @@ export function RefLandingContent({ referrerAddress }: RefLandingContentProps) {
             Browse dApps
           </Link>
           <Link
-            href="/revenue-tree/dashboard"
+            href="/tree/dashboard"
             className="px-6 py-3 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-900 dark:text-zinc-100 font-bold rounded-lg transition-colors"
           >
             Revenue Tree

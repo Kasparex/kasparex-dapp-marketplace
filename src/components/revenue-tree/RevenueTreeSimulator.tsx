@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
 import { useChainId } from 'wagmi';
 import { REVENUE_SHARE_PERCENTAGES } from '@/lib/revenue-tree/types';
-import { LevelDetailsModal } from './LevelDetailsModal';
+import { RevenueTreeLevelModal } from './RevenueTreeLevelModal';
 import { useRevenueTree } from '@/hooks/useRevenueTree';
 import { ReferralLinkBox } from './ReferralLinkBox';
 
@@ -88,7 +88,13 @@ export function RevenueTreeSimulator() {
 
     // Modal state
     const [activeModal, setActiveModal] = useState<string | null>(null);
-    const [selectedLevelDetails, setSelectedLevelDetails] = useState<{ level: number, usersCount: number, sharePct: number, requirementsTxt: string, earningsPerUser: number, totalEarnings: number } | null>(null);
+    const [selectedLevelDetails, setSelectedLevelDetails] = useState<{ 
+        level: number, 
+        usersCount: number, 
+        sharePct: number, 
+        isActive: boolean,
+        walletAddress?: string
+    } | null>(null);
 
     const handleUserChange = (index: number, value: string) => {
         const newUsers = [...levelUsers];
@@ -143,16 +149,18 @@ export function RevenueTreeSimulator() {
             />
 
             {selectedLevelDetails && (
-                <LevelDetailsModal 
+                <RevenueTreeLevelModal 
                     isOpen={!!selectedLevelDetails}
                     onClose={() => setSelectedLevelDetails(null)}
-                    level={selectedLevelDetails.level}
-                    usersCount={selectedLevelDetails.usersCount}
-                    sharePct={selectedLevelDetails.sharePct}
-                    requirementsTxt={selectedLevelDetails.requirementsTxt}
-                    symbol={symbol}
-                    earningsPerUser={selectedLevelDetails.earningsPerUser}
-                    totalEarnings={selectedLevelDetails.totalEarnings}
+                    level={{
+                        level: selectedLevelDetails.level,
+                        walletAddress: selectedLevelDetails.walletAddress || '0xStructuralNode',
+                        sharePercentage: selectedLevelDetails.sharePct,
+                        userCount: selectedLevelDetails.usersCount,
+                        isActive: selectedLevelDetails.isActive
+                    }}
+                    contentType="dapp"
+                    contentSlug="simulator"
                 />
             )}
 
@@ -241,7 +249,10 @@ export function RevenueTreeSimulator() {
                                     key={level} 
                                     className="text-sm cursor-pointer hover:bg-[#02abb8]/5 dark:hover:bg-[#02abb8]/10 transition-colors group"
                                     onClick={() => setSelectedLevelDetails({
-                                        level, usersCount: users, sharePct: pct, requirementsTxt, earningsPerUser: perUser, totalEarnings: levelEarnings
+                                        level, 
+                                        usersCount: users, 
+                                        sharePct: pct, 
+                                        isActive: true 
                                     })}
                                 >
                                     <td className="py-4 pl-4 sm:pl-6">

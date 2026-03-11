@@ -8,7 +8,7 @@ import { RevenueTreeSidebar } from '@/components/revenue-tree/RevenueTreeSidebar
 import { REVENUE_SHARE_PERCENTAGES } from '@/lib/revenue-tree/types';
 import { useAccount, useChainId } from 'wagmi';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
-import { LevelDetailsModal } from '@/components/revenue-tree/LevelDetailsModal';
+import { RevenueTreeLevelModal } from '@/components/revenue-tree/RevenueTreeLevelModal';
 
 const LEVEL_SHARES = [
     REVENUE_SHARE_PERCENTAGES.LEVEL_01,
@@ -97,9 +97,6 @@ export default function RevenueTreeDemoPage() {
       level: number, 
       usersCount: number, 
       sharePct: number, 
-      requirementsTxt: string, 
-      earningsPerUser: number, 
-      totalEarnings: number,
       isActive: boolean 
   } | null>(null);
 
@@ -179,7 +176,7 @@ export default function RevenueTreeDemoPage() {
         </div>
 
         <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6">
-          <div className="space-y-8">
+          <div className="space-y-6">
             {/* Header */}
             <div>
               <h1 className="text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
@@ -328,7 +325,7 @@ export default function RevenueTreeDemoPage() {
                                         key={level} 
                                         className="hover:bg-[#02abb8]/5 transition-all cursor-pointer group"
                                         onClick={() => setSelectedLevelDetails({
-                                            level, usersCount: users, sharePct: pct, requirementsTxt, earningsPerUser: perUser, totalEarnings: levelEarnings, isActive
+                                            level, usersCount: users, sharePct: pct, isActive
                                         })}
                                     >
                                         <td className="py-5 px-6">
@@ -427,16 +424,18 @@ export default function RevenueTreeDemoPage() {
       <Footer />
 
       {selectedLevelDetails && (
-        <LevelDetailsModal 
+        <RevenueTreeLevelModal 
             isOpen={!!selectedLevelDetails}
             onClose={() => setSelectedLevelDetails(null)}
-            level={selectedLevelDetails.level}
-            usersCount={selectedLevelDetails.usersCount}
-            sharePct={selectedLevelDetails.sharePct}
-            requirementsTxt={selectedLevelDetails.requirementsTxt}
-            symbol={symbol}
-            earningsPerUser={selectedLevelDetails.earningsPerUser}
-            totalEarnings={selectedLevelDetails.totalEarnings}
+            level={{
+                level: selectedLevelDetails.level,
+                walletAddress: '0xDemoWalletNode',
+                sharePercentage: selectedLevelDetails.sharePct,
+                userCount: selectedLevelDetails.usersCount,
+                isActive: selectedLevelDetails.isActive
+            }}
+            contentType="dapp"
+            contentSlug="demo"
         />
       )}
 

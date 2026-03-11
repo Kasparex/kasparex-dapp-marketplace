@@ -12,7 +12,7 @@ import { RevenueTreeContentType } from './types';
  */
 export function getUniversalReferralLink(walletAddress: string): string {
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  return `${origin}/ref/${walletAddress}`;
+  return `${origin}/tree?ref=${walletAddress}`;
 }
 
 /**
