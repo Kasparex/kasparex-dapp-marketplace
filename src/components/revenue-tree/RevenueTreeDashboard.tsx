@@ -21,7 +21,7 @@ export function RevenueTreeDashboard({ viewAddress }: RevenueTreeDashboardProps)
   const userWalletAddress = viewAddress || connectedAddress;
 
   const { tree, isLoading, isSupported } = useRevenueTree(
-    viewAddress ? { userAddress: viewAddress as `0x${string}` } : {}
+    viewAddress ? { address: viewAddress as `0x${string}` } : {}
   );
 
   // One tree per wallet (on-chain); convert to legacy shape for list/stats

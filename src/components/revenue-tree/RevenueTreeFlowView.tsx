@@ -111,7 +111,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
   } | null>(null);
 
   const { tree: liveTree, isLoading, isSupported } = useRevenueTree(
-    treeProp === undefined && !isDemo && walletAddress.startsWith('0x') ? { userAddress: walletAddress as `0x${string}` } : {}
+    treeProp === undefined && !isDemo && walletAddress.startsWith('0x') ? { address: walletAddress as `0x${string}` } : {}
   );
 
   const tree = treeProp !== undefined ? treeProp : (isDemo ? mockTree : liveTree);

@@ -14,7 +14,7 @@ export interface RevenueTreeNetworkNudgeProps {
 export function RevenueTreeNetworkNudge({ address: propAddress }: RevenueTreeNetworkNudgeProps) {
     const { address: connectedAddress } = useAccount();
     const { tree, isSupported } = useRevenueTree(
-        propAddress ? { userAddress: propAddress as `0x${string}` } : {}
+        propAddress ? { address: propAddress as `0x${string}` } : {}
     );
 
     if (!tree || !isSupported) return null;

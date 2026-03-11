@@ -32,7 +32,7 @@ export function useRevenueTree(options: UseRevenueTreeOptions = {}): UseRevenueT
   const { address: connectedAddress } = useAccount();
   const connectedChainId = useChainId();
   const chainId = options.chainId ?? connectedChainId;
-  const userAddress = (options.address || options.userAddress || connectedAddress) as `0x${string}` | undefined;
+  const userAddress = (options.address || connectedAddress) as `0x${string}` | undefined;
 
   const contractAddress = getContractAddress(chainId, 'RevenueTreeManager');
   const isSupported = !!contractAddress && contractAddress.length > 0;

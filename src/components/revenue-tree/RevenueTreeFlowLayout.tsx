@@ -47,7 +47,7 @@ export function RevenueTreeFlowLayout({ walletAddress }: RevenueTreeFlowLayoutPr
   const mockTree = useMemo(() => (isDemo ? getMockFlowTree(walletAddress) : null), [isDemo, walletAddress]);
 
   const { tree: liveTree, isLoading, isSupported } = useRevenueTree(
-    !isDemo && walletAddress.startsWith('0x') ? { userAddress: walletAddress as `0x${string}` } : {}
+    !isDemo && walletAddress.startsWith('0x') ? { address: walletAddress as `0x${string}` } : {}
   );
 
   const tree = isDemo ? mockTree : liveTree;

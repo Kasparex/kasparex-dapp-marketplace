@@ -12,8 +12,8 @@ export interface RevenueTreeActivationBoxProps {
 export function RevenueTreeActivationBox({ address: propAddress }: RevenueTreeActivationBoxProps) {
     const { address: connectedAddress } = useAccount();
     const address = propAddress || connectedAddress;
-    const { tree, lifetimeVolume, activationThreshold, isSupported, isLoading } = useRevenueTree(
-        propAddress ? { userAddress: propAddress as `0x${string}` } : {}
+     const { tree, lifetimeVolume, activationThreshold, isSupported, isLoading } = useRevenueTree(
+        propAddress ? { address: propAddress as `0x${string}` } : {}
     );
     const chainId = useChainId();
     const currencySymbol = getNativeCurrencySymbol(chainId);
