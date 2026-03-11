@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773237084-5bd6470",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Unify Revenue Tree UI design system across all pages (by Kasparex)",
+      "date": "2026-03-11T14:51:08+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773235460-52f25d6",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Cleanup obsolete Revenue Tree files (by Kasparex)",
