@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773248694-3a824f9",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat: Upgrade Revenue Tree Demo with Alice/Bob/Charlie story visualization and interactive pulses (by Kasparex)",
+      "date": "2026-03-11T18:04:27+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773238754-2e25f63",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Refactor Revenue Tree terminology, simplify activation UI, and unify level ordering (by Kasparex)",
