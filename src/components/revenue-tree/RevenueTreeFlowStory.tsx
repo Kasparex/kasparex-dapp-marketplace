@@ -6,11 +6,11 @@ import { useChainId } from 'wagmi';
 
 interface Node {
   id: string;
-  name: string;
   level: number;
   status: 'inactive' | 'active';
-  avatar?: string;
-  role?: string;
+  x: string;
+  y: string;
+  isGenesis?: boolean;
 }
 
 interface RevenueTreeFlowStoryProps {
@@ -20,29 +20,44 @@ interface RevenueTreeFlowStoryProps {
 export function RevenueTreeFlowStory({ currentStep }: RevenueTreeFlowStoryProps) {
   const chainId = useChainId();
   const symbol = getNativeCurrencySymbol(chainId);
+  const [isGenesisModalOpen, setIsGenesisModalOpen] = useState(false);
 
-  // Define nodes for a full 5-level tree with horizontal expansion
+  // Define a dense tree structure
   const nodes: Node[] = [
-    { id: 'alice', name: 'Alice (You)', level: 0, status: currentStep >= 1 ? 'active' : 'inactive', role: 'Root' },
+    { id: 'alice', level: 0, status: currentStep >= 1 ? 'active' : 'inactive', x: '50%', y: '10%' },
     
     // Level 1
-    { id: 'bob', name: 'Bob', level: 1, status: currentStep >= 2 ? 'active' : 'inactive', role: 'Direct' },
-    { id: 'dave', name: 'Dave', level: 1, status: currentStep >= 2 ? 'active' : 'inactive', role: 'Direct' },
+    { id: 'b1', level: 1, status: currentStep >= 2 ? 'active' : 'inactive', x: '35%', y: '25%' },
+    { id: 'b2', level: 1, status: currentStep >= 2 ? 'active' : 'inactive', x: '50%', y: '25%' },
+    { id: 'b3', level: 1, status: currentStep >= 2 ? 'active' : 'inactive', x: '65%', y: '25%' },
     
     // Level 2
-    { id: 'charlie', name: 'Charlie', level: 2, status: currentStep >= 4 ? 'active' : 'inactive', role: 'Sub-network' },
-    { id: 'eve', name: 'Eve', level: 2, status: currentStep >= 4 ? 'active' : 'inactive', role: 'Sub-network' },
+    { id: 'c1', level: 2, status: currentStep >= 4 ? 'active' : 'inactive', x: '25%', y: '40%' },
+    { id: 'c2', level: 2, status: currentStep >= 4 ? 'active' : 'inactive', x: '35%', y: '40%' },
+    { id: 'c3', level: 2, status: currentStep >= 4 ? 'active' : 'inactive', x: '45%', y: '40%' },
+    { id: 'c4', level: 2, status: currentStep >= 4 ? 'active' : 'inactive', x: '55%', y: '40%' },
+    { id: 'c5', level: 2, status: currentStep >= 4 ? 'active' : 'inactive', x: '65%', y: '40%' },
+    { id: 'c6', level: 2, status: currentStep >= 4 ? 'active' : 'inactive', x: '75%', y: '40%' },
     
-    // Level 3
-    { id: 'frank', name: 'Frank', level: 3, status: currentStep >= 5 ? 'active' : 'inactive', role: 'Deep Network' },
+    // Level 3 (Denser)
+    { id: 'd1', level: 3, status: currentStep >= 5 ? 'active' : 'inactive', x: '20%', y: '55%' },
+    { id: 'd2', level: 3, status: currentStep >= 5 ? 'active' : 'inactive', x: '35%', y: '55%' },
+    { id: 'd3', level: 3, status: currentStep >= 5 ? 'active' : 'inactive', x: '50%', y: '55%' },
+    { id: 'd4', level: 3, status: currentStep >= 5 ? 'active' : 'inactive', x: '65%', y: '55%' },
+    { id: 'd5', level: 3, status: currentStep >= 5 ? 'active' : 'inactive', x: '80%', y: '55%' },
     
     // Level 4
-    { id: 'grace', name: 'Grace', level: 4, status: currentStep >= 5 ? 'active' : 'inactive', role: 'Deep Network' },
+    { id: 'e1', level: 4, status: currentStep >= 5 ? 'active' : 'inactive', x: '25%', y: '70%' },
+    { id: 'e2', level: 4, status: currentStep >= 5 ? 'active' : 'inactive', x: '40%', y: '70%' },
+    { id: 'e3', level: 4, status: currentStep >= 5 ? 'active' : 'inactive', x: '55%', y: '70%' },
+    { id: 'e4', level: 4, status: currentStep >= 5 ? 'active' : 'inactive', x: '70%', y: '70%' },
     
     // Level 5
-    { id: 'henry', name: 'Henry', level: 5, status: currentStep >= 5 ? 'active' : 'inactive', role: 'Network Edge' },
+    { id: 'f1', level: 5, status: currentStep >= 5 ? 'active' : 'inactive', x: '30%', y: '85%' },
+    { id: 'f2', level: 5, status: currentStep >= 5 ? 'active' : 'inactive', x: '50%', y: '85%' },
+    { id: 'f3', level: 5, status: currentStep >= 5 ? 'active' : 'inactive', x: '70%', y: '85%' },
     
-    { id: 'genesis', name: 'Genesis', level: -1, status: 'active', role: 'Platform' },
+    { id: 'genesis', level: -1, status: 'active', x: '90%', y: '10%', isGenesis: true },
   ];
 
   const [pulses, setPulses] = useState<{ id: number; from: string; to: string; amount: string }[]>([]);
@@ -57,97 +72,81 @@ export function RevenueTreeFlowStory({ currentStep }: RevenueTreeFlowStoryProps)
   };
 
   useEffect(() => {
-    // Phase 3: Bob pays, Alice gets 2% (L1 share)
     if (currentStep === 4) {
-      triggerPulse('bob', 'alice', `2% ${symbol}`);
-    } 
-    // Phase 4: Charlie activates/pays. Charlie -> Bob (2%), Bob -> Alice (5% L2)
-    else if (currentStep === 5) {
-      triggerPulse('charlie', 'bob', `2% ${symbol}`);
-      setTimeout(() => triggerPulse('bob', 'alice', `5% ${symbol}`), 400);
-    }
-    // Phase 5: Henry pays all the way up (L5 example)
-    else if (currentStep === 6) {
-        // Henry -> Grace (2%) -> Frank (5%) -> Charlie (10%) -> Bob (20%) -> Alice (45%)
+      triggerPulse('b1', 'alice', `2% ${symbol}`);
+    } else if (currentStep === 5) {
+      triggerPulse('c1', 'b1', `2% ${symbol}`);
+      setTimeout(() => triggerPulse('b1', 'alice', `5% ${symbol}`), 400);
+    } else if (currentStep === 6) {
+        // Propagation from deeply nested f2
         const delay = 300;
-        triggerPulse('henry', 'grace', `2%`);
-        setTimeout(() => triggerPulse('grace', 'frank', `5%`), delay);
-        setTimeout(() => triggerPulse('frank', 'charlie', `10%`), delay * 2);
-        setTimeout(() => triggerPulse('charlie', 'bob', `20%`), delay * 3);
-        setTimeout(() => triggerPulse('bob', 'alice', `45%`), delay * 4);
+        triggerPulse('f2', 'e2', `2%`);
+        setTimeout(() => triggerPulse('e2', 'd3', `5%`), delay);
+        setTimeout(() => triggerPulse('d3', 'c4', `10%`), delay * 2);
+        setTimeout(() => triggerPulse('c4', 'b2', `20%`), delay * 3);
+        setTimeout(() => triggerPulse('b2', 'alice', `45%`), delay * 4);
     }
   }, [currentStep]);
 
-  const getNodePos = (id: string) => {
-      switch(id) {
-          case 'alice': return { x: '50%', y: '10%' };
-          case 'bob': return { x: '35%', y: '25%' };
-          case 'dave': return { x: '65%', y: '25%' };
-          case 'charlie': return { x: '35%', y: '40%' };
-          case 'eve': return { x: '65%', y: '40%' };
-          case 'frank': return { x: '35%', y: '55%' };
-          case 'grace': return { x: '35%', y: '70%' };
-          case 'henry': return { x: '35%', y: '85%' };
-          case 'genesis': return { x: '90%', y: '10%' };
-          default: return { x: '0%', y: '0%' };
-      }
-  };
-
   return (
-    <div className="relative w-full h-[550px] bg-zinc-50 dark:bg-zinc-950 rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-inner">
+    <div className="relative w-full h-[550px] bg-zinc-50 dark:bg-zinc-950 rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-inner font-sans">
       {/* Background Grid */}
-      <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" 
-           style={{ backgroundImage: 'radial-gradient(#02abb8 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+      <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]" 
+           style={{ backgroundImage: 'radial-gradient(#02abb8 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
 
       {/* Header */}
       <div className="absolute top-6 left-8 z-10">
-          <div className="flex items-center gap-3 mb-1">
-              <div className="w-2 h-2 rounded-full bg-[#02abb8] animate-pulse" />
-              <h4 className="text-[11px] font-black text-zinc-400 uppercase tracking-widest">Multi-Level Network Simulation</h4>
-          </div>
-          <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-tight">Level 1 - Level 5 Vertical & Horizontal Scale</p>
+          <h4 className="text-[11px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-1">Live Flow Simulation</h4>
+          <p className="text-[9px] text-zinc-500 uppercase font-black tracking-tight opacity-70">Interactive Network Topology</p>
+      </div>
+
+      {/* Level Labels on the Left */}
+      <div className="absolute inset-y-0 left-6 flex flex-col justify-between py-[12%] py-10 pointer-events-none opacity-40">
+          {[0, 1, 2, 3, 4, 5].map(lv => (
+              <div key={lv} className="flex items-center gap-2">
+                  <span className="text-[9px] font-black text-zinc-400 uppercase w-6">L{lv}</span>
+                  <div className="h-[1px] w-4 bg-zinc-300 dark:bg-zinc-800" />
+              </div>
+          ))}
       </div>
 
       <svg className="absolute inset-0 w-full h-full pointer-events-none">
-          <defs>
-              <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
-                  <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
-              </marker>
-          </defs>
+          {/* Dashboard Connections */}
+          {/* Alice to Level 1 */}
+          <line x1="50%" y1="10%" x2="35%" y2="25%" className={`stroke-zinc-200 dark:stroke-zinc-800 duration-1000 transition-colors ${currentStep >= 2 ? 'stroke-[#02abb8]/30' : ''}`} strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="50%" y1="10%" x2="50%" y2="25%" className={`stroke-zinc-200 dark:stroke-zinc-800 duration-1000 transition-colors ${currentStep >= 2 ? 'stroke-[#02abb8]/30' : ''}`} strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="50%" y1="10%" x2="65%" y2="25%" className={`stroke-zinc-200 dark:stroke-zinc-800 duration-1000 transition-colors ${currentStep >= 2 ? 'stroke-[#02abb8]/30' : ''}`} strokeWidth="1" strokeDasharray="3 3" />
 
-          {/* Vertical Connections (Alice -> Bob -> Charlie -> Frank -> Grace -> Henry) */}
-          <path d="M 50% 15% L 35% 20%" className={`stroke-zinc-200 dark:stroke-zinc-800 fill-none transition-colors duration-500 ${currentStep >= 2 ? 'stroke-[#02abb8]/40' : ''}`} strokeWidth="1.5" strokeDasharray="4 4" />
-          <path d="M 35% 30% L 35% 35%" className={`stroke-zinc-200 dark:stroke-zinc-800 fill-none transition-colors duration-500 ${currentStep >= 4 ? 'stroke-[#02abb8]/40' : ''}`} strokeWidth="1.5" strokeDasharray="4 4" />
-          <path d="M 35% 45% L 35% 50%" className={`stroke-zinc-200 dark:stroke-zinc-800 fill-none transition-colors duration-500 ${currentStep >= 5 ? 'stroke-[#02abb8]/40' : ''}`} strokeWidth="1.5" strokeDasharray="4 4" />
-          <path d="M 35% 60% L 35% 65%" className={`stroke-zinc-200 dark:stroke-zinc-800 fill-none transition-colors duration-500 ${currentStep >= 5 ? 'stroke-[#02abb8]/40' : ''}`} strokeWidth="1.5" strokeDasharray="4 4" />
-          <path d="M 35% 75% L 35% 80%" className={`stroke-zinc-200 dark:stroke-zinc-800 fill-none transition-colors duration-500 ${currentStep >= 5 ? 'stroke-[#02abb8]/40' : ''}`} strokeWidth="1.5" strokeDasharray="4 4" />
+          {/* Vertical connections for deeper levels */}
+          <line x1="35%" y1="25%" x2="25%" y2="40%" className={`stroke-zinc-200 dark:stroke-zinc-800 duration-1000 transition-colors ${currentStep >= 4 ? 'stroke-[#02abb8]/20' : ''}`} strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="35%" y1="25%" x2="35%" y2="40%" className={`stroke-zinc-200 dark:stroke-zinc-800 duration-1000 transition-colors ${currentStep >= 4 ? 'stroke-[#02abb8]/20' : ''}`} strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="50%" y1="25%" x2="45%" y2="40%" className={`stroke-zinc-200 dark:stroke-zinc-800 duration-1000 transition-colors ${currentStep >= 4 ? 'stroke-[#02abb8]/20' : ''}`} strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="50%" y1="25%" x2="55%" y2="40%" className={`stroke-zinc-200 dark:stroke-zinc-800 duration-1000 transition-colors ${currentStep >= 4 ? 'stroke-[#02abb8]/20' : ''}`} strokeWidth="1" strokeDasharray="3 3" />
+          
+          <line x1="25%" y1="40%" x2="20%" y2="55%" className={`stroke-zinc-200 dark:stroke-zinc-800 duration-1000 transition-colors ${currentStep >= 5 ? 'stroke-[#02abb8]/15' : ''}`} strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="45%" y1="40%" x2="50%" y2="55%" className={`stroke-zinc-200 dark:stroke-zinc-800 duration-1000 transition-colors ${currentStep >= 5 ? 'stroke-[#02abb8]/15' : ''}`} strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="50%" y1="55%" x2="50%" y2="70%" className={`stroke-zinc-200 dark:stroke-zinc-800 duration-1000 transition-colors ${currentStep >= 5 ? 'stroke-[#02abb8]/10' : ''}`} strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="50%" y1="70%" x2="50%" y2="85%" className={`stroke-zinc-200 dark:stroke-zinc-800 duration-1000 transition-colors ${currentStep >= 5 ? 'stroke-[#02abb8]/5' : ''}`} strokeWidth="1" strokeDasharray="3 3" />
 
-          {/* Horizontal Connection (Alice -> Dave -> Eve) */}
-          <path d="M 50% 15% L 65% 20%" className={`stroke-zinc-200 dark:stroke-zinc-800 fill-none transition-colors duration-500 ${currentStep >= 2 ? 'stroke-purple-500/40' : ''}`} strokeWidth="1.5" strokeDasharray="4 4" />
-          <path d="M 65% 30% L 65% 35%" className={`stroke-zinc-200 dark:stroke-zinc-800 fill-none transition-colors duration-500 ${currentStep >= 4 ? 'stroke-purple-500/40' : ''}`} strokeWidth="1.5" strokeDasharray="4 4" />
-
-          {/* Genesis Redirect Paths */}
+          {/* Genesis Redirect */}
           {currentStep < 1 && (
-               <path d="M 50% 10% L 85% 10%" className="stroke-red-500/20 fill-none" strokeWidth="1" strokeDasharray="2 2" markerEnd="url(#arrow)" />
+               <line x1="50%" y1="10%" x2="90%" y2="10%" className="stroke-red-500/10" strokeWidth="1" strokeDasharray="2 2" />
           )}
 
           {/* Pulses */}
           {pulses.map(pulse => {
-              const fromPos = getNodePos(pulse.from);
-              const toPos = getNodePos(pulse.to);
+              const fromN = nodes.find(n => n.id === pulse.from);
+              const toN = nodes.find(n => n.id === pulse.to);
+              if (!fromN || !toN) return null;
               return (
                   <g key={pulse.id}>
-                    <circle r="6" fill="#02abb8" className="animate-ping">
-                        <animate attributeName="cx" from={fromPos.x} to={toPos.x} dur="0.8s" repeatCount="1" fill="freeze" />
-                        <animate attributeName="cy" from={fromPos.y} to={toPos.y} dur="0.8s" repeatCount="1" fill="freeze" />
+                    <circle r="4" fill="#02abb8" className="animate-pulse">
+                        <animate attributeName="cx" from={fromN.x} to={toN.x} dur="0.8s" repeatCount="1" fill="freeze" />
+                        <animate attributeName="cy" from={fromN.y} to={toN.y} dur="0.8s" repeatCount="1" fill="freeze" />
                     </circle>
-                    <circle r="4" fill="#02abb8">
-                        <animate attributeName="cx" from={fromPos.x} to={toPos.x} dur="0.8s" repeatCount="1" fill="freeze" />
-                        <animate attributeName="cy" from={fromPos.y} to={toPos.y} dur="0.8s" repeatCount="1" fill="freeze" />
-                    </circle>
-                    <text fontSize="12" fontWeight="900" fill="#02abb8" textAnchor="middle" className="filter drop-shadow-sm">
-                        <animate attributeName="x" from={fromPos.x} to={toPos.x} dur="0.8s" repeatCount="1" fill="freeze" />
-                        <animate attributeName="y" from={fromPos.y} to={toPos.y} dur="0.8s" repeatCount="1" fill="freeze" />
+                    <text fontSize="10" fontWeight="900" fill="#02abb8" textAnchor="middle" className="filter drop-shadow-sm font-black">
+                        <animate attributeName="x" from={fromN.x} to={toN.x} dur="0.8s" repeatCount="1" fill="freeze" />
+                        <animate attributeName="y" from={fromN.y} to={toN.y} dur="0.8s" repeatCount="1" fill="freeze" />
                         {pulse.amount}
                         <animate attributeName="opacity" values="1;1;0" dur="1s" repeatCount="1" />
                     </text>
@@ -158,69 +157,91 @@ export function RevenueTreeFlowStory({ currentStep }: RevenueTreeFlowStoryProps)
 
       {/* Nodes Map */}
       {nodes.map(node => {
-          const pos = getNodePos(node.id);
           const isActive = node.status === 'active';
-          const isGenesis = node.id === 'genesis';
+          const isGenesis = node.isGenesis;
           
+          if (isGenesis) {
+              return (
+                  <button 
+                    key={node.id}
+                    onClick={() => setIsGenesisModalOpen(true)}
+                    className="absolute -translate-x-1/2 -translate-y-1/2 group transition-all duration-300 hover:scale-110"
+                    style={{ left: node.x, top: node.y }}
+                  >
+                      <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-sm shadow-lg group-hover:border-[#02abb8]/50">
+                          🏛️
+                      </div>
+                      <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[7px] font-black uppercase text-zinc-400 tracking-widest whitespace-nowrap">Genesis</span>
+                  </button>
+              );
+          }
+
           return (
               <div 
                 key={node.id}
-                className="absolute transition-all duration-700 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group cursor-default"
-                style={{ left: pos.x, top: pos.y }}
+                className="absolute transition-all duration-1000 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center"
+                style={{ left: node.x, top: node.y }}
               >
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 shadow-lg group-hover:scale-110 ${
-                      isGenesis 
-                        ? 'bg-zinc-100 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800' 
-                        : isActive 
-                            ? 'bg-emerald-500/10 border-emerald-500 shadow-emerald-500/20' 
-                            : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 opacity-40'
-                  }`}>
-                      <span className="text-xl">
-                          {node.id === 'alice' ? '👩‍💻' : 
-                           node.id === 'bob' ? '👨‍🔬' : 
-                           node.id === 'dave' ? '🧑‍🚀' : 
-                           node.id === 'charlie' ? '🧑‍🎨' : 
-                           node.id === 'eve' ? '👩‍✈️' : 
-                           node.id === 'frank' ? '👨‍🚒' : 
-                           node.id === 'grace' ? '👩‍⚕️' : 
-                           node.id === 'henry' ? '🧑‍🌾' : '🏛️'}
-                      </span>
-                  </div>
-                  <div className="mt-2 text-center pointer-events-none">
-                      <div className="flex flex-col items-center">
-                          <span className={`text-[9px] font-black uppercase tracking-tighter ${isActive ? 'text-zinc-900 dark:text-white' : 'text-zinc-400'}`}>
-                              {node.name}
-                          </span>
-                          <span className="text-[7px] font-bold text-zinc-500 uppercase tracking-widest">{node.role}</span>
-                      </div>
-                      <div className="flex items-center gap-1 mt-0.5 justify-center">
-                          <div className={`w-1 h-1 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-red-500'}`} />
-                          <span className={`text-[7px] font-black uppercase ${isActive ? 'text-emerald-500' : 'text-red-500'}`}>
-                              {isActive ? 'Active' : 'Missing'}
-                          </span>
-                      </div>
-                  </div>
+                  <div className={`transition-all duration-1000 rounded-full ${
+                      node.id === 'alice' 
+                        ? 'w-4 h-4 shadow-[0_0_15px_rgba(2,171,184,0.3)]' 
+                        : 'w-2 h-2'
+                  } ${
+                      isActive 
+                        ? 'bg-[#02abb8] shadow-[0_0_8px_rgba(2,171,184,0.5)]' 
+                        : 'bg-zinc-200 dark:bg-zinc-800'
+                  }`} />
+                  {node.id === 'alice' && (
+                      <span className="absolute -bottom-5 text-[8px] font-black uppercase text-[#02abb8] tracking-widest">Alice</span>
+                  )}
               </div>
           );
       })}
 
-      {/* Info Panel Right */}
-      <div className="absolute top-1/2 right-4 -translate-y-1/2 hidden xl:block w-48 space-y-4">
-          <div className="p-4 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-              <h5 className="text-[10px] font-black text-zinc-400 uppercase mb-2">Network Depth</h5>
-              <div className="space-y-2">
-                  {[1, 2, 3, 4, 5].map(lv => (
-                      <div key={lv} className="flex items-center justify-between">
-                          <span className="text-[9px] font-bold text-zinc-500">Level 0{lv}</span>
-                          <div className={`w-1.5 h-1.5 rounded-full ${currentStep >= (lv === 1 ? 2 : lv === 2 ? 4 : 5) ? 'bg-[#02abb8]' : 'bg-zinc-300'}`} />
+      {/* Genesis Modal Overlay */}
+      {isGenesisModalOpen && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-6 animate-in fade-in duration-300">
+              <div className="bg-white dark:bg-zinc-950 rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full max-w-sm overflow-hidden shadow-2xl scale-in-center">
+                  <div className="p-6 border-b border-zinc-100 dark:border-zinc-900 flex justify-between items-center bg-zinc-50 dark:bg-zinc-900/50">
+                      <div>
+                          <h3 className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-wider">Genesis Platform</h3>
+                          <p className="text-[10px] text-zinc-500 font-bold uppercase">Revenue Safeguard</p>
                       </div>
-                  ))}
+                      <button onClick={() => setIsGenesisModalOpen(false)} className="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 hover:text-red-500 transition-colors">✕</button>
+                  </div>
+                  <div className="p-6 space-y-4">
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed font-medium">
+                          The Genesis Platform acts as a temporary destination for revenue when a node in the tree is inactive or missing. This ensures volume is always recorded and ready to be claimed once branches activate.
+                      </p>
+                      <div className="space-y-2">
+                          <h4 className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Global Genesis Nodes</h4>
+                          <div className="space-y-1">
+                              {[
+                                  { level: 'Main', addr: '0xAb03...E6D3' },
+                                  { level: 'L2', addr: '0xC0CD...B201' },
+                                  { level: 'L3', addr: '0x33cE...3bf85' },
+                                  { level: 'L4', addr: '0xa6E0...B0e0' },
+                                  { level: 'L5', addr: '0xcde1...f7da' }
+                              ].map(gen => (
+                                  <div key={gen.level} className="flex items-center justify-between p-2 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800">
+                                      <span className="text-[9px] font-black text-zinc-800 dark:text-zinc-200">{gen.level}</span>
+                                      <span className="text-[9px] font-mono text-zinc-400">{gen.addr}</span>
+                                  </div>
+                              ))}
+                          </div>
+                      </div>
+                  </div>
+                  <div className="p-4 bg-zinc-100 dark:bg-zinc-900 flex justify-center">
+                      <button 
+                        onClick={() => setIsGenesisModalOpen(false)}
+                        className="text-[10px] font-black uppercase text-[#02abb8] tracking-widest"
+                      >
+                         Continue Simulation
+                      </button>
+                  </div>
               </div>
           </div>
-          <p className="text-[8px] text-zinc-400 font-medium leading-relaxed px-2">
-              Alice receives increasing percentage shares from deeper network levels (45% from L5).
-          </p>
-      </div>
+      )}
     </div>
   );
 }
