@@ -84,10 +84,10 @@ export function RevenueTreeLevelModal({
             <div className="flex-1 flex flex-col min-w-0">
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                     <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight leading-none">
-                        Structural Level Details
+                        Level {level.level} Details
                     </h3>
                     <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest whitespace-nowrap">Requirements:</span>
+                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">Requirements:</span>
                         <span className="text-xs font-bold text-[#02abb8] bg-[#02abb8]/10 px-2.5 py-1 rounded-full whitespace-nowrap">{reqTxt}</span>
                     </div>
                 </div>
@@ -106,11 +106,11 @@ export function RevenueTreeLevelModal({
         {/* Info Strip */}
         <div className="grid grid-cols-2 md:grid-cols-4 border-b border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950">
             <div className="p-4 border-r border-zinc-100 dark:border-zinc-800">
-                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Share Drop</span>
+                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Percentage Share</span>
                 <span className="text-lg font-black text-zinc-900 dark:text-zinc-100">{level.sharePercentage}%</span>
             </div>
             <div className="p-4 border-r border-zinc-100 dark:border-zinc-800">
-                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Downline Nodes</span>
+                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Referred Users</span>
                 <span className="text-lg font-black text-purple-600 dark:text-purple-400 tabular-nums">{level.userCount.toLocaleString()}</span>
             </div>
             <div className="p-4 border-r border-zinc-100 dark:border-zinc-800">
@@ -137,9 +137,9 @@ export function RevenueTreeLevelModal({
 
         {/* Directory (Table) */}
         <div className="flex-1 overflow-hidden flex flex-col min-h-0 bg-zinc-50 dark:bg-zinc-900/30">
-            <div className="px-6 py-4 flex items-center justify-between shrink-0">
+            <div className="px-6 py-4 flex items-center justify-between shrink-0 bg-white dark:bg-zinc-950 border-b border-zinc-100 dark:border-zinc-800 z-10">
                 <h4 className="text-sm font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
-                    Network Node Directory
+                    Referred Users Directory
                 </h4>
                 {level.userCount > 100 && (
                     <span className="text-[10px] font-black text-zinc-400 uppercase">First 100 entries</span>
@@ -148,17 +148,17 @@ export function RevenueTreeLevelModal({
             
             <div className="flex-1 overflow-y-auto px-6 pb-6">
                 {mockUsers.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-zinc-950 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
+                    <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-zinc-950 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 mt-6">
                         <div className="w-12 h-12 rounded-full bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center text-zinc-300 mb-4 font-black">?</div>
-                        <p className="text-xs font-black text-zinc-400 uppercase tracking-widest">No active nodes at this depth</p>
+                        <p className="text-xs font-black text-zinc-400 uppercase tracking-widest">No active users at this depth</p>
                     </div>
                 ) : (
                     <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm overflow-hidden">
                         <table className="w-full text-left">
                             <thead className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-100 dark:border-zinc-800 text-[10px] font-black text-zinc-400 uppercase tracking-widest">
                                 <tr>
-                                    <th className="py-4 px-6">Wallet Identity</th>
-                                    <th className="py-4 px-6 text-right">Action</th>
+                                    <th className="py-4 px-6">User Wallet</th>
+                                    <th className="py-4 px-6 text-right">Referral Tree</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-50 dark:divide-zinc-800/50">

@@ -44,27 +44,35 @@ export function RevenueTreeActivationBox({ address: propAddress }: RevenueTreeAc
     }
 
     return (
-        <div className="p-5 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#02abb8] pulse" />
-                <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
-                System Activation Progress
-                </span>
-            </div>
-            <span className="text-[10px] font-black text-zinc-900 dark:text-white font-mono">
-              {volume.toFixed(2)} / {req} <span className="text-zinc-400">{currencySymbol}</span>
+        <div className="p-6 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+              Activation Progress
             </span>
+            <div className="flex items-baseline gap-1">
+                <span className="text-xl font-black text-zinc-900 dark:text-white tabular-nums">
+                    {volume.toFixed(2)}
+                </span>
+                <span className="text-[10px] font-bold text-zinc-400 uppercase">{currencySymbol}</span>
+            </div>
           </div>
-          <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-2.5 overflow-hidden border border-zinc-200 dark:border-zinc-700">
+          <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-[#02abb8] to-emerald-500 h-full transition-all duration-700 rounded-full"
+              className={`h-full transition-all duration-1000 rounded-full ${isActivated ? 'bg-emerald-500' : 'bg-[#02abb8]'}`}
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-500 mt-3 uppercase tracking-tight">
-             Requires {req} {currencySymbol} lifetime volume to unlock full network rewards.
-          </p>
+          <div className="flex items-center justify-between mt-3">
+              <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-tight">
+                 Threshold: {req} {currencySymbol}
+              </p>
+              <div className="flex items-center gap-1.5">
+                  <div className={`w-1.5 h-1.5 rounded-full ${isActivated ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
+                  <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                      {isActivated ? 'Active' : 'Genesis'}
+                  </span>
+              </div>
+          </div>
         </div>
     );
 }

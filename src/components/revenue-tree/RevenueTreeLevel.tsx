@@ -40,7 +40,7 @@ export function RevenueTreeLevel({ level, isCurrentUser = false, contentType, co
 
   // Format wallet address for display
   const formatAddress = (address: string) => {
-    if (!address || address === '0x0000000000000000000000000000000000000000') return 'Structural Node';
+    if (!address || address === '0x0000000000000000000000000000000000000000') return 'Genesis Wallet';
     if (address.startsWith('kaspa:')) {
       const parts = address.split('...');
       if (parts.length > 1) return address;

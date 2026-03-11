@@ -81,12 +81,12 @@ export function RevenueTreeFlowLayout({ walletAddress }: RevenueTreeFlowLayoutPr
           {/* Header */}
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
-              {isDemo ? (DEMO_LABELS[walletAddress] || 'Demo Tree') : 'Structural Tree Flow'}
+              {isDemo ? (DEMO_LABELS[walletAddress] || 'Demo Tree') : 'Referral Tree Flow'}
             </h1>
             <p className="text-zinc-600 dark:text-zinc-400 text-sm sm:text-base">
               {isDemo 
-                ? 'Visualizing structural nodes and representative upline distribution.' 
-                : `Network path for ${walletAddress}. View structural levels and revenue distribution.`}
+                ? 'Visualizing reward levels and representative upline distribution.' 
+                : `Network path for ${walletAddress}. View referral levels and revenue distribution.`}
             </p>
           </div>
 

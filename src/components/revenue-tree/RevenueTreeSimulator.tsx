@@ -154,7 +154,7 @@ export function RevenueTreeSimulator() {
                     onClose={() => setSelectedLevelDetails(null)}
                     level={{
                         level: selectedLevelDetails.level,
-                        walletAddress: selectedLevelDetails.walletAddress || '0xStructuralNode',
+                        walletAddress: selectedLevelDetails.walletAddress || '0x0000000000000000000000000000000000000000',
                         sharePercentage: selectedLevelDetails.sharePct,
                         userCount: selectedLevelDetails.usersCount,
                         isActive: selectedLevelDetails.isActive

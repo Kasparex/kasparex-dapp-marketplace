@@ -36,8 +36,8 @@ export function RevenueTree({ data, userWalletAddress, isL2Only = true, activati
   const amountToTree = (amountSpent * treeBps) / 10000;
   const getLevelShare = (sharePercentage: number) => (amountToTree * sharePercentage) / 100;
 
-  // Sort levels from 5 to 1 (top to bottom)
-  const sortedLevels = [...data.levels].sort((a, b) => b.level - a.level);
+  // Sort levels from 1 to 5 (top to bottom)
+  const sortedLevels = [...data.levels].sort((a, b) => a.level - b.level);
 
   // Don't show if L1 dApp
   if (isL2Only === false) {
@@ -59,7 +59,7 @@ export function RevenueTree({ data, userWalletAddress, isL2Only = true, activati
             Revenue Tree
           </h3>
           <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider mt-1">
-            Native Distribution • 5 Structural Levels
+            Native Referral Rewards • 5 Dynamic Levels
           </p>
         </div>
         <button
@@ -78,26 +78,23 @@ export function RevenueTree({ data, userWalletAddress, isL2Only = true, activati
 
       {/* Progress Bar - Show if not activated */}
       {!isActivated && userWalletAddress && (
-        <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+        <div className="p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#02abb8] pulse" />
-              <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
-                Activation Status
-              </span>
-            </div>
+            <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                Tree Activation Progress
+            </span>
             <span className="text-[10px] font-black text-zinc-900 dark:text-white font-mono">
               {activationAmount.toFixed(2)} / {requiredAmount} <span className="text-zinc-400">{currencySymbol}</span>
             </span>
           </div>
-          <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2 overflow-hidden border border-zinc-100 dark:border-zinc-800">
+          <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-[#02abb8] to-emerald-500 h-full transition-all duration-700 rounded-full"
+              className="bg-[#02abb8] h-full transition-all duration-1000 rounded-full"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-500 mt-2 uppercase tracking-tight">
-            Requires {requiredAmount} {currencySymbol} lifetime volume to unlock.
+          <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 mt-2 uppercase tracking-tight">
+            Unlocks global yield once {requiredAmount} {currencySymbol} volume is reached.
           </p>
         </div>
       )}
@@ -135,10 +132,10 @@ export function RevenueTree({ data, userWalletAddress, isL2Only = true, activati
         </div>
         <div className="flex items-center justify-between">
           <div className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
-            Active Deployments:
+            Network Reach:
           </div>
           <div className="text-xs font-black text-zinc-900 dark:text-zinc-100">
-            {data.revenueTreesCount} Structural
+            {data.revenueTreesCount} Referral Trees
           </div>
         </div>
       </div>

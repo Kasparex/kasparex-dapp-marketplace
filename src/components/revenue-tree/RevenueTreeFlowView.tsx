@@ -131,7 +131,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
   const treeIdLabel = isDemo && walletAddress ? (DEMO_LABELS[walletAddress] ?? walletAddress) : (walletAddress ? formatAddr(walletAddress) : '—');
 
   /** Primary layout: Level 5 at TOP, Level 1 at BOTTOM (reverse for display). */
-  const rowsTopToBottom = [...levelsL1ToL5].reverse();
+  const rowsTopToBottom = [...levelsL1ToL5];
 
   const lifetimeFormatted = tree && 'lifetimeVolume' in tree ? formatEther(BigInt((tree as { lifetimeVolume: string }).lifetimeVolume)) : '0';
   const volume30Formatted = tree && 'volumeLast30Days' in tree ? formatEther(BigInt((tree as { volumeLast30Days: string }).volumeLast30Days)) : '0';
@@ -231,10 +231,10 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
           <div className="rounded-xl border border-[#02abb8]/30 dark:border-[#02abb8]/20 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden relative">
             <div className="p-4 sm:p-6 border-b border-zinc-200 dark:border-zinc-700 bg-gradient-to-r from-[#02abb8]/5 to-transparent">
               <h2 className="text-xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-                Live Distribution Network
+                Referral Distribution Network
               </h2>
               <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-                Structural levels show how dApp spending from {treeIdLabel} is distributed up to the referrer network.
+                Visualizing how dApp spending from {treeIdLabel} is distributed up to the referrer network.
               </p>
             </div>
             <InfoModal

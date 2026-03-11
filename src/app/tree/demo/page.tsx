@@ -235,26 +235,34 @@ export default function RevenueTreeDemoPage() {
               
               {/* Activation Progress Bar (Simulated) */}
               <div className="p-6 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${isMockActivated ? 'bg-emerald-500 pulse' : 'bg-[#02abb8] pulse'}`} />
-                    <span className="text-xs font-black text-zinc-700 dark:text-zinc-300 uppercase tracking-widest">
-                        System Activation Status (Simulated)
-                    </span>
-                  </div>
-                  <span className="text-xs font-black text-zinc-900 dark:text-white font-mono">
-                    {isMockActivated ? '100.00 / 100.00' : '20.00 / 100.00'} <span className="text-zinc-500">{symbol}</span>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                    Activation Progress (Simulated)
                   </span>
+                  <div className="flex items-baseline gap-1">
+                      <span className="text-xl font-black text-zinc-900 dark:text-white tabular-nums">
+                        {isMockActivated ? '100.00' : '20.00'}
+                      </span>
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase">{symbol}</span>
+                  </div>
                 </div>
-                <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-3 overflow-hidden border border-zinc-200 dark:border-zinc-700">
+                <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden">
                   <div
                     className={`h-full transition-all duration-1000 rounded-full ${isMockActivated ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'bg-[#02abb8]'}`}
                     style={{ width: isMockActivated ? '100%' : '20%' }}
                   />
                 </div>
-                <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mt-3 uppercase tracking-wider">
-                  {isMockActivated ? '✓ Global Revenue Tree is active for this session.' : 'Requires 100 KAS total dApp volume to unlock full network rewards.'}
-                </p>
+                <div className="flex items-center justify-between mt-3">
+                    <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-tight">
+                        {isMockActivated ? '✓ Global Referral active' : 'Requires 100 volume to unlock.'}
+                    </p>
+                    <div className="flex items-center gap-1.5">
+                        <div className={`w-1.5 h-1.5 rounded-full ${isMockActivated ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-zinc-300'}`} />
+                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                            {isMockActivated ? 'Active' : 'Genesis'}
+                        </span>
+                    </div>
+                </div>
               </div>
 
               {/* Referral Link Box (Simulated) */}
@@ -376,11 +384,11 @@ export default function RevenueTreeDemoPage() {
                         </tbody>
                         <tfoot>
                             <tr className="border-t-2 border-zinc-200 dark:border-zinc-700">
-                                <td colSpan={3} className="pt-6 pl-4 sm:pl-6 font-bold text-zinc-900 dark:text-white">Global Simulation Output:</td>
+                                <td colSpan={3} className="pt-6 pl-4 sm:pl-6 font-bold text-zinc-900 dark:text-white uppercase tracking-tight">Global Simulation Output:</td>
                                 <td className="pt-6 text-center">
                                     <div className="inline-flex flex-col items-center">
-                                        <span className="text-sm font-bold text-zinc-900 dark:text-white">{totalUsers.toLocaleString()} Nodes</span>
-                                        <span className="text-[10px] font-bold text-zinc-500 uppercase">Estimated Network</span>
+                                        <span className="text-sm font-black text-zinc-900 dark:text-white uppercase">{totalUsers.toLocaleString()} Users</span>
+                                        <span className="text-[10px] font-bold text-zinc-400 uppercase whitespace-nowrap">Downline Reach</span>
                                     </div>
                                 </td>
                                 <td className="pt-6 pr-4 sm:pr-6 text-right">
