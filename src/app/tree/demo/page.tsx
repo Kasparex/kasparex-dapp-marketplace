@@ -9,6 +9,8 @@ import { REVENUE_SHARE_PERCENTAGES } from '@/lib/revenue-tree/types';
 import { useAccount, useChainId } from 'wagmi';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
 import { RevenueTreeLevelModal } from '@/components/revenue-tree/RevenueTreeLevelModal';
+import { RevenueTreeFlowStory } from '@/components/revenue-tree/RevenueTreeFlowStory';
+
 
 const LEVEL_SHARES = [
     REVENUE_SHARE_PERCENTAGES.LEVEL_01,
@@ -88,9 +90,11 @@ export default function RevenueTreeDemoPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isMockActivated, setIsMockActivated] = useState(false);
   const [hasReferralLink, setHasReferralLink] = useState(false);
-  const [mockEarnings, setMockEarnings] = useState(0);
   const [averageSpend, setAverageSpend] = useState<string>('100');
   const [levelUsers, setLevelUsers] = useState<number[]>([0, 0, 0, 0, 0]);
+  const [storyLog, setStoryLog] = useState<{msg: string, type: 'info' | 'success' | 'money'}[]>([
+      { msg: 'System initialized. Alice (You) is currently in Genesis mode.', type: 'info' }
+  ]);
   
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [selectedLevelDetails, setSelectedLevelDetails] = useState<{ 
@@ -103,50 +107,70 @@ export default function RevenueTreeDemoPage() {
   const steps = [
     {
       number: 1,
-      title: 'Activate Your Revenue Tree',
-      description: 'Spend 100 KAS (or 10 KAS if you hold 10M KREX) to activate your tree. This creates your profile on-chain.',
-      action: isMockActivated ? 'Activated' : 'Click to Activate',
+      title: 'Phase 1: Activation',
+      description: 'Alice (You) is inactive. Referrals would go to Genesis. Activate to become the root of your tree.',
+      action: isMockActivated ? 'Alice Active' : 'Activate Alice',
       completed: isMockActivated,
     },
     {
       number: 2,
-      title: 'Get Your Referral Link',
-      description: 'Once activated, your unique global referral link becomes active. You can share it to invite others.',
-      action: hasReferralLink ? 'Link Ready' : 'Generate Link',
-      completed: hasReferralLink,
+      title: 'Phase 2: Invite Bob',
+      description: 'Your link is ready. Share it with Bob. He will appear on your Level 1 (L1).',
+      action: levelUsers[0] > 0 ? 'Bob Referred' : 'Invite Bob',
+      completed: levelUsers[0] > 0,
       disabled: !isMockActivated,
     },
     {
       number: 3,
-      title: 'Refer & Seed Network',
-      description: 'Simulate referring 5 friends. They will appear on your Level 1 (L1) and earn you 2% of their spend.',
-      action: levelUsers[0] > 0 ? 'Referrals Added' : 'Invite 5 Users',
-      completed: levelUsers[0] > 0,
-      disabled: !hasReferralLink,
+      title: 'Phase 3: Bob Activates',
+      description: 'Bob spends 100 KAS. Because you are active, you receive 2% (2 KAS) natively.',
+      action: currentStep > 3 ? 'Commission Earned' : 'Bob Pays 100 KAS',
+      completed: currentStep > 3,
+      disabled: levelUsers[0] === 0,
     },
     {
       number: 4,
-      title: 'Simulate Growth',
-      description: 'Watch your tree scale as your referrals invite others. Meet maintenance criteria to unlock all 5 levels.',
-      action: levelUsers[4] > 0 ? 'Tree Scaled' : 'Scale 5 Levels',
+      title: 'Phase 4: Charlie Joins',
+      description: 'Bob refers Charlie. Charlie is your L2. Bob earns 2%, you earn 5% from Charlie.',
+      action: currentStep > 4 ? 'Network Scaled' : 'Charlie Activates',
+      completed: currentStep > 4,
+      disabled: currentStep < 4,
+    },
+    {
+      number: 5,
+      title: 'Phase 5: Exponential Scale',
+      description: 'Watch your tree grow from 3 users to hundreds. Maximize your rewards by maintaining your active status.',
+      action: levelUsers[4] > 0 ? 'Fully Scaled' : 'Simulate 5 Levels',
       completed: levelUsers[4] > 0,
-      disabled: levelUsers[0] === 0,
+      disabled: currentStep < 5,
     },
   ];
+
+  const addLog = (msg: string, type: 'info' | 'success' | 'money') => {
+      setStoryLog(prev => [{ msg, type }, ...prev].slice(0, 5));
+  };
 
   const handleStepAction = (stepNumber: number) => {
     if (stepNumber === 1) {
       setIsMockActivated(true);
-      if (currentStep === 1) setCurrentStep(2);
-    } else if (stepNumber === 2) {
       setHasReferralLink(true);
-      if (currentStep === 2) setCurrentStep(3);
+      addLog('Alice activated! She is now L1 root.', 'success');
+      setCurrentStep(2);
+    } else if (stepNumber === 2) {
+      setLevelUsers([1, 0, 0, 0, 0]);
+      addLog('Bob joined Alice\'s network via referral link.', 'info');
+      setCurrentStep(3);
     } else if (stepNumber === 3) {
-      setLevelUsers([5, 0, 0, 0, 0]);
-      if (currentStep === 3) setCurrentStep(4);
+      addLog('Bob spent 100 KAS. Alice earned 2 KAS!', 'money');
+      setCurrentStep(4);
     } else if (stepNumber === 4) {
-      setLevelUsers([5, 25, 125, 625, 3125]);
+      setLevelUsers([1, 1, 0, 0, 0]);
+      addLog('Charlie activated. Bob earned 2 KAS, Alice earned 5 KAS!', 'money');
       setCurrentStep(5);
+    } else if (stepNumber === 5) {
+      setLevelUsers([12, 144, 1728, 5000, 10000]);
+      addLog('Tree exploded! Alice is now receiving network shares from 5 levels.', 'success');
+      setCurrentStep(6);
     }
   };
 
@@ -159,6 +183,9 @@ export default function RevenueTreeDemoPage() {
   const spendAmount = parseFloat(averageSpend) || 0;
   let totalEarnings = 0;
   let totalUsers = 0;
+
+  // Calculate earnings based on scenario or manual input
+  // In demo mode, we might want to override manual input logic with story logic for consistency
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -187,12 +214,43 @@ export default function RevenueTreeDemoPage() {
               </p>
             </div>
 
+            {/* Story Visualization & Log */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                    <RevenueTreeFlowStory currentStep={currentStep} />
+                </div>
+                <div className="bg-zinc-50 dark:bg-zinc-950 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col overflow-hidden">
+                    <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+                        <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Network Event Log</h4>
+                    </div>
+                    <div className="flex-1 p-4 space-y-3 overflow-y-auto">
+                        {storyLog.map((log, i) => (
+                            <div key={i} className={`text-xs p-2.5 rounded-xl border animate-in fade-in slide-in-from-right-4 duration-300 ${
+                                log.type === 'money' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' :
+                                log.type === 'success' ? 'bg-[#02abb8]/10 border-[#02abb8]/20 text-[#02abb8]' :
+                                'bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-500'
+                            }`}>
+                                <div className="flex items-start gap-2">
+                                    <span className="mt-0.5">{log.type === 'money' ? '💰' : log.type === 'success' ? '✨' : '📝'}</span>
+                                    <p className="font-bold leading-relaxed">{log.msg}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="p-4 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800">
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase text-center italic tracking-tight">
+                            Real-time smart contract events simulated
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             {/* Interactive Wizard */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
               {steps.map((step) => (
                 <div
                   key={step.number}
-                  className={`p-6 rounded-2xl border-2 transition-all duration-300 ${
+                  className={`p-6 rounded-2xl border-2 transition-all duration-300 relative overflow-hidden ${
                     currentStep === step.number
                       ? 'border-[#02abb8] bg-[#02abb8]/5 shadow-[0_0_20px_rgba(2,171,184,0.1)]'
                       : step.completed
@@ -200,6 +258,11 @@ export default function RevenueTreeDemoPage() {
                         : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 opacity-60'
                   }`}
                 >
+                  {currentStep === step.number && (
+                      <div className="absolute top-0 right-0 p-1">
+                          <div className="w-2 h-2 rounded-full bg-[#02abb8] animate-ping" />
+                      </div>
+                  )}
                   <div className="flex flex-col h-full">
                     <div className="flex items-center gap-3 mb-4">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm shrink-0 ${
