@@ -42,7 +42,6 @@ function getSidebarStats(tree: UnifiedRevenueTreeData | MockFlowTreeData | null)
 }
 
 export function RevenueTreeFlowLayout({ walletAddress }: RevenueTreeFlowLayoutProps) {
-  const [activeTab, setActiveTab] = useState<RevenueTreeContentType | 'all'>('all');
 
   const isDemo = isDemoWalletSlug(walletAddress);
   const mockTree = useMemo(() => (isDemo ? getMockFlowTree(walletAddress) : null), [isDemo, walletAddress]);
@@ -62,8 +61,6 @@ export function RevenueTreeFlowLayout({ walletAddress }: RevenueTreeFlowLayoutPr
       {/* Sidebar */}
       <div className="hidden lg:block flex-shrink-0">
         <RevenueTreeSidebar
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
           totalRevenue={totalRevenue}
           activeTrees={activeTrees}
           totalDownline={totalDownline}
@@ -73,8 +70,6 @@ export function RevenueTreeFlowLayout({ walletAddress }: RevenueTreeFlowLayoutPr
       {/* Mobile sidebar */}
       <div className="lg:hidden">
         <RevenueTreeSidebar
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
           totalRevenue={totalRevenue}
           activeTrees={activeTrees}
           totalDownline={totalDownline}

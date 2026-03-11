@@ -4,8 +4,6 @@ import { useState, useMemo } from 'react';
 import { useAccount } from 'wagmi';
 import { formatEther } from 'viem';
 import { RevenueTreeStats } from './RevenueTreeStats';
-import { formatEther } from 'viem';
-import { RevenueTreeStats } from './RevenueTreeStats';
 import { RevenueTreeSidebar } from './RevenueTreeSidebar';
 import { RevenueTreeSimulator } from './RevenueTreeSimulator';
 import { RevenueTreeNetworkNudge } from './RevenueTreeNetworkNudge';
