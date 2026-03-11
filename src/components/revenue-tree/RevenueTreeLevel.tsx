@@ -75,15 +75,10 @@ export function RevenueTreeLevel({ level, isCurrentUser = false, contentType, co
             }`}>
               LEVEL {String(level.level).padStart(2, '0')}
             </div>
-            {level.isActive ? (
-              <span className="text-[10px] uppercase font-bold text-emerald-500 tracking-wider flex items-center gap-1 bg-emerald-500/10 px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span> <span className="hidden sm:inline">Active</span>
-              </span>
-            ) : (
-              <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider flex items-center gap-1 bg-zinc-400/10 px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 shrink-0"></span> <span className="hidden sm:inline">Inactive (Genesis receives)</span>
-              </span>
-            )}
+            <div 
+              className={`w-2 h-2 rounded-full shrink-0 ${level.isActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-zinc-300 dark:bg-zinc-700'}`}
+              title={level.isActive ? 'Active' : 'Inactive (Genesis receives)'}
+            />
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <span className="text-xs font-black text-green-600 dark:text-green-400">

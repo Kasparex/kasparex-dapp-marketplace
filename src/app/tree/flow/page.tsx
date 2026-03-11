@@ -5,5 +5,5 @@ import { redirect } from 'next/navigation';
  * User's own tree: /revenue-tree/flow/{wallet-address}
  */
 export default function RevenueTreeFlowIndexPage() {
-  redirect('/revenue-tree/flow/wallet-1');
+  redirect('/tree/flow/wallet-1');
 }

@@ -30,7 +30,7 @@ export function RevenueTreeSidebar({
   const [showGuide, setShowGuide] = useState(false);
 
   const flowHref = useMemo(
-    () => (address ? `/revenue-tree/flow/${address}` : '/revenue-tree/flow'),
+    () => (address ? `/tree/flow/${address}` : '/tree/flow'),
     [address]
   );
 
@@ -104,7 +104,7 @@ export function RevenueTreeSidebar({
           </div>
           <nav className="space-y-0.5">
             {quickLinks.map((link) => {
-              const isActive = link.id === 'flow' ? pathname.startsWith('/revenue-tree/flow') : pathname === link.href;
+              const isActive = link.id === 'flow' ? pathname.startsWith('/tree/flow') : pathname === link.href;
               return (
                 <Link
                   key={link.id}

@@ -76,9 +76,11 @@ export function RevenueTreeFlowLayout({ walletAddress }: RevenueTreeFlowLayoutPr
         />
       </div>
 
-      {/* Main: table only */}
-      <div className="flex-1 min-w-0 flex flex-col p-4 sm:p-6 lg:p-8 lg:pl-6">
-        <RevenueTreeFlowView walletAddress={walletAddress} tree={tree} />
+      {/* Main Content */}
+      <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6">
+        <div className="space-y-6">
+          <RevenueTreeFlowView walletAddress={walletAddress} tree={tree} />
+        </div>
       </div>
     </div>
   );

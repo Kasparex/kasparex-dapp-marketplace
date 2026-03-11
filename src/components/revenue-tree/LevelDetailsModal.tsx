@@ -152,7 +152,7 @@ export function LevelDetailsModal({
                                             </td>
                                             <td className="py-3 px-4 text-right align-middle">
                                                 <Link 
-                                                    href={`/revenue-tree/flow/${address}`} 
+                                                    href={`/tree/flow/${address}`} 
                                                     target="_blank"
                                                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#02abb8] bg-[#02abb8]/10 hover:bg-[#02abb8] hover:text-white transition-all shadow-sm group-hover:shadow"
                                                 >

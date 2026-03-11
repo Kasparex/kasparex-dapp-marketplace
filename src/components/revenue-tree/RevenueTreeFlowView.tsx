@@ -138,7 +138,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
   const lifetimeFormatted = tree && 'lifetimeVolume' in tree ? formatEther(BigInt((tree as { lifetimeVolume: string }).lifetimeVolume)) : '0';
   const volume30Formatted = tree && 'volumeLast30Days' in tree ? formatEther(BigInt((tree as { volumeLast30Days: string }).volumeLast30Days)) : '0';
 
-  const wrapperClass = embedded ? 'w-full min-w-0 p-4 sm:p-6 lg:p-8' : 'max-w-4xl mx-auto w-full p-4 sm:p-6 lg:p-8';
+  const wrapperClass = embedded ? 'w-full min-w-0 p-4 sm:p-6 lg:p-8' : 'w-full min-w-0';
 
   if (!isDemo && !connectedAddress && !walletAddress.startsWith('0x')) {
     return (
@@ -351,7 +351,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
             {(['wallet-1', 'wallet-2', 'wallet-3', 'wallet-4', 'wallet-5', 'wallet-6'] as const).map((slug) => (
               <Link
                 key={slug}
-                href={`/revenue-tree/flow/${slug}`}
+                href={`/tree/flow/${slug}`}
                 className={`text-sm font-medium px-2 py-1 rounded ${walletAddress === slug ? 'bg-[#02abb8]/20 text-[#02abb8]' : 'text-violet-600 dark:text-violet-400 hover:underline'}`}
               >
                 {DEMO_LABELS[slug] ?? slug}
