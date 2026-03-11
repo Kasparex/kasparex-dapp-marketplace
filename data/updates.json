@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773230282-1013a44",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: chore: remove temporary file (by Kasparex)",
+      "date": "2026-03-11T12:57:44+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773226433-0cc65de",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: feat(revenue-tree): Add level details modal and interactive tree rows (by Kasparex)",
