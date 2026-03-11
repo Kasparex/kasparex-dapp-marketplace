@@ -107,8 +107,8 @@ export default function RevenueTreeDemoPage() {
   const steps = [
     {
       number: 1,
-      title: 'Phase 1: Activation',
-      description: 'Alice (You) is inactive. Referrals would go to Genesis. Activate to become the root of your tree.',
+      title: 'Phase 1: First Activation',
+      description: 'Alice activates for the first time. A brand new tree is created, linking her to the Genesis Structure (Upline Wallets 1-5).',
       action: isMockActivated ? 'Alice Active' : 'Activate Alice',
       completed: isMockActivated,
     },
@@ -154,7 +154,7 @@ export default function RevenueTreeDemoPage() {
     if (stepNumber === 1) {
       setIsMockActivated(true);
       setHasReferralLink(true);
-      addLog('Alice activated! She is now L1 root.', 'success');
+      addLog('Alice activated! Permanent links to Genesis Wallets 1-5 created.', 'success');
       setCurrentStep(2);
     } else if (stepNumber === 2) {
       setLevelUsers([2, 0, 0, 0, 0]);
@@ -168,9 +168,9 @@ export default function RevenueTreeDemoPage() {
       addLog('Charlie and Eve join. Alice now has nodes at Level 2.', 'info');
       setCurrentStep(5);
     } else if (stepNumber === 5) {
-      setLevelUsers([2, 2, 1, 1, 1]);
-      addLog('Henry joined at Level 5! Simulating deep revenue propagation...', 'success');
-      addLog('Henry paid 100 KAS. Alice earns 45% (45 KAS) from L5!', 'money');
+      setLevelUsers([2, 5, 12, 45, 150]); // Aligned with "explosive growth" feel
+      addLog('Henry joins at L5! Deep network propagation triggered.', 'success');
+      addLog('Henry paid 100 KAS. Alice receives 45 KAS (45% Share)!', 'money');
       setCurrentStep(6);
     }
   };
