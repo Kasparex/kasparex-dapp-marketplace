@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
 import { useChainId } from 'wagmi';
 import { REVENUE_SHARE_PERCENTAGES } from '@/lib/revenue-tree/types';
+import { LevelDetailsModal } from './LevelDetailsModal';
 
 const LEVEL_SHARES = [
     REVENUE_SHARE_PERCENTAGES.LEVEL_01,
@@ -84,6 +85,7 @@ export function RevenueTreeSimulator() {
 
     // Modal state
     const [activeModal, setActiveModal] = useState<string | null>(null);
+    const [selectedLevelDetails, setSelectedLevelDetails] = useState<{ level: number, usersCount: number, sharePct: number, requirementsTxt: string, earningsPerUser: number, totalEarnings: number } | null>(null);
 
     const handleUserChange = (index: number, value: string) => {
         const newUsers = [...levelUsers];
@@ -136,6 +138,20 @@ export function RevenueTreeSimulator() {
                 title="Level Requirements"
                 content="The maintenance criteria required to earn from this specific level every rolling 30 days. You can achieve this by either spending the required KAS amount, OR holding 10,000,000 KREX to receive a 90% discount on the required KAS volume."
             />
+
+            {selectedLevelDetails && (
+                <LevelDetailsModal 
+                    isOpen={!!selectedLevelDetails}
+                    onClose={() => setSelectedLevelDetails(null)}
+                    level={selectedLevelDetails.level}
+                    usersCount={selectedLevelDetails.usersCount}
+                    sharePct={selectedLevelDetails.sharePct}
+                    requirementsTxt={selectedLevelDetails.requirementsTxt}
+                    symbol={symbol}
+                    earningsPerUser={selectedLevelDetails.earningsPerUser}
+                    totalEarnings={selectedLevelDetails.totalEarnings}
+                />
+            )}
 
             <div className="p-4 sm:p-6 border-b border-zinc-200 dark:border-zinc-700 bg-gradient-to-r from-[#02abb8]/5 to-transparent">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -218,7 +234,13 @@ export function RevenueTreeSimulator() {
                             totalUsers += users;
 
                             return (
-                                <tr key={level} className="text-sm">
+                                <tr 
+                                    key={level} 
+                                    className="text-sm cursor-pointer hover:bg-[#02abb8]/5 dark:hover:bg-[#02abb8]/10 transition-colors group"
+                                    onClick={() => setSelectedLevelDetails({
+                                        level, usersCount: users, sharePct: pct, requirementsTxt, earningsPerUser: perUser, totalEarnings: levelEarnings
+                                    })}
+                                >
                                     <td className="py-4">
                                         <div className="flex items-center gap-2">
                                             <div className="flex items-center justify-center w-8 h-8 rounded-full font-black text-xs bg-[#02abb8]/10 text-[#02abb8]">
@@ -231,7 +253,7 @@ export function RevenueTreeSimulator() {
                                     <td className="py-4 font-mono text-zinc-600 dark:text-zinc-400">
                                         {perUser.toLocaleString(undefined, { maximumFractionDigits: 4 })} {symbol}
                                     </td>
-                                    <td className="py-4">
+                                    <td className="py-4" onClick={(e) => e.stopPropagation()}>
                                         <input
                                             type="number"
                                             min="0"
