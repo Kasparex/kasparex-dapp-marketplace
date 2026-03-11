@@ -10,6 +10,7 @@ import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
 import { RevenueTreeContentType } from '@/lib/revenue-tree/types';
 import { RevenueTreeGuideModal } from './RevenueTreeGuideModal';
+import { RevenueTreeActivationBox } from './RevenueTreeActivationBox';
 
 interface RevenueTreeSidebarProps {
   totalRevenue: number;
@@ -156,6 +157,11 @@ export function RevenueTreeSidebar({
             </svg>
             {address ? 'Copy Invite Link' : 'Connect Wallet'}
           </button>
+        </div>
+
+        {/* Activation Progress */}
+        <div className="mb-6">
+          <RevenueTreeActivationBox />
         </div>
 
         {/* Guide Button */}

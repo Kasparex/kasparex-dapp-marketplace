@@ -13,6 +13,8 @@ export interface RevenueTreeLevel {
   userCount: number;
   /** Revenue share percentage (45, 20, 10, 5, 2) */
   sharePercentage: number;
+  /** Whether this level is currently active (receiving rewards) */
+  isActive: boolean;
 }
 
 /** Unified tree per wallet per chain (on-chain source of truth). */

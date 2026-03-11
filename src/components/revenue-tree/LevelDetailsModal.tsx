@@ -107,19 +107,20 @@ export function LevelDetailsModal({
                      </div>
                 </div>
 
-                {/* Users List */}
+                {/* Users List Header (Fixed) */}
+                <div className="px-6 py-4 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between z-10 shrink-0">
+                    <h4 className="text-sm font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                         Referred Users Directory
+                    </h4>
+                    {usersCount > 100 && (
+                        <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 bg-zinc-200 dark:bg-zinc-800 px-2 py-1 rounded-md">
+                            Showing first {displayCount}
+                        </span>
+                    )}
+                </div>
+
+                {/* Users List Content (Scrollable) */}
                 <div className="flex-1 overflow-y-auto px-6 py-4 bg-zinc-50 dark:bg-zinc-900 relative">
-                    <div className="flex items-center justify-between mb-4 sticky top-0 bg-zinc-50 dark:bg-zinc-900 z-10 py-2">
-                        <h4 className="text-sm font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-                             Referred Users Directory
-                        </h4>
-                        {usersCount > 100 && (
-                            <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 bg-zinc-200 dark:bg-zinc-800 px-2 py-1 rounded-md">
-                                Showing first 100
-                            </span>
-                        )}
-                    </div>
-                     
                     {mockUsers.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 text-zinc-400 dark:text-zinc-500">
                             <svg className="w-12 h-12 mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">

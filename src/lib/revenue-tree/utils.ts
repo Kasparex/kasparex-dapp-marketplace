@@ -21,6 +21,7 @@ export function unifiedToRevenueTreeData(unified: UnifiedRevenueTreeData | null)
     walletAddress: walletAddress || '',
     userCount: 0,
     sharePercentage: LEVEL_SHARES[i] ?? 0,
+    isActive: unified.isActiveAtLevel[i] ?? false,
   })).sort((a, b) => b.level - a.level);
 
   const totalEarnedNum = parseFloat(unified.totalEarned || '0');
@@ -88,24 +89,28 @@ export function generateRevenueTreeLevels(
       walletAddress: DEFAULT_REVENUE_WALLETS.LEVEL_5,
       userCount: 0,
       sharePercentage: 45,
+      isActive: true,
     },
     {
       level: 4,
       walletAddress: DEFAULT_REVENUE_WALLETS.LEVEL_4,
       userCount: 0,
       sharePercentage: 20,
+      isActive: true,
     },
     {
       level: 3,
       walletAddress: DEFAULT_REVENUE_WALLETS.LEVEL_3,
       userCount: 0,
       sharePercentage: 10,
+      isActive: true,
     },
     {
       level: 2,
       walletAddress: DEFAULT_REVENUE_WALLETS.LEVEL_2,
       userCount: 0,
       sharePercentage: 5,
+      isActive: true,
     },
     {
       // L1 is the direct referrer now.
@@ -113,6 +118,7 @@ export function generateRevenueTreeLevels(
       walletAddress: referrerAddress || DEFAULT_REVENUE_WALLETS.LEVEL_1,
       userCount: 0,
       sharePercentage: 2,
+      isActive: true,
     }
   ];
   return levels;

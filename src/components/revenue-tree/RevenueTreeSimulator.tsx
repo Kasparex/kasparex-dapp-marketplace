@@ -5,6 +5,8 @@ import { getNativeCurrencySymbol } from '@/lib/wagmi';
 import { useChainId } from 'wagmi';
 import { REVENUE_SHARE_PERCENTAGES } from '@/lib/revenue-tree/types';
 import { LevelDetailsModal } from './LevelDetailsModal';
+import { useRevenueTree } from '@/hooks/useRevenueTree';
+import { ReferralLinkBox } from './ReferralLinkBox';
 
 const LEVEL_SHARES = [
     REVENUE_SHARE_PERCENTAGES.LEVEL_01,
@@ -78,6 +80,7 @@ function InfoIcon({ onClick }: { onClick: () => void }) {
 export function RevenueTreeSimulator() {
     const chainId = useChainId();
     const symbol = getNativeCurrencySymbol(chainId);
+    const { tree } = useRevenueTree();
 
     // State for the calculator
     const [averageSpend, setAverageSpend] = useState<string>('100');
@@ -186,11 +189,11 @@ export function RevenueTreeSimulator() {
                 </div>
             </div>
 
-            <div className="p-4 sm:p-6 bg-zinc-50/50 dark:bg-zinc-900/50 overflow-x-auto">
+            <div className="py-4 sm:py-6 bg-zinc-50/50 dark:bg-zinc-900/50 overflow-x-auto">
                 <table className="w-full text-left min-w-[500px]">
                     <thead>
                         <tr className="border-b border-zinc-200 dark:border-zinc-700 text-sm text-zinc-500 dark:text-zinc-400">
-                            <th className="pb-3 font-medium">
+                            <th className="pb-3 pl-4 sm:pl-6 font-medium">
                                 <div className="flex items-center">
                                     Level <InfoIcon onClick={() => setActiveModal('level')} />
                                 </div>
@@ -215,7 +218,7 @@ export function RevenueTreeSimulator() {
                                     Referred Users <InfoIcon onClick={() => setActiveModal('referred')} />
                                 </div>
                             </th>
-                            <th className="pb-3 font-medium text-right">
+                            <th className="pb-3 pr-4 sm:pr-6 font-medium text-right">
                                 <div className="flex items-center justify-end">
                                     Potential Earnings <InfoIcon onClick={() => setActiveModal('potential')} />
                                 </div>
@@ -241,11 +244,14 @@ export function RevenueTreeSimulator() {
                                         level, usersCount: users, sharePct: pct, requirementsTxt, earningsPerUser: perUser, totalEarnings: levelEarnings
                                     })}
                                 >
-                                    <td className="py-4">
+                                    <td className="py-4 pl-4 sm:pl-6">
                                         <div className="flex items-center gap-2">
-                                            <div className="flex items-center justify-center w-8 h-8 rounded-full font-black text-xs bg-[#02abb8]/10 text-[#02abb8]">
+                                            <div className="flex items-center justify-center w-8 h-8 rounded-full font-black text-xs bg-[#02abb8]/10 text-[#02abb8] shrink-0">
                                                 L{level}
                                             </div>
+                                            <span className="text-[10px] uppercase font-bold text-emerald-500 tracking-wider flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span> <span className="hidden sm:inline">Active</span>
+                                            </span>
                                         </div>
                                     </td>
                                     <td className="py-4 font-semibold text-zinc-900 dark:text-zinc-100">{pct}%</td>
@@ -263,7 +269,7 @@ export function RevenueTreeSimulator() {
                                             className="w-full rounded-md border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-950 px-3 py-1.5 text-sm text-zinc-900 dark:text-white focus:border-[#02abb8] focus:ring-1 focus:ring-[#02abb8] outline-none"
                                         />
                                     </td>
-                                    <td className="py-4 text-right">
+                                    <td className="py-4 text-right pr-4 sm:pr-6">
                                         <div className="font-bold text-[#02abb8]">
                                             +{levelEarnings.toLocaleString(undefined, { maximumFractionDigits: 2 })} {symbol}
                                         </div>
@@ -274,14 +280,23 @@ export function RevenueTreeSimulator() {
                     </tbody>
                     <tfoot>
                         <tr className="border-t-2 border-zinc-200 dark:border-zinc-700">
-                            <td colSpan={4} className="pt-4 font-bold text-zinc-900 dark:text-white">Total Estimated Network:</td>
+                            <td colSpan={4} className="pt-4 pl-4 sm:pl-6 font-bold text-zinc-900 dark:text-white">Total Estimated Network:</td>
                             <td className="pt-4 font-bold text-zinc-900 dark:text-white">{totalUsers.toLocaleString()} Users</td>
-                            <td className="pt-4 text-right font-black text-xl text-[#02abb8]">
+                            <td className="pt-4 pr-4 sm:pr-6 text-right font-black text-xl text-[#02abb8]">
                                 +{totalEarnings.toLocaleString(undefined, { maximumFractionDigits: 2 })} {symbol}
                             </td>
                         </tr>
                     </tfoot>
                 </table>
+            </div>
+
+            {/* Referral Link Box */}
+            <div className="p-4 sm:p-6 border-t border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900">
+                <ReferralLinkBox 
+                    referralLink={tree?.referralLink || ''} 
+                    isActive={!!tree?.activatedAt} 
+                    contentType="dapp" 
+                />
             </div>
         </div>
     );

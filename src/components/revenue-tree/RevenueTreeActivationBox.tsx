@@ -11,8 +11,9 @@ export function RevenueTreeActivationBox() {
     const chainId = useChainId();
     const currencySymbol = getNativeCurrencySymbol(chainId);
 
-    if (!address || isLoading || !isSupported) return null;
+    if (!address) return null;
     
+    // Default to last known or 0 state during loading to prevent flashing
     const isActivated = !!tree?.activatedAt;
     const volume = lifetimeVolume ? parseFloat(formatEther(lifetimeVolume)) : 0;
     const req = activationThreshold ? parseFloat(formatEther(activationThreshold)) : 100;

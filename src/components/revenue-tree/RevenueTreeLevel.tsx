@@ -67,12 +67,23 @@ export function RevenueTreeLevel({ level, isCurrentUser = false, contentType, co
             : 'bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800'
         }`}
       >
-        {/* Line 1: LEVEL XX — X% Share — Users: N */}
+        {/* Line 1: LEVEL XX — Status — X% Share — Users: N */}
         <div className="flex items-center justify-between gap-2 min-w-0">
-          <div className={`flex-shrink-0 text-xs font-black uppercase tracking-widest ${
-            isCurrentUser ? 'text-purple-600 dark:text-purple-400' : 'text-zinc-500 dark:text-zinc-400'
-          }`}>
-            LEVEL {String(level.level).padStart(2, '0')}
+          <div className="flex items-center gap-2 min-w-0">
+            <div className={`flex-shrink-0 text-xs font-black uppercase tracking-widest ${
+              isCurrentUser ? 'text-purple-600 dark:text-purple-400' : 'text-zinc-500 dark:text-zinc-400'
+            }`}>
+              LEVEL {String(level.level).padStart(2, '0')}
+            </div>
+            {level.isActive ? (
+              <span className="text-[10px] uppercase font-bold text-emerald-500 tracking-wider flex items-center gap-1 bg-emerald-500/10 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span> <span className="hidden sm:inline">Active</span>
+              </span>
+            ) : (
+              <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider flex items-center gap-1 bg-zinc-400/10 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 shrink-0"></span> <span className="hidden sm:inline">Inactive (Genesis receives)</span>
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <span className="text-xs font-black text-green-600 dark:text-green-400">
