@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773254440-7b51440",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat: Redesign Revenue Tree Flow simulation with explicit level rows and Genesis structure (by Kasparex)",
+      "date": "2026-03-11T19:39:57+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773251517-8ef713e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: style: Clean up Revenue Tree Demo simulation UI with simple dots and dashed lines (by Kasparex)",
