@@ -1,13 +1,21 @@
 'use client';
 
 import { useRevenueTree } from '@/hooks/useRevenueTree';
+import { useAccount } from 'wagmi';
 
 /**
  * Renders a warning message if the user's direct referrer (L1) has gone inactive,
  * missing out on their 2% share. Encourages social nudges.
  */
-export function RevenueTreeNetworkNudge() {
-    const { tree, isSupported } = useRevenueTree();
+export interface RevenueTreeNetworkNudgeProps {
+    address?: string;
+}
+
+export function RevenueTreeNetworkNudge({ address: propAddress }: RevenueTreeNetworkNudgeProps) {
+    const { address: connectedAddress } = useAccount();
+    const { tree, isSupported } = useRevenueTree(
+        propAddress ? { userAddress: propAddress as `0x${string}` } : {}
+    );
 
     if (!tree || !isSupported) return null;
 

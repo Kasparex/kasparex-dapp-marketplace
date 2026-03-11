@@ -11,7 +11,7 @@ export interface UseRevenueTreeOptions {
   /** Chain ID for the contract. Defaults to connected chain. */
   chainId?: number;
   /** User address to query. Defaults to connected account. */
-  userAddress?: `0x${string}` | undefined;
+  address?: `0x${string}` | string | undefined;
 }
 
 export interface UseRevenueTreeReturn {
@@ -32,7 +32,7 @@ export function useRevenueTree(options: UseRevenueTreeOptions = {}): UseRevenueT
   const { address: connectedAddress } = useAccount();
   const connectedChainId = useChainId();
   const chainId = options.chainId ?? connectedChainId;
-  const userAddress = options.userAddress ?? connectedAddress ?? undefined;
+  const userAddress = (options.address || options.userAddress || connectedAddress) as `0x${string}` | undefined;
 
   const contractAddress = getContractAddress(chainId, 'RevenueTreeManager');
   const isSupported = !!contractAddress && contractAddress.length > 0;

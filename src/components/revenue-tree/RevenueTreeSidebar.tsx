@@ -16,16 +16,20 @@ interface RevenueTreeSidebarProps {
   totalRevenue: number;
   activeTrees: number;
   totalDownline: number;
+  /** Optional override address (for viewing public profiles) */
+  address?: string;
 }
 
 export function RevenueTreeSidebar({
   totalRevenue,
   activeTrees,
   totalDownline,
+  address: propAddress,
 }: RevenueTreeSidebarProps) {
   const pathname = usePathname();
   const chainId = useChainId();
-  const { address } = useAccount();
+  const { address: connectedAddress } = useAccount();
+  const address = propAddress || connectedAddress;
   const nativeSymbol = getNativeCurrencySymbol(chainId);
   const [showGuide, setShowGuide] = useState(false);
 
@@ -39,8 +43,6 @@ export function RevenueTreeSidebar({
     { id: 'dapp', label: 'dApps', count: 0 },
     { id: 'vblog', label: 'vBlog', count: 0 },
     { id: 'game', label: 'Games', count: 0 },
-    { id: 'store', label: 'Store', count: 0 },
-    { id: 'magazine', label: 'Magazines', count: 0 },
   ];
 
   const handleCopyLink = () => {
@@ -55,7 +57,7 @@ export function RevenueTreeSidebar({
     {
       id: 'dashboard',
       label: 'My Dashboard',
-      href: '/revenue-tree/dashboard',
+      href: '/tree/dashboard',
       icon: (
         <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
           <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -75,7 +77,7 @@ export function RevenueTreeSidebar({
     {
       id: 'demo',
       label: 'How It Works',
-      href: '/revenue-tree/demo',
+      href: '/tree/demo',
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
@@ -161,7 +163,7 @@ export function RevenueTreeSidebar({
 
         {/* Activation Progress */}
         <div className="mb-6">
-          <RevenueTreeActivationBox />
+          <RevenueTreeActivationBox address={address} />
         </div>
 
         {/* Guide Button */}

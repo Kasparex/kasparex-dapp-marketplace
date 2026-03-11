@@ -11,10 +11,18 @@ import { RevenueTreeActivationBox } from './RevenueTreeActivationBox';
 import { useRevenueTree } from '@/hooks/useRevenueTree';
 import { unifiedToRevenueTreeData } from '@/lib/revenue-tree/utils';
 
-export function RevenueTreeDashboard() {
-  const { address: userWalletAddress } = useAccount();
+export interface RevenueTreeDashboardProps {
+  /** Optional address to view as public profile. If not provided, shows connected wallet's dashboard. */
+  viewAddress?: string;
+}
 
-  const { tree, isLoading, isSupported } = useRevenueTree();
+export function RevenueTreeDashboard({ viewAddress }: RevenueTreeDashboardProps) {
+  const { address: connectedAddress } = useAccount();
+  const userWalletAddress = viewAddress || connectedAddress;
+
+  const { tree, isLoading, isSupported } = useRevenueTree(
+    viewAddress ? { userAddress: viewAddress as `0x${string}` } : {}
+  );
 
   // One tree per wallet (on-chain); convert to legacy shape for list/stats
   const trees = useMemo(() => {
@@ -31,21 +39,12 @@ export function RevenueTreeDashboard() {
 
   return (
     <div className="flex-1 flex flex-col lg:flex-row">
-      {/* Sidebar */}
-      <div className="hidden lg:block flex-shrink-0">
+      <div className="flex-shrink-0">
         <RevenueTreeSidebar
           totalRevenue={totalRevenue}
           activeTrees={activeTrees}
           totalDownline={totalDownline}
-        />
-      </div>
-
-      {/* Mobile sidebar */}
-      <div className="lg:hidden">
-        <RevenueTreeSidebar
-          totalRevenue={totalRevenue}
-          activeTrees={activeTrees}
-          totalDownline={totalDownline}
+          address={userWalletAddress}
         />
       </div>
 
@@ -77,7 +76,7 @@ export function RevenueTreeDashboard() {
           {(userWalletAddress && isSupported) && (
             <>
               {/* Network Nudge (hidden if referrer is active) */}
-              <RevenueTreeNetworkNudge />
+              <RevenueTreeNetworkNudge address={userWalletAddress} />
 
               <RevenueTreeStats
                 totalRevenue={totalRevenue}
@@ -87,7 +86,7 @@ export function RevenueTreeDashboard() {
               />
 
               {/* Activation Progress Bar */}
-              <RevenueTreeActivationBox />
+              <RevenueTreeActivationBox address={userWalletAddress} />
 
               {/* The Payment Simulator */}
               <RevenueTreeSimulator />

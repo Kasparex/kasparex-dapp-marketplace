@@ -5,9 +5,16 @@ import { useAccount, useChainId } from 'wagmi';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
 import { formatEther } from 'viem';
 
-export function RevenueTreeActivationBox() {
-    const { address } = useAccount();
-    const { tree, lifetimeVolume, activationThreshold, isSupported, isLoading } = useRevenueTree();
+export interface RevenueTreeActivationBoxProps {
+    address?: string;
+}
+
+export function RevenueTreeActivationBox({ address: propAddress }: RevenueTreeActivationBoxProps) {
+    const { address: connectedAddress } = useAccount();
+    const address = propAddress || connectedAddress;
+    const { tree, lifetimeVolume, activationThreshold, isSupported, isLoading } = useRevenueTree(
+        propAddress ? { userAddress: propAddress as `0x${string}` } : {}
+    );
     const chainId = useChainId();
     const currencySymbol = getNativeCurrencySymbol(chainId);
 
