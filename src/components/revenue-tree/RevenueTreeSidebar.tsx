@@ -12,16 +12,12 @@ import { RevenueTreeContentType } from '@/lib/revenue-tree/types';
 import { RevenueTreeGuideModal } from './RevenueTreeGuideModal';
 
 interface RevenueTreeSidebarProps {
-  activeTab: RevenueTreeContentType | 'all';
-  onTabChange: (tab: RevenueTreeContentType | 'all') => void;
   totalRevenue: number;
   activeTrees: number;
   totalDownline: number;
 }
 
 export function RevenueTreeSidebar({
-  activeTab,
-  onTabChange,
   totalRevenue,
   activeTrees,
   totalDownline,
@@ -161,19 +157,6 @@ export function RevenueTreeSidebar({
             {address ? 'Copy Invite Link' : 'Connect Wallet'}
           </button>
         </div>
-
-        {/* Content Type Filters */}
-        <SidebarCategories
-          title="Content Types"
-          items={tabItems.map(item => ({
-            id: item.id,
-            label: item.label,
-            count: item.count,
-          }))}
-          selectedIds={[activeTab]}
-          onSelect={(id) => onTabChange(id as RevenueTreeContentType | 'all')}
-          multi={false}
-        />
 
         {/* Guide Button */}
         <button

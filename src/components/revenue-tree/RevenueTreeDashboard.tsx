@@ -4,18 +4,17 @@ import { useState, useMemo } from 'react';
 import { useAccount } from 'wagmi';
 import { formatEther } from 'viem';
 import { RevenueTreeStats } from './RevenueTreeStats';
-import { RevenueTreeTabs } from './RevenueTreeTabs';
-import { RevenueTreeList } from './RevenueTreeList';
+import { formatEther } from 'viem';
+import { RevenueTreeStats } from './RevenueTreeStats';
 import { RevenueTreeSidebar } from './RevenueTreeSidebar';
 import { RevenueTreeSimulator } from './RevenueTreeSimulator';
 import { RevenueTreeNetworkNudge } from './RevenueTreeNetworkNudge';
-import { RevenueTreeContentType } from '@/lib/revenue-tree/types';
+import { RevenueTreeActivationBox } from './RevenueTreeActivationBox';
 import { useRevenueTree } from '@/hooks/useRevenueTree';
 import { unifiedToRevenueTreeData } from '@/lib/revenue-tree/utils';
 
 export function RevenueTreeDashboard() {
   const { address: userWalletAddress } = useAccount();
-  const [activeTab, setActiveTab] = useState<RevenueTreeContentType | 'all'>('all');
 
   const { tree, isLoading, isSupported } = useRevenueTree();
 
@@ -37,8 +36,6 @@ export function RevenueTreeDashboard() {
       {/* Sidebar */}
       <div className="hidden lg:block flex-shrink-0">
         <RevenueTreeSidebar
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
           totalRevenue={totalRevenue}
           activeTrees={activeTrees}
           totalDownline={totalDownline}
@@ -48,8 +45,6 @@ export function RevenueTreeDashboard() {
       {/* Mobile sidebar */}
       <div className="lg:hidden">
         <RevenueTreeSidebar
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
           totalRevenue={totalRevenue}
           activeTrees={activeTrees}
           totalDownline={totalDownline}
@@ -93,14 +88,12 @@ export function RevenueTreeDashboard() {
                 totalVolume={totalVolume}
               />
 
+              {/* Activation Progress Bar */}
+              <RevenueTreeActivationBox />
+
               {/* The Payment Simulator */}
               <RevenueTreeSimulator />
 
-              {/* Tabs (single tree: "All" only) */}
-              <RevenueTreeTabs activeTab={activeTab} onTabChange={setActiveTab} />
-
-              {/* Tree List - one unified tree */}
-              <RevenueTreeList trees={trees} activeTab={activeTab} />
             </>
           )}
         </div>
