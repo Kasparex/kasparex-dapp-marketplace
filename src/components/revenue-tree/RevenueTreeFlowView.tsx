@@ -160,18 +160,6 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
 
   return (
     <div className={wrapperClass}>
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <Link
-          href="/tree/dashboard"
-          className="text-sm font-medium text-[#02abb8] hover:underline"
-        >
-          ← Dashboard
-        </Link>
-        {connectedAddress && walletAddress.startsWith('0x') && connectedAddress.toLowerCase() === walletAddress.toLowerCase() && (
-          <span className="text-xs text-zinc-500 dark:text-zinc-400">(Your tree)</span>
-        )}
-      </div>
-
       {!isDemo && treeProp === undefined && isLoading && !liveTree && (
         <div className="py-12 text-center text-zinc-500 dark:text-zinc-400">
           Loading…
@@ -181,44 +169,74 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
       {rowsTopToBottom.length > 0 && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 p-4">
-              <div className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 p-6 hover:shadow-lg transition-shadow">
+              <div className="text-[#02abb8] mb-4">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7 7z" />
+                </svg>
+              </div>
+              <div className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
                 L1 (Direct Referrer)
               </div>
-              <div className="text-lg font-bold text-zinc-900 dark:text-white truncate" title={tree && 'upline' in tree ? tree.upline[0] : '—'}>
+              <div className="text-xl font-black text-zinc-900 dark:text-zinc-100 truncate" title={tree && 'upline' in tree ? tree.upline[0] : '—'}>
                 {tree && 'upline' in tree ? walletDisplay(tree.upline[0], isDemo) : '—'}
               </div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                Your L1 never earns from your spend; L2–L5 gets pushed up.
-              </div>
             </div>
-            <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 p-4">
-              <div className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">
+
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 p-6 hover:shadow-lg transition-shadow">
+              <div className="text-blue-600 dark:text-blue-400 mb-4">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
                 Tree ID
               </div>
-              <div className="text-lg font-bold font-mono text-zinc-900 dark:text-white truncate" title={walletAddress}>
+              <div className="text-xl font-black text-zinc-900 dark:text-zinc-100 truncate font-mono" title={walletAddress}>
                 {treeIdLabel}
               </div>
             </div>
-            <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 p-4">
-              <div className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">
-                Lifetime vol.
+
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 p-6 hover:shadow-lg transition-shadow">
+              <div className="text-green-600 dark:text-green-400 mb-4">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
-              <div className="text-lg font-bold text-[#02abb8]">
-                {lifetimeFormatted} {symbol}
+              <div className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
+                Lifetime Revenue
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-xl font-black text-zinc-900 dark:text-zinc-100">{lifetimeFormatted}</span>
+                <span className="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase">{symbol}</span>
               </div>
             </div>
-            <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 p-4">
-              <div className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">
-                30d vol.
+
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 p-6 hover:shadow-lg transition-shadow">
+              <div className="text-purple-600 dark:text-purple-400 mb-4">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
               </div>
-              <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
-                {volume30Formatted} {symbol}
+              <div className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
+                30d Volume
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-xl font-black text-zinc-900 dark:text-zinc-100">{volume30Formatted}</span>
+                <span className="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase">{symbol}</span>
               </div>
             </div>
           </div>
 
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden relative">
+          <div className="rounded-xl border border-[#02abb8]/30 dark:border-[#02abb8]/20 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden relative">
+            <div className="p-4 sm:p-6 border-b border-zinc-200 dark:border-zinc-700 bg-gradient-to-r from-[#02abb8]/5 to-transparent">
+              <h2 className="text-xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                Live Distribution Network
+              </h2>
+              <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                Structural levels show how dApp spending from {treeIdLabel} is distributed up to the referrer network.
+              </p>
+            </div>
             <InfoModal
               isOpen={activeModal === 'level'}
               onClose={() => setActiveModal(null)}
@@ -250,11 +268,11 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
               content="Your cumulative earnings generated by users residing at this depth in your network."
             />
 
-            <div className="p-4 sm:p-6 bg-zinc-50/50 dark:bg-zinc-900/50 overflow-x-auto">
+            <div className="py-4 sm:py-6 bg-zinc-50/50 dark:bg-zinc-900/50 overflow-x-auto">
               <table className="w-full text-left min-w-[500px]">
                 <thead>
                   <tr className="border-b border-zinc-200 dark:border-zinc-700 text-sm text-zinc-500 dark:text-zinc-400">
-                    <th className="pb-3 font-medium">
+                    <th className="pb-3 pl-4 sm:pl-6 font-medium">
                       <div className="flex items-center">
                         Level <InfoIcon onClick={() => setActiveModal('level')} />
                       </div>
@@ -293,7 +311,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
                         className="text-sm cursor-pointer hover:bg-[#02abb8]/5 dark:hover:bg-[#02abb8]/10 transition-colors"
                         onClick={() => setModalRow(row)}
                       >
-                        <td className="py-4">
+                        <td className="py-4 pl-4 sm:pl-6">
                           <div className="flex items-center gap-2">
                             <div className="flex items-center justify-center w-8 h-8 rounded-full font-black text-xs bg-[#02abb8]/10 text-[#02abb8]">
                               L{row.level}
@@ -316,7 +334,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
                             {row.userCount > 0 ? row.userCount.toLocaleString() : '—'}
                           </div>
                         </td>
-                        <td className="py-4 text-right">
+                        <td className="py-4 text-right pr-4 sm:pr-6">
                           <div className={`font-bold tabular-nums ${!receives ? 'text-zinc-400' : 'text-[#02abb8]'}`}>
                             {row.userCount > 0
                               ? `+${(row.userCount * 1.5).toFixed(2)} ${symbol}`

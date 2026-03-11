@@ -164,7 +164,7 @@ export default function RevenueTreeDemoPage() {
     <div className="flex flex-col min-h-screen">
       <Header />
       
-      <div className="flex-1 flex flex-col lg:flex-row w-full mx-auto">
+      <div className="flex-1 flex flex-col lg:flex-row">
         
         {/* Sidebar */}
         <div className="hidden lg:block flex-shrink-0">
@@ -179,10 +179,10 @@ export default function RevenueTreeDemoPage() {
           <div className="space-y-6">
             {/* Header */}
             <div>
-              <h1 className="text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
-                Interactive Revenue Tree Demo
+              <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
+                Revenue Tree Guide & Demo
               </h1>
-              <p className="text-zinc-600 dark:text-zinc-400 text-sm sm:text-base max-w-2xl">
+              <p className="text-zinc-600 dark:text-zinc-400 text-sm sm:text-base">
                 Experience the logic of our native revenue distribution system. Follow the interactive steps to activate your tree and simulate growth.
               </p>
             </div>
@@ -192,7 +192,7 @@ export default function RevenueTreeDemoPage() {
               {steps.map((step) => (
                 <div
                   key={step.number}
-                  className={`p-5 rounded-2xl border-2 transition-all duration-300 ${
+                  className={`p-6 rounded-2xl border-2 transition-all duration-300 ${
                     currentStep === step.number
                       ? 'border-[#02abb8] bg-[#02abb8]/5 shadow-[0_0_20px_rgba(2,171,184,0.1)]'
                       : step.completed
@@ -201,26 +201,26 @@ export default function RevenueTreeDemoPage() {
                   }`}
                 >
                   <div className="flex flex-col h-full">
-                    <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center gap-3 mb-4">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm shrink-0 ${
                         step.completed ? 'bg-emerald-500 text-white' : 'bg-[#02abb8] text-white'
                       }`}>
                         {step.completed ? '✓' : step.number}
                       </div>
-                      <h3 className="font-bold text-zinc-900 dark:text-white leading-tight">{step.title}</h3>
+                      <h3 className="font-bold text-zinc-900 dark:text-white leading-tight uppercase tracking-tight">{step.title}</h3>
                     </div>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4 flex-1">
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-6 flex-1 leading-relaxed">
                       {step.description}
                     </p>
                     <button
                       onClick={() => handleStepAction(step.number)}
                       disabled={step.disabled || step.completed}
-                      className={`w-full py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+                      className={`w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
                         step.completed
                           ? 'bg-emerald-500/10 text-emerald-600 cursor-default'
                           : step.disabled
                             ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed'
-                            : 'bg-[#02abb8] hover:bg-[#0299a6] text-white shadow-lg shadow-[#02abb8]/20'
+                            : 'bg-[#02abb8] hover:bg-[#0299a6] text-white shadow-lg shadow-[#02abb8]/20 active:scale-95'
                       }`}
                     >
                       {step.action}
@@ -234,23 +234,26 @@ export default function RevenueTreeDemoPage() {
             <div className="space-y-6">
               
               {/* Activation Progress Bar (Simulated) */}
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-200 dark:border-zinc-800">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
-                    Activation Progress (Simulated)
-                  </span>
-                  <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400">
-                    {isMockActivated ? '100.00 / 100.00 KAS' : '20.00 / 100.00 KAS'}
+              <div className="p-6 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${isMockActivated ? 'bg-emerald-500 pulse' : 'bg-[#02abb8] pulse'}`} />
+                    <span className="text-xs font-black text-zinc-700 dark:text-zinc-300 uppercase tracking-widest">
+                        System Activation Status (Simulated)
+                    </span>
+                  </div>
+                  <span className="text-xs font-black text-zinc-900 dark:text-white font-mono">
+                    {isMockActivated ? '100.00 / 100.00' : '20.00 / 100.00'} <span className="text-zinc-500">{symbol}</span>
                   </span>
                 </div>
-                <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2.5 overflow-hidden">
+                <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-3 overflow-hidden border border-zinc-200 dark:border-zinc-700">
                   <div
-                    className={`h-full transition-all duration-700 rounded-full ${isMockActivated ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-[#02abb8]'}`}
+                    className={`h-full transition-all duration-1000 rounded-full ${isMockActivated ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'bg-[#02abb8]'}`}
                     style={{ width: isMockActivated ? '100%' : '20%' }}
                   />
                 </div>
-                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-2 italic font-medium">
-                  {isMockActivated ? '✓ Your Revenue Tree is active on-chain.' : 'Spend 80.00 KAS more to activate your tree and generate your referral link.'}
+                <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mt-3 uppercase tracking-wider">
+                  {isMockActivated ? '✓ Global Revenue Tree is active for this session.' : 'Requires 100 KAS total dApp volume to unlock full network rewards.'}
                 </p>
               </div>
 
@@ -275,47 +278,57 @@ export default function RevenueTreeDemoPage() {
               )}
 
               {/* Simulation Table Control */}
-              <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden">
-                <div className="p-4 sm:p-6 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/50">
+              <div className="rounded-xl border border-[#02abb8]/30 dark:border-[#02abb8]/20 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden relative">
+                <div className="p-4 sm:p-6 border-b border-zinc-200 dark:border-zinc-700 bg-gradient-to-r from-[#02abb8]/5 to-transparent">
                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <h2 className="text-lg font-black text-zinc-900 dark:text-white uppercase tracking-tight">Revenue Stream Simulator</h2>
+                        <div>
+                            <h2 className="text-xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                                Revenue Tree Calculation Simulator
+                            </h2>
+                            <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 mt-1 max-w-lg">
+                                Experience the logic of our native revenue distribution system. Follow the interactive steps to activate your tree and simulate growth.
+                            </p>
                         </div>
                         <div className="flex items-center gap-3">
-                            <label className="text-xs font-black text-zinc-500 uppercase tracking-widest">Avg Spend:</label>
-                            <div className="flex items-center bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-1.5 shadow-sm">
+                            <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Avg Spend:</label>
+                            <div className="relative">
                                 <input 
                                     type="number" 
                                     value={averageSpend} 
                                     onChange={(e) => setAverageSpend(e.target.value)}
-                                    className="w-16 bg-transparent outline-none text-sm font-black text-[#02abb8] tabular-nums" 
+                                    className="w-24 sm:w-32 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-950 px-3 py-2 text-sm text-zinc-900 dark:text-white font-mono focus:border-[#02abb8] focus:ring-1 focus:ring-[#02abb8] outline-none" 
                                 />
-                                <span className="text-xs font-bold text-zinc-400 ml-1">{symbol}</span>
+                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    <span className="text-zinc-500 dark:text-zinc-400 text-sm font-semibold">{symbol}</span>
+                                </div>
                             </div>
                         </div>
                    </div>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className="py-4 sm:py-6 bg-zinc-50/50 dark:bg-zinc-900/50 overflow-x-auto">
                    <table className="w-full text-left min-w-[700px]">
                         <thead>
-                            <tr className="border-b border-zinc-200 dark:border-zinc-700 text-[10px] uppercase font-black tracking-widest text-zinc-400">
-                                <th className="py-4 px-6">Level</th>
-                                <th className="py-4 px-4 text-center">Share</th>
-                                <th className="py-4 px-4">Requirements / Maintenance</th>
-                                <th className="py-4 px-4 text-center">Referred Users</th>
-                                <th className="py-4 px-6 text-right">Potential Payout</th>
+                            <tr className="border-b border-zinc-200 dark:border-zinc-700 text-sm text-zinc-500 dark:text-zinc-400">
+                                <th className="pb-3 pl-4 sm:pl-6 font-medium">
+                                    <div className="flex items-center">
+                                        Level <InfoIcon onClick={() => setActiveModal('level')} />
+                                    </div>
+                                </th>
+                                <th className="pb-3 font-medium text-center">Share %</th>
+                                <th className="pb-3 font-medium">Requirements / Maintenance</th>
+                                <th className="pb-3 font-medium text-center">Referred Users</th>
+                                <th className="pb-3 pr-4 sm:pr-6 font-medium text-right">Potential Payout</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+                        <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
                             {LEVEL_SHARES.map((pct, idx) => {
                                 const level = idx + 1;
                                 const users = levelUsers[idx];
                                 const perUser = (spendAmount * pct) / 100;
                                 const levelEarnings = perUser * users;
                                 const requirementsTxt = LEVEL_REQUIREMENTS[idx];
-                                const isActive = isMockActivated; // In demo, activate all levels if tree is active
+                                const isActive = isMockActivated;
 
                                 totalEarnings += levelEarnings;
                                 totalUsers += users;
@@ -323,32 +336,24 @@ export default function RevenueTreeDemoPage() {
                                 return (
                                     <tr 
                                         key={level} 
-                                        className="hover:bg-[#02abb8]/5 transition-all cursor-pointer group"
+                                        className="text-sm hover:bg-[#02abb8]/5 dark:hover:bg-[#02abb8]/10 transition-colors cursor-pointer"
                                         onClick={() => setSelectedLevelDetails({
                                             level, usersCount: users, sharePct: pct, isActive
                                         })}
                                     >
-                                        <td className="py-5 px-6">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-[#02abb8]/10 flex items-center justify-center font-black text-xs text-[#02abb8] group-hover:scale-110 transition-transform">
+                                        <td className="py-4 pl-4 sm:pl-6">
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex items-center justify-center w-8 h-8 rounded-full font-black text-xs bg-[#02abb8]/10 text-[#02abb8] shrink-0">
                                                     L{level}
                                                 </div>
-                                                <div 
-                                                    className={`w-2 h-2 rounded-full shrink-0 ${isActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-zinc-300 dark:bg-zinc-700'}`}
-                                                    title={isActive ? 'Active' : 'Inactive (Genesis receives)'}
-                                                />
+                                                <span className={`text-[10px] uppercase font-bold tracking-wider flex items-center gap-1 px-2 py-0.5 rounded-full whitespace-nowrap ${isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-zinc-500/10 text-zinc-500'}`}>
+                                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? 'bg-emerald-500' : 'bg-zinc-500'}`}></span> <span className="hidden sm:inline">{isActive ? 'Active' : 'Genesis'}</span>
+                                                </span>
                                             </div>
                                         </td>
-                                        <td className="py-5 px-4 text-center">
-                                            <span className="text-sm font-black text-zinc-900 dark:text-zinc-100">{pct}%</span>
-                                        </td>
-                                        <td className="py-5 px-4">
-                                            <div className="flex flex-col">
-                                                <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400">{requirementsTxt}</span>
-                                                {!isActive && <span className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase mt-0.5">Redirecting to Genesis</span>}
-                                            </div>
-                                        </td>
-                                        <td className="py-5 px-4" onClick={(e) => e.stopPropagation()}>
+                                        <td className="py-4 text-center font-semibold text-zinc-900 dark:text-zinc-100">{pct}%</td>
+                                        <td className="py-4 text-xs font-medium text-zinc-600 dark:text-zinc-400">{requirementsTxt}</td>
+                                        <td className="py-4 px-4" onClick={(e) => e.stopPropagation()}>
                                             <div className="flex items-center justify-center">
                                                 <input
                                                     type="number"
@@ -356,12 +361,12 @@ export default function RevenueTreeDemoPage() {
                                                     value={users || ''}
                                                     onChange={(e) => handleUserChange(idx, e.target.value)}
                                                     placeholder="0"
-                                                    className="w-20 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-1.5 text-xs font-black text-zinc-900 dark:text-white focus:border-[#02abb8] outline-none text-center shadow-sm"
+                                                    className="w-20 rounded-md border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-950 px-3 py-1.5 text-xs text-zinc-900 dark:text-white focus:border-[#02abb8] focus:ring-1 focus:ring-[#02abb8] outline-none text-center"
                                                 />
                                             </div>
                                         </td>
-                                        <td className="py-5 px-6 text-right">
-                                            <div className={`text-sm font-black tabular-nums transition-colors ${isActive && levelEarnings > 0 ? 'text-[#02abb8]' : 'text-zinc-400'}`}>
+                                        <td className="py-4 text-right pr-4 sm:pr-6">
+                                            <div className={`font-bold tabular-nums ${isActive && levelEarnings > 0 ? 'text-[#02abb8]' : 'text-zinc-400'}`}>
                                                 +{levelEarnings.toLocaleString(undefined, { maximumFractionDigits: 2 })} {symbol}
                                             </div>
                                         </td>
@@ -370,16 +375,17 @@ export default function RevenueTreeDemoPage() {
                             })}
                         </tbody>
                         <tfoot>
-                            <tr className="bg-zinc-900 dark:bg-zinc-950 text-white border-t-2 border-[#02abb8]/30">
-                                <td colSpan={3} className="py-6 px-6 text-right font-black uppercase tracking-widest text-[10px] text-zinc-500">Global Simulation Output:</td>
-                                <td className="py-6 px-4 text-center">
-                                    <div className="inline-flex items-center gap-2 bg-[#02abb8]/20 px-3 py-1.5 rounded-full border border-[#02abb8]/30">
-                                        <span className="text-xs font-black text-[#02abb8]">{totalUsers.toLocaleString()} Nodes</span>
+                            <tr className="border-t-2 border-zinc-200 dark:border-zinc-700">
+                                <td colSpan={3} className="pt-6 pl-4 sm:pl-6 font-bold text-zinc-900 dark:text-white">Global Simulation Output:</td>
+                                <td className="pt-6 text-center">
+                                    <div className="inline-flex flex-col items-center">
+                                        <span className="text-sm font-bold text-zinc-900 dark:text-white">{totalUsers.toLocaleString()} Nodes</span>
+                                        <span className="text-[10px] font-bold text-zinc-500 uppercase">Estimated Network</span>
                                     </div>
                                 </td>
-                                <td className="py-6 px-6 text-right">
+                                <td className="pt-6 pr-4 sm:pr-6 text-right">
                                     <div className="flex flex-col items-end">
-                                        <span className="text-2xl font-black text-emerald-400 tabular-nums">+{totalEarnings.toLocaleString(undefined, { maximumFractionDigits: 2 })} {symbol}</span>
+                                        <span className="text-2xl font-black text-[#02abb8] tabular-nums">+{totalEarnings.toLocaleString(undefined, { maximumFractionDigits: 2 })} {symbol}</span>
                                         <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">per 30 days</span>
                                     </div>
                                 </td>

@@ -44,26 +44,26 @@ export function RevenueTreeActivationBox({ address: propAddress }: RevenueTreeAc
     }
 
     return (
-        <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-800">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
-              Activation Progress
-            </span>
-            <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400">
-              {volume.toFixed(2)} / {req} {currencySymbol}
+        <div className="p-5 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#02abb8] pulse" />
+                <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                System Activation Progress
+                </span>
+            </div>
+            <span className="text-[10px] font-black text-zinc-900 dark:text-white font-mono">
+              {volume.toFixed(2)} / {req} <span className="text-zinc-400">{currencySymbol}</span>
             </span>
           </div>
-          <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2.5 overflow-hidden">
+          <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-2.5 overflow-hidden border border-zinc-200 dark:border-zinc-700">
             <div
-              className="bg-gradient-to-r from-[#02abb8] to-emerald-500 h-full transition-all duration-500 rounded-full"
+              className="bg-gradient-to-r from-[#02abb8] to-emerald-500 h-full transition-all duration-700 rounded-full"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 flex items-center gap-1.5">
-             <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-             </svg>
-             Spend {req} {currencySymbol} lifetime inside dApps to activate your global Revenue Tree and begin earning from others!
+          <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-500 mt-3 uppercase tracking-tight">
+             Requires {req} {currencySymbol} lifetime volume to unlock full network rewards.
           </p>
         </div>
     );

@@ -9,7 +9,6 @@ import type { MockFlowTreeData } from '@/lib/revenue-tree/mockFlowData';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
 import { RevenueTreeSidebar } from './RevenueTreeSidebar';
 import { RevenueTreeFlowView } from './RevenueTreeFlowView';
-import { RevenueTreeFlowDemoPanel } from './RevenueTreeFlowDemoPanel';
 import { RevenueTreeContentType } from '@/lib/revenue-tree/types';
 
 function formatWalletDisplay(walletAddress: string, isDemo: boolean): string {
@@ -79,6 +78,18 @@ export function RevenueTreeFlowLayout({ walletAddress }: RevenueTreeFlowLayoutPr
       {/* Main Content */}
       <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6">
         <div className="space-y-6">
+          {/* Header */}
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
+              {isDemo ? (DEMO_LABELS[walletAddress] || 'Demo Tree') : 'Structural Tree Flow'}
+            </h1>
+            <p className="text-zinc-600 dark:text-zinc-400 text-sm sm:text-base">
+              {isDemo 
+                ? 'Visualizing structural nodes and representative upline distribution.' 
+                : `Network path for ${walletAddress}. View structural levels and revenue distribution.`}
+            </p>
+          </div>
+
           <RevenueTreeFlowView walletAddress={walletAddress} tree={tree} />
         </div>
       </div>

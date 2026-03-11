@@ -53,13 +53,13 @@ export function RevenueTree({ data, userWalletAddress, isL2Only = true, activati
   return (
     <div className="space-y-4">
       {/* Header with info button */}
-      <div className="flex items-start justify-between gap-2 border-b border-zinc-100 dark:border-zinc-800 pb-2 mb-2">
+      <div className="flex items-start justify-between gap-2 border-b border-zinc-100 dark:border-zinc-800 pb-3 mb-2">
         <div>
-          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-widest py-2">
+          <h3 className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-widest">
             Revenue Tree
           </h3>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 italic">
-            Rotating revenue share • 5 levels • Distributed automatically on each payment
+          <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider mt-1">
+            Native Distribution • 5 Structural Levels
           </p>
         </div>
         <button
@@ -78,23 +78,26 @@ export function RevenueTree({ data, userWalletAddress, isL2Only = true, activati
 
       {/* Progress Bar - Show if not activated */}
       {!isActivated && userWalletAddress && (
-        <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-800">
+        <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
-              Activation Progress
-            </span>
-            <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400">
-              {activationAmount.toFixed(2)} / {requiredAmount} {currencySymbol}
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#02abb8] pulse" />
+              <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                Activation Status
+              </span>
+            </div>
+            <span className="text-[10px] font-black text-zinc-900 dark:text-white font-mono">
+              {activationAmount.toFixed(2)} / {requiredAmount} <span className="text-zinc-400">{currencySymbol}</span>
             </span>
           </div>
-          <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2.5 overflow-hidden">
+          <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2 overflow-hidden border border-zinc-100 dark:border-zinc-800">
             <div
-              className="bg-gradient-to-r from-[#02abb8] to-emerald-500 h-full transition-all duration-500 rounded-full"
+              className="bg-gradient-to-r from-[#02abb8] to-emerald-500 h-full transition-all duration-700 rounded-full"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-            Spend {requiredAmount} {currencySymbol} to activate your Revenue Tree and start earning
+          <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-500 mt-2 uppercase tracking-tight">
+            Requires {requiredAmount} {currencySymbol} lifetime volume to unlock.
           </p>
         </div>
       )}
@@ -122,20 +125,20 @@ export function RevenueTree({ data, userWalletAddress, isL2Only = true, activati
 
       {/* Total Earned Section */}
       <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
-        <div className="flex items-center justify-between mb-2">
-          <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-            Total Earned:
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+            Total Yield:
           </div>
-          <div className="text-lg font-black text-[#02abb8]">
-            {data.totalEarned.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-sm text-zinc-500 dark:text-zinc-400 font-bold">{currencySymbol}</span>
+          <div className="text-xl font-black text-[#02abb8] tabular-nums">
+            {data.totalEarned.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-[10px] text-zinc-400 font-bold uppercase">{currencySymbol}</span>
           </div>
         </div>
         <div className="flex items-center justify-between">
-          <div className="text-xs text-zinc-500 dark:text-zinc-400">
-            Revenue Trees with your address:
+          <div className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+            Active Deployments:
           </div>
-          <div className="text-sm font-bold text-yellow-600 dark:text-yellow-400">
-            {data.revenueTreesCount}
+          <div className="text-xs font-black text-zinc-900 dark:text-zinc-100">
+            {data.revenueTreesCount} Structural
           </div>
         </div>
       </div>
