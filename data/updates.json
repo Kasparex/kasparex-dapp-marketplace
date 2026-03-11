@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773222954-acff6c0",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat(revenue-tree): Rebuild Demo, Add Activation UI & Simulator Rules (by Kasparex)",
+      "date": "2026-03-11T10:55:35+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773160073-d4377c8",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: feat: match Tree Flow tables and add info modals (by Kasparex)",
