@@ -64,7 +64,7 @@ function AdminLink() {
 // Function to get current section title based on pathname
 function getCurrentSectionTitle(pathname: string): string {
   if (pathname.startsWith('/defi')) {
-    return 'Kasparex DeFi';
+    return 'DeFi';
   }
   if (pathname === '/' || pathname.startsWith('/dapps')) {
     return 'dApps';

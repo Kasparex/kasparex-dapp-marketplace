@@ -16,17 +16,13 @@ function SwapsContent() {
   const outputCurrency = searchParams.get('outputCurrency') || (tab === 'liquidity' ? defaultTokenB : undefined);
 
   return (
-    <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-6 py-6">
-      {/* Main Area */}
-      <div className="flex flex-col gap-10">
-        {/* Widget Section */}
-        <div className="w-full max-w-6xl mx-auto">
-          <KaspaComSwapWidget 
-            inputCurrency={inputCurrency}
-            outputCurrency={outputCurrency}
-            type={tab === 'liquidity' ? 'create-liquidity' : 'swap'}
-          />
-        </div>
+    <div className="max-w-full mx-auto px-2 sm:px-4 py-4 lg:py-6">
+      <div className="flex flex-col gap-8">
+        <KaspaComSwapWidget 
+          inputCurrency={inputCurrency}
+          outputCurrency={outputCurrency}
+          type={tab === 'liquidity' ? 'create-liquidity' : 'swap'}
+        />
 
         {/* Hero Header - Now Under Widget */}
         <div className="text-center">
