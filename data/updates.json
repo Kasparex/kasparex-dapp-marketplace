@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773420358-9f302e0",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: style: move DeFi swaps header below the widget section (by Kasparex)",
+      "date": "2026-03-13T17:45:13+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773419444-4a27171",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Merge branch 'main' and resolve conflict in updates.json (by Kasparex)",
