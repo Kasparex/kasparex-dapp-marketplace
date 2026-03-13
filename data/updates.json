@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773419444-4a27171",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Merge branch 'main' and resolve conflict in updates.json (by Kasparex)",
+      "date": "2026-03-13T17:30:20+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773419107-f3420de",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: feat: enhance DeFi layout, add sidebar, and integrate liquidity creation (by Kasparex)",
