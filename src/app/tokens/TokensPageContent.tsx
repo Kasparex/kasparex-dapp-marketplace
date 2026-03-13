@@ -9,6 +9,8 @@ import { TokenListingTable, type TokenSortField, type TokenSortDirection } from 
 import { TokenSortFilters } from '@/components/tokens/TokenSortFilters';
 import { TokenTypeSwitcher } from '@/components/tokens/TokenTypeSwitcher';
 import { NetworkSwitcher } from '@/components/NetworkSwitcher';
+import { FilterBar } from '@/components/FilterBar';
+import type { Token, TokenNetwork, TokenType } from '@/lib/tokens/types';
 
 interface TokensPageContentProps {
   tokens: Token[];
