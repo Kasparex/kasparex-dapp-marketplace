@@ -1,12 +1,14 @@
 'use client';
 
 import { KaspaComSwapWidget } from '@/components/defi/KaspaComSwapWidget';
+import { SUPPORTED_DEXS } from '@/lib/defi/registry';
 import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 
 function SwapsContent() {
   const searchParams = useSearchParams();
   const tab = searchParams.get('tab') || 'swap';
+  const [selectedDex, setSelectedDex] = useState('kaspacom');
   
   // Default tokens for liquidity if not specified
   const defaultTokenA = '0x0fd8d408ce707f4e4f8e54193c4c55a3b969834b'; // KREX
@@ -18,11 +20,79 @@ function SwapsContent() {
   return (
     <div className="max-w-full mx-auto px-2 sm:px-4 py-4 lg:py-6">
       <div className="flex flex-col gap-8">
-        <KaspaComSwapWidget 
-          inputCurrency={inputCurrency}
-          outputCurrency={outputCurrency}
-          type={tab === 'liquidity' ? 'create-liquidity' : 'swap'}
-        />
+        {/* DEX Selection Tabs */}
+        <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl w-fit mx-auto border border-zinc-200 dark:border-zinc-800">
+          {SUPPORTED_DEXS.map((dex) => (
+            <button
+              key={dex.id}
+              onClick={() => setSelectedDex(dex.id)}
+              className={`
+                px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all
+                ${selectedDex === dex.id 
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700' 
+                  : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}
+              `}
+            >
+              <div className="flex items-center gap-2">
+                {dex.name}
+                {dex.status === 'coming-soon' && (
+                  <span className="text-[8px] px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-500 border border-amber-500/20">
+                    SOON
+                  </span>
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Selected DEX Content */}
+        <div className="w-full">
+          {selectedDex === 'kaspacom' ? (
+            <KaspaComSwapWidget 
+              inputCurrency={inputCurrency}
+              outputCurrency={outputCurrency}
+              type={tab === 'liquidity' ? 'create-liquidity' : 'swap'}
+            />
+          ) : (
+            <div className="w-full h-[750px] rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-center p-12 text-center group relative overflow-hidden">
+              {/* Animated background lines */}
+              <div className="absolute inset-0 opacity-10 pointer-events-none">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-violet-500/20 via-transparent to-transparent" />
+                <div className="grid grid-cols-12 h-full w-full">
+                  {[...Array(12)].map((_, i) => (
+                    <div key={i} className="border-r border-zinc-500/10 h-full" />
+                  ))}
+                </div>
+              </div>
+
+              <div className="relative z-10 max-w-md">
+                <div className="w-20 h-20 bg-gradient-to-br from-violet-500/20 to-amber-500/20 rounded-3xl flex items-center justify-center mb-8 mx-auto border border-violet-500/30 group-hover:scale-110 transition-transform duration-500">
+                  <svg className="w-10 h-10 text-violet-500 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
+                  </svg>
+                </div>
+                <h2 className="text-3xl font-black text-zinc-900 dark:text-white mb-4 italic uppercase tracking-tighter">
+                  {SUPPORTED_DEXS.find(d => d.id === selectedDex)?.name}
+                </h2>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-600 dark:text-amber-500 text-[10px] font-black uppercase tracking-[0.2em] mb-6">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                  </span>
+                  Coming Soon to DeFi Portal
+                </div>
+                <p className="text-zinc-600 dark:text-zinc-400 text-lg leading-relaxed">
+                  We are currently integrating with {SUPPORTED_DEXS.find(d => d.id === selectedDex)?.name} to provide even more liquidity and trading options for the Kasparex community.
+                </p>
+                <div className="mt-10 flex items-center justify-center gap-4">
+                  <div className="h-px w-12 bg-zinc-200 dark:border-zinc-800" />
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Building Ecosystem</span>
+                  <div className="h-px w-12 bg-zinc-200 dark:border-zinc-800" />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Hero Header - Now Under Widget */}
         <div className="text-center">

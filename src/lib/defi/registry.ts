@@ -8,17 +8,27 @@ export interface DEXConfig {
   type: 'iframe' | 'sdk';
   iframeUrl?: string; // Standard swap interface
   testnetIframeUrl?: string;
+  status: 'active' | 'coming-soon';
 }
 
 export const SUPPORTED_DEXS: DEXConfig[] = [
   {
     id: 'kaspacom',
     name: 'KaspaCom DEX',
-    logo: '/img/logos/kaspacom.png', // Placeholder, should check if exists
+    logo: '/img/logos/kaspacom.png',
     website: 'https://defi.kaspa.com',
     type: 'iframe',
     iframeUrl: 'https://defi.kaspa.com/swap',
     testnetIframeUrl: 'https://dev-defi.kaspa.com/swap',
+    status: 'active',
+  },
+  {
+    id: 'zealous',
+    name: 'Zealous Swap',
+    logo: '/img/logos/zealous.png',
+    website: 'https://zealous.swap',
+    type: 'iframe',
+    status: 'coming-soon',
   }
 ];
 
