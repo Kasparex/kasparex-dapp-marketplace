@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773441357-33afe0a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix(game): fix type errors in diamond mining hook to unblock build (by Kasparex)",
+      "date": "2026-03-13T23:35:39+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773439525-35781bc",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: feat(game): implement Diamond Veins arcade game with NFT utility and shop (by Kasparex)",
