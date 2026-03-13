@@ -19,7 +19,7 @@ export function RewardsCalculatorSidebar() {
       <SidebarSection title="Related">
         <nav className="space-y-0.5">
           <Link
-            href="/points"
+            href="/rewards-and-points"
             className="k-sidebar-item w-full flex items-center gap-3"
           >
             <svg className="k-sidebar-icon w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

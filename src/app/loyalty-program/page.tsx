@@ -99,7 +99,7 @@ export default function LoyaltyProgramPage() {
 
                     <div className="mt-12 text-center">
                         <Link
-                            href="/points"
+                            href="/rewards-and-points"
                             className="inline-flex items-center justify-center px-8 py-4 bg-[#02abb8] text-white font-bold rounded-xl hover:bg-[#02abb8]/90 transition-all shadow-lg shadow-[#02abb8]/20 hover:scale-[1.02]"
                         >
                             View My Stats & Points

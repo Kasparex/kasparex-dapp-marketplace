@@ -41,7 +41,7 @@ export default function HubPage() {
                 <Link href="/dapps" className="k-cta-primary w-full sm:w-auto justify-center text-xs py-2.5 px-5">
                   Explore dApps
                 </Link>
-                <Link href="/points" className="k-cta-secondary w-full sm:w-auto justify-center text-xs py-2.5 px-5">
+                <Link href="/rewards-and-points" className="k-cta-secondary w-full sm:w-auto justify-center text-xs py-2.5 px-5">
                   View Rewards
                 </Link>
               </div>
@@ -161,7 +161,7 @@ export default function HubPage() {
 
               <div className="mt-10 text-center">
                 <Link
-                  href="/points"
+                  href="/rewards-and-points"
                   className="inline-block px-6 py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
                 >
                   Learn More About Rewards

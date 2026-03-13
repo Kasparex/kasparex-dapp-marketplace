@@ -75,11 +75,11 @@ function getCurrentSectionTitle(pathname: string): string {
   if (pathname.startsWith('/magazines')) {
     return 'Magazines';
   }
-  if (pathname.startsWith('/dashboard') || pathname.startsWith('/tree')) {
-    return 'Revenue Tree';
-  }
-  if (pathname.startsWith('/points')) {
+  if (pathname.startsWith('/rewards-and-points') || pathname.startsWith('/points')) {
     return 'Rewards';
+  }
+  if (pathname.startsWith('/tree')) {
+    return 'Revenue Tree';
   }
   if (pathname.startsWith('/nft')) {
     return 'NFT Tools';
@@ -95,6 +95,9 @@ function getCurrentSectionTitle(pathname: string): string {
   }
   if (pathname.startsWith('/donations')) {
     return 'Donations';
+  }
+  if (pathname.startsWith('/ads')) {
+    return 'Ads';
   }
   if (pathname.startsWith('/nodes')) {
     return 'Nodes';
@@ -473,10 +476,10 @@ export function Header() {
         <div className="flex items-center gap-2 sm:gap-3 pr-2 sm:pr-4 lg:pr-6">
           <AdminLink />
           <Link
-            href="/dashboard"
+            href="/rewards-and-points/tiers"
             className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
-            aria-label="Rewards Dashboard"
-            title="Rewards Dashboard"
+            aria-label="Rewards Tiers"
+            title="Rewards Tiers"
           >
             <svg
               className="h-5 w-5 text-zinc-600 dark:text-zinc-400"

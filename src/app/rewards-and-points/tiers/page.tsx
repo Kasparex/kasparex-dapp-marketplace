@@ -6,7 +6,7 @@ import { Footer } from '@/components/Footer';
 import { RewardsDashboardSidebar } from '@/components/rewards/RewardsDashboardSidebar';
 import { RewardsDashboardContent } from '@/components/rewards/RewardsDashboardContent';
 
-export default function DashboardPage() {
+export default function RewardsTiersPage() {
   const [filters, setFilters] = useState({
     types: ['krex-tier', 'nft', 'node', 'premium'] as ('krex-tier' | 'nft' | 'node' | 'premium')[],
     status: ['unlocked', 'locked'] as ('unlocked' | 'locked')[],

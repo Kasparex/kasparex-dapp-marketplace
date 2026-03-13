@@ -7,7 +7,7 @@ import { PointsSidebar } from '@/components/rewards/PointsSidebar';
 import { PointsPageContent } from '@/components/rewards/PointsPageContent';
 import { PointsHeader } from '@/components/rewards/PointsHeader';
 
-export default function PointsPage() {
+export default function RewardsOverviewPage() {
   const [filters, setFilters] = useState({
     unlockedPerks: true,
     lockedPerks: true,

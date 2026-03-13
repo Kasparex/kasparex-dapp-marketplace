@@ -95,7 +95,7 @@ export const hubProjects: HubProject[] = [
     name: 'Kasparex Rewards',
     category: 'Ecosystem',
     description: 'The global and local rewards system that powers incentives across all dApps and projects. Earn as you explore.',
-    route: '/points',
+    route: '/rewards-and-points',
     status: 'available',
   },
   {
@@ -143,7 +143,7 @@ export const hubProjects: HubProject[] = [
     name: 'Revenue Tree',
     category: 'Ecosystem',
     description: 'Track your network, rewards, and structural flow in real-time. Visualize the Kasparex revenue distribution system.',
-    route: '/dashboard',
+    route: '/tree/dashboard',
     status: 'available',
   },
 ];

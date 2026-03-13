@@ -864,7 +864,7 @@ export function UnifiedStatusBox() {
               {/* View More Button */}
               <div className="pt-6 border-t border-zinc-200 dark:border-zinc-800">
                 <Link
-                  href="/dashboard"
+                  href="/rewards-and-points/tiers"
                   onClick={() => setShowRewardsModal(false)}
                   className="w-full px-6 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                 >

@@ -43,7 +43,7 @@ export function XPPointsBox() {
             Earn points through dApp usage
           </div>
           <Link
-            href="/points"
+            href="/rewards-and-points"
             className="inline-block px-3 py-1.5 text-xs font-medium bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors"
           >
             View Perks
@@ -68,7 +68,7 @@ export function XPPointsBox() {
             Earn points on every on-chain transaction
           </div>
           <Link
-            href="/points"
+            href="/rewards-and-points"
             className="block w-full mt-3 px-3 py-2 text-xs font-medium text-center bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors"
           >
             View All Perks
