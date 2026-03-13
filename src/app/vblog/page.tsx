@@ -187,7 +187,7 @@ export default function VBlogPage() {
                   </div>
                   <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 mb-2 uppercase tracking-tight">No Articles Found</h3>
                   <p className="text-zinc-500 dark:text-zinc-400 mb-8 max-w-sm mx-auto text-sm font-medium">
-                    We couldn't find any articles matching your current filters.
+                    We couldn&apos;t find any articles matching your current filters.
                   </p>
                   <button onClick={handleResetFilters} className="k-control-btn">
                     Reset Filters
