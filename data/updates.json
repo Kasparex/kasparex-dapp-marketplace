@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773406001-271ed53",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Refactor: Add Revenue Tree Simulation page, update Tokens page filters, and generalize Tokens header (by Kasparex)",
+      "date": "2026-03-13T13:46:25+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773402977-70946e7",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Refactor Rewards navigation: Move /points to /rewards-and-points, rename /dashboard to /rewards-and-points/tiers, update Revenue Tree route to /tree/dashboard, and add 'Ads' to header title (by Kasparex)",
