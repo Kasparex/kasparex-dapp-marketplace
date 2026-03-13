@@ -7,8 +7,8 @@ import { TokensHero } from '@/components/tokens/TokensHero';
 import { TokensListingSidebar } from '@/components/tokens/TokensListingSidebar';
 import { TokenListingTable, type TokenSortField, type TokenSortDirection } from '@/components/tokens/TokenListingTable';
 import { TokenSortFilters } from '@/components/tokens/TokenSortFilters';
-import { FilterBar } from '@/components/FilterBar';
-import type { Token, TokenNetwork, TokenType } from '@/lib/tokens/types';
+import { TokenTypeSwitcher } from '@/components/tokens/TokenTypeSwitcher';
+import { NetworkSwitcher } from '@/components/NetworkSwitcher';
 
 interface TokensPageContentProps {
   tokens: Token[];
@@ -82,12 +82,7 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
       <Header />
 
       <main className="flex-1 flex flex-col lg:flex-row">
-        <TokensListingSidebar
-          typeFilter={typeFilter}
-          networkFilter={networkFilter}
-          onTypeChange={setTypeFilter}
-          onNetworkChange={setNetworkFilter}
-        />
+        <TokensListingSidebar />
 
         <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6">
           <div className="max-w-7xl mx-auto">
@@ -109,6 +104,8 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
                 search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search tokens...' }}
                 onReset={handleResetFilters}
               >
+                <NetworkSwitcher value={networkFilter as any} onChange={setNetworkFilter as any} />
+                <TokenTypeSwitcher value={typeFilter} onChange={setTypeFilter} />
                 <TokenSortFilters
                   sortField={sortField}
                   sortDirection={sortDirection}

@@ -24,7 +24,7 @@ export function TokensHero() {
             Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-[#02abb8] to-cyan-600 dark:from-teal-400 dark:via-[#02abb8] dark:to-cyan-400">Tokens</span>
           </h1>
           <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed mb-8">
-            Explore KREX, GRID, and all tokens across the Kasparex ecosystem. Track prices, balances, and network coverage.
+            Discover ecosystem tokens, track prices and balances, and explore various assets across the Kasparex platform.
           </p>
           <div className="flex flex-wrap gap-4">
             <a href="#content" className="k-cta-primary">
