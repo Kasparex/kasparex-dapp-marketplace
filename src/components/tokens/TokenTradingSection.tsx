@@ -5,6 +5,7 @@
 
 'use client';
 
+import Link from 'next/link';
 import type { Token } from '@/lib/tokens/types';
 import { TokenLogo } from './TokenLogo';
 
@@ -17,6 +18,12 @@ const L2_DEXS = [
     name: 'Zealous Swap',
     url: 'https://app.zealousswap.com/swap',
     description: 'Swap tokens on Zealous Swap',
+  },
+  {
+    name: 'Kasparex Swap',
+    url: '/defi/swaps',
+    description: 'Swap on Kasparex DeFi Hub',
+    isInternal: true,
   },
   {
     name: 'KaspaCom',
@@ -86,37 +93,55 @@ export function TokenTradingSection({ token }: TokenTradingSectionProps) {
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {L2_DEXS.map((exchange, index) => (
-              <a
-                key={index}
-                href={exchange.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:border-[#02abb8] hover:shadow-md transition-all"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    {exchange.name}
+            {L2_DEXS.map((exchange: any, index) => {
+              const commonClasses = "flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:border-[#02abb8] hover:shadow-md transition-all";
+              const content = (
+                <>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                      {exchange.name}
+                      {exchange.isInternal && <span className="text-[10px] bg-violet-500/10 text-violet-600 px-1.5 py-0.5 rounded font-bold uppercase">Official</span>}
+                    </div>
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                      {exchange.description}
+                    </div>
                   </div>
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {exchange.description}
-                  </div>
-                </div>
-                <svg
-                  className="w-4 h-4 text-zinc-400 flex-shrink-0"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+                  <svg
+                    className="w-4 h-4 text-zinc-400 flex-shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                    />
+                  </svg>
+                </>
+              );
+
+              if (exchange.isInternal) {
+                return (
+                  <Link key={index} href={exchange.url} className={commonClasses}>
+                    {content}
+                  </Link>
+                );
+              }
+
+              return (
+                <a
+                  key={index}
+                  href={exchange.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={commonClasses}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                  />
-                </svg>
-              </a>
-            ))}
+                  {content}
+                </a>
+              );
+            })}
           </div>
         </div>
       )}

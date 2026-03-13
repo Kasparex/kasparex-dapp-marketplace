@@ -70,9 +70,9 @@ export const hubProjects: HubProject[] = [
     id: 'kasparex-defi',
     name: 'Kasparex DeFi',
     category: 'Finance',
-    description: 'Tools related to tokens, staking, fee and reward calculators and future financial dApps. Manage your assets and rewards.',
-    route: '/hub/coming-soon',
-    status: 'coming-soon',
+    description: 'DeFi hub for Kaspa. Swap tokens, provide liquidity, and manage your DeFi portfolio with professional tools.',
+    route: '/defi/swaps',
+    status: 'beta',
   },
   {
     id: 'kasparex-studio',
