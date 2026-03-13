@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773419107-f3420de",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat: enhance DeFi layout, add sidebar, and integrate liquidity creation (by Kasparex)",
+      "date": "2026-03-13T17:24:43+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773416922-3a5c699",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: update TokenLogo sizes to support hero section layout (by Kasparex)",
