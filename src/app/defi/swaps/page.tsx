@@ -17,37 +17,38 @@ function SwapsContent() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      {/* Hero Header */}
-      <div className="mb-12 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/25 text-violet-700 dark:text-violet-300 text-[10px] font-black uppercase tracking-[0.2em] mb-6">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-500" />
-          </span>
-          {tab === 'liquidity' ? 'Liquidity Pools' : 'Next-Gen DeFi'}
-        </div>
-        <h1 className="text-4xl sm:text-5xl font-black text-zinc-900 dark:text-white mb-4">
-          {tab === 'liquidity' ? (
-            <>Provide <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-amber-600">Liquidity</span></>
-          ) : (
-            <>Seamless <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-amber-600">Token Swaps</span></>
-          )}
-        </h1>
-        <p className="text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto text-lg">
-          {tab === 'liquidity' 
-            ? 'Earn fees by providing liquidity to your favorite pairs. Support the ecosystem while growing your assets.'
-            : 'Fast, secure, and low-cost trading on Kaspa. Swap between KREX, KAS, and your favorite ecosystem tokens.'}
-        </p>
-      </div>
-
-      {/* Main Swap Area - Full Width Widget */}
+      {/* Main Area */}
       <div className="flex flex-col gap-12">
+        {/* Widget Section */}
         <div className="w-full max-w-4xl mx-auto">
           <KaspaComSwapWidget 
             inputCurrency={inputCurrency}
             outputCurrency={outputCurrency}
             type={tab === 'liquidity' ? 'create-liquidity' : 'swap'}
           />
+        </div>
+
+        {/* Hero Header - Now Under Widget */}
+        <div className="text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/25 text-violet-700 dark:text-violet-300 text-[10px] font-black uppercase tracking-[0.2em] mb-6">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-500" />
+            </span>
+            {tab === 'liquidity' ? 'Liquidity Pools' : 'Next-Gen DeFi'}
+          </div>
+          <h1 className="text-4xl sm:text-5xl font-black text-zinc-900 dark:text-white mb-4">
+            {tab === 'liquidity' ? (
+              <>Provide <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-amber-600">Liquidity</span></>
+            ) : (
+              <>Seamless <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-amber-600">Token Swaps</span></>
+            )}
+          </h1>
+          <p className="text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto text-lg">
+            {tab === 'liquidity' 
+              ? 'Earn fees by providing liquidity to your favorite pairs. Support the ecosystem while growing your assets.'
+              : 'Fast, secure, and low-cost trading on Kaspa. Swap between KREX, KAS, and your favorite ecosystem tokens.'}
+          </p>
         </div>
 
         {/* Info Area Below Widget */}
