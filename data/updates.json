@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773413036-21bff8c",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: UI Refinement: Standardized typography in RevenueTreeFlowStory component (by Kasparex)",
+      "date": "2026-03-13T15:43:36+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773411174-918890e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Refactor: Enhanced simulation UI with standard fonts, larger text, clickable navigation, and guidance modals (by Kasparex)",
