@@ -1,6 +1,10 @@
 'use client';
 
-export function VBlogHeader() {
+interface VBlogHeaderProps {
+  onStartWriting?: () => void;
+}
+
+export function VBlogHeader({ onStartWriting }: VBlogHeaderProps) {
   return (
     <div className="relative mb-12 py-12 px-6 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-orange-50/50 to-zinc-100 dark:from-zinc-950 dark:via-orange-950/40 dark:to-zinc-950 border border-zinc-200 dark:border-transparent">
       {/* Background Glow */}
@@ -27,7 +31,10 @@ export function VBlogHeader() {
         </p>
 
         <div className="flex flex-wrap gap-4">
-          <button className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-orange-500/20 transition-all">
+          <button 
+            onClick={onStartWriting}
+            className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-orange-500/20 transition-all"
+          >
             Start Writing
           </button>
         </div>

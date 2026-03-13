@@ -28,15 +28,15 @@ export function StatsCard({
   const content = (
     <div
       className={
-        'rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800/50 p-5 ' +
+        'rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm ' +
         (href
-          ? 'hover:border-violet-500/30 dark:hover:border-violet-500/30 transition-colors '
+          ? 'hover:border-[#02abb8]/30 dark:hover:border-[#02abb8]/30 transition-all hover:scale-[1.02] '
           : '') +
         className
       }
     >
       <div className="flex flex-col gap-1">
-        <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-1">
           {title}
         </span>
         {loading ? (
@@ -44,12 +44,12 @@ export function StatsCard({
         ) : children !== undefined ? (
           children
         ) : (
-          <span className="text-xl font-semibold text-zinc-900 dark:text-white">
+          <span className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">
             {value ?? '—'}
           </span>
         )}
         {subtitle && (
-          <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-0.5">{subtitle}</p>
+          <p className="text-[10px] font-bold text-zinc-500 uppercase mt-1">{subtitle}</p>
         )}
       </div>
     </div>

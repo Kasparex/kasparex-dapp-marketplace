@@ -72,6 +72,9 @@ function getCurrentSectionTitle(pathname: string): string {
   if (pathname.startsWith('/vblog')) {
     return 'vBlog';
   }
+  if (pathname.startsWith('/magazines')) {
+    return 'Magazines';
+  }
   if (pathname.startsWith('/dashboard') || pathname.startsWith('/tree')) {
     return 'Revenue Tree';
   }
@@ -92,6 +95,15 @@ function getCurrentSectionTitle(pathname: string): string {
   }
   if (pathname.startsWith('/donations')) {
     return 'Donations';
+  }
+  if (pathname.startsWith('/nodes')) {
+    return 'Nodes';
+  }
+  if (pathname.startsWith('/stats')) {
+    return 'Stats';
+  }
+  if (pathname.startsWith('/studio')) {
+    return 'Studio';
   }
   // Default to dApps
   return 'dApps';

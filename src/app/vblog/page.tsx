@@ -91,7 +91,7 @@ export default function VBlogPage() {
 
       <main className="flex-1 min-h-[calc(100vh-4rem)]">
         <div className="flex flex-col lg:flex-row h-full">
-          {/* Sidebar - Restored */}
+          {/* Sidebar */}
           <VBlogSidebar
             articles={articles}
             selectedCategory={selectedCategory}
@@ -105,10 +105,10 @@ export default function VBlogPage() {
           />
 
           {/* Main Content Area */}
-          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
+          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800 font-sans">
             <div className="max-w-6xl mx-auto">
               {/* Unified Header */}
-              <VBlogHeader />
+              <VBlogHeader onStartWriting={() => setIsSubmitModalOpen(true)} />
 
               {/* Pricing & Service Fees Widget */}
               <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -126,15 +126,12 @@ export default function VBlogPage() {
                 </div>
               </div>
 
-              {/* Dynamic Rewards Section */}
-              <VBlogRewardsSection />
-
-              {/* Page Header - above Sorting area (dApps pattern) */}
+              {/* Page Header */}
               <div className="mt-12 mb-6">
-                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
+                <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-1 uppercase tracking-tight">
                   Available articles
                 </h2>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                <p className="text-[10px] font-bold text-zinc-500 uppercase">
                   {filteredArticles.length} article{filteredArticles.length !== 1 ? 's' : ''} found
                 </p>
               </div>
@@ -151,7 +148,7 @@ export default function VBlogPage() {
                     onAddArticle={() => setIsSubmitModalOpen(true)}
                   />
                 </FilterBar>
-                {/* Selected Tags Row (Compact) */}
+                {/* Selected Tags Row */}
                 <div className="flex flex-wrap gap-2">
                   {selectedTags.map(tag => (
                     <button
@@ -170,36 +167,38 @@ export default function VBlogPage() {
                 </div>
               </div>
 
-              {/* Articles Grid */}
+              {/* Content Grid */}
               {isLoading ? (
                 <div className="flex items-center justify-center py-24">
                   <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : filteredArticles.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8 mb-16">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
                   {filteredArticles.map((article) => (
                     <VBlogCard key={article.id} article={article} />
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-24 bg-white dark:bg-zinc-900 rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800 mb-16 shadow-sm">
+                <div className="text-center py-24 bg-white dark:bg-zinc-900 rounded-[32px] border border-dashed border-zinc-200 dark:border-zinc-800 mb-16 shadow-sm">
                   <div className="w-20 h-20 bg-zinc-50 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-6">
                     <svg className="w-10 h-10 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 mb-2">No Articles Found</h3>
-                  <p className="text-zinc-500 dark:text-zinc-400 mb-8 max-w-sm mx-auto">
-                    We couldn&apos;t find any articles matching your current filters.
+                  <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 mb-2 uppercase tracking-tight">No Articles Found</h3>
+                  <p className="text-zinc-500 dark:text-zinc-400 mb-8 max-w-sm mx-auto text-sm font-medium">
+                    We couldn't find any articles matching your current filters.
                   </p>
-                  <button
-                    onClick={handleResetFilters}
-                    className="k-control-btn"
-                  >
+                  <button onClick={handleResetFilters} className="k-control-btn">
                     Reset Filters
                   </button>
                 </div>
               )}
+
+              {/* Rewards Section at the bottom */}
+              <div className="mb-16">
+                <VBlogRewardsSection />
+              </div>
             </div>
           </div>
         </div>

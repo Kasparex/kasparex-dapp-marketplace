@@ -8,6 +8,7 @@ import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import { KREX_TIERS } from '@/lib/rewards/types';
 import { TierBadge } from '@/components/rewards/TierBadge';
 
+
 export function VBlogRewardsSection() {
     const { balance: krexBalance, tier: krexTier } = useKREXBalance();
     const { nftStatus } = useNFTStatus();
@@ -17,18 +18,18 @@ export function VBlogRewardsSection() {
     const hasDiscount = pricing.tier.hasKREXDiscount || pricing.tier.hasNFTPerks;
 
     return (
-        <div className="mt-8 bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
-            <div className="p-6 border-b border-zinc-800 bg-gradient-to-r from-orange-500/10 to-amber-500/10 flex items-center justify-between">
+        <div className="mt-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-2xl">
+            <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 bg-gradient-to-r from-orange-500/5 to-amber-500/5 dark:from-orange-500/10 dark:to-amber-500/10 flex items-center justify-between">
                 <div>
-                    <h3 className="text-lg font-black text-white mb-1">Author Rewards & Discounts</h3>
+                    <h3 className="text-lg font-black text-zinc-900 dark:text-white mb-1">Author Rewards & Discounts</h3>
                     <p className="text-zinc-500 text-xs">Maximize your earnings through KREX and NFT ownership.</p>
                 </div>
                 <TierBadge tier={krexTier} isUnlocked={krexBalance > 0} />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-800">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-100 dark:bg-zinc-800">
                 {/* Cost Reduction */}
-                <div className="p-6 bg-zinc-900">
+                <div className="p-6 bg-white dark:bg-zinc-900">
                     <div className="flex items-center gap-2 mb-4">
                         <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
                             <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -38,7 +39,7 @@ export function VBlogRewardsSection() {
                         <h4 className="text-xs font-black uppercase tracking-widest text-zinc-400">Publication Discount</h4>
                     </div>
                     <div className="flex items-baseline gap-2 mb-2">
-                        <span className="text-3xl font-black text-white">{hasDiscount ? 'Enabled' : '0%'}</span>
+                        <span className="text-3xl font-black text-zinc-900 dark:text-white">{hasDiscount ? 'Enabled' : '0%'}</span>
                         {hasDiscount && (
                             <span className="text-sm font-bold text-emerald-500">KREX Tier {currentTier.label.split(' ')[1]}</span>
                         )}
@@ -50,7 +51,7 @@ export function VBlogRewardsSection() {
                 </div>
 
                 {/* Magazine Revenue Share */}
-                <div className="p-6 bg-zinc-900">
+                <div className="p-6 bg-white dark:bg-zinc-900">
                     <div className="flex items-center gap-2 mb-4">
                         <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
                             <svg className="w-4 h-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -60,7 +61,7 @@ export function VBlogRewardsSection() {
                         <h4 className="text-xs font-black uppercase tracking-widest text-zinc-400">Mag Potential Share</h4>
                     </div>
                     <div className="flex items-baseline gap-2 mb-2">
-                        <span className="text-3xl font-black text-white">100% Transparency</span>
+                        <span className="text-3xl font-black text-zinc-900 dark:text-white">100% Transparency</span>
                     </div>
                     <p className="text-xs text-zinc-500 leading-relaxed">
                         When linked to a magazine, authors receive a direct share of community-driven revenue. Verified by Kaspa GHOSTDAG on-chain settlement.
@@ -69,8 +70,8 @@ export function VBlogRewardsSection() {
             </div>
 
             {nftStatus && (nftStatus.hasKREXPRIME || nftStatus.hasPIXELKREX) && (
-                <div className="p-4 bg-orange-500/5 border-t border-zinc-800 text-center">
-                    <span className="text-xs font-bold text-orange-400">
+                <div className="p-4 bg-orange-500/5 border-t border-zinc-100 dark:border-zinc-800 text-center">
+                    <span className="text-xs font-bold text-orange-600 dark:text-orange-400">
                         NFT Multiplier Active: You qualify for premium text limits and enhanced on-chain visibility.
                     </span>
                 </div>
