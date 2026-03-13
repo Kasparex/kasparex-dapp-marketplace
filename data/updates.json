@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773416480-a4f24cd",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat: integrate KaspaCom DEX and update token pages with swap functionality (by Kasparex)",
+      "date": "2026-03-13T16:40:40+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773414248-b0ad3ca",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Refactor: implemented Live Flow Simulation as collapsible table, updated names to male, and removed node/protocol terminology (by Kasparex)",
