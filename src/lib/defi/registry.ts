@@ -31,16 +31,36 @@ export function getSwapUrl(dexId: string, options?: {
   outputCurrency?: string;
   chain?: number;
   isTestnet?: boolean;
+  type?: 'swap' | 'create-liquidity';
+  theme?: string;
 }): string {
   const dex = getDEXById(dexId);
   if (!dex || !dex.iframeUrl) return '';
 
   const baseUrl = options?.isTestnet ? (dex.testnetIframeUrl || dex.iframeUrl) : dex.iframeUrl;
-  const url = new URL(baseUrl);
+  
+  // Handle different paths
+  let finalUrl = baseUrl;
+  if (options?.type === 'create-liquidity') {
+    finalUrl = finalUrl.replace(/\/swap$/, '/swap/create-liquidity');
+  }
+  
+  const url = new URL(finalUrl);
 
-  if (options?.inputCurrency) url.searchParams.set('inputCurrency', options.inputCurrency);
-  if (options?.outputCurrency) url.searchParams.set('outputCurrency', options.outputCurrency);
+  if (options?.type === 'create-liquidity') {
+    if (options.inputCurrency) url.searchParams.set('tokenA', options.inputCurrency);
+    if (options.outputCurrency) url.searchParams.set('tokenB', options.outputCurrency);
+  } else {
+    if (options?.inputCurrency) url.searchParams.set('inputCurrency', options.inputCurrency);
+    if (options?.outputCurrency) url.searchParams.set('outputCurrency', options.outputCurrency);
+  }
+  
   if (options?.chain) url.searchParams.set('chain', options.chain.toString());
+  if (options?.theme) url.searchParams.set('theme', options.theme);
+  
+  // Attempt to hide sidebar/header via common params
+  url.searchParams.set('embed', 'true');
+  url.searchParams.set('hideSidebar', 'true');
 
   return url.toString();
 }

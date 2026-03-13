@@ -2,28 +2,34 @@
 
 import { getSwapUrl } from '@/lib/defi/registry';
 import { useChainId } from 'wagmi';
+import { useTheme } from '@/components/ThemeProvider';
 
 interface KaspaComSwapWidgetProps {
   inputCurrency?: string;
   outputCurrency?: string;
   isTestnet?: boolean;
+  type?: 'swap' | 'create-liquidity';
 }
 
 export function KaspaComSwapWidget({
   inputCurrency,
   outputCurrency,
   isTestnet,
+  type = 'swap',
 }: KaspaComSwapWidgetProps) {
   const chainId = useChainId();
+  const { theme } = useTheme();
   
   // Use provided chain or detect from wagmi
-  const effectiveChain = isTestnet ? 167012 : 202555; // Example chain IDs, should be dynamic if possible
+  const effectiveChain = isTestnet ? 167012 : 202555; 
 
   const swapUrl = getSwapUrl('kaspacom', {
     inputCurrency,
     outputCurrency,
     chain: effectiveChain,
-    isTestnet
+    isTestnet,
+    type,
+    theme
   });
 
   return (
