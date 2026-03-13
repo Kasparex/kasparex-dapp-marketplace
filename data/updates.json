@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773402977-70946e7",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Refactor Rewards navigation: Move /points to /rewards-and-points, rename /dashboard to /rewards-and-points/tiers, update Revenue Tree route to /tree/dashboard, and add 'Ads' to header title (by Kasparex)",
+      "date": "2026-03-13T12:55:42+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773396337-f4d37eb",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: escape apostrophe in vblog empty state to fix build (by Kasparex)",
