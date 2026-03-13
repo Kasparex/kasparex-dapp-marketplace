@@ -11,7 +11,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Avatar } from './Avatar';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
-import { useBalanceVisibility, formatBalanceForDisplay } from '@/hooks/useBalanceVisibility';
+import { useBalanceVisibility, formatBalanceForDisplay, maskAddress } from '@/hooks/useBalanceVisibility';
 import { detectKaspaWallets } from '@/lib/kaspa/wallet';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import { kasToSompis } from '@/lib/kaspa/api';
@@ -138,19 +138,23 @@ export function KasWareWalletButton() {
     if (!state.address) return;
     
     try {
+      if (!isBalanceVisible) {
+        throw new Error('Please enable balance visibility to copy address');
+      }
       await navigator.clipboard.writeText(state.address);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       setIsDropdownOpen(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to copy address:', error);
+      setError(error.message || 'Failed to copy address');
     }
   };
 
   // If connected, show button with balance and address
   if (state.isConnected && state.address && state.provider === 'kasware') {
     const addressWithoutPrefix = state.address.replace(/^kaspa:/i, '');
-    const displayAddress = formatAddressForDisplay(state.address);
+    const displayAddress = maskAddress(formatAddressForDisplay(state.address), isBalanceVisible);
     const displayBalance = formatBalanceForDisplay(balance, 'KAS', false, isBalanceVisible);
 
     return (
@@ -197,7 +201,7 @@ export function KasWareWalletButton() {
                 </span>
               </div>
               <div className="text-xs text-zinc-500 dark:text-zinc-400 font-mono break-all mb-3">
-                {state.address}
+                {maskAddress(state.address, isBalanceVisible)}
               </div>
               
               {/* Balance Display in Dropdown */}

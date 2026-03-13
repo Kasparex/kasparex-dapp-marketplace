@@ -12,40 +12,31 @@ export default function StudioAdsPage() {
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Halo header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-100 via-[#02abb8]/10 to-zinc-100 dark:from-zinc-950 dark:via-[#02abb8]/10 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800 p-8 md:p-12 mb-8">
-        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#02abb8]/10 blur-[100px] rounded-full -mr-48 -mt-48" />
-        <div className="relative z-10">
-          <span className="inline-flex gap-2 px-3 py-1.5 rounded-full bg-[#02abb8]/10 border border-[#02abb8]/25 text-[#02abb8] text-[10px] font-black uppercase tracking-[0.2em] mb-4">
-            Kasparex Ads
-          </span>
-          <h1 className="text-4xl md:text-5xl font-black text-zinc-900 dark:text-white uppercase tracking-tighter mb-4">
-            My Ads
-          </h1>
-          <p className="text-zinc-600 dark:text-zinc-400 text-lg max-w-xl mb-6">
-            Manage your ad campaigns. Pay in KAS, choose a slot and duration, and your ad goes live across the platform.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            <Link
-              href="/ads?create=1"
-              className="px-6 py-2.5 bg-[#02abb8] hover:bg-[#029ca8] text-white rounded-xl font-bold text-sm transition-colors"
-            >
-              Create ad
-            </Link>
-            <Link
-              href="/ads/overview"
-              className="px-6 py-2.5 border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl font-bold text-sm transition-colors"
-            >
-              View pricing & slots
-            </Link>
-            <Link
-              href="/ads"
-              className="px-6 py-2.5 border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl font-bold text-sm transition-colors"
-            >
-              Active campaigns
-            </Link>
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-zinc-200 dark:border-zinc-800">
+          <div>
+              <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
+                  My Ads
+              </h1>
+              <p className="text-zinc-600 dark:text-zinc-400 text-sm sm:text-base max-w-2xl">
+                  Manage your ad campaigns. Pay in KAS, choose a slot and duration, and your ad goes live across the platform.
+              </p>
           </div>
-        </div>
+
+          <div className="flex flex-wrap gap-3">
+              <Link
+                href="/ads?create=1"
+                className="px-4 py-2 bg-[#02abb8] hover:bg-[#029ca8] text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-colors"
+              >
+                Create ad
+              </Link>
+              <Link
+                href="/ads/overview"
+                className="px-4 py-2 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl font-bold text-xs uppercase tracking-widest transition-colors"
+              >
+                Pricing
+              </Link>
+          </div>
       </div>
 
       {/* Pricing reminder */}

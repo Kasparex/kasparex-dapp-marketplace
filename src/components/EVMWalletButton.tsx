@@ -13,7 +13,7 @@ import { useAccount, useBalance, useDisconnect, useChainId } from 'wagmi';
 import { ConnectButton, useChainModal } from '@rainbow-me/rainbowkit';
 import { formatUnits } from 'viem';
 import { Avatar } from './Avatar';
-import { useBalanceVisibility, formatBalanceForDisplay } from '@/hooks/useBalanceVisibility';
+import { useBalanceVisibility, formatBalanceForDisplay, maskAddress } from '@/hooks/useBalanceVisibility';
 import { getChainById } from '@/lib/wagmi';
 
 export function EVMWalletButton() {
@@ -91,8 +91,8 @@ export function EVMWalletButton() {
       false,
       isBalanceVisible
     );
-    const displayAddress = formatAddress(address);
-    const shortenedAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
+    const displayAddress = maskAddress(formatAddress(address), isBalanceVisible);
+    const shortenedAddress = maskAddress(`${address.slice(0, 6)}...${address.slice(-4)}`, isBalanceVisible);
 
     const handleViewProfile = () => {
       router.push(`/user/${address}`);
@@ -108,6 +108,10 @@ export function EVMWalletButton() {
 
     const handleCopyAddress = async () => {
       if (address) {
+        if (!isBalanceVisible) {
+          alert('Please enable balance visibility to copy address');
+          return;
+        }
         await navigator.clipboard.writeText(address);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);

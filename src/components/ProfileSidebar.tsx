@@ -8,6 +8,7 @@ import { Avatar } from './Avatar';
 import { DescriptionIcon, TokenIcon, SettingsIcon, PrivacyIcon } from './icons/SectionIcons';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { formatKaspaAddress } from '@/lib/kaspa/wallet';
+import { useBalanceVisibility, maskAddress } from '@/hooks/useBalanceVisibility';
 
 interface ProfileSidebarProps {
   walletAddress: string;
@@ -25,6 +26,7 @@ export function ProfileSidebar({
   onProfileUpdate,
 }: ProfileSidebarProps) {
   const { state: kaspaState } = useKaspaWallet();
+  const { isVisible: isBalanceVisible } = useBalanceVisibility();
   const [isOpen, setIsOpen] = useState(false);
   const [overviewExpanded, setOverviewExpanded] = useState(true);
   const [tokenHoldingsExpanded, setTokenHoldingsExpanded] = useState(false);
@@ -316,7 +318,7 @@ export function ProfileSidebar({
               {walletAddress && walletAddress.startsWith('0x') && (
                 <div 
                   className="text-sm"
-                  style={profile.hideBalance ? {
+                  style={!isBalanceVisible ? {
                     userSelect: 'none',
                     WebkitUserSelect: 'none',
                     MozUserSelect: 'none',
@@ -327,7 +329,7 @@ export function ProfileSidebar({
                   <div className="text-zinc-500 dark:text-zinc-400 mb-2">EVM Native Balance</div>
                   <TokenBalance 
                     address={walletAddress as `0x${string}`}
-                    hideBalance={profile.hideBalance}
+                    hideBalance={!isBalanceVisible}
                   />
                 </div>
               )}
@@ -338,7 +340,7 @@ export function ProfileSidebar({
                   <div className="text-zinc-500 dark:text-zinc-400 mb-2">Kaspa L1 Wallet</div>
                   <div className="space-y-1">
                     <div className="text-xs text-zinc-600 dark:text-zinc-400 font-mono break-all">
-                      {kaspaAddressDisplay.display}
+                      {maskAddress(kaspaAddressDisplay.display, isBalanceVisible)}
                     </div>
                     {kaspaState.provider && (
                       <div className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -357,7 +359,7 @@ export function ProfileSidebar({
                 <div className="text-sm">
                   <div className="text-zinc-500 dark:text-zinc-400 mb-2">Kaspa L1 Wallet</div>
                   <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                    Different wallet connected: {kaspaAddressDisplay?.display}
+                    Different wallet connected: {maskAddress(kaspaAddressDisplay?.display || '', isBalanceVisible)}
                   </div>
                 </div>
               )}

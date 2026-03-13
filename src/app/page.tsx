@@ -199,7 +199,7 @@ function HomeContent() {
                     Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-purple-600 to-amber-600 dark:from-violet-400 dark:via-purple-400 dark:to-amber-400">dApps</span>
                   </h1>
                   <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed mb-8">
-                    Discover and use decentralized applications on Kaspa. Earn GRID and XP when you interact. Connect a wallet to get started.
+                    Discover and use decentralized applications on Kaspa. Explore a growing ecosystem of tools, games, and services built for the future of finance.
                   </p>
                   <div className="flex flex-wrap gap-4">
                     <a href="#content" className="px-6 py-2.5 bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-violet-500/20 transition-all">

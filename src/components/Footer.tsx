@@ -20,7 +20,7 @@ export function Footer() {
               Kasparex dApp Marketplace
             </h3>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4 leading-relaxed">
-              A tokenized utility ecosystem. Earn GRID rewards through real interaction with dApps, unlock multipliers with KREX and NFTs, and support the network with Krex Nodes.
+              Your unified gateway to the Kasparex ecosystem. Explore modular dApps, media, games, and infrastructure built for the future of finance on Kaspa.
             </p>
             {/* Social Links */}
             <div className="flex items-center gap-3 mt-6">

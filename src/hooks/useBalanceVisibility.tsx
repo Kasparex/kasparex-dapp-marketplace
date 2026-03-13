@@ -112,3 +112,12 @@ export function formatBalanceForDisplay(
   return `${balanceStr} ${symbol}`;
 }
 
+/**
+ * Format address for display based on visibility
+ */
+export function maskAddress(address: string, isVisible: boolean): string {
+  if (isVisible || !address) {
+    return address;
+  }
+  return '****';
+}

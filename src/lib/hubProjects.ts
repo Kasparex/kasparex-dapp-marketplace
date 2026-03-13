@@ -123,10 +123,10 @@ export const hubProjects: HubProject[] = [
     status: 'beta',
   },
   {
-    id: 'kasparex-vdonations',
-    name: 'Kasparex vDonations',
+    id: 'kasparex-donations',
+    name: 'Kasparex Donations',
     category: 'Creator Tools',
-    description: 'Verifiable donation campaigns. Support creators with KAS (L1 direct) or iKAS (L2 escrow). One campaign per verified wallet.',
+    description: 'Support your favorite creators and projects through verifiable donation campaigns. Contribute directly via L1 or use L2 escrow for enhanced security.',
     route: '/donations',
     status: 'beta',
   },
@@ -137,6 +137,14 @@ export const hubProjects: HubProject[] = [
     description: 'Time-locked ad slots across the platform. Pay in KAS, choose a slot and duration, and your ad goes live in halo, sidebar, and footer placements.',
     route: '/ads',
     status: 'beta',
+  },
+  {
+    id: 'revenue-tree',
+    name: 'Revenue Tree',
+    category: 'Ecosystem',
+    description: 'Track your network, rewards, and structural flow in real-time. Visualize the Kasparex revenue distribution system.',
+    route: '/dashboard',
+    status: 'available',
   },
 ];
 

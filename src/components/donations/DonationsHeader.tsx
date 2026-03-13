@@ -15,13 +15,13 @@ export function DonationsHeader() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
           </span>
-          vDonations
+          Donations
         </div>
         <h1 className="text-4xl md:text-6xl font-black text-zinc-900 dark:text-white mb-6 leading-tight">
-          Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400">vDonations</span>
+          Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400">Donations</span>
         </h1>
         <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed mb-8">
-          Verifiable donation campaigns. Support creators with KAS or iKAS (L2 escrow) and earn points.
+          Support your favorite creators and projects through verifiable donation campaigns. Contribute directly via L1 or use L2 escrow for enhanced security and automated rewards.
         </p>
         <div className="flex flex-wrap gap-4">
           <Link

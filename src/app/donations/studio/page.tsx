@@ -260,7 +260,7 @@ export default function DonationsStudioPage() {
           <Link href="/donations" className="text-sm text-zinc-500 dark:text-zinc-400 hover:underline mb-4 inline-block">
             ← All campaigns
           </Link>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">vDonations Studio</h1>
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">Donations Studio</h1>
           <p className="text-zinc-600 dark:text-zinc-400 mt-1">Verify your wallet and create your donation campaign.</p>
         </div>
 
@@ -273,7 +273,7 @@ export default function DonationsStudioPage() {
         {isConnected && !escrowAddress && (
           <div className="rounded-xl border border-amber-200 dark:border-amber-800 p-4 text-amber-800 dark:text-amber-200 space-y-3">
             <p>
-              vDonations runs on <strong>IGRA Galleon Testnet</strong>. You are currently on{' '}
+              Donations runs on <strong>IGRA Galleon Testnet</strong>. You are currently on{' '}
               <strong>{currentChain?.name ?? `chain ${chainId}`}</strong>.
             </p>
             <p className="text-sm">Switch your wallet to IGRA Galleon Testnet to verify and create campaigns.</p>

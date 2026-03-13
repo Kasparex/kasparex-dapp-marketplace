@@ -29,11 +29,11 @@ import { TransactionSuccessModal } from '@/components/modals/TransactionSuccessM
 import { TransactionPendingModal } from '@/components/donations/TransactionPendingModal';
 import type { Address } from 'viem';
 
-/** Minimal DApp shape for vDonations fee calculator (KREX/NFT discounts) */
+/** Minimal DApp shape for Donations fee calculator (KREX/NFT discounts) */
 const VDONATIONS_DAPP = {
-  id: 'vdonations',
-  name: 'Kasparex vDonations',
-  slug: 'vdonations',
+  id: 'donations',
+  name: 'Kasparex Donations',
+  slug: 'donations',
   category: 'payment' as const,
   network: 'IGRA Galleon Testnet',
   networkType: 'L2' as const,

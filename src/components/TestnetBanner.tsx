@@ -20,7 +20,7 @@ export function TestnetBanner() {
       role="status"
       aria-live="polite"
     >
-      Test network — tGRID and test tokens only. No real value.
+      Test network - Test tokens only. No real value.
     </div>
   );
 }

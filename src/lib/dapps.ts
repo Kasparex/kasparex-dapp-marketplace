@@ -221,6 +221,24 @@ export const placeholderDApps: DApp[] = [
     roadmap: 'Q1 2025: Simulator implementation\nQ2 2025: vProgs integration when framework is ready\nQ3 2025: Production deployment on Kaspa L1',
     createdAt: new Date().toISOString(),
   },
+  {
+    id: 'revenue-tree',
+    name: 'Revenue Tree',
+    slug: 'revenue-tree',
+    category: 'tracker',
+    utility: 'Track your network, rewards, and structural flow in real-time.',
+    process: 'Log in with your wallet to view your personal revenue tree and referral network.',
+    benefits: 'Real-time visualization of your referral structure and reward distribution.',
+    developer: 'Kasparex',
+    status: 'Mainnet',
+    network: 'Multiple Clusters',
+    networkType: 'L2',
+    provider: 'Kasparex',
+    version: '1.2.0',
+    description: 'The Revenue Tree Dashboard is your mission control for the Kasparex ecosystem. Monitor your network growth, track coming rewards, and visualize how value flows through your structural levels.',
+    url: '/dashboard',
+    createdAt: new Date().toISOString(),
+  },
 ];
 
 export interface FilterState {
