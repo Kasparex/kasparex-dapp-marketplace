@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773410036-5997417",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Refactor: Redesign System Simulation with official Revenue Tree logic, activation rules, and vertical story flow (by Kasparex)",
+      "date": "2026-03-13T14:53:37+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773409150-041d2da",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Refactor: Enhanced Revenue Tree Simulation with story-driven activation and referral flow (by Kasparex)",
