@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773411174-918890e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Refactor: Enhanced simulation UI with standard fonts, larger text, clickable navigation, and guidance modals (by Kasparex)",
+      "date": "2026-03-13T15:12:36+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773410036-5997417",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Refactor: Redesign System Simulation with official Revenue Tree logic, activation rules, and vertical story flow (by Kasparex)",
