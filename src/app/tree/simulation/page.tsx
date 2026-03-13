@@ -15,17 +15,19 @@ export default function RevenueTreeSimulationPage() {
   const chainId = useChainId();
   const symbol = getNativeCurrencySymbol(chainId);
   
-  const [perspective, setPerspective] = useState<Perspective>('buyer');
+  const [perspective, setPerspective] = useState<Perspective>('referrer');
   const [step, setStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isActivated, setIsActivated] = useState(false);
+  const [isBobReferred, setIsBobReferred] = useState(false);
 
+  // Define steps for the story
   const steps = [
-    { title: 'Selection', desc: 'Choose a service to purchase' },
-    { title: 'Network Status', desc: 'Genesis vs Active Tree setup' },
-    { title: 'Payment', desc: 'Trigger a native KAS transaction' },
-    { title: 'Distribution', desc: 'Smart contract split logic' },
-    { title: 'Confirmation', desc: 'Review final results' },
+    { title: 'Selection', desc: 'Product discovery' },
+    { title: 'Activation', desc: 'Secure your spot' },
+    { title: 'Referral', desc: 'Connect Bob' },
+    { title: 'Purchase', desc: 'The transaction' },
+    { title: 'Rewards', desc: 'Split verification' },
   ];
 
   const handleNext = () => {
@@ -34,13 +36,30 @@ export default function RevenueTreeSimulationPage() {
       setTimeout(() => {
         setStep(step + 1);
         setIsProcessing(false);
-      }, 600);
+      }, 500);
     }
   };
 
   const handleReset = () => {
     setStep(1);
     setIsActivated(false);
+    setIsBobReferred(false);
+  };
+
+  const handleActivate = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsActivated(true);
+      setIsProcessing(false);
+    }, 800);
+  };
+
+  const handleReferBob = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsBobReferred(true);
+      setIsProcessing(false);
+    }, 800);
   };
 
   return (
@@ -63,32 +82,8 @@ export default function RevenueTreeSimulationPage() {
                 System Simulation
               </h1>
               <p className="text-zinc-600 dark:text-zinc-400">
-                Experience the Revenue Tree logic from both sides of the transaction.
+                Experience the Revenue Tree logic step-by-step.
               </p>
-            </div>
-
-            {/* Perspective Switcher */}
-            <div className="flex bg-zinc-100 dark:bg-zinc-900 p-1 rounded-2xl mb-8 w-fit border border-zinc-200 dark:border-zinc-800">
-              <button
-                onClick={() => { setPerspective('buyer'); handleReset(); }}
-                className={`px-6 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${
-                  perspective === 'buyer' 
-                    ? 'bg-white dark:bg-zinc-800 text-[#02abb8] shadow-sm' 
-                    : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
-                }`}
-              >
-                Buyer View
-              </button>
-              <button
-                onClick={() => { setPerspective('referrer'); handleReset(); }}
-                className={`px-6 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${
-                  perspective === 'referrer' 
-                    ? 'bg-white dark:bg-zinc-800 text-purple-500 shadow-sm' 
-                    : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
-                }`}
-              >
-                Referrer View
-              </button>
             </div>
 
             {/* Wizard Container */}
@@ -119,8 +114,9 @@ export default function RevenueTreeSimulationPage() {
               </div>
 
               {/* Simulation Stage */}
-              <div className="p-8 min-h-[480px] flex flex-col items-center justify-center text-center">
+              <div className="p-8 min-h-[500px] flex flex-col items-center justify-center text-center">
                 
+                {/* Step 1: Product Selection */}
                 {step === 1 && (
                   <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-md">
                     <div className="w-20 h-20 bg-[#02abb8]/10 rounded-2xl flex items-center justify-center text-[#02abb8] mx-auto mb-6">
@@ -128,9 +124,9 @@ export default function RevenueTreeSimulationPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                     </div>
-                    <h2 className="text-2xl font-black text-zinc-900 dark:text-white mb-3 uppercase tracking-tight"> dApp Product</h2>
+                    <h2 className="text-2xl font-black text-zinc-900 dark:text-white mb-3 uppercase tracking-tight">The Target Product</h2>
                     <p className="text-zinc-600 dark:text-zinc-400 mb-8 leading-relaxed">
-                      Imagine you are {perspective === 'buyer' ? 'purchasing a Premium Subscription for Kasparex Studio' : 'the referrer for Bob, who is about to buy a Kasparex Studio license'}.
+                      To earn rewards, you first need a product for your referrals to buy. Let&apos;s use <strong>Studio Premium</strong> as an example.
                     </p>
                     <div className="bg-zinc-50 dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 mb-10">
                       <div className="flex items-center justify-between mb-2">
@@ -143,58 +139,132 @@ export default function RevenueTreeSimulationPage() {
                       </div>
                     </div>
                     <button onClick={handleNext} className="k-cta-primary w-full py-4 text-sm tracking-[0.2em]">
-                      {perspective === 'buyer' ? 'PROCEED TO SYSTEM STATUS' : 'PROCEED TO NETWORK STATUS'}
+                      NEXT: CHECK MY NETWORK
                     </button>
                   </div>
                 )}
 
+                {/* Step 2: Activation */}
                 {step === 2 && (
                   <div className="animate-in fade-in duration-500 max-w-xl w-full">
-                    <h2 className="text-2xl font-black text-zinc-900 dark:text-white mb-4 uppercase tracking-tight">Active vs Genesis Tree</h2>
+                    <h2 className="text-2xl font-black text-zinc-900 dark:text-white mb-4 uppercase tracking-tight">Step 1: Account Activation</h2>
                     <p className="text-zinc-600 dark:text-zinc-400 mb-10 text-sm leading-relaxed">
-                      Before revenue can flow to a custom upline, the tree must be <strong>Activated</strong>. If a user has no referrer or isn&apos;t active, volume falls back to <strong>Genesis Wallets</strong>.
+                      You (<strong>Mark</strong>) are currently checking your tree. If you are not activated, all your potential commissions will fall back to <strong>Genesis Wallets</strong>.
                     </p>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                       <button 
-                         onClick={() => setIsActivated(false)}
-                         className={`p-6 rounded-2xl border-2 text-left transition-all ${!isActivated ? 'border-[#02abb8] bg-[#02abb8]/5' : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 opacity-60'}`}
-                       >
-                          <div className="flex items-center gap-3 mb-4">
-                             <div className="w-8 h-8 rounded-lg bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-zinc-500">
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                    <div className="bg-zinc-50 dark:bg-zinc-900 rounded-2xl p-6 border-2 border-dashed border-zinc-200 dark:border-zinc-800 mb-8">
+                       <div className="flex items-center justify-between mb-6">
+                          <div className="text-left">
+                             <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Your Status</p>
+                             <div className={`text-sm font-black uppercase ${isActivated ? 'text-emerald-500' : 'text-amber-500'}`}>
+                                {isActivated ? '✓ ACTIVE NETWORK NODE' : '⚠ INACTIVE (GENESIS MODE)'}
                              </div>
-                             <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Genesis Mode</span>
                           </div>
-                          <h4 className="text-sm font-bold text-zinc-900 dark:text-white mb-1">Inactive Tree</h4>
-                          <p className="text-[10px] text-zinc-500 font-medium">All shares will be distributed to platform Genesis Wallets.</p>
-                       </button>
+                          {!isActivated && (
+                             <button 
+                               onClick={handleActivate}
+                               disabled={isProcessing}
+                               className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20"
+                             >
+                                {isProcessing ? 'ACTIVATING...' : 'ACTIVATE NOW'}
+                             </button>
+                          )}
+                       </div>
 
-                       <button 
-                         onClick={() => setIsActivated(true)}
-                         className={`p-6 rounded-2xl border-2 text-left transition-all ${isActivated ? 'border-emerald-500 bg-emerald-500/5 shadow-[0_0_20px_rgba(16,185,129,0.1)]' : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 opacity-60'}`}
-                       >
-                          <div className="flex items-center gap-3 mb-4">
-                             <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                       <div className="grid grid-cols-5 gap-2">
+                          {[1, 2, 3, 4, 5].map((lv) => (
+                             <div key={lv} className="flex flex-col items-center">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black ${
+                                  lv === 1 && isActivated ? 'bg-emerald-500 text-white' : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400'
+                                }`}>
+                                   {lv === 1 && isActivated ? 'M' : 'G'}
+                                </div>
+                                <span className="mt-1 text-[7px] font-bold text-zinc-500 uppercase">
+                                   {lv === 1 && isActivated ? 'Mark' : 'Genesis'}
+                                </span>
                              </div>
-                             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Network Active</span>
-                          </div>
-                          <h4 className="text-sm font-bold text-zinc-900 dark:text-white mb-1">Live Referral Tree</h4>
-                          <p className="text-[10px] text-zinc-500 font-medium whitespace-nowrap">Mark (You) refers Bob. Alex is Mark&apos;s upline.</p>
-                       </button>
+                          ))}
+                       </div>
                     </div>
 
-                    <button onClick={handleNext} className="k-cta-primary w-full py-4 text-sm tracking-[0.2em]">
-                       {isActivated ? 'PROCEED AS ACTIVE NETWORK' : 'PROCEED AS GENESIS MODE'}
+                    <button 
+                      onClick={handleNext} 
+                      disabled={!isActivated}
+                      className={`w-full py-4 text-sm tracking-[0.2em] transition-all ${
+                        isActivated ? 'k-cta-primary' : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-400 cursor-not-allowed border border-zinc-200 dark:border-zinc-800'
+                      }`}
+                    >
+                       {isActivated ? 'PROCEED TO REFERRAL' : 'PLEASE ACTIVATE FIRST'}
                     </button>
-                    {!isActivated && perspective === 'referrer' && (
-                       <p className="mt-4 text-[10px] text-amber-500 font-black uppercase tracking-tighter">* In Genesis Mode, You won&apos;t receive Bob&apos;s commission!</p>
-                    )}
                   </div>
                 )}
 
+                {/* Step 3: Referral */}
                 {step === 3 && (
+                  <div className="animate-in fade-in duration-500 max-w-xl w-full">
+                    <h2 className="text-2xl font-black text-zinc-900 dark:text-white mb-4 uppercase tracking-tight">Step 2: Connect Bob</h2>
+                    <p className="text-zinc-600 dark:text-zinc-400 mb-10 text-sm leading-relaxed">
+                      Now that your tree is live, you need to refer your first user. Once <strong>Bob</strong> joins via your link, he becomes your direct <strong>L1 referral</strong>.
+                    </p>
+
+                    <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-8 mb-10 relative overflow-hidden">
+                       <div className="flex flex-col items-center justify-center">
+                          <div className="flex items-center gap-12 mb-6">
+                             <div className="flex flex-col items-center gap-2">
+                                <div className="w-14 h-14 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-xl shadow-emerald-500/20">
+                                   <span className="text-xl font-black">M</span>
+                                </div>
+                                <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Mark (You)</span>
+                             </div>
+
+                             <div className="flex flex-col items-center justify-center pt-2">
+                                <div className={`w-12 h-px ${isBobReferred ? 'bg-emerald-500' : 'bg-zinc-200 dark:bg-zinc-800'} relative`}>
+                                   {isBobReferred && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[8px] bg-white dark:bg-zinc-950 px-1 font-black text-emerald-500">L1</div>}
+                                </div>
+                             </div>
+
+                             <div className="flex flex-col items-center gap-2">
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
+                                  isBobReferred ? 'bg-[#02abb8] text-white shadow-xl shadow-[#02abb8]/20' : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-300 border-2 border-dashed border-zinc-200 dark:border-zinc-800'
+                                }`}>
+                                   <span className="text-xl font-black">{isBobReferred ? 'B' : '?'}</span>
+                                </div>
+                                <span className={`text-[10px] font-black uppercase tracking-widest ${isBobReferred ? 'text-[#02abb8]' : 'text-zinc-400'}`}>
+                                   {isBobReferred ? 'Bob (Referred)' : 'Unknown'}
+                                </span>
+                             </div>
+                          </div>
+
+                          {!isBobReferred ? (
+                             <button 
+                               onClick={handleReferBob}
+                               disabled={isProcessing}
+                               className="k-cta-primary px-8 py-3 text-xs font-black tracking-widest"
+                             >
+                                {isProcessing ? 'GENERATING LINK...' : 'INVITE BOB'}
+                             </button>
+                          ) : (
+                             <div className="animate-bounce-slow text-emerald-500 text-[10px] font-black uppercase tracking-tighter">
+                                Connection Established!
+                             </div>
+                          )}
+                       </div>
+                    </div>
+
+                    <button 
+                      onClick={handleNext} 
+                      disabled={!isBobReferred}
+                      className={`w-full py-4 text-sm tracking-[0.2em] transition-all ${
+                        isBobReferred ? 'k-cta-primary' : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-400 cursor-not-allowed border border-zinc-200 dark:border-zinc-800'
+                      }`}
+                    >
+                       {isBobReferred ? 'START PURCHASE SIMULATION' : 'AWAITING REFERRAL'}
+                    </button>
+                  </div>
+                )}
+
+                {/* Step 4: Purchase */}
+                {step === 4 && (
                   <div className="animate-in fade-in zoom-in-95 duration-500 max-w-md">
                     <div className="relative w-24 h-24 mx-auto mb-8">
                       <div className="absolute inset-0 bg-[#02abb8]/20 rounded-full animate-ping" />
@@ -203,52 +273,51 @@ export default function RevenueTreeSimulationPage() {
                       </div>
                     </div>
                     <h2 className="text-2xl font-black text-zinc-900 dark:text-white mb-3 uppercase tracking-tight">On-Chain Transaction</h2>
-                    <p className="text-zinc-600 dark:text-zinc-400 mb-8 leading-relaxed">
-                      {perspective === 'buyer' 
-                        ? 'Your wallet signs the transaction for 100 KAS. The smart contract captures the value.' 
-                        : 'Bob triggers the 100 KAS payment. The system checks his connection to You (Mark).'}
+                    <p className="text-zinc-600 dark:text-zinc-400 mb-8 leading-relaxed text-sm">
+                       <strong>Bob</strong> is now triggering the 100 KAS payment. The Smart Contract is looking up Bob&apos;s upline (Mark) to distribute the rewards instantly.
                     </p>
                     <div className="flex flex-col gap-2 w-full">
                        <div className="h-2 bg-zinc-100 dark:bg-zinc-900 rounded-full overflow-hidden">
                           <div className="h-full bg-[#02abb8] animate-[loading_2s_ease-in-out_infinite]" style={{ width: '40%' }} />
                        </div>
-                       <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Awaiting Block Confirmation...</p>
+                       <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Bob sending 100 KAS...</p>
                     </div>
                     <button onClick={handleNext} disabled={isProcessing} className="mt-10 k-cta-primary w-full py-4 text-sm tracking-[0.2em]">
-                      {isProcessing ? 'PROCESSING...' : 'DISTRIBUTE VOLUME'}
+                      {isProcessing ? 'PROCESSING...' : 'TRIGGER REVENUE SPLIT'}
                     </button>
                   </div>
                 )}
 
-                {step === 4 && (
+                {/* Step 5: Reward Distribution & Result */}
+                {step === 5 && (
                   <div className="animate-in scale-in-center duration-500 w-full max-w-2xl px-4">
-                    <h2 className="text-2xl font-black text-zinc-900 dark:text-white mb-4 uppercase tracking-tight">Native Split Logic</h2>
+                    <h2 className="text-2xl font-black text-zinc-900 dark:text-white mb-4 uppercase tracking-tight">Revenue Distribution</h2>
                     <p className="text-zinc-600 dark:text-zinc-400 mb-8 text-sm">
-                      Smart contract splits the 100 {symbol} based on the {isActivated ? 'Live Referral Tree' : 'Genesis Default'} logic.
+                      Smart contract distributed the 100 {symbol} natively across your active tree.
                     </p>
                     
-                    <div className="space-y-2 mb-10">
+                    <div className="space-y-2 mb-8">
                        <SimulationRow 
-                          label={isActivated ? 'L1 Referrer (Mark - You)' : 'L1 Referrer (Genesis)'} 
+                          label="L1 Referrer (Mark - You)" 
                           value="2.00" 
                           pct="2%" 
-                          color={isActivated ? 'text-emerald-500' : 'text-zinc-400'} 
-                          highlight={perspective === 'referrer' && isActivated}
-                          address={isActivated ? address : DEFAULT_REVENUE_WALLETS.LEVEL_1}
+                          color="text-emerald-500 font-black" 
+                          highlight={true}
+                          address={address}
                         />
                        <SimulationRow 
-                          label={isActivated ? 'L2 Referrer (Alex)' : 'L2 Referrer (Genesis)'} 
+                          label="L2 Referrer (Alex)" 
                           value="5.00" 
                           pct="5%" 
-                          color={isActivated ? 'text-emerald-500' : 'text-zinc-400'} 
-                          address={isActivated ? '0xAlexWalletNode' : DEFAULT_REVENUE_WALLETS.LEVEL_2}
+                          color="text-zinc-500" 
+                          address="0xAlexWallet_MarkUpline"
                         />
                        <SimulationRow 
-                          label={isActivated ? 'L3 Referrer (Dave)' : 'L3 Referrer (Genesis)'} 
+                          label="L3 Referrer (Dave)" 
                           value="10.00" 
                           pct="10%" 
-                          color={isActivated ? 'text-zinc-500' : 'text-zinc-400'} 
-                          address={isActivated ? '0xDaveWalletNode' : DEFAULT_REVENUE_WALLETS.LEVEL_3}
+                          color="text-zinc-500" 
+                          address="0xDaveWallet_L2Upline"
                         />
                        <SimulationRow 
                           label="L4 Referrer (Genesis)" 
@@ -269,71 +338,17 @@ export default function RevenueTreeSimulationPage() {
                           value="18.00" 
                           pct="18%" 
                           color="text-[#02abb8]" 
-                          highlight={perspective === 'buyer'}
                           address={DEFAULT_REVENUE_WALLETS.PLATFORM}
                         />
                     </div>
 
-                    <div className="bg-zinc-50 dark:bg-zinc-900 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 text-left">
-                       <div className="flex items-center gap-2 mb-4">
-                          <div className={`w-2 h-2 rounded-full ${isActivated ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                          <h5 className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Tree Box Slot View</h5>
-                       </div>
-                       <div className="grid grid-cols-5 gap-3">
-                          {[1, 2, 3, 4, 5].map((lv) => (
-                             <div key={lv} className={`flex flex-col items-center p-3 rounded-xl border ${
-                                lv === 1 && isActivated ? 'bg-emerald-500/10 border-emerald-500/40 border-2' : 'bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800'
-                             }`}>
-                                <span className="text-[8px] font-black text-zinc-400 mb-2 uppercase">L{lv} Slot</span>
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-black ${
-                                  lv === 1 && isActivated ? 'bg-emerald-500 text-white shadow-lg' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400'
-                                }`}>
-                                   {lv === 1 && isActivated ? 'M' : lv === 2 && isActivated ? 'A' : lv === 3 && isActivated ? 'D' : 'G'}
-                                </div>
-                                <span className="mt-2 text-[8px] font-bold text-zinc-500 truncate w-full text-center">
-                                   {lv === 1 && isActivated ? 'Mark' : lv === 2 && isActivated ? 'Alex' : lv === 3 && isActivated ? 'Dave' : 'Genesis'}
-                                </span>
-                             </div>
-                          ))}
-                       </div>
-                    </div>
-
-                    <button onClick={handleNext} className="mt-12 k-cta-primary w-full py-4 text-sm tracking-[0.2em]">
-                      SHOW FINAL BALANCES
-                    </button>
-                  </div>
-                )}
-
-                {step === 5 && (
-                  <div className="animate-in fade-in duration-700 max-w-xl w-full">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10 text-left">
-                       <ResultCard 
-                          title="Buyer Result" 
-                          main={`${symbol} -100.00`} 
-                          desc="Access Granted to Kasparex Studio Premium" 
-                          active={perspective === 'buyer'}
-                        />
-                       <ResultCard 
-                          title={perspective === 'referrer' ? 'Referrer (You)' : 'Referrer (Mark)'} 
-                          main={`${symbol} ${isActivated ? '+2.00' : '0.00'}`} 
-                          desc={isActivated ? 'Native L1 commission received instantly' : 'Commission went to Genesis because of inactivity'} 
-                          active={perspective === 'referrer'}
-                        />
-                    </div>
-                    
-                    <div className={`${isActivated ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-amber-500/10 border-amber-500/20'} border p-6 rounded-2xl mb-12 text-left`}>
+                    <div className="bg-emerald-500/10 border border-emerald-500/20 p-6 rounded-2xl mb-12 text-left">
                        <div className="flex items-start gap-4">
-                          <div className={`w-10 h-10 rounded-xl ${isActivated ? 'bg-emerald-500' : 'bg-amber-500'} text-white flex items-center justify-center shrink-0`}>
-                             {isActivated ? '✓' : '!'}
-                          </div>
+                          <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0">✓</div>
                           <div>
-                             <h4 className={`font-black text-sm uppercase mb-1 ${isActivated ? 'text-zinc-900 dark:text-white' : 'text-amber-600'}`}>
-                                {isActivated ? 'Success' : 'Genesis Coverage'}
-                             </h4>
+                             <h4 className="text-zinc-900 dark:text-white font-black text-sm uppercase mb-1">Success</h4>
                              <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
-                                {isActivated 
-                                  ? 'The simulation is complete. Funds were sent directly to the wallets, including Your commission.' 
-                                  : 'The simulation shows that without an active tree, the platform remains stable by sending volume to Genesis wallets.'}
+                                Mark (You) earned <strong>2.00 KAS</strong> from Bob&apos;s purchase. Alex and Dave also received their L2 and L3 shares instantly.
                              </p>
                           </div>
                        </div>
@@ -341,7 +356,7 @@ export default function RevenueTreeSimulationPage() {
 
                     <div className="flex gap-4">
                       <button onClick={handleReset} className="flex-1 k-cta-secondary py-4 text-xs font-black uppercase tracking-widest">
-                        RESTART DEMO
+                        RESTART STORY
                       </button>
                       <button onClick={() => window.location.href = '/tree/dashboard'} className="flex-1 k-cta-primary py-4 text-xs font-black uppercase tracking-widest">
                         MY DASHBOARD
@@ -355,7 +370,7 @@ export default function RevenueTreeSimulationPage() {
               {/* Step Info Bar */}
               <div className="p-4 bg-zinc-50 dark:bg-zinc-900/50 border-t border-zinc-100 dark:border-zinc-900 flex items-center justify-between text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-8">
                  <span>Step {step} of 5</span>
-                 <span>Perspective: {perspective}</span>
+                 <span>Identity: Mark</span>
               </div>
             </div>
           </div>
@@ -370,7 +385,7 @@ export default function RevenueTreeSimulationPage() {
 function SimulationRow({ label, value, pct, color, highlight, address }: { label: string, value: string, pct: string, color: string, highlight?: boolean, address?: string }) {
   return (
     <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
-      highlight ? 'bg-emerald-500/10 border-emerald-500 ring-1 ring-emerald-500/50' : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800'
+      highlight ? 'bg-emerald-500/10 border-emerald-500 ring-2 ring-emerald-500/20' : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800'
     }`}>
       <div className="flex items-center gap-3 min-w-0">
         <span className={`text-[10px] font-black uppercase ${color} shrink-0`}>{pct}</span>
@@ -380,18 +395,6 @@ function SimulationRow({ label, value, pct, color, highlight, address }: { label
         </div>
       </div>
       <span className="text-sm font-black text-zinc-900 dark:text-white shrink-0 ml-4">{value} KAS</span>
-    </div>
-  );
-}
-
-function ResultCard({ title, main, desc, active }: { title: string, main: string, desc: string, active?: boolean }) {
-  return (
-    <div className={`p-6 rounded-2xl border-2 transition-all ${
-      active ? 'border-[#02abb8] bg-[#02abb8]/5' : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 opacity-60'
-    }`}>
-      <h5 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4">{title}</h5>
-      <p className={`text-2xl font-black mb-2 ${active ? 'text-[#02abb8]' : 'text-zinc-600 dark:text-zinc-400'}`}>{main}</p>
-      <p className="text-[11px] font-bold text-zinc-500 leading-tight">{desc}</p>
     </div>
   );
 }
