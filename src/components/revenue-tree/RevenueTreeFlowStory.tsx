@@ -118,7 +118,7 @@ export function RevenueTreeFlowStory({ currentStep }: RevenueTreeFlowStoryProps)
 
       {/* Header */}
       <div className="absolute top-6 left-8 z-10">
-          <h4 className="text-[11px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-1">Live Flow Simulation</h4>
+          <h4 className="text-[11px] font-bold text-zinc-400 uppercase tracking-[0.2em] mb-1">Live Flow Simulation</h4>
           <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-tight opacity-70">Upline & Downline Interaction</p>
       </div>
 
@@ -136,7 +136,7 @@ export function RevenueTreeFlowStory({ currentStep }: RevenueTreeFlowStoryProps)
                 className="absolute flex items-center gap-2 group" 
                 style={{ top: `${lv.y}%`, transform: 'translateY(-50%)' }}
               >
-                  <span className="text-[10px] font-black text-zinc-400 uppercase tracking-tighter sm:tracking-normal whitespace-nowrap bg-zinc-50 dark:bg-zinc-950 px-2 py-1 rounded">
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter sm:tracking-normal whitespace-nowrap bg-zinc-50 dark:bg-zinc-950 px-2 py-1 rounded">
                       {lv.label}
                   </span>
               </div>
@@ -178,7 +178,7 @@ export function RevenueTreeFlowStory({ currentStep }: RevenueTreeFlowStoryProps)
                         <animate attributeName="cx" from={`${fromN.x}%`} to={`${toN.x}%`} dur="0.8s" repeatCount="1" fill="freeze" />
                         <animate attributeName="cy" from={`${fromN.y}%`} to={`${toN.y}%`} dur="0.8s" repeatCount="1" fill="freeze" />
                     </circle>
-                    <text fontSize="10" fontWeight="900" fill={pulse.color || '#02abb8'} textAnchor="middle" className="font-black filter drop-shadow-sm">
+                    <text fontSize="10" fontWeight="700" fill={pulse.color || '#02abb8'} textAnchor="middle" className="font-bold filter drop-shadow-sm">
                         <animate attributeName="x" from={`${fromN.x}%`} to={`${toN.x}%`} dur="0.8s" repeatCount="1" fill="freeze" />
                         <animate attributeName="y" from={`${fromN.y}%`} to={`${toN.y}%`} dur="0.8s" repeatCount="1" fill="freeze" />
                         {pulse.amount}
@@ -207,7 +207,7 @@ export function RevenueTreeFlowStory({ currentStep }: RevenueTreeFlowStoryProps)
                   {/* Tooltip */}
                   {hoveredNode === node.id && (
                       <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl z-20 pointer-events-none whitespace-nowrap animate-in fade-in zoom-in-95 duration-200">
-                          <p className="text-[10px] font-black text-zinc-900 dark:text-white uppercase tracking-wider">{node.name}</p>
+                          <p className="text-[10px] font-bold text-zinc-900 dark:text-white uppercase tracking-wider">{node.name}</p>
                           {node.address && <p className="text-[8px] font-mono text-zinc-400 mt-0.5">{node.address.slice(0, 6)}...{node.address.slice(-4)}</p>}
                           {node.pct && <p className="text-[9px] font-bold text-[#02abb8] mt-1">{node.pct}% Share</p>}
                       </div>
@@ -229,7 +229,7 @@ export function RevenueTreeFlowStory({ currentStep }: RevenueTreeFlowStoryProps)
                   </div>
                   
                   <div className={`mt-2 text-center transition-opacity duration-300 ${hoveredNode === node.id ? 'opacity-100' : 'opacity-60'}`}>
-                      <span className={`text-[8px] font-black uppercase tracking-tight sm:tracking-widest whitespace-nowrap ${isActive ? 'text-zinc-900 dark:text-white' : 'text-zinc-400'}`}>
+                      <span className={`text-[8px] font-bold uppercase tracking-tight sm:tracking-widest whitespace-nowrap ${isActive ? 'text-zinc-900 dark:text-white' : 'text-zinc-400'}`}>
                           {node.name}
                       </span>
                   </div>
@@ -243,7 +243,7 @@ export function RevenueTreeFlowStory({ currentStep }: RevenueTreeFlowStoryProps)
               <div className="bg-white dark:bg-zinc-950 rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full max-w-sm overflow-hidden shadow-2xl scale-in-center" onClick={e => e.stopPropagation()}>
                   <div className="p-6 border-b border-zinc-100 dark:border-zinc-900 flex justify-between items-center bg-zinc-50 dark:bg-zinc-900/50">
                       <div>
-                          <h3 className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-wider">Genesis Wallets</h3>
+                          <h3 className="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-wider">Genesis Wallets</h3>
                           <p className="text-[10px] text-zinc-500 font-bold uppercase">System Upline Structure</p>
                       </div>
                       <button onClick={() => setIsGenesisModalOpen(false)} className="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 hover:text-red-500 transition-colors">✕</button>
@@ -268,7 +268,7 @@ export function RevenueTreeFlowStory({ currentStep }: RevenueTreeFlowStoryProps)
                                     className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 hover:border-[#02abb8]/50 transition-all cursor-pointer group"
                                   >
                                       <div>
-                                          <p className="text-[9px] font-black text-zinc-800 dark:text-zinc-200 uppercase">{gen.name}</p>
+                                          <p className="text-[9px] font-bold text-zinc-800 dark:text-zinc-200 uppercase">{gen.name}</p>
                                           <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-tighter">{gen.level}</span>
                                       </div>
                                       <div className="text-right">
@@ -282,7 +282,7 @@ export function RevenueTreeFlowStory({ currentStep }: RevenueTreeFlowStoryProps)
                   <div className="p-4 bg-zinc-100 dark:bg-zinc-900 flex justify-center">
                       <button 
                         onClick={() => setIsGenesisModalOpen(false)}
-                        className="text-[10px] font-black uppercase text-[#02abb8] tracking-[0.2em] animate-pulse"
+                        className="text-[10px] font-bold uppercase text-[#02abb8] tracking-[0.2em] animate-pulse"
                       >
                          Continue Simulation
                       </button>
