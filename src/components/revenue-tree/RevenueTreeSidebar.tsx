@@ -144,11 +144,11 @@ export function RevenueTreeSidebar({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs text-zinc-600 dark:text-zinc-400">Total Revenue</span>
-              <span className="text-sm font-black text-[#02abb8]">{totalRevenue.toFixed(2)} {nativeSymbol}</span>
+              <span className="text-sm font-bold text-[#02abb8]">{totalRevenue.toFixed(2)} {nativeSymbol}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-zinc-600 dark:text-zinc-400">Active Trees</span>
-              <span className="text-sm font-black text-green-600 dark:text-green-400">{activeTrees}</span>
+              <span className="text-sm font-bold text-green-600 dark:text-green-400">{activeTrees}</span>
             </div>
           </div>
         </div>
@@ -181,7 +181,7 @@ export function RevenueTreeSidebar({
         {/* Guide Button */}
         <button
           onClick={() => setShowGuide(true)}
-          className="w-full mt-6 px-4 py-3 bg-gradient-to-r from-[#02abb8] to-purple-500 hover:from-[#0299a6] hover:to-purple-600 text-white font-black text-sm uppercase tracking-wider rounded-lg transition-all shadow-lg shadow-[#02abb8]/20"
+          className="w-full mt-6 px-4 py-3 bg-gradient-to-r from-[#02abb8] to-purple-500 hover:from-[#0299a6] hover:to-purple-600 text-white font-bold text-sm uppercase tracking-wider rounded-lg transition-all shadow-lg shadow-[#02abb8]/20"
         >
           <div className="flex items-center justify-center gap-2">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

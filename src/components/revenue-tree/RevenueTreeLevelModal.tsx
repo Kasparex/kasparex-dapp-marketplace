@@ -78,16 +78,16 @@ export function RevenueTreeLevelModal({
         {/* Header */}
         <div className="px-6 py-5 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center bg-zinc-50/50 dark:bg-zinc-900/50">
           <div className="flex items-center gap-4">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl font-black text-lg bg-[#02abb8] text-white shadow-lg shadow-[#02abb8]/20">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl font-bold text-lg bg-[#02abb8] text-white shadow-lg shadow-[#02abb8]/20">
               L{level.level}
             </div>
             <div className="flex-1 flex flex-col min-w-0">
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                    <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight leading-none">
+                    <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight leading-none">
                         Level {level.level} Details
                     </h3>
                     <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">Requirements:</span>
+                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest whitespace-nowrap">Requirements:</span>
                         <span className="text-xs font-bold text-[#02abb8] bg-[#02abb8]/10 px-2.5 py-1 rounded-full whitespace-nowrap">{reqTxt}</span>
                     </div>
                 </div>
@@ -106,22 +106,22 @@ export function RevenueTreeLevelModal({
         {/* Info Strip */}
         <div className="grid grid-cols-2 md:grid-cols-4 border-b border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950">
             <div className="p-4 border-r border-zinc-100 dark:border-zinc-800">
-                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Percentage Share</span>
-                <span className="text-lg font-black text-zinc-900 dark:text-zinc-100">{level.sharePercentage}%</span>
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-1">Percentage Share</span>
+                <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{level.sharePercentage}%</span>
             </div>
             <div className="p-4 border-r border-zinc-100 dark:border-zinc-800">
-                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Referred Users</span>
-                <span className="text-lg font-black text-purple-600 dark:text-purple-400 tabular-nums">{level.userCount.toLocaleString()}</span>
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-1">Referred Users</span>
+                <span className="text-lg font-bold text-purple-600 dark:text-purple-400 tabular-nums">{level.userCount.toLocaleString()}</span>
             </div>
             <div className="p-4 border-r border-zinc-100 dark:border-zinc-800">
-                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Status</span>
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-1">Status</span>
                 <div className="flex items-center gap-2 mt-1">
                     <div className={`w-2 h-2 rounded-full ${level.isActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
                     <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">{level.isActive ? 'Qualifying' : 'Genesis Redirect'}</span>
                 </div>
             </div>
             <div className="p-4">
-                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Occupying Wallet</span>
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-1">Occupying Wallet</span>
                 <div className="flex items-center gap-2 group cursor-pointer" onClick={handleCopyAddress}>
                     <span className="text-xs font-mono font-bold text-zinc-900 dark:text-zinc-100 truncate">{formatWalletDisplay(level.walletAddress)}</span>
                     <button className="text-zinc-400 group-hover:text-[#02abb8] transition-colors">
@@ -138,24 +138,24 @@ export function RevenueTreeLevelModal({
         {/* Directory (Table) */}
         <div className="flex-1 overflow-hidden flex flex-col min-h-0 bg-zinc-50 dark:bg-zinc-900/30">
             <div className="px-6 py-4 flex items-center justify-between shrink-0 bg-white dark:bg-zinc-950 border-b border-zinc-100 dark:border-zinc-800 z-10">
-                <h4 className="text-sm font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                <h4 className="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
                     Referred Users Directory
                 </h4>
                 {level.userCount > 100 && (
-                    <span className="text-[10px] font-black text-zinc-400 uppercase">First 100 entries</span>
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase">First 100 entries</span>
                 )}
             </div>
             
             <div className="flex-1 overflow-y-auto px-6 pb-6">
                 {mockUsers.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-zinc-950 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 mt-6">
-                        <div className="w-12 h-12 rounded-full bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center text-zinc-300 mb-4 font-black">?</div>
-                        <p className="text-xs font-black text-zinc-400 uppercase tracking-widest">No active users at this depth</p>
+                        <div className="w-12 h-12 rounded-full bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center text-zinc-300 mb-4 font-bold">?</div>
+                        <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">No active users at this depth</p>
                     </div>
                 ) : (
                     <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm overflow-hidden">
                         <table className="w-full text-left">
-                            <thead className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-100 dark:border-zinc-800 text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                            <thead className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-100 dark:border-zinc-800 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
                                 <tr>
                                     <th className="py-4 px-6">User Wallet</th>
                                     <th className="py-4 px-6 text-right">Referral Tree</th>
@@ -166,7 +166,7 @@ export function RevenueTreeLevelModal({
                                     <tr key={idx} className="group hover:bg-[#02abb8]/5 transition-colors">
                                         <td className="py-4 px-6">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-400 group-hover:bg-[#02abb8]/20 group-hover:text-[#02abb8] transition-colors">
+                                                <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400 group-hover:bg-[#02abb8]/20 group-hover:text-[#02abb8] transition-colors">
                                                     {idx + 1}
                                                 </div>
                                                 <span className="text-sm font-mono font-bold text-zinc-700 dark:text-zinc-300">
@@ -177,7 +177,7 @@ export function RevenueTreeLevelModal({
                                         <td className="py-4 px-6 text-right">
                                             <Link 
                                                 href={`/tree/${address}`}
-                                                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white text-xs font-black uppercase tracking-wider hover:bg-[#02abb8] hover:text-white transition-all"
+                                                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white text-xs font-bold uppercase tracking-wider hover:bg-[#02abb8] hover:text-white transition-all"
                                                 onClick={onClose}
                                             >
                                                 Open Tree

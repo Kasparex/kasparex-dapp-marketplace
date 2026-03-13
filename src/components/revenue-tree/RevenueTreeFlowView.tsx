@@ -178,7 +178,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
               <div className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
                 L1 (Direct Referrer)
               </div>
-              <div className="text-xl font-black text-zinc-900 dark:text-zinc-100 truncate" title={tree && 'upline' in tree ? tree.upline[0] : '—'}>
+              <div className="text-xl font-bold text-zinc-900 dark:text-zinc-100 truncate" title={tree && 'upline' in tree ? tree.upline[0] : '—'}>
                 {tree && 'upline' in tree ? walletDisplay(tree.upline[0], isDemo) : '—'}
               </div>
             </div>
@@ -192,7 +192,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
               <div className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
                 Tree ID
               </div>
-              <div className="text-xl font-black text-zinc-900 dark:text-zinc-100 truncate font-mono" title={walletAddress}>
+              <div className="text-xl font-bold text-zinc-900 dark:text-zinc-100 truncate font-mono" title={walletAddress}>
                 {treeIdLabel}
               </div>
             </div>
@@ -207,7 +207,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
                 Lifetime Revenue
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-xl font-black text-zinc-900 dark:text-zinc-100">{lifetimeFormatted}</span>
+                <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{lifetimeFormatted}</span>
                 <span className="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase">{symbol}</span>
               </div>
             </div>
@@ -222,7 +222,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
                 30d Volume
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-xl font-black text-zinc-900 dark:text-zinc-100">{volume30Formatted}</span>
+                <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{volume30Formatted}</span>
                 <span className="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase">{symbol}</span>
               </div>
             </div>
@@ -301,9 +301,9 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
                 </thead>
                 <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
                   {rowsTopToBottom.map((row) => {
-                    const isActiveNode = tree && 'isActiveAtLevel' in tree && tree.isActiveAtLevel[row.level - 1];
+                    const isActiveMember = tree && 'isActiveAtLevel' in tree && tree.isActiveAtLevel[row.level - 1];
                     const isRealWallet = row.walletAddress && row.walletAddress !== '0x0000000000000000000000000000000000000000';
-                    const receives = isActiveNode && isRealWallet;
+                    const receives = isActiveMember && isRealWallet;
 
                     return (
                       <tr
@@ -313,7 +313,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
                       >
                         <td className="py-4 pl-4 sm:pl-6">
                           <div className="flex items-center gap-2">
-                            <div className="flex items-center justify-center w-8 h-8 rounded-full font-black text-xs bg-[#02abb8]/10 text-[#02abb8]">
+                            <div className="flex items-center justify-center w-8 h-8 rounded-full font-bold text-xs bg-[#02abb8]/10 text-[#02abb8]">
                               L{row.level}
                             </div>
                           </div>
