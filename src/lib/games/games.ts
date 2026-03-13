@@ -235,6 +235,27 @@ export const placeholderGames: Game[] = [
     likeCount: 0,
     favoriteCount: 0,
   },
+  {
+    id: 'game-9',
+    name: 'Diamond Veins',
+    slug: 'diamond-veins',
+    description: 'Mine mysterious Krex Diamonds deep beneath Kaspaland. Deploy your NFTs, upgrade your garage, and earn KEX/KAS rewards.',
+    instructions: 'Deploy KREXPRIME as Workers and PIXELKREX as Elite Operators. Accumulate Diamonds and refine them for rewards. Visit the Garage for boosts!',
+    gameType: 'strategy',
+    difficulty: 'medium',
+    entryCostKAS: 0,
+    status: 'beta',
+    developer: 'Kasparex',
+    version: '1.0.0',
+    rewardConfig: {
+      gridReward: 0, // Dynamic based on mining
+      xpReward: 0,
+    },
+    createdAt: new Date().toISOString(),
+    playCount: 0,
+    likeCount: 0,
+    favoriteCount: 0,
+  },
 ];
 
 // Helper functions
