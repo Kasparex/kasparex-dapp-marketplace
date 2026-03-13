@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773426510-b2b83f3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat(defi): implement tab-based DEX switcher with KaspaCom and Zealous Swap (Soon) (by Kasparex)",
+      "date": "2026-03-13T19:28:08+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773421905-b6229d1",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: style(defi): fix project naming, maximize layout space, and add third-party disclosure (by Kasparex)",
