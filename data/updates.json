@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773414248-b0ad3ca",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Refactor: implemented Live Flow Simulation as collapsible table, updated names to male, and removed node/protocol terminology (by Kasparex)",
+      "date": "2026-03-13T15:59:27+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773413036-21bff8c",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: UI Refinement: Standardized typography in RevenueTreeFlowStory component (by Kasparex)",
