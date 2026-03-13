@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773396337-f4d37eb",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: escape apostrophe in vblog empty state to fix build (by Kasparex)",
+      "date": "2026-03-13T11:05:18+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773254440-7b51440",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: feat: Redesign Revenue Tree Flow simulation with explicit level rows and Genesis structure (by Kasparex)",
