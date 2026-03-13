@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773420995-63d0b37",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: style: optimize DeFi portal layout and update project naming in header (by Kasparex)",
+      "date": "2026-03-13T17:55:52+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773420358-9f302e0",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: style: move DeFi swaps header below the widget section (by Kasparex)",
