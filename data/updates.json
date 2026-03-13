@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773407219-faeaef8",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Refactor: Update Revenue Tree Simulation with activation logic and visual tree slots (by Kasparex)",
+      "date": "2026-03-13T14:06:30+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773406413-c59878a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: restore missing imports in TokensPageContent (by Kasparex)",
