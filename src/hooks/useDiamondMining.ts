@@ -61,7 +61,7 @@ export function useDiamondMining() {
 
     // 1. Worker Contribution (Base Yield)
     const workerSlot = slots.find(s => s.type === 'worker');
-    if (workerSlot?.nftId !== null) {
+    if (workerSlot && workerSlot.nftId !== null) {
       yieldPerSecond = BASE_YIELDS.WORKER_BASE;
       
       // Check for trait bonuses in worker
@@ -75,7 +75,7 @@ export function useDiamondMining() {
 
     // 2. Operator Contribution (Multiplier)
     const operatorSlot = slots.find(s => s.type === 'operator');
-    if (operatorSlot?.nftId !== null) {
+    if (operatorSlot && operatorSlot.nftId !== null) {
       totalMultiplier *= BASE_YIELDS.OPERATOR_MULTIPLIER_BASE;
       
       const meta = slottedMetadata[operatorSlot.nftId];
