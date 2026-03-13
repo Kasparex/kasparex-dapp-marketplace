@@ -33,7 +33,7 @@ export function KaspaComSwapWidget({
   });
 
   return (
-    <div className="w-full h-[650px] rounded-2xl overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl relative">
+    <div className="w-full h-[750px] rounded-2xl overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl relative">
       {/* Decorative background for the container to make it look premium */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-24 -right-24 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />

@@ -16,11 +16,11 @@ function SwapsContent() {
   const outputCurrency = searchParams.get('outputCurrency') || (tab === 'liquidity' ? defaultTokenB : undefined);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-6 py-6">
       {/* Main Area */}
-      <div className="flex flex-col gap-12">
+      <div className="flex flex-col gap-10">
         {/* Widget Section */}
-        <div className="w-full max-w-4xl mx-auto">
+        <div className="w-full max-w-6xl mx-auto">
           <KaspaComSwapWidget 
             inputCurrency={inputCurrency}
             outputCurrency={outputCurrency}
