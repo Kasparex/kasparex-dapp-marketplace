@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1773421905-b6229d1",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: style(defi): fix project naming, maximize layout space, and add third-party disclosure (by Kasparex)",
+      "date": "2026-03-13T18:11:14+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773420995-63d0b37",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: style: optimize DeFi portal layout and update project naming in header (by Kasparex)",
