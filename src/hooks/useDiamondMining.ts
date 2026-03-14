@@ -19,7 +19,7 @@ import {
   SOMPI_PER_KAS,
 } from '@/lib/game/diamond-veins-config';
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
-import { signKRC20Transaction } from '@/lib/kaspa/kasware';
+import { getKasWare, signKRC20Transaction } from '@/lib/kaspa/kasware';
 
 export interface MiningSlot {
   type: 'worker' | 'operator' | 'booster';
@@ -37,12 +37,48 @@ export interface ActiveBoost {
   txHash?: string;
 }
 
+const SOMPI_PER_KAS_FACTOR = 100_000_000;
+
 export function useDiamondMining() {
   const { state: walletState } = useKaspaWallet();
   const { sendTransaction: sendKAS, balance: kasBalanceStr } = useKasWare();
   const { nfts } = useNFTStatus();
   const { balance: krexBalance, l1Balance: krexL1Balance, tier: krexTier } = useKREXBalance();
-  const kasBalance = kasBalanceStr != null ? parseFloat(kasBalanceStr) : 0;
+  const [kasBalanceFetched, setKasBalanceFetched] = useState<number | null>(null);
+
+  const isKasWare = walletState.provider?.toLowerCase() === 'kasware';
+  const canPayWithL1 = !!(walletState.isConnected && isKasWare);
+
+  const fetchKasBalance = useCallback(() => {
+    if (!canPayWithL1) return;
+    const w = getKasWare();
+    if (!w || typeof w.getBalance !== 'function') return;
+    w.getBalance()
+      .then((res) => {
+        if (res == null) return;
+        let val: number;
+        if (typeof res === 'object' && 'balance' in res) val = Number((res as { balance: string | number }).balance);
+        else if (typeof res === 'object' && 'amount' in res) val = Number((res as { amount: string | number }).amount);
+        else val = Number(res);
+        if (Number.isNaN(val) || val < 0) return;
+        const strVal = val.toString();
+        const hasDecimals = strVal.includes('.');
+        const decimalPlaces = hasDecimals ? strVal.split('.')[1]?.length || 0 : 0;
+        const kas = val < 0.01 && decimalPlaces > 6 ? val : val / SOMPI_PER_KAS_FACTOR;
+        setKasBalanceFetched(kas);
+      })
+      .catch(() => {});
+  }, [canPayWithL1]);
+
+  useEffect(() => {
+    if (!canPayWithL1) {
+      setKasBalanceFetched(null);
+      return;
+    }
+    fetchKasBalance();
+  }, [canPayWithL1, fetchKasBalance]);
+
+  const kasBalance = kasBalanceFetched ?? (kasBalanceStr != null ? parseFloat(String(kasBalanceStr)) : 0);
 
   const [slots, setSlots] = useState<MiningSlot[]>([
     { type: 'worker', nftId: null, collection: 'KREXPRIME' },
@@ -55,6 +91,8 @@ export function useDiamondMining() {
   const [activeBoosts, setActiveBoosts] = useState<ActiveBoost[]>([]);
   const [lastRefinedAt, setLastRefinedAt] = useState<number>(Date.now());
   const [buyingItemId, setBuyingItemId] = useState<string | null>(null);
+  const [refinementPointsTotal, setRefinementPointsTotal] = useState<number>(0);
+  const [lastRefineClaim, setLastRefineClaim] = useState<{ points: number; amount: number } | null>(null);
 
   useEffect(() => {
     const fetchMetadata = async () => {
@@ -156,12 +194,12 @@ export function useDiamondMining() {
     );
   }, []);
 
-  const refineDiamonds = useCallback(async () => {
-    if (diamonds < REFINE_MIN_DIAMONDS) return;
+  const refineDiamonds = useCallback(async (): Promise<{ points: number; amount: number } | null> => {
+    if (diamonds < REFINE_MIN_DIAMONDS) return null;
 
     const amount = Math.floor(diamonds);
     const timeSinceLastRefine = (Date.now() - lastRefinedAt) / 1000;
-    const refinementPoints = amount * (1 + Math.min(timeSinceLastRefine / 3600, 0.5));
+    const refinementPoints = Math.floor(amount * (1 + Math.min(timeSinceLastRefine / 3600, 0.5)));
 
     (window as any).dispatchEvent(
       new CustomEvent('record-transaction', {
@@ -176,6 +214,9 @@ export function useDiamondMining() {
 
     setDiamonds(0);
     setLastRefinedAt(Date.now());
+    setRefinementPointsTotal((prev) => prev + refinementPoints);
+    setLastRefineClaim({ points: refinementPoints, amount });
+    return { points: refinementPoints, amount };
   }, [diamonds, lastRefinedAt]);
 
   const getPriceAfterDiscount = useCallback(
@@ -189,7 +230,7 @@ export function useDiamondMining() {
   const buyBoost = useCallback(
     async (itemId: string, name: string, priceKrex: number, type: BonusType, multiplier: number) => {
       const priceAfterDiscount = getPriceAfterDiscount(priceKrex);
-      const canPayL1 = walletState.isConnected && walletState.provider === 'kasware';
+      const canPayL1 = walletState.isConnected && isKasWare;
       if (!canPayL1) {
         console.warn('[Diamond Veins] L1 KasWare required for Garage purchase');
         return;
@@ -250,12 +291,12 @@ export function useDiamondMining() {
         setBuyingItemId(null);
       }
     },
-    [walletState.isConnected, walletState.provider, krexL1Balance, getPriceAfterDiscount]
+    [walletState.isConnected, isKasWare, krexL1Balance, getPriceAfterDiscount]
   );
 
   const buyBoostWithKAS = useCallback(
     async (itemId: string, name: string, priceKAS: number, type: BonusType, multiplier: number) => {
-      const canPayL1 = walletState.isConnected && walletState.provider === 'kasware';
+      const canPayL1 = walletState.isConnected && isKasWare;
       if (!canPayL1) {
         console.warn('[Diamond Veins] L1 KasWare required for Garage purchase');
         return;
@@ -292,6 +333,7 @@ export function useDiamondMining() {
         );
 
         setActiveBoosts((prev) => [...prev, boost]);
+        fetchKasBalance();
       } catch (err) {
         console.error('[Diamond Veins] Garage KAS purchase failed:', err);
         throw err;
@@ -299,7 +341,7 @@ export function useDiamondMining() {
         setBuyingItemId(null);
       }
     },
-    [walletState.isConnected, walletState.provider, kasBalance, sendKAS]
+    [walletState.isConnected, isKasWare, kasBalance, sendKAS, fetchKasBalance]
   );
 
   return {
@@ -321,6 +363,11 @@ export function useDiamondMining() {
     refineMinDiamonds: REFINE_MIN_DIAMONDS,
     revenuePoolPct: Math.round(GARAGE_REVENUE_TO_POOL_PCT * 100),
     buyingItemId,
-    canPayWithL1: walletState.isConnected && walletState.provider === 'kasware',
+    canPayWithL1,
+    refinementPointsTotal,
+    lastRefineClaim,
+    clearLastRefineClaim: () => setLastRefineClaim(null),
+    kasBalanceLoading: canPayWithL1 && kasBalanceFetched === null && (kasBalanceStr === null || kasBalanceStr === undefined),
+    refreshKasBalance: fetchKasBalance,
   };
 }

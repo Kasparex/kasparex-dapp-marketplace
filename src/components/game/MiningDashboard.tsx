@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useDiamondMining } from '@/hooks/useDiamondMining';
-import { useKasWare } from '@/hooks/useKasWare';
 import { NFTSlotSelector } from './NFTSlotSelector';
 import { getBonusForTrait, getNFTTier } from '@/lib/game/diamond-bonuses';
 
@@ -37,17 +36,16 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
     revenuePoolPct,
     buyingItemId,
     canPayWithL1,
+    refinementPointsTotal,
+    lastRefineClaim,
+    clearLastRefineClaim,
+    kasBalanceLoading,
   } = useDiamondMining();
-  const { balance: kasBalanceStr, refreshBalance: refreshKasBalance } = useKasWare();
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
   const [loreExpanded, setLoreExpanded] = useState(false);
   const [faqOpen, setFaqOpen] = useState(false);
   const [purchaseSuccess, setPurchaseSuccess] = useState<string | null>(null);
-
-  // Refresh KAS balance when wallet is connected (KasWare) so Pay KAS buttons get correct state
-  useEffect(() => {
-    if (canPayWithL1 && refreshKasBalance) refreshKasBalance();
-  }, [canPayWithL1, refreshKasBalance]);
+  const [refining, setRefining] = useState(false);
 
   // Refresh "min left" for active boosts every 60s
   const [, setBoostTick] = useState(0);
@@ -57,15 +55,14 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
     return () => clearInterval(t);
   }, [activeBoosts.length]);
 
-  const kasLoading = canPayWithL1 && (kasBalanceStr === null || kasBalanceStr === undefined);
-  const kasBalanceNum = kasBalanceStr != null ? parseFloat(String(kasBalanceStr)) : 0;
-  const kasValid = !Number.isNaN(kasBalanceNum);
+  const kasValid = typeof kasBalance === 'number' && !Number.isNaN(kasBalance);
+  const kasBalanceNum = kasValid ? kasBalance : 0;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
       {/* Left Column: Mining Area */}
       <div className="lg:col-span-8 flex flex-col space-y-8">
-        {/* KREX + KAS balance + tier - theme aware */}
+        {/* KREX + KAS + Refinement points + tier */}
         <div className="p-4 rounded-2xl bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-base flex-wrap gap-4">
           <div className="flex items-center gap-6 flex-wrap">
             <span className="text-zinc-500 dark:text-zinc-400 font-semibold tracking-wide">KREX (L1)</span>
@@ -74,13 +71,17 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
             </span>
             <span className="text-zinc-500 dark:text-zinc-400 font-semibold tracking-wide">KAS</span>
             <span className="text-amber-600 dark:text-amber-400 font-bold tabular-nums">
-              {kasLoading ? '…' : kasValid ? kasBalanceNum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 }) : '0'} KAS
+              {kasBalanceLoading ? '…' : kasBalanceNum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })} KAS
+            </span>
+            <span className="text-zinc-500 dark:text-zinc-400 font-semibold tracking-wide">Refinement points</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-bold tabular-nums">
+              {refinementPointsTotal.toLocaleString()}
             </span>
             <span className="px-2 py-0.5 rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-sm font-semibold border border-zinc-300 dark:border-zinc-700">
               {krexTier}
             </span>
           </div>
-          <p className="text-zinc-500 dark:text-zinc-400 text-sm">Hold KREX for yield bonus & shop discount · Pay with KREX or KAS in Garage</p>
+          <p className="text-zinc-500 dark:text-zinc-400 text-sm">Refinement points are your rewards from refining; they are recorded for the Diamond Veins rewards pool. Pay with KREX or KAS in Garage.</p>
         </div>
 
         {/* Diamond Counter & Refine */}
@@ -95,16 +96,24 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                 <span className="text-zinc-500 dark:text-zinc-400 font-medium">DIAMONDS</span>
               </div>
               <p className="text-zinc-600 dark:text-zinc-400 text-base">
-                Refine when you have at least <span className="text-zinc-800 dark:text-zinc-300 font-semibold">{refineMinDiamonds} in-game diamonds</span> (the number mined by your Workers and Operators, shown above). Wait 30+ min after last refine for 1.5× time bonus. Refinement points fund the rewards pool.
+                Refine when you have at least <span className="text-zinc-800 dark:text-zinc-300 font-semibold">{refineMinDiamonds} in-game diamonds</span> (mined by your Workers and Operators). You receive <strong>refinement points</strong> (your rewards); your total is shown at the top. Wait 30+ min after last refine for 1.5× time bonus.
               </p>
             </div>
 
             <button
-              onClick={refineDiamonds}
-              disabled={diamonds < refineMinDiamonds}
+              onClick={async () => {
+                if (diamonds < refineMinDiamonds || refining) return;
+                setRefining(true);
+                try {
+                  await refineDiamonds();
+                } finally {
+                  setRefining(false);
+                }
+              }}
+              disabled={diamonds < refineMinDiamonds || refining}
               className="k-cta-primary h-16 px-8 text-lg group relative active:scale-95 disabled:opacity-50 disabled:grayscale transition-all"
             >
-              REFINE NOW
+              {refining ? '…' : 'REFINE NOW'}
               <svg className="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
@@ -226,7 +235,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
             {GARAGE_ITEMS.map((item) => {
               const priceAfterDiscount = getPriceAfterDiscount(item.price);
               const canAffordKREX = canPayWithL1 && krexL1Balance >= priceAfterDiscount;
-              const canAffordKAS = canPayWithL1 && kasValid && kasBalanceNum >= item.priceKAS * 0.999;
+              const canAffordKAS = canPayWithL1 && !kasBalanceLoading && kasBalanceNum >= item.priceKAS * 0.999;
               const hasDiscount = priceAfterDiscount < item.price;
               const isBuying = buyingItemId === item.id;
 
@@ -269,7 +278,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                     </button>
                     <button
                       type="button"
-                      disabled={!canPayWithL1 || kasLoading || !canAffordKAS || isBuying}
+                      disabled={!canPayWithL1 || kasBalanceLoading || !canAffordKAS || isBuying}
                       onClick={() => {
                         buyBoostWithKAS(item.id, item.name, item.priceKAS, item.type, item.mult).then(() => {
                           setPurchaseSuccess(item.name);
@@ -278,11 +287,11 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                       }}
                       className="px-3 py-2 rounded-lg text-sm font-semibold bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/40 hover:bg-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                      {kasLoading ? '…' : isBuying ? '…' : 'Pay KAS'}
+                      {kasBalanceLoading ? '…' : isBuying ? '…' : 'Pay KAS'}
                     </button>
                   </div>
                   {!canPayWithL1 && <span className="block mt-1 text-xs text-zinc-500 dark:text-zinc-500">Connect KasWare wallet</span>}
-                  {canPayWithL1 && !canAffordKREX && !canAffordKAS && !kasLoading && <span className="block mt-1 text-xs text-amber-600 dark:text-amber-500">Insufficient KREX & KAS</span>}
+                  {canPayWithL1 && !canAffordKREX && !canAffordKAS && !kasBalanceLoading && <span className="block mt-1 text-xs text-amber-600 dark:text-amber-500">Insufficient KREX & KAS</span>}
                 </div>
               );
             })}
@@ -365,7 +374,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
               </div>
               <div>
                 <p className="font-semibold text-zinc-800 dark:text-zinc-300">How do I get rewards?</p>
-                <p className="mt-1">Mine <strong>in-game diamonds</strong> (the counter that increases from your Worker and Operator). When you have at least {refineMinDiamonds} in-game diamonds, click <strong>Refine Now</strong> to earn <strong>refinement points</strong> (more if you wait 30+ minutes between refines). These points are recorded for the Kasparex rewards system. This is not about NFT diamond traits; it is the mined resource shown in the counter above.</p>
+                <p className="mt-1">Mine <strong>in-game diamonds</strong> (the counter from your Worker and Operator). When you have at least {refineMinDiamonds}, click <strong>Refine Now</strong> to claim <strong>refinement points</strong> (your rewards). Your total points are shown at the top of the page. These points are recorded for the Diamond Veins rewards pool and determine your share of rewards from the Kasparex ecosystem. Waiting 30+ minutes between refines gives a 1.5× bonus on points.</p>
               </div>
               <div>
                 <p className="font-semibold text-zinc-800 dark:text-zinc-300">Why are Pay KAS buttons disabled?</p>
@@ -375,6 +384,32 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
           )}
         </div>
       </div>
+
+      {/* Refine claim result modal */}
+      {lastRefineClaim && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 dark:bg-black/70 backdrop-blur-sm" onClick={clearLastRefineClaim} aria-hidden />
+          <div className="relative w-full max-w-md rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 shadow-xl">
+            <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Refinement claimed</h3>
+            <p className="text-zinc-600 dark:text-zinc-400 mb-4">
+              You earned <strong className="text-emerald-600 dark:text-emerald-400">{lastRefineClaim.points.toLocaleString()} refinement points</strong> from {lastRefineClaim.amount.toLocaleString()} in-game diamonds.
+            </p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-500 mb-6">
+              These points are recorded for the Diamond Veins rewards pool and count toward your share of rewards from the Kasparex ecosystem.
+            </p>
+            <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-4">
+              Total refinement points this session: {refinementPointsTotal.toLocaleString()}
+            </p>
+            <button
+              type="button"
+              onClick={clearLastRefineClaim}
+              className="w-full py-3 rounded-xl font-semibold bg-emerald-500 text-white hover:bg-emerald-600 transition-colors"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
 
       {selectedSlotIndex !== null && (
         <NFTSlotSelector
