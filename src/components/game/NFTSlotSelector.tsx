@@ -116,13 +116,14 @@ export function NFTSlotSelector({ slotIndex, slot, allSlots, isOpen, onClose, on
   const hasCompatibleNFTs = slot?.type === 'worker' || slot?.type === 'operator';
   const showBuyLinks = !isLoading && nftsWithTier.length === 0 && hasCompatibleNFTs;
 
+  // Any NFT deployed in any slot (including this one) is "in use" globally until removed
   const isNFTInUseElsewhere = useMemo(() => {
     const inUse = new Set<string>();
-    allSlots.forEach((s, idx) => {
-      if (idx !== slotIndex && s.nftId != null && s.collection) inUse.add(`${s.collection}-${s.nftId}`);
+    allSlots.forEach((s) => {
+      if (s.nftId != null && s.collection) inUse.add(`${s.collection}-${s.nftId}`);
     });
     return (nft: UserNFT) => inUse.has(`${nft.collection}-${nft.tokenId}`);
-  }, [allSlots, slotIndex]);
+  }, [allSlots]);
 
   if (!slot || !isOpen) return null;
 

@@ -92,17 +92,24 @@ export function GameCard({ game }: GameCardProps) {
             </div>
           </div>
 
-          {/* Reward Indicators */}
+          {/* Reward Indicators - Diamond Veins: same card styling as others, clear ratio + L1→L2 */}
           {game.slug === 'diamond-veins' && (
-            <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
-              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="font-medium">Earn refinement points</span>
-              <span className="text-zinc-400 dark:text-zinc-500">·</span>
-              <Link href="/rewards-and-points" className="font-medium hover:underline" onClick={(e) => e.stopPropagation()}>
-                Redeem on Rewards &amp; Points
-              </Link>
+            <div className="pt-3 border-t border-zinc-200/50 dark:border-zinc-800/50 space-y-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">Rewards</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-700 dark:text-zinc-300">
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">1 diamond = 1 pt</span>
+                <span className="text-zinc-400 dark:text-zinc-500">·</span>
+                <span>Up to <strong>1.5×</strong> with time bonus</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                <span>Earn points on L1</span>
+                <span aria-hidden>→</span>
+                <Link href="/rewards-and-points" className="hover:underline" onClick={(e) => e.stopPropagation()}>
+                  Claim rewards on L2
+                </Link>
+              </div>
             </div>
           )}
           {game.rewardConfig && game.slug !== 'diamond-veins' && (

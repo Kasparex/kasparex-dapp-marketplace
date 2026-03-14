@@ -47,6 +47,8 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
     miningRun,
     startMiningRun,
     miningRunOptions,
+    miningAllowed,
+    reconnectRequiredBy,
   } = useDiamondMining();
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
   const [loreExpanded, setLoreExpanded] = useState(false);
@@ -69,6 +71,13 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
       {/* Left Column: Mining Area */}
       <div className="lg:col-span-8 flex flex-col space-y-8">
+        {/* 24h reconnect notice */}
+        {reconnectRequiredBy && (
+          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-200 text-sm font-medium">
+            Mining is paused. Reconnect your wallet (Workers, Operators, and boosters) at least once per day to keep recording rewards. Connect with KasWare to resume.
+          </div>
+        )}
+
         {/* KREX + KAS + Refinement points + tier */}
         <div className="p-4 rounded-2xl bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-base flex-wrap gap-4">
           <div className="flex items-center gap-6 flex-wrap">
@@ -88,7 +97,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
               {krexTier}
             </span>
           </div>
-          <p className="text-zinc-500 dark:text-zinc-400 text-sm">Refinement points are your rewards from refining; they are recorded for the Diamond Veins rewards pool. Pay with KREX or KAS in Garage.</p>
+            <p className="text-zinc-500 dark:text-zinc-400 text-sm">Earn <strong>points on L1</strong> when you refine; claim <strong>rewards on L2</strong> via Rewards &amp; Points. Pay with KREX or KAS in Garage.</p>
         </div>
 
         {/* Diamond Counter & Refine */}
@@ -380,9 +389,9 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                   <div className="space-y-2">
                     {loreStory.split(/\n\n+/).map((block, i) => {
                       const line = block.trim();
-                      const isSubtitle = line.length < 50 && !line.includes('.') && line === line.toUpperCase();
+                      const isSubtitle = line.length <= 60 && line === line.toUpperCase() && /^[A-Z0-9\s]+$/.test(line);
                       return isSubtitle ? (
-                        <h4 key={i} className="text-emerald-600 dark:text-emerald-400 font-bold text-base uppercase tracking-wide pt-3 first:pt-0">
+                        <h4 key={i} className="text-emerald-600 dark:text-emerald-400 font-bold text-base uppercase tracking-wider pt-4 first:pt-0 border-b border-emerald-500/20 pb-1">
                           {line}
                         </h4>
                       ) : (
@@ -429,15 +438,19 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
               </div>
               <div>
                 <p className="font-semibold text-zinc-800 dark:text-zinc-300">What is the ratio for rewards and points?</p>
-                <p className="mt-1">You earn <strong>1 refinement point per in-game diamond</strong> when you refine. If you wait at least 30 minutes after your last refine, you get a <strong>1.5× time bonus</strong> (so up to 1.5 points per diamond). Your total refinement points are shown at the top of this page.</p>
+                <p className="mt-1">You earn <strong>1 point per in-game diamond</strong> when you refine (L1). If you wait at least 30 minutes after your last refine, you get a <strong>1.5× time bonus</strong> (up to 1.5 points per diamond). Your total points are shown at the top.</p>
+              </div>
+              <div>
+                <p className="font-semibold text-zinc-800 dark:text-zinc-300">Earn on L1, claim on L2?</p>
+                <p className="mt-1">Yes. You <strong>earn points on L1</strong> by mining and refining in Diamond Veins. Those points are recorded and then you <strong>claim rewards on L2</strong> (Igra/Kasplex L2) via the <Link href="/rewards-and-points" className="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline">Rewards &amp; Points</Link> page. Mine and refine here; spend and claim there.</p>
               </div>
               <div>
                 <p className="font-semibold text-zinc-800 dark:text-zinc-300">How do I get and receive rewards?</p>
-                <p className="mt-1">Mine <strong>in-game diamonds</strong> (the counter from your Worker and Operator). When you have at least {refineMinDiamonds}, click <strong>Refine Now</strong> to claim <strong>refinement points</strong>. These points are recorded for the Diamond Veins rewards pool and count toward your share of rewards from the Kasparex ecosystem.</p>
+                <p className="mt-1">Mine <strong>in-game diamonds</strong> (the counter from your Worker and Operator). When you have at least {refineMinDiamonds}, click <strong>Refine Now</strong> to earn <strong>refinement points (L1)</strong>. Then go to Rewards &amp; Points to claim rewards on L2.</p>
               </div>
               <div>
                 <p className="font-semibold text-zinc-800 dark:text-zinc-300">Where and how do I spend points? What can I claim?</p>
-                <p className="mt-1">Refinement points are part of the <strong>Kasparex Points</strong> system. Go to the <Link href="/rewards-and-points" className="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline">Rewards &amp; Points</Link> page to see how to spend your points and what you can claim (rewards from the ecosystem pool, perks, and more).</p>
+                <p className="mt-1">Points earned here are part of the <strong>Kasparex Points</strong> system. On the <Link href="/rewards-and-points" className="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline">Rewards &amp; Points</Link> page you can claim rewards on L2 (ecosystem pool, perks, and more).</p>
               </div>
               <div>
                 <p className="font-semibold text-zinc-800 dark:text-zinc-300">Why are Pay KAS buttons disabled?</p>
@@ -458,7 +471,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
               You earned <strong className="text-emerald-600 dark:text-emerald-400">{lastRefineClaim.points.toLocaleString()} refinement points</strong> from {lastRefineClaim.amount.toLocaleString()} in-game diamonds.
             </p>
             <p className="text-sm text-zinc-500 dark:text-zinc-500 mb-4">
-              These points are recorded for the Diamond Veins rewards pool and count toward your share of rewards from the Kasparex ecosystem. Spend them and see what you can claim on the <Link href="/rewards-and-points" className="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline">Rewards &amp; Points</Link> page.
+              You earned these points on L1. Claim rewards on L2 on the <Link href="/rewards-and-points" className="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline">Rewards &amp; Points</Link> page.
             </p>
             <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-4">
               Total refinement points this session: {refinementPointsTotal.toLocaleString()}

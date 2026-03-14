@@ -39,6 +39,43 @@ export interface ActiveBoost {
 }
 
 const SOMPI_PER_KAS_FACTOR = 100_000_000;
+const DIAMOND_VEINS_STORAGE_KEY = 'diamond-veins-state';
+const RECONNECT_GRACE_MS = 24 * 60 * 60 * 1000; // 24h – must reconnect at least once per day for mining to continue
+
+interface PersistedMiningState {
+  slots: MiningSlot[];
+  diamonds: number;
+  lastRefinedAt: number;
+  refinementPointsTotal: number;
+  miningRunEndTime: number;
+  miningRunMultiplier: number;
+  miningRunOptionIndex: number | null;
+  activeBoosts: ActiveBoost[];
+  lastConnectedAt: number | null;
+  lastConnectedAddress: string | null;
+}
+
+function loadPersistedState(): Partial<PersistedMiningState> | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(DIAMOND_VEINS_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PersistedMiningState;
+    if (!parsed || typeof parsed !== 'object') return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function savePersistedState(state: PersistedMiningState) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(DIAMOND_VEINS_STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // ignore
+  }
+}
 
 export function useDiamondMining() {
   const { state: walletState } = useKaspaWallet();
@@ -87,22 +124,74 @@ export function useDiamondMining() {
 
   const kasBalance = kasBalanceFetched ?? (kasBalanceStr != null ? parseFloat(String(kasBalanceStr)) : 0);
 
-  const [slots, setSlots] = useState<MiningSlot[]>([
+  const defaultSlots: MiningSlot[] = [
     { type: 'worker', nftId: null, collection: 'KREXPRIME' },
     { type: 'operator', nftId: null, collection: 'PIXELKREX' },
     { type: 'booster', nftId: null, collection: null },
-  ]);
+  ];
 
+  const [slots, setSlots] = useState<MiningSlot[]>(() => {
+    const p = loadPersistedState();
+    if (p?.slots && Array.isArray(p.slots) && p.slots.length >= 3) return p.slots;
+    return defaultSlots;
+  });
   const [slottedMetadata, setSlottedMetadata] = useState<Record<number, ParsedNFTMetadata>>({});
-  const [diamonds, setDiamonds] = useState<number>(0);
-  const [activeBoosts, setActiveBoosts] = useState<ActiveBoost[]>([]);
-  const [lastRefinedAt, setLastRefinedAt] = useState<number>(Date.now());
+  const [diamonds, setDiamonds] = useState<number>(() => {
+    const p = loadPersistedState();
+    if (p != null && typeof p.diamonds === 'number' && p.diamonds >= 0) return p.diamonds;
+    return 0;
+  });
+  const [activeBoosts, setActiveBoosts] = useState<ActiveBoost[]>(() => {
+    const p = loadPersistedState();
+    if (p?.activeBoosts && Array.isArray(p.activeBoosts)) return p.activeBoosts;
+    return [];
+  });
+  const [lastRefinedAt, setLastRefinedAt] = useState<number>(() => {
+    const p = loadPersistedState();
+    if (p?.lastRefinedAt != null && typeof p.lastRefinedAt === 'number') return p.lastRefinedAt;
+    return Date.now();
+  });
   const [buyingItemId, setBuyingItemId] = useState<string | null>(null);
-  const [refinementPointsTotal, setRefinementPointsTotal] = useState<number>(0);
+  const [refinementPointsTotal, setRefinementPointsTotal] = useState<number>(() => {
+    const p = loadPersistedState();
+    if (p != null && typeof p.refinementPointsTotal === 'number' && p.refinementPointsTotal >= 0) return p.refinementPointsTotal;
+    return 0;
+  });
   const [lastRefineClaim, setLastRefineClaim] = useState<{ points: number; amount: number } | null>(null);
-  const [miningRunEndTime, setMiningRunEndTime] = useState<number>(0);
-  const [miningRunMultiplier, setMiningRunMultiplier] = useState<number>(1);
-  const [miningRunOptionIndex, setMiningRunOptionIndex] = useState<number | null>(null);
+  const [miningRunEndTime, setMiningRunEndTime] = useState<number>(() => {
+    const p = loadPersistedState();
+    if (p?.miningRunEndTime != null && typeof p.miningRunEndTime === 'number') return p.miningRunEndTime;
+    return 0;
+  });
+  const [miningRunMultiplier, setMiningRunMultiplier] = useState<number>(() => {
+    const p = loadPersistedState();
+    if (p?.miningRunMultiplier != null && typeof p.miningRunMultiplier === 'number') return p.miningRunMultiplier;
+    return 1;
+  });
+  const [miningRunOptionIndex, setMiningRunOptionIndex] = useState<number | null>(() => {
+    const p = loadPersistedState();
+    if (p?.miningRunOptionIndex != null && typeof p.miningRunOptionIndex === 'number') return p.miningRunOptionIndex;
+    return null;
+  });
+  const [lastConnectedAt, setLastConnectedAt] = useState<number | null>(() => {
+    const p = loadPersistedState();
+    if (p?.lastConnectedAt != null && typeof p.lastConnectedAt === 'number') return p.lastConnectedAt;
+    return null;
+  });
+  const [lastConnectedAddress, setLastConnectedAddress] = useState<string | null>(() => {
+    const p = loadPersistedState();
+    if (p?.lastConnectedAddress != null && typeof p.lastConnectedAddress === 'string') return p.lastConnectedAddress;
+    return null;
+  });
+
+  // When wallet connects, update last-connected time for 24h mining grace
+  useEffect(() => {
+    if (walletState.isConnected && walletState.address) {
+      const now = Date.now();
+      setLastConnectedAt(now);
+      setLastConnectedAddress(walletState.address);
+    }
+  }, [walletState.isConnected, walletState.address]);
 
   useEffect(() => {
     const fetchMetadata = async () => {
@@ -179,15 +268,38 @@ export function useDiamondMining() {
     };
   }, [slots, slottedMetadata, activeBoosts, krexTier, miningRunEndTime, miningRunMultiplier]);
 
+  // Mining continues when connected or within 24h of last connect (reconnect-at-least-once-per-day rule)
+  const miningAllowed = useMemo(() => {
+    if (walletState.isConnected) return true;
+    if (lastConnectedAt == null) return false;
+    return Date.now() - lastConnectedAt <= RECONNECT_GRACE_MS;
+  }, [walletState.isConnected, lastConnectedAt]);
+
   useEffect(() => {
-    if (stats.yieldPerSecond === 0) return;
+    if (stats.yieldPerSecond === 0 || !miningAllowed) return;
 
     const interval = setInterval(() => {
       setDiamonds((prev) => prev + stats.yieldPerSecond);
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [stats.yieldPerSecond]);
+  }, [stats.yieldPerSecond, miningAllowed]);
+
+  // Persist state so mining and counts survive refresh and disconnect
+  useEffect(() => {
+    savePersistedState({
+      slots,
+      diamonds,
+      lastRefinedAt,
+      refinementPointsTotal,
+      miningRunEndTime,
+      miningRunMultiplier,
+      miningRunOptionIndex,
+      activeBoosts,
+      lastConnectedAt,
+      lastConnectedAddress,
+    });
+  }, [slots, diamonds, lastRefinedAt, refinementPointsTotal, miningRunEndTime, miningRunMultiplier, miningRunOptionIndex, activeBoosts, lastConnectedAt, lastConnectedAddress]);
 
   const deployNFT = useCallback((slotIndex: number, nftId: number, collection: string) => {
     setSlots((prev) => {
@@ -231,6 +343,7 @@ export function useDiamondMining() {
           amount,
           refinementPoints,
           status: 'completed',
+          userAddress: walletState.address ?? undefined,
         },
       })
     );
@@ -240,7 +353,7 @@ export function useDiamondMining() {
     setRefinementPointsTotal((prev) => prev + refinementPoints);
     setLastRefineClaim({ points: refinementPoints, amount });
     return { points: refinementPoints, amount };
-  }, [diamonds, lastRefinedAt]);
+  }, [diamonds, lastRefinedAt, walletState.address]);
 
   const getPriceAfterDiscount = useCallback(
     (priceKrex: number) => {
@@ -403,5 +516,7 @@ export function useDiamondMining() {
       }
     },
     miningRunOptions: MINING_RUN_OPTIONS,
+    miningAllowed,
+    reconnectRequiredBy: lastConnectedAt != null && !walletState.isConnected && Date.now() - lastConnectedAt > RECONNECT_GRACE_MS,
   };
 }

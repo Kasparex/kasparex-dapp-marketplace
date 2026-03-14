@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { MiningDashboard } from '@/components/game/MiningDashboard';
@@ -8,10 +9,15 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { placeholderGames, getGameBySlug } from '@/lib/games/games';
 import Link from 'next/link';
 
-const LORE_STORY = `Deep beneath the neon cities of Kaspaland, hidden far below the surface, lies an ancient network of glowing crystal veins.
+const KasWareWalletButton = dynamic(
+  () => import('@/components/KasWareWalletButton').then((mod) => ({ default: mod.KasWareWalletButton })),
+  { ssr: false }
+);
+
+const LORE_STORY = `Deep beneath the neon city of Kaspaland, hidden far below the surface, lies an ancient network of glowing crystal veins.
 
 THE DISCOVERY
-For centuries these crystals remained undiscovered, quietly forming within the underground layers of the planet. Their origin remained a mystery until Krex, the cryptography mastermind and founder of Kasparex, detected unusual energy patterns coming from deep underground.
+For centuries these crystals remained undiscovered, quietly forming within the underground layers of the metropolis. Their origin remained a mystery until Krex, the cryptography mastermind and founder of Kasparex, detected unusual energy patterns coming from deep underground.
 
 KREX DIAMONDS
 After months of analysis, Krex discovered that these crystals were not ordinary minerals. They were formed from BlockDAG energy flows traveling through the Kaspa network itself. These rare crystals became known as Krex Diamonds.
@@ -72,12 +78,9 @@ function DiamondVeinsContent() {
                 <p className="text-zinc-600 dark:text-zinc-400 max-w-md mx-auto text-base">
                   Wallet connection required to deploy your NFT workers and start mining Krex Diamonds.
                 </p>
-                <button
-                  onClick={() => (window as any).dispatchEvent(new CustomEvent('open-wallet-modal'))}
-                  className="k-cta-primary h-14 px-8 text-base"
-                >
-                  Connect Wallet
-                </button>
+                <div className="[&_button]:h-14 [&_button]:px-8 [&_button]:text-base">
+                  <KasWareWalletButton />
+                </div>
               </div>
             ) : (
               <MiningDashboard featuredImage={featuredImage} loreStory={LORE_STORY} gameDescription={game.description} />
