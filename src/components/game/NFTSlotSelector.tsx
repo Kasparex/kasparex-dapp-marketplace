@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useDiamondMining } from '@/hooks/useDiamondMining';
 import { getNFTTier } from '@/lib/game/diamond-bonuses';
+import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { fetchNFTMetadata } from '@/lib/nft/metadata';
 import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
 import type { UserNFT } from '@/lib/nft/nft-query';
@@ -75,26 +76,69 @@ function useNFTsWithTier(
   }, [filtered, metadataMap]);
 }
 
+function getNFTImageUrl(metadata: ParsedNFTMetadata | null): string | null {
+  if (!metadata?.image) return null;
+  if (metadata.image.startsWith('ipfs://')) {
+    return getBestGatewayUrl(metadata.image.replace('ipfs://', ''));
+  }
+  return metadata.image;
+}
+
+const SLOT_DESCRIPTIONS: Record<string, { title: string; body: string; collection: string }> = {
+  worker: {
+    title: 'Worker slot',
+    body: 'Deploy a KREXPRIME NFT here to set your base diamond mining rate. Higher rarity (Diamond, Rarest) gives a higher yield multiplier. Click an NFT below to deploy it to this slot.',
+    collection: 'KREXPRIME',
+  },
+  operator: {
+    title: 'Operator slot',
+    body: 'Deploy a PIXELKREX NFT here to multiply your mining rate. Elite Operators increase efficiency. Click an NFT below to deploy it to this slot.',
+    collection: 'PIXELKREX',
+  },
+  booster: {
+    title: 'Booster slot',
+    body: 'Reserved for future partner collections. No NFT is required for now; your yield comes from the Worker and Operator slots.',
+    collection: 'Any',
+  },
+};
+
 export function NFTSlotSelector({ slotIndex, isOpen, onClose }: NFTSlotSelectorProps) {
   const { nfts, isLoading } = useNFTStatus();
   const { slots, deployNFT } = useDiamondMining();
 
   const slot = slots[slotIndex];
   const nftsWithTier = useNFTsWithTier(nfts, slot, isOpen);
+  const slotInfo = slot ? SLOT_DESCRIPTIONS[slot.type] ?? null : null;
 
   if (!slot || !isOpen) return null;
 
+  const handleDeploy = (nft: UserNFT) => {
+    deployNFT(slotIndex, nft.tokenId, nft.collection);
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm" onClick={onClose} aria-hidden />
 
-      <div className="relative w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
-        <div className="p-8 border-b border-zinc-800 flex items-center justify-between">
+      <div className="relative w-full max-w-2xl max-h-[90vh] flex flex-col bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
+        <div className="p-6 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between flex-shrink-0">
           <div>
-            <h2 className="text-2xl font-black italic uppercase tracking-tight">Deploying {slot.type}</h2>
-            <p className="text-zinc-500 text-sm">Select an NFT from your wallet to activate the core.</p>
+            <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+              {(slot.type as string).charAt(0).toUpperCase() + (slot.type as string).slice(1)} slot
+            </h2>
+            {slotInfo && (
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1 max-w-lg">
+                {slotInfo.body}
+              </p>
+            )}
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-zinc-800 rounded-full text-zinc-500 transition-colors">
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 transition-colors"
+            aria-label="Close"
+          >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -103,51 +147,71 @@ export function NFTSlotSelector({ slotIndex, isOpen, onClose }: NFTSlotSelectorP
 
         <div className="flex-1 overflow-y-auto p-6">
           {isLoading ? (
-            <div className="h-64 flex flex-col items-center justify-center space-y-4">
-              <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
-              <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest">Scanning Blockchain...</p>
+            <div className="h-48 flex flex-col items-center justify-center space-y-4">
+              <div className="w-12 h-12 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
+              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Loading your NFTs…</p>
             </div>
           ) : nftsWithTier.length === 0 ? (
-            <div className="h-64 flex flex-col items-center justify-center text-center p-8 space-y-4">
-              <div className="w-16 h-16 rounded-3xl bg-zinc-800/50 flex items-center justify-center text-2xl opacity-50">🛰️</div>
-              <div>
-                <p className="font-bold text-zinc-400">No Compatible NFTs Found</p>
-                <p className="text-zinc-600 text-sm mt-1">You need {slot.collection || 'specified'} NFTs to fill this slot.</p>
-              </div>
+            <div className="h-48 flex flex-col items-center justify-center text-center p-6 space-y-3">
+              <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-2xl">🛰️</div>
+              <p className="font-semibold text-zinc-700 dark:text-zinc-300">No compatible NFTs found</p>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                You need {slotInfo?.collection ?? slot.collection ?? 'the right'} NFTs in your wallet for this slot.
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {nftsWithTier.map(({ nft, tier }) => (
-                <div
-                  key={`${nft.collection}-${nft.tokenId}`}
-                  onClick={() => {
-                    deployNFT(slotIndex, nft.tokenId, nft.collection);
-                    onClose();
-                  }}
-                  className="p-4 rounded-2xl bg-zinc-800/30 border border-zinc-700/50 hover:border-emerald-500 hover:bg-emerald-500/5 transition-all cursor-pointer group"
-                >
-                  <div className="aspect-square rounded-xl bg-zinc-700/50 flex items-center justify-center text-3xl mb-3 group-hover:scale-110 transition-transform relative">
-                    🤖
-                    {tier !== 'regular' && (
-                      <span
-                        className={`absolute top-1 right-1 px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${
-                          tier === 'rarest' ? 'bg-amber-500/30 text-amber-300' : 'bg-emerald-500/30 text-emerald-300'
-                        }`}
+              {nftsWithTier.map(({ nft, tier, metadata }) => {
+                const imageUrl = getNFTImageUrl(metadata);
+                return (
+                  <div
+                    key={`${nft.collection}-${nft.tokenId}`}
+                    className="rounded-xl border-2 border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 overflow-hidden hover:border-emerald-500 focus-within:border-emerald-500 transition-colors"
+                  >
+                    <div className="aspect-square relative bg-zinc-200 dark:bg-zinc-800">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={`${nft.collection} #${nft.tokenId}`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-4xl">🤖</div>
+                      )}
+                      {tier !== 'regular' && (
+                        <span
+                          className={`absolute top-2 right-2 px-2 py-0.5 rounded text-xs font-semibold ${
+                            tier === 'rarest' ? 'bg-amber-500/90 text-white' : 'bg-emerald-500/90 text-white'
+                          }`}
+                        >
+                          {tier}
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <p className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 truncate">
+                        {metadata?.name ?? `${nft.collection} #${nft.tokenId}`}
+                      </p>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">#{nft.tokenId}</p>
+                      <button
+                        type="button"
+                        onClick={() => handleDeploy(nft)}
+                        className="mt-2 w-full py-2 rounded-lg text-sm font-semibold bg-emerald-500 text-white hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 transition-colors"
                       >
-                        {tier}
-                      </span>
-                    )}
+                        Deploy here
+                      </button>
+                    </div>
                   </div>
-                  <h4 className="font-bold text-sm truncate">{nft.collectionConfig?.name ?? nft.collection}</h4>
-                  <p className="text-emerald-500 font-bold text-xs">#{nft.tokenId}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
 
-        <div className="p-6 bg-zinc-800/20 border-t border-zinc-800 text-center">
-          <p className="text-[10px] text-zinc-500 uppercase font-black tracking-[0.2em]">Deployment requires a minor KAS transaction (0.01 KAS)</p>
+        <div className="p-4 bg-zinc-50 dark:bg-zinc-800/30 border-t border-zinc-200 dark:border-zinc-800 text-center">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            Deploying an NFT to a slot does not require a chain transaction. You can change it anytime by opening this modal again and choosing another NFT.
+          </p>
         </div>
       </div>
     </div>
