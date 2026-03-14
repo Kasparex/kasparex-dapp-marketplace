@@ -1,9 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useDiamondMining } from '@/hooks/useDiamondMining';
 import { NFTSlotSelector } from './NFTSlotSelector';
 import { getBonusForTrait, getNFTTier } from '@/lib/game/diamond-bonuses';
+import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { WORKER_TIER_MULTIPLIERS, OPERATOR_TIER_MULTIPLIERS } from '@/lib/game/diamond-veins-config';
 
 const GARAGE_ITEMS = [
   { id: 'nitrogen-overclock', name: "Vector's Overclock", price: 100, priceKAS: 0.5, desc: '+25% Yield (1h)', icon: '⚡', type: 'yield' as const, mult: 0.25 },
@@ -24,6 +27,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
     stats,
     activeBoosts,
     deployNFT,
+    removeSlot,
     refineDiamonds,
     buyBoost,
     buyBoostWithKAS,
@@ -40,6 +44,9 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
     lastRefineClaim,
     clearLastRefineClaim,
     kasBalanceLoading,
+    miningRun,
+    startMiningRun,
+    miningRunOptions,
   } = useDiamondMining();
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
   const [loreExpanded, setLoreExpanded] = useState(false);
@@ -47,13 +54,13 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
   const [purchaseSuccess, setPurchaseSuccess] = useState<string | null>(null);
   const [refining, setRefining] = useState(false);
 
-  // Refresh "min left" for active boosts every 60s
+  // Refresh "min left" for active boosts and mining run every 60s
   const [, setBoostTick] = useState(0);
   useEffect(() => {
-    if (activeBoosts.length === 0) return;
+    if (activeBoosts.length === 0 && !miningRun) return;
     const t = setInterval(() => setBoostTick((n) => n + 1), 60000);
     return () => clearInterval(t);
-  }, [activeBoosts.length]);
+  }, [activeBoosts.length, miningRun]);
 
   const kasValid = typeof kasBalance === 'number' && !Number.isNaN(kasBalance);
   const kasBalanceNum = kasValid ? kasBalance : 0;
@@ -126,6 +133,13 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
           {slots.map((slot, idx) => {
             const meta = slot.nftId !== null ? slottedMetadata[slot.nftId] : null;
             const tier = slot.nftId !== null && slot.collection ? getNFTTier(slot.collection, slot.nftId, meta) : null;
+            const tierKey = (tier ?? 'regular') as keyof typeof WORKER_TIER_MULTIPLIERS;
+            const workerMult = slot.type === 'worker' ? (WORKER_TIER_MULTIPLIERS[tierKey] ?? 1) : null;
+            const operatorMult = slot.type === 'operator' ? (OPERATOR_TIER_MULTIPLIERS[tierKey] ?? 2) : null;
+            const traitBonus = meta?.traits?.reduce((sum, t) => sum + (getBonusForTrait(String(t.value))?.value ?? 0), 0) ?? 0;
+            const yieldMult = workerMult != null ? (workerMult * (1 + traitBonus)).toFixed(2) : null;
+            const speedMult = operatorMult != null ? (operatorMult * (1 + traitBonus)).toFixed(2) : null;
+            const slotImageUrl = meta?.image ? getBestGatewayUrl(String(meta.image).replace('ipfs://', '')) : null;
             return (
               <div
                 key={idx}
@@ -147,28 +161,45 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center">
-                    <div className="w-24 h-24 rounded-full bg-emerald-500/20 flex items-center justify-center mb-4 ring-4 ring-emerald-500/10 transition-all group-hover:ring-emerald-500/30">
-                      <span className="text-3xl">💎</span>
+                  <div className="text-center w-full flex flex-col items-center">
+                    <div className="w-20 h-20 rounded-xl overflow-hidden bg-zinc-200 dark:bg-zinc-800 ring-2 ring-emerald-500/30 flex-shrink-0">
+                      {slotImageUrl ? (
+                        <img src={slotImageUrl} alt={`#${slot.nftId}`} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-2xl">💎</div>
+                      )}
                     </div>
-                    <h3 className="font-bold text-zinc-900 dark:text-zinc-100 text-base">#{slot.nftId}</h3>
+                    <h3 className="font-bold text-zinc-900 dark:text-zinc-100 text-sm mt-2">#{slot.nftId}</h3>
                     {tier && tier !== 'regular' && (
                       <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-semibold uppercase">
                         {tier}
                       </span>
                     )}
-                    <div className="mt-2 flex flex-wrap justify-center gap-1">
+                    {yieldMult != null && (
+                      <p className="mt-1 text-emerald-600 dark:text-emerald-500 text-xs font-semibold">Yield {yieldMult}×</p>
+                    )}
+                    {speedMult != null && (
+                      <p className="mt-1 text-emerald-600 dark:text-emerald-500 text-xs font-semibold">Speed {speedMult}×</p>
+                    )}
+                    <div className="mt-1 flex flex-wrap justify-center gap-1">
                       {meta?.traits?.map((trait, i) => {
                         const bonus = getBonusForTrait(String(trait.value));
                         if (!bonus) return null;
                         return (
-                          <span key={i} className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold uppercase">
+                          <span key={i} className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-semibold uppercase">
                             {bonus.type} +{(bonus.value * 100).toFixed(0)}%
                           </span>
                         );
                       })}
                     </div>
-                    <p className="text-emerald-600 dark:text-emerald-500 text-xs font-semibold uppercase mt-2">ACTIVE</p>
+                    <p className="text-emerald-600 dark:text-emerald-500 text-[10px] font-semibold uppercase mt-1">LOCKED · ACTIVE</p>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); removeSlot(idx); }}
+                      className="mt-2 px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-red-500/20 hover:text-red-600 dark:hover:text-red-400 border border-zinc-300 dark:border-zinc-600 transition-colors"
+                    >
+                      Remove
+                    </button>
                   </div>
                 )}
 
@@ -191,6 +222,35 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
             </div>
           </div>
           <div className="text-zinc-500 dark:text-zinc-400 font-medium">Powered by Kasparex · Secured by Kaspa BlockDAG</div>
+        </div>
+
+        {/* Mining run lock options */}
+        <div className="p-6 rounded-2xl bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800">
+          <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">Mining run</h3>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">Lock a run for a set period to get a yield multiplier. Only one run at a time.</p>
+          {miningRun ? (
+            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex flex-wrap items-center justify-between gap-3">
+              <span className="text-emerald-700 dark:text-emerald-300 font-semibold">
+                Active: {miningRun.option?.label ?? 'Run'} · {miningRun.multiplier}x yield
+              </span>
+              <span className="text-zinc-600 dark:text-zinc-400 tabular-nums">
+                {Math.ceil((miningRun.endTime - Date.now()) / 60000)} min left
+              </span>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {miningRunOptions.map((opt, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => startMiningRun(i)}
+                  className="px-4 py-2 rounded-xl text-sm font-semibold bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30 transition-colors"
+                >
+                  {opt.label} ({opt.mult}x)
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Active boosts */}
@@ -377,6 +437,10 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                 <p className="mt-1">Mine <strong>in-game diamonds</strong> (the counter from your Worker and Operator). When you have at least {refineMinDiamonds}, click <strong>Refine Now</strong> to claim <strong>refinement points</strong> (your rewards). Your total points are shown at the top of the page. These points are recorded for the Diamond Veins rewards pool and determine your share of rewards from the Kasparex ecosystem. Waiting 30+ minutes between refines gives a 1.5× bonus on points.</p>
               </div>
               <div>
+                <p className="font-semibold text-zinc-800 dark:text-zinc-300">How can I spend refinement points?</p>
+                <p className="mt-1">Refinement points are part of the <strong>Kasparex Points</strong> system. You can spend them and claim valuable rewards on the <Link href="/rewards-and-points" className="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline">Rewards &amp; Points</Link> page.</p>
+              </div>
+              <div>
                 <p className="font-semibold text-zinc-800 dark:text-zinc-300">Why are Pay KAS buttons disabled?</p>
                 <p className="mt-1">Paying with KAS requires the <strong>KasWare</strong> browser extension to be installed and connected. If you use another wallet, connect with KasWare on this page to enable KAS (and KREX) payments. Make sure you have enough KAS for the item price and network fees.</p>
               </div>
@@ -415,6 +479,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
         <NFTSlotSelector
           slotIndex={selectedSlotIndex}
           slot={slots[selectedSlotIndex] ?? null}
+          allSlots={slots}
           isOpen={true}
           onClose={() => setSelectedSlotIndex(null)}
           onDeploy={deployNFT}

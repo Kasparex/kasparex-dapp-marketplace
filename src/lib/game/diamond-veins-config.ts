@@ -75,6 +75,15 @@ export const GARAGE_REVENUE_TO_POOL_PCT = 0.8;
 /** Minimum diamonds to refine. */
 export const REFINE_MIN_DIAMONDS = 100;
 
+/** Mining run lock options: duration (ms) and yield multiplier. */
+export const MINING_RUN_OPTIONS = [
+  { label: '10 min', durationMs: 10 * 60 * 1000, mult: 1.1 },
+  { label: '30 min', durationMs: 30 * 60 * 1000, mult: 1.2 },
+  { label: '1 hour', durationMs: 60 * 60 * 1000, mult: 1.3 },
+  { label: '12 hours', durationMs: 12 * 60 * 60 * 1000, mult: 1.5 },
+  { label: '24 hours', durationMs: 24 * 60 * 60 * 1000, mult: 2 },
+] as const;
+
 /**
  * Refinement time bonus: points = amount * (1 + min(secondsSinceRefine/3600, 0.5)).
  * Best refinement: wait at least REFINE_TIME_BONUS_CAP_MINUTES after last refine to get

@@ -12,6 +12,7 @@ import type { MiningSlot } from '@/hooks/useDiamondMining';
 interface NFTSlotSelectorProps {
   slotIndex: number;
   slot: MiningSlot | null;
+  allSlots: MiningSlot[];
   isOpen: boolean;
   onClose: () => void;
   onDeploy: (slotIndex: number, nftId: number, collection: string) => void;
@@ -104,14 +105,23 @@ const SLOT_DESCRIPTIONS: Record<string, { title: string; body: string; collectio
   },
 };
 
-export function NFTSlotSelector({ slotIndex, slot, isOpen, onClose, onDeploy }: NFTSlotSelectorProps) {
+export function NFTSlotSelector({ slotIndex, slot, allSlots, isOpen, onClose, onDeploy }: NFTSlotSelectorProps) {
   const { nfts, isLoading } = useNFTStatus();
   const nftsWithTier = useNFTsWithTier(nfts, slot ?? undefined, isOpen);
   const slotInfo = slot ? SLOT_DESCRIPTIONS[slot.type] ?? null : null;
 
+  const isNFTInUseElsewhere = useMemo(() => {
+    const inUse = new Set<string>();
+    allSlots.forEach((s, idx) => {
+      if (idx !== slotIndex && s.nftId != null && s.collection) inUse.add(`${s.collection}-${s.nftId}`);
+    });
+    return (nft: UserNFT) => inUse.has(`${nft.collection}-${nft.tokenId}`);
+  }, [allSlots, slotIndex]);
+
   if (!slot || !isOpen) return null;
 
   const handleDeploy = (nft: UserNFT) => {
+    if (isNFTInUseElsewhere(nft)) return;
     onDeploy(slotIndex, nft.tokenId, nft.collection);
     onClose();
   };
@@ -162,10 +172,13 @@ export function NFTSlotSelector({ slotIndex, slot, isOpen, onClose, onDeploy }: 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {nftsWithTier.map(({ nft, tier, metadata }) => {
                 const imageUrl = getNFTImageUrl(metadata);
+                const inUse = isNFTInUseElsewhere(nft);
                 return (
                   <div
                     key={`${nft.collection}-${nft.tokenId}`}
-                    className="rounded-xl border-2 border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 overflow-hidden hover:border-emerald-500 focus-within:border-emerald-500 transition-colors"
+                    className={`rounded-xl border-2 overflow-hidden transition-colors ${
+                      inUse ? 'border-zinc-300 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-800/80 opacity-75' : 'border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 hover:border-emerald-500 focus-within:border-emerald-500'
+                    }`}
                   >
                     <div className="aspect-square relative bg-zinc-200 dark:bg-zinc-800">
                       {imageUrl ? (
@@ -186,6 +199,11 @@ export function NFTSlotSelector({ slotIndex, slot, isOpen, onClose, onDeploy }: 
                           {tier}
                         </span>
                       )}
+                      {inUse && (
+                        <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xs font-bold uppercase">
+                          In use
+                        </span>
+                      )}
                     </div>
                     <div className="p-3">
                       <p className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 truncate">
@@ -195,9 +213,10 @@ export function NFTSlotSelector({ slotIndex, slot, isOpen, onClose, onDeploy }: 
                       <button
                         type="button"
                         onClick={() => handleDeploy(nft)}
-                        className="mt-2 w-full py-2 rounded-lg text-sm font-semibold bg-emerald-500 text-white hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 transition-colors"
+                        disabled={inUse}
+                        className="mt-2 w-full py-2 rounded-lg text-sm font-semibold bg-emerald-500 text-white hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Deploy here
+                        {inUse ? 'In use in another slot' : 'Deploy here'}
                       </button>
                     </div>
                   </div>

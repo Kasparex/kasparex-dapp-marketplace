@@ -17,6 +17,9 @@ import {
   KRC20_TRANSFER_TYPE,
   KREX_DECIMALS,
   SOMPI_PER_KAS,
+  MINING_RUN_OPTIONS,
+  WORKER_TIER_MULTIPLIERS,
+  OPERATOR_TIER_MULTIPLIERS,
 } from '@/lib/game/diamond-veins-config';
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { getKasWare, signKRC20Transaction } from '@/lib/kaspa/kasware';
@@ -46,7 +49,9 @@ export function useDiamondMining() {
   const { balance: krexBalance, l1Balance: krexL1Balance, tier: krexTier } = useKREXBalance();
   const [kasBalanceFetched, setKasBalanceFetched] = useState<number | null>(null);
 
-  const isKasWare = walletState.provider?.toLowerCase() === 'kasware';
+  const isKasWare =
+    (typeof window !== 'undefined' && walletState.isConnected && !!(window as any).kasware) ||
+    walletState.provider?.toLowerCase() === 'kasware';
   const canPayWithL1 = !!(walletState.isConnected && isKasWare);
 
   const fetchKasBalance = useCallback(() => {
@@ -76,6 +81,10 @@ export function useDiamondMining() {
       return;
     }
     fetchKasBalance();
+    const t = setInterval(() => {
+      fetchKasBalance();
+    }, 2500);
+    return () => clearInterval(t);
   }, [canPayWithL1, fetchKasBalance]);
 
   const kasBalance = kasBalanceFetched ?? (kasBalanceStr != null ? parseFloat(String(kasBalanceStr)) : 0);
@@ -93,6 +102,9 @@ export function useDiamondMining() {
   const [buyingItemId, setBuyingItemId] = useState<string | null>(null);
   const [refinementPointsTotal, setRefinementPointsTotal] = useState<number>(0);
   const [lastRefineClaim, setLastRefineClaim] = useState<{ points: number; amount: number } | null>(null);
+  const [miningRunEndTime, setMiningRunEndTime] = useState<number>(0);
+  const [miningRunMultiplier, setMiningRunMultiplier] = useState<number>(1);
+  const [miningRunOptionIndex, setMiningRunOptionIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchMetadata = async () => {
@@ -154,15 +166,20 @@ export function useDiamondMining() {
       if (boost.endTime > now) {
         if (boost.type === 'yield') yieldPerSecond *= 1 + boost.multiplier;
         if (boost.type === 'speed') totalMultiplier *= 1 + boost.multiplier;
+        if (boost.type === 'efficiency') yieldPerSecond *= 1 + boost.multiplier;
+        if (boost.type === 'luck') totalMultiplier *= 1 + boost.multiplier;
       }
     });
 
+    let finalYield = yieldPerSecond * totalMultiplier;
+    if (miningRunEndTime > now) finalYield *= miningRunMultiplier;
+
     return {
-      yieldPerSecond: yieldPerSecond * totalMultiplier,
+      yieldPerSecond: finalYield,
       totalMultiplier,
       rawYield: yieldPerSecond,
     };
-  }, [slots, slottedMetadata, activeBoosts, krexTier]);
+  }, [slots, slottedMetadata, activeBoosts, krexTier, miningRunEndTime, miningRunMultiplier]);
 
   useEffect(() => {
     if (stats.yieldPerSecond === 0) return;
@@ -192,6 +209,14 @@ export function useDiamondMining() {
         },
       })
     );
+  }, []);
+
+  const removeSlot = useCallback((slotIndex: number) => {
+    setSlots((prev) => {
+      const newSlots = [...prev];
+      newSlots[slotIndex] = { ...newSlots[slotIndex], nftId: null, collection: newSlots[slotIndex].type === 'worker' ? 'KREXPRIME' : newSlots[slotIndex].type === 'operator' ? 'PIXELKREX' : null };
+      return newSlots;
+    });
   }, []);
 
   const refineDiamonds = useCallback(async (): Promise<{ points: number; amount: number } | null> => {
@@ -369,5 +394,16 @@ export function useDiamondMining() {
     clearLastRefineClaim: () => setLastRefineClaim(null),
     kasBalanceLoading: canPayWithL1 && kasBalanceFetched === null && (kasBalanceStr === null || kasBalanceStr === undefined),
     refreshKasBalance: fetchKasBalance,
+    removeSlot,
+    miningRun: miningRunEndTime > Date.now() ? { endTime: miningRunEndTime, multiplier: miningRunMultiplier, optionIndex: miningRunOptionIndex, option: miningRunOptionIndex != null ? MINING_RUN_OPTIONS[miningRunOptionIndex] : null } : null,
+    startMiningRun: (optionIndex: number) => {
+      const opt = MINING_RUN_OPTIONS[optionIndex];
+      if (opt) {
+        setMiningRunEndTime(Date.now() + opt.durationMs);
+        setMiningRunMultiplier(opt.mult);
+        setMiningRunOptionIndex(optionIndex);
+      }
+    },
+    miningRunOptions: MINING_RUN_OPTIONS,
   };
 }
