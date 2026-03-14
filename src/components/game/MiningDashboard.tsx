@@ -77,8 +77,8 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
               {krexL1Balance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} KREX
             </span>
             <span className="text-zinc-500 dark:text-zinc-400 font-semibold tracking-wide">KAS</span>
-            <span className="text-amber-600 dark:text-amber-400 font-bold tabular-nums">
-              {kasBalanceLoading ? '…' : kasBalanceNum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })} KAS
+            <span className="text-amber-600 dark:text-amber-400 font-bold tabular-nums min-w-[5rem]">
+              {(canPayWithL1 && kasBalanceLoading) ? '0' : kasBalanceNum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })} KAS
             </span>
             <span className="text-zinc-500 dark:text-zinc-400 font-semibold tracking-wide">Refinement points</span>
             <span className="text-emerald-600 dark:text-emerald-400 font-bold tabular-nums">
@@ -193,13 +193,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                       })}
                     </div>
                     <p className="text-emerald-600 dark:text-emerald-500 text-[10px] font-semibold uppercase mt-1">LOCKED · ACTIVE</p>
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); removeSlot(idx); }}
-                      className="mt-2 px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-red-500/20 hover:text-red-600 dark:hover:text-red-400 border border-zinc-300 dark:border-zinc-600 transition-colors"
-                    >
-                      Remove
-                    </button>
+                    <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">Click to manage</p>
                   </div>
                 )}
 
@@ -251,6 +245,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
               ))}
             </div>
           )}
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">When the run ends, the multiplier stops; start a new run to boost again.</p>
         </div>
 
         {/* Active boosts */}
@@ -347,7 +342,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                       }}
                       className="px-3 py-2 rounded-lg text-sm font-semibold bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/40 hover:bg-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                      {kasBalanceLoading ? '…' : isBuying ? '…' : 'Pay KAS'}
+                      {isBuying ? '…' : 'Pay KAS'}
                     </button>
                   </div>
                   {!canPayWithL1 && <span className="block mt-1 text-xs text-zinc-500 dark:text-zinc-500">Connect KasWare wallet</span>}
@@ -377,7 +372,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
           <div className="p-5">
             <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">The Diamond Veins of Kaspaland</h2>
             {gameDescription && (
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4 leading-relaxed">{gameDescription}</p>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4 leading-relaxed pl-3 border-l-2 border-emerald-500/40 bg-emerald-500/5 dark:bg-emerald-500/10 py-2 pr-2 rounded-r">{gameDescription}</p>
             )}
             {loreStory && (
               <div className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
@@ -387,7 +382,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                       const line = block.trim();
                       const isSubtitle = line.length < 50 && !line.includes('.') && line === line.toUpperCase();
                       return isSubtitle ? (
-                        <h4 key={i} className="font-bold text-zinc-800 dark:text-zinc-200 pt-2 first:pt-0">
+                        <h4 key={i} className="text-emerald-600 dark:text-emerald-400 font-bold text-base uppercase tracking-wide pt-3 first:pt-0">
                           {line}
                         </h4>
                       ) : (
@@ -433,12 +428,16 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                 <p className="mt-1">The Booster slot is reserved for future partner collections. For now you can leave it empty; diamond yield comes from Worker and Operator.</p>
               </div>
               <div>
-                <p className="font-semibold text-zinc-800 dark:text-zinc-300">How do I get rewards?</p>
-                <p className="mt-1">Mine <strong>in-game diamonds</strong> (the counter from your Worker and Operator). When you have at least {refineMinDiamonds}, click <strong>Refine Now</strong> to claim <strong>refinement points</strong> (your rewards). Your total points are shown at the top of the page. These points are recorded for the Diamond Veins rewards pool and determine your share of rewards from the Kasparex ecosystem. Waiting 30+ minutes between refines gives a 1.5× bonus on points.</p>
+                <p className="font-semibold text-zinc-800 dark:text-zinc-300">What is the ratio for rewards and points?</p>
+                <p className="mt-1">You earn <strong>1 refinement point per in-game diamond</strong> when you refine. If you wait at least 30 minutes after your last refine, you get a <strong>1.5× time bonus</strong> (so up to 1.5 points per diamond). Your total refinement points are shown at the top of this page.</p>
               </div>
               <div>
-                <p className="font-semibold text-zinc-800 dark:text-zinc-300">How can I spend refinement points?</p>
-                <p className="mt-1">Refinement points are part of the <strong>Kasparex Points</strong> system. You can spend them and claim valuable rewards on the <Link href="/rewards-and-points" className="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline">Rewards &amp; Points</Link> page.</p>
+                <p className="font-semibold text-zinc-800 dark:text-zinc-300">How do I get and receive rewards?</p>
+                <p className="mt-1">Mine <strong>in-game diamonds</strong> (the counter from your Worker and Operator). When you have at least {refineMinDiamonds}, click <strong>Refine Now</strong> to claim <strong>refinement points</strong>. These points are recorded for the Diamond Veins rewards pool and count toward your share of rewards from the Kasparex ecosystem.</p>
+              </div>
+              <div>
+                <p className="font-semibold text-zinc-800 dark:text-zinc-300">Where and how do I spend points? What can I claim?</p>
+                <p className="mt-1">Refinement points are part of the <strong>Kasparex Points</strong> system. Go to the <Link href="/rewards-and-points" className="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline">Rewards &amp; Points</Link> page to see how to spend your points and what you can claim (rewards from the ecosystem pool, perks, and more).</p>
               </div>
               <div>
                 <p className="font-semibold text-zinc-800 dark:text-zinc-300">Why are Pay KAS buttons disabled?</p>
@@ -458,8 +457,8 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
             <p className="text-zinc-600 dark:text-zinc-400 mb-4">
               You earned <strong className="text-emerald-600 dark:text-emerald-400">{lastRefineClaim.points.toLocaleString()} refinement points</strong> from {lastRefineClaim.amount.toLocaleString()} in-game diamonds.
             </p>
-            <p className="text-sm text-zinc-500 dark:text-zinc-500 mb-6">
-              These points are recorded for the Diamond Veins rewards pool and count toward your share of rewards from the Kasparex ecosystem.
+            <p className="text-sm text-zinc-500 dark:text-zinc-500 mb-4">
+              These points are recorded for the Diamond Veins rewards pool and count toward your share of rewards from the Kasparex ecosystem. Spend them and see what you can claim on the <Link href="/rewards-and-points" className="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline">Rewards &amp; Points</Link> page.
             </p>
             <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-4">
               Total refinement points this session: {refinementPointsTotal.toLocaleString()}
@@ -483,6 +482,10 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
           isOpen={true}
           onClose={() => setSelectedSlotIndex(null)}
           onDeploy={deployNFT}
+          onRemove={() => {
+            removeSlot(selectedSlotIndex);
+            setSelectedSlotIndex(null);
+          }}
         />
       )}
     </div>

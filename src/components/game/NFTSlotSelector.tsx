@@ -9,6 +9,9 @@ import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
 import type { UserNFT } from '@/lib/nft/nft-query';
 import type { MiningSlot } from '@/hooks/useDiamondMining';
 
+const KREXPRIME_KASPACOM = 'https://www.kaspa.com/nft/collections/KREXPRIME';
+const PIXELKREX_KASPACOM = 'https://kaspa.com/nft/collections/PIXELKREX';
+
 interface NFTSlotSelectorProps {
   slotIndex: number;
   slot: MiningSlot | null;
@@ -16,6 +19,7 @@ interface NFTSlotSelectorProps {
   isOpen: boolean;
   onClose: () => void;
   onDeploy: (slotIndex: number, nftId: number, collection: string) => void;
+  onRemove?: () => void;
 }
 
 function useNFTsWithTier(
@@ -105,10 +109,12 @@ const SLOT_DESCRIPTIONS: Record<string, { title: string; body: string; collectio
   },
 };
 
-export function NFTSlotSelector({ slotIndex, slot, allSlots, isOpen, onClose, onDeploy }: NFTSlotSelectorProps) {
+export function NFTSlotSelector({ slotIndex, slot, allSlots, isOpen, onClose, onDeploy, onRemove }: NFTSlotSelectorProps) {
   const { nfts, isLoading } = useNFTStatus();
   const nftsWithTier = useNFTsWithTier(nfts, slot ?? undefined, isOpen);
   const slotInfo = slot ? SLOT_DESCRIPTIONS[slot.type] ?? null : null;
+  const hasCompatibleNFTs = slot?.type === 'worker' || slot?.type === 'operator';
+  const showBuyLinks = !isLoading && nftsWithTier.length === 0 && hasCompatibleNFTs;
 
   const isNFTInUseElsewhere = useMemo(() => {
     const inUse = new Set<string>();
@@ -141,6 +147,18 @@ export function NFTSlotSelector({ slotIndex, slot, allSlots, isOpen, onClose, on
                 {slotInfo.body}
               </p>
             )}
+            {slot.nftId != null && onRemove && (
+              <div className="mt-3 flex items-center gap-3">
+                <span className="text-sm text-zinc-500 dark:text-zinc-400">NFT #{slot.nftId} deployed.</span>
+                <button
+                  type="button"
+                  onClick={() => { onRemove(); onClose(); }}
+                  className="px-3 py-1.5 rounded-lg text-sm font-semibold bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-red-500/20 hover:text-red-600 dark:hover:text-red-400 border border-zinc-300 dark:border-zinc-600 transition-colors"
+                >
+                  Remove from slot
+                </button>
+              </div>
+            )}
           </div>
           <button
             type="button"
@@ -161,12 +179,36 @@ export function NFTSlotSelector({ slotIndex, slot, allSlots, isOpen, onClose, on
               <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Loading your NFTs…</p>
             </div>
           ) : nftsWithTier.length === 0 ? (
-            <div className="h-48 flex flex-col items-center justify-center text-center p-6 space-y-3">
+            <div className="min-h-48 flex flex-col items-center justify-center text-center p-6 space-y-4">
               <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-2xl">🛰️</div>
               <p className="font-semibold text-zinc-700 dark:text-zinc-300">No compatible NFTs found</p>
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
                 You need {slotInfo?.collection ?? slot.collection ?? 'the right'} NFTs in your wallet for this slot.
               </p>
+              {showBuyLinks && (
+                <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                  {slot?.type === 'worker' && (
+                    <a
+                      href={KREXPRIME_KASPACOM}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30 transition-colors"
+                    >
+                      Buy KREXPRIME on KaspaCom
+                    </a>
+                  )}
+                  {slot?.type === 'operator' && (
+                    <a
+                      href={PIXELKREX_KASPACOM}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30 transition-colors"
+                    >
+                      Buy PIXELKREX on KaspaCom
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
