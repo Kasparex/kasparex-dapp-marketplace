@@ -23,6 +23,8 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
     diamonds,
     slots,
     stats,
+    activeBoosts,
+    deployNFT,
     refineDiamonds,
     buyBoost,
     buyBoostWithKAS,
@@ -40,11 +42,20 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
   const [loreExpanded, setLoreExpanded] = useState(false);
   const [faqOpen, setFaqOpen] = useState(false);
+  const [purchaseSuccess, setPurchaseSuccess] = useState<string | null>(null);
 
   // Refresh KAS balance when wallet is connected (KasWare) so Pay KAS buttons get correct state
   useEffect(() => {
     if (canPayWithL1 && refreshKasBalance) refreshKasBalance();
   }, [canPayWithL1, refreshKasBalance]);
+
+  // Refresh "min left" for active boosts every 60s
+  const [, setBoostTick] = useState(0);
+  useEffect(() => {
+    if (activeBoosts.length === 0) return;
+    const t = setInterval(() => setBoostTick((n) => n + 1), 60000);
+    return () => clearInterval(t);
+  }, [activeBoosts.length]);
 
   const kasLoading = canPayWithL1 && (kasBalanceStr === null || kasBalanceStr === undefined);
   const kasBalanceNum = kasBalanceStr != null ? parseFloat(String(kasBalanceStr)) : 0;
@@ -84,7 +95,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                 <span className="text-zinc-500 dark:text-zinc-400 font-medium">DIAMONDS</span>
               </div>
               <p className="text-zinc-600 dark:text-zinc-400 text-base">
-                Refine at <span className="text-zinc-800 dark:text-zinc-300 font-semibold">{refineMinDiamonds}+ diamonds</span> · Wait 30+ min after last refine for 1.5× time bonus · Points fund the rewards pool
+                Refine when you have at least <span className="text-zinc-800 dark:text-zinc-300 font-semibold">{refineMinDiamonds} in-game diamonds</span> (the number mined by your Workers and Operators, shown above). Wait 30+ min after last refine for 1.5× time bonus. Refinement points fund the rewards pool.
               </p>
             </div>
 
@@ -172,43 +183,34 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
           </div>
           <div className="text-zinc-500 dark:text-zinc-400 font-medium">Powered by Kasparex · Secured by Kaspa BlockDAG</div>
         </div>
-      </div>
 
-      {/* Right Column: Featured image, lore, description, Garage Shop */}
-      <div className="lg:col-span-4 flex flex-col space-y-6">
-        {/* Featured image + lore at top */}
-        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-zinc-100 dark:bg-zinc-900/50">
-          {featuredImage && (
-            <div className="aspect-video w-full bg-zinc-200 dark:bg-zinc-800 relative">
-              <img src={featuredImage} alt="Diamond Veins of Kaspaland" className="w-full h-full object-cover" />
-            </div>
-          )}
-          <div className="p-5">
-            <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">The Diamond Veins of Kaspaland</h2>
-            {gameDescription && (
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4 leading-relaxed">{gameDescription}</p>
-            )}
-            {loreStory && (
-              <div className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                {loreExpanded ? (
-                  <div className="whitespace-pre-line">{loreStory}</div>
-                ) : (
-                  <p>{loreStory.slice(0, 320)}…</p>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setLoreExpanded((e) => !e)}
-                  className="mt-2 text-emerald-600 dark:text-emerald-400 font-semibold hover:underline"
-                >
-                  {loreExpanded ? 'Show less' : 'Read full story'}
-                </button>
-              </div>
-            )}
+        {/* Active boosts */}
+        {activeBoosts.length > 0 && (
+          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+            <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mb-2">Active boosts</h3>
+            <ul className="space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+              {activeBoosts.map((b) => {
+                const minLeft = Math.max(0, Math.ceil((b.endTime - Date.now()) / 60000));
+                return (
+                  <li key={b.id} className="flex items-center justify-between">
+                    <span>{b.name ?? (b.type === 'yield' ? '+' + (b.multiplier * 100).toFixed(0) + '% yield' : b.type === 'speed' ? '+' + (b.multiplier * 100).toFixed(0) + '% speed' : 'Boost')}</span>
+                    <span>{minLeft > 0 ? `${minLeft} min left` : 'Expired'}</span>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
-        </div>
+        )}
 
-        {/* Garage Shop */}
-        <div className="flex-1 p-6 rounded-2xl bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 backdrop-blur-xl">
+        {/* Purchase success message */}
+        {purchaseSuccess && (
+          <div className="p-4 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-800 dark:text-emerald-200 text-sm font-semibold">
+            Purchase complete. &quot;{purchaseSuccess}&quot; is now active. Your mining rate is boosted.
+          </div>
+        )}
+
+        {/* Garage Shop - main content under slots */}
+        <div className="p-6 rounded-2xl bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 backdrop-blur-xl">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Garage Shop</h2>
             <span className="px-3 py-1 rounded-full bg-zinc-200 dark:bg-zinc-800 text-xs font-semibold text-zinc-600 dark:text-zinc-400 border border-zinc-300 dark:border-zinc-700">LVL 01</span>
@@ -255,7 +257,12 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                     <button
                       type="button"
                       disabled={!canPayWithL1 || !canAffordKREX || isBuying}
-                      onClick={() => buyBoost(item.id, item.name, item.price, item.type, item.mult)}
+                      onClick={() => {
+                        buyBoost(item.id, item.name, item.price, item.type, item.mult).then(() => {
+                          setPurchaseSuccess(item.name);
+                          setTimeout(() => setPurchaseSuccess(null), 5000);
+                        }).catch(() => {});
+                      }}
                       className="px-3 py-2 rounded-lg text-sm font-semibold bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       {isBuying ? '…' : 'Pay KREX'}
@@ -263,7 +270,12 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                     <button
                       type="button"
                       disabled={!canPayWithL1 || kasLoading || !canAffordKAS || isBuying}
-                      onClick={() => buyBoostWithKAS(item.id, item.name, item.priceKAS, item.type, item.mult)}
+                      onClick={() => {
+                        buyBoostWithKAS(item.id, item.name, item.priceKAS, item.type, item.mult).then(() => {
+                          setPurchaseSuccess(item.name);
+                          setTimeout(() => setPurchaseSuccess(null), 5000);
+                        }).catch(() => {});
+                      }}
                       className="px-3 py-2 rounded-lg text-sm font-semibold bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/40 hover:bg-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       {kasLoading ? '…' : isBuying ? '…' : 'Pay KAS'}
@@ -280,6 +292,52 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
             <p className="text-xs text-center text-emerald-700 dark:text-emerald-400 font-semibold">
               {revenuePoolPct}% of Garage revenue goes to the Diamond Veins rewards pool
             </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Column: Featured image, lore, FAQ */}
+      <div className="lg:col-span-4 flex flex-col space-y-6">
+        {/* Featured image + lore */}
+        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-zinc-100 dark:bg-zinc-900/50">
+          {featuredImage && (
+            <div className="aspect-video w-full bg-zinc-200 dark:bg-zinc-800 relative">
+              <img src={featuredImage} alt="Diamond Veins of Kaspaland" className="w-full h-full object-cover" />
+            </div>
+          )}
+          <div className="p-5">
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">The Diamond Veins of Kaspaland</h2>
+            {gameDescription && (
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4 leading-relaxed">{gameDescription}</p>
+            )}
+            {loreStory && (
+              <div className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                {loreExpanded ? (
+                  <div className="space-y-2">
+                    {loreStory.split(/\n\n+/).map((block, i) => {
+                      const line = block.trim();
+                      const isSubtitle = line.length < 50 && !line.includes('.') && line === line.toUpperCase();
+                      return isSubtitle ? (
+                        <h4 key={i} className="font-bold text-zinc-800 dark:text-zinc-200 pt-2 first:pt-0">
+                          {line}
+                        </h4>
+                      ) : (
+                        <p key={i}>{line}</p>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p>{loreStory.slice(0, 320)}…</p>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setLoreExpanded((e) => !e)}
+                  className="mt-2 text-emerald-600 dark:text-emerald-400 font-semibold hover:underline"
+                >
+                  {loreExpanded ? 'Show less' : 'Read full story'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -307,7 +365,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
               </div>
               <div>
                 <p className="font-semibold text-zinc-800 dark:text-zinc-300">How do I get rewards?</p>
-                <p className="mt-1">Mine diamonds, then click <strong>Refine Now</strong> when you have at least {refineMinDiamonds} diamonds. You earn <strong>refinement points</strong> (more if you wait 30+ minutes between refines). These points are recorded and used by the Kasparex rewards system to distribute a share of the Diamond Veins rewards pool. Rewards are not time-gated; you can refine whenever you meet the minimum.</p>
+                <p className="mt-1">Mine <strong>in-game diamonds</strong> (the counter that increases from your Worker and Operator). When you have at least {refineMinDiamonds} in-game diamonds, click <strong>Refine Now</strong> to earn <strong>refinement points</strong> (more if you wait 30+ minutes between refines). These points are recorded for the Kasparex rewards system. This is not about NFT diamond traits; it is the mined resource shown in the counter above.</p>
               </div>
               <div>
                 <p className="font-semibold text-zinc-800 dark:text-zinc-300">Why are Pay KAS buttons disabled?</p>
@@ -319,7 +377,13 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
       </div>
 
       {selectedSlotIndex !== null && (
-        <NFTSlotSelector slotIndex={selectedSlotIndex} isOpen={true} onClose={() => setSelectedSlotIndex(null)} />
+        <NFTSlotSelector
+          slotIndex={selectedSlotIndex}
+          slot={slots[selectedSlotIndex] ?? null}
+          isOpen={true}
+          onClose={() => setSelectedSlotIndex(null)}
+          onDeploy={deployNFT}
+        />
       )}
     </div>
   );

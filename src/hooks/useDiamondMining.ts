@@ -32,6 +32,7 @@ export interface ActiveBoost {
   type: BonusType;
   multiplier: number;
   endTime: number;
+  name?: string;
   pendingVerification?: boolean;
   txHash?: string;
 }
@@ -223,6 +224,7 @@ export function useDiamondMining() {
           type,
           multiplier,
           endTime: Date.now() + 3600000,
+          name,
           pendingVerification: true,
           txHash,
         };
@@ -271,6 +273,7 @@ export function useDiamondMining() {
           type,
           multiplier,
           endTime: Date.now() + 3600000,
+          name,
           pendingVerification: true,
           txHash,
         };

@@ -2,17 +2,19 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
-import { useDiamondMining } from '@/hooks/useDiamondMining';
 import { getNFTTier } from '@/lib/game/diamond-bonuses';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { fetchNFTMetadata } from '@/lib/nft/metadata';
 import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
 import type { UserNFT } from '@/lib/nft/nft-query';
+import type { MiningSlot } from '@/hooks/useDiamondMining';
 
 interface NFTSlotSelectorProps {
   slotIndex: number;
+  slot: MiningSlot | null;
   isOpen: boolean;
   onClose: () => void;
+  onDeploy: (slotIndex: number, nftId: number, collection: string) => void;
 }
 
 function useNFTsWithTier(
@@ -102,18 +104,15 @@ const SLOT_DESCRIPTIONS: Record<string, { title: string; body: string; collectio
   },
 };
 
-export function NFTSlotSelector({ slotIndex, isOpen, onClose }: NFTSlotSelectorProps) {
+export function NFTSlotSelector({ slotIndex, slot, isOpen, onClose, onDeploy }: NFTSlotSelectorProps) {
   const { nfts, isLoading } = useNFTStatus();
-  const { slots, deployNFT } = useDiamondMining();
-
-  const slot = slots[slotIndex];
   const nftsWithTier = useNFTsWithTier(nfts, slot, isOpen);
   const slotInfo = slot ? SLOT_DESCRIPTIONS[slot.type] ?? null : null;
 
   if (!slot || !isOpen) return null;
 
   const handleDeploy = (nft: UserNFT) => {
-    deployNFT(slotIndex, nft.tokenId, nft.collection);
+    onDeploy(slotIndex, nft.tokenId, nft.collection);
     onClose();
   };
 

@@ -240,7 +240,7 @@ export const placeholderGames: Game[] = [
     name: 'Diamond Veins',
     slug: 'diamond-veins',
     description: 'Mine mysterious Krex Diamonds deep beneath Kaspaland. Deploy KREXPRIME Workers and PIXELKREX Elite Operators. Hold KREX for bonuses; pay with KREX or KAS in Vector\'s Garage to boost production—revenue funds the rewards pool. Powered by Kasparex infrastructure.',
-    instructions: 'Connect your Kaspa (KasWare) wallet. Deploy KREXPRIME as Workers and PIXELKREX as Elite Operators. Hold KREX for higher yield and shop discounts. Mine diamonds, then Refine to earn refinement points (min 100 diamonds). For best points per diamond, wait 30+ minutes after your last refine to get the full 1.5x time bonus. Spend KREX or KAS in the Garage to buy boosts (e.g. Vector\'s Overclock, ARIA Auto-Refiner); a share of Garage revenue goes to the Diamond Veins rewards pool. Defend the veins from Null Gang interference.',
+    instructions: 'Connect your Kaspa (KasWare) wallet. Deploy KREXPRIME as Workers and PIXELKREX as Elite Operators. Hold KREX for higher yield and shop discounts. Mine in-game diamonds (the counter from your Workers/Operators), then Refine when you have at least 100 to earn refinement points. For best points per diamond, wait 30+ minutes after your last refine to get the full 1.5x time bonus. Spend KREX or KAS in the Garage to buy boosts (e.g. Vector\'s Overclock, ARIA Auto-Refiner); a share of Garage revenue goes to the Diamond Veins rewards pool. Defend the veins from Null Gang interference.',
     gameType: 'strategy',
     difficulty: 'medium',
     entryCostKAS: 0,

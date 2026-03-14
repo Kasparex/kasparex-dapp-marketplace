@@ -10,21 +10,22 @@ import Link from 'next/link';
 
 const LORE_STORY = `Deep beneath the neon cities of Kaspaland, hidden far below the surface, lies an ancient network of glowing crystal veins.
 
+THE DISCOVERY
 For centuries these crystals remained undiscovered, quietly forming within the underground layers of the planet. Their origin remained a mystery until Krex, the cryptography mastermind and founder of Kasparex, detected unusual energy patterns coming from deep underground.
 
+KREX DIAMONDS
 After months of analysis, Krex discovered that these crystals were not ordinary minerals. They were formed from BlockDAG energy flows traveling through the Kaspa network itself. These rare crystals became known as Krex Diamonds.
 
-Each diamond contains condensed fragments of network energy. When processed through special machines built by Vector, and monitored by the AI system ARIA, these diamonds can be converted into usable digital power that fuels the Kasparex infrastructure.
+POWER AND EXTRACTION
+Each diamond contains condensed fragments of network energy. When processed through special machines built by Vector, and monitored by the AI system ARIA, these diamonds can be converted into usable digital power that fuels the Kasparex infrastructure. Extracting them is not easy. The diamond veins are scattered throughout massive underground caverns beneath Kaspaland. Specialized operators, machines, and advanced technology are required to locate and safely extract them.
 
-However, extracting them is not easy. The diamond veins are scattered throughout massive underground caverns beneath Kaspaland. Specialized operators, machines, and advanced technology are required to locate and safely extract them.
+YOUR ROLE
+To expand the operation, Krex opened the underground mining network to trusted operators across the ecosystem. This is where you come in. By deploying PixelKrex workers, KrexPrime operators, and other specialized units, you help Krex explore deeper sections of the underground network and extract these powerful crystals. The in-game diamonds you mine can be refined and converted into refinement points, helping to power the expanding Kasparex infrastructure.
 
-To expand the operation, Krex opened the underground mining network to trusted operators across the ecosystem. This is where you come in.
+THE DEPTHS
+The deeper the mining operations go, the more mysterious the diamond veins become. Some miners whisper about rare crystal chambers, hidden cores of energy, and ancient veins that glow with unimaginable power. No one knows how deep the diamond network truly goes.
 
-By deploying PixelKrex workers, KrexPrime operators, and other specialized units, you help Krex explore deeper sections of the underground network and extract these powerful crystals. The diamonds you mine can be refined and converted into refinement points, helping to power the expanding Kasparex infrastructure.
-
-But the deeper the mining operations go, the more mysterious the diamond veins become. Some miners whisper about rare crystal chambers, hidden cores of energy, and ancient veins that glow with unimaginable power. No one knows how deep the diamond network truly goes.
-
-One thing is certain: The Diamond Veins of Kaspaland are only beginning to reveal their secrets.`;
+The Diamond Veins of Kaspaland are only beginning to reveal their secrets.`;
 
 function DiamondVeinsContent() {
   const { state } = useKaspaWallet();
