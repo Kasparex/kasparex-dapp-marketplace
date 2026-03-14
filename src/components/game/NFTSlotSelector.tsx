@@ -106,7 +106,7 @@ const SLOT_DESCRIPTIONS: Record<string, { title: string; body: string; collectio
 
 export function NFTSlotSelector({ slotIndex, slot, isOpen, onClose, onDeploy }: NFTSlotSelectorProps) {
   const { nfts, isLoading } = useNFTStatus();
-  const nftsWithTier = useNFTsWithTier(nfts, slot, isOpen);
+  const nftsWithTier = useNFTsWithTier(nfts, slot ?? undefined, isOpen);
   const slotInfo = slot ? SLOT_DESCRIPTIONS[slot.type] ?? null : null;
 
   if (!slot || !isOpen) return null;
