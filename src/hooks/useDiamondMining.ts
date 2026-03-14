@@ -18,8 +18,6 @@ import {
   KREX_DECIMALS,
   SOMPI_PER_KAS,
   MINING_RUN_OPTIONS,
-  WORKER_TIER_MULTIPLIERS,
-  OPERATOR_TIER_MULTIPLIERS,
 } from '@/lib/game/diamond-veins-config';
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { getKasWare, signKRC20Transaction } from '@/lib/kaspa/kasware';
