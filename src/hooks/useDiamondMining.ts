@@ -1,8 +1,25 @@
+'use client';
+
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { useKasWare } from '@/hooks/useKasWare';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
-import { BASE_YIELDS, getBonusForTrait, type BonusType } from '@/lib/game/diamond-bonuses';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { BASE_YIELDS, getBonusForTrait, getNFTTier, type BonusType } from '@/lib/game/diamond-bonuses';
+import {
+  WORKER_TIER_MULTIPLIERS,
+  OPERATOR_TIER_MULTIPLIERS,
+  KREX_TIER_YIELD_BONUS_PCT,
+  KREX_TIER_SHOP_DISCOUNT_PCT,
+  DIAMOND_VEINS_GARAGE_ADDRESS,
+  REFINE_MIN_DIAMONDS,
+  GARAGE_REVENUE_TO_POOL_PCT,
+  KRC20_TRANSFER_TYPE,
+  KREX_DECIMALS,
+  SOMPI_PER_KAS,
+} from '@/lib/game/diamond-veins-config';
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
+import { signKRC20Transaction } from '@/lib/kaspa/kasware';
 
 export interface MiningSlot {
   type: 'worker' | 'operator' | 'booster';
@@ -15,13 +32,17 @@ export interface ActiveBoost {
   type: BonusType;
   multiplier: number;
   endTime: number;
+  pendingVerification?: boolean;
+  txHash?: string;
 }
 
 export function useDiamondMining() {
   const { state: walletState } = useKaspaWallet();
+  const { sendTransaction: sendKAS, balance: kasBalanceStr } = useKasWare();
   const { nfts } = useNFTStatus();
+  const { balance: krexBalance, l1Balance: krexL1Balance, tier: krexTier } = useKREXBalance();
+  const kasBalance = kasBalanceStr != null ? parseFloat(kasBalanceStr) : 0;
 
-  // Slots State
   const [slots, setSlots] = useState<MiningSlot[]>([
     { type: 'worker', nftId: null, collection: 'KREXPRIME' },
     { type: 'operator', nftId: null, collection: 'PIXELKREX' },
@@ -32,8 +53,8 @@ export function useDiamondMining() {
   const [diamonds, setDiamonds] = useState<number>(0);
   const [activeBoosts, setActiveBoosts] = useState<ActiveBoost[]>([]);
   const [lastRefinedAt, setLastRefinedAt] = useState<number>(Date.now());
+  const [buyingItemId, setBuyingItemId] = useState<string | null>(null);
 
-  // Fetch metadata for new slotted NFTs
   useEffect(() => {
     const fetchMetadata = async () => {
       for (const slot of slots) {
@@ -41,7 +62,7 @@ export function useDiamondMining() {
           try {
             const meta = await fetchNFTMetadata(slot.collection, slot.nftId);
             if (meta) {
-              setSlottedMetadata(prev => ({ ...prev, [slot.nftId!]: meta }));
+              setSlottedMetadata((prev) => ({ ...prev, [slot.nftId!]: meta }));
             }
           } catch (e) {
             console.error('Failed to fetch metadata for slot', slot.nftId, e);
@@ -51,122 +72,232 @@ export function useDiamondMining() {
     };
 
     fetchMetadata();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slots]);
+  }, [slots, slottedMetadata]);
 
-  // Calculate Current Yield
   const stats = useMemo(() => {
     let yieldPerSecond = 0;
     let totalMultiplier = 1;
 
-    // 1. Worker Contribution (Base Yield)
-    const workerSlot = slots.find(s => s.type === 'worker');
-    if (workerSlot && workerSlot.nftId !== null) {
-      yieldPerSecond = BASE_YIELDS.WORKER_BASE;
-      
-      // Check for trait bonuses in worker
+    const workerSlot = slots.find((s) => s.type === 'worker');
+    if (workerSlot && workerSlot.nftId !== null && workerSlot.collection) {
+      const baseYield = BASE_YIELDS.WORKER_BASE;
       const meta = slottedMetadata[workerSlot.nftId];
-      meta?.traits?.forEach(trait => {
-          const bonus = getBonusForTrait(String(trait.value));
-          if (bonus?.type === 'yield') yieldPerSecond += (BASE_YIELDS.WORKER_BASE * bonus.value);
-          if (bonus?.type === 'efficiency') yieldPerSecond += (BASE_YIELDS.WORKER_BASE * (bonus.value / 2));
+      const tier = getNFTTier(workerSlot.collection, workerSlot.nftId, meta);
+      const tierMult = WORKER_TIER_MULTIPLIERS[tier];
+      yieldPerSecond = baseYield * tierMult;
+
+      meta?.traits?.forEach((trait) => {
+        const bonus = getBonusForTrait(String(trait.value));
+        if (bonus?.type === 'yield') yieldPerSecond += BASE_YIELDS.WORKER_BASE * bonus.value;
+        if (bonus?.type === 'efficiency') yieldPerSecond += BASE_YIELDS.WORKER_BASE * (bonus.value / 2);
       });
     }
 
-    // 2. Operator Contribution (Multiplier)
-    const operatorSlot = slots.find(s => s.type === 'operator');
-    if (operatorSlot && operatorSlot.nftId !== null) {
-      totalMultiplier *= BASE_YIELDS.OPERATOR_MULTIPLIER_BASE;
-      
+    const operatorSlot = slots.find((s) => s.type === 'operator');
+    if (operatorSlot && operatorSlot.nftId !== null && operatorSlot.collection) {
       const meta = slottedMetadata[operatorSlot.nftId];
-      meta?.traits?.forEach(trait => {
-          const bonus = getBonusForTrait(String(trait.value));
-          if (bonus?.type === 'speed') totalMultiplier += bonus.value;
+      const tier = getNFTTier(operatorSlot.collection, operatorSlot.nftId, meta);
+      const tierMult = OPERATOR_TIER_MULTIPLIERS[tier];
+      totalMultiplier *= tierMult;
+
+      meta?.traits?.forEach((trait) => {
+        const bonus = getBonusForTrait(String(trait.value));
+        if (bonus?.type === 'speed') totalMultiplier += bonus.value;
       });
     }
 
-    // 4. Shop Boosts
+    const krexBonusPct = KREX_TIER_YIELD_BONUS_PCT[krexTier] ?? 0;
+    const krexMult = 1 + krexBonusPct / 100;
+    yieldPerSecond *= krexMult;
+
     const now = Date.now();
-    activeBoosts.forEach(boost => {
+    activeBoosts.forEach((boost) => {
       if (boost.endTime > now) {
-        if (boost.type === 'yield') yieldPerSecond *= (1 + boost.multiplier);
-        if (boost.type === 'speed') totalMultiplier *= (1 + boost.multiplier);
+        if (boost.type === 'yield') yieldPerSecond *= 1 + boost.multiplier;
+        if (boost.type === 'speed') totalMultiplier *= 1 + boost.multiplier;
       }
     });
 
     return {
       yieldPerSecond: yieldPerSecond * totalMultiplier,
       totalMultiplier,
-      rawYield: yieldPerSecond
+      rawYield: yieldPerSecond,
     };
-  }, [slots, slottedMetadata, activeBoosts]);
+  }, [slots, slottedMetadata, activeBoosts, krexTier]);
 
-  // Idle Mining Tick
   useEffect(() => {
     if (stats.yieldPerSecond === 0) return;
 
     const interval = setInterval(() => {
-      setDiamonds(prev => prev + stats.yieldPerSecond);
+      setDiamonds((prev) => prev + stats.yieldPerSecond);
     }, 1000);
 
     return () => clearInterval(interval);
   }, [stats.yieldPerSecond]);
 
   const deployNFT = useCallback((slotIndex: number, nftId: number, collection: string) => {
-    setSlots(prev => {
+    setSlots((prev) => {
       const newSlots = [...prev];
       newSlots[slotIndex] = { ...newSlots[slotIndex], nftId, collection };
       return newSlots;
     });
 
-    // Simulate a deployment transaction record
-    (window as any).dispatchEvent(new CustomEvent('record-transaction', {
-      detail: {
-        type: 'deploy-nft',
-        collection,
-        id: nftId,
-        cost: 0.01,
-        status: 'completed'
-      }
-    }));
+    (window as any).dispatchEvent(
+      new CustomEvent('record-transaction', {
+        detail: {
+          type: 'deploy-nft',
+          collection,
+          id: nftId,
+          cost: 0.01,
+          status: 'completed',
+        },
+      })
+    );
   }, []);
 
   const refineDiamonds = useCallback(async () => {
-    if (diamonds < 100) return;
+    if (diamonds < REFINE_MIN_DIAMONDS) return;
 
-    // Simulate refinement transaction
-    (window as any).dispatchEvent(new CustomEvent('record-transaction', {
+    const amount = Math.floor(diamonds);
+    const timeSinceLastRefine = (Date.now() - lastRefinedAt) / 1000;
+    const refinementPoints = amount * (1 + Math.min(timeSinceLastRefine / 3600, 0.5));
+
+    (window as any).dispatchEvent(
+      new CustomEvent('record-transaction', {
         detail: {
-            type: 'diamond-refine',
-            amount: diamonds,
-            reward: diamonds / 1000, // mock KREX reward
-            status: 'pending'
-        }
-    }));
+          type: 'diamond-refine',
+          amount,
+          refinementPoints,
+          status: 'completed',
+        },
+      })
+    );
 
     setDiamonds(0);
     setLastRefinedAt(Date.now());
-  }, [diamonds]);
+  }, [diamonds, lastRefinedAt]);
 
-  const buyBoost = useCallback((name: string, price: number, type: BonusType, multiplier: number) => {
-      const boost: ActiveBoost = {
-          id: Math.random().toString(36).substr(2, 9),
+  const getPriceAfterDiscount = useCallback(
+    (priceKrex: number) => {
+      const discountPct = KREX_TIER_SHOP_DISCOUNT_PCT[krexTier] ?? 0;
+      return Math.max(0, Math.floor(priceKrex * (1 - discountPct / 100)));
+    },
+    [krexTier]
+  );
+
+  const buyBoost = useCallback(
+    async (itemId: string, name: string, priceKrex: number, type: BonusType, multiplier: number) => {
+      const priceAfterDiscount = getPriceAfterDiscount(priceKrex);
+      const canPayL1 = walletState.isConnected && walletState.provider === 'kasware';
+      if (!canPayL1) {
+        console.warn('[Diamond Veins] L1 KasWare required for Garage purchase');
+        return;
+      }
+      if (krexL1Balance < priceAfterDiscount) {
+        return;
+      }
+
+      setBuyingItemId(itemId);
+
+      try {
+        const amountInSmallestUnit = Math.floor(priceAfterDiscount * Math.pow(10, KREX_DECIMALS));
+        const inscribeJson = {
+          p: 'KRC-20',
+          op: 'transfer',
+          tick: 'KREX',
+          amt: amountInSmallestUnit.toString(),
+          to: DIAMOND_VEINS_GARAGE_ADDRESS,
+        };
+        const inscribeJsonString = JSON.stringify(inscribeJson);
+        const priorityFeeKAS = 0.001;
+
+        const txHash = await signKRC20Transaction(
+          inscribeJsonString,
+          KRC20_TRANSFER_TYPE,
+          DIAMOND_VEINS_GARAGE_ADDRESS,
+          priorityFeeKAS
+        );
+
+        const boost: ActiveBoost = {
+          id: `${itemId}-${Date.now()}`,
           type,
           multiplier,
-          endTime: Date.now() + 3600000 // 1 hour
-      };
+          endTime: Date.now() + 3600000,
+          pendingVerification: true,
+          txHash,
+        };
 
-      (window as any).dispatchEvent(new CustomEvent('record-transaction', {
-        detail: {
-            type: 'garage-purchase',
-            item: name,
-            cost: price,
-            status: 'completed'
-        }
-      }));
+        (window as any).dispatchEvent(
+          new CustomEvent('record-transaction', {
+            detail: {
+              type: 'garage-purchase',
+              item: name,
+              cost: priceAfterDiscount,
+              txHash,
+              revenuePoolShare: GARAGE_REVENUE_TO_POOL_PCT,
+              status: 'completed',
+            },
+          })
+        );
 
-      setActiveBoosts(prev => [...prev, boost]);
-  }, []);
+        setActiveBoosts((prev) => [...prev, boost]);
+      } catch (err) {
+        console.error('[Diamond Veins] Garage purchase failed:', err);
+        throw err;
+      } finally {
+        setBuyingItemId(null);
+      }
+    },
+    [walletState.isConnected, walletState.provider, krexL1Balance, getPriceAfterDiscount]
+  );
+
+  const buyBoostWithKAS = useCallback(
+    async (itemId: string, name: string, priceKAS: number, type: BonusType, multiplier: number) => {
+      const canPayL1 = walletState.isConnected && walletState.provider === 'kasware';
+      if (!canPayL1) {
+        console.warn('[Diamond Veins] L1 KasWare required for Garage purchase');
+        return;
+      }
+      if (kasBalance < priceKAS) return;
+
+      setBuyingItemId(itemId);
+
+      try {
+        const sompi = Math.round(priceKAS * SOMPI_PER_KAS);
+        const txHash = await sendKAS(DIAMOND_VEINS_GARAGE_ADDRESS, sompi);
+
+        const boost: ActiveBoost = {
+          id: `${itemId}-${Date.now()}`,
+          type,
+          multiplier,
+          endTime: Date.now() + 3600000,
+          pendingVerification: true,
+          txHash,
+        };
+
+        (window as any).dispatchEvent(
+          new CustomEvent('record-transaction', {
+            detail: {
+              type: 'garage-purchase',
+              item: name,
+              costKAS: priceKAS,
+              txHash,
+              revenuePoolShare: GARAGE_REVENUE_TO_POOL_PCT,
+              status: 'completed',
+            },
+          })
+        );
+
+        setActiveBoosts((prev) => [...prev, boost]);
+      } catch (err) {
+        console.error('[Diamond Veins] Garage KAS purchase failed:', err);
+        throw err;
+      } finally {
+        setBuyingItemId(null);
+      }
+    },
+    [walletState.isConnected, walletState.provider, kasBalance, sendKAS]
+  );
 
   return {
     diamonds,
@@ -176,7 +307,17 @@ export function useDiamondMining() {
     deployNFT,
     refineDiamonds,
     buyBoost,
+    buyBoostWithKAS,
+    kasBalance,
     isConnected: walletState.isConnected,
-    slottedMetadata
+    slottedMetadata,
+    krexBalance,
+    krexL1Balance,
+    krexTier,
+    getPriceAfterDiscount,
+    refineMinDiamonds: REFINE_MIN_DIAMONDS,
+    revenuePoolPct: Math.round(GARAGE_REVENUE_TO_POOL_PCT * 100),
+    buyingItemId,
+    canPayWithL1: walletState.isConnected && walletState.provider === 'kasware',
   };
 }

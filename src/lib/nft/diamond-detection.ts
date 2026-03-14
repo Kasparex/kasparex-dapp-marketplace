@@ -41,16 +41,28 @@ function matchesDiamondElement(value: string, diamondElement: string): boolean {
   return normalizedValue.startsWith(normalizedElement + ' -') || normalizedValue.startsWith(normalizedElement + '-');
 }
 
+/** PIXELKREX: trait_type is "Diamonds"; value starts with one of these (plan: metadata CID bafybeiakbvm7hn6ev23tiorgdxh3hcjkuu7huxdijklybastzmceclycnu). */
+const PIXELKREX_DIAMOND_VALUE_PREFIXES = [
+  'Cipher Prism Diamond',
+  'Ecliptic Flame Diamond',
+  'Aurora Core Diamond',
+  'Chrono Shard Diamond',
+  'Eon Core Diamond',
+];
+
 /**
  * Check if NFT has Diamond trait (for PIXELKREX)
- * Looks for trait_type containing "diamond"
+ * Exact: trait_type === "Diamonds" and value starts with one of the five element names (or normalize by splitting on " - ").
  */
 function hasDiamondTrait(metadata: ParsedNFTMetadata | null): boolean {
   if (!metadata || !metadata.traits) return false;
-  
+
   return metadata.traits.some((trait) => {
-    const traitType = String(trait.trait_type || '').toLowerCase();
-    return traitType.includes('diamond');
+    const traitType = String(trait.trait_type || '').trim();
+    if (traitType !== 'Diamonds') return false;
+    const value = String(trait.value || '').trim();
+    const prefix = value.split(' - ')[0].trim();
+    return PIXELKREX_DIAMOND_VALUE_PREFIXES.some((p) => prefix === p || value.startsWith(p));
   });
 }
 

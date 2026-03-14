@@ -1,20 +1,62 @@
+'use client';
+
 import { useState } from 'react';
 import { useDiamondMining } from '@/hooks/useDiamondMining';
 import { NFTSlotSelector } from './NFTSlotSelector';
-import { getBonusForTrait } from '@/lib/game/diamond-bonuses';
+import { getBonusForTrait, getNFTTier } from '@/lib/game/diamond-bonuses';
+
+const GARAGE_ITEMS = [
+  { id: 'nitrogen-overclock', name: "Vector's Overclock", price: 100, priceKAS: 0.5, desc: '+25% Yield (1h)', icon: '⚡', type: 'yield' as const, mult: 0.25 },
+  { id: 'crystal-resonance', name: 'Crystal Resonance', price: 500, priceKAS: 2, desc: '+50% Rare Drops', icon: '📡', type: 'luck' as const, mult: 0.5 },
+  { id: 'ai-auto-refiner', name: 'ARIA Auto-Refiner', price: 2500, priceKAS: 10, desc: 'Auto-claim every 4h', icon: '🤖', type: 'efficiency' as const, mult: 0.1 },
+];
 
 export function MiningDashboard() {
-  const { diamonds, slots, stats, refineDiamonds, buyBoost, slottedMetadata } = useDiamondMining();
+  const {
+    diamonds,
+    slots,
+    stats,
+    refineDiamonds,
+    buyBoost,
+    buyBoostWithKAS,
+    slottedMetadata,
+    krexL1Balance,
+    kasBalance,
+    krexTier,
+    getPriceAfterDiscount,
+    refineMinDiamonds,
+    revenuePoolPct,
+    buyingItemId,
+    canPayWithL1,
+  } = useDiamondMining();
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
       {/* Left Column: Mining Area */}
       <div className="lg:col-span-8 flex flex-col space-y-8">
+        {/* KREX + KAS balance + tier */}
+        <div className="p-4 rounded-2xl bg-zinc-900/40 border border-zinc-800 flex items-center justify-between text-sm flex-wrap gap-4">
+          <div className="flex items-center gap-6 flex-wrap">
+            <span className="text-zinc-500 uppercase font-bold tracking-wide">KREX (L1)</span>
+            <span className="text-emerald-400 font-black tabular-nums">
+              {krexL1Balance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} KREX
+            </span>
+            <span className="text-zinc-500 uppercase font-bold tracking-wide">KAS</span>
+            <span className="text-amber-400 font-black tabular-nums">
+              {kasBalance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })} KAS
+            </span>
+            <span className="px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 text-xs font-bold border border-zinc-700">
+              {krexTier}
+            </span>
+          </div>
+          <p className="text-zinc-500 italic text-xs">Hold KREX for yield bonus & shop discount · Pay with KREX or KAS in Garage</p>
+        </div>
+
         {/* Diamond Counter & Refine */}
         <div className="p-8 rounded-[2.5rem] bg-zinc-900/50 border border-zinc-800 backdrop-blur-xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 blur-[80px] -mr-32 -mt-32" />
-          
+
           <div className="relative flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="space-y-1 text-center sm:text-left">
               <span className="text-emerald-500 font-black text-xs uppercase tracking-widest">System Status: Mining Active</span>
@@ -23,13 +65,13 @@ export function MiningDashboard() {
                 <span className="text-zinc-500 font-medium italic">DIAMONDS</span>
               </div>
               <p className="text-zinc-500 text-sm">
-                Next Refinement Level: <span className="text-zinc-300 font-bold">10,000 pts</span>
+                Refine at <span className="text-zinc-300 font-bold">{refineMinDiamonds}+ diamonds</span> · Wait 30+ min after last refine for 1.5× time bonus · Points fund the rewards pool
               </p>
             </div>
 
-            <button 
+            <button
               onClick={refineDiamonds}
-              disabled={diamonds < 100}
+              disabled={diamonds < refineMinDiamonds}
               className="k-cta-primary h-20 px-10 text-xl group relative active:scale-95 disabled:opacity-50 disabled:grayscale transition-all"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-400 opacity-0 group-hover:opacity-20 blur-xl transition-opacity" />
@@ -43,123 +85,157 @@ export function MiningDashboard() {
 
         {/* NFT Slots Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {slots.map((slot, idx) => (
-            <div 
-              key={idx}
-              onClick={() => setSelectedSlotIndex(idx)}
-              className="aspect-square relative flex flex-col items-center justify-center p-6 rounded-[2rem] bg-zinc-900/30 border-2 border-dashed border-zinc-800/50 hover:border-emerald-500/50 transition-all group overflow-hidden cursor-pointer"
-            >
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              
-              {!slot.nftId ? (
-                <div className="flex flex-col items-center gap-4 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-zinc-800 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <svg className="w-8 h-8 text-zinc-500 group-hover:text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
+          {slots.map((slot, idx) => {
+            const meta = slot.nftId !== null ? slottedMetadata[slot.nftId] : null;
+            const tier = slot.nftId !== null && slot.collection ? getNFTTier(slot.collection, slot.nftId, meta) : null;
+            return (
+              <div
+                key={idx}
+                onClick={() => setSelectedSlotIndex(idx)}
+                className="aspect-square relative flex flex-col items-center justify-center p-6 rounded-[2rem] bg-zinc-900/30 border-2 border-dashed border-zinc-800/50 hover:border-emerald-500/50 transition-all group overflow-hidden cursor-pointer"
+              >
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                {!slot.nftId ? (
+                  <div className="flex flex-col items-center gap-4 text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-zinc-800 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <svg className="w-8 h-8 text-zinc-500 group-hover:text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-zinc-300 uppercase tracking-wide">{slot.type}</h3>
+                      <p className="text-zinc-500 text-xs mt-1">Deploy {slot.collection || 'Any NFT'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-zinc-300 uppercase tracking-wide">{slot.type}</h3>
-                    <p className="text-zinc-500 text-xs mt-1">Deploy {slot.collection || 'Any NFT'}</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center">
-                    {/* Simplified placeholder for NFT view */}
+                ) : (
+                  <div className="text-center">
                     <div className="w-24 h-24 rounded-full bg-emerald-500/20 flex items-center justify-center mb-4 ring-4 ring-emerald-500/10 transition-all group-hover:ring-emerald-500/30">
-                        <span className="text-3xl">💎</span>
+                      <span className="text-3xl">💎</span>
                     </div>
                     <h3 className="font-bold text-white">#{slot.nftId}</h3>
-                    
-                    {/* Trait Bonus Display */}
+                    {tier && tier !== 'regular' && (
+                      <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-black uppercase">
+                        {tier}
+                      </span>
+                    )}
                     <div className="mt-2 flex flex-wrap justify-center gap-1">
-                        {slottedMetadata[slot.nftId]?.traits?.map((trait, i) => {
-                            const bonus = getBonusForTrait(String(trait.value));
-                            if (!bonus) return null;
-                            return (
-                                <span key={i} className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[8px] font-black uppercase">
-                                    {bonus.type} +{(bonus.value * 100).toFixed(0)}%
-                                </span>
-                            );
-                        })}
+                      {meta?.traits?.map((trait, i) => {
+                        const bonus = getBonusForTrait(String(trait.value));
+                        if (!bonus) return null;
+                        return (
+                          <span key={i} className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[8px] font-black uppercase">
+                            {bonus.type} +{(bonus.value * 100).toFixed(0)}%
+                          </span>
+                        );
+                      })}
                     </div>
                     <p className="text-emerald-500 text-[10px] font-black uppercase mt-2">ACTIVE</p>
-                </div>
-              )}
+                  </div>
+                )}
 
-              {/* Holographic Border Accent */}
-              <div className="absolute bottom-0 left-0 w-full h-[2px] bg-emerald-500/50 blur-[2px] translate-y-full group-hover:translate-y-0 transition-transform" />
-            </div>
-          ))}
+                <div className="absolute bottom-0 left-0 w-full h-[2px] bg-emerald-500/50 blur-[2px] translate-y-full group-hover:translate-y-0 transition-transform" />
+              </div>
+            );
+          })}
         </div>
 
         {/* Lore / Production Summary */}
-        <div className="p-6 rounded-3xl bg-zinc-900/20 border border-zinc-800/50 flex items-center justify-between text-xs tracking-wider uppercase font-black">
-           <div className="flex gap-8">
-               <div className="flex flex-col gap-1">
-                   <span className="text-zinc-600">Flow Rate</span>
-                   <span className="text-emerald-500">{stats.yieldPerSecond.toFixed(2)} D/s</span>
-               </div>
-               <div className="flex flex-col gap-1">
-                   <span className="text-zinc-600">Efficiency</span>
-                   <span className="text-zinc-300">{(stats.totalMultiplier * 100).toFixed(0)}%</span>
-               </div>
-           </div>
-           <div className="text-zinc-500 italic">
-               SECURED BY KASPA BlockDAG
-           </div>
+        <div className="p-6 rounded-3xl bg-zinc-900/20 border border-zinc-800/50 flex items-center justify-between text-xs tracking-wider uppercase font-black flex-wrap gap-4">
+          <div className="flex gap-8">
+            <div className="flex flex-col gap-1">
+              <span className="text-zinc-600">Flow Rate</span>
+              <span className="text-emerald-500">{stats.yieldPerSecond.toFixed(2)} D/s</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-zinc-600">Efficiency</span>
+              <span className="text-zinc-300">{(stats.totalMultiplier * 100).toFixed(0)}%</span>
+            </div>
+          </div>
+          <div className="text-zinc-500 italic">Powered by Kasparex · Secured by Kaspa BlockDAG</div>
         </div>
       </div>
 
       {/* Right Column: Garage Shop */}
       <div className="lg:col-span-4 flex flex-col space-y-6">
         <div className="flex-1 p-6 rounded-[2.5rem] bg-zinc-900/50 border border-zinc-800 backdrop-blur-xl">
-           <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-black italic">GARAGE SHOP</h2>
-              <span className="px-3 py-1 rounded-full bg-zinc-800 text-[10px] font-bold text-zinc-400 border border-zinc-700">LVL 01</span>
-           </div>
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-black italic">GARAGE SHOP</h2>
+            <span className="px-3 py-1 rounded-full bg-zinc-800 text-[10px] font-bold text-zinc-400 border border-zinc-700">LVL 01</span>
+          </div>
 
-           <div className="space-y-4">
-              {[
-                { name: 'Nitrogen Overclock', price: 100, desc: '+25% Yield (1h)', icon: '⚡', type: 'yield', mult: 0.25 },
-                { name: 'Crystal Resonance', price: 500, desc: '+50% Rare Drops', icon: '📡', type: 'luck', mult: 0.50 },
-                { name: 'AI Auto-Refiner', price: 2500, desc: 'Auto-claim every 4h', icon: '🤖', type: 'efficiency', mult: 0.10 },
-              ].map((item, i) => (
-                <div 
-                  key={i} 
-                  onClick={() => buyBoost(item.name, item.price, item.type as any, item.mult)}
-                  className="p-4 rounded-2xl bg-zinc-800/30 border border-zinc-700/50 hover:bg-zinc-800 transition-colors cursor-pointer group"
+          {!canPayWithL1 && (
+            <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs">
+              Connect Kaspa (KasWare) wallet to pay with KREX or KAS on L1.
+            </div>
+          )}
+
+          <div className="space-y-4">
+            {GARAGE_ITEMS.map((item) => {
+              const priceAfterDiscount = getPriceAfterDiscount(item.price);
+              const canAffordKREX = canPayWithL1 && krexL1Balance >= priceAfterDiscount;
+              const canAffordKAS = canPayWithL1 && kasBalance >= item.priceKAS;
+              const hasDiscount = priceAfterDiscount < item.price;
+              const isBuying = buyingItemId === item.id;
+
+              return (
+                <div
+                  key={item.id}
+                  className="p-4 rounded-2xl border border-zinc-800 bg-zinc-800/20 transition-colors"
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-3 mb-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-zinc-700 flex items-center justify-center text-xl active:scale-95 transition-transform">{item.icon}</div>
+                      <div className="w-10 h-10 rounded-xl bg-zinc-700 flex items-center justify-center text-xl">{item.icon}</div>
                       <div>
                         <h4 className="font-bold text-sm tracking-tight">{item.name}</h4>
                         <p className="text-[10px] text-zinc-500">{item.desc}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                       <span className="block text-xs font-black text-emerald-500">{item.price} KAS</span>
-                       <span className="text-[8px] text-zinc-600 uppercase font-black">Buy Item</span>
-                    </div>
                   </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[10px] text-zinc-500 mr-1">Pay:</span>
+                    {hasDiscount && (
+                      <span className="text-[10px] text-zinc-500 line-through">{item.price} KREX</span>
+                    )}
+                    <span className="text-xs font-bold text-emerald-500">{priceAfterDiscount} KREX</span>
+                    <span className="text-[10px] text-zinc-500">or</span>
+                    <span className="text-xs font-bold text-amber-400">{item.priceKAS} KAS</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <button
+                      type="button"
+                      disabled={!canPayWithL1 || !canAffordKREX || isBuying}
+                      onClick={() => buyBoost(item.id, item.name, item.price, item.type, item.mult)}
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isBuying ? '…' : 'Pay KREX'}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!canPayWithL1 || !canAffordKAS || isBuying}
+                      onClick={() => buyBoostWithKAS(item.id, item.name, item.priceKAS, item.type, item.mult)}
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/40 hover:bg-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isBuying ? '…' : 'Pay KAS'}
+                    </button>
+                  </div>
+                  {!canPayWithL1 && <span className="block mt-1 text-[8px] text-zinc-600 uppercase">Connect wallet</span>}
+                  {canPayWithL1 && !canAffordKREX && !canAffordKAS && <span className="block mt-1 text-[8px] text-amber-500 uppercase">Insufficient KREX & KAS</span>}
                 </div>
-              ))}
-           </div>
+              );
+            })}
+          </div>
 
-           <div className="mt-8 p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
-              <p className="text-[10px] text-center text-emerald-500/60 uppercase font-black">Garage Revenue is recycled into the rewards pool</p>
-           </div>
+          <div className="mt-8 p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
+            <p className="text-[10px] text-center text-emerald-500/80 uppercase font-black">
+              {revenuePoolPct}% of Garage revenue goes to the Diamond Veins rewards pool
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* NFT Selector Modal */}
       {selectedSlotIndex !== null && (
-        <NFTSlotSelector 
-          slotIndex={selectedSlotIndex}
-          isOpen={true}
-          onClose={() => setSelectedSlotIndex(null)}
-        />
+        <NFTSlotSelector slotIndex={selectedSlotIndex} isOpen={true} onClose={() => setSelectedSlotIndex(null)} />
       )}
     </div>
   );

@@ -60,7 +60,12 @@ function DiamondVeinsContent() {
                 </button>
               </div>
             ) : (
-              <MiningDashboard />
+              <>
+                <p className="text-zinc-500 text-sm mb-6 max-w-2xl">
+                  Deploy KREXPRIME Workers and PIXELKREX Operators. Hold KREX for yield bonus and shop discount. Refine at 100+ diamonds for points. Garage tech by Vector—revenue funds the rewards pool.
+                </p>
+                <MiningDashboard />
+              </>
             )}
           </div>
         </div>
