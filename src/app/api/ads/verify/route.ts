@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { verifyAdRegistration } from '@/lib/ads/chainRegistry';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 
@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false, error: result.error ?? 'Verification failed' }, { status: 400 });
     }
     revalidateTag('ads-active');
+    revalidatePath('/api/ads/active');
     return NextResponse.json({ ok: true, entry: result.entry });
   } catch (e) {
     console.error('[ads/verify]', e);

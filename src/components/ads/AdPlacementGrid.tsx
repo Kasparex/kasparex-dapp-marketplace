@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { EmptyVeinSlotFrame, EmptyVeinSlotPlusIcon } from '@/components/game/EmptyVeinSlotFrame';
@@ -61,18 +61,14 @@ export function AdPlacementGrid({ slotId, variant, maxCellsShown }: AdPlacementG
 
   const full = slotAds.length >= maxAds;
   const cells = Array.from({ length: limit }, (_, i) => i);
-  const [slide, setSlide] = useState(0);
   const showNav = limit > 1;
-
-  useEffect(() => {
-    setSlide((s) => Math.min(s, Math.max(0, limit - 1)));
-  }, [limit]);
+  const { slide, setSlide, pauseOnHover } = useCarouselAutoplay(limit, 5200);
 
   return (
     <>
-      <div className="relative w-full">
+      <div className="relative w-full" {...pauseOnHover}>
         <div
-          className={`overflow-hidden bg-zinc-100 dark:bg-zinc-900 ring-1 ring-zinc-200/90 dark:ring-zinc-700 ${
+          className={`overflow-hidden bg-zinc-50 dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-700 ${
             variant === 'halo' ? 'rounded-2xl' : 'rounded-xl'
           }`}
         >
@@ -119,8 +115,7 @@ export function AdPlacementGrid({ slotId, variant, maxCellsShown }: AdPlacementG
             <button
               type="button"
               aria-label="Previous ad slot"
-              disabled={slide === 0}
-              onClick={() => setSlide((s) => Math.max(0, s - 1))}
+              onClick={() => setSlide((s) => (s - 1 + limit) % limit)}
               className="absolute left-0 top-1/2 z-10 -translate-y-1/2 h-8 w-8 ml-0.5 rounded-full border border-zinc-200/90 bg-white/90 text-zinc-700 shadow-sm backdrop-blur-sm hover:bg-white hover:border-[#02abb8]/40 hover:text-[#02abb8] disabled:pointer-events-none disabled:opacity-25 dark:border-zinc-600 dark:bg-zinc-900/90 dark:text-zinc-200 dark:hover:border-[#02abb8]/50"
             >
               <svg className="mx-auto h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -130,8 +125,7 @@ export function AdPlacementGrid({ slotId, variant, maxCellsShown }: AdPlacementG
             <button
               type="button"
               aria-label="Next ad slot"
-              disabled={slide >= limit - 1}
-              onClick={() => setSlide((s) => Math.min(limit - 1, s + 1))}
+              onClick={() => setSlide((s) => (s + 1) % limit)}
               className="absolute right-0 top-1/2 z-10 -translate-y-1/2 h-8 w-8 mr-0.5 rounded-full border border-zinc-200/90 bg-white/90 text-zinc-700 shadow-sm backdrop-blur-sm hover:bg-white hover:border-[#02abb8]/40 hover:text-[#02abb8] disabled:pointer-events-none disabled:opacity-25 dark:border-zinc-600 dark:bg-zinc-900/90 dark:text-zinc-200 dark:hover:border-[#02abb8]/50"
             >
               <svg className="mx-auto h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -169,7 +163,7 @@ export function AdPlacementGrid({ slotId, variant, maxCellsShown }: AdPlacementG
             setWizardOpen(false);
             setWizardSlot(null);
           }}
-          onSuccess={() => void refresh()}
+          onSuccess={() => void refresh({ silent: true })}
           initialSlotId={wizardSlot}
           initialSlotIndex={wizardIndex}
         />
@@ -181,10 +175,10 @@ export function AdPlacementGrid({ slotId, variant, maxCellsShown }: AdPlacementG
 function FilledAdCell({ ad, variant }: { ad: AdEntry; variant: AdPlacementVariant }) {
   const cls =
     variant === 'footer'
-      ? 'relative block w-full aspect-[32/9] min-h-[72px] max-h-[88px] rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 ring-2 ring-emerald-500/20'
+      ? 'relative block w-full aspect-[32/9] min-h-[72px] max-h-[88px] rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-900'
       : variant === 'sidebar'
-        ? 'relative block w-full aspect-[3/2] rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 ring-2 ring-emerald-500/20'
-        : 'relative block w-full aspect-square max-w-[220px] mx-auto rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 ring-2 ring-emerald-500/20';
+        ? 'relative block w-full aspect-[3/2] rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-900'
+        : 'relative block w-full aspect-square max-w-[220px] mx-auto rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-900';
 
   return (
     <Link href={ad.link} target="_blank" rel="noopener noreferrer sponsored" className={cls} title={ad.title}>

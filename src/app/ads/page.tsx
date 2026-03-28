@@ -256,7 +256,7 @@ export default function AdsListingPage() {
       <CreateAdWizard
         isOpen={wizardOpen}
         onClose={() => setWizardOpen(false)}
-        onSuccess={() => void refreshAds()}
+        onSuccess={() => void refreshAds({ silent: true })}
         initialSlotId={wizardInitialSlotId ?? null}
         initialSlotIndex={wizardInitialSlotIndex}
       />

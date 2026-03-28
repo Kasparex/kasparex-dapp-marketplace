@@ -27,7 +27,7 @@ export function EmptyVeinSlotFrame({
       type="button"
       disabled={disabled}
       onClick={disabled ? undefined : onClick}
-      className={`${frameClassName} relative flex flex-col items-center justify-center p-6 rounded-2xl bg-zinc-100 dark:bg-zinc-900 border-2 border-dashed border-zinc-300 dark:border-zinc-600 hover:border-emerald-500/50 transition-all group overflow-hidden text-center w-full shadow-sm dark:shadow-none ${
+      className={`${frameClassName} relative flex flex-col items-center justify-center p-6 rounded-2xl bg-zinc-100 dark:bg-zinc-900 border-2 border-dashed border-zinc-300 dark:border-zinc-600 hover:border-emerald-500/50 transition-all group overflow-hidden text-center w-full ${
         disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
       } ${className}`}
     >

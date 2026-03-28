@@ -48,5 +48,5 @@ async function buildMergedActiveAds(): Promise<AdEntry[]> {
 export const getCachedActiveAds = unstable_cache(
   async () => buildMergedActiveAds(),
   ['kasparex-ads-active-v1'],
-  { revalidate: 120, tags: ['ads-active'] }
+  { revalidate: 25, tags: ['ads-active'] }
 );

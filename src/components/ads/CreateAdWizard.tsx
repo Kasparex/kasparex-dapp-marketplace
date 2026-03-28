@@ -60,7 +60,8 @@ export function CreateAdWizard({
 
   const { state: kaspaState, connect: connectKaspa } = useKaspaWallet();
   const { isConnected: isL2Connected } = useAccount();
-  const { ads } = useAdsRegistryContext();
+  const { ads, refresh: registryRefresh } = useAdsRegistryContext();
+  const [syncAdsAfterPayment, setSyncAdsAfterPayment] = useState(false);
   const { tier: krexTier } = useKREXBalance();
 
   const l1Ready =
@@ -88,6 +89,7 @@ export function CreateAdWizard({
   useEffect(() => {
     if (!isOpen) {
       wizardOpenRef.current = false;
+      setSyncAdsAfterPayment(false);
       return;
     }
 
@@ -109,6 +111,8 @@ export function CreateAdWizard({
       setMetadataCid(null);
       setError(null);
       setVerifyNote(null);
+      setSyncAdsAfterPayment(false);
+      lastPaymentSyncRef.current = null;
       if (ipfsFileInputRef.current) ipfsFileInputRef.current.value = '';
       setStep(!kaspaState.isConnected ? 'connect' : initialSlotId ? 'details' : 'slot');
       return;
@@ -123,9 +127,47 @@ export function CreateAdWizard({
 
   const handleClose = () => {
     if (!isSubmitting) {
+      setSyncAdsAfterPayment(false);
       onClose();
     }
   };
+
+  const handleDone = async () => {
+    if (isSubmitting) return;
+    setSyncAdsAfterPayment(false);
+    await registryRefresh({ silent: true });
+    onClose();
+  };
+
+  useEffect(() => {
+    if (!syncAdsAfterPayment) return;
+    let cancelled = false;
+    const run = async () => {
+      await registryRefresh({ silent: true });
+      for (let i = 0; i < 48 && !cancelled; i++) {
+        if (cancelled) return;
+        const sync = lastPaymentSyncRef.current;
+        if (sync && i % 3 === 0) {
+          try {
+            await fetch('/api/ads/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ txHash: sync.txHash, metadataCid: sync.metadataCid }),
+            });
+          } catch {
+            /* ignore — refresh still runs */
+          }
+        }
+        await new Promise((r) => setTimeout(r, 2500));
+        if (cancelled) return;
+        await registryRefresh({ silent: true });
+      }
+    };
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [syncAdsAfterPayment, registryRefresh]);
 
   const buildImageRef = async (): Promise<AdImageRef> => {
     if (imageSource === 'url') {
@@ -194,6 +236,7 @@ export function CreateAdWizard({
       }
       const hash = extractKaspaTransactionId(txRes.txHash) ?? txRes.txHash;
       setTxHash(hash);
+      lastPaymentSyncRef.current = { txHash: hash, metadataCid: cid };
 
       let verifyOk = false;
       let lastVerifyMessage: string | null = null;
@@ -238,6 +281,7 @@ export function CreateAdWizard({
 
       setStep('confirm');
       onSuccess?.();
+      setSyncAdsAfterPayment(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Transaction failed');
     } finally {
@@ -769,7 +813,7 @@ export function CreateAdWizard({
           {step === 'confirm' && txHash && (
             <button
               type="button"
-              onClick={handleClose}
+              onClick={() => void handleDone()}
               className="ml-auto px-4 py-2 rounded-lg bg-[#02abb8] text-white font-medium text-sm"
             >
               Done

@@ -9,6 +9,8 @@ interface AdCardProps {
   ad: AdEntry;
   onEdit?: () => void;
   onDelete?: () => void;
+  /** Inside a carousel shell — omit outer card border/shadow */
+  embedded?: boolean;
 }
 
 function formatExpires(endTime: string): string {
@@ -44,7 +46,7 @@ function getAspectClass(format: AdFormat): string {
   }
 }
 
-export function AdCard({ ad, onEdit, onDelete }: AdCardProps) {
+export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) {
   const slotConfig = getSlotConfig(ad.slotId);
   const slotLabel = slotConfig?.label ?? ad.slotId;
   const expiresText = formatExpires(ad.endTime);
@@ -53,7 +55,13 @@ export function AdCard({ ad, onEdit, onDelete }: AdCardProps) {
   const progressPercent = getProgressPercent(ad.startTime, ad.endTime);
 
   return (
-    <div className="group rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 overflow-hidden hover:shadow-xl hover:shadow-zinc-200/50 dark:hover:shadow-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-300">
+    <div
+      className={`group overflow-hidden transition-all duration-300 ${
+        embedded
+          ? 'rounded-xl bg-transparent'
+          : 'rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 hover:shadow-xl hover:shadow-zinc-200/50 dark:hover:shadow-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-700'
+      }`}
+    >
       <Link
         href={ad.link}
         target="_blank"

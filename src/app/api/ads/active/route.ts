@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getCachedActiveAds } from '@/lib/ads/activeAdsCache';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const ads = await getCachedActiveAds();
@@ -8,7 +10,7 @@ export async function GET() {
       { ads },
       {
         headers: {
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+          'Cache-Control': 'private, no-cache, no-store, must-revalidate',
         },
       }
     );
