@@ -9,6 +9,7 @@ import { getSlotConfig } from '@/lib/ads/slots';
 import { filterActiveAdsForSlot } from '@/lib/ads/registryUtils';
 import type { AdEntry, AdSlotId } from '@/lib/ads/types';
 import { CreateAdWizard } from '@/components/ads/CreateAdWizard';
+import { useCarouselAutoplay } from '@/hooks/useCarouselAutoplay';
 
 export type AdPlacementVariant = 'halo' | 'footer' | 'sidebar';
 
