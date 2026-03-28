@@ -12,6 +12,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { sendKaspaTransaction, detectKaspaWallets, KASPA_WALLET_PROVIDERS } from '@/lib/kaspa/wallet';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
+import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
 import { KREX_TIERS } from '@/lib/rewards/types';
@@ -191,29 +192,49 @@ export function CreateAdWizard({
       if (txRes.status === 'failed' || !txRes.txHash) {
         throw new Error(txRes.error ?? 'Transaction was rejected or failed');
       }
-      const hash = txRes.txHash;
+      const hash = extractKaspaTransactionId(txRes.txHash) ?? txRes.txHash;
       setTxHash(hash);
 
-      try {
-        const vr = await fetch('/api/ads/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ txHash: hash, metadataCid: cid }),
-        });
-        const vj = (await vr.json()) as { ok?: boolean; error?: string };
-        if (vj.ok) {
-          setVerifyNote(null);
-        } else {
-          setVerifyNote(
-            vj.error ??
-              'If your wallet did not attach the metadata payload, this ad may not appear in the public list until the indexer sees an on-chain CID.'
-          );
+      let verifyOk = false;
+      let lastVerifyMessage: string | null = null;
+      const maxVerifyAttempts = 10;
+      for (let attempt = 0; attempt < maxVerifyAttempts; attempt++) {
+        try {
+          const vr = await fetch('/api/ads/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ txHash: hash, metadataCid: cid }),
+          });
+          const vj = (await vr.json()) as { ok?: boolean; error?: string };
+          if (vj.ok) {
+            verifyOk = true;
+            lastVerifyMessage = null;
+            break;
+          }
+          const msg = (vj.error ?? '').toLowerCase();
+          const indexing = msg.includes('not found') || msg.includes('transaction not found');
+          if (!indexing) {
+            lastVerifyMessage =
+              vj.error ??
+              'If your wallet did not attach the metadata payload, this ad may not appear until the indexer sees the on-chain CID.';
+            break;
+          }
+          lastVerifyMessage =
+            attempt < maxVerifyAttempts - 1
+              ? 'Waiting for the network indexer…'
+              : 'Transaction not found after several tries. If payment succeeded, check KasWare or a block explorer; the Ads list updates within a few minutes.';
+        } catch {
+          lastVerifyMessage =
+            attempt < maxVerifyAttempts - 1
+              ? 'Waiting for verification…'
+              : 'Could not reach the server to verify. Try refreshing the Ads page in a minute.';
         }
-      } catch {
-        setVerifyNote(
-          'Could not verify yet; the transaction may still be indexing. If the wallet attached the payload, your ad should appear after the next registry refresh.'
-        );
+        if (verifyOk) break;
+        if (attempt < maxVerifyAttempts - 1) {
+          await new Promise((r) => setTimeout(r, 1400 + attempt * 400));
+        }
       }
+      setVerifyNote(lastVerifyMessage);
 
       setStep('confirm');
       onSuccess?.();
@@ -609,7 +630,9 @@ export function CreateAdWizard({
               {txHash ? (
                 <div className="text-center py-4">
                   <p className="text-[#02abb8] font-medium mb-2">Payment sent</p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 break-all">{txHash}</p>
+                  <p className="text-xs font-mono text-zinc-600 dark:text-zinc-300 break-all">
+                    {extractKaspaTransactionId(txHash) ?? 'Open your wallet history to copy the transaction id.'}
+                  </p>
                   {metadataCid && (
                     <p className="text-[10px] text-zinc-500 dark:text-zinc-500 mt-2 break-all">Metadata: {metadataCid}</p>
                   )}

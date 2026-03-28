@@ -3,6 +3,7 @@ import {
   getFullTransactionsForAddress,
   getRestTransactionById,
   type KaspaRestTransaction,
+  type KaspaRestTxOutput,
 } from '@/lib/kaspa/api';
 import { getAdsTreasuryL1Address } from '@/lib/ads/config';
 import { AD_PAYLOAD_PREFIX, ADS_TREASURY_TX_LIMIT } from '@/lib/ads/constants';
@@ -46,11 +47,37 @@ function normAddr(a: string): string {
   }
 }
 
+function outputAddress(o: KaspaRestTxOutput): string | undefined {
+  const x = o as Record<string, unknown>;
+  return (
+    o.script_public_key_address ??
+    o.scriptPublicKeyAddress ??
+    o.address ??
+    (typeof x.script_public_key === 'object' &&
+    x.script_public_key &&
+    typeof (x.script_public_key as { address?: string }).address === 'string'
+      ? (x.script_public_key as { address: string }).address
+      : undefined)
+  );
+}
+
+function getTxPayload(tx: KaspaRestTransaction): string | null | undefined {
+  const p = tx.payload;
+  if (typeof p === 'string' && p.length > 0) return p;
+  const t = tx as Record<string, unknown>;
+  const vd = t.verboseData ?? t.verbose_data;
+  if (vd && typeof vd === 'object' && typeof (vd as { payload?: string }).payload === 'string') {
+    const vp = (vd as { payload: string }).payload;
+    if (vp.length > 0) return vp;
+  }
+  return undefined;
+}
+
 function sumOutputsToTreasury(tx: KaspaRestTransaction, treasuryNorm: string): number {
   let sum = 0;
   const outs = tx.outputs ?? [];
   for (const o of outs) {
-    const addr = o.script_public_key_address ?? (o as { scriptPublicKeyAddress?: string }).scriptPublicKeyAddress;
+    const addr = outputAddress(o);
     if (!addr) continue;
     try {
       if (normAddr(addr) !== treasuryNorm) continue;
@@ -66,7 +93,14 @@ function sumOutputsToTreasury(tx: KaspaRestTransaction, treasuryNorm: string): n
 function payerAddressesFromTx(tx: KaspaRestTransaction): Set<string> {
   const set = new Set<string>();
   for (const inp of tx.inputs ?? []) {
-    const a = inp.previous_outpoint_address ?? inp.previousOutpointAddress;
+    const i = inp as Record<string, unknown>;
+    const vd = i.verboseData ?? i.verbose_data;
+    const fromVerbose =
+      vd && typeof vd === 'object' && typeof (vd as { address?: string }).address === 'string'
+        ? (vd as { address: string }).address
+        : undefined;
+    const a =
+      inp.previous_outpoint_address ?? inp.previousOutpointAddress ?? fromVerbose;
     if (a && typeof a === 'string' && a.startsWith('kaspa:')) {
       try {
         set.add(normAddr(a));
@@ -81,6 +115,8 @@ function payerAddressesFromTx(tx: KaspaRestTransaction): Set<string> {
 async function fetchMetadataJson(cid: string): Promise<unknown | null> {
   const clean = cid.replace(/^ipfs:\/\//, '').replace(/^\/?ipfs\//, '');
   const gateways = [
+    `https://dweb.link/ipfs/${clean}`,
+    `https://w3s.link/ipfs/${clean}`,
     `https://cloudflare-ipfs.com/ipfs/${clean}`,
     `https://ipfs.io/ipfs/${clean}`,
     `https://gateway.pinata.cloud/ipfs/${clean}`,
@@ -150,7 +186,7 @@ export async function buildActiveAdsFromChain(): Promise<AdEntry[]> {
   for (const tx of txs) {
     const txId = tx.transaction_id ?? tx.transactionId;
     if (!txId) continue;
-    const cid = extractCidFromPayload(tx.payload ?? null);
+    const cid = extractCidFromPayload(getTxPayload(tx) ?? null);
     if (!cid) continue;
     const paid = sumOutputsToTreasury(tx, treasuryNorm);
     if (paid <= 0) continue;
@@ -240,7 +276,7 @@ export async function verifyAdRegistration(body: VerifyAdRegistrationBody): Prom
   }
 
   const cleanCid = metadataCid.replace(/^ipfs:\/\//, '');
-  const onChainCid = extractCidFromPayload(tx.payload ?? null);
+  const onChainCid = extractCidFromPayload(getTxPayload(tx) ?? null);
   if (onChainCid != null && onChainCid !== cleanCid) {
     return { ok: false, error: 'Metadata CID does not match transaction payload' };
   }

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { AD_SLOTS } from '@/lib/ads/slots';
 import type { AdEntry, AdFormat, AdSlotId } from '@/lib/ads/types';
-import { AdCard } from '@/components/ads/AdCard';
+import { AdCampaignSlider } from '@/components/ads/AdCampaignSlider';
 import { CreateAdWizard } from '@/components/ads/CreateAdWizard';
 import { useAdsRegistryContext } from '@/components/ads/AdsRegistryProvider';
 import { FilterBar } from '@/components/FilterBar';
@@ -236,18 +236,9 @@ export default function AdsListingPage() {
           </FilterBar>
         </div>
 
-        {/* Mosaic grid */}
+        {/* One campaign per slide */}
         {filteredAds.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredAds.map((ad) => (
-              <AdCard
-                key={ad.id}
-                ad={ad}
-                onEdit={() => openCreateWizard()}
-                onDelete={() => {}}
-              />
-            ))}
-          </div>
+          <AdCampaignSlider ads={filteredAds} onEdit={() => openCreateWizard()} />
         ) : (
           <div className="text-center py-16 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
             <p className="text-zinc-600 dark:text-zinc-400">No campaigns match your filters.</p>

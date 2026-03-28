@@ -267,25 +267,36 @@ export async function getFullTransactionsForAddress(
 /**
  * Fetch a single transaction with inputs resolved (for payer checks).
  */
-export async function getRestTransactionById(txId: string): Promise<KaspaRestTransaction | null> {
-  const hash = txId.replace(/^0x/, '');
-  if (!/^[0-9a-fA-F]{64}$/.test(hash)) return null;
+export async function getRestTransactionById(
+  txId: string,
+  options?: { maxAttempts?: number; delayMs?: number }
+): Promise<KaspaRestTransaction | null> {
+  const hash = txId.replace(/^0x/, '').toLowerCase();
+  if (!/^[0-9a-f]{64}$/.test(hash)) return null;
   const query = 'inputs=true&outputs=true&resolve_previous_outpoints=light';
   const urls = [
     `${KASPA_REST_BASE}/transactions/${hash}?${query}`,
     `${KASPA_REST_BASE}/v1/transactions/${hash}?${query}`,
   ];
-  for (const url of urls) {
-    try {
-      const res = await fetch(url, {
-        cache: 'no-store',
-        signal: AbortSignal.timeout(15000),
-      });
-      if (!res.ok) continue;
-      const data = (await res.json()) as unknown;
-      if (data && typeof data === 'object') return data as KaspaRestTransaction;
-    } catch {
-      // next
+  const maxAttempts = Math.max(1, options?.maxAttempts ?? 5);
+  const delayMs = options?.delayMs ?? 1200;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    for (const url of urls) {
+      try {
+        const res = await fetch(url, {
+          cache: 'no-store',
+          signal: AbortSignal.timeout(15000),
+        });
+        if (!res.ok) continue;
+        const data = (await res.json()) as unknown;
+        if (data && typeof data === 'object') return data as KaspaRestTransaction;
+      } catch {
+        // next
+      }
+    }
+    if (attempt < maxAttempts - 1) {
+      await new Promise((r) => setTimeout(r, delayMs * (attempt + 1)));
     }
   }
   return null;

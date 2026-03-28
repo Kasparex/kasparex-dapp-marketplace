@@ -3,14 +3,15 @@
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { AD_SLOTS } from '@/lib/ads/slots';
-import { AdCard } from '@/components/ads/AdCard';
+import { AdCampaignSlider } from '@/components/ads/AdCampaignSlider';
 import { useAdsRegistryContext } from '@/components/ads/AdsRegistryProvider';
 import { filterAdsByPayer } from '@/lib/ads/registryUtils';
-import { useKasWare } from '@/hooks/useKasWare';
+import { useKaspaWallet } from '@/lib/kaspa/context';
 
 export default function StudioAdsPage() {
   const { ads } = useAdsRegistryContext();
-  const { address: l1Address } = useKasWare();
+  const { state: kaspaState } = useKaspaWallet();
+  const l1Address = kaspaState.isConnected ? kaspaState.address : null;
 
   const myAds = useMemo(() => {
     if (process.env.NEXT_PUBLIC_ADS_USE_MOCK === '1') {
@@ -66,16 +67,7 @@ export default function StudioAdsPage() {
             <p className="text-zinc-600 dark:text-zinc-400">Connect your Kaspa wallet to see ads you paid for.</p>
           </div>
         ) : myAds.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {myAds.map((ad) => (
-              <AdCard
-                key={ad.id}
-                ad={ad}
-                onEdit={() => window.open(`/ads?create=1`, '_self')}
-                onDelete={() => {}}
-              />
-            ))}
-          </div>
+          <AdCampaignSlider ads={myAds} onEdit={() => window.open(`/ads?create=1`, '_self')} />
         ) : (
           <div className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 py-12 text-center">
             <p className="text-zinc-600 dark:text-zinc-400">You have no active ads for this wallet yet.</p>

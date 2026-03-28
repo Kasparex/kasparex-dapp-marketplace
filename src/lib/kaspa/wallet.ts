@@ -14,6 +14,7 @@ import type {
   KaspaTransactionRequest,
   KaspaTransactionResponse,
 } from './types';
+import { extractKaspaTransactionId } from './transactionId';
 import { 
   isValidKaspaAddress as sdkIsValidKaspaAddress,
   normalizeKaspaAddress as sdkNormalizeKaspaAddress,
@@ -521,7 +522,16 @@ export async function sendKaspaTransaction(
   }
 
   try {
-    const txHash = await walletProvider.sendTransaction(transaction);
+    const raw = await walletProvider.sendTransaction(transaction);
+    const txHash = extractKaspaTransactionId(raw);
+    if (!txHash) {
+      return {
+        txHash: '',
+        status: 'failed',
+        error:
+          'Wallet did not return a valid transaction id. If payment succeeded, check your wallet history for the tx hash.',
+      };
+    }
     return {
       txHash,
       status: 'pending',

@@ -8,4 +8,4 @@ export const ADS_MIN_DURATION_DAYS = 1;
 export const ADS_MAX_DURATION_DAYS = 365;
 
 /** Max treasury txs to scan per refresh (bounded lookback) */
-export const ADS_TREASURY_TX_LIMIT = 100;
+export const ADS_TREASURY_TX_LIMIT = 200;
