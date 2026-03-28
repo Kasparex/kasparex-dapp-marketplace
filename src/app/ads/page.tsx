@@ -43,6 +43,7 @@ export default function AdsListingPage() {
   const sortRef = useRef<HTMLDivElement>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [wizardInitialSlotId, setWizardInitialSlotId] = useState<AdSlotId | undefined>(undefined);
+  const [wizardInitialSlotIndex, setWizardInitialSlotIndex] = useState(0);
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -51,8 +52,12 @@ export default function AdsListingPage() {
     const slot = searchParams.get('slot');
     const raw = take ?? slot ?? undefined;
     const validSlot = raw && AD_SLOTS.some((s) => s.id === raw) ? (raw as AdSlotId) : undefined;
+    const idxRaw = searchParams.get('cell');
+    const idxParsed = idxRaw != null ? parseInt(idxRaw, 10) : 0;
+    const cellIdx = Number.isNaN(idxParsed) ? 0 : Math.max(0, idxParsed);
     if (validSlot || create === '1') {
       setWizardInitialSlotId(validSlot);
+      setWizardInitialSlotIndex(cellIdx);
       setWizardOpen(true);
     }
   }, [searchParams]);
@@ -94,6 +99,7 @@ export default function AdsListingPage() {
 
   const openCreateWizard = (initialSlotId?: AdSlotId) => {
     setWizardInitialSlotId(initialSlotId);
+    setWizardInitialSlotIndex(0);
     setWizardOpen(true);
   };
 
