@@ -8,13 +8,19 @@ import { ADS_MIN_DURATION_DAYS, ADS_MAX_DURATION_DAYS } from '@/lib/ads/constant
 import { buildCampaignMetadataV1, type AdImageRef } from '@/lib/ads/metadata';
 import { buildAdsBindingPayloadHex, buildAdsBindingPlainNote } from '@/lib/ads/payloadHex';
 import type { AdSlotId, AdFormat } from '@/lib/ads/types';
-import { useKasWare } from '@/hooks/useKasWare';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { sendKaspaTransaction, detectKaspaWallets, KASPA_WALLET_PROVIDERS } from '@/lib/kaspa/wallet';
+import type { KaspaWalletProvider } from '@/lib/kaspa/types';
+import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
+import { KREX_TIERS } from '@/lib/rewards/types';
 import { useAccount } from 'wagmi';
 import { getIPFSClient } from '@/lib/ipfs/client';
 import { useAdsRegistryContext } from '@/components/ads/AdsRegistryProvider';
 import { countActiveForSlot } from '@/lib/ads/registryUtils';
 
-type Step = 'slot' | 'details' | 'payment' | 'confirm';
+type Step = 'connect' | 'slot' | 'details' | 'payment' | 'confirm';
 
 interface CreateAdWizardProps {
   isOpen: boolean;
@@ -47,14 +53,25 @@ export function CreateAdWizard({
   const [metadataCid, setMetadataCid] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [verifyNote, setVerifyNote] = useState<string | null>(null);
+  const [connectBusy, setConnectBusy] = useState(false);
   const ipfsFileInputRef = useRef<HTMLInputElement>(null);
+  const wizardOpenRef = useRef(false);
 
-  const { isConnected: isL1Connected, sendTransaction: sendL1, address: l1Address } = useKasWare();
+  const { state: kaspaState, connect: connectKaspa } = useKaspaWallet();
   const { isConnected: isL2Connected } = useAccount();
   const { ads } = useAdsRegistryContext();
+  const { tier: krexTier } = useKREXBalance();
+
+  const l1Ready =
+    kaspaState.isConnected && Boolean(kaspaState.address) && Boolean(kaspaState.provider);
 
   const slotConfig = slotId ? AD_SLOTS.find((s) => s.id === slotId) : null;
-  const priceKas = slotConfig ? priceKasForDays(slotConfig, durationDays) : 0;
+  const basePriceKas = slotConfig ? priceKasForDays(slotConfig, durationDays) : 0;
+  const krexDiscountPct = KREX_TIER_SHOP_DISCOUNT_PCT[krexTier] ?? 0;
+  const priceKas =
+    basePriceKas > 0
+      ? Number((basePriceKas * (1 - krexDiscountPct / 100)).toFixed(8))
+      : 0;
   const sompi = kasToSompi(priceKas);
   const treasuryAddress = getAdsTreasuryL1Address();
 
@@ -65,14 +82,20 @@ export function CreateAdWizard({
   const canProceedDetails = Boolean(
     (imageSource === 'url' ? imageUrl.trim() : imageFile) && link.trim() && title.trim()
   );
-  const canProceedPayment = paymentNetwork === 'L1' ? isL1Connected : isL2Connected;
+  const canProceedPayment = paymentNetwork === 'L1' ? l1Ready : isL2Connected;
 
   useEffect(() => {
-    if (isOpen) {
-      const hasSlot = Boolean(initialSlotId);
+    if (!isOpen) {
+      wizardOpenRef.current = false;
+      return;
+    }
+
+    const justOpened = !wizardOpenRef.current;
+    wizardOpenRef.current = true;
+
+    if (justOpened) {
       setSlotId(initialSlotId ?? null);
       setSlotIndex(initialSlotIndex);
-      setStep(hasSlot ? 'details' : 'slot');
       setImageUrl('');
       setImageFile(null);
       setImageSource('url');
@@ -86,8 +109,16 @@ export function CreateAdWizard({
       setError(null);
       setVerifyNote(null);
       if (ipfsFileInputRef.current) ipfsFileInputRef.current.value = '';
+      setStep(!kaspaState.isConnected ? 'connect' : initialSlotId ? 'details' : 'slot');
+      return;
     }
-  }, [isOpen, initialSlotId, initialSlotIndex]);
+
+    if (!kaspaState.isConnected) {
+      setStep('connect');
+      return;
+    }
+    setStep((prev) => (prev === 'connect' ? (initialSlotId ? 'details' : 'slot') : prev));
+  }, [isOpen, initialSlotId, initialSlotIndex, kaspaState.isConnected]);
 
   const handleClose = () => {
     if (!isSubmitting) {
@@ -110,12 +141,19 @@ export function CreateAdWizard({
       setError('L2 ad payments are planned for a later phase. Please use L1 (Kaspa) for now.');
       return;
     }
-    if (!isL1Connected || !sendL1 || !l1Address) {
+    if (!l1Ready || !kaspaState.provider || !kaspaState.address) {
       setError('Connect your Kaspa (L1) wallet to pay.');
       return;
     }
     if (!slotId || !slotConfig) {
       setError('Select a slot.');
+      return;
+    }
+    let payerL1: string;
+    try {
+      payerL1 = normalizeKaspaAddress(kaspaState.address);
+    } catch {
+      setError('Invalid Kaspa wallet address.');
       return;
     }
     setIsSubmitting(true);
@@ -128,7 +166,7 @@ export function CreateAdWizard({
         slotIndex,
         days: durationDays,
         priceKas,
-        payerL1: l1Address,
+        payerL1,
         title: title.trim(),
         link: link.trim(),
         image,
@@ -144,10 +182,16 @@ export function CreateAdWizard({
       const payloadHex = buildAdsBindingPayloadHex(cid);
       const plainNote = buildAdsBindingPlainNote(cid);
 
-      const hash = await sendL1(treasuryAddress, sompi, {
-        payload: payloadHex,
+      const txRes = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
+        to: treasuryAddress,
+        amount: String(sompi),
         note: plainNote,
+        payload: payloadHex,
       });
+      if (txRes.status === 'failed' || !txRes.txHash) {
+        throw new Error(txRes.error ?? 'Transaction was rejected or failed');
+      }
+      const hash = txRes.txHash;
       setTxHash(hash);
 
       try {
@@ -192,7 +236,21 @@ export function CreateAdWizard({
 
   if (!isOpen) return null;
 
-  const currentStepIndex = steps.findIndex((s) => s.id === step);
+  const currentStepIndex = step === 'connect' ? -1 : steps.findIndex((s) => s.id === step);
+
+  const handleWalletConnect = async (provider: KaspaWalletProvider) => {
+    setConnectBusy(true);
+    setError(null);
+    try {
+      await connectKaspa(provider);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Connection failed');
+    } finally {
+      setConnectBusy(false);
+    }
+  };
+
+  const installedKaspaWallets = typeof window !== 'undefined' ? detectKaspaWallets() : [];
 
   const body = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" onClick={handleClose}>
@@ -216,18 +274,65 @@ export function CreateAdWizard({
           </button>
         </div>
 
-        <div className="flex gap-2 px-6 py-2 border-b border-zinc-100 dark:border-zinc-800">
-          {steps.map((s, i) => (
-            <div
-              key={s.id}
-              className={`h-1 flex-1 rounded-full ${
-                i <= currentStepIndex ? 'bg-[#02abb8]' : 'bg-zinc-200 dark:bg-zinc-700'
-              }`}
-            />
-          ))}
-        </div>
+        {step !== 'connect' && (
+          <div className="flex gap-2 px-6 py-2 border-b border-zinc-100 dark:border-zinc-800">
+            {steps.map((s, i) => (
+              <div
+                key={s.id}
+                className={`h-1 flex-1 rounded-full ${
+                  i <= currentStepIndex ? 'bg-[#02abb8]' : 'bg-zinc-200 dark:bg-zinc-700'
+                }`}
+              />
+            ))}
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto p-6">
+          {step === 'connect' && (
+            <>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
+                Connect a Kaspa (L1) wallet to reserve a slot, pin campaign metadata, and pay in KAS. This uses the same
+                connection as the site header.
+              </p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-4">
+                KREX balance across your connected wallets reduces the listed ad price (same tiers as Diamond Veins shop
+                discounts).
+              </p>
+              {installedKaspaWallets.length > 0 ? (
+                <div className="space-y-2">
+                  {installedKaspaWallets.map((w) => (
+                    <button
+                      key={w.id}
+                      type="button"
+                      disabled={connectBusy}
+                      onClick={() => void handleWalletConnect(w.id)}
+                      className="w-full text-left px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:border-[#02abb8]/60 hover:bg-[#02abb8]/5 transition-colors disabled:opacity-50"
+                    >
+                      <span className="font-medium text-zinc-900 dark:text-zinc-100">Connect {w.name}</span>
+                      <span className="text-xs text-zinc-500 block mt-0.5">Detected in this browser</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-4 bg-zinc-50 dark:bg-zinc-800/80">
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
+                    No Kaspa wallet detected. Install KasWare (or another supported wallet) to continue.
+                  </p>
+                  <a
+                    href={KASPA_WALLET_PROVIDERS.kasware.downloadUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-[#02abb8] hover:underline"
+                  >
+                    Get KasWare
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+              )}
+            </>
+          )}
           {step === 'slot' && (
             <>
               <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
@@ -408,9 +513,22 @@ export function CreateAdWizard({
                     }}
                     className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm"
                   />
-                  <p className="text-xs text-zinc-500 mt-1">
-                    Total: <strong className="text-[#02abb8]">{priceKas} KAS</strong> ({durationDays} ×{' '}
-                    {slotConfig?.pricePerDay ?? 0} KAS/day)
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 space-y-1">
+                    <span className="block">
+                      {krexDiscountPct > 0 && (
+                        <span className="text-zinc-400 dark:text-zinc-500 line-through mr-2">{basePriceKas} KAS</span>
+                      )}
+                      <strong className="text-[#02abb8]">{priceKas} KAS</strong>
+                      <span className="text-zinc-500">
+                        {' '}
+                        ({durationDays} × {slotConfig?.pricePerDay ?? 0} KAS/day)
+                      </span>
+                    </span>
+                    {krexDiscountPct > 0 && (
+                      <span className="block text-[#02abb8]/90 font-medium">
+                        {krexDiscountPct}% KREX holder discount · {KREX_TIERS[krexTier]?.label ?? krexTier}
+                      </span>
+                    )}
                   </p>
                 </div>
                 <div>
@@ -450,8 +568,14 @@ export function CreateAdWizard({
                   }`}
                 >
                   <span className="font-medium">L1 Kaspa (KAS)</span>
-                  <span className="text-xs block mt-0.5">
-                    {isL1Connected ? 'Wallet connected' : 'Connect Kaspa wallet'}
+                  <span
+                    className={`text-xs block mt-0.5 ${
+                      l1Ready ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
+                    }`}
+                  >
+                    {l1Ready
+                      ? `Connected · ${kaspaState.address?.replace(/^kaspa:/, '').slice(0, 10)}…${kaspaState.address?.replace(/^kaspa:/, '').slice(-6)}`
+                      : 'Use “Connect wallet” on this screen first, or connect from the site header'}
                   </span>
                 </button>
                 <button
@@ -467,9 +591,16 @@ export function CreateAdWizard({
                   <span className="text-xs block mt-0.5 text-zinc-500">Phase 2 — not available yet</span>
                 </button>
               </div>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-4">
-                Total: <strong>{priceKas} KAS</strong> for {durationDays} days
-              </p>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-4 space-y-1">
+                {krexDiscountPct > 0 && (
+                  <p className="line-through opacity-70">List price: {basePriceKas} KAS</p>
+                )}
+                <p>
+                  You pay: <strong className="text-zinc-900 dark:text-zinc-100">{priceKas} KAS</strong> for{' '}
+                  {durationDays} day{durationDays !== 1 ? 's' : ''}
+                  {krexDiscountPct > 0 ? ` (${krexDiscountPct}% KREX tier off)` : ''}
+                </p>
+              </div>
             </>
           )}
 
@@ -524,6 +655,21 @@ export function CreateAdWizard({
         </div>
 
         <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-3">
+          {step === 'connect' && (
+            <>
+              <button
+                type="button"
+                onClick={handleClose}
+                disabled={connectBusy}
+                className="px-4 py-2 text-zinc-600 dark:text-zinc-400 hover:underline text-sm disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <span className="text-[11px] text-zinc-500 dark:text-zinc-500 text-right max-w-[200px]">
+                After you approve in your wallet, this wizard continues automatically.
+              </span>
+            </>
+          )}
           {step === 'slot' && (
             <>
               <button type="button" onClick={handleClose} className="px-4 py-2 text-zinc-600 dark:text-zinc-400 hover:underline text-sm">

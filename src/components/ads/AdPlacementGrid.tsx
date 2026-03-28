@@ -71,7 +71,11 @@ export function AdPlacementGrid({ slotId, variant, maxCellsShown }: AdPlacementG
   return (
     <>
       <div className="relative w-full">
-        <div className={`overflow-hidden ${variant === 'halo' ? 'rounded-2xl' : 'rounded-xl'}`}>
+        <div
+          className={`overflow-hidden bg-zinc-100 dark:bg-zinc-900 ring-1 ring-zinc-200/90 dark:ring-zinc-700 ${
+            variant === 'halo' ? 'rounded-2xl' : 'rounded-xl'
+          }`}
+        >
           <div
             className="flex transition-transform duration-300 ease-out motion-reduce:transition-none"
             style={{ transform: `translateX(-${slide * 100}%)` }}
@@ -177,10 +181,10 @@ export function AdPlacementGrid({ slotId, variant, maxCellsShown }: AdPlacementG
 function FilledAdCell({ ad, variant }: { ad: AdEntry; variant: AdPlacementVariant }) {
   const cls =
     variant === 'footer'
-      ? 'relative block w-full aspect-[32/9] min-h-[72px] max-h-[88px] rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 ring-2 ring-emerald-500/20'
+      ? 'relative block w-full aspect-[32/9] min-h-[72px] max-h-[88px] rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 ring-2 ring-emerald-500/20'
       : variant === 'sidebar'
-        ? 'relative block w-full aspect-[3/2] rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 ring-2 ring-emerald-500/20'
-        : 'relative block w-full aspect-square max-w-[220px] mx-auto rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 ring-2 ring-emerald-500/20';
+        ? 'relative block w-full aspect-[3/2] rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 ring-2 ring-emerald-500/20'
+        : 'relative block w-full aspect-square max-w-[220px] mx-auto rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 ring-2 ring-emerald-500/20';
 
   return (
     <Link href={ad.link} target="_blank" rel="noopener noreferrer sponsored" className={cls} title={ad.title}>

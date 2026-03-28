@@ -103,12 +103,14 @@ export interface KaspaAddress {
 export interface KaspaTransactionRequest {
   /** Recipient address */
   to: string;
-  /** Amount in KAS (or smallest unit) */
+  /** Amount in sompi (smallest unit), as decimal string */
   amount: string;
   /** Optional fee */
   fee?: string;
-  /** Optional note/memo */
+  /** Optional plain-text note / memo (wallet-dependent) */
   note?: string;
+  /** Optional hex payload for wallets that support it (e.g. KasWare metadata binding) */
+  payload?: string;
 }
 
 /**

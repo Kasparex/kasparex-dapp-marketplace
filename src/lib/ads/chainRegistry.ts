@@ -4,7 +4,7 @@ import {
   getRestTransactionById,
   type KaspaRestTransaction,
 } from '@/lib/kaspa/api';
-import { kasToSompi, getAdsTreasuryL1Address } from '@/lib/ads/config';
+import { getAdsTreasuryL1Address } from '@/lib/ads/config';
 import { AD_PAYLOAD_PREFIX, ADS_TREASURY_TX_LIMIT } from '@/lib/ads/constants';
 import {
   parseAdMetadataJson,
@@ -12,6 +12,7 @@ import {
   type AdCampaignMetadataV1,
 } from '@/lib/ads/metadata';
 import { priceKasForDays, getSlotConfig } from '@/lib/ads/slots';
+import { isValidAdPayment } from '@/lib/ads/adPriceValidation';
 import type { AdEntry } from '@/lib/ads/types';
 
 function extractCidFromPayload(payload: string | null | undefined): string | null {
@@ -160,11 +161,8 @@ export async function buildActiveAdsFromChain(): Promise<AdEntry[]> {
 
     const slotCfg = getSlotConfig(meta.slotId);
     if (!slotCfg) continue;
-    const expectedKas = priceKasForDays(slotCfg, meta.days);
-    if (Math.abs(meta.priceKas - expectedKas) > 1e-6) continue;
-
-    const expectedSompi = kasToSompi(expectedKas);
-    if (paid !== expectedSompi) continue;
+    const baseKas = priceKasForDays(slotCfg, meta.days);
+    if (!isValidAdPayment(meta.priceKas, paid, baseKas)) continue;
 
     const payers = payerAddressesFromTx(tx);
     let payerNorm: string;
@@ -230,13 +228,9 @@ export async function verifyAdRegistration(body: VerifyAdRegistrationBody): Prom
   if (!slotCfg) {
     return { ok: false, error: 'Unknown slot' };
   }
-  const expectedKas = priceKasForDays(slotCfg, meta.days);
-  if (Math.abs(meta.priceKas - expectedKas) > 1e-6) {
-    return { ok: false, error: 'Price mismatch' };
-  }
-  const expectedSompi = kasToSompi(expectedKas);
-  if (paid !== expectedSompi) {
-    return { ok: false, error: 'Amount mismatch' };
+  const baseKas = priceKasForDays(slotCfg, meta.days);
+  if (!isValidAdPayment(meta.priceKas, paid, baseKas)) {
+    return { ok: false, error: 'Price or amount does not match slot rate (including KREX tier discounts)' };
   }
 
   const payers = payerAddressesFromTx(tx);

@@ -171,13 +171,19 @@ function createKasWareAdapter(kasware: any): ExtendedWalletProviderInterface {
       // KasWare uses sendKaspa(toAddress, sompi, options)
       if (typeof kasware.sendKaspa === 'function') {
         const toAddress = transaction.to;
-        const sompi = typeof transaction.amount === 'string' ? parseInt(transaction.amount) : transaction.amount;
+        const sompi = typeof transaction.amount === 'string' ? parseInt(transaction.amount, 10) : transaction.amount;
         const options: Record<string, any> = {};
-        
+
         if (transaction.fee) {
           options.priorityFee = typeof transaction.fee === 'string' ? parseFloat(transaction.fee) : transaction.fee;
         }
-        
+        if (transaction.note != null && transaction.note !== '') {
+          options.note = transaction.note;
+        }
+        if (transaction.payload != null && transaction.payload !== '') {
+          options.payload = transaction.payload;
+        }
+
         return await kasware.sendKaspa(toAddress, sompi, options);
       }
       throw new Error('sendKaspa not available');
