@@ -78,6 +78,8 @@ export function getExplorerUrl(contractAddress: string, chainId: number): string
   } else if (chainId === 202555) {
     // Kasplex L2 Mainnet
     return `https://explorer.kasplex.org/address/${contractAddress}`;
+  } else if (chainId === 38836) {
+    return `https://explorer.galleon-testnet.igralabs.com/address/${contractAddress}`;
   } else if (chainId === 38833) {
     return `https://explorer.igralabs.com/address/${contractAddress}`;
   }
@@ -95,6 +97,9 @@ export function getExplorerTxUrlForChain(chainId: number, txHash: string): strin
   }
   if (chainId === 202555) {
     return `https://explorer.kasplex.org/tx/${txHash}`;
+  }
+  if (chainId === 38836) {
+    return `https://explorer.galleon-testnet.igralabs.com/tx/${txHash}`;
   }
   if (chainId === 38833) {
     return `https://explorer.igralabs.com/tx/${txHash}`;

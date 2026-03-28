@@ -75,7 +75,7 @@ export function useKREXBalance(): UseKREXBalanceReturn {
   // Tier from total (for fee/cost reductions, status displays)
   const tier = getKREXTierFromBalance(balanceData.total);
   // Tier from current chain only: on L2 the contract uses payer's tKREX on that chain, so use l2 for reward display
-  const tierForChain = getKREXTierFromBalance(chainId && (chainId === 38833 || chainId === 167012 || chainId === 202555) ? balanceData.l2 : balanceData.total);
+  const tierForChain = getKREXTierFromBalance(chainId && (chainId === 38836 || chainId === 38833 || chainId === 167012 || chainId === 202555) ? balanceData.l2 : balanceData.total);
 
   return {
     balance: balanceData.total,

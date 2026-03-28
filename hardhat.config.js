@@ -27,6 +27,12 @@ module.exports = {
       chainId: 167012,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
+    igraGalleonTestnet: {
+      url: process.env.IGRA_GALLEON_TESTNET_RPC || "https://galleon-testnet.igralabs.com:8545",
+      chainId: 38836,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      gasPrice: 2000000000000, // 2000 gwei (required by Igra Galleon Testnet)
+    },
     igraMainnet: {
       url: process.env.IGRA_MAINNET_RPC || "https://rpc.igralabs.com:8545",
       chainId: 38833,
@@ -50,6 +56,7 @@ module.exports = {
     apiKey: {
       kasplexL2Mainnet: process.env.KASPLEX_EXPLORER_API_KEY || "",
       kasplexL2Testnet: process.env.KASPLEX_TESTNET_EXPLORER_API_KEY || "",
+      igraGalleonTestnet: process.env.IGRA_GALLEON_TESTNET_EXPLORER_API_KEY || "",
       igraMainnet: process.env.IGRA_MAINNET_EXPLORER_API_KEY || "",
     },
     customChains: [
@@ -67,6 +74,14 @@ module.exports = {
         urls: {
           apiURL: "https://explorer.testnet.kasplextest.xyz/api",
           browserURL: "https://explorer.testnet.kasplextest.xyz",
+        },
+      },
+      {
+        network: "igraGalleonTestnet",
+        chainId: 38836,
+        urls: {
+          apiURL: "https://explorer.galleon-testnet.igralabs.com/api",
+          browserURL: "https://explorer.galleon-testnet.igralabs.com",
         },
       },
       {

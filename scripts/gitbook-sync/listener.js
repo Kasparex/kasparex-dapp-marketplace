@@ -29,6 +29,8 @@ class EventListener {
     const rpcUrls = {
       kasplexL2Testnet: process.env.RPC_URL_TESTNET || 'https://evmrpc-testnet.kasplex.org',
       kasplexL2Mainnet: process.env.RPC_URL_MAINNET || 'https://evmrpc.kasplex.org',
+      igraGalleonTestnet:
+        process.env.IGRA_GALLEON_TESTNET_RPC || 'https://galleon-testnet.igralabs.com:8545',
       igraMainnet: process.env.IGRA_MAINNET_RPC || 'https://rpc.igralabs.com:8545',
     };
 
@@ -43,6 +45,7 @@ class EventListener {
     const registryAddresses = {
       kasplexL2Testnet: '0x1c2c21fFe7AE1fCb031eCabE69BCdeb9a10c04Dd',
       kasplexL2Mainnet: '0xDC88585B22f11f4d2b7bbbf0e134E606629C1C40',
+      igraGalleonTestnet: '0x0530c962A17fB4602418087689e762e5989f1D43',
     };
 
     const registryAddress = registryAddresses[networkName];

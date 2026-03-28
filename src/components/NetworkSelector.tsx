@@ -35,6 +35,12 @@ export function NetworkSelector({ className = '' }: NetworkSelectorProps) {
       isVProgs: false,
     },
     {
+      id: CHAIN_IDS.IGRA_GALLEON_TESTNET,
+      name: 'IGRA Galleon Testnet',
+      type: 'EVM',
+      isVProgs: false,
+    },
+    {
       id: CHAIN_IDS.IGRA_MAINNET,
       name: 'Igra Mainnet',
       type: 'EVM',

@@ -8,7 +8,7 @@ import {
   getContractsWithAddress,
 } from '@/lib/contracts/contractsMetadata';
 
-const SUPPORTED_CHAIN_IDS = [202555, 167012, 38833];
+const SUPPORTED_CHAIN_IDS = [202555, 167012, 38836, 38833];
 
 /**
  * Kasparex Stats page content.

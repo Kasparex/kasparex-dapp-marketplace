@@ -54,7 +54,7 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
   const { distributeRewardAfterTransaction } = useAutomatedRewards();
   const queryClient = useQueryClient();
   const nativeSymbol = getNativeCurrencySymbol(chainId);
-  const gridLabel = chainId === 167012 ? 'tGRID' : 'GRID';
+  const gridLabel = chainId === 167012 || chainId === 38836 ? 'tGRID' : 'GRID';
 
   const costBreakdown = useMemo((): CostBreakdown | null => {
     if (!genesisBadgeDApp) return null;
@@ -313,7 +313,7 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
         {showDebugInfo && (
           <div className="mt-2 p-3 bg-zinc-50 dark:bg-zinc-950 rounded-lg text-xs space-y-1 border border-zinc-200 dark:border-zinc-800">
             <p className="font-semibold">Contract: {contractAddress || '—'}</p>
-            <p>Chain ID: {chainId} (38833 = Igra Mainnet)</p>
+            <p>Chain ID: {chainId} (38836 = IGRA Galleon Testnet, 38833 = Igra Mainnet)</p>
             <p>User: {address ? `${address.slice(0, 8)}...` : '—'}</p>
             <p>Badge: exists={String(hasBadge)} themeId={String(themeId)} titleId={String(titleId)} totalSpentWei={totalSpentWei?.toString?.() ?? '—'} boostCount={String(boostCount)}</p>
             <p>valueWei: {valueWei.toString()}</p>

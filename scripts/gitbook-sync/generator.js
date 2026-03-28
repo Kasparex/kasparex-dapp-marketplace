@@ -127,18 +127,56 @@ class DocumentationGenerator {
   }
 
   /**
+   * RPC / explorer / chain id for generated docs (internal network keys).
+   */
+  getNetworkDocsMeta(networkName) {
+    const fallback = {
+      chainId: '167012',
+      rpc: 'https://rpc.kasplextest.xyz',
+      explorer: 'https://explorer.testnet.kasplextest.xyz',
+    };
+    const map = {
+      kasplexL2Mainnet: {
+        chainId: '202555',
+        rpc: 'https://evmrpc.kasplex.org',
+        explorer: 'https://explorer.kasplex.org',
+      },
+      kasplexL2Testnet: {
+        chainId: '167012',
+        rpc: 'https://rpc.kasplextest.xyz',
+        explorer: 'https://explorer.testnet.kasplextest.xyz',
+      },
+      igraGalleonTestnet: {
+        chainId: '38836',
+        rpc: 'https://galleon-testnet.igralabs.com:8545',
+        explorer: 'https://explorer.galleon-testnet.igralabs.com',
+      },
+      igraMainnet: {
+        chainId: '38833',
+        rpc: 'https://rpc.igralabs.com:8545',
+        explorer: 'https://explorer.igralabs.com',
+      },
+    };
+    return map[networkName] || fallback;
+  }
+
+  /**
    * Generate contract reference documentation
    */
   generateContractReference(contractData) {
     const functions = this.extractFunctions(contractData.abi);
     const events = this.extractEvents(contractData.abi);
     const stateVariables = this.extractStateVariables(contractData.abi);
+    const net = this.getNetworkDocsMeta(contractData.networkName);
 
     const data = {
       CONTRACT_NAME: contractData.name,
       CONTRACT_ADDRESS: contractData.address,
-      NETWORK: contractData.networkName || 'Kasplex L2 Testnet',
-      CHAIN_ID: contractData.networkName === 'kasplexL2Mainnet' ? '202555' : '167012',
+      NETWORK:
+        this.formatNetworkName(contractData.networkName) ||
+        contractData.networkName ||
+        'Kasplex L2 Testnet',
+      CHAIN_ID: net.chainId,
       DESCRIPTION: contractData.description || `Smart contract for ${contractData.name}`,
       FUNCTIONS: functions,
       EVENTS: events,
@@ -157,10 +195,17 @@ class DocumentationGenerator {
   generateIntegrationGuide(dAppData, contractData) {
     const readFunction = this.findReadFunction(contractData.abi);
     const writeFunction = this.findWriteFunction(contractData.abi);
+    const net = this.getNetworkDocsMeta(dAppData.networkName);
+    const isIgra =
+      dAppData.networkName === 'igraMainnet' ||
+      dAppData.networkName === 'igraGalleonTestnet';
 
     const data = {
       DAPP_NAME: dAppData.name,
-      NETWORK: dAppData.networkName || 'Kasplex L2 Testnet',
+      NETWORK:
+        this.formatNetworkName(dAppData.networkName) ||
+        dAppData.networkName ||
+        'Kasplex L2 Testnet',
       NETWORK_NAME: this.formatNetworkName(dAppData.networkName),
       CONTRACT_ADDRESS: contractData.address || dAppData.contractAddress,
       CONTRACT_ABI_NAME: `${contractData.name.toUpperCase().replace(/\s+/g, '_')}_ABI`,
@@ -176,17 +221,13 @@ class DocumentationGenerator {
       NETWORKS: [
         {
           NETWORK_NAME: this.formatNetworkName(dAppData.networkName),
-          CHAIN_ID: dAppData.networkName === 'kasplexL2Mainnet' ? '202555' : '167012',
+          CHAIN_ID: net.chainId,
           CONTRACT_ADDRESS: contractData.address || dAppData.contractAddress,
-          RPC_URL: dAppData.networkName === 'kasplexL2Mainnet' 
-            ? 'https://evmrpc.kasplex.org' 
-            : 'https://evmrpc-testnet.kasplex.org',
-          EXPLORER_URL: dAppData.networkName === 'kasplexL2Mainnet'
-            ? 'https://explorer.kasplex.org'
-            : 'https://explorer-testnet.kasplex.org',
+          RPC_URL: net.rpc,
+          EXPLORER_URL: net.explorer,
         },
       ],
-      NATIVE_TOKEN: 'KAS',
+      NATIVE_TOKEN: isIgra ? 'iKAS' : 'KAS',
       CONTRACT_SLUG: this.slugify(contractData.name),
       DAPP_SLUG: this.slugify(dAppData.name),
       LAST_UPDATED: new Date().toISOString().split('T')[0],
@@ -345,6 +386,7 @@ class DocumentationGenerator {
     const mapping = {
       'kasplexL2Testnet': 'Kasplex L2 Testnet',
       'kasplexL2Mainnet': 'Kasplex L2 Mainnet',
+      'igraGalleonTestnet': 'IGRA Galleon Testnet',
       'igraMainnet': 'Igra Mainnet',
     };
     return mapping[networkName] || networkName;

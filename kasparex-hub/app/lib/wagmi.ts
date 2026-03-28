@@ -57,6 +57,33 @@ export const kasplexL2Testnet = defineChain({
 });
 
 /**
+ * IGRA Galleon Testnet (38836)
+ * @see https://igra-labs.gitbook.io/igralabs-docs/quickstart/network-info#galleon-testnet
+ */
+export const igraGalleonTestnet = defineChain({
+  id: 38836,
+  name: 'IGRA Galleon Testnet',
+  network: 'igra-galleon-testnet',
+  nativeCurrency: {
+    name: 'Kaspa',
+    symbol: 'iKAS',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://galleon-testnet.igralabs.com:8545'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Igra Galleon Testnet Explorer',
+      url: 'https://explorer.galleon-testnet.igralabs.com',
+    },
+  },
+  testnet: true,
+});
+
+/**
  * Igra Mainnet (Chain ID 38833)
  * @see https://igra-labs.gitbook.io/igralabs-docs/quickstart/network-info#igra-mainnet
  */
@@ -202,7 +229,7 @@ export const config = getDefaultConfig({
   projectId: typeof window !== 'undefined' 
     ? (window.ENV?.WALLETCONNECT_PROJECT_ID || process.env.WALLETCONNECT_PROJECT_ID || 'default-project-id')
     : (process.env.WALLETCONNECT_PROJECT_ID || 'default-project-id'),
-  chains: [kasplexL2Mainnet, kasplexL2Testnet, igraMainnet],
+  chains: [kasplexL2Mainnet, kasplexL2Testnet, igraGalleonTestnet, igraMainnet],
   ssr: true,
 });
 

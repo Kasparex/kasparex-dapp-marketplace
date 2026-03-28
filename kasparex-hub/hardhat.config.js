@@ -25,6 +25,12 @@ module.exports = {
       chainId: 167012,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
+    igraGalleonTestnet: {
+      url: process.env.IGRA_GALLEON_TESTNET_RPC || "https://galleon-testnet.igralabs.com:8545",
+      chainId: 38836,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      gasPrice: 2000000000000,
+    },
     igraMainnet: {
       url: process.env.IGRA_MAINNET_RPC || "https://rpc.igralabs.com:8545",
       chainId: 38833,
@@ -65,6 +71,14 @@ module.exports = {
         urls: {
           apiURL: "https://explorer.testnet.kasplextest.xyz/api",
           browserURL: "https://explorer.testnet.kasplextest.xyz",
+        },
+      },
+      {
+        network: "igraGalleonTestnet",
+        chainId: 38836,
+        urls: {
+          apiURL: "https://explorer.galleon-testnet.igralabs.com/api",
+          browserURL: "https://explorer.galleon-testnet.igralabs.com",
         },
       },
       {

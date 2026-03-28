@@ -157,6 +157,14 @@ class DataAggregator {
         registryAddress = '0xDC88585B22f11f4d2b7bbbf0e134E606629C1C40';
         const rpcUrl = process.env.KASPLEX_L2_MAINNET_RPC || 'https://evmrpc.kasplex.org';
         provider = new ethers.JsonRpcProvider(rpcUrl);
+      } else if (networkName === 'igraGalleonTestnet') {
+        registryAddress = '0x0530c962A17fB4602418087689e762e5989f1D43';
+        const rpcUrl =
+          process.env.IGRA_GALLEON_TESTNET_RPC || 'https://galleon-testnet.igralabs.com:8545';
+        provider = new ethers.JsonRpcProvider(rpcUrl, {
+          name: 'igra-galleon-testnet',
+          chainId: 38836,
+        });
       } else {
         throw new Error(`Unknown network: ${networkName}`);
       }
@@ -230,6 +238,14 @@ class DataAggregator {
         registryAddress = '0xDC88585B22f11f4d2b7bbbf0e134E606629C1C40';
         const rpcUrl = process.env.KASPLEX_L2_MAINNET_RPC || 'https://evmrpc.kasplex.org';
         provider = new ethers.JsonRpcProvider(rpcUrl, { name: 'kasplex-mainnet', chainId: 202555 });
+      } else if (networkName === 'igraGalleonTestnet') {
+        registryAddress = '0x0530c962A17fB4602418087689e762e5989f1D43';
+        const rpcUrl =
+          process.env.IGRA_GALLEON_TESTNET_RPC || 'https://galleon-testnet.igralabs.com:8545';
+        provider = new ethers.JsonRpcProvider(rpcUrl, {
+          name: 'igra-galleon-testnet',
+          chainId: 38836,
+        });
       } else {
         throw new Error(`Unknown network: ${networkName}`);
       }
@@ -297,6 +313,10 @@ class DataAggregator {
       },
       kasplexL2Mainnet: {
         DAOVoting: '0x97004140704097e122CB7B9808330c80464ab69d',
+      },
+      igraGalleonTestnet: {
+        DAppRegistry: '0x0530c962A17fB4602418087689e762e5989f1D43',
+        SimplePayment: '0xe9f4A74E979080E3788711A11FC9F33c7a19eF82',
       },
     };
 

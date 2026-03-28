@@ -73,7 +73,7 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
   const [isLoading, setIsLoading] = useState(true);
 
   const routerAddress = getContractAddress(chainId, 'PromoMintRouter') as Address | undefined;
-  const isIgraMainnet = chainId === CHAIN_IDS.IGRA_MAINNET;
+  const isIgraL2 = chainId === CHAIN_IDS.IGRA_GALLEON_TESTNET || chainId === CHAIN_IDS.IGRA_MAINNET;
 
   // Load page data
   useEffect(() => {
@@ -166,7 +166,7 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
     functionName: 'getWalletSecurity',
     args: address ? [address] : undefined,
     query: {
-      enabled: !!routerAddress && !!address && isIgraMainnet,
+      enabled: !!routerAddress && !!address && isIgraL2,
     },
   });
 
@@ -175,7 +175,7 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
     abi: PROMO_MINT_ROUTER_ABI,
     functionName: 'cooldownSeconds',
     query: {
-      enabled: !!routerAddress && isIgraMainnet,
+      enabled: !!routerAddress && isIgraL2,
     },
   });
 
@@ -187,7 +187,7 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
     functionName: 'getTokenConfig',
     args: tokenIdBytes ? [tokenIdBytes] : undefined,
     query: {
-      enabled: !!routerAddress && !!tokenIdBytes && isIgraMainnet,
+      enabled: !!routerAddress && !!tokenIdBytes && isIgraL2,
     },
   });
 
@@ -202,7 +202,7 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
       return;
     }
 
-    if (!isIgraMainnet) {
+    if (!isIgraL2) {
       setError('Please switch to Igra Caravel Testnet');
       return;
     }
@@ -285,7 +285,7 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
   const totalPrice = mintPrice * mintCount;
   const canMint = isConnected &&
     address && // Check address is available
-    isIgraMainnet &&
+    isIgraL2 &&
     (!cooldownRemaining || cooldownRemaining <= 0) &&
     (!rateLimitStatus || rateLimitStatus.remainingMints >= mintCount) &&
     tokenConfig.status === 'ACTIVE';
@@ -448,7 +448,7 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
             Please connect your wallet
           </p>
         )}
-        {!isIgraMainnet && isConnected && (
+        {!isIgraL2 && isConnected && (
           <p className="mt-2 text-sm text-yellow-600 dark:text-yellow-400 text-center">
             Please switch to Igra Caravel Testnet
           </p>

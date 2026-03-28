@@ -100,7 +100,7 @@ export const placeholderDApps: DApp[] = [
     security: 'Built with OpenZeppelin contracts for security. All smart contracts use ReentrancyGuard to prevent reentrancy attacks. Fee collection is automated and transparent. Contracts are audited and follow best practices for EVM development.',
     roadmap: 'Q4 2025: Testnet launch and initial testing\nQ1 2026: Mainnet deployment\nQ2 2026: Enhanced features including batch payments and payment scheduling\nQ3 2026: Integration with Token Builder for automatic utility attachment',
     createdAt: '2025-11-05T16:21:29.306Z',
-    supportedChainIds: [167012, 38833], // Kasplex L2 Testnet, Igra Mainnet
+    supportedChainIds: [167012, 38836, 38833], // Kasplex L2 Testnet, IGRA Galleon Testnet, Igra Mainnet
     // Contract address will be fetched from environment variables via getContractAddress
     // deployerAddress will be fetched from DAppRegistry contract
   },
@@ -149,7 +149,7 @@ export const placeholderDApps: DApp[] = [
     security: 'Built with OpenZeppelin contracts for security. All smart contracts use ReentrancyGuard to prevent reentrancy attacks. Fee collection is automated and transparent.',
     roadmap: 'Q4 2025: Testnet launch and initial testing\nQ1 2026: Mainnet deployment\nQ2 2026: Enhanced features including proposal categories and advanced filtering\nQ3 2026: Integration with marketplace for automatic listing of approved proposals',
     createdAt: new Date().toISOString(),
-    supportedChainIds: [167012, 202555, 38833], // Kasplex L2 Testnet, Mainnet, and Igra Mainnet
+    supportedChainIds: [167012, 202555, 38836, 38833], // Kasplex L2 Testnet, Mainnet, IGRA Galleon Testnet, Igra Mainnet
     // Contract address will be fetched from environment variables via getContractAddress
     // deployerAddress will be fetched from DAppRegistry contract
   },
@@ -433,12 +433,16 @@ export function networkNameToChainIds(network: string): number[] {
     return [CHAIN_IDS.KASPLEX_L2_MAINNET, CHAIN_IDS.KASPLEX_L2_TESTNET];
   }
 
+  if (networkLower.includes('galleon')) {
+    return [CHAIN_IDS.IGRA_GALLEON_TESTNET];
+  }
+
   if (networkLower.includes('igra')) {
-    return [CHAIN_IDS.IGRA_MAINNET];
+    return [CHAIN_IDS.IGRA_GALLEON_TESTNET, CHAIN_IDS.IGRA_MAINNET];
   }
 
   if (networkLower === 'testnet' || networkLower.includes('testnet')) {
-    return [CHAIN_IDS.KASPLEX_L2_TESTNET];
+    return [CHAIN_IDS.KASPLEX_L2_TESTNET, CHAIN_IDS.IGRA_GALLEON_TESTNET];
   }
 
   if (networkLower === 'mainnet' || networkLower.includes('mainnet')) {

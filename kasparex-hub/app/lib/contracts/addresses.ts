@@ -137,6 +137,28 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     UserProfileDashboard: "",
     AdminDashboard: "",
   },
+  igraGalleonTestnet: {
+    Treasury: "",
+    FeeCollector: "",
+    DAppRegistry: "",
+    SimplePayment: "",
+    PlatformSubscription: "",
+    DAppSubscription: "",
+    SubscriptionManager: "",
+    AuthorizationRegistry: "",
+    DAOVoting: "",
+    QuizToEarn: "",
+    GRIDToken: "",
+    RewardVault: "",
+    RewardManager: "",
+    ProofOfUtility: "",
+    FeeHandler: "",
+    AffiliateManager: "",
+    LoyaltyPoints: "",
+    ProfileRegistry: "",
+    UserProfileDashboard: "",
+    AdminDashboard: "",
+  },
   igraMainnet: {
     Treasury: "",
     FeeCollector: "",
@@ -208,6 +230,29 @@ export const CONTRACT_ADDRESSES = {
     UserProfileDashboard: getEnvVar('NEXT_PUBLIC_USER_PROFILE_DASHBOARD_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.UserProfileDashboard || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.UserProfileDashboard,
     AdminDashboard: getEnvVar('NEXT_PUBLIC_ADMIN_DASHBOARD_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.AdminDashboard || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.AdminDashboard,
   },
+  // IGRA Galleon Testnet (Chain ID: 38836)
+  igraGalleonTestnet: {
+    Treasury: getEnvVar('NEXT_PUBLIC_TREASURY_ADDRESS_IGRA_GALLEON_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.igraGalleonTestnet.Treasury || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.Treasury,
+    FeeCollector: getEnvVar('NEXT_PUBLIC_FEE_COLLECTOR_ADDRESS_IGRA_GALLEON_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.igraGalleonTestnet.FeeCollector || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.FeeCollector,
+    DAppRegistry: getEnvVar('NEXT_PUBLIC_DAPP_REGISTRY_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.DAppRegistry,
+    SimplePayment: getEnvVar('NEXT_PUBLIC_SIMPLE_PAYMENT_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.SimplePayment,
+    PlatformSubscription: getEnvVar('NEXT_PUBLIC_PLATFORM_SUBSCRIPTION_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.PlatformSubscription,
+    DAppSubscription: getEnvVar('NEXT_PUBLIC_DAPP_SUBSCRIPTION_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.DAppSubscription,
+    SubscriptionManager: getEnvVar('NEXT_PUBLIC_SUBSCRIPTION_MANAGER_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.SubscriptionManager,
+    AuthorizationRegistry: getEnvVar('NEXT_PUBLIC_AUTHORIZATION_REGISTRY_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.AuthorizationRegistry,
+    DAOVoting: getEnvVar('NEXT_PUBLIC_DAO_VOTING_ADDRESS_IGRA_GALLEON_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.igraGalleonTestnet.DAOVoting || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.DAOVoting,
+    QuizToEarn: getEnvVar('NEXT_PUBLIC_QUIZ_TO_EARN_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.QuizToEarn,
+    GRIDToken: getEnvVar('NEXT_PUBLIC_GRID_TOKEN_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.GRIDToken,
+    RewardVault: getEnvVar('NEXT_PUBLIC_REWARD_VAULT_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.RewardVault,
+    RewardManager: getEnvVar('NEXT_PUBLIC_REWARD_MANAGER_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.RewardManager,
+    ProofOfUtility: getEnvVar('NEXT_PUBLIC_PROOF_OF_UTILITY_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.ProofOfUtility,
+    FeeHandler: getEnvVar('NEXT_PUBLIC_FEE_HANDLER_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.FeeHandler,
+    AffiliateManager: getEnvVar('NEXT_PUBLIC_AFFILIATE_MANAGER_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.AffiliateManager,
+    LoyaltyPoints: getEnvVar('NEXT_PUBLIC_LOYALTY_POINTS_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.LoyaltyPoints,
+    ProfileRegistry: getEnvVar('NEXT_PUBLIC_PROFILE_REGISTRY_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.ProfileRegistry,
+    UserProfileDashboard: getEnvVar('NEXT_PUBLIC_USER_PROFILE_DASHBOARD_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.UserProfileDashboard,
+    AdminDashboard: getEnvVar('NEXT_PUBLIC_ADMIN_DASHBOARD_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.AdminDashboard,
+  },
   // Igra Mainnet (Chain ID: 38833)
   igraMainnet: {
     Treasury: getEnvVar('NEXT_PUBLIC_TREASURY_ADDRESS_IGRA_MAINNET') || HARDCODED_FALLBACK_ADDRESSES.igraMainnet.Treasury || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.Treasury,
@@ -257,6 +302,8 @@ export const getContractAddress = (
     return CONTRACT_ADDRESSES.kasplexL2Mainnet[contractName] || "";
   } else if (chainId === 167012) {
     return CONTRACT_ADDRESSES.kasplexL2Testnet[contractName] || "";
+  } else if (chainId === 38836) {
+    return CONTRACT_ADDRESSES.igraGalleonTestnet[contractName] || "";
   } else if (chainId === 38833) {
     return CONTRACT_ADDRESSES.igraMainnet[contractName] || "";
   } else if (chainId === 999999) {
