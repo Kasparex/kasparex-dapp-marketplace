@@ -1,18 +1,18 @@
 'use client';
 
-import { useMemo, useState, useRef, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { AD_SLOTS, priceKasForDays } from '@/lib/ads/slots';
-import { AD_SLOT_PLACEMENT_LINKS } from '@/lib/ads/placementLinks';
-import { countActiveForSlot, firstFreeSlotIndex } from '@/lib/ads/registryUtils';
+import { AD_SLOTS } from '@/lib/ads/slots';
 import type { AdEntry, AdFormat, AdSlotId } from '@/lib/ads/types';
 import { AdCard } from '@/components/ads/AdCard';
 import { CreateAdWizard } from '@/components/ads/CreateAdWizard';
 import { useAdsRegistryContext } from '@/components/ads/AdsRegistryProvider';
 import { FilterBar } from '@/components/FilterBar';
-
-export type AdsSortOption = 'newest' | 'ending-soon' | 'slot' | 'format';
+import {
+  AdsListingFilterControls,
+  type AdsSortOption,
+} from '@/components/ads/AdsListingFilterControls';
 
 function sortAds(ads: AdEntry[], sortBy: AdsSortOption): AdEntry[] {
   const sorted = [...ads];
@@ -41,8 +41,6 @@ export default function AdsListingPage() {
   const [sortBy, setSortBy] = useState<AdsSortOption>('newest');
   const [formatFilter, setFormatFilter] = useState<AdFormat | 'all'>('all');
   const [slotFilter, setSlotFilter] = useState<AdSlotId | 'all'>('all');
-  const [sortOpen, setSortOpen] = useState(false);
-  const sortRef = useRef<HTMLDivElement>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [wizardInitialSlotId, setWizardInitialSlotId] = useState<AdSlotId | undefined>(undefined);
   const [wizardInitialSlotIndex, setWizardInitialSlotIndex] = useState(0);
@@ -63,14 +61,6 @@ export default function AdsListingPage() {
       setWizardOpen(true);
     }
   }, [searchParams]);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (sortRef.current && !sortRef.current.contains(e.target as Node)) setSortOpen(false);
-    };
-    if (sortOpen) document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [sortOpen]);
 
   const filteredAds = useMemo(() => {
     let list = allActive;
@@ -105,18 +95,9 @@ export default function AdsListingPage() {
     setWizardOpen(true);
   };
 
-  const sortOptions: { value: AdsSortOption; label: string }[] = [
-    { value: 'newest', label: 'Newest' },
-    { value: 'ending-soon', label: 'Ending soon' },
-    { value: 'slot', label: 'By slot' },
-    { value: 'format', label: 'By format' },
-  ];
-  const sortLabel = sortOptions.find((o) => o.value === sortBy)?.label ?? 'Sort by...';
-
   return (
     <>
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        {/* Halo header - Ads identity (aligned with dApps hero structure) */}
         <div className="relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/40 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/20 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50">
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute top-0 right-0 w-[60%] h-[80%] bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.15),transparent_70%)] rounded-full blur-3xl" />
@@ -157,7 +138,6 @@ export default function AdsListingPage() {
           </div>
         </div>
 
-        {/* Page header */}
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
             Active campaigns
@@ -167,79 +147,25 @@ export default function AdsListingPage() {
           </p>
         </div>
 
-        {/* FilterBar */}
         <div className="flex flex-col gap-4 mb-6">
           <FilterBar
             search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search campaigns...' }}
             onReset={handleResetFilters}
             resetLabel="Reset filters"
           >
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mr-1 hidden sm:inline">Format:</span>
-              {(['all', 'square', 'rectangle', 'tall'] as const).map((f) => (
-                <button
-                  key={f}
-                  type="button"
-                  onClick={() => setFormatFilter(f)}
-                  className={`px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                    formatFilter === f
-                      ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100'
-                      : 'bg-zinc-100 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-                  }`}
-                >
-                  {f === 'all' ? 'All' : f === 'tall' ? 'Tall' : f === 'square' ? 'Square' : 'Rectangle'}
-                </button>
-              ))}
-            </div>
-            <div className="relative flex-shrink-0">
-              <select
-                value={slotFilter}
-                onChange={(e) => setSlotFilter(e.target.value as AdSlotId | 'all')}
-                className="k-control-btn min-w-[140px] h-10 cursor-pointer appearance-none bg-transparent pr-8"
-              >
-                <option value="all">All slots</option>
-                {AD_SLOTS.map((s) => (
-                  <option key={s.id} value={s.id}>{s.label}</option>
-                ))}
-              </select>
-              <svg className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-            <div className="relative flex-shrink-0" ref={sortRef}>
-              <button
-                type="button"
-                onClick={() => setSortOpen(!sortOpen)}
-                className="k-control-btn min-w-[130px]"
-              >
-                <span className="truncate">{sortLabel}</span>
-                <svg className="w-4 h-4 ml-auto flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {sortOpen && (
-                <div className="absolute left-0 top-full mt-1.5 w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[9999] overflow-hidden">
-                  {sortOptions.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => {
-                        setSortBy(opt.value);
-                        setSortOpen(false);
-                      }}
-                      className="block w-full text-left px-4 py-2.5 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <AdsListingFilterControls
+              formatFilter={formatFilter}
+              onFormatChange={setFormatFilter}
+              slotFilter={slotFilter}
+              onSlotChange={setSlotFilter}
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+            />
           </FilterBar>
         </div>
 
         {filteredAds.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredAds.map((ad) => (
               <AdCard key={ad.id} ad={ad} onEdit={() => openCreateWizard()} />
             ))}

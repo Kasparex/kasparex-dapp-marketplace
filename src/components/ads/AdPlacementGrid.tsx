@@ -17,13 +17,13 @@ export type AdPlacementVariant = 'halo' | 'footer' | 'sidebar';
 /** One outer frame per slide: aspect + padding inside the dashed/solid shell */
 function frameForVariant(v: AdPlacementVariant): string {
   if (v === 'footer') {
-    return 'aspect-[32/10] min-h-[88px] max-h-[108px] w-full p-2 sm:p-3';
+    return 'aspect-[32/11] min-h-[100px] max-h-[124px] w-full p-2 sm:p-3';
   }
   if (v === 'sidebar') return 'aspect-[3/2] min-h-[100px] w-full p-3 sm:p-4';
   return 'aspect-square min-w-0 max-w-[220px] mx-auto w-full p-3 sm:p-4';
 }
 
-const CAROUSEL_INTERVAL_MS = 3000;
+const CAROUSEL_INTERVAL_MS = 4000;
 
 interface AdPlacementGridProps {
   slotId: AdSlotId;
