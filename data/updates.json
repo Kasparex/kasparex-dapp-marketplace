@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1774734478-3c878fa",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Ads: 4s carousel, taller footer slot, inventory select UI, dApps-style filters, 4-col grid (by Kasparex)",
+      "date": "2026-03-28T22:44:53+01:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1773441357-33afe0a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix(game): fix type errors in diamond mining hook to unblock build (by Kasparex)",
