@@ -57,6 +57,7 @@ export function CreateAdWizard({
   const [connectBusy, setConnectBusy] = useState(false);
   const ipfsFileInputRef = useRef<HTMLInputElement>(null);
   const wizardOpenRef = useRef(false);
+  const lastPaymentSyncRef = useRef<{ txHash: string; metadataCid: string } | null>(null);
 
   const { state: kaspaState, connect: connectKaspa } = useKaspaWallet();
   const { isConnected: isL2Connected } = useAccount();
