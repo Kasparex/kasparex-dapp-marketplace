@@ -5,7 +5,6 @@ export const AD_SLOTS: AdSlotConfig[] = [
     id: 'HALO_DAPPS_RIGHT',
     label: 'dApps Halo (right)',
     pricePerDay: 100,
-    pricePer30Days: 1000,
     maxAds: 5,
     rotation: 'slider',
   },
@@ -13,7 +12,6 @@ export const AD_SLOTS: AdSlotConfig[] = [
     id: 'HALO_MAGAZINES_RIGHT',
     label: 'Magazines Halo (right)',
     pricePerDay: 100,
-    pricePer30Days: 1000,
     maxAds: 5,
     rotation: 'slider',
   },
@@ -21,7 +19,6 @@ export const AD_SLOTS: AdSlotConfig[] = [
     id: 'SIDEBAR_RANDOM',
     label: 'Sidebar',
     pricePerDay: 80,
-    pricePer30Days: 800,
     maxAds: 10,
     rotation: 'random',
   },
@@ -29,7 +26,6 @@ export const AD_SLOTS: AdSlotConfig[] = [
     id: 'FOOTER_BLOCK',
     label: 'Footer block',
     pricePerDay: 50,
-    pricePer30Days: 500,
     maxAds: 6,
     rotation: 'static',
   },
@@ -37,4 +33,10 @@ export const AD_SLOTS: AdSlotConfig[] = [
 
 export function getSlotConfig(slotId: string): AdSlotConfig | undefined {
   return AD_SLOTS.find((s) => s.id === slotId);
+}
+
+/** Total KAS for a campaign of `days` on this slot */
+export function priceKasForDays(slot: AdSlotConfig, days: number): number {
+  if (days < 1) return 0;
+  return slot.pricePerDay * days;
 }

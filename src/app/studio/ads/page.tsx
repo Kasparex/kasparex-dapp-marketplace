@@ -3,56 +3,71 @@
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { AD_SLOTS } from '@/lib/ads/slots';
-import { getAllActiveAds } from '@/lib/ads/mockAds';
 import { AdCard } from '@/components/ads/AdCard';
+import { useAdsRegistryContext } from '@/components/ads/AdsRegistryProvider';
+import { filterAdsByPayer } from '@/lib/ads/registryUtils';
+import { useKasWare } from '@/hooks/useKasWare';
 
 export default function StudioAdsPage() {
-  const activeAds = useMemo(() => getAllActiveAds(), []);
-  const mockMyAds = activeAds.slice(0, 3);
+  const { ads } = useAdsRegistryContext();
+  const { address: l1Address } = useKasWare();
+
+  const myAds = useMemo(() => {
+    if (process.env.NEXT_PUBLIC_ADS_USE_MOCK === '1') {
+      return ads.slice(0, 8);
+    }
+    return filterAdsByPayer(ads, l1Address);
+  }, [ads, l1Address]);
+  const firstSlot = AD_SLOTS[0];
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-zinc-200 dark:border-zinc-800">
-          <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
-                  My Ads
-              </h1>
-              <p className="text-zinc-600 dark:text-zinc-400 text-sm sm:text-base max-w-2xl">
-                  Manage your ad campaigns. Pay in KAS, choose a slot and duration, and your ad goes live across the platform.
-              </p>
-          </div>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">My Ads</h1>
+          <p className="text-zinc-600 dark:text-zinc-400 text-sm sm:text-base max-w-2xl">
+            Campaigns paid from your connected Kaspa (L1) wallet. Connect the same wallet you used at checkout to see them
+            here.
+          </p>
+        </div>
 
-          <div className="flex flex-wrap gap-3">
-              <Link
-                href="/ads?create=1"
-                className="px-4 py-2 bg-[#02abb8] hover:bg-[#029ca8] text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-colors"
-              >
-                Create ad
-              </Link>
-              <Link
-                href="/ads/overview"
-                className="px-4 py-2 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl font-bold text-xs uppercase tracking-widest transition-colors"
-              >
-                Pricing
-              </Link>
-          </div>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/ads?create=1"
+            className="px-4 py-2 bg-[#02abb8] hover:bg-[#029ca8] text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-colors"
+          >
+            Create ad
+          </Link>
+          <Link
+            href="/ads/overview"
+            className="px-4 py-2 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl font-bold text-xs uppercase tracking-widest transition-colors"
+          >
+            Pricing
+          </Link>
+        </div>
       </div>
 
-      {/* Pricing reminder */}
       <section>
         <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-3">Pricing (per slot)</h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-          From {AD_SLOTS[0]?.pricePerDay ?? 100} KAS/day or {AD_SLOTS[0]?.pricePer30Days ?? 1000} KAS for 30 days. See <Link href="/ads" className="text-[#02abb8] hover:underline">Kasparex Ads</Link> for full pricing.
+          From {firstSlot?.pricePerDay ?? 100} KAS/day (linear: days × rate). Example: 30 days on the first slot ≈{' '}
+          {(firstSlot?.pricePerDay ?? 100) * 30} KAS. See{' '}
+          <Link href="/ads" className="text-[#02abb8] hover:underline">
+            Kasparex Ads
+          </Link>{' '}
+          for full pricing.
         </p>
       </section>
 
-      {/* My ads (mock) */}
       <section>
         <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-4">Your active campaigns</h2>
-        {mockMyAds.length > 0 ? (
+        {!l1Address ? (
+          <div className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 py-12 text-center">
+            <p className="text-zinc-600 dark:text-zinc-400">Connect your Kaspa wallet to see ads you paid for.</p>
+          </div>
+        ) : myAds.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mockMyAds.map((ad) => (
+            {myAds.map((ad) => (
               <AdCard
                 key={ad.id}
                 ad={ad}
@@ -63,8 +78,10 @@ export default function StudioAdsPage() {
           </div>
         ) : (
           <div className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 py-12 text-center">
-            <p className="text-zinc-600 dark:text-zinc-400">You have no active ads yet.</p>
-            <Link href="/ads?create=1" className="mt-2 inline-block text-[#02abb8] font-medium hover:underline">Create your first ad</Link>
+            <p className="text-zinc-600 dark:text-zinc-400">You have no active ads for this wallet yet.</p>
+            <Link href="/ads?create=1" className="mt-2 inline-block text-[#02abb8] font-medium hover:underline">
+              Create your first ad
+            </Link>
           </div>
         )}
       </section>

@@ -7,6 +7,7 @@ import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { darkTheme, lightTheme } from '@rainbow-me/rainbowkit';
 import { config } from '@/lib/wagmi';
 import { KaspaWalletProvider } from '@/lib/kaspa/context';
+import { AdsRegistryProvider } from '@/components/ads/AdsRegistryProvider';
 import { BalanceVisibilityProvider } from '@/hooks/useBalanceVisibility';
 import { getErrorMessage } from '@/lib/utils';
 import { ToasterProvider } from '@/components/ui/Toaster';
@@ -633,7 +634,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             <TooltipProvider>
               <KaspaWalletProvider>
                 <RainbowKitProviderWithTheme>
-                  {children}
+                  <AdsRegistryProvider>{children}</AdsRegistryProvider>
                 </RainbowKitProviderWithTheme>
               </KaspaWalletProvider>
             </TooltipProvider>

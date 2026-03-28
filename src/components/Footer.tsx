@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { AdSlot } from '@/components/ads/AdSlot';
+import { FooterAds } from '@/components/ads/FooterAds';
 
 export function Footer() {
   return (
@@ -7,7 +7,7 @@ export function Footer() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Ads block above main footer */}
         <div className="mb-8">
-          <AdSlot slotId="FOOTER_BLOCK" variant="footer" />
+          <FooterAds />
           <p className="mt-2 text-[10px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500 text-center">
             This area is an advertisement
           </p>

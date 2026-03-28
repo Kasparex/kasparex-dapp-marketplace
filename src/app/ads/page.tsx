@@ -3,11 +3,11 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { getAllActiveAds } from '@/lib/ads/mockAds';
 import { AD_SLOTS } from '@/lib/ads/slots';
 import type { AdEntry, AdFormat, AdSlotId } from '@/lib/ads/types';
 import { AdCard } from '@/components/ads/AdCard';
 import { CreateAdWizard } from '@/components/ads/CreateAdWizard';
+import { useAdsRegistryContext } from '@/components/ads/AdsRegistryProvider';
 import { FilterBar } from '@/components/FilterBar';
 
 export type AdsSortOption = 'newest' | 'ending-soon' | 'slot' | 'format';
@@ -34,7 +34,7 @@ function sortAds(ads: AdEntry[], sortBy: AdsSortOption): AdEntry[] {
 }
 
 export default function AdsListingPage() {
-  const allActive = useMemo(() => getAllActiveAds(), []);
+  const { ads: allActive, refresh: refreshAds } = useAdsRegistryContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<AdsSortOption>('newest');
   const [formatFilter, setFormatFilter] = useState<AdFormat | 'all'>('all');
@@ -259,8 +259,9 @@ export default function AdsListingPage() {
       <CreateAdWizard
         isOpen={wizardOpen}
         onClose={() => setWizardOpen(false)}
-        onSuccess={() => setWizardOpen(false)}
-        initialSlotId={wizardInitialSlotId}
+        onSuccess={() => void refreshAds()}
+        initialSlotId={wizardInitialSlotId ?? null}
+        initialSlotIndex={wizardInitialSlotIndex}
       />
     </>
   );

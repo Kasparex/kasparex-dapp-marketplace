@@ -6,6 +6,7 @@ import { useDiamondMining } from '@/hooks/useDiamondMining';
 import { NFTSlotSelector } from './NFTSlotSelector';
 import { getBonusForTrait, getNFTTier } from '@/lib/game/diamond-bonuses';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { EmptyVeinSlotFrame, EmptyVeinSlotPlusIcon } from '@/components/game/EmptyVeinSlotFrame';
 import { WORKER_TIER_MULTIPLIERS, OPERATOR_TIER_MULTIPLIERS } from '@/lib/game/diamond-veins-config';
 
 const GARAGE_ITEMS = [
@@ -150,20 +151,10 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
             const speedMult = operatorMult != null ? (operatorMult * (1 + traitBonus)).toFixed(2) : null;
             const slotImageUrl = meta?.image ? getBestGatewayUrl(String(meta.image).replace('ipfs://', '')) : null;
             return (
-              <div
-                key={idx}
-                onClick={() => setSelectedSlotIndex(idx)}
-                className="aspect-square relative flex flex-col items-center justify-center p-6 rounded-2xl bg-zinc-100 dark:bg-zinc-900/40 border-2 border-dashed border-zinc-300 dark:border-zinc-700 hover:border-emerald-500/50 transition-all group overflow-hidden cursor-pointer"
-              >
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-
+              <EmptyVeinSlotFrame key={idx} onClick={() => setSelectedSlotIndex(idx)} frameClassName="aspect-square">
                 {!slot.nftId ? (
                   <div className="flex flex-col items-center gap-4 text-center">
-                    <div className="w-16 h-16 rounded-2xl bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <svg className="w-8 h-8 text-zinc-500 dark:text-zinc-400 group-hover:text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                    </div>
+                    <EmptyVeinSlotPlusIcon />
                     <div>
                       <h3 className="font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide text-base">{(slot.type as string).charAt(0).toUpperCase() + (slot.type as string).slice(1)}</h3>
                       <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">Deploy {slot.collection || 'Any NFT'}</p>
@@ -205,9 +196,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                     <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">Click to manage</p>
                   </div>
                 )}
-
-                <div className="absolute bottom-0 left-0 w-full h-[2px] bg-emerald-500/50 blur-[2px] translate-y-full group-hover:translate-y-0 transition-transform" />
-              </div>
+              </EmptyVeinSlotFrame>
             );
           })}
         </div>

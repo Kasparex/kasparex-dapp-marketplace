@@ -14,7 +14,7 @@ export default function AdsOverviewPage() {
           Ecosystem-wide advertising
         </h1>
         <p className="text-zinc-600 dark:text-zinc-400 max-w-2xl">
-          Time-locked ad slots across the Kasparex platform. Pay in KAS, choose a slot and duration, and your ad goes live. No manual approval required.
+          Time-locked ad slots across the Kasparex platform. Pay in KAS on L1, pin metadata to IPFS, and attach the campaign CID in your transaction payload so the public indexer can list your ad. Very old payments may fall outside the treasury lookback window—see archive CID env if you need long-tail listings.
         </p>
       </div>
 
@@ -31,7 +31,7 @@ export default function AdsOverviewPage() {
           </li>
           <li className="flex gap-3">
             <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#02abb8]/20 text-[#02abb8] flex items-center justify-center text-xs font-bold">3</span>
-            Add your image URL, link and title, then pay with L1 (KAS) or L2.
+            Add your image (URL or IPFS upload), link and title, then pay with L1 (KAS). L2 payments are planned for a later phase.
           </li>
           <li className="flex gap-3">
             <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#02abb8]/20 text-[#02abb8] flex items-center justify-center text-xs font-bold">4</span>
@@ -48,7 +48,7 @@ export default function AdsOverviewPage() {
               <tr className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
                 <th className="px-4 py-3 font-bold text-zinc-900 dark:text-zinc-100">Slot</th>
                 <th className="px-4 py-3 font-bold text-zinc-900 dark:text-zinc-100">Per day</th>
-                <th className="px-4 py-3 font-bold text-zinc-900 dark:text-zinc-100">30 days</th>
+                <th className="px-4 py-3 font-bold text-zinc-900 dark:text-zinc-100">30 days (linear)</th>
               </tr>
             </thead>
             <tbody>
@@ -56,7 +56,7 @@ export default function AdsOverviewPage() {
                 <tr key={slot.id} className="border-b border-zinc-100 dark:border-zinc-800/50 last:border-0">
                   <td className="px-4 py-3 text-zinc-700 dark:text-zinc-300">{slot.label}</td>
                   <td className="px-4 py-3">{slot.pricePerDay} KAS</td>
-                  <td className="px-4 py-3">{slot.pricePer30Days} KAS</td>
+                  <td className="px-4 py-3">{slot.pricePerDay * 30} KAS</td>
                 </tr>
               ))}
             </tbody>

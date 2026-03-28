@@ -175,9 +175,10 @@ export async function getTransactionByHash(txHash: string): Promise<KaspaTxForVe
   const hash = txHash.replace(/^0x/, '');
   if (!/^[0-9a-fA-F]{64}$/.test(hash)) return null;
 
+  const query = 'inputs=true&outputs=true&resolve_previous_outpoints=light';
   const endpoints = [
-    `${KASPA_TX_API}/v1/transactions/${hash}`,
-    `${KASPA_TX_API}/transactions/${hash}`,
+    `${KASPA_TX_API}/v1/transactions/${hash}?${query}`,
+    `${KASPA_TX_API}/transactions/${hash}?${query}`,
   ];
 
   for (const url of endpoints) {
@@ -193,6 +194,98 @@ export async function getTransactionByHash(txHash: string): Promise<KaspaTxForVe
       if (normalized && (normalized.transactionId || normalized.id)) return normalized;
     } catch {
       // try next endpoint
+    }
+  }
+  return null;
+}
+
+/** Rich tx shape from kaspa-rest-server `/transactions` and `/addresses/.../full-transactions` */
+export interface KaspaRestTxOutput {
+  amount?: number | string;
+  script_public_key_address?: string;
+  scriptPublicKeyAddress?: string;
+  address?: string;
+}
+
+export interface KaspaRestTxInput {
+  previous_outpoint_address?: string | null;
+  previousOutpointAddress?: string | null;
+}
+
+export interface KaspaRestTransaction {
+  transaction_id?: string;
+  transactionId?: string;
+  payload?: string | null;
+  block_time?: number;
+  accepting_block_time?: number;
+  outputs?: KaspaRestTxOutput[];
+  inputs?: KaspaRestTxInput[];
+}
+
+const KASPA_REST_BASE = process.env.KASPA_REST_API_URL || 'https://api.kaspa.org';
+
+/**
+ * Ensure address has `kaspa:` prefix for REST paths that require it.
+ */
+export function toKaspaRestAddress(address: string): string {
+  const t = address.trim();
+  if (t.toLowerCase().startsWith('kaspa:')) return t;
+  return `kaspa:${t}`;
+}
+
+/**
+ * Recent full transactions for an address (incoming + outgoing). Uses public indexer.
+ * Path matches kaspa-rest-server OpenAPI (no `/v1` prefix on some deployments).
+ */
+export async function getFullTransactionsForAddress(
+  kaspaAddress: string,
+  limit: number = 50
+): Promise<KaspaRestTransaction[]> {
+  if (!isValidKaspaAddress(kaspaAddress)) return [];
+  const addr = encodeURIComponent(toKaspaRestAddress(kaspaAddress));
+  const q = `limit=${Math.min(500, Math.max(1, limit))}&resolve_previous_outpoints=light`;
+  const urls = [
+    `${KASPA_REST_BASE}/addresses/${addr}/full-transactions?${q}`,
+    `${KASPA_REST_BASE}/v1/addresses/${addr}/full-transactions?${q}`,
+  ];
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(20000),
+      });
+      if (!res.ok) continue;
+      const data = (await res.json()) as unknown;
+      if (Array.isArray(data)) return data as KaspaRestTransaction[];
+    } catch {
+      // next
+    }
+  }
+  return [];
+}
+
+/**
+ * Fetch a single transaction with inputs resolved (for payer checks).
+ */
+export async function getRestTransactionById(txId: string): Promise<KaspaRestTransaction | null> {
+  const hash = txId.replace(/^0x/, '');
+  if (!/^[0-9a-fA-F]{64}$/.test(hash)) return null;
+  const query = 'inputs=true&outputs=true&resolve_previous_outpoints=light';
+  const urls = [
+    `${KASPA_REST_BASE}/transactions/${hash}?${query}`,
+    `${KASPA_REST_BASE}/v1/transactions/${hash}?${query}`,
+  ];
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!res.ok) continue;
+      const data = (await res.json()) as unknown;
+      if (data && typeof data === 'object') return data as KaspaRestTransaction;
+    } catch {
+      // next
     }
   }
   return null;

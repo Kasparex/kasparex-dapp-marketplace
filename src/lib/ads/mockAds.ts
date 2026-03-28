@@ -11,6 +11,7 @@ export const MOCK_ADS: AdEntry[] = [
   {
     id: 'halo-1',
     slotId: 'HALO_DAPPS_RIGHT',
+    slotIndex: 0,
     format: 'square',
     imageUrl: 'https://placehold.co/400x400/1e3a5f/fff?text=Ad+1',
     link: 'https://kasparex.com',
@@ -22,6 +23,7 @@ export const MOCK_ADS: AdEntry[] = [
   {
     id: 'halo-2',
     slotId: 'HALO_DAPPS_RIGHT',
+    slotIndex: 1,
     format: 'square',
     imageUrl: 'https://placehold.co/400x400/0d4f3a/fff?text=Ad+2',
     link: 'https://kasparex.com',
@@ -33,6 +35,7 @@ export const MOCK_ADS: AdEntry[] = [
   {
     id: 'halo-3',
     slotId: 'HALO_DAPPS_RIGHT',
+    slotIndex: 2,
     format: 'square',
     imageUrl: 'https://placehold.co/400x400/4a1d6b/fff?text=Ad+3',
     link: 'https://kasparex.com',
@@ -44,6 +47,7 @@ export const MOCK_ADS: AdEntry[] = [
   {
     id: 'sidebar-1',
     slotId: 'SIDEBAR_RANDOM',
+    slotIndex: 0,
     format: 'rectangle',
     imageUrl: 'https://placehold.co/300x200/2d3748/fff?text=Sidebar',
     link: 'https://kasparex.com/ads',
@@ -54,6 +58,7 @@ export const MOCK_ADS: AdEntry[] = [
   {
     id: 'sidebar-2',
     slotId: 'SIDEBAR_RANDOM',
+    slotIndex: 1,
     format: 'rectangle',
     imageUrl: 'https://placehold.co/300x200/1a365d/fff?text=Slot',
     link: 'https://kasparex.com/ads',
@@ -64,6 +69,7 @@ export const MOCK_ADS: AdEntry[] = [
   {
     id: 'footer-1',
     slotId: 'FOOTER_BLOCK',
+    slotIndex: 0,
     format: 'rectangle',
     imageUrl: 'https://placehold.co/1200x200/374151/9ca3af?text=Footer+Ad',
     link: 'https://kasparex.com/ads',
@@ -74,6 +80,7 @@ export const MOCK_ADS: AdEntry[] = [
   {
     id: 'footer-2',
     slotId: 'FOOTER_BLOCK',
+    slotIndex: 1,
     format: 'rectangle',
     imageUrl: 'https://placehold.co/1200x200/4b5563/9ca3af?text=Ecosystem',
     link: 'https://kasparex.com',
@@ -84,6 +91,7 @@ export const MOCK_ADS: AdEntry[] = [
   {
     id: 'tall-1',
     slotId: 'SIDEBAR_RANDOM',
+    slotIndex: 2,
     format: 'tall',
     imageUrl: 'https://placehold.co/200x300/1f2937/9ca3af?text=Tall',
     link: 'https://kasparex.com/ads',

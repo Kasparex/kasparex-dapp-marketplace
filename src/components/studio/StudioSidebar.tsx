@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { AdSlot } from '@/components/ads/AdSlot';
+import { AdPlacementGrid } from '@/components/ads/AdPlacementGrid';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 
@@ -49,7 +49,7 @@ export function StudioSidebar() {
                 <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-white/5">
                     <div className="flex flex-col gap-4">
                         <div className="px-2">
-                            <AdSlot slotId="SIDEBAR_RANDOM" variant="compact" />
+                            <AdPlacementGrid slotId="SIDEBAR_RANDOM" variant="sidebar" maxCellsShown={2} />
                             <p className="mt-1.5 text-[10px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500 text-center">
                                 Advertisement
                             </p>
