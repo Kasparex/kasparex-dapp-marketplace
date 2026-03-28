@@ -27,23 +27,10 @@ module.exports = {
       chainId: 167012,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
-    igraCaravelTestnet: {
-      url: process.env.IGRA_CARAVEL_TESTNET_RPC || "https://caravel.igralabs.com:8545",
-      chainId: 19416,
+    igraMainnet: {
+      url: process.env.IGRA_MAINNET_RPC || "https://rpc.igralabs.com:8545",
+      chainId: 38833,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      gasPrice: 2000000000000, // 2000 gwei (required by Igra Testnet)
-    },
-    igraGalleonTestnet: {
-      url: process.env.IGRA_GALLEON_TESTNET_RPC || "https://galleon-testnet.igralabs.com:8545",
-      chainId: 38836,
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      gasPrice: 2000000000000, // 2000 gwei (required by Igra networks)
-    },
-    igraGalleonTestMainnet: {
-      url: process.env.IGRA_GALLEON_TEST_MAINNET_RPC || "https://galleon.igralabs.com:8545",
-      chainId: 38837,
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      gasPrice: 2000000000000, // 2000 gwei (required by Igra networks)
     },
     hardhat: {
       chainId: 1337,
@@ -63,9 +50,7 @@ module.exports = {
     apiKey: {
       kasplexL2Mainnet: process.env.KASPLEX_EXPLORER_API_KEY || "",
       kasplexL2Testnet: process.env.KASPLEX_TESTNET_EXPLORER_API_KEY || "",
-      igraCaravelTestnet: process.env.IGRA_CARAVEL_TESTNET_EXPLORER_API_KEY || "",
-      igraGalleonTestnet: process.env.IGRA_GALLEON_TESTNET_EXPLORER_API_KEY || "",
-      igraGalleonTestMainnet: process.env.IGRA_GALLEON_TEST_MAINNET_EXPLORER_API_KEY || "",
+      igraMainnet: process.env.IGRA_MAINNET_EXPLORER_API_KEY || "",
     },
     customChains: [
       {
@@ -85,30 +70,13 @@ module.exports = {
         },
       },
       {
-        network: "igraCaravelTestnet",
-        chainId: 19416,
+        network: "igraMainnet",
+        chainId: 38833,
         urls: {
-          apiURL: "https://explorer.caravel.igralabs.com/api",
-          browserURL: "https://explorer.caravel.igralabs.com",
-        },
-      },
-      {
-        network: "igraGalleonTestnet",
-        chainId: 38836,
-        urls: {
-          apiURL: "https://explorer.galleon-testnet.igralabs.com/api",
-          browserURL: "https://explorer.galleon-testnet.igralabs.com",
-        },
-      },
-      {
-        network: "igraGalleonTestMainnet",
-        chainId: 38837,
-        urls: {
-          apiURL: "https://explorer.galleon.igralabs.com/api",
-          browserURL: "https://explorer.galleon.igralabs.com",
+          apiURL: "https://explorer.igralabs.com/api",
+          browserURL: "https://explorer.igralabs.com",
         },
       },
     ],
   },
 };
-

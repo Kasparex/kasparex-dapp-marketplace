@@ -59,86 +59,29 @@ export const kasplexL2Testnet = defineChain({
 });
 
 /**
- * Igra Caravel Testnet Chain Configuration
- * 
- * Custom chain definition for Igra Caravel Testnet network
+ * Igra Mainnet (Chain ID 38833, 0x97B1)
+ * @see https://igra-labs.gitbook.io/igralabs-docs/quickstart/network-info#igra-mainnet
  */
-export const igraCaravelTestnet = defineChain({
-  id: 19416,
-  name: 'Igra Caravel Testnet',
-  network: 'igra-caravel-testnet',
+export const igraMainnet = defineChain({
+  id: 38833,
+  name: 'Igra Mainnet',
+  network: 'igra-mainnet',
   nativeCurrency: {
-    name: 'Kaspa',
-    symbol: 'KAS',
-    decimals: 18,
-  },
-  rpcUrls: {
-    default: {
-      http: ['https://caravel.igralabs.com:8545'],
-    },
-  },
-  blockExplorers: {
-    default: {
-      name: 'Igra Caravel Explorer',
-      url: 'https://explorer.caravel.igralabs.com',
-    },
-  },
-  testnet: true,
-});
-
-/**
- * IGRA Galleon Testnet Chain Configuration (38836)
- * Active testnet; use tKREX ERC-20 for Revenue Tree KREX path.
- * @see https://igra-labs.gitbook.io/igralabs-docs/quickstart/network-info#galleon-testnet
- */
-export const igraGalleonTestnet = defineChain({
-  id: 38836,
-  name: 'IGRA Galleon Testnet',
-  network: 'igra-galleon-testnet',
-  nativeCurrency: {
-    name: 'Kaspa',
+    name: 'iKAS',
     symbol: 'iKAS',
     decimals: 18,
   },
   rpcUrls: {
     default: {
-      http: ['https://galleon-testnet.igralabs.com:8545'],
+      http: ['https://rpc.igralabs.com:8545'],
     },
   },
   blockExplorers: {
     default: {
-      name: 'Igra Galleon Testnet Explorer',
-      url: 'https://explorer.galleon-testnet.igralabs.com',
+      name: 'Igra Explorer',
+      url: 'https://explorer.igralabs.com',
     },
   },
-  testnet: true,
-});
-
-/**
- * IGRA Galleon Test Mainnet Chain Configuration (38837)
- * Custom chain definition for IGRA Galleon Test Mainnet network
- */
-export const igraGalleonTestMainnet = defineChain({
-  id: 38837,
-  name: 'IGRA Galleon Test Mainnet',
-  network: 'igra-galleon-test-mainnet',
-  nativeCurrency: {
-    name: 'Kaspa',
-    symbol: 'iKAS',
-    decimals: 18,
-  },
-  rpcUrls: {
-    default: {
-      http: ['https://galleon.igralabs.com:8545'],
-    },
-  },
-  blockExplorers: {
-    default: {
-      name: 'Igra Galleon Explorer',
-      url: 'https://explorer.galleon.igralabs.com',
-    },
-  },
-  testnet: false, // Test Mainnet (not a testnet)
 });
 
 /**
@@ -197,9 +140,7 @@ export const vProgsMainnet = defineChain({
 export const CHAIN_IDS = {
   KASPLEX_L2_MAINNET: 202555,
   KASPLEX_L2_TESTNET: 167012,
-  IGRA_CARAVEL_TESTNET: 19416,
-  IGRA_GALLEON_TESTNET: 38836,
-  IGRA_GALLEON_TEST_MAINNET: 38837,
+  IGRA_MAINNET: 38833,
   VPROGS_TESTNET: 999999,
   VPROGS_MAINNET: 999998,
 } as const;
@@ -210,9 +151,7 @@ export const CHAIN_IDS = {
 export const kaspaChains = [
   kasplexL2Mainnet,
   kasplexL2Testnet,
-  igraCaravelTestnet,
-  igraGalleonTestnet,
-  igraGalleonTestMainnet,
+  igraMainnet,
 ] as const;
 
 /**
@@ -246,7 +185,7 @@ export function getChainById(chainId: number): Chain | undefined {
 }
 
 /**
- * Get the native currency symbol for a chain (e.g. KAS, iKAS on IGRA Galleon).
+ * Get the native currency symbol for a chain (e.g. KAS, iKAS on Igra Mainnet).
  * Use this everywhere we display payment/balance amounts so the UI matches the chain.
  */
 export function getNativeCurrencySymbol(chainId: number): string {
@@ -273,7 +212,7 @@ if (typeof window !== 'undefined' && (!walletConnectProjectId || walletConnectPr
 export const config = getDefaultConfig({
   appName: 'Kasparex dApps',
   projectId: walletConnectProjectId || 'default-project-id',
-  chains: [kasplexL2Mainnet, kasplexL2Testnet, igraCaravelTestnet, igraGalleonTestnet, igraGalleonTestMainnet],
+  chains: [kasplexL2Mainnet, kasplexL2Testnet, igraMainnet],
   ssr: true, // Enable SSR support for Next.js
 });
 

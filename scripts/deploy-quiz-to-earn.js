@@ -8,7 +8,7 @@
  *   npx hardhat run scripts/deploy-quiz-to-earn.js --network kasplexL2Testnet
  *   
  *   # Deploy to Igra Caravel Testnet
- *   npx hardhat run scripts/deploy-quiz-to-earn.js --network igraCaravelTestnet
+ *   npx hardhat run scripts/deploy-quiz-to-earn.js --network igraMainnet
  * 
  * Prerequisites:
  *   1. Set up .env file with required environment variables
@@ -18,7 +18,7 @@
  * Default Configuration:
  *   - Fee Percentage: 1% (100 basis points)
  *   - Default Reward: 0.01 KAS (10000000000000000 wei) per correct answer
- *   - Networks: Kasplex L2 Testnet (167012) and Igra Caravel Testnet (19416)
+ *   - Networks: Kasplex L2 Testnet (167012) and Igra Mainnet (38833)
  */
 
 const hre = require('hardhat');
@@ -27,12 +27,12 @@ const fs = require('fs');
 
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
-  console.log('\n🚀 Deploying QuizToEarn Contract...\n');
+  console.log('\nđźš€ Deploying QuizToEarn Contract...\n');
   console.log('Deploying with account:', deployer.address);
   console.log('Account balance:', hre.ethers.formatEther(await hre.ethers.provider.getBalance(deployer.address)), 'KAS\n');
 
   const network = hre.network.name;
-  const isIgra = network === 'igraCaravelTestnet';
+  const isIgra = network === 'igraMainnet';
   
   // Default addresses (Kasplex L2 Testnet)
   const defaultFeeCollector = '0x002C7eeC68975d41f3f0F7bC8D900Aa45A131aE2';
@@ -58,17 +58,17 @@ async function main() {
   
   // Validate required addresses
   if (!feeCollectorAddress || !dAppRegistryAddress || !proofOfUtilityAddress) {
-    console.error('\n❌ ERROR: Missing required contract addresses\n');
+    console.error('\nâťŚ ERROR: Missing required contract addresses\n');
     console.log('Required environment variables:');
     console.log('   FEE_COLLECTOR_ADDRESS');
     console.log('   DAPP_REGISTRY_ADDRESS');
     console.log('   PROOF_OF_UTILITY_ADDRESS\n');
-    console.log('💡 Find these in ECOSYSTEM_DEPLOYMENT_SUCCESS.md or src/lib/contracts/addresses.ts\n');
+    console.log('đź’ˇ Find these in ECOSYSTEM_DEPLOYMENT_SUCCESS.md or src/lib/contracts/addresses.ts\n');
     process.exit(1);
   }
   
-  console.log(`📋 Network: ${network}`);
-  console.log(`   Chain ID: ${isIgra ? '19416' : '167012'}`);
+  console.log(`đź“‹ Network: ${network}`);
+  console.log(`   Chain ID: ${isIgra ? '38833' : '167012'}`);
   console.log(`   Fee Collector: ${feeCollectorAddress}`);
   console.log(`   DApp Registry: ${dAppRegistryAddress}`);
   console.log(`   Proof of Utility: ${proofOfUtilityAddress}`);
@@ -77,7 +77,7 @@ async function main() {
 
   try {
     // Step 1: Deploy QuizToEarn contract
-    console.log('1️⃣  Deploying QuizToEarn Contract...');
+    console.log('1ď¸ŹâŁ  Deploying QuizToEarn Contract...');
     
     const QuizToEarn = await hre.ethers.getContractFactory('QuizToEarn');
     const quizToEarn = await QuizToEarn.deploy(
@@ -88,12 +88,12 @@ async function main() {
     );
     await quizToEarn.waitForDeployment();
     const quizToEarnAddress = await quizToEarn.getAddress();
-    console.log('   ✅ QuizToEarn deployed to:', quizToEarnAddress);
-    console.log(`   📝 Fee Percentage: ${defaultFeePercentage} basis points (${defaultFeePercentage / 100}%)`);
-    console.log(`   📝 Default Reward: ${hre.ethers.formatEther(defaultRewardAmount)} KAS`);
+    console.log('   âś… QuizToEarn deployed to:', quizToEarnAddress);
+    console.log(`   đź“ť Fee Percentage: ${defaultFeePercentage} basis points (${defaultFeePercentage / 100}%)`);
+    console.log(`   đź“ť Default Reward: ${hre.ethers.formatEther(defaultRewardAmount)} KAS`);
 
     // Step 2: Register dApp in DAppRegistry
-    console.log('\n2️⃣  Registering dApp in DAppRegistry...');
+    console.log('\n2ď¸ŹâŁ  Registering dApp in DAppRegistry...');
     
     const DAppRegistry = await hre.ethers.getContractFactory('DAppRegistry');
     const dAppRegistry = DAppRegistry.attach(dAppRegistryAddress);
@@ -109,17 +109,17 @@ async function main() {
       quizToEarnAddress
     );
     await registerTx.wait();
-    console.log('   ✅ dApp registered in DAppRegistry');
+    console.log('   âś… dApp registered in DAppRegistry');
     
     // Get the dApp ID
     const dAppId = await dAppRegistry.dAppCount();
-    console.log('   📝 dApp ID:', dAppId.toString());
+    console.log('   đź“ť dApp ID:', dAppId.toString());
 
     // Step 3: Set dApp ID in QuizToEarn contract
-    console.log(`\n3️⃣  Setting dApp ID in QuizToEarn contract...`);
+    console.log(`\n3ď¸ŹâŁ  Setting dApp ID in QuizToEarn contract...`);
     const setDAppIdTx = await quizToEarn.setDAppId(dAppId);
     await setDAppIdTx.wait();
-    console.log(`   ✅ dApp ID set in QuizToEarn contract`);
+    console.log(`   âś… dApp ID set in QuizToEarn contract`);
 
     // Step 4: Save deployment info
     const deploymentInfo = {
@@ -153,21 +153,21 @@ async function main() {
 
     const deploymentFile = path.join(deploymentsDir, `quiz-to-earn-${network}-${Date.now()}.json`);
     fs.writeFileSync(deploymentFile, JSON.stringify(deploymentInfo, null, 2));
-    console.log('\n💾 Deployment info saved to:', deploymentFile);
+    console.log('\nđź’ľ Deployment info saved to:', deploymentFile);
 
     // Summary
     console.log('\n' + '='.repeat(60));
-    console.log('✅ DEPLOYMENT SUCCESSFUL!');
+    console.log('âś… DEPLOYMENT SUCCESSFUL!');
     console.log('='.repeat(60));
-    console.log('\n📦 QuizToEarn Details:');
+    console.log('\nđź“¦ QuizToEarn Details:');
     console.log('   Name:', dAppName);
     console.log('   ID:', dAppId.toString());
     console.log('   Contract:', quizToEarnAddress);
     console.log('   Fee Percentage:', defaultFeePercentage, 'basis points (' + (defaultFeePercentage / 100) + '%)');
     console.log('   Default Reward:', hre.ethers.formatEther(defaultRewardAmount), 'KAS per correct answer');
-    console.log('\n🔗 View on Explorer:');
+    console.log('\nđź”— View on Explorer:');
     console.log(`   Contract: https://explorer.kasplex.org/address/${quizToEarnAddress}`);
-    console.log('\n📋 Next Steps:');
+    console.log('\nđź“‹ Next Steps:');
     console.log('   1. Update src/lib/contracts/addresses.ts with the contract address');
     console.log('   2. Add questions to the contract using addQuestion() function');
     console.log('   3. Test the dApp on the frontend');
@@ -175,7 +175,7 @@ async function main() {
     console.log('');
 
   } catch (error) {
-    console.error('\n❌ Deployment failed:', error);
+    console.error('\nâťŚ Deployment failed:', error);
     process.exit(1);
   }
 }

@@ -3,7 +3,7 @@
  * Run after deploying DonationEscrow so L2 donations and L1 record work.
  *
  * Usage:
- *   npx hardhat run scripts/setup-vdonations-auth.js --network igraGalleonTestnet
+ *   npx hardhat run scripts/setup-vdonations-auth.js --network igraMainnet
  *
  * Env:
  *   PRIVATE_KEY - must be owner of FeeRouter and LoyaltyPoints (or deployer who did configure-igra-galleon-rewards)
@@ -16,12 +16,12 @@ const hre = require('hardhat');
 const fs = require('fs');
 const path = require('path');
 
-// Use same FeeRouter as app (igraGalleonTestnet) so donation fees distribute to Revenue Tree
+// Use same FeeRouter as app (igraMainnet) so donation fees distribute to Revenue Tree
 const FEE_ROUTER_38836 = '0xd556624Cd557cb4fA3a23964Ced4838e1ffA6E5A';
 const LOYALTY_POINTS_38836 = '0x1cF432A52A0f2D09c8E7450CC40E4FC1422E8936';
 
 function getOverrides(chainId) {
-  if (Number(chainId) === 38836 || Number(chainId) === 38837 || Number(chainId) === 19416) {
+  if (Number(chainId) === 38833) {
     return { gasPrice: hre.ethers.parseUnits('2000', 'gwei') };
   }
   return {};
@@ -31,8 +31,8 @@ async function main() {
   const [deployer] = await hre.ethers.getSigners();
   const chainId = (await hre.ethers.provider.getNetwork()).chainId;
 
-  if (Number(chainId) !== 38836) {
-    console.error('This script is for IGRA Galleon Testnet (chainId 38836) only.');
+  if (Number(chainId) !== 38833) {
+    console.error('This script is for Igra Mainnet (chainId 38833) only.');
     process.exit(1);
   }
 
@@ -71,7 +71,7 @@ async function main() {
     await tx1b.wait();
     console.log('   Tx:', tx1b.hash);
   } catch (err) {
-    console.warn('   Skipped (FeeRouter does not have setTreeBpsByType — deploy upgraded FeeRouter and call setTreeBpsByType("donation", 10000) manually).');
+    console.warn('   Skipped (FeeRouter does not have setTreeBpsByType â€” deploy upgraded FeeRouter and call setTreeBpsByType("donation", 10000) manually).');
   }
 
   console.log('\n3. LoyaltyPoints: setAuthorizedCaller(DonationEscrow, true)...');

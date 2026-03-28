@@ -2,7 +2,7 @@
  * Debug helper: prints deployer address, chainId, block, nonces.
  *
  * Usage:
- *   npx hardhat run scripts/check-nonce.js --network igraGalleonTestnet
+ *   npx hardhat run scripts/check-nonce.js --network igraMainnet
  */
 const hre = require("hardhat");
 

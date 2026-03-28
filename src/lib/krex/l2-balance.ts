@@ -1,6 +1,6 @@
 /**
  * L2 KREX Balance Query
- * Fetches KREX/tKREX token balance per chain (Kasplex L2 mainnet, IGRA Galleon Testnet 38836).
+ * Fetches KREX token balance per chain (Kasplex L2 mainnet, Igra Mainnet 38833 when configured).
  */
 
 import { createPublicClient, http, type Address, formatUnits } from 'viem';
@@ -29,7 +29,7 @@ const ERC20_ABI = [
  * Query KREX/tKREX balance from L2 for the given chain.
  * 
  * @param address - EVM address (0x...)
- * @param chainId - Chain ID (202555 = Kasplex L2 KREX, 38836 = tKREX when set)
+ * @param chainId - Chain ID (202555 = Kasplex L2 KREX, 38833 = Igra Mainnet KREX when env set)
  * @returns KREX balance as number, or 0 if error / no token on chain
  */
 export async function queryL2KREXBalance(address: string, chainId: number): Promise<number> {

@@ -68,7 +68,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     UserProfileDashboard: "0x7335913B5dBF5934D98Cd9814A2Af7691541ae43",
     AdminDashboard: "0x96c6Bab5EB4633eE33D07070E8d59C5bf3aD6502",
   },
-  igraCaravelTestnet: {
+  igraMainnet: {
     Treasury: "",
     FeeCollector: "",
     DAppRegistry: "",
@@ -77,7 +77,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     DAppSubscription: "",
     SubscriptionManager: "",
     AuthorizationRegistry: "",
-    DAOVoting: "0x97004140704097e122CB7B9808330c80464ab69d",
+    DAOVoting: "",
     QuizToEarn: "",
     GRIDToken: "",
     RewardVault: "",
@@ -137,7 +137,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     UserProfileDashboard: "",
     AdminDashboard: "",
   },
-  igraCaravelTestnet: {
+  igraMainnet: {
     Treasury: "",
     FeeCollector: "",
     DAppRegistry: "",
@@ -208,28 +208,28 @@ export const CONTRACT_ADDRESSES = {
     UserProfileDashboard: getEnvVar('NEXT_PUBLIC_USER_PROFILE_DASHBOARD_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.UserProfileDashboard || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.UserProfileDashboard,
     AdminDashboard: getEnvVar('NEXT_PUBLIC_ADMIN_DASHBOARD_ADDRESS_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.kasplexL2Testnet.AdminDashboard || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.AdminDashboard,
   },
-  // Igra Caravel Testnet (Chain ID: 19416)
-  igraCaravelTestnet: {
-    Treasury: getEnvVar('NEXT_PUBLIC_TREASURY_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.Treasury,
-    FeeCollector: getEnvVar('NEXT_PUBLIC_FEE_COLLECTOR_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.FeeCollector,
-    DAppRegistry: getEnvVar('NEXT_PUBLIC_DAPP_REGISTRY_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.DAppRegistry,
-    SimplePayment: getEnvVar('NEXT_PUBLIC_SIMPLE_PAYMENT_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.SimplePayment,
-    PlatformSubscription: getEnvVar('NEXT_PUBLIC_PLATFORM_SUBSCRIPTION_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.PlatformSubscription,
-    DAppSubscription: getEnvVar('NEXT_PUBLIC_DAPP_SUBSCRIPTION_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.DAppSubscription,
-    SubscriptionManager: getEnvVar('NEXT_PUBLIC_SUBSCRIPTION_MANAGER_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.SubscriptionManager,
-    AuthorizationRegistry: getEnvVar('NEXT_PUBLIC_AUTHORIZATION_REGISTRY_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.AuthorizationRegistry,
-    DAOVoting: getEnvVar('NEXT_PUBLIC_DAO_VOTING_ADDRESS_IGRA_TESTNET') || HARDCODED_FALLBACK_ADDRESSES.igraCaravelTestnet.DAOVoting || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.DAOVoting,
-    QuizToEarn: getEnvVar('NEXT_PUBLIC_QUIZ_TO_EARN_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.QuizToEarn,
-    GRIDToken: getEnvVar('NEXT_PUBLIC_GRID_TOKEN_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.GRIDToken,
-    RewardVault: getEnvVar('NEXT_PUBLIC_REWARD_VAULT_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.RewardVault,
-    RewardManager: getEnvVar('NEXT_PUBLIC_REWARD_MANAGER_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.RewardManager,
-    ProofOfUtility: getEnvVar('NEXT_PUBLIC_PROOF_OF_UTILITY_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.ProofOfUtility,
-    FeeHandler: getEnvVar('NEXT_PUBLIC_FEE_HANDLER_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.FeeHandler,
-    AffiliateManager: getEnvVar('NEXT_PUBLIC_AFFILIATE_MANAGER_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.AffiliateManager,
-    LoyaltyPoints: getEnvVar('NEXT_PUBLIC_LOYALTY_POINTS_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.LoyaltyPoints,
-    ProfileRegistry: getEnvVar('NEXT_PUBLIC_PROFILE_REGISTRY_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.ProfileRegistry,
-    UserProfileDashboard: getEnvVar('NEXT_PUBLIC_USER_PROFILE_DASHBOARD_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.UserProfileDashboard,
-    AdminDashboard: getEnvVar('NEXT_PUBLIC_ADMIN_DASHBOARD_ADDRESS_IGRA_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet.AdminDashboard,
+  // Igra Mainnet (Chain ID: 38833)
+  igraMainnet: {
+    Treasury: getEnvVar('NEXT_PUBLIC_TREASURY_ADDRESS_IGRA_MAINNET') || HARDCODED_FALLBACK_ADDRESSES.igraMainnet.Treasury || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.Treasury,
+    FeeCollector: getEnvVar('NEXT_PUBLIC_FEE_COLLECTOR_ADDRESS_IGRA_MAINNET') || HARDCODED_FALLBACK_ADDRESSES.igraMainnet.FeeCollector || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.FeeCollector,
+    DAppRegistry: getEnvVar('NEXT_PUBLIC_DAPP_REGISTRY_ADDRESS_IGRA_MAINNET') || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.DAppRegistry,
+    SimplePayment: getEnvVar('NEXT_PUBLIC_SIMPLE_PAYMENT_ADDRESS_IGRA_MAINNET') || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.SimplePayment,
+    PlatformSubscription: getEnvVar('NEXT_PUBLIC_PLATFORM_SUBSCRIPTION_ADDRESS_IGRA_MAINNET') || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.PlatformSubscription,
+    DAppSubscription: getEnvVar('NEXT_PUBLIC_DAPP_SUBSCRIPTION_ADDRESS_IGRA_MAINNET') || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.DAppSubscription,
+    SubscriptionManager: getEnvVar('NEXT_PUBLIC_SUBSCRIPTION_MANAGER_ADDRESS_IGRA_MAINNET') || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.SubscriptionManager,
+    AuthorizationRegistry: getEnvVar('NEXT_PUBLIC_AUTHORIZATION_REGISTRY_ADDRESS_IGRA_MAINNET') || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.AuthorizationRegistry,
+    DAOVoting: getEnvVar('NEXT_PUBLIC_DAO_VOTING_ADDRESS_IGRA_MAINNET') || HARDCODED_FALLBACK_ADDRESSES.igraMainnet.DAOVoting || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.DAOVoting,
+    QuizToEarn: getEnvVar('NEXT_PUBLIC_QUIZ_TO_EARN_ADDRESS_IGRA_MAINNET') || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.QuizToEarn,
+    GRIDToken: getEnvVar('NEXT_PUBLIC_GRID_TOKEN_ADDRESS_IGRA_MAINNET') || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.GRIDToken,
+    RewardVault: getEnvVar('NEXT_PUBLIC_REWARD_VAULT_ADDRESS_IGRA_MAINNET') || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.RewardVault,
+    RewardManager: getEnvVar('NEXT_PUBLIC_REWARD_MANAGER_ADDRESS_IGRA_MAINNET') || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.RewardManager,
+    ProofOfUtility: getEnvVar('NEXT_PUBLIC_PROOF_OF_UTILITY_ADDRESS_IGRA_MAINNET') || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.ProofOfUtility,
+    FeeHandler: getEnvVar('NEXT_PUBLIC_FEE_HANDLER_ADDRESS_IGRA_MAINNET') || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.FeeHandler,
+    AffiliateManager: getEnvVar('NEXT_PUBLIC_AFFILIATE_MANAGER_ADDRESS_IGRA_MAINNET') || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.AffiliateManager,
+    LoyaltyPoints: getEnvVar('NEXT_PUBLIC_LOYALTY_POINTS_ADDRESS_IGRA_MAINNET') || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.LoyaltyPoints,
+    ProfileRegistry: getEnvVar('NEXT_PUBLIC_PROFILE_REGISTRY_ADDRESS_IGRA_MAINNET') || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.ProfileRegistry,
+    UserProfileDashboard: getEnvVar('NEXT_PUBLIC_USER_PROFILE_DASHBOARD_ADDRESS_IGRA_MAINNET') || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.UserProfileDashboard,
+    AdminDashboard: getEnvVar('NEXT_PUBLIC_ADMIN_DASHBOARD_ADDRESS_IGRA_MAINNET') || DEFAULT_CONTRACT_ADDRESSES.igraMainnet.AdminDashboard,
   },
 };
 
@@ -257,8 +257,8 @@ export const getContractAddress = (
     return CONTRACT_ADDRESSES.kasplexL2Mainnet[contractName] || "";
   } else if (chainId === 167012) {
     return CONTRACT_ADDRESSES.kasplexL2Testnet[contractName] || "";
-  } else if (chainId === 19416) {
-    return CONTRACT_ADDRESSES.igraCaravelTestnet[contractName] || "";
+  } else if (chainId === 38833) {
+    return CONTRACT_ADDRESSES.igraMainnet[contractName] || "";
   } else if (chainId === 999999) {
     return VPROGS_ADDRESSES.vProgsTestnet[contractName as keyof typeof VPROGS_ADDRESSES.vProgsTestnet] || "";
   } else if (chainId === 999998) {

@@ -15,7 +15,7 @@ export function TransactionPendingModal({
   isOpen,
   onClose,
   txHash,
-  chainId = 38836,
+  chainId = 38833,
   title = 'Transaction submitted',
 }: TransactionPendingModalProps) {
   const [copied, setCopied] = useState(false);

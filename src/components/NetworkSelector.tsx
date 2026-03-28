@@ -35,6 +35,12 @@ export function NetworkSelector({ className = '' }: NetworkSelectorProps) {
       isVProgs: false,
     },
     {
+      id: CHAIN_IDS.IGRA_MAINNET,
+      name: 'Igra Mainnet',
+      type: 'EVM',
+      isVProgs: false,
+    },
+    {
       id: CHAIN_IDS.VPROGS_TESTNET,
       name: 'Kaspa vProgs Testnet',
       type: 'vProgs',

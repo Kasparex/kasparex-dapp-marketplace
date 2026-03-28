@@ -4,7 +4,7 @@
  * Does NOT deploy new LoyaltyPoints or SimplePayment.
  *
  * Usage:
- *   npx hardhat run scripts/deploy-fee-router-upgrade-igra.js --network igraGalleonTestnet
+ *   npx hardhat run scripts/deploy-fee-router-upgrade-igra.js --network igraMainnet
  *
  * Env: PRIVATE_KEY (must own FeeRouter, RevenueTreeManager, RewardManager, LoyaltyPoints, SimplePayment, DonationEscrow, GenesisBadge)
  */
@@ -16,7 +16,7 @@ const path = require('path');
 const FEE_ROUTER_38836 = '0x37c98699eEe02Cb89da64C45B8c970174218A745';
 
 function getOverrides(chainId) {
-  if (Number(chainId) === 38836 || Number(chainId) === 38837 || Number(chainId) === 19416) {
+  if (Number(chainId) === 38833) {
     return { gasPrice: hre.ethers.parseUnits('2000', 'gwei') };
   }
   return {};
@@ -41,8 +41,8 @@ async function deployNoEstimate(factory, args, overrides) {
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
   const chainId = (await hre.ethers.provider.getNetwork()).chainId;
-  if (Number(chainId) !== 38836) {
-    console.error('This script is for IGRA Galleon Testnet (chainId 38836) only.');
+  if (Number(chainId) !== 38833) {
+    console.error('This script is for Igra Mainnet (chainId 38833) only.');
     process.exit(1);
   }
 
@@ -131,7 +131,7 @@ async function main() {
     await (await loyaltyPoints.setAuthorizedCaller(newFeeRouterAddress, true, overrides)).wait();
     console.log('   Done');
   } else {
-    console.log('\n2–4. Skipped (using existing new FeeRouter).');
+    console.log('\n2â€“4. Skipped (using existing new FeeRouter).');
   }
 
   console.log('\n5. Repoint dApps to new FeeRouter...');
@@ -163,7 +163,7 @@ async function main() {
   }
 
   console.log('\n--- Set in .env and Vercel ---');
-  console.log('NEXT_PUBLIC_FEE_ROUTER_ADDRESS_IGRA_GALLEON_TESTNET=' + newFeeRouterAddress);
+  console.log('NEXT_PUBLIC_FEE_ROUTER_ADDRESS_IGRA_MAINNET=' + newFeeRouterAddress);
   console.log('\nDone. Donation fees (10% of donation) now go 100% to Revenue Tree.');
 }
 

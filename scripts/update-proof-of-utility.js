@@ -20,12 +20,12 @@ const hre = require('hardhat');
 
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
-  console.log('\n🔄 Updating ProofOfUtility Contract...\n');
+  console.log('\nđź”„ Updating ProofOfUtility Contract...\n');
   console.log('Using account:', deployer.address);
   console.log('Account balance:', hre.ethers.formatEther(await hre.ethers.provider.getBalance(deployer.address)), 'KAS\n');
 
   const network = hre.network.name;
-  const isIgra = network === 'igraCaravelTestnet';
+  const isIgra = network === 'igraMainnet';
   
   // Current deployed addresses
   const currentProofOfUtilityAddress = isIgra 
@@ -36,7 +36,7 @@ async function main() {
     ? process.env.REWARD_MANAGER_ADDRESS_IGRA || '0x2044FEb08a4Cb14Ff736b00f947E017044da50E6'
     : '0x2044FEb08a4Cb14Ff736b00f947E017044da50E6';
 
-  console.log(`📋 Network: ${network}`);
+  console.log(`đź“‹ Network: ${network}`);
   console.log(`   Current ProofOfUtility: ${currentProofOfUtilityAddress}`);
   console.log(`   RewardManager: ${rewardManagerAddress}\n`);
 
@@ -45,7 +45,7 @@ async function main() {
     const ProofOfUtility = await hre.ethers.getContractFactory('ProofOfUtility');
     const currentContract = ProofOfUtility.attach(currentProofOfUtilityAddress);
     
-    console.log('1️⃣  Checking current contract...');
+    console.log('1ď¸ŹâŁ  Checking current contract...');
     
     // Check if deployer is owner
     try {
@@ -54,7 +54,7 @@ async function main() {
       console.log(`   Deployer: ${deployer.address}`);
       
       if (owner.toLowerCase() !== deployer.address.toLowerCase()) {
-        console.log('\n⚠️  WARNING: Deployer is not the owner of the contract!');
+        console.log('\nâš ď¸Ź  WARNING: Deployer is not the owner of the contract!');
         console.log('   You cannot update this contract directly.');
         console.log('   Options:');
         console.log('   1. Deploy a new ProofOfUtility contract');
@@ -63,43 +63,43 @@ async function main() {
         process.exit(1);
       }
     } catch (error) {
-      console.log('   ⚠️  Could not verify ownership:', error.message);
+      console.log('   âš ď¸Ź  Could not verify ownership:', error.message);
     }
 
     // Since Solidity contracts are immutable, we need to deploy a new version
-    console.log('\n2️⃣  Deploying new ProofOfUtility contract with recordUsageAndReward()...');
+    console.log('\n2ď¸ŹâŁ  Deploying new ProofOfUtility contract with recordUsageAndReward()...');
     
     const newProofOfUtility = await ProofOfUtility.deploy(rewardManagerAddress);
     await newProofOfUtility.waitForDeployment();
     const newProofOfUtilityAddress = await newProofOfUtility.getAddress();
     
-    console.log('   ✅ New ProofOfUtility deployed to:', newProofOfUtilityAddress);
+    console.log('   âś… New ProofOfUtility deployed to:', newProofOfUtilityAddress);
     
     // Verify the new function exists
-    console.log('\n3️⃣  Verifying new function exists...');
+    console.log('\n3ď¸ŹâŁ  Verifying new function exists...');
     try {
       // Try to get the function signature
       const hasRecordUsageAndReward = newProofOfUtility.interface.hasFunction('recordUsageAndReward');
-      console.log('   ✅ recordUsageAndReward() function exists:', hasRecordUsageAndReward);
+      console.log('   âś… recordUsageAndReward() function exists:', hasRecordUsageAndReward);
     } catch (error) {
-      console.log('   ⚠️  Could not verify function:', error.message);
+      console.log('   âš ď¸Ź  Could not verify function:', error.message);
     }
 
     console.log('\n' + '='.repeat(60));
-    console.log('✅ NEW PROOF OF UTILITY CONTRACT DEPLOYED!');
+    console.log('âś… NEW PROOF OF UTILITY CONTRACT DEPLOYED!');
     console.log('='.repeat(60));
-    console.log('\n📦 Contract Details:');
+    console.log('\nđź“¦ Contract Details:');
     console.log('   Old Address:', currentProofOfUtilityAddress);
     console.log('   New Address:', newProofOfUtilityAddress);
     console.log('   Network:', network);
-    console.log('\n⚠️  IMPORTANT NEXT STEPS:');
+    console.log('\nâš ď¸Ź  IMPORTANT NEXT STEPS:');
     console.log('   1. Update RewardManager to point to new ProofOfUtility:');
     console.log('      (This may require RewardManager owner)');
     console.log('   2. Update all dApp contracts to use new ProofOfUtility address');
     console.log('   3. Update src/lib/contracts/addresses.ts with new address');
     console.log('   4. Update environment variables');
     console.log('   5. Test all integrations');
-    console.log('\n💡 Note: Since contracts are immutable, updating requires:');
+    console.log('\nđź’ˇ Note: Since contracts are immutable, updating requires:');
     console.log('   - Deploying new ProofOfUtility');
     console.log('   - Updating RewardManager reference');
     console.log('   - Updating all dApp contracts that use ProofOfUtility');
@@ -107,9 +107,9 @@ async function main() {
     console.log('');
 
   } catch (error) {
-    console.error('\n❌ Update failed:', error.message);
+    console.error('\nâťŚ Update failed:', error.message);
     if (error.message.includes('nonce')) {
-      console.error('   ⚠️  Nonce error - try again in a moment');
+      console.error('   âš ď¸Ź  Nonce error - try again in a moment');
     }
     process.exit(1);
   }

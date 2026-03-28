@@ -1,10 +1,10 @@
 /**
- * Upgrade FeeRouter and LoyaltyPoints on IGRA Galleon Testnet (38836).
+ * Upgrade FeeRouter and LoyaltyPoints on Igra Mainnet (38833).
  * Deploys new implementations (with tier multiplier for tGRID + setKREXToken for XP),
  * rewires RewardManager, RevenueTreeManager, SimplePayment, and persists new addresses.
  *
  * Usage:
- *   npx hardhat run scripts/upgrade-fee-router-loyalty-igra.js --network igraGalleonTestnet
+ *   npx hardhat run scripts/upgrade-fee-router-loyalty-igra.js --network igraMainnet
  *
  * Env: PRIVATE_KEY (deployer must own FeeRouter, LoyaltyPoints, RewardManager, RevenueTreeManager, SimplePayment)
  */
@@ -14,7 +14,7 @@ const fs = require('fs');
 const path = require('path');
 
 function getFeeOverrides(chainId) {
-  if (Number(chainId) === 38836 || Number(chainId) === 38837 || Number(chainId) === 19416) {
+  if (Number(chainId) === 38833) {
     return { gasPrice: hre.ethers.parseUnits('2000', 'gwei') };
   }
   return {};
@@ -48,8 +48,8 @@ function loadDeployment() {
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
   const chainId = (await hre.ethers.provider.getNetwork()).chainId;
-  if (Number(chainId) !== 38836) {
-    console.error('This script is for IGRA Galleon Testnet (chainId 38836) only.');
+  if (Number(chainId) !== 38833) {
+    console.error('This script is for Igra Mainnet (chainId 38833) only.');
     process.exit(1);
   }
 
@@ -104,7 +104,7 @@ async function main() {
   await (await newFeeRouter.setBaseReward('dapp-payment', baseRewardWei, overrides)).wait();
   console.log('   RewardManager, LoyaltyPoints, baseReward set');
 
-  console.log('\n3b. Deploying new SimplePayment (payment-amount–scaled rewards)...');
+  console.log('\n3b. Deploying new SimplePayment (payment-amountâ€“scaled rewards)...');
   const FEE_PERCENTAGE = 100; // 1%
   const SimplePayment = await hre.ethers.getContractFactory('SimplePayment');
   const newSimplePaymentAddress = await deployNoEstimate(SimplePayment, [feeCollectorAddress, FEE_PERCENTAGE], overrides);
@@ -144,9 +144,9 @@ async function main() {
   console.log('\nDeployment file updated:', deploymentPath);
 
   console.log('\n--- Set these in .env and Vercel ---');
-  console.log('NEXT_PUBLIC_FEE_ROUTER_ADDRESS_IGRA_GALLEON_TESTNET=' + newFeeRouterAddress);
-  console.log('NEXT_PUBLIC_LOYALTY_POINTS_ADDRESS_IGRA_GALLEON_TESTNET=' + newLoyaltyPointsAddress);
-  console.log('NEXT_PUBLIC_SIMPLE_PAYMENT_ADDRESS_IGRA_GALLEON_TESTNET=' + newSimplePaymentAddress);
+  console.log('NEXT_PUBLIC_FEE_ROUTER_ADDRESS_IGRA_MAINNET=' + newFeeRouterAddress);
+  console.log('NEXT_PUBLIC_LOYALTY_POINTS_ADDRESS_IGRA_MAINNET=' + newLoyaltyPointsAddress);
+  console.log('NEXT_PUBLIC_SIMPLE_PAYMENT_ADDRESS_IGRA_MAINNET=' + newSimplePaymentAddress);
   console.log('\nDone.');
 }
 

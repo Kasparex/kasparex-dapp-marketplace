@@ -100,7 +100,7 @@ export const placeholderDApps: DApp[] = [
     security: 'Built with OpenZeppelin contracts for security. All smart contracts use ReentrancyGuard to prevent reentrancy attacks. Fee collection is automated and transparent. Contracts are audited and follow best practices for EVM development.',
     roadmap: 'Q4 2025: Testnet launch and initial testing\nQ1 2026: Mainnet deployment\nQ2 2026: Enhanced features including batch payments and payment scheduling\nQ3 2026: Integration with Token Builder for automatic utility attachment',
     createdAt: '2025-11-05T16:21:29.306Z',
-    supportedChainIds: [167012, 38836], // Kasplex L2 Testnet, IGRA Galleon Testnet
+    supportedChainIds: [167012, 38833], // Kasplex L2 Testnet, Igra Mainnet
     // Contract address will be fetched from environment variables via getContractAddress
     // deployerAddress will be fetched from DAppRegistry contract
   },
@@ -118,13 +118,13 @@ export const placeholderDApps: DApp[] = [
       { label: 'Telegram', url: 'https://t.me/kasparex' },
       { label: 'X (Twitter)', url: 'https://x.com/kasparex' },
     ],
-    status: 'Testnet',
-    network: 'IGRA Galleon Testnet',
+    status: 'Mainnet',
+    network: 'Igra Mainnet',
     networkType: 'L2',
     provider: 'Kasparex',
     version: '1.0.0',
-    description: 'Genesis Badge lets you unlock a unique random badge (theme and title) for 10 iKAS, then boost it with more payments. All payments flow through the Revenue Tree and reward you with tGRID and XP. Perfect for testing the ecosystem on IGRA Galleon Testnet.',
-    supportedChainIds: [38836],
+    description: 'Genesis Badge lets you unlock a unique random badge (theme and title) for 10 iKAS, then boost it with more payments. All payments flow through the Revenue Tree and reward you with GRID and XP on Igra Mainnet.',
+    supportedChainIds: [38833],
   },
   {
     id: '12',
@@ -149,7 +149,7 @@ export const placeholderDApps: DApp[] = [
     security: 'Built with OpenZeppelin contracts for security. All smart contracts use ReentrancyGuard to prevent reentrancy attacks. Fee collection is automated and transparent.',
     roadmap: 'Q4 2025: Testnet launch and initial testing\nQ1 2026: Mainnet deployment\nQ2 2026: Enhanced features including proposal categories and advanced filtering\nQ3 2026: Integration with marketplace for automatic listing of approved proposals',
     createdAt: new Date().toISOString(),
-    supportedChainIds: [167012, 202555, 19416], // Kasplex L2 Testnet, Mainnet, and Igra Caravel Testnet
+    supportedChainIds: [167012, 202555, 38833], // Kasplex L2 Testnet, Mainnet, and Igra Mainnet
     // Contract address will be fetched from environment variables via getContractAddress
     // deployerAddress will be fetched from DAppRegistry contract
   },
@@ -434,27 +434,15 @@ export function networkNameToChainIds(network: string): number[] {
   }
 
   if (networkLower.includes('igra')) {
-    // Igra L2 networks - check for specific network names
-    if (networkLower.includes('galleon')) {
-      // IGRA Galleon Test Mainnet
-      return [CHAIN_IDS.IGRA_GALLEON_TEST_MAINNET];
-    }
-    if (networkLower.includes('caravel')) {
-      // IGRA Caravel Testnet
-      return [CHAIN_IDS.IGRA_CARAVEL_TESTNET];
-    }
-    // Generic Igra - return both available networks
-    return [CHAIN_IDS.IGRA_CARAVEL_TESTNET, CHAIN_IDS.IGRA_GALLEON_TEST_MAINNET];
+    return [CHAIN_IDS.IGRA_MAINNET];
   }
 
   if (networkLower === 'testnet' || networkLower.includes('testnet')) {
-    // Generic testnet - includes all testnets
-    return [CHAIN_IDS.KASPLEX_L2_TESTNET, CHAIN_IDS.IGRA_CARAVEL_TESTNET];
+    return [CHAIN_IDS.KASPLEX_L2_TESTNET];
   }
 
   if (networkLower === 'mainnet' || networkLower.includes('mainnet')) {
-    // Generic mainnet - includes Kasplex L2 Mainnet and IGRA Galleon Test Mainnet
-    return [CHAIN_IDS.KASPLEX_L2_MAINNET, CHAIN_IDS.IGRA_GALLEON_TEST_MAINNET];
+    return [CHAIN_IDS.KASPLEX_L2_MAINNET, CHAIN_IDS.IGRA_MAINNET];
   }
 
   // Default: return empty array for unknown networks

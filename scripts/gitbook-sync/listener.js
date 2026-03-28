@@ -29,7 +29,7 @@ class EventListener {
     const rpcUrls = {
       kasplexL2Testnet: process.env.RPC_URL_TESTNET || 'https://evmrpc-testnet.kasplex.org',
       kasplexL2Mainnet: process.env.RPC_URL_MAINNET || 'https://evmrpc.kasplex.org',
-      igraCaravelTestnet: process.env.RPC_URL_IGRA_TESTNET || 'https://rpc.igra.caravel.network',
+      igraMainnet: process.env.IGRA_MAINNET_RPC || 'https://rpc.igralabs.com:8545',
     };
 
     const rpcUrl = rpcUrls[networkName];
@@ -61,7 +61,7 @@ class EventListener {
     this.contract = new ethers.Contract(registryAddress, registryABI, this.provider);
     this.networkName = networkName;
 
-    console.log(`✅ Initialized event listener for ${networkName}`);
+    console.log(`âś… Initialized event listener for ${networkName}`);
     console.log(`   Contract: ${registryAddress}`);
   }
 
@@ -70,7 +70,7 @@ class EventListener {
    */
   async start() {
     if (this.isListening) {
-      console.log('⚠️  Listener is already running');
+      console.log('âš ď¸Ź  Listener is already running');
       return;
     }
 
@@ -79,52 +79,52 @@ class EventListener {
     }
 
     this.isListening = true;
-    console.log('\n👂 Starting event listener...');
+    console.log('\nđź‘‚ Starting event listener...');
     console.log('   Listening for DAppRegistered, DAppMetadataUpdated, and DAppStatusUpdated events');
     console.log('   Press Ctrl+C to stop\n');
 
     // Listen for DAppRegistered events
     this.contract.on('DAppRegistered', async (dAppId, name, version, deployer, contractAddress, timestamp) => {
-      console.log(`\n📢 New dApp registered: ${name} (ID: ${dAppId})`);
+      console.log(`\nđź“˘ New dApp registered: ${name} (ID: ${dAppId})`);
       console.log(`   Deployer: ${deployer}`);
       console.log(`   Contract: ${contractAddress}`);
       
       try {
         await this.syncService.syncDApp(Number(dAppId), this.networkName);
-        console.log(`   ✅ Documentation synced for ${name}\n`);
+        console.log(`   âś… Documentation synced for ${name}\n`);
       } catch (error) {
-        console.error(`   ❌ Error syncing documentation: ${error.message}\n`);
+        console.error(`   âťŚ Error syncing documentation: ${error.message}\n`);
       }
     });
 
     // Listen for DAppMetadataUpdated events
     this.contract.on('DAppMetadataUpdated', async (dAppId, ipfsCID) => {
-      console.log(`\n📢 dApp metadata updated: ID ${dAppId}`);
+      console.log(`\nđź“˘ dApp metadata updated: ID ${dAppId}`);
       console.log(`   IPFS CID: ${ipfsCID}`);
       
       try {
         await this.syncService.syncDApp(Number(dAppId), this.networkName);
-        console.log(`   ✅ Documentation synced for dApp ID ${dAppId}\n`);
+        console.log(`   âś… Documentation synced for dApp ID ${dAppId}\n`);
       } catch (error) {
-        console.error(`   ❌ Error syncing documentation: ${error.message}\n`);
+        console.error(`   âťŚ Error syncing documentation: ${error.message}\n`);
       }
     });
 
     // Listen for DAppStatusUpdated events
     this.contract.on('DAppStatusUpdated', async (dAppId, isActive) => {
-      console.log(`\n📢 dApp status updated: ID ${dAppId}, Active: ${isActive}`);
+      console.log(`\nđź“˘ dApp status updated: ID ${dAppId}, Active: ${isActive}`);
       
       try {
         await this.syncService.syncDApp(Number(dAppId), this.networkName);
-        console.log(`   ✅ Documentation synced for dApp ID ${dAppId}\n`);
+        console.log(`   âś… Documentation synced for dApp ID ${dAppId}\n`);
       } catch (error) {
-        console.error(`   ❌ Error syncing documentation: ${error.message}\n`);
+        console.error(`   âťŚ Error syncing documentation: ${error.message}\n`);
       }
     });
 
     // Keep process alive
     process.on('SIGINT', () => {
-      console.log('\n\n🛑 Stopping event listener...');
+      console.log('\n\nđź›‘ Stopping event listener...');
       this.stop();
       process.exit(0);
     });
@@ -143,14 +143,14 @@ class EventListener {
     }
 
     this.isListening = false;
-    console.log('✅ Event listener stopped');
+    console.log('âś… Event listener stopped');
   }
 
   /**
    * Sync all existing dApps (useful for initial setup)
    */
   async syncExisting() {
-    console.log('\n🔄 Syncing existing dApps...');
+    console.log('\nđź”„ Syncing existing dApps...');
     await this.syncService.syncAllDApps(this.networkName);
   }
 }
@@ -191,7 +191,7 @@ async function main() {
     // Start listening
     await listener.start();
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error('âťŚ Error:', error.message);
     process.exit(1);
   }
 }

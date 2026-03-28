@@ -97,8 +97,8 @@ async function main() {
 
   const status = await question('Status (Testnet/Mainnet, default: Testnet): ') || 'Testnet';
   const network = await question('Network (default: Kasplex L2 Testnet): ') || 'Kasplex L2 Testnet';
-  const chainIds = await question('Supported Chain IDs (comma-separated, default: 167012,19416): ') || '167012,19416';
-  console.log('\n   Note: Default includes both Kasplex L2 Testnet (167012) and Igra Caravel Testnet (19416)');
+  const chainIds = await question('Supported Chain IDs (comma-separated, default: 167012,38833): ') || '167012,38833';
+  console.log('\n   Note: Default includes both Kasplex L2 Testnet (167012) and Igra Mainnet (38833)');
 
   console.log('\n📋 Summary:');
   console.log(`   Name: ${dappName}`);

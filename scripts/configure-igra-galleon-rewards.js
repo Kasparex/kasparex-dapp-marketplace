@@ -1,10 +1,10 @@
 /**
- * Configure (wire) rewards on IGRA Galleon Testnet (38836) only.
+ * Configure (wire) rewards on Igra Mainnet (38833) only.
  * Use when contracts are already deployed and you only need to set RewardManager,
  * FeeRouter, LoyaltyPoints wiring and optionally fund RewardManager.
  *
  * Usage:
- *   npx hardhat run scripts/configure-igra-galleon-rewards.js --network igraGalleonTestnet
+ *   npx hardhat run scripts/configure-igra-galleon-rewards.js --network igraMainnet
  *
  * Env (all required for wiring):
  *   PRIVATE_KEY - deployer (must be authorized on contracts)
@@ -18,7 +18,7 @@
 const hre = require('hardhat');
 
 function getFeeOverrides(chainId) {
-  if (Number(chainId) === 38836 || Number(chainId) === 38837 || Number(chainId) === 19416) {
+  if (Number(chainId) === 38833) {
     return { gasPrice: hre.ethers.parseUnits('2000', 'gwei') };
   }
   return {};
@@ -28,8 +28,8 @@ async function main() {
   const [deployer] = await hre.ethers.getSigners();
   const chainId = (await hre.ethers.provider.getNetwork()).chainId;
 
-  if (Number(chainId) !== 38836) {
-    console.error('This script is for IGRA Galleon Testnet (chainId 38836) only.');
+  if (Number(chainId) !== 38833) {
+    console.error('This script is for Igra Mainnet (chainId 38833) only.');
     process.exit(1);
   }
 

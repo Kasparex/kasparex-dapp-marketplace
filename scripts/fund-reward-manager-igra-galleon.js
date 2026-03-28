@@ -2,16 +2,16 @@
  * Fund RewardManager with tGRID on IGRA Galleon Testnet so that SimplePayment rewards (tGRID + XP) work.
  * Run after deploy-igra-galleon-testnet.js if RewardManager was not auto-funded (e.g. REWARD_VAULT != deployer).
  *
- * tGRID location (from deployments/tgrid-igraGalleonTestnet.json):
+ * tGRID location (from deployments/tgrid-igraMainnet.json):
  *   - Contract: 0x3F19cC54231fB10b1935FA3f04Bec64b8AFeAd85
  *   - Pre-mint recipient (rewardVault): in that file; default = deployer 0x658420Fd88dbd610249a88384f9B1aD387F797c7
  *   So the wallet holding tGRID is rewardVault (or deployer if REWARD_VAULT was not set). Use its PRIVATE_KEY.
  *
  * Usage:
- *   npx hardhat run scripts/fund-reward-manager-igra-galleon.js --network igraGalleonTestnet
+ *   npx hardhat run scripts/fund-reward-manager-igra-galleon.js --network igraMainnet
  *
  * Env:
- *   PRIVATE_KEY - wallet that holds tGRID (deployer / rewardVault from tgrid-igraGalleonTestnet.json)
+ *   PRIVATE_KEY - wallet that holds tGRID (deployer / rewardVault from tgrid-igraMainnet.json)
  *   Optional: AMOUNT_WEI - tGRID amount in wei (default: 1000000e18)
  */
 
@@ -21,8 +21,8 @@ const fs = require('fs');
 
 async function main() {
   const chainId = (await hre.ethers.provider.getNetwork()).chainId;
-  if (Number(chainId) !== 38836) {
-    console.error('This script is for IGRA Galleon Testnet (chainId 38836) only.');
+  if (Number(chainId) !== 38833) {
+    console.error('This script is for Igra Mainnet (chainId 38833) only.');
     process.exit(1);
   }
 

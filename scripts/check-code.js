@@ -2,7 +2,7 @@
  * Checks deployed bytecode for latest Revenue Tree deployment on the selected network.
  *
  * Usage:
- *   npx hardhat run scripts/check-code.js --network igraGalleonTestnet
+ *   npx hardhat run scripts/check-code.js --network igraMainnet
  */
 const hre = require("hardhat");
 const fs = require("fs");

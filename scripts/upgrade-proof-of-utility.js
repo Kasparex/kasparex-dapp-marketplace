@@ -17,12 +17,12 @@ const hre = require('hardhat');
 
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
-  console.log('\n🔄 Upgrading ProofOfUtility Contract...\n');
+  console.log('\nđź”„ Upgrading ProofOfUtility Contract...\n');
   console.log('Using account:', deployer.address);
   console.log('Account balance:', hre.ethers.formatEther(await hre.ethers.provider.getBalance(deployer.address)), 'KAS\n');
 
   const network = hre.network.name;
-  const isIgra = network === 'igraCaravelTestnet';
+  const isIgra = network === 'igraMainnet';
   
   // Current deployed addresses
   const currentProofOfUtilityAddress = isIgra 
@@ -38,30 +38,30 @@ async function main() {
     : '0x7EF3E5215c722D7A3D41C2426e57b1B4A5bC4a05';
 
   if (!currentProofOfUtilityAddress || !rewardManagerAddress) {
-    console.error('\n❌ ERROR: Missing required contract addresses\n');
+    console.error('\nâťŚ ERROR: Missing required contract addresses\n');
     process.exit(1);
   }
 
-  console.log(`📋 Network: ${network}`);
+  console.log(`đź“‹ Network: ${network}`);
   console.log(`   Current ProofOfUtility: ${currentProofOfUtilityAddress}`);
   console.log(`   RewardManager: ${rewardManagerAddress}`);
   console.log(`   QuizToEarn: ${quizToEarnAddress}\n`);
 
   try {
     // Step 1: Deploy new ProofOfUtility
-    console.log('1️⃣  Deploying new ProofOfUtility contract...');
+    console.log('1ď¸ŹâŁ  Deploying new ProofOfUtility contract...');
     const ProofOfUtility = await hre.ethers.getContractFactory('ProofOfUtility');
     const newProofOfUtility = await ProofOfUtility.deploy(rewardManagerAddress);
     await newProofOfUtility.waitForDeployment();
     const newProofOfUtilityAddress = await newProofOfUtility.getAddress();
-    console.log('   ✅ New ProofOfUtility deployed to:', newProofOfUtilityAddress);
+    console.log('   âś… New ProofOfUtility deployed to:', newProofOfUtilityAddress);
 
     // Verify the new function exists
     const hasFunction = newProofOfUtility.interface.hasFunction('recordUsageAndReward');
-    console.log('   ✅ recordUsageAndReward() function exists:', hasFunction);
+    console.log('   âś… recordUsageAndReward() function exists:', hasFunction);
 
     // Step 2: Update RewardManager to point to new ProofOfUtility
-    console.log('\n2️⃣  Updating RewardManager...');
+    console.log('\n2ď¸ŹâŁ  Updating RewardManager...');
     const RewardManager = await hre.ethers.getContractFactory('RewardManager');
     const rewardManager = RewardManager.attach(rewardManagerAddress);
     
@@ -70,17 +70,17 @@ async function main() {
     if (rewardManagerOwner.toLowerCase() === deployer.address.toLowerCase()) {
       const updateTx = await rewardManager.setProofOfUtility(newProofOfUtilityAddress);
       await updateTx.wait();
-      console.log('   ✅ RewardManager updated to use new ProofOfUtility');
+      console.log('   âś… RewardManager updated to use new ProofOfUtility');
     } else {
-      console.log('   ⚠️  Deployer is not RewardManager owner');
-      console.log('   ⚠️  RewardManager owner:', rewardManagerOwner);
-      console.log('   ⚠️  Manual update required:');
+      console.log('   âš ď¸Ź  Deployer is not RewardManager owner');
+      console.log('   âš ď¸Ź  RewardManager owner:', rewardManagerOwner);
+      console.log('   âš ď¸Ź  Manual update required:');
       console.log(`      rewardManager.setProofOfUtility("${newProofOfUtilityAddress}")`);
     }
 
     // Step 3: Update QuizToEarn to point to new ProofOfUtility
     if (quizToEarnAddress) {
-      console.log('\n3️⃣  Updating QuizToEarn...');
+      console.log('\n3ď¸ŹâŁ  Updating QuizToEarn...');
       const QuizToEarn = await hre.ethers.getContractFactory('QuizToEarn');
       const quizToEarn = QuizToEarn.attach(quizToEarnAddress);
       
@@ -89,27 +89,27 @@ async function main() {
       if (quizToEarnOwner.toLowerCase() === deployer.address.toLowerCase()) {
         const updateTx = await quizToEarn.setProofOfUtility(newProofOfUtilityAddress);
         await updateTx.wait();
-        console.log('   ✅ QuizToEarn updated to use new ProofOfUtility');
+        console.log('   âś… QuizToEarn updated to use new ProofOfUtility');
       } else {
-        console.log('   ⚠️  Deployer is not QuizToEarn owner');
-        console.log('   ⚠️  QuizToEarn owner:', quizToEarnOwner);
-        console.log('   ⚠️  Manual update required:');
+        console.log('   âš ď¸Ź  Deployer is not QuizToEarn owner');
+        console.log('   âš ď¸Ź  QuizToEarn owner:', quizToEarnOwner);
+        console.log('   âš ď¸Ź  Manual update required:');
         console.log(`      quizToEarn.setProofOfUtility("${newProofOfUtilityAddress}")`);
       }
     }
 
     // Step 4: Check other dApps that might use ProofOfUtility
-    console.log('\n4️⃣  Checking other dApps...');
-    console.log('   💡 Other dApps using ProofOfUtility may need manual updates');
-    console.log('   💡 Check DAOVoting and other dApps if they use ProofOfUtility');
+    console.log('\n4ď¸ŹâŁ  Checking other dApps...');
+    console.log('   đź’ˇ Other dApps using ProofOfUtility may need manual updates');
+    console.log('   đź’ˇ Check DAOVoting and other dApps if they use ProofOfUtility');
 
     // Summary
     console.log('\n' + '='.repeat(60));
-    console.log('✅ UPGRADE COMPLETE!');
+    console.log('âś… UPGRADE COMPLETE!');
     console.log('='.repeat(60));
-    console.log('\n📦 New Contract Address:');
+    console.log('\nđź“¦ New Contract Address:');
     console.log('   ProofOfUtility:', newProofOfUtilityAddress);
-    console.log('\n📋 Next Steps:');
+    console.log('\nđź“‹ Next Steps:');
     console.log('   1. Update src/lib/contracts/addresses.ts:');
     console.log(`      ProofOfUtility: "${newProofOfUtilityAddress}"`);
     console.log('   2. Update environment variables if used');
@@ -119,9 +119,9 @@ async function main() {
     console.log('');
 
   } catch (error) {
-    console.error('\n❌ Upgrade failed:', error.message);
+    console.error('\nâťŚ Upgrade failed:', error.message);
     if (error.message.includes('nonce')) {
-      console.error('   ⚠️  Nonce error - try again in a moment');
+      console.error('   âš ď¸Ź  Nonce error - try again in a moment');
     }
     process.exit(1);
   }

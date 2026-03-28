@@ -3,7 +3,7 @@
  * Repoints RewardManager, LoyaltyPoints, SimplePayment, DonationEscrow, GenesisBadge.
  *
  * Usage:
- *   npx hardhat run scripts/redeploy-rtm-and-fee-router-igra.js --network igraGalleonTestnet
+ *   npx hardhat run scripts/redeploy-rtm-and-fee-router-igra.js --network igraMainnet
  */
 
 const hre = require('hardhat');
@@ -31,7 +31,7 @@ function getGenesis() {
 }
 
 function getOverrides(chainId) {
-    if (Number(chainId) === 38836 || Number(chainId) === 38837 || Number(chainId) === 19416) {
+    if (Number(chainId) === 38833) {
         return { gasPrice: hre.ethers.parseUnits('2000', 'gwei') };
     }
     return {};
@@ -56,8 +56,8 @@ async function deployNoEstimate(factory, args, overrides) {
 async function main() {
     const [deployer] = await hre.ethers.getSigners();
     const chainId = (await hre.ethers.provider.getNetwork()).chainId;
-    if (Number(chainId) !== 38836) {
-        console.error('This script is for IGRA Galleon Testnet (chainId 38836) only.');
+    if (Number(chainId) !== 38833) {
+        console.error('This script is for Igra Mainnet (chainId 38833) only.');
         process.exit(1);
     }
 
@@ -178,8 +178,8 @@ async function main() {
     }
 
     console.log('\n--- Set in Vercel / UI (.env) ---');
-    console.log('NEXT_PUBLIC_REVENUE_TREE_MANAGER_ADDRESS_IGRA_GALLEON_TESTNET=' + newRtmAddress);
-    console.log('NEXT_PUBLIC_FEE_ROUTER_ADDRESS_IGRA_GALLEON_TESTNET=' + newFeeRouterAddress);
+    console.log('NEXT_PUBLIC_REVENUE_TREE_MANAGER_ADDRESS_IGRA_MAINNET=' + newRtmAddress);
+    console.log('NEXT_PUBLIC_FEE_ROUTER_ADDRESS_IGRA_MAINNET=' + newFeeRouterAddress);
     console.log('\nDone.');
 }
 

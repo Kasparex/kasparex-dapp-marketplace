@@ -13,7 +13,7 @@ export interface DonorEntry {
   formatted: string;
 }
 
-const CHAIN_ID = 38836;
+const CHAIN_ID = 38833;
 
 /** Refetch only when donorCount or raisedWei change (from campaign), not on every render. */
 export function useDonationLeaderboard(

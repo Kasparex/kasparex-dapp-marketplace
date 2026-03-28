@@ -57,31 +57,29 @@ export const kasplexL2Testnet = defineChain({
 });
 
 /**
- * Igra Caravel Testnet Chain Configuration
- * 
- * Custom chain definition for Igra Caravel Testnet network
+ * Igra Mainnet (Chain ID 38833)
+ * @see https://igra-labs.gitbook.io/igralabs-docs/quickstart/network-info#igra-mainnet
  */
-export const igraCaravelTestnet = defineChain({
-  id: 19416,
-  name: 'Igra Caravel Testnet',
-  network: 'igra-caravel-testnet',
+export const igraMainnet = defineChain({
+  id: 38833,
+  name: 'Igra Mainnet',
+  network: 'igra-mainnet',
   nativeCurrency: {
-    name: 'Kaspa',
-    symbol: 'KAS',
+    name: 'iKAS',
+    symbol: 'iKAS',
     decimals: 18,
   },
   rpcUrls: {
     default: {
-      http: ['https://caravel.igralabs.com:8545'],
+      http: ['https://rpc.igralabs.com:8545'],
     },
   },
   blockExplorers: {
     default: {
-      name: 'Igra Caravel Explorer',
-      url: 'https://explorer.caravel.igralabs.com',
+      name: 'Igra Explorer',
+      url: 'https://explorer.igralabs.com',
     },
   },
-  testnet: true,
 });
 
 /**
@@ -140,7 +138,7 @@ export const vProgsMainnet = defineChain({
 export const CHAIN_IDS = {
   KASPLEX_L2_MAINNET: 202555,
   KASPLEX_L2_TESTNET: 167012,
-  IGRA_CARAVEL_TESTNET: 19416,
+  IGRA_MAINNET: 38833,
   VPROGS_TESTNET: 999999,
   VPROGS_MAINNET: 999998,
 } as const;
@@ -151,7 +149,7 @@ export const CHAIN_IDS = {
 export const kaspaChains = [
   kasplexL2Mainnet,
   kasplexL2Testnet,
-  igraCaravelTestnet,
+  igraMainnet,
 ] as const;
 
 /**
@@ -204,7 +202,7 @@ export const config = getDefaultConfig({
   projectId: typeof window !== 'undefined' 
     ? (window.ENV?.WALLETCONNECT_PROJECT_ID || process.env.WALLETCONNECT_PROJECT_ID || 'default-project-id')
     : (process.env.WALLETCONNECT_PROJECT_ID || 'default-project-id'),
-  chains: [kasplexL2Mainnet, kasplexL2Testnet, igraCaravelTestnet],
+  chains: [kasplexL2Mainnet, kasplexL2Testnet, igraMainnet],
   ssr: true,
 });
 

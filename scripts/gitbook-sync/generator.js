@@ -345,7 +345,7 @@ class DocumentationGenerator {
     const mapping = {
       'kasplexL2Testnet': 'Kasplex L2 Testnet',
       'kasplexL2Mainnet': 'Kasplex L2 Mainnet',
-      'igraCaravelTestnet': 'Igra Caravel Testnet',
+      'igraMainnet': 'Igra Mainnet',
     };
     return mapping[networkName] || networkName;
   }

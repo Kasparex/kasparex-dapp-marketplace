@@ -23,7 +23,7 @@ export function DonationCampaignRightColumn({ campaign, creatorAddress, previewD
   const revenueTreeData = generateDonationRevenueTree(
     creatorAddress,
     userWalletAddress ?? undefined,
-    chainId ?? 38836,
+    chainId ?? 38833,
     campaign.active
   );
 

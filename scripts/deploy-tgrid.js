@@ -1,8 +1,8 @@
 /**
- * Deploy tGRID (Test GRID Token) on IGRA Galleon Testnet (38836).
+ * Deploy tGRID (Test GRID Token) on Igra Mainnet (38833).
  *
  * Usage:
- *   npx hardhat run scripts/deploy-tgrid.js --network igraGalleonTestnet
+ *   npx hardhat run scripts/deploy-tgrid.js --network igraMainnet
  *
  * Env:
  *   PRIVATE_KEY - deployer
@@ -14,7 +14,7 @@ const fs = require('fs');
 const path = require('path');
 
 function getFeeOverrides(chainId) {
-  if (Number(chainId) === 38836 || Number(chainId) === 38837 || Number(chainId) === 19416) {
+  if (Number(chainId) === 38833) {
     return { gasPrice: hre.ethers.parseUnits('2000', 'gwei') };
   }
   return {};

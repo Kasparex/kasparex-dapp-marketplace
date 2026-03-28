@@ -31,7 +31,7 @@ async function main() {
   const network = hre.network.name;
   const [deployer] = await ethers.getSigners();
 
-  console.log("\n🚀 Setting up Promo Token...\n");
+  console.log("\nđźš€ Setting up Promo Token...\n");
   console.log("Network:", network);
   console.log("Deployer:", deployer.address);
 
@@ -103,11 +103,11 @@ async function main() {
       [SLOT1_BPS, SLOT2_BPS, SLOT3_BPS, SLOT4_BPS, SLOT5_BPS]
     );
     await registerTx.wait();
-    console.log("✅ Token registered in contract");
+    console.log("âś… Token registered in contract");
     console.log("  Transaction:", registerTx.hash);
   } catch (error) {
     if (error.message?.includes("already registered")) {
-      console.log("⚠️  Token already registered in contract (skipping)");
+      console.log("âš ď¸Ź  Token already registered in contract (skipping)");
     } else {
       throw error;
     }
@@ -126,7 +126,7 @@ async function main() {
       ticker: TOKEN_TICKER,
       name: TOKEN_NAME,
       contract_address: TOKEN_ADDRESS,
-      network: network === "igraCaravelTestnet" ? "igraCaravelTestnet" : network,
+      network: network === "igraMainnet" ? "igraMainnet" : network,
       mint_price: parseFloat(ethers.formatEther(MINT_PRICE)),
       tokens_per_mint: Number(TOKENS_PER_MINT),
       mintable_supply: Number(MINTABLE_SUPPLY),
@@ -138,12 +138,12 @@ async function main() {
   if (!dbResponse.ok) {
     const errorText = await dbResponse.text();
     if (errorText.includes("UNIQUE constraint")) {
-      console.log("⚠️  Token already registered in database (skipping)");
+      console.log("âš ď¸Ź  Token already registered in database (skipping)");
     } else {
       throw new Error(`Database registration failed: ${errorText}`);
     }
   } else {
-    console.log("✅ Token registered in database");
+    console.log("âś… Token registered in database");
   }
 
   // Step 3: Create genesis page
@@ -178,11 +178,11 @@ async function main() {
   }
 
   const genesisData = await genesisResponse.json();
-  console.log("✅ Genesis page created");
+  console.log("âś… Genesis page created");
   console.log("  Page ID:", genesisData.pageId);
 
-  console.log("\n✅ Setup complete!");
-  console.log("\n📝 Summary:");
+  console.log("\nâś… Setup complete!");
+  console.log("\nđź“ť Summary:");
   console.log("  Token ID:", TOKEN_ID);
   console.log("  Token ID (bytes32):", tokenIdBytes);
   console.log("  Genesis Page ID:", genesisPageId);
@@ -193,6 +193,6 @@ async function main() {
 main()
   .then(() => process.exit(0))
   .catch((error) => {
-    console.error("\n❌ Error:", error.message);
+    console.error("\nâťŚ Error:", error.message);
     process.exit(1);
   });

@@ -1,8 +1,8 @@
 /**
- * Set DonationEscrow fee to 10% (feeBps = 1000) so 10% of each L2 donation goes to FeeRouter → 100% to Revenue Tree.
+ * Set DonationEscrow fee to 10% (feeBps = 1000) so 10% of each L2 donation goes to FeeRouter â†’ 100% to Revenue Tree.
  * Call as DonationEscrow owner.
  *
- * Usage: npx hardhat run scripts/set-donation-escrow-fee-bps.js --network igraGalleonTestnet
+ * Usage: npx hardhat run scripts/set-donation-escrow-fee-bps.js --network igraMainnet
  */
 
 const hre = require('hardhat');
@@ -12,7 +12,7 @@ const path = require('path');
 const FEE_BPS_10_PCT = 1000;
 
 function getOverrides(chainId) {
-  if (Number(chainId) === 38836 || Number(chainId) === 38837 || Number(chainId) === 19416) {
+  if (Number(chainId) === 38833) {
     return { gasPrice: hre.ethers.parseUnits('2000', 'gwei') };
   }
   return {};
@@ -21,8 +21,8 @@ function getOverrides(chainId) {
 async function main() {
   const [signer] = await hre.ethers.getSigners();
   const chainId = (await hre.ethers.provider.getNetwork()).chainId;
-  if (Number(chainId) !== 38836) {
-    console.error('This script is for IGRA Galleon Testnet (chainId 38836) only.');
+  if (Number(chainId) !== 38833) {
+    console.error('This script is for Igra Mainnet (chainId 38833) only.');
     process.exit(1);
   }
 
@@ -53,7 +53,7 @@ async function main() {
   const tx = await escrow.setFeeBps(FEE_BPS_10_PCT, overrides);
   await tx.wait();
   console.log('Tx:', tx.hash);
-  console.log('Done. 10% of each L2 donation now goes to FeeRouter → 100% to Revenue Tree.');
+  console.log('Done. 10% of each L2 donation now goes to FeeRouter â†’ 100% to Revenue Tree.');
 }
 
 main().catch((err) => {

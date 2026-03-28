@@ -1,10 +1,10 @@
 /**
- * Deploy full stack on IGRA Galleon Testnet (38836): tGRID, Treasury, FeeCollector,
+ * Deploy full stack on Igra Mainnet (38833): tGRID, Treasury, FeeCollector,
  * DAppRegistry, RevenueTreeManager, FeeRouter, ProofOfUtility, RewardManager, LoyaltyPoints,
  * SimplePayment; wire and fund for fee + tGRID rewards + points.
  *
  * Usage:
- *   npx hardhat run scripts/deploy-igra-galleon-testnet.js --network igraGalleonTestnet
+ *   npx hardhat run scripts/deploy-igra-galleon-testnet.js --network igraMainnet
  *
  * Env:
  *   PRIVATE_KEY - deployer
@@ -44,7 +44,7 @@ function getGenesis() {
 }
 
 function getFeeOverrides(chainId) {
-  if (Number(chainId) === 38836 || Number(chainId) === 38837 || Number(chainId) === 19416) {
+  if (Number(chainId) === 38833) {
     return { gasPrice: hre.ethers.parseUnits('2000', 'gwei') };
   }
   return {};
@@ -71,8 +71,8 @@ async function main() {
   const network = hre.network.name;
   const chainId = (await hre.ethers.provider.getNetwork()).chainId;
 
-  if (Number(chainId) !== 38836) {
-    console.error('This script is for IGRA Galleon Testnet (chainId 38836) only.');
+  if (Number(chainId) !== 38833) {
+    console.error('This script is for Igra Mainnet (chainId 38833) only.');
     process.exit(1);
   }
 
@@ -97,8 +97,8 @@ async function main() {
     const outDir = path.join(__dirname, '..', 'deployments');
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
     fs.writeFileSync(
-      path.join(outDir, 'tgrid-igraGalleonTestnet.json'),
-      JSON.stringify({ network, chainId: 38836, tGRID: tgridAddress, rewardVault, deployer: deployer.address }, null, 2)
+      path.join(outDir, 'tgrid-igraMainnet.json'),
+      JSON.stringify({ network, chainId: 38833, tGRID: tgridAddress, rewardVault, deployer: deployer.address }, null, 2)
     );
   } else {
     console.log('\n1. Using existing tGRID:', tgridAddress);
@@ -239,15 +239,15 @@ async function main() {
     await (await tgridContract.transfer(rewardManagerAddress, toTransfer, overrides)).wait();
     console.log('   Transferred', hre.ethers.formatEther(toTransfer), 'tGRID to RewardManager');
   } else if (toTransfer > 0n) {
-    console.log('   REWARD_VAULT is not deployer. Run: npx hardhat run scripts/fund-reward-manager-igra-galleon.js --network igraGalleonTestnet');
+    console.log('   REWARD_VAULT is not deployer. Run: npx hardhat run scripts/fund-reward-manager-igra-galleon.js --network igraMainnet');
   } else {
-    console.log('   Deployer has no tGRID (minted to REWARD_VAULT). Run: npx hardhat run scripts/fund-reward-manager-igra-galleon.js --network igraGalleonTestnet');
+    console.log('   Deployer has no tGRID (minted to REWARD_VAULT). Run: npx hardhat run scripts/fund-reward-manager-igra-galleon.js --network igraMainnet');
   }
 
   // 13. Output
   const out = {
     network,
-    chainId: 38836,
+    chainId: 38833,
     deployer: deployer.address,
     tGRID: tgridAddress,
     Treasury: treasuryAddress,
@@ -268,15 +268,15 @@ async function main() {
   fs.writeFileSync(outPath, JSON.stringify(out, null, 2));
   console.log('\nWrote:', outPath);
   console.log('\n--- Set these in .env and Vercel ---');
-  console.log('NEXT_PUBLIC_TGRID_ADDRESS_IGRA_GALLEON_TESTNET=' + tgridAddress);
-  console.log('NEXT_PUBLIC_FEE_ROUTER_ADDRESS_IGRA_GALLEON_TESTNET=' + feeRouterAddress);
-  console.log('NEXT_PUBLIC_REWARD_MANAGER_ADDRESS_IGRA_GALLEON_TESTNET=' + rewardManagerAddress);
-  console.log('NEXT_PUBLIC_LOYALTY_POINTS_ADDRESS_IGRA_GALLEON_TESTNET=' + loyaltyPointsAddress);
-  console.log('NEXT_PUBLIC_SIMPLE_PAYMENT_ADDRESS_IGRA_GALLEON_TESTNET=' + simplePaymentAddress);
-  console.log('NEXT_PUBLIC_TREASURY_ADDRESS_IGRA_GALLEON_TESTNET=' + treasuryAddress);
-  console.log('NEXT_PUBLIC_FEE_COLLECTOR_ADDRESS_IGRA_GALLEON_TESTNET=' + feeCollectorAddress);
-  console.log('NEXT_PUBLIC_DAPP_REGISTRY_ADDRESS_IGRA_GALLEON_TESTNET=' + dAppRegistryAddress);
-  console.log('NEXT_PUBLIC_REVENUE_TREE_MANAGER_ADDRESS_IGRA_GALLEON_TESTNET=' + rtmAddress);
+  console.log('NEXT_PUBLIC_TGRID_ADDRESS_IGRA_MAINNET=' + tgridAddress);
+  console.log('NEXT_PUBLIC_FEE_ROUTER_ADDRESS_IGRA_MAINNET=' + feeRouterAddress);
+  console.log('NEXT_PUBLIC_REWARD_MANAGER_ADDRESS_IGRA_MAINNET=' + rewardManagerAddress);
+  console.log('NEXT_PUBLIC_LOYALTY_POINTS_ADDRESS_IGRA_MAINNET=' + loyaltyPointsAddress);
+  console.log('NEXT_PUBLIC_SIMPLE_PAYMENT_ADDRESS_IGRA_MAINNET=' + simplePaymentAddress);
+  console.log('NEXT_PUBLIC_TREASURY_ADDRESS_IGRA_MAINNET=' + treasuryAddress);
+  console.log('NEXT_PUBLIC_FEE_COLLECTOR_ADDRESS_IGRA_MAINNET=' + feeCollectorAddress);
+  console.log('NEXT_PUBLIC_DAPP_REGISTRY_ADDRESS_IGRA_MAINNET=' + dAppRegistryAddress);
+  console.log('NEXT_PUBLIC_REVENUE_TREE_MANAGER_ADDRESS_IGRA_MAINNET=' + rtmAddress);
 }
 
 main().catch((err) => {

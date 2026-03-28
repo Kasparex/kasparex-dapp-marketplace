@@ -109,7 +109,7 @@ export function generateMockMagazineRevenueTree(
 export function generateDonationRevenueTree(
   creatorAddress: string,
   userWalletAddress: string | undefined,
-  chainId: number = 38836,
+  chainId: number = 38833,
   isActive: boolean = true
 ): RevenueTreeData {
   const contentType = 'donation';

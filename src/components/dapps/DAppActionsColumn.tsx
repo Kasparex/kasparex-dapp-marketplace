@@ -126,10 +126,10 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
     if (tgrid) return tgrid;
     return getContractAddress(chainId, 'GRIDToken') || null;
   }, [chainId]);
-  const isTestnet = chainId === 167012 || chainId === 38836 || chainId === 38837 || chainId === 19416;
+  const isTestnet = chainId === 167012;
   const gridLabel = isTestnet ? 'tGRID' : 'GRID';
   const krexLabel = isTestnet ? 'tKREX' : 'KREX';
-  const nativeLabel = chainId === 38836 || chainId === 38837 ? 'iKAS' : (nativeBalance?.symbol || nativeSymbol);
+  const nativeLabel = chainId === 38833 ? 'iKAS' : (nativeBalance?.symbol || nativeSymbol);
   const { balance: gridBalanceWei, formattedBalance: gridFormattedBalance, isLoading: gridLoading, totalSupply: gridTotalSupply, maxSupply: gridMaxSupply } = useGRIDToken(gridTokenAddress);
   const { totalPoints: xpPoints, isLoading: xpLoading } = useLoyaltyPoints();
   const gridBalanceNum = gridBalanceWei != null ? Number(gridBalanceWei) / 1e18 : 0;
@@ -207,9 +207,9 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
           </p>
         )}
         {/* Base reward calculation info (L2 testnet) */}
-        {(chainId === 38836 || chainId === 38837) && (
+        {chainId === 38833 && (
           <p className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400">
-            Base: 1 {nativeLabel} = 500 {gridLabel}, 1 {nativeLabel} = 100 XP. Hold tKREX on this network for tier multiplier.{' '}
+            Base: 1 {nativeLabel} = 500 {gridLabel}, 1 {nativeLabel} = 100 XP. Hold KREX on this network for tier multiplier.{' '}
             <a href="https://katbridge.com/" target="_blank" rel="noopener noreferrer" className="text-[#02abb8] hover:underline">KAT Bridge ↗</a>
           </p>
         )}

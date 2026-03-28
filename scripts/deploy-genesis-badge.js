@@ -1,8 +1,8 @@
 /**
- * Deploy GenesisBadge on IGRA Galleon Testnet (38836) and wire FeeRouter + LoyaltyPoints.
+ * Deploy GenesisBadge on Igra Mainnet (38833) and wire FeeRouter + LoyaltyPoints.
  *
  * Usage:
- *   npx hardhat run scripts/deploy-genesis-badge.js --network igraGalleonTestnet
+ *   npx hardhat run scripts/deploy-genesis-badge.js --network igraMainnet
  *
  * Env:
  *   PRIVATE_KEY - deployer (must be FeeRouter/LoyaltyPoints owner for wiring)
@@ -19,7 +19,7 @@ const FEE_ROUTER_38836 = '0x37c98699eEe02Cb89da64C45B8c970174218A745';
 const LOYALTY_POINTS_38836 = '0x1cF432A52A0f2D09c8E7450CC40E4FC1422E8936';
 
 function getFeeOverrides(chainId) {
-  if (Number(chainId) === 38836 || Number(chainId) === 38837 || Number(chainId) === 19416) {
+  if (Number(chainId) === 38833) {
     return { gasPrice: hre.ethers.parseUnits('2000', 'gwei') };
   }
   return {};
@@ -45,8 +45,8 @@ async function main() {
   const [deployer] = await hre.ethers.getSigners();
   const chainId = (await hre.ethers.provider.getNetwork()).chainId;
 
-  if (Number(chainId) !== 38836) {
-    console.error('This script is for IGRA Galleon Testnet (chainId 38836) only.');
+  if (Number(chainId) !== 38833) {
+    console.error('This script is for Igra Mainnet (chainId 38833) only.');
     process.exit(1);
   }
 
@@ -80,12 +80,12 @@ async function main() {
   console.log('   LoyaltyPoints: pointsPer1iKAS(genesis-badge) = 100');
   let krexTokenAddress = process.env.KREX_TOKEN_ADDRESS?.trim();
   if (!krexTokenAddress) {
-    const revTreePath = path.join(__dirname, '..', 'deployments', 'revenue-tree-igraGalleonTestnet.json');
+    const revTreePath = path.join(__dirname, '..', 'deployments', 'revenue-tree-igraMainnet.json');
     if (fs.existsSync(revTreePath)) {
       const revTree = JSON.parse(fs.readFileSync(revTreePath, 'utf8'));
       if (revTree.tKREX) {
         krexTokenAddress = revTree.tKREX;
-        console.log('   Using tKREX from deployments/revenue-tree-igraGalleonTestnet.json:', krexTokenAddress);
+        console.log('   Using tKREX from deployments/revenue-tree-igraMainnet.json:', krexTokenAddress);
       }
     }
   }
@@ -98,16 +98,16 @@ async function main() {
       console.log('   LoyaltyPoints: KREX token already set (multipliers active)');
     }
   } else {
-    console.log('   WARNING: LoyaltyPoints KREX token not set — rewards will be 1x only. To fix:');
+    console.log('   WARNING: LoyaltyPoints KREX token not set â€” rewards will be 1x only. To fix:');
     console.log('     1. Set KREX_TOKEN_ADDRESS to your tKREX address, or');
-    console.log('     2. Ensure deployments/revenue-tree-igraGalleonTestnet.json contains "tKREX", or');
-    console.log('     3. Run: npx hardhat run scripts/set-loyalty-krex-token.js --network igraGalleonTestnet');
+    console.log('     2. Ensure deployments/revenue-tree-igraMainnet.json contains "tKREX", or');
+    console.log('     3. Run: npx hardhat run scripts/set-loyalty-krex-token.js --network igraMainnet');
   }
 
   // 4. Write deployment output
   const out = {
-    network: 'igraGalleonTestnet',
-    chainId: 38836,
+    network: 'igraMainnet',
+    chainId: 38833,
     GenesisBadge: genesisBadgeAddress,
     FeeRouter: feeRouterAddress,
     LoyaltyPoints: loyaltyPointsAddress,
@@ -121,8 +121,8 @@ async function main() {
   console.log('\nWrote:', outPath);
 
   console.log('\n--- Add to .env and Vercel ---');
-  console.log('NEXT_PUBLIC_GENESIS_BADGE_ADDRESS_IGRA_GALLEON_TESTNET=' + genesisBadgeAddress);
-  console.log('NEXT_PUBLIC_GENESIS_BADGE_ADDRESS_38836=' + genesisBadgeAddress);
+  console.log('NEXT_PUBLIC_GENESIS_BADGE_ADDRESS_IGRA_MAINNET=' + genesisBadgeAddress);
+  console.log('NEXT_PUBLIC_GENESIS_BADGE_ADDRESS_38833=' + genesisBadgeAddress);
 }
 
 main().catch((err) => {

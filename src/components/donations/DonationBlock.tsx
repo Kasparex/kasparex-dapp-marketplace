@@ -207,14 +207,14 @@ export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChang
         isOpen={Boolean(hash && !isConfirmed)}
         onClose={() => {}}
         txHash={hash ?? ''}
-        chainId={chainId ?? 38836}
+        chainId={chainId ?? 38833}
         title="Donation submitted"
       />
       <TransactionSuccessModal
         isOpen={isConfirmed && Boolean(hash) && !successModalDismissed}
         onClose={() => setSuccessModalDismissed(true)}
         txHash={hash ?? ''}
-        chainId={chainId ?? 38836}
+        chainId={chainId ?? 38833}
         addresses={isConfirmed && campaign?.creatorAddress ? [{ label: 'Campaign creator (receives funds)', address: campaign.creatorAddress, explorerUrl: chainId ? getExplorerUrl(campaign.creatorAddress, chainId) : undefined }] : undefined}
         autoCloseMs={0}
       />

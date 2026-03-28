@@ -28,7 +28,7 @@ function parseCampaignTuple(data: unknown): { creator: Address; targetWei: bigin
   return { creator: t[0], targetWei: t[1], deadline: t[2], raisedWei: t[3], donorCount: t[4], ipfsHash: t[5], l1Address: t[6], active: t[7] };
 }
 
-const VDONATIONS_CHAIN_ID = CHAIN_IDS.IGRA_GALLEON_TESTNET; // 38836
+const VDONATIONS_CHAIN_ID = CHAIN_IDS.IGRA_MAINNET; // 38833
 
 export default function DonationsStudioPage() {
   const chainId = useChainId();

@@ -8,7 +8,7 @@
  *   npx hardhat run scripts/deploy-dapp-template.js --network kasplexL2Testnet
  *   
  *   # Deploy to Igra Caravel Testnet
- *   npx hardhat run scripts/deploy-dapp-template.js --network igraCaravelTestnet
+ *   npx hardhat run scripts/deploy-dapp-template.js --network igraMainnet
  * 
  * Prerequisites:
  *   1. Set up .env file with required environment variables
@@ -17,7 +17,7 @@
  * 
  * Default Configuration:
  *   - Fee Percentage: 1% (100 basis points)
- *   - Networks: Kasplex L2 Testnet (167012) and Igra Caravel Testnet (19416)
+ *   - Networks: Kasplex L2 Testnet (167012) and Igra Mainnet (38833)
  */
 
 const hre = require('hardhat');
@@ -34,7 +34,7 @@ async function main() {
   // Get ecosystem contract addresses from environment variables
   // Default addresses for Kasplex L2 Testnet (update for other networks)
   const network = hre.network.name;
-  const isIgra = network === 'igraCaravelTestnet';
+  const isIgra = network === 'igraMainnet';
   
   // Default addresses (Kasplex L2 Testnet)
   const defaultFeeCollector = '0x002C7eeC68975d41f3f0F7bC8D900Aa45A131aE2';
@@ -66,16 +66,16 @@ async function main() {
   
   // Validate required addresses
   if (!dAppRegistryAddress) {
-    console.error('\n❌ ERROR: Missing required contract address\n');
+    console.error('\nâťŚ ERROR: Missing required contract address\n');
     console.log('Required environment variable:');
     console.log('   DAPP_REGISTRY_ADDRESS\n');
-    console.log('💡 Find this in ECOSYSTEM_DEPLOYMENT_SUCCESS.md or src/lib/contracts/addresses.ts\n');
+    console.log('đź’ˇ Find this in ECOSYSTEM_DEPLOYMENT_SUCCESS.md or src/lib/contracts/addresses.ts\n');
     process.exit(1);
   }
   
-  console.log(`\n📋 Network: ${network}`);
-  console.log(`   Chain ID: ${isIgra ? '19416' : '167012'}`);
-  console.log(`\n🔗 Ecosystem Contracts:`);
+  console.log(`\nđź“‹ Network: ${network}`);
+  console.log(`   Chain ID: ${isIgra ? '38833' : '167012'}`);
+  console.log(`\nđź”— Ecosystem Contracts:`);
   console.log(`   DApp Registry: ${dAppRegistryAddress} (Required)`);
   console.log(`   Fee Collector: ${feeCollectorAddress} (Default)`);
   console.log(`   Proof of Utility: ${proofOfUtilityAddress} (Default)`);
@@ -83,12 +83,12 @@ async function main() {
   if (affiliateManagerAddress) console.log(`   Affiliate Manager: ${affiliateManagerAddress} (Selected)`);
   if (loyaltyPointsAddress) console.log(`   Loyalty Points: ${loyaltyPointsAddress} (Selected)`);
   if (profileRegistryAddress) console.log(`   Profile Registry: ${profileRegistryAddress} (Selected)`);
-  console.log(`\n⚙️  Configuration:`);
+  console.log(`\nâš™ď¸Ź  Configuration:`);
   console.log(`   Fee Percentage: ${defaultFeePercentage} basis points (${defaultFeePercentage / 100}%)\n`);
 
   try {
     // Step 1: Deploy your dApp contract
-    console.log('1️⃣  Deploying {{CONTRACT_NAME}} Contract...');
+    console.log('1ď¸ŹâŁ  Deploying {{CONTRACT_NAME}} Contract...');
     
     // Get contract factory and deploy with default fee percentage
     const {{CONTRACT_NAME}} = await hre.ethers.getContractFactory('{{CONTRACT_NAME}}');
@@ -100,11 +100,11 @@ async function main() {
     );
     await {{contractName}}.waitForDeployment();
     const dAppContractAddress = await {{contractName}}.getAddress();
-    console.log('   ✅ {{CONTRACT_NAME}} deployed to:', dAppContractAddress);
-    console.log(`   📝 Fee Percentage: ${defaultFeePercentage} basis points (${defaultFeePercentage / 100}%)`);
+    console.log('   âś… {{CONTRACT_NAME}} deployed to:', dAppContractAddress);
+    console.log(`   đź“ť Fee Percentage: ${defaultFeePercentage} basis points (${defaultFeePercentage / 100}%)`);
 
     // Step 2: Register dApp in DAppRegistry
-    console.log('\n2️⃣  Registering dApp in DAppRegistry...');
+    console.log('\n2ď¸ŹâŁ  Registering dApp in DAppRegistry...');
     
     // TODO: Register your dApp
     // Example:
@@ -136,11 +136,11 @@ async function main() {
     //   dAppId = parsed.args.dAppId;
     // }
     // 
-    // console.log('   ✅ dApp registered with ID:', dAppId.toString());
+    // console.log('   âś… dApp registered with ID:', dAppId.toString());
 
     // Step 3: (Optional) Deploy and link token
     // TODO: Uncomment if you want to deploy a token
-    // console.log('\n3️⃣  Deploying DAppToken (Optional)...');
+    // console.log('\n3ď¸ŹâŁ  Deploying DAppToken (Optional)...');
     // 
     // const tokenName = '{{TOKEN_NAME}}';
     // const tokenSymbol = '{{TOKEN_SYMBOL}}';
@@ -149,7 +149,7 @@ async function main() {
     // // Get reward vault address
     // const rewardVaultAddress = process.env.REWARD_VAULT_ADDRESS || '';
     // if (!rewardVaultAddress) {
-    //   console.log('   ⚠️  Skipping token deployment - REWARD_VAULT_ADDRESS not set');
+    //   console.log('   âš ď¸Ź  Skipping token deployment - REWARD_VAULT_ADDRESS not set');
     // } else {
     //   const DAppToken = await hre.ethers.getContractFactory('DAppToken');
     //   const dAppToken = await DAppToken.deploy(
@@ -165,10 +165,10 @@ async function main() {
     //   );
     //   await dAppToken.waitForDeployment();
     //   const tokenAddress = await dAppToken.getAddress();
-    //   console.log('   ✅ DAppToken deployed to:', tokenAddress);
+    //   console.log('   âś… DAppToken deployed to:', tokenAddress);
     //   
     //   // Link token to dApp
-    //   console.log('\n4️⃣  Linking token to dApp...');
+    //   console.log('\n4ď¸ŹâŁ  Linking token to dApp...');
     //   const linkTx = await dAppRegistry.linkDAppToToken(
     //     dAppId,
     //     tokenAddress,
@@ -176,27 +176,27 @@ async function main() {
     //     maxSupply
     //   );
     //   await linkTx.wait();
-    //   console.log('   ✅ Token linked to dApp');
+    //   console.log('   âś… Token linked to dApp');
     // }
 
     // Step 4: (Optional) Set dApp ID in contract (if using ecosystem integration)
     // TODO: Uncomment if your contract needs dApp ID
     // if (dAppId > 0) {
-    //   console.log('\n5️⃣  Setting dApp ID in contract...');
+    //   console.log('\n5ď¸ŹâŁ  Setting dApp ID in contract...');
     //   const setDAppIdTx = await {{contractName}}.setDAppId(dAppId);
     //   await setDAppIdTx.wait();
-    //   console.log('   ✅ dApp ID set in contract');
+    //   console.log('   âś… dApp ID set in contract');
     // }
 
     // Summary
-    console.log('\n✅ Deployment Summary:');
+    console.log('\nâś… Deployment Summary:');
     console.log('   Network:', hre.network.name);
     console.log('   Deployer:', deployer.address);
     // console.log('   dApp Contract:', dAppContractAddress);
     // console.log('   dApp ID:', dAppId.toString());
     // console.log('   Token Address:', tokenAddress || 'Not deployed');
     console.log('');
-    console.log('📋 Next Steps:');
+    console.log('đź“‹ Next Steps:');
     console.log('   1. Update contract address in src/lib/contracts/addresses.ts');
     console.log('   2. Add contract ABI to src/lib/contracts/abis.ts');
     console.log('   3. Create custom hook in src/hooks/');
@@ -207,7 +207,7 @@ async function main() {
     console.log('');
 
   } catch (error) {
-    console.error('\n❌ Deployment failed:');
+    console.error('\nâťŚ Deployment failed:');
     console.error(error);
     process.exit(1);
   }

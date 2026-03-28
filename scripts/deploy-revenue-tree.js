@@ -1,9 +1,9 @@
 /**
- * Deploy Revenue Tree V1: RevenueTreeManager, optional FeeRouter, optional tKREX (38836).
+ * Deploy Revenue Tree V1: RevenueTreeManager, optional FeeRouter, optional tKREX (38833).
  *
  * Usage:
  *   npx hardhat run scripts/deploy-revenue-tree.js --network kasplexL2Testnet
- *   npx hardhat run scripts/deploy-revenue-tree.js --network igraGalleonTestnet  # deploys tKREX + RTM
+ *   npx hardhat run scripts/deploy-revenue-tree.js --network igraMainnet  # deploys tKREX + RTM
  *
  * Env:
  *   PRIVATE_KEY - deployer
@@ -43,7 +43,7 @@ function getGenesis() {
 function getFeeOverrides(chainId) {
   // IGRA networks often hang on estimateGas; use explicit EIP-1559 fees and gas limits.
   // Network info: gas price ~2000 gwei, base fee 1 wei.
-  if (Number(chainId) === 38836 || Number(chainId) === 38837 || Number(chainId) === 19416) {
+  if (Number(chainId) === 38833) {
     // Use legacy gasPrice to satisfy IGRA minimum gas fee requirement.
     const gasPrice = hre.ethers.parseUnits('2000', 'gwei');
     return { gasPrice };
@@ -84,10 +84,10 @@ async function main() {
   const feeOverrides = getFeeOverrides(chainId);
 
   let krexTokenAddress = process.env.KREX_TOKEN_ADDRESS || hre.ethers.ZeroAddress;
-  const is38836 = Number(chainId) === 38836;
+  const isIgraMainnet = Number(chainId) === 38833;
 
-  if (is38836 && !process.env.KREX_TOKEN_ADDRESS) {
-    console.log('\n1. Deploying tKREX (IGRA Galleon Testnet)...');
+  if (isIgraMainnet && !process.env.KREX_TOKEN_ADDRESS) {
+    console.log('\n1. Deploying tKREX (Igra Mainnet)...');
     const tKREX = await hre.ethers.getContractFactory('tKREX');
     krexTokenAddress = await deployNoEstimate(tKREX, [], feeOverrides);
     console.log('   tKREX deployed to:', krexTokenAddress);
@@ -133,7 +133,7 @@ async function main() {
     chainId: Number(chainId),
     RevenueTreeManager: rtmAddress,
     FeeRouter: feeRouterAddress || undefined,
-    tKREX: is38836 ? krexTokenAddress : undefined,
+    tKREX: isIgraMainnet ? krexTokenAddress : undefined,
     genesis,
     platformWallet,
   };

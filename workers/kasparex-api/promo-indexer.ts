@@ -137,7 +137,7 @@ export async function processSingleMintEvent(
         event.slotsBefore[3] || '',
         event.slotsBefore[4] || '',
         event.txHash,
-        'igraCaravelTestnet', // or detect from event
+        'igraMainnet', // or detect from event
         event.timestamp || now,
         ipAddress || null,
         userAgentHash

@@ -28,7 +28,7 @@ export function TransactionSuccessModal({
   isOpen,
   onClose,
   txHash,
-  chainId = 38836,
+  chainId = 38833,
   gridAmount,
   pointsEarned,
   addresses,

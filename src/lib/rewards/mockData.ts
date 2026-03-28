@@ -18,13 +18,13 @@ export const MOCK_REWARDS_CONFIG = {
 
 /**
  * Get default rewards breakdown for display (GRT-only).
- * Optional chainId: on IGRA Galleon (38836/38837) use deployed base reward (500 tGRID per payment).
+ * Optional chainId: on Igra Mainnet (38833) use deployed base reward (500 GRID per iKAS payment).
  */
 export function getDefaultRewardsBreakdown(chainId?: number) {
-  const isGalleon = chainId === 38836 || chainId === 38837;
+  const isIgraMainnet = chainId === 38833;
   return {
     feePercent: MOCK_REWARDS_CONFIG.DEFAULT_FEE_PERCENT,
-    grtPerKas: isGalleon ? 500 : MOCK_REWARDS_CONFIG.GRT_PER_KAS,
+    grtPerKas: isIgraMainnet ? 500 : MOCK_REWARDS_CONFIG.GRT_PER_KAS,
     xpPerKas: MOCK_REWARDS_CONFIG.XP_PER_KAS,
   };
 }

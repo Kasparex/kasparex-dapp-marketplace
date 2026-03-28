@@ -3,14 +3,14 @@
  * Run after upgrade-fee-router-loyalty-igra.js if it timed out after step 4.
  *
  * Usage:
- *   NEW_FEE_ROUTER=0x374fa97A64A43c4fC0AD57dBf6EAE7Ee12924B04 npx hardhat run scripts/repoint-fee-router-igra.js --network igraGalleonTestnet
+ *   NEW_FEE_ROUTER=0x374fa97A64A43c4fC0AD57dBf6EAE7Ee12924B04 npx hardhat run scripts/repoint-fee-router-igra.js --network igraMainnet
  */
 const hre = require('hardhat');
 const fs = require('fs');
 const path = require('path');
 
 function getFeeOverrides(chainId) {
-  if (Number(chainId) === 38836 || Number(chainId) === 38837 || Number(chainId) === 19416) {
+  if (Number(chainId) === 38833) {
     return { gasPrice: hre.ethers.parseUnits('2000', 'gwei') };
   }
   return {};
@@ -31,8 +31,8 @@ async function main() {
   }
   const [deployer] = await hre.ethers.getSigners();
   const chainId = (await hre.ethers.provider.getNetwork()).chainId;
-  if (Number(chainId) !== 38836) {
-    console.error('This script is for IGRA Galleon Testnet (38836) only.');
+  if (Number(chainId) !== 38833) {
+    console.error('This script is for Igra Mainnet (38833) only.');
     process.exit(1);
   }
   const overrides = getFeeOverrides(chainId);

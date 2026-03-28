@@ -24,12 +24,12 @@ const DEFAULT_USE_GRID = true; // Use GRID token by default
 
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
-  console.log('\n🎁 Configuring RewardManager for QuizToEarn...\n');
+  console.log('\nđźŽ Configuring RewardManager for QuizToEarn...\n');
   console.log('Using account:', deployer.address);
   console.log('Account balance:', hre.ethers.formatEther(await hre.ethers.provider.getBalance(deployer.address)), 'KAS\n');
 
   const network = hre.network.name;
-  const isIgra = network === 'igraCaravelTestnet';
+  const isIgra = network === 'igraMainnet';
   
   // Default addresses (Kasplex L2 Testnet)
   const defaultRewardManager = '0x2044FEb08a4Cb14Ff736b00f947E017044da50E6';
@@ -49,15 +49,15 @@ async function main() {
   
   // Validate addresses
   if (!rewardManagerAddress || !quizToEarnAddress) {
-    console.error('\n❌ ERROR: Missing required contract addresses\n');
+    console.error('\nâťŚ ERROR: Missing required contract addresses\n');
     console.log('Required:');
     console.log('   REWARD_MANAGER_ADDRESS');
     console.log('   QUIZ_TO_EARN_ADDRESS\n');
     process.exit(1);
   }
   
-  console.log(`📋 Network: ${network}`);
-  console.log(`   Chain ID: ${isIgra ? '19416' : '167012'}`);
+  console.log(`đź“‹ Network: ${network}`);
+  console.log(`   Chain ID: ${isIgra ? '38833' : '167012'}`);
   console.log(`   RewardManager: ${rewardManagerAddress}`);
   console.log(`   QuizToEarn: ${quizToEarnAddress}`);
   console.log(`   Reward Rate: ${rewardRate} basis points (${rewardRate / 100}%)`);
@@ -72,7 +72,7 @@ async function main() {
     const rewardManager = RewardManager.attach(rewardManagerAddress);
 
     // Check current configuration
-    console.log('🔍 Checking current configuration...');
+    console.log('đź”Ť Checking current configuration...');
     const currentRate = await rewardManager.rewardRates(quizToEarnAddress);
     const currentUseGRID = await rewardManager.useGRID(quizToEarnAddress);
     const currentToken = await rewardManager.dAppTokens(quizToEarnAddress);
@@ -86,65 +86,65 @@ async function main() {
 
     // Set reward rate
     if (currentRate.toString() !== rewardRate.toString()) {
-      console.log('1️⃣  Setting reward rate...');
+      console.log('1ď¸ŹâŁ  Setting reward rate...');
       const setRateTx = await rewardManager.setRewardRate(quizToEarnAddress, rewardRate);
       await setRateTx.wait();
-      console.log('   ✅ Reward rate set to', rewardRate, 'basis points (' + (rewardRate / 100) + '%)');
+      console.log('   âś… Reward rate set to', rewardRate, 'basis points (' + (rewardRate / 100) + '%)');
     } else {
-      console.log('1️⃣  Reward rate already set correctly');
+      console.log('1ď¸ŹâŁ  Reward rate already set correctly');
     }
 
     // Set reward type
     if (currentUseGRID !== useGRID) {
-      console.log('\n2️⃣  Setting reward type...');
+      console.log('\n2ď¸ŹâŁ  Setting reward type...');
       const setTypeTx = await rewardManager.setRewardType(quizToEarnAddress, useGRID);
       await setTypeTx.wait();
-      console.log('   ✅ Reward type set to:', useGRID ? 'GRID Token' : 'dApp Token');
+      console.log('   âś… Reward type set to:', useGRID ? 'GRID Token' : 'dApp Token');
     } else {
-      console.log('\n2️⃣  Reward type already set correctly');
+      console.log('\n2ď¸ŹâŁ  Reward type already set correctly');
     }
 
     // Set dApp token if not using GRID
     if (!useGRID) {
       if (!dAppTokenAddress) {
-        console.error('\n❌ ERROR: DAPP_TOKEN_ADDRESS required when USE_GRID=false\n');
+        console.error('\nâťŚ ERROR: DAPP_TOKEN_ADDRESS required when USE_GRID=false\n');
         process.exit(1);
       }
       
       if (currentToken.toLowerCase() !== dAppTokenAddress.toLowerCase()) {
-        console.log('\n3️⃣  Setting dApp token...');
+        console.log('\n3ď¸ŹâŁ  Setting dApp token...');
         const setTokenTx = await rewardManager.setDAppToken(quizToEarnAddress, dAppTokenAddress);
         await setTokenTx.wait();
-        console.log('   ✅ dApp token set to:', dAppTokenAddress);
+        console.log('   âś… dApp token set to:', dAppTokenAddress);
       } else {
-        console.log('\n3️⃣  dApp token already set correctly');
+        console.log('\n3ď¸ŹâŁ  dApp token already set correctly');
       }
     }
 
     // Summary
     console.log('\n' + '='.repeat(60));
-    console.log('✅ CONFIGURATION COMPLETE!');
+    console.log('âś… CONFIGURATION COMPLETE!');
     console.log('='.repeat(60));
-    console.log('\n📦 QuizToEarn Reward Configuration:');
+    console.log('\nđź“¦ QuizToEarn Reward Configuration:');
     console.log('   Contract:', quizToEarnAddress);
     console.log('   Reward Rate:', rewardRate, 'basis points (' + (rewardRate / 100) + '%)');
     console.log('   Reward Type:', useGRID ? 'GRID Token' : 'dApp Token');
     if (!useGRID && dAppTokenAddress) {
       console.log('   Token Address:', dAppTokenAddress);
     }
-    console.log('\n💡 Note:');
+    console.log('\nđź’ˇ Note:');
     console.log('   - Rewards are distributed automatically when users answer correctly');
-    console.log('   - Reward amount = question reward amount × reward rate');
-    console.log('   - Example: 0.01 KAS reward × 1% rate = 0.0001 KAS worth of tokens');
+    console.log('   - Reward amount = question reward amount Ă— reward rate');
+    console.log('   - Example: 0.01 KAS reward Ă— 1% rate = 0.0001 KAS worth of tokens');
     if (useGRID) {
       console.log('   - Ensure RewardManager has sufficient GRID tokens');
     }
     console.log('');
 
   } catch (error) {
-    console.error('\n❌ Configuration failed:', error.message);
+    console.error('\nâťŚ Configuration failed:', error.message);
     if (error.message.includes('onlyOwner')) {
-      console.error('   ⚠️  Make sure you are using the RewardManager owner account');
+      console.error('   âš ď¸Ź  Make sure you are using the RewardManager owner account');
     }
     process.exit(1);
   }

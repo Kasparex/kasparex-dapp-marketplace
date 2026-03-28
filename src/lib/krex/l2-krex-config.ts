@@ -1,6 +1,6 @@
 /**
  * L2 KREX token config per chain.
- * Kasplex L2 Mainnet: KREX. IGRA Galleon Testnet (38836): tKREX (set via env when deployed).
+ * Kasplex L2 Mainnet: KREX. Igra Mainnet (38833): KREX ERC-20 (set via env when deployed).
  * Other chains: no KREX token (return null).
  */
 
@@ -26,13 +26,15 @@ export function getL2KREXConfig(chainId: number): L2KREXConfig | null {
       chainId: 202555,
     };
   }
-  if (chainId === 38836) {
-    const tKREX = (process.env.NEXT_PUBLIC_TKREX_ADDRESS_38836 || '').trim();
-    if (!tKREX) return null;
+  if (chainId === 38833) {
+    const krex =
+      (process.env.NEXT_PUBLIC_KREX_ADDRESS_IGRA_MAINNET || process.env.NEXT_PUBLIC_TKREX_ADDRESS_38833 || '')
+        .trim();
+    if (!krex) return null;
     return {
-      tokenAddress: tKREX as Address,
-      rpcUrl: 'https://galleon-testnet.igralabs.com:8545',
-      chainId: 38836,
+      tokenAddress: krex as Address,
+      rpcUrl: 'https://rpc.igralabs.com:8545',
+      chainId: 38833,
     };
   }
   return null;

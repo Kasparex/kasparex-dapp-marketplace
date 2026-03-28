@@ -3,7 +3,7 @@
  * If not set, rewards are distributed at 1x only.
  *
  * Usage:
- *   npx hardhat run scripts/verify-reward-multipliers.js --network igraGalleonTestnet
+ *   npx hardhat run scripts/verify-reward-multipliers.js --network igraMainnet
  *
  * Env:
  *   LOYALTY_POINTS_ADDRESS - (optional) default for 38836 from script
@@ -19,11 +19,11 @@ async function main() {
   const chainId = (await hre.ethers.provider.getNetwork()).chainId;
 
   let loyaltyPointsAddress = process.env.LOYALTY_POINTS_ADDRESS?.trim();
-  if (!loyaltyPointsAddress && Number(chainId) === 38836) {
+  if (!loyaltyPointsAddress && Number(chainId) === 38833) {
     loyaltyPointsAddress = LOYALTY_POINTS_38836;
   }
   if (!loyaltyPointsAddress) {
-    console.error('Set LOYALTY_POINTS_ADDRESS or run on network igraGalleonTestnet (38836).');
+    console.error('Set LOYALTY_POINTS_ADDRESS or run on network igraMainnet (38833).');
     process.exit(1);
   }
 
@@ -35,9 +35,9 @@ async function main() {
     console.log('LoyaltyPoints KREX token is NOT set. Rewards are distributed at 1x (no tier multiplier).');
     console.log('');
     console.log('To enable tier multipliers (tGRID and XP scaled by tKREX balance), run:');
-    console.log('  npx hardhat run scripts/set-loyalty-krex-token.js --network igraGalleonTestnet');
+    console.log('  npx hardhat run scripts/set-loyalty-krex-token.js --network igraMainnet');
     console.log('');
-    console.log('Optionally set KREX_TOKEN_ADDRESS (tKREX). On 38836 the script uses tKREX from deployments/revenue-tree-igraGalleonTestnet.json if present.');
+    console.log('Optionally set KREX_TOKEN_ADDRESS (tKREX). On 38836 the script uses tKREX from deployments/revenue-tree-igraMainnet.json if present.');
     process.exit(1);
   }
 
