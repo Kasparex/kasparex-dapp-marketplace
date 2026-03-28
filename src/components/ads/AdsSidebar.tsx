@@ -6,6 +6,7 @@ import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
+import { AdsAvailableSlotsMenu } from '@/components/ads/AdsAvailableSlotsMenu';
 
 const overviewIcon = (
   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -53,6 +54,10 @@ export function AdsSidebar() {
             />
           </Link>
         </nav>
+      </SidebarSection>
+
+      <SidebarSection title="Inventory">
+        <AdsAvailableSlotsMenu />
       </SidebarSection>
     </UnifiedSidebar>
   );

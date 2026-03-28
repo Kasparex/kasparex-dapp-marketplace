@@ -9,7 +9,7 @@ interface AdCardProps {
   ad: AdEntry;
   onEdit?: () => void;
   onDelete?: () => void;
-  /** Inside a carousel shell — omit outer card border/shadow */
+  /** Inside a carousel shell: omit outer card border/shadow */
   embedded?: boolean;
 }
 

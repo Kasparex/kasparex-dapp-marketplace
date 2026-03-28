@@ -8,7 +8,6 @@ import { MagazineCard } from '@/components/magazines/MagazineCard';
 import { MagazinesSidebar } from '@/components/magazines/MagazinesSidebar';
 import { MagazineSortFilters } from '@/components/magazines/MagazineSortFilters';
 import { FilterBar } from '@/components/FilterBar';
-import { AdSlider } from '@/components/ads/AdSlider';
 import { getAllMagazines } from '@/lib/magazines/data';
 import { Magazine, MagazineSortOption } from '@/lib/magazines/types';
 
@@ -110,13 +109,6 @@ export default function MagazinesPage() {
                     <div className="w-full">
                         <div className="mb-12">
                             <MagazineHeader />
-                        </div>
-
-                        <div
-                            id="ad-slot-magazines-halo"
-                            className="mb-10 flex justify-center max-w-[280px] mx-auto scroll-mt-24"
-                        >
-                            <AdSlider slotId="HALO_MAGAZINES_RIGHT" />
                         </div>
 
                         {/* Page Header - above Sorting area (dApps pattern) */}

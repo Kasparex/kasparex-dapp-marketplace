@@ -1,15 +1,12 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Category, categories } from '@/lib/categories';
-import { AD_SLOT_PLACEMENT_LINKS } from '@/lib/ads/placementLinks';
 import type { FilterState, DAppStatus } from '@/lib/dapps';
 import { CategoriesIcon, StatusIcon, NetworkIcon } from '@/components/icons/SectionIcons';
 import { StatusIndicatorDot, getStatusTypeFromString } from './dapps/StatusIndicatorDot';
 import { UnifiedSidebar } from './UnifiedSidebar';
 import { SidebarHeader } from './sidebar/SidebarHeader';
-import { SidebarSection } from './sidebar/SidebarSection';
 import { SidebarNavItem } from './sidebar/SidebarNavItem';
 import { SidebarCategories } from './sidebar/SidebarCategories';
 
@@ -159,31 +156,6 @@ export function Sidebar({
         }}
         multi={true}
       />
-
-      <SidebarSection title="Ad slots">
-        <nav className="space-y-1">
-          {AD_SLOT_PLACEMENT_LINKS.map((row) => (
-            <Link
-              key={row.slotId}
-              href={row.href}
-              className="k-sidebar-item group flex flex-col items-stretch gap-1 py-2.5 !h-auto !min-h-0"
-            >
-              <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-100 group-hover:text-[#02abb8]">
-                {row.title}
-              </span>
-              <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 normal-case tracking-normal leading-snug">
-                {row.placement}
-              </span>
-            </Link>
-          ))}
-          <Link
-            href="/ads"
-            className="k-sidebar-item group flex items-center gap-2 py-2 text-[11px] font-bold uppercase tracking-wider text-[#02abb8]"
-          >
-            Kasparex Ads →
-          </Link>
-        </nav>
-      </SidebarSection>
 
       <button type="button" onClick={onResetFilters} className="w-full mt-4 k-control-btn">
         Reset Filters

@@ -14,7 +14,7 @@ export default function AdsOverviewPage() {
           Ecosystem-wide advertising
         </h1>
         <p className="text-zinc-600 dark:text-zinc-400 max-w-2xl">
-          Time-locked ad slots across the Kasparex platform. Pay in KAS on L1, pin metadata to IPFS, and attach the campaign CID in your transaction payload so the public indexer can list your ad. Very old payments may fall outside the treasury lookback window—see archive CID env if you need long-tail listings.
+          Time-locked ad slots across the Kasparex platform. Pay in KAS on L1, pin metadata to IPFS, and attach the campaign CID in your transaction payload so the public indexer can list your ad. Very old payments may fall outside the treasury lookback window; see archive CID env if you need long-tail listings.
         </p>
       </div>
 

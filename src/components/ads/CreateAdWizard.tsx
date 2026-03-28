@@ -555,7 +555,7 @@ export function CreateAdWizard({
                             Drop an image or click to browse
                           </span>
                           <span className="mt-1 block text-xs text-zinc-500 dark:text-zinc-400">
-                            PNG, JPG, or WebP — pinned to IPFS when you pay
+                            PNG, JPG, or WebP, pinned to IPFS when you pay
                           </span>
                         </div>
                       </label>
@@ -683,7 +683,7 @@ export function CreateAdWizard({
                   }`}
                 >
                   <span className="font-medium">L2 (EVM)</span>
-                  <span className="text-xs block mt-0.5 text-zinc-500">Phase 2 — not available yet</span>
+                  <span className="text-xs block mt-0.5 text-zinc-500">Phase 2: not available yet</span>
                 </button>
               </div>
               <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-4 space-y-1">
@@ -719,7 +719,7 @@ export function CreateAdWizard({
                   </p>
                   <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-4">
                     Your ad appears in the public list once the indexer picks up the transaction (usually within a couple
-                    of minutes). Campaigns older than the indexer lookback may not be listed—see Ads overview.
+                    of minutes). Campaigns older than the indexer lookback may not be listed; see Ads overview.
                   </p>
                 </div>
               ) : (

@@ -11,24 +11,24 @@ export const AD_SLOT_PLACEMENT_LINKS: {
     slotId: 'HALO_DAPPS_RIGHT',
     title: 'dApps halo',
     href: '/#ad-slot-dapps-halo',
-    placement: 'dApps home — hero, right',
+    placement: 'dApps home, hero right',
   },
   {
     slotId: 'HALO_MAGAZINES_RIGHT',
     title: 'Magazines halo',
     href: '/magazines#ad-slot-magazines-halo',
-    placement: 'Magazines listing — below header',
+    placement: 'Magazines listing, halo header right',
   },
   {
     slotId: 'SIDEBAR_RANDOM',
     title: 'Studio sidebar',
     href: '/studio/portfolio#ad-slot-studio-sidebar',
-    placement: 'Creator Studio — left sidebar',
+    placement: 'Creator Studio, left sidebar',
   },
   {
     slotId: 'FOOTER_BLOCK',
     title: 'Footer strip',
     href: '/#ad-slot-footer',
-    placement: 'Site footer — all pages',
+    placement: 'Site footer, all pages',
   },
 ];

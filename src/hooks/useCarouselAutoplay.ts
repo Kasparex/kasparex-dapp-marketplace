@@ -3,9 +3,15 @@
 import { useEffect, useMemo, useState } from 'react';
 
 /**
- * Auto-advance carousel index; pauses on hover (unless disabled) and when prefers-reduced-motion is set.
+ * Auto-advance carousel index; pauses on hover (unless disabled).
+ * When `respectReducedMotion` is true, autoplay is off if the user prefers reduced motion.
  */
-export function useCarouselAutoplay(itemCount: number, intervalMs = 5500, disablePauseOnHover = false) {
+export function useCarouselAutoplay(
+  itemCount: number,
+  intervalMs = 5500,
+  disablePauseOnHover = false,
+  respectReducedMotion = true
+) {
   const [slide, setSlide] = useState(0);
   const [paused, setPaused] = useState(false);
 
@@ -15,14 +21,18 @@ export function useCarouselAutoplay(itemCount: number, intervalMs = 5500, disabl
 
   useEffect(() => {
     if (itemCount <= 1 || (!disablePauseOnHover && paused)) return;
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (
+      respectReducedMotion &&
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
       return;
     }
     const id = window.setInterval(() => {
       setSlide((s) => (s + 1) % itemCount);
     }, intervalMs);
     return () => clearInterval(id);
-  }, [itemCount, intervalMs, paused, disablePauseOnHover]);
+  }, [itemCount, intervalMs, paused, disablePauseOnHover, respectReducedMotion]);
 
   const pauseOnHover = useMemo(
     () =>

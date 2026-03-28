@@ -71,23 +71,26 @@ export function AdPlacementGrid({ slotId, variant, maxCellsShown }: AdPlacementG
 
   const cells = Array.from({ length: limit }, (_, i) => i);
   const showNav = limit > 1;
-  const { slide, setSlide, pauseOnHover } = useCarouselAutoplay(limit, CAROUSEL_INTERVAL_MS);
+  const { slide, setSlide, pauseOnHover } = useCarouselAutoplay(limit, CAROUSEL_INTERVAL_MS, false, false);
 
   const rounded = variant === 'halo' ? 'rounded-2xl' : 'rounded-xl';
 
   return (
     <>
-      <div className="relative w-full">
-        <div className={`overflow-hidden ${rounded}`} {...pauseOnHover}>
+      <div className="relative w-full max-w-full" {...pauseOnHover}>
+        <div className={`overflow-hidden w-full max-w-full ${rounded}`}>
           <div
-            className="flex transition-transform duration-300 ease-out motion-reduce:transition-none"
+            className="flex w-full transition-transform duration-300 ease-out motion-reduce:transition-none"
             style={{ transform: `translateX(-${slide * 100}%)` }}
           >
             {cells.map((cellIndex) => {
               const ad = byIndex.get(cellIndex);
               const frame = frameForVariant(variant);
               return (
-                <div key={cellIndex} className="w-full min-w-0 flex-shrink-0 flex justify-center items-stretch px-1">
+                <div
+                  key={cellIndex}
+                  className="min-w-0 w-full shrink-0 grow-0 basis-full max-w-full flex justify-center items-stretch px-1 box-border"
+                >
                   {ad ? (
                     <FilledAdShell ad={ad} frameClassName={frame} rounded={rounded} />
                   ) : (
