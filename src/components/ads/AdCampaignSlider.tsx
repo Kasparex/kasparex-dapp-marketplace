@@ -11,7 +11,7 @@ interface AdCampaignSliderProps {
 
 export function AdCampaignSlider({ ads, onEdit }: AdCampaignSliderProps) {
   const n = ads.length;
-  const { slide, setSlide, pauseOnHover } = useCarouselAutoplay(n, 5200);
+  const { slide, setSlide, pauseOnHover } = useCarouselAutoplay(n, 4000);
 
   if (n === 0) return null;
 

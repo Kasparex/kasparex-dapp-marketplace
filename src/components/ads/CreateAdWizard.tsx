@@ -20,6 +20,7 @@ import { useAccount } from 'wagmi';
 import { getIPFSClient } from '@/lib/ipfs/client';
 import { useAdsRegistryContext } from '@/components/ads/AdsRegistryProvider';
 import { countActiveForSlot } from '@/lib/ads/registryUtils';
+import { AD_CREATIVE_SPECS, defaultFormatForSlot, validateUploadedImageFile } from '@/lib/ads/creativeSpecs';
 
 type Step = 'connect' | 'slot' | 'details' | 'payment' | 'confirm';
 
@@ -47,7 +48,8 @@ export function CreateAdWizard({
   const [link, setLink] = useState('');
   const [title, setTitle] = useState('');
   const [durationDays, setDurationDays] = useState(7);
-  const [format, setFormat] = useState<AdFormat>('rectangle');
+  const [format, setFormat] = useState<AdFormat>('square');
+  const [imageSpecError, setImageSpecError] = useState<string | null>(null);
   const [paymentNetwork, setPaymentNetwork] = useState<'L1' | 'L2'>('L1');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -83,7 +85,10 @@ export function CreateAdWizard({
   const slotAvailable = slotConfig && slotActiveCount < slotConfig.maxAds;
 
   const canProceedDetails = Boolean(
-    (imageSource === 'url' ? imageUrl.trim() : imageFile) && link.trim() && title.trim()
+    (imageSource === 'url' ? imageUrl.trim() : imageFile) &&
+      link.trim() &&
+      title.trim() &&
+      (imageSource !== 'file' || !imageSpecError)
   );
   const canProceedPayment = paymentNetwork === 'L1' ? l1Ready : isL2Connected;
 
@@ -106,7 +111,8 @@ export function CreateAdWizard({
       setLink('');
       setTitle('');
       setDurationDays(7);
-      setFormat('rectangle');
+      setFormat(initialSlotId ? defaultFormatForSlot(initialSlotId) : 'square');
+      setImageSpecError(null);
       setPaymentNetwork('L1');
       setTxHash(null);
       setMetadataCid(null);
@@ -169,6 +175,20 @@ export function CreateAdWizard({
       cancelled = true;
     };
   }, [syncAdsAfterPayment, registryRefresh]);
+
+  useEffect(() => {
+    if (imageSource !== 'file' || !imageFile) {
+      setImageSpecError(null);
+      return;
+    }
+    let cancelled = false;
+    void validateUploadedImageFile(imageFile, format).then((err) => {
+      if (!cancelled) setImageSpecError(err);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [imageFile, format, imageSource]);
 
   const buildImageRef = async (): Promise<AdImageRef> => {
     if (imageSource === 'url') {
@@ -460,6 +480,19 @@ export function CreateAdWizard({
               </p>
               <div className="space-y-4">
                 <div>
+                  <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">Format</label>
+                  <select
+                    value={format}
+                    onChange={(e) => setFormat(e.target.value as AdFormat)}
+                    className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm mb-3"
+                  >
+                    <option value="square">Square (1:1)</option>
+                    <option value="rectangle">Rectangle (banner)</option>
+                    <option value="tall">Tall (3:4)</option>
+                  </select>
+                  <CreativeRequirementsCallout format={format} />
+                </div>
+                <div>
                   <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">Image</label>
                   <div className="flex gap-2 mb-2">
                     <button
@@ -486,13 +519,18 @@ export function CreateAdWizard({
                     </button>
                   </div>
                   {imageSource === 'url' ? (
-                    <input
-                      type="url"
-                      value={imageUrl}
-                      onChange={(e) => setImageUrl(e.target.value)}
-                      placeholder="https://..."
-                      className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
-                    />
+                    <div>
+                      <input
+                        type="url"
+                        value={imageUrl}
+                        onChange={(e) => setImageUrl(e.target.value)}
+                        placeholder="https://..."
+                        className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
+                      />
+                      <p className="mt-1.5 text-[11px] text-zinc-500 dark:text-zinc-500">
+                        Use a direct image URL that meets the minimum size for the format above.
+                      </p>
+                    </div>
                   ) : (
                     <div className="space-y-2">
                       <label className="flex cursor-pointer flex-col items-center justify-center gap-2.5 rounded-xl border-2 border-dashed border-[#02abb8]/35 bg-gradient-to-br from-[#02abb8]/10 via-transparent to-cyan-500/5 px-4 py-7 transition-all hover:border-[#02abb8]/55 hover:from-[#02abb8]/15 dark:from-[#02abb8]/14 dark:to-cyan-950/25 dark:hover:from-[#02abb8]/20">
@@ -539,6 +577,9 @@ export function CreateAdWizard({
                         </div>
                       ) : null}
                     </div>
+                  )}
+                  {imageSource === 'file' && imageSpecError && (
+                    <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">{imageSpecError}</p>
                   )}
                 </div>
                 <div>
@@ -596,18 +637,6 @@ export function CreateAdWizard({
                       </span>
                     )}
                   </p>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">Format</label>
-                  <select
-                    value={format}
-                    onChange={(e) => setFormat(e.target.value as AdFormat)}
-                    className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
-                  >
-                    <option value="square">Square</option>
-                    <option value="rectangle">Rectangle</option>
-                    <option value="tall">Tall</option>
-                  </select>
                 </div>
                 {initialSlotId && (
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -829,4 +858,36 @@ export function CreateAdWizard({
   );
 
   return createPortal(body, document.body);
+}
+
+function CreativeRequirementsCallout({ format }: { format: AdFormat }) {
+  const spec = AD_CREATIVE_SPECS[format];
+  return (
+    <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 p-3 text-left dark:border-zinc-700 dark:bg-zinc-800/50">
+      <p className="text-[11px] font-bold uppercase tracking-wide text-[#02abb8]">{spec.title}</p>
+      <ul className="mt-2 space-y-1 text-xs text-zinc-600 dark:text-zinc-400">
+        <li>
+          <span className="font-medium text-zinc-700 dark:text-zinc-300">Aspect: </span>
+          {spec.aspectRatioLabel}
+        </li>
+        <li>
+          <span className="font-medium text-zinc-700 dark:text-zinc-300">Minimum size: </span>
+          {spec.minWidth}×{spec.minHeight}px
+        </li>
+        <li>
+          <span className="font-medium text-zinc-700 dark:text-zinc-300">Recommended: </span>
+          {spec.recommendedWidth}×{spec.recommendedHeight}px
+        </li>
+        <li>
+          <span className="font-medium text-zinc-700 dark:text-zinc-300">Max upload: </span>
+          {spec.maxFileSizeMb} MB (PNG, JPG, WebP)
+        </li>
+        {spec.notes.map((n, i) => (
+          <li key={i} className="text-zinc-500 dark:text-zinc-500">
+            · {n}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
