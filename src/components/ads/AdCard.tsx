@@ -14,12 +14,19 @@ interface AdCardProps {
 }
 
 function formatExpires(endTime: string): string {
-  const end = new Date(endTime);
-  const now = new Date();
-  const days = Math.ceil((end.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
-  if (days <= 0) return 'Expired';
+  const endMs = new Date(endTime).getTime();
+  const ms = endMs - Date.now();
+  if (ms <= 0) return 'Expired';
+
+  const minutes = Math.floor(ms / (60 * 1000));
+  const hours = Math.floor(ms / (60 * 60 * 1000));
+  const days = Math.ceil(ms / (24 * 60 * 60 * 1000));
+
+  if (minutes < 1) return 'Under 1 min left';
+  if (minutes < 90) return minutes === 1 ? '1 min left' : `${minutes} min left`;
+  if (hours < 48) return hours === 1 ? '1 hour left' : `${hours} hours left`;
   if (days === 1) return 'Expires tomorrow';
-  return `Expires in ${days} days`;
+  return `${days} days left`;
 }
 
 function getProgressPercent(startTime: string, endTime: string): number {

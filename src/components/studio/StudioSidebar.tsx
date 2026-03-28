@@ -48,7 +48,7 @@ export function StudioSidebar() {
             footer={
                 <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-white/5">
                     <div className="flex flex-col gap-4">
-                        <div className="px-2">
+                        <div id="ad-slot-studio-sidebar" className="px-2 scroll-mt-4">
                             <AdPlacementGrid slotId="SIDEBAR_RANDOM" variant="sidebar" maxCellsShown={2} />
                         </div>
                         <div className="flex items-center gap-3">

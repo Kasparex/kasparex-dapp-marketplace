@@ -6,7 +6,7 @@ export function Footer() {
     <footer className="bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 mt-auto">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Ads block above main footer */}
-        <div className="mb-8">
+        <div id="ad-slot-footer" className="mb-8 scroll-mt-4">
           <FooterAds />
         </div>
         {/* Main Footer Content */}

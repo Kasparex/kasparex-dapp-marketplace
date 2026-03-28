@@ -216,7 +216,10 @@ function HomeContent() {
                       <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">dApp</span>
                     </div>
                   </div>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-auto">
+                  <div
+                    id="ad-slot-dapps-halo"
+                    className="absolute inset-0 flex flex-col items-center justify-center pointer-events-auto scroll-mt-24"
+                  >
                     <AdSlider slotId="HALO_DAPPS_RIGHT" />
                   </div>
                 </div>

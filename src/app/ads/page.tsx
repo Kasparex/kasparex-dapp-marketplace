@@ -3,7 +3,9 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { AD_SLOTS } from '@/lib/ads/slots';
+import { AD_SLOTS, priceKasForDays } from '@/lib/ads/slots';
+import { AD_SLOT_PLACEMENT_LINKS } from '@/lib/ads/placementLinks';
+import { countActiveForSlot, firstFreeSlotIndex } from '@/lib/ads/registryUtils';
 import type { AdEntry, AdFormat, AdSlotId } from '@/lib/ads/types';
 import { AdCard } from '@/components/ads/AdCard';
 import { CreateAdWizard } from '@/components/ads/CreateAdWizard';
@@ -97,11 +99,14 @@ export default function AdsListingPage() {
     setSortBy('newest');
   };
 
-  const openCreateWizard = (initialSlotId?: AdSlotId) => {
+  const openCreateWizard = (initialSlotId?: AdSlotId, initialSlotIndex = 0) => {
     setWizardInitialSlotId(initialSlotId);
-    setWizardInitialSlotIndex(0);
+    setWizardInitialSlotIndex(initialSlotIndex);
     setWizardOpen(true);
   };
+
+  const placementHref = (slotId: AdSlotId) =>
+    AD_SLOT_PLACEMENT_LINKS.find((p) => p.slotId === slotId)?.href ?? '/ads/overview';
 
   const sortOptions: { value: AdsSortOption; label: string }[] = [
     { value: 'newest', label: 'Newest' },
@@ -152,6 +157,67 @@ export default function AdsListingPage() {
                 How it works
               </Link>
             </div>
+          </div>
+        </div>
+
+        <div className="mb-10">
+          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
+            Available slots
+          </h2>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-5 max-w-2xl">
+            Open inventory by placement. Book a cell with the wizard — pricing is per day in KAS.
+          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {AD_SLOTS.map((slot) => {
+              const used = countActiveForSlot(allActive, slot.id);
+              const free = Math.max(0, slot.maxAds - used);
+              const firstIdx = firstFreeSlotIndex(allActive, slot.id, slot.maxAds);
+              const sample7d = priceKasForDays(slot, 7);
+              const place = AD_SLOT_PLACEMENT_LINKS.find((p) => p.slotId === slot.id);
+              return (
+                <div
+                  key={slot.id}
+                  className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 p-4 flex flex-col gap-3 shadow-sm"
+                >
+                  <div>
+                    <h3 className="font-bold text-zinc-900 dark:text-zinc-100 text-sm leading-tight">{slot.label}</h3>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 leading-snug">
+                      {place?.placement ?? slot.id}
+                    </p>
+                  </div>
+                  <div className="text-xs text-zinc-600 dark:text-zinc-400 space-y-0.5">
+                    <p>
+                      <span className="font-semibold text-zinc-800 dark:text-zinc-200">{slot.pricePerDay} KAS</span>
+                      <span> / day</span>
+                    </p>
+                    <p className="text-zinc-500">e.g. 7 days ≈ {sample7d} KAS</p>
+                    <p>
+                      <span className="font-medium text-zinc-700 dark:text-zinc-300">{free}</span>
+                      <span> of {slot.maxAds} spots open</span>
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-auto pt-1">
+                    {free > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => openCreateWizard(slot.id, firstIdx)}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-cyan-500 to-[#02abb8] text-white shadow-sm hover:from-cyan-600 hover:to-[#029ca8] transition-colors"
+                      >
+                        Book with wizard
+                      </button>
+                    ) : (
+                      <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 py-2">Fully booked</span>
+                    )}
+                    <Link
+                      href={placementHref(slot.id)}
+                      className="inline-flex items-center px-3 py-2 rounded-xl text-xs font-semibold border border-zinc-200 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                    >
+                      View placement
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 

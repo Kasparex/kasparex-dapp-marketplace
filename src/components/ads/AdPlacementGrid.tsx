@@ -10,6 +10,7 @@ import { filterActiveAdsForSlot } from '@/lib/ads/registryUtils';
 import type { AdEntry, AdSlotId } from '@/lib/ads/types';
 import { CreateAdWizard } from '@/components/ads/CreateAdWizard';
 import { useCarouselAutoplay } from '@/hooks/useCarouselAutoplay';
+import { AD_CAROUSEL_ARROW_NEXT, AD_CAROUSEL_ARROW_PREV } from '@/components/ads/carouselNavStyles';
 
 export type AdPlacementVariant = 'halo' | 'footer' | 'sidebar';
 
@@ -22,7 +23,7 @@ function frameForVariant(v: AdPlacementVariant): string {
   return 'aspect-square min-w-0 max-w-[220px] mx-auto w-full p-3 sm:p-4';
 }
 
-const CAROUSEL_INTERVAL_MS = 4000;
+const CAROUSEL_INTERVAL_MS = 3000;
 
 interface AdPlacementGridProps {
   slotId: AdSlotId;
@@ -70,11 +71,7 @@ export function AdPlacementGrid({ slotId, variant, maxCellsShown }: AdPlacementG
 
   const cells = Array.from({ length: limit }, (_, i) => i);
   const showNav = limit > 1;
-  const { slide, setSlide, pauseOnHover } = useCarouselAutoplay(
-    limit,
-    CAROUSEL_INTERVAL_MS,
-    true
-  );
+  const { slide, setSlide, pauseOnHover } = useCarouselAutoplay(limit, CAROUSEL_INTERVAL_MS);
 
   const rounded = variant === 'halo' ? 'rounded-2xl' : 'rounded-xl';
 
@@ -130,9 +127,9 @@ export function AdPlacementGrid({ slotId, variant, maxCellsShown }: AdPlacementG
               type="button"
               aria-label="Previous ad slot"
               onClick={() => setSlide((s) => (s - 1 + limit) % limit)}
-              className="absolute left-0 top-1/2 z-10 -translate-y-1/2 h-8 w-8 ml-0.5 rounded-full border border-zinc-200/90 bg-white/90 text-zinc-700 shadow-sm backdrop-blur-sm hover:bg-white hover:border-[#02abb8]/40 hover:text-[#02abb8] dark:border-zinc-600 dark:bg-zinc-900/90 dark:text-zinc-200 dark:hover:border-[#02abb8]/50"
+              className={AD_CAROUSEL_ARROW_PREV}
             >
-              <svg className="mx-auto h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <svg className="mx-auto h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
@@ -140,9 +137,9 @@ export function AdPlacementGrid({ slotId, variant, maxCellsShown }: AdPlacementG
               type="button"
               aria-label="Next ad slot"
               onClick={() => setSlide((s) => (s + 1) % limit)}
-              className="absolute right-0 top-1/2 z-10 -translate-y-1/2 h-8 w-8 mr-0.5 rounded-full border border-zinc-200/90 bg-white/90 text-zinc-700 shadow-sm backdrop-blur-sm hover:bg-white hover:border-[#02abb8]/40 hover:text-[#02abb8] dark:border-zinc-600 dark:bg-zinc-900/90 dark:text-zinc-200 dark:hover:border-[#02abb8]/50"
+              className={AD_CAROUSEL_ARROW_NEXT}
             >
-              <svg className="mx-auto h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <svg className="mx-auto h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
               </svg>
             </button>

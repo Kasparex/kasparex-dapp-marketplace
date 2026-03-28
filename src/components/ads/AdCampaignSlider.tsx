@@ -3,6 +3,7 @@
 import type { AdEntry } from '@/lib/ads/types';
 import { AdCard } from '@/components/ads/AdCard';
 import { useCarouselAutoplay } from '@/hooks/useCarouselAutoplay';
+import { AD_CAROUSEL_ARROW_NEXT, AD_CAROUSEL_ARROW_PREV } from '@/components/ads/carouselNavStyles';
 
 interface AdCampaignSliderProps {
   ads: AdEntry[];
@@ -11,7 +12,7 @@ interface AdCampaignSliderProps {
 
 export function AdCampaignSlider({ ads, onEdit }: AdCampaignSliderProps) {
   const n = ads.length;
-  const { slide, setSlide, pauseOnHover } = useCarouselAutoplay(n, 4000);
+  const { slide, setSlide, pauseOnHover } = useCarouselAutoplay(n, 3000);
 
   if (n === 0) return null;
 
@@ -38,9 +39,9 @@ export function AdCampaignSlider({ ads, onEdit }: AdCampaignSliderProps) {
             type="button"
             aria-label="Previous campaign"
             onClick={() => setSlide((s) => (s - 1 + n) % n)}
-            className="absolute left-0 top-1/2 z-10 -translate-y-1/2 h-9 w-9 ml-1 rounded-full border border-zinc-200/90 bg-white/95 text-zinc-700 shadow-sm backdrop-blur-sm hover:border-[#02abb8]/40 hover:text-[#02abb8] dark:border-zinc-600 dark:bg-zinc-900/95 dark:text-zinc-200"
+            className={AD_CAROUSEL_ARROW_PREV}
           >
-            <svg className="mx-auto h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <svg className="mx-auto h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
@@ -48,9 +49,9 @@ export function AdCampaignSlider({ ads, onEdit }: AdCampaignSliderProps) {
             type="button"
             aria-label="Next campaign"
             onClick={() => setSlide((s) => (s + 1) % n)}
-            className="absolute right-0 top-1/2 z-10 -translate-y-1/2 h-9 w-9 mr-1 rounded-full border border-zinc-200/90 bg-white/95 text-zinc-700 shadow-sm backdrop-blur-sm hover:border-[#02abb8]/40 hover:text-[#02abb8] dark:border-zinc-600 dark:bg-zinc-900/95 dark:text-zinc-200"
+            className={AD_CAROUSEL_ARROW_NEXT}
           >
-            <svg className="mx-auto h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <svg className="mx-auto h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </button>

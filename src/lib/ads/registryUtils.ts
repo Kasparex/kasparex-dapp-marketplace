@@ -27,6 +27,15 @@ export function countActiveForSlot(ads: AdEntry[], slotId: string): number {
   return new Set(list.map((a) => a.slotIndex ?? 0)).size;
 }
 
+/** Lowest free cell index, or 0 if all occupied (caller should check capacity). */
+export function firstFreeSlotIndex(ads: AdEntry[], slotId: string, maxAds: number): number {
+  const occupied = new Set(filterActiveAdsForSlot(ads, slotId).map((a) => a.slotIndex ?? 0));
+  for (let i = 0; i < maxAds; i++) {
+    if (!occupied.has(i)) return i;
+  }
+  return 0;
+}
+
 /** Ads paid by this L1 address (normalized compare on payerL1) */
 export function filterAdsByPayer(ads: AdEntry[], payerKaspaAddress: string | null): AdEntry[] {
   if (!payerKaspaAddress?.trim()) return [];
