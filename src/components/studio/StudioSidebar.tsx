@@ -50,9 +50,6 @@ export function StudioSidebar() {
                     <div className="flex flex-col gap-4">
                         <div className="px-2">
                             <AdPlacementGrid slotId="SIDEBAR_RANDOM" variant="sidebar" maxCellsShown={2} />
-                            <p className="mt-1.5 text-[10px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500 text-center">
-                                Advertisement
-                            </p>
                         </div>
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#02abb8] to-emerald-500 overflow-hidden" />

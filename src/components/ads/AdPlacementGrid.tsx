@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { EmptyVeinSlotFrame, EmptyVeinSlotPlusIcon } from '@/components/game/EmptyVeinSlotFrame';
@@ -11,12 +11,6 @@ import type { AdEntry, AdSlotId } from '@/lib/ads/types';
 import { CreateAdWizard } from '@/components/ads/CreateAdWizard';
 
 export type AdPlacementVariant = 'halo' | 'footer' | 'sidebar';
-
-const gridClass: Record<AdPlacementVariant, string> = {
-  halo: 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3',
-  footer: 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3',
-  sidebar: 'flex flex-col gap-3',
-};
 
 function frameForVariant(v: AdPlacementVariant): string {
   if (v === 'footer') return 'aspect-[32/9] min-h-[72px] max-h-[88px] p-3';
@@ -67,36 +61,102 @@ export function AdPlacementGrid({ slotId, variant, maxCellsShown }: AdPlacementG
 
   const full = slotAds.length >= maxAds;
   const cells = Array.from({ length: limit }, (_, i) => i);
+  const [slide, setSlide] = useState(0);
+  const showNav = limit > 1;
+
+  useEffect(() => {
+    setSlide((s) => Math.min(s, Math.max(0, limit - 1)));
+  }, [limit]);
 
   return (
     <>
-      <div className={gridClass[variant]}>
-        {cells.map((cellIndex) => {
-          const ad = byIndex.get(cellIndex);
-          if (ad) {
-            return <FilledAdCell key={cellIndex} ad={ad} variant={variant} />;
-          }
-          return (
-            <EmptyVeinSlotFrame
-              key={cellIndex}
-              disabled={full}
-              onClick={() => !full && openWizard(cellIndex)}
-              frameClassName={frameForVariant(variant)}
-            >
-              <div className="flex flex-col items-center gap-2 text-center relative z-[1]">
-                <EmptyVeinSlotPlusIcon />
-                <div>
-                  <h3 className="font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide text-xs sm:text-sm">
-                    Ad slot
-                  </h3>
-                  <p className="text-zinc-500 dark:text-zinc-400 text-[11px] sm:text-xs mt-0.5 px-1">
-                    {full ? 'Slot full' : 'Your campaign'}
-                  </p>
+      <div className="relative w-full">
+        <div className={`overflow-hidden ${variant === 'halo' ? 'rounded-2xl' : 'rounded-xl'}`}>
+          <div
+            className="flex transition-transform duration-300 ease-out motion-reduce:transition-none"
+            style={{ transform: `translateX(-${slide * 100}%)` }}
+          >
+            {cells.map((cellIndex) => {
+              const ad = byIndex.get(cellIndex);
+              return (
+                <div
+                  key={cellIndex}
+                  className="w-full min-w-0 flex-shrink-0 flex justify-center items-stretch px-0.5"
+                >
+                  {ad ? (
+                    <FilledAdCell ad={ad} variant={variant} />
+                  ) : (
+                    <EmptyVeinSlotFrame
+                      disabled={full}
+                      onClick={() => !full && openWizard(cellIndex)}
+                      frameClassName={frameForVariant(variant)}
+                    >
+                      <div className="flex flex-col items-center gap-2 text-center relative z-[1]">
+                        <EmptyVeinSlotPlusIcon />
+                        <div>
+                          <h3 className="font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide text-xs sm:text-sm">
+                            Ad slot
+                          </h3>
+                          <p className="text-zinc-500 dark:text-zinc-400 text-[11px] sm:text-xs mt-0.5 px-1">
+                            {full ? 'Slot full' : 'Your campaign'}
+                          </p>
+                        </div>
+                      </div>
+                    </EmptyVeinSlotFrame>
+                  )}
                 </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {showNav && (
+          <>
+            <button
+              type="button"
+              aria-label="Previous ad slot"
+              disabled={slide === 0}
+              onClick={() => setSlide((s) => Math.max(0, s - 1))}
+              className="absolute left-0 top-1/2 z-10 -translate-y-1/2 h-8 w-8 ml-0.5 rounded-full border border-zinc-200/90 bg-white/90 text-zinc-700 shadow-sm backdrop-blur-sm hover:bg-white hover:border-[#02abb8]/40 hover:text-[#02abb8] disabled:pointer-events-none disabled:opacity-25 dark:border-zinc-600 dark:bg-zinc-900/90 dark:text-zinc-200 dark:hover:border-[#02abb8]/50"
+            >
+              <svg className="mx-auto h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              aria-label="Next ad slot"
+              disabled={slide >= limit - 1}
+              onClick={() => setSlide((s) => Math.min(limit - 1, s + 1))}
+              className="absolute right-0 top-1/2 z-10 -translate-y-1/2 h-8 w-8 mr-0.5 rounded-full border border-zinc-200/90 bg-white/90 text-zinc-700 shadow-sm backdrop-blur-sm hover:bg-white hover:border-[#02abb8]/40 hover:text-[#02abb8] disabled:pointer-events-none disabled:opacity-25 dark:border-zinc-600 dark:bg-zinc-900/90 dark:text-zinc-200 dark:hover:border-[#02abb8]/50"
+            >
+              <svg className="mx-auto h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+            <div className="mt-2 flex items-center justify-center gap-2">
+              <div className="flex items-center gap-1.5">
+                {cells.map((i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    aria-label={`Ad slot ${i + 1} of ${limit}`}
+                    aria-current={slide === i ? 'true' : undefined}
+                    onClick={() => setSlide(i)}
+                    className={`h-1.5 rounded-full transition-all ${
+                      slide === i
+                        ? 'w-5 bg-[#02abb8]'
+                        : 'w-1.5 bg-zinc-300 hover:bg-zinc-400 dark:bg-zinc-600 dark:hover:bg-zinc-500'
+                    }`}
+                  />
+                ))}
               </div>
-            </EmptyVeinSlotFrame>
-          );
-        })}
+              <span className="text-[10px] tabular-nums text-zinc-400 dark:text-zinc-500">
+                {slide + 1}/{limit}
+              </span>
+            </div>
+          </>
+        )}
       </div>
       {wizardSlot ? (
         <CreateAdWizard

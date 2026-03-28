@@ -8,9 +8,6 @@ export function Footer() {
         {/* Ads block above main footer */}
         <div className="mb-8">
           <FooterAds />
-          <p className="mt-2 text-[10px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500 text-center">
-            This area is an advertisement
-          </p>
         </div>
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8">

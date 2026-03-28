@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { AD_SLOTS, getSlotConfig, priceKasForDays } from '@/lib/ads/slots';
 import { getAdsTreasuryL1Address, kasToSompi } from '@/lib/ads/config';
@@ -47,6 +47,7 @@ export function CreateAdWizard({
   const [metadataCid, setMetadataCid] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [verifyNote, setVerifyNote] = useState<string | null>(null);
+  const ipfsFileInputRef = useRef<HTMLInputElement>(null);
 
   const { isConnected: isL1Connected, sendTransaction: sendL1, address: l1Address } = useKasWare();
   const { isConnected: isL2Connected } = useAccount();
@@ -84,6 +85,7 @@ export function CreateAdWizard({
       setMetadataCid(null);
       setError(null);
       setVerifyNote(null);
+      if (ipfsFileInputRef.current) ipfsFileInputRef.current.value = '';
     }
   }, [isOpen, initialSlotId, initialSlotIndex]);
 
@@ -321,12 +323,51 @@ export function CreateAdWizard({
                       className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
                     />
                   ) : (
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
-                      className="w-full text-sm text-zinc-600 dark:text-zinc-400"
-                    />
+                    <div className="space-y-2">
+                      <label className="flex cursor-pointer flex-col items-center justify-center gap-2.5 rounded-xl border-2 border-dashed border-[#02abb8]/35 bg-gradient-to-br from-[#02abb8]/10 via-transparent to-cyan-500/5 px-4 py-7 transition-all hover:border-[#02abb8]/55 hover:from-[#02abb8]/15 dark:from-[#02abb8]/14 dark:to-cyan-950/25 dark:hover:from-[#02abb8]/20">
+                        <input
+                          ref={ipfsFileInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="sr-only"
+                          onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
+                        />
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#02abb8]/15 text-[#02abb8] ring-2 ring-[#02abb8]/10 dark:bg-[#02abb8]/25 dark:ring-[#02abb8]/20">
+                          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                          </svg>
+                        </div>
+                        <div className="text-center">
+                          <span className="block text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                            Drop an image or click to browse
+                          </span>
+                          <span className="mt-1 block text-xs text-zinc-500 dark:text-zinc-400">
+                            PNG, JPG, or WebP — pinned to IPFS when you pay
+                          </span>
+                        </div>
+                      </label>
+                      {imageFile ? (
+                        <div className="flex items-center justify-between gap-2 rounded-lg border border-[#02abb8]/25 bg-[#02abb8]/5 px-3 py-2 dark:border-[#02abb8]/30 dark:bg-[#02abb8]/10">
+                          <p className="min-w-0 flex-1 truncate text-xs font-medium text-[#02abb8]" title={imageFile.name}>
+                            {imageFile.name}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setImageFile(null);
+                              if (ipfsFileInputRef.current) ipfsFileInputRef.current.value = '';
+                            }}
+                            className="flex-shrink-0 text-[11px] font-bold uppercase tracking-wide text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+                          >
+                            Clear
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
                   )}
                 </div>
                 <div>
