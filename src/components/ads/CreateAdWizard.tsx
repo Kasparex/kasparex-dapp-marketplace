@@ -684,10 +684,13 @@ export function CreateAdWizard({
                   {verifyNote && (
                     <p className="text-sm text-amber-600 dark:text-amber-400 mt-3 text-left">{verifyNote}</p>
                   )}
+                  <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-3 text-left">
+                    KasWare may label the payload as unsupported in the decode view; the transaction still carries the
+                    Kasparex binding the site reads from the public indexer.
+                  </p>
                   <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-4">
-                    Your ad appears in the public list once the transaction includes the Kasparex metadata payload and the
-                    indexer refreshes (about 2 minutes). Campaigns older than the indexer lookback may not be listed—see
-                    Ads overview.
+                    Your ad appears in the public list once the indexer picks up the transaction (usually within a couple
+                    of minutes). Campaigns older than the indexer lookback may not be listed—see Ads overview.
                   </p>
                 </div>
               ) : (

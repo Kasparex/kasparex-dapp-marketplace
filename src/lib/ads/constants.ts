@@ -1,8 +1,11 @@
 /**
- * UTF-8 payload prefix on L1 tx (hex-encoded in `sendKaspa` options.payload) for indexer discoverability.
- * KasWare: we pass both `payload` (hex) and `note` (plain) so wallets that only support one field still have a path.
+ * UTF-8 payload prefix on L1 tx (hex in `sendKaspa` options.payload).
+ * Compact form: KasWare often stores the UTF-8 binding as ASCII hex on-chain (double-encoded in REST);
+ * a shorter prefix reduces the chance of truncation/corruption.
+ * Legacy `kasparex-ad:v1:` is still recognized when decoding.
  */
-export const AD_PAYLOAD_PREFIX = 'kasparex-ad:v1:';
+export const AD_PAYLOAD_PREFIX = 'kxad1:';
+export const AD_PAYLOAD_PREFIX_LEGACY = 'kasparex-ad:v1:';
 
 export const ADS_MIN_DURATION_DAYS = 1;
 export const ADS_MAX_DURATION_DAYS = 365;

@@ -6,7 +6,11 @@ import {
   type KaspaRestTxOutput,
 } from '@/lib/kaspa/api';
 import { getAdsTreasuryL1Address } from '@/lib/ads/config';
-import { AD_PAYLOAD_PREFIX, ADS_TREASURY_TX_LIMIT } from '@/lib/ads/constants';
+import {
+  AD_PAYLOAD_PREFIX,
+  AD_PAYLOAD_PREFIX_LEGACY,
+  ADS_TREASURY_TX_LIMIT,
+} from '@/lib/ads/constants';
 import {
   parseAdMetadataJson,
   resolveAdImageUrl,
@@ -16,27 +20,77 @@ import { priceKasForDays, getSlotConfig } from '@/lib/ads/slots';
 import { isValidAdPayment } from '@/lib/ads/adPriceValidation';
 import type { AdEntry } from '@/lib/ads/types';
 
+/** Kaspa REST returns `payload` as hex of on-chain bytes. KasWare often puts ASCII hex of the binding on-chain, so we peel 1–3 hex layers. */
+function peelHexPayloadLayers(raw: string): string {
+  let s = raw.replace(/^0x/i, '').trim();
+  for (let i = 0; i < 4; i++) {
+    if (!/^[0-9a-fA-F]+$/.test(s) || s.length < 4 || s.length % 2 !== 0) break;
+    try {
+      const next = Buffer.from(s, 'hex').toString('utf8').trim();
+      if (!next) break;
+      s = next;
+    } catch {
+      break;
+    }
+  }
+  return s;
+}
+
+/** IPFS CID (v1 base32 or v0 base58) embedded in peeled binding text; scan base32 run to avoid trailing garbage after mojibake. */
+function findIpfsCidInText(text: string): string | null {
+  const low = text.toLowerCase();
+  const start = low.search(/baf[ky][a-z2-7]/);
+  if (start >= 0) {
+    let j = start + 3;
+    while (j < low.length && /[a-z2-7]/.test(low[j]!)) j++;
+    if (j - start >= 50) return low.slice(start, j);
+  }
+  const qm = text.match(/Qm[1-9A-HJ-NP-Za-km-z]{44,}/);
+  if (qm) return qm[0];
+  return null;
+}
+
+function extractCidAfterPrefix(text: string, prefix: string): string | null {
+  const i = text.indexOf(prefix);
+  if (i < 0) return null;
+  const rest = text.slice(i + prefix.length).trim();
+  const fromBaf = findIpfsCidInText(rest);
+  if (fromBaf) return fromBaf;
+  const token = rest.match(/^([a-z2-7]+)/i);
+  if (token && token[1].length >= 50) return token[1].toLowerCase();
+  return null;
+}
+
 function extractCidFromPayload(payload: string | null | undefined): string | null {
   if (!payload || typeof payload !== 'string') return null;
-  let text = '';
   try {
-    const hex = payload.trim();
-    if (/^[0-9a-fA-F]+$/.test(hex) && hex.length % 2 === 0 && hex.length >= 4) {
-      text = Buffer.from(hex, 'hex').toString('utf8');
-    } else {
-      text = payload;
+    const trimmedRaw = payload.trim();
+    const text = /^[0-9a-fA-F]+$/.test(trimmedRaw) && trimmedRaw.length % 2 === 0
+      ? peelHexPayloadLayers(trimmedRaw)
+      : trimmedRaw;
+
+    for (const prefix of [AD_PAYLOAD_PREFIX_LEGACY, AD_PAYLOAD_PREFIX]) {
+      const byPrefix = extractCidAfterPrefix(text, prefix);
+      if (byPrefix) return byPrefix;
     }
+
+    const loose = findIpfsCidInText(text);
+    if (loose) return loose;
+
+    const single = text.trim();
+    if (/^(baf[ky][a-z2-7]{45,}|Qm[1-9A-HJ-NP-Za-km-z]{40,})$/i.test(single)) {
+      return single.toLowerCase();
+    }
+    return null;
   } catch {
     return null;
   }
-  const trimmed = text.trim();
-  if (trimmed.startsWith(AD_PAYLOAD_PREFIX)) {
-    return trimmed.slice(AD_PAYLOAD_PREFIX.length).trim();
-  }
-  if (/^(bafy[a-z0-9]{50,}|Qm[1-9A-HJ-NP-Za-km-z]{40,})$/i.test(trimmed)) {
-    return trimmed;
-  }
-  return null;
+}
+
+function normalizeCidCompare(a: string, b: string): boolean {
+  const x = a.replace(/^ipfs:\/\//, '').trim().toLowerCase();
+  const y = b.replace(/^ipfs:\/\//, '').trim().toLowerCase();
+  return x === y;
 }
 
 function normAddr(a: string): string {
@@ -211,7 +265,9 @@ export async function buildActiveAdsFromChain(): Promise<AdEntry[]> {
 
     const startMs = txTimeMs(tx);
     const endMs = startMs + meta.days * 24 * 60 * 60 * 1000;
-    if (now > endMs || now < startMs) continue;
+    if (now > endMs) continue;
+    // Allow a few minutes of skew (indexer block time vs server clock; newly accepted txs).
+    if (now < startMs - 5 * 60 * 1000) continue;
 
     const entry = campaignToAdEntry(meta, txId, cid, startMs);
 
@@ -275,10 +331,18 @@ export async function verifyAdRegistration(body: VerifyAdRegistrationBody): Prom
     return { ok: false, error: 'Payer does not match transaction inputs' };
   }
 
-  const cleanCid = metadataCid.replace(/^ipfs:\/\//, '');
-  const onChainCid = extractCidFromPayload(getTxPayload(tx) ?? null);
-  if (onChainCid != null && onChainCid !== cleanCid) {
-    return { ok: false, error: 'Metadata CID does not match transaction payload' };
+  const cleanCid = metadataCid.replace(/^ipfs:\/\//, '').trim();
+  const rawPayload = getTxPayload(tx) ?? null;
+  const onChainCid = extractCidFromPayload(rawPayload);
+  if (onChainCid != null && !normalizeCidCompare(onChainCid, cleanCid)) {
+    const peeled =
+      rawPayload && /^[0-9a-fA-F]+$/.test(rawPayload.trim()) && rawPayload.trim().length % 2 === 0
+        ? peelHexPayloadLayers(rawPayload.trim())
+        : rawPayload ?? '';
+    const embedded = peeled.toLowerCase().includes(cleanCid.toLowerCase());
+    if (!embedded) {
+      return { ok: false, error: 'Metadata CID does not match transaction payload' };
+    }
   }
 
   const txId = tx.transaction_id ?? tx.transactionId ?? txHash;

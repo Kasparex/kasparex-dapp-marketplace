@@ -40,9 +40,12 @@ async function buildMergedActiveAds(): Promise<AdEntry[]> {
     byId.set(a.id, a);
   }
   const now = Date.now();
-  return [...byId.values()].filter(
-    (ad) => new Date(ad.startTime).getTime() <= now && new Date(ad.endTime).getTime() > now
-  );
+  const startSlackMs = 5 * 60 * 1000;
+  return [...byId.values()].filter((ad) => {
+    const start = new Date(ad.startTime).getTime();
+    const end = new Date(ad.endTime).getTime();
+    return start - startSlackMs <= now && end > now;
+  });
 }
 
 export const getCachedActiveAds = unstable_cache(
