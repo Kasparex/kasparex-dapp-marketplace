@@ -73,6 +73,17 @@ const vaultIcon = (
   </svg>
 );
 
+const trophyIcon = (
+  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M8 21h8m-4 0v-4m6-14h2a2 2 0 012 2v1a6 6 0 01-6 6M6 3H4a2 2 0 00-2 2v1a6 6 0 006 6m10-9H6v5a6 6 0 006 6 6 6 0 006-6V3z"
+    />
+  </svg>
+);
+
 const map = storyFolderMap as Record<string, string | null>;
 
 export function ChroniclesSidebar() {
@@ -218,6 +229,17 @@ export function ChroniclesSidebar() {
           <Tooltip content="Vault & unlocks" side="right" align="start">
             <Link href="/chronicles/dashboard">
               <SidebarNavItem label="Vault & unlocks" icon={vaultIcon} active={isDashboard} labelClassName={navLabelClass} />
+            </Link>
+          </Tooltip>
+
+          <Tooltip content="Leaderboard" side="right" align="start">
+            <Link href="/chronicles/leaderboard">
+              <SidebarNavItem
+                label="Leaderboard"
+                icon={trophyIcon}
+                active={pathname.startsWith('/chronicles/leaderboard')}
+                labelClassName={navLabelClass}
+              />
             </Link>
           </Tooltip>
         </nav>

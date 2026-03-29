@@ -5,6 +5,7 @@ import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
 import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
+import { ChroniclesReadConfirmCard } from '@/components/chronicles/leaderboard/ChroniclesReadConfirmCard';
 import { getVehicleBySlug, getAllVehicleSlugs, getCharacterBySlug, getChapterSummaries } from '@/lib/chronicles/loaders';
 
 interface PageProps {
@@ -74,6 +75,10 @@ export default async function ChronicleVehiclePage({ params }: PageProps) {
 
           <div className="mt-8">
             <ChroniclesMarkdown markdown={vehicle.bodyMarkdown} />
+          </div>
+
+          <div className="mt-10">
+            <ChroniclesReadConfirmCard entityType="vehicle" entityId={vehicle.slug} />
           </div>
         </div>
 
