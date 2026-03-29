@@ -45,7 +45,7 @@ export function StatsCard({
           children
         ) : (
           <span className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">
-            {value ?? '—'}
+            {value ?? '-'}
           </span>
         )}
         {subtitle && (

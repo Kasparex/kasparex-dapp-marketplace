@@ -8,6 +8,7 @@ import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 import { ChroniclesNavGroup, ChroniclesNavSublink } from '@/components/chronicles/ChroniclesNavGroup';
+import { Tooltip } from '@/components/ui/Tooltip';
 import {
   getAllCharacters,
   getAllLocations,
@@ -123,11 +124,20 @@ export function ChroniclesSidebar() {
         headingClassName="text-xs sm:text-sm font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.18em] mb-4 px-2"
       >
         <nav className="space-y-1">
-          <Link href="/chronicles">
-            <SidebarNavItem label="Overview" icon={homeIcon} active={isOverview} labelClassName={navLabelClass} />
-          </Link>
+          <Tooltip content="Overview" side="right" align="start">
+            <Link href="/chronicles">
+              <SidebarNavItem label="Overview" icon={homeIcon} active={isOverview} labelClassName={navLabelClass} />
+            </Link>
+          </Tooltip>
 
-          <ChroniclesNavGroup groupId="chapters" label="Chapters" icon={bookIcon} defaultOpen active={isChapters}>
+          <ChroniclesNavGroup
+            groupId="chapters"
+            label="Chapters"
+            icon={bookIcon}
+            href="/chronicles/chapters"
+            defaultOpen
+            active={isChapters}
+          >
             <Link href="/chronicles/chapters">
               <div className={`k-sidebar-item group ${pathname === '/chronicles/chapters' ? 'k-sidebar-item-active' : ''}`.trim()}>
                 <span className="text-xs font-bold uppercase tracking-wide pl-6">All chapters</span>
@@ -143,7 +153,7 @@ export function ChroniclesSidebar() {
             ))}
           </ChroniclesNavGroup>
 
-          <ChroniclesNavGroup groupId="characters" label="Characters" icon={usersIcon} active={isCharacters}>
+          <ChroniclesNavGroup groupId="characters" label="Characters" icon={usersIcon} href="/chronicles/characters" active={isCharacters}>
             <Link href="/chronicles/characters">
               <div className={`k-sidebar-item group ${pathname === '/chronicles/characters' ? 'k-sidebar-item-active' : ''}`.trim()}>
                 <span className="text-xs font-bold uppercase tracking-wide pl-6">All characters</span>
@@ -162,7 +172,7 @@ export function ChroniclesSidebar() {
             ))}
           </ChroniclesNavGroup>
 
-          <ChroniclesNavGroup groupId="locations" label="Locations" icon={mapIcon} active={isLocations}>
+          <ChroniclesNavGroup groupId="locations" label="Locations" icon={mapIcon} href="/chronicles/locations" active={isLocations}>
             <Link href="/chronicles/locations">
               <div className={`k-sidebar-item group ${pathname === '/chronicles/locations' ? 'k-sidebar-item-active' : ''}`.trim()}>
                 <span className="text-xs font-bold uppercase tracking-wide pl-6">All locations</span>
@@ -178,7 +188,7 @@ export function ChroniclesSidebar() {
             ))}
           </ChroniclesNavGroup>
 
-          <ChroniclesNavGroup groupId="vehicles" label="Vehicles & tech" icon={truckIcon} active={isVehicles}>
+          <ChroniclesNavGroup groupId="vehicles" label="Vehicles & tech" icon={truckIcon} href="/chronicles/vehicles" active={isVehicles}>
             <Link href="/chronicles/vehicles">
               <div className={`k-sidebar-item group ${pathname === '/chronicles/vehicles' ? 'k-sidebar-item-active' : ''}`.trim()}>
                 <span className="text-xs font-bold uppercase tracking-wide pl-6">All items</span>
@@ -194,7 +204,7 @@ export function ChroniclesSidebar() {
             ))}
           </ChroniclesNavGroup>
 
-          <ChroniclesNavGroup groupId="workspace" label="Workspace (source)" icon={folderIcon}>
+          <ChroniclesNavGroup groupId="workspace" label="Workspace (source)" icon={folderIcon} href="/chronicles/dashboard#workspace">
             {workspaceEntries.map(([folder]) => (
               <ChroniclesNavSublink
                 key={folder}
@@ -205,9 +215,11 @@ export function ChroniclesSidebar() {
             ))}
           </ChroniclesNavGroup>
 
-          <Link href="/chronicles/dashboard">
-            <SidebarNavItem label="Vault & unlocks" icon={vaultIcon} active={isDashboard} labelClassName={navLabelClass} />
-          </Link>
+          <Tooltip content="Vault & unlocks" side="right" align="start">
+            <Link href="/chronicles/dashboard">
+              <SidebarNavItem label="Vault & unlocks" icon={vaultIcon} active={isDashboard} labelClassName={navLabelClass} />
+            </Link>
+          </Tooltip>
         </nav>
       </SidebarSection>
     </UnifiedSidebar>

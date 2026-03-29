@@ -90,10 +90,10 @@ function ContractNode({ data, id }: NodeProps<{ contract: ContractListItem; chai
           </span>
         )}
       </div>
-      {(param0 !== null && param0 !== '—') || (param1 !== null && param1 !== '—') ? (
+      {(param0 !== null && param0 !== '-') || (param1 !== null && param1 !== '-') ? (
         <div className="mt-1.5 text-[10px] text-zinc-600 dark:text-zinc-400">
-          {param0 !== null && param0 !== '—' && <div>{param0}</div>}
-          {param1 !== null && param1 !== '—' && <div>{param1}</div>}
+          {param0 !== null && param0 !== '-' && <div>{param0}</div>}
+          {param1 !== null && param1 !== '-' && <div>{param1}</div>}
         </div>
       ) : null}
     </div>
@@ -149,7 +149,7 @@ export function ContractFlowView({
   return (
     <div className="space-y-2">
       <p className="text-sm text-zinc-500 dark:text-zinc-400">
-        Execution flow (left → right): Treasury on the left, then contracts that feed into the system. Arrows show on-chain links. Read-only — pan and zoom to explore.
+        Execution flow (left → right): Treasury on the left, then contracts that feed into the system. Arrows show on-chain links. Read-only - pan and zoom to explore.
       </p>
       <div className="h-[600px] w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/30">
         <ReactFlow

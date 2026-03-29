@@ -134,8 +134,8 @@ async function main() {
     }
     console.log('\nđź’ˇ Note:');
     console.log('   - Rewards are distributed automatically when users answer correctly');
-    console.log('   - Reward amount = question reward amount Ă— reward rate');
-    console.log('   - Example: 0.01 KAS reward Ă— 1% rate = 0.0001 KAS worth of tokens');
+    console.log('   - Reward amount = question reward amount x reward rate');
+    console.log('   - Example: 0.01 KAS reward x 1% rate = 0.0001 KAS worth of tokens');
     if (useGRID) {
       console.log('   - Ensure RewardManager has sufficient GRID tokens');
     }

@@ -53,9 +53,9 @@ export function UnlockOfferCard({
 
   const discountHint =
     baseKas > 0
-      ? `List ${baseKas} KAS · You pay ${effectiveKas} KAS (KREX −${krexTierDiscountPercent(
+      ? `List ${baseKas} KAS. You pay ${effectiveKas} KAS (KREX -${krexTierDiscountPercent(
           krexTier
-        )}% · NFT −${chroniclesNftTierDiscountPercent(nftStatus)}%)`
+        )}%, NFT -${chroniclesNftTierDiscountPercent(nftStatus)}%)`
       : null;
 
   async function handlePay() {
@@ -147,7 +147,7 @@ export function UnlockOfferCard({
           </div>
         )}
       </div>
-      <div className="p-5 flex flex-col flex-1 min-h-0">
+      <div className="p-6 flex flex-col flex-1 min-h-0">
         <p className="text-xs font-black uppercase tracking-widest text-[#02abb8] mb-2">{offer.kind}</p>
         <h3 className="font-black text-zinc-900 dark:text-zinc-100 text-lg mb-2 leading-snug">{offer.title}</h3>
         <p className="text-base text-zinc-600 dark:text-zinc-400 flex-1 leading-relaxed">{offer.shortDescription}</p>
@@ -157,7 +157,7 @@ export function UnlockOfferCard({
         ) : null}
 
         {!unlocked && state.isConnected && baseKas > 0 ? (
-          <div className="mt-4 space-y-2">
+          <div className="mt-4 space-y-2.5">
             <button
               type="button"
               onClick={() => void handlePay()}

@@ -4,7 +4,7 @@
  * Recommended Configuration (Option 1 - Moderate):
  * - Target: 0.01 GRID tokens per correct answer
  * - Reward rate: 100 basis points (1%)
- * - Required actionValue: 0.01 GRID Ă— 10000 / 100 = 1 KAS
+ * - Required actionValue: 0.01 GRID x 10000 / 100 = 1 KAS
  * 
  * Alternative Options:
  * - Option 2 (Balanced): REWARD_AMOUNT=10 â†’ 0.1 GRID tokens
@@ -44,7 +44,7 @@ async function main() {
   const quizToEarnAddress = process.env.QUIZ_TO_EARN_ADDRESS || (isIgra ? igraQuizToEarn : defaultQuizToEarn);
   
   // Recommended: 1 KAS to get 0.01 GRID tokens at 1% rate
-  // Calculation: 0.01 GRID = (actionValue Ă— 100) / 10000 â†’ actionValue = 1 KAS
+  // Calculation: 0.01 GRID = (actionValue x 100) / 10000 -> actionValue = 1 KAS
   // Alternative: 10 KAS â†’ 0.1 GRID, 100 KAS â†’ 1 GRID
   const rewardAmountKAS = process.env.REWARD_AMOUNT ? parseFloat(process.env.REWARD_AMOUNT) : 1;
   const rewardAmountWei = hre.ethers.parseEther(rewardAmountKAS.toString());
@@ -108,7 +108,7 @@ async function main() {
     console.log('\nđź’ˇ Note:');
     console.log('   - Reward rate: 1% (100 basis points)');
     console.log('   - Reward type: GRID Token');
-    console.log(`   - Calculation: ${rewardAmountKAS} KAS Ă— 1% = ${expectedGRID} GRID tokens`);
+    console.log(`   - Calculation: ${rewardAmountKAS} KAS x 1% = ${expectedGRID} GRID tokens`);
     console.log('   - Ensure RewardManager has sufficient GRID tokens');
     console.log('\nđź“š See docs/QUIZ_REWARD_RECOMMENDATIONS.md for reward options and sustainability analysis');
     console.log('');

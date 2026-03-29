@@ -144,22 +144,22 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
     const rows: { token: string; balance: string; loading?: boolean }[] = [];
     rows.push({
       token: 'XP Points',
-      balance: !isConnected ? '—' : xpLoading ? '...' : formatLargeNumber(xpPoints),
+      balance: !isConnected ? '-' : xpLoading ? '...' : formatLargeNumber(xpPoints),
       loading: xpLoading,
     });
     rows.push({
       token: nativeLabel,
-      balance: isConnected ? formatFee(nativeFormatted) : '—',
+      balance: isConnected ? formatFee(nativeFormatted) : '-',
       loading: false,
     });
     rows.push({
       token: krexLabel,
-      balance: !isConnected ? '—' : krexLoading ? '...' : formatLargeNumber(krexBalance),
+      balance: !isConnected ? '-' : krexLoading ? '...' : formatLargeNumber(krexBalance),
       loading: krexLoading,
     });
     rows.push({
       token: gridLabel,
-      balance: !isConnected ? '—' : gridLoading ? '...' : formatLargeNumber(gridBalanceNum),
+      balance: !isConnected ? '-' : gridLoading ? '...' : formatLargeNumber(gridBalanceNum),
       loading: gridLoading,
     });
     return rows;

@@ -286,7 +286,7 @@ export interface VerifyAdRegistrationBody {
 }
 
 /**
- * POST /api/ads/verify — confirms tx + metadata + payer for UX (listing uses on-chain payload).
+ * POST /api/ads/verify - confirms tx + metadata + payer for UX (listing uses on-chain payload).
  */
 export async function verifyAdRegistration(body: VerifyAdRegistrationBody): Promise<{
   ok: boolean;

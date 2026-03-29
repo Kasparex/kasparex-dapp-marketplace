@@ -165,7 +165,7 @@ async function main() {
     console.log('   Contract:', quizToEarnAddress);
     console.log('   Fee Percentage:', defaultFeePercentage, 'basis points (' + (defaultFeePercentage / 100) + '%)');
     console.log('   Default Reward:', hre.ethers.formatEther(defaultRewardAmount), 'KAS per correct answer');
-    console.log('\nđź”— View on Explorer:');
+    console.log('\n- View on Explorer:');
     console.log(`   Contract: https://explorer.kasplex.org/address/${quizToEarnAddress}`);
     console.log('\nđź“‹ Next Steps:');
     console.log('   1. Update src/lib/contracts/addresses.ts with the contract address');

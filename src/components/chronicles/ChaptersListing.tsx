@@ -9,6 +9,8 @@ import type { ChroniclesViewMode } from '@/lib/chronicles/types';
 import { filterChaptersByTimeline, searchChapters } from '@/lib/chronicles/filtering';
 import { sortChaptersByNumber } from '@/lib/chronicles/sorting';
 import { ChronicleThumb } from './ChronicleFeaturedVisual';
+import { ChroniclesFilterDropdown } from './ChroniclesFilterDropdown';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 const timelines: { id: ChronicleTimeline; label: string }[] = [
   { id: 'past', label: 'Past' },
@@ -31,7 +33,8 @@ export function ChaptersListing({ initialChapters }: { initialChapters: Chronicl
   const [view, setView] = useState<ChroniclesViewMode>('card');
 
   const filtered = useMemo(() => {
-    let list = sortChaptersByNumber(initialChapters);
+    // Latest chapters first (reverse chronological by number).
+    let list = sortChaptersByNumber(initialChapters).slice().reverse();
     list = searchChapters(list, search);
     list = filterChaptersByTimeline(list, timelineFilter ? [timelineFilter] : []);
     return list;
@@ -50,22 +53,14 @@ export function ChaptersListing({ initialChapters }: { initialChapters: Chronicl
           search={{ value: search, onChange: setSearch, placeholder: 'Search chapters...' }}
           onReset={reset}
         >
-          <label className="flex items-center gap-2 shrink-0">
-            <span className="sr-only">Timeline</span>
-            <select
-              className="k-filter-select"
-              value={timelineFilter}
-              onChange={(e) => setTimelineFilter((e.target.value || '') as ChronicleTimeline | '')}
-              aria-label="Filter by timeline"
-            >
-              <option value="">All timelines</option>
-              {timelines.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <ChroniclesFilterDropdown
+            ariaLabel="Filter by timeline"
+            value={timelineFilter}
+            onChange={(v) => setTimelineFilter(v as ChronicleTimeline | '')}
+            allLabel="All timelines"
+            options={timelines.map((t) => ({ value: t.id, label: t.label }))}
+            minWidthClassName="min-w-[170px]"
+          />
           <ChroniclesViewSwitcher value={view} onChange={setView} />
         </FilterBar>
       </div>
@@ -166,7 +161,9 @@ export function ChaptersListing({ initialChapters }: { initialChapters: Chronicl
                   </div>
                 </div>
                 <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors mb-2">
-                  {c.title}
+                  <Tooltip content={c.title} side="top" align="start">
+                    <span className="block">{c.title}</span>
+                  </Tooltip>
                 </h3>
                 <p className="text-base text-zinc-600 dark:text-zinc-400 line-clamp-3">{c.teaser}</p>
               </div>

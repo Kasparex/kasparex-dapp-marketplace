@@ -1,4 +1,4 @@
-# Kasparex vDonations — Post-deploy setup
+# Kasparex vDonations - Post-deploy setup
 
 After deploying DonationEscrow (see `scripts/deploy-donation-escrow.js`), do the following so L2 donations work. L1 donations are direct (send KAS to creator and optionally platform fee); no points or recording.
 
@@ -22,7 +22,7 @@ npx hardhat run scripts/setup-vdonations-auth.js --network igraGalleonTestnet
 This calls:
 
 - **FeeRouter:** `setAuthorizedDApp(DonationEscrowAddress, true)`
-- **FeeRouter:** `setTreeBpsByType("donation", 10000)` — so 100% of donation fees (10% of each L2 donation) go to Revenue Tree
+- **FeeRouter:** `setTreeBpsByType("donation", 10000)` - so 100% of donation fees (10% of each L2 donation) go to Revenue Tree
 - **LoyaltyPoints:** `setAuthorizedCaller(DonationEscrowAddress, true)`
 
 If you prefer to do it manually (e.g. from a block explorer), use the same three calls with your deployed DonationEscrow address. **Note:** FeeRouter must support `setTreeBpsByType` (per–transaction-type tree share); if you use an older FeeRouter, upgrade or deploy a new one.
@@ -70,7 +70,7 @@ At deploy time, the script sets `recorder` to `RECORDER_ADDRESS` if you set that
 Yes. If your treasury has a Kaspa (L1) address, you can set `NEXT_PUBLIC_VDONATIONS_PLATFORM_L1_ADDRESS` to that address so L1 donation fees go to the same place.
 
 **Existing DonationEscrow was deployed with 1% fee; how do I switch to 10%?**  
-DonationEscrow owner can call `setFeeBps(1000)` on the DonationEscrow contract. Then run (or re-run) `setup-vdonations-auth.js` so FeeRouter has `setTreeBpsByType("donation", 10000)` — that sends 100% of the 10% fee to Revenue Tree.
+DonationEscrow owner can call `setFeeBps(1000)` on the DonationEscrow contract. Then run (or re-run) `setup-vdonations-auth.js` so FeeRouter has `setTreeBpsByType("donation", 10000)` - that sends 100% of the 10% fee to Revenue Tree.
 
 **L2 donation went through but the full amount went to the creator / fees don’t reach Revenue Tree?**  
 The contract sends the fee (10%) to `DonationEscrow.feeRouter()`. Check on a block explorer: (1) DonationEscrow’s `feeRouter` must be the same FeeRouter the app uses (see `addresses.ts` for igraGalleonTestnet). (2) On that FeeRouter, `authorizedDApps(DonationEscrow)` must be true and `treeBpsByType("donation")` should be 10000. If DonationEscrow was deployed with an old FeeRouter address, call `DonationEscrow.setFeeRouter(newFeeRouterAddress)` (owner only), then run `setup-vdonations-auth.js` with `FEE_ROUTER_ADDRESS` set to that new address so the script configures the correct router.

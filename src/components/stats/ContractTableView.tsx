@@ -66,16 +66,16 @@ function ContractTableRow({
   const p1 = paramKeys[1];
   const r0 = useContractParam(chainId, contract.key, p0 ?? 'balance');
   const r1 = useContractParam(chainId, contract.key, p1 ?? 'balance');
-  const param0 = p0 ? r0.value : '—';
-  const param1 = p1 ? r1.value : '—';
+  const param0 = p0 ? r0.value : '-';
+  const param1 = p1 ? r1.value : '-';
   const paramsStr =
-    param0 !== '—' && param1 !== '—'
+    param0 !== '-' && param1 !== '-'
       ? `${param0} · ${param1}`
-      : param0 !== '—'
+      : param0 !== '-'
         ? param0
-        : param1 !== '—'
+        : param1 !== '-'
           ? param1
-          : '—';
+          : '-';
 
   const truncate = (addr: string) =>
     addr.length > 10 ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : addr;
@@ -120,7 +120,7 @@ function ContractTableRow({
               {k}
             </span>
           ))}
-          {(contract.metadata.linksTo ?? []).length === 0 && '—'}
+          {(contract.metadata.linksTo ?? []).length === 0 && '-'}
         </div>
       </td>
     </tr>

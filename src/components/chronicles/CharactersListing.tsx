@@ -9,6 +9,8 @@ import type { ChroniclesViewMode } from '@/lib/chronicles/types';
 import { filterCharactersByKind, searchCharacters } from '@/lib/chronicles/filtering';
 import { sortCharactersByName } from '@/lib/chronicles/sorting';
 import { ChronicleThumb } from './ChronicleFeaturedVisual';
+import { ChroniclesFilterDropdown } from './ChroniclesFilterDropdown';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 const kinds: { id: CharacterKind; label: string }[] = [
   { id: 'person', label: 'People' },
@@ -41,22 +43,13 @@ export function CharactersListing({ initial }: { initial: ChronicleCharacter[] }
             setKindFilter('');
           }}
         >
-          <label className="flex items-center gap-2 shrink-0">
-            <span className="sr-only">Kind</span>
-            <select
-              className="k-filter-select min-w-[180px]"
-              value={kindFilter}
-              onChange={(e) => setKindFilter((e.target.value || '') as CharacterKind | '')}
-              aria-label="Filter by kind"
-            >
-              <option value="">All kinds</option>
-              {kinds.map((k) => (
-                <option key={k.id} value={k.id}>
-                  {k.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <ChroniclesFilterDropdown
+            ariaLabel="Filter by kind"
+            value={kindFilter}
+            onChange={(v) => setKindFilter(v as CharacterKind | '')}
+            allLabel="All kinds"
+            options={kinds.map((k) => ({ value: k.id, label: k.label }))}
+          />
           <ChroniclesViewSwitcher value={view} onChange={setView} />
         </FilterBar>
       </div>
@@ -108,7 +101,9 @@ export function CharactersListing({ initial }: { initial: ChronicleCharacter[] }
               >
                 <ChronicleThumb imageUrl={c.featuredImageUrl} alt="" className="w-14 h-14 shrink-0" />
                 <div className="min-w-0 flex-1 flex items-center justify-between gap-4">
-                  <span className="font-bold text-zinc-900 dark:text-zinc-100">{c.name}</span>
+                  <Tooltip content={c.name} side="top" align="start">
+                    <span className="font-bold text-zinc-900 dark:text-zinc-100 truncate">{c.name}</span>
+                  </Tooltip>
                   <span className="text-xs text-zinc-500 uppercase">{c.kind}</span>
                 </div>
               </Link>
@@ -128,7 +123,11 @@ export function CharactersListing({ initial }: { initial: ChronicleCharacter[] }
               <ChronicleThumb imageUrl={c.featuredImageUrl} alt="" className="h-40 w-full shrink-0" />
               <div className="p-5 sm:p-6">
                 <p className="text-[10px] font-black uppercase tracking-widest text-[#02abb8] mb-1">{c.kind}</p>
-                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-2">{c.name}</h3>
+                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-2">
+                  <Tooltip content={c.name} side="top" align="start">
+                    <span className="block">{c.name}</span>
+                  </Tooltip>
+                </h3>
                 <p className="text-base text-zinc-600 dark:text-zinc-400 line-clamp-3">{c.summary}</p>
               </div>
             </Link>

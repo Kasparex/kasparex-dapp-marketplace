@@ -4,6 +4,7 @@ import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
 import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
 import { ChronicleFeaturedVisual, ChronicleThumb } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { getOverview, getFragments, getChapterSummaries } from '@/lib/chronicles/loaders';
+import { AdSlider } from '@/components/ads/AdSlider';
 
 export default function ChroniclesHomePage() {
   const overview = getOverview();
@@ -98,6 +99,13 @@ export default function ChroniclesHomePage() {
                 </Link>
               </li>
             </ul>
+          </div>
+
+          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/50 p-5 sm:p-6">
+            <h3 className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-4">Ad slots</h3>
+            <div className="flex items-center justify-center min-h-[200px]">
+              <AdSlider slotId="HALO_CHRONICLES_RIGHT" />
+            </div>
           </div>
         </aside>
       </div>

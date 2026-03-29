@@ -21,7 +21,7 @@ const LEVEL_SHARES_L1_TO_L5 = [
 ];
 
 function formatAddr(addr: string): string {
-  if (!addr || addr === '0x0000000000000000000000000000000000000000') return '—';
+  if (!addr || addr === '0x0000000000000000000000000000000000000000') return '-';
   return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
 
@@ -128,7 +128,7 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
       ]
       : [];
 
-  const treeIdLabel = isDemo && walletAddress ? (DEMO_LABELS[walletAddress] ?? walletAddress) : (walletAddress ? formatAddr(walletAddress) : '—');
+  const treeIdLabel = isDemo && walletAddress ? (DEMO_LABELS[walletAddress] ?? walletAddress) : (walletAddress ? formatAddr(walletAddress) : '-');
 
   /** Primary layout: Level 5 at TOP, Level 1 at BOTTOM (reverse for display). */
   const rowsTopToBottom = [...levelsL1ToL5];
@@ -178,8 +178,8 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
               <div className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
                 L1 (Direct Referrer)
               </div>
-              <div className="text-xl font-bold text-zinc-900 dark:text-zinc-100 truncate" title={tree && 'upline' in tree ? tree.upline[0] : '—'}>
-                {tree && 'upline' in tree ? walletDisplay(tree.upline[0], isDemo) : '—'}
+              <div className="text-xl font-bold text-zinc-900 dark:text-zinc-100 truncate" title={tree && 'upline' in tree ? tree.upline[0] : '-'}>
+                {tree && 'upline' in tree ? walletDisplay(tree.upline[0], isDemo) : '-'}
               </div>
             </div>
 
@@ -324,21 +324,21 @@ export function RevenueTreeFlowView({ walletAddress, tree: treeProp, embedded = 
                         <td className="py-4 font-mono text-zinc-600 dark:text-zinc-400">
                           <div className="flex items-center gap-2">
                             <span className={`truncate ${!receives ? 'text-zinc-400 line-through' : 'text-zinc-600 dark:text-zinc-400'}`} title={row.walletAddress}>
-                              {row.walletAddress ? walletDisplay(row.walletAddress, isDemo) : '—'}
+                              {row.walletAddress ? walletDisplay(row.walletAddress, isDemo) : '-'}
                             </span>
                             {!receives && <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-500 shrink-0">Genesis</span>}
                           </div>
                         </td>
                         <td className="py-4">
                           <div className="font-semibold text-zinc-900 dark:text-white tabular-nums">
-                            {row.userCount > 0 ? row.userCount.toLocaleString() : '—'}
+                            {row.userCount > 0 ? row.userCount.toLocaleString() : '-'}
                           </div>
                         </td>
                         <td className="py-4 text-right pr-4 sm:pr-6">
                           <div className={`font-bold tabular-nums ${!receives ? 'text-zinc-400' : 'text-[#02abb8]'}`}>
                             {row.userCount > 0
                               ? `+${(row.userCount * 1.5).toFixed(2)} ${symbol}`
-                              : '—'}
+                              : '-'}
                           </div>
                         </td>
                       </tr>

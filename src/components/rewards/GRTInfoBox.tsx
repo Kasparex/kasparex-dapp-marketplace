@@ -43,7 +43,7 @@ export function GRTInfoBox() {
               Max Supply
             </span>
             <span className="text-xs text-zinc-500 dark:text-zinc-400">
-              {metrics ? `${metrics.progress.toFixed(2)}% minted` : (isLoading ? '...' : '—')}
+              {metrics ? `${metrics.progress.toFixed(2)}% minted` : (isLoading ? '...' : '-')}
             </span>
           </div>
           
@@ -55,7 +55,7 @@ export function GRTInfoBox() {
           </div>
           
           <div className="text-xs text-zinc-500 dark:text-zinc-400">
-            {metrics ? `${formatLargeNumber(metrics.minted)} / ${formatLargeNumber(metrics.maxSupply)}` : (isLoading && gridTokenAddress ? '...' : '—')}
+            {metrics ? `${formatLargeNumber(metrics.minted)} / ${formatLargeNumber(metrics.maxSupply)}` : (isLoading && gridTokenAddress ? '...' : '-')}
           </div>
         </div>
       </div>

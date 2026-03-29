@@ -74,7 +74,7 @@ export function GRIDHoldingsBox() {
               Max Supply
             </span>
             <span className="text-xs text-zinc-500 dark:text-zinc-400">
-              {grtMetrics ? `${grtMetrics.progress.toFixed(2)}% minted` : (isLoading ? '...' : '—')}
+              {grtMetrics ? `${grtMetrics.progress.toFixed(2)}% minted` : (isLoading ? '...' : '-')}
             </span>
           </div>
 
@@ -86,7 +86,7 @@ export function GRIDHoldingsBox() {
           </div>
 
           <div className="text-xs text-zinc-500 dark:text-zinc-400">
-            {grtMetrics ? `${formatLargeNumber(grtMetrics.minted)} / ${formatLargeNumber(grtMetrics.maxSupply)}` : (isLoading && gridTokenAddress ? '...' : '—')}
+            {grtMetrics ? `${formatLargeNumber(grtMetrics.minted)} / ${formatLargeNumber(grtMetrics.maxSupply)}` : (isLoading && gridTokenAddress ? '...' : '-')}
           </div>
         </div>
 
@@ -98,7 +98,7 @@ export function GRIDHoldingsBox() {
                 Your Balance
               </span>
               <span className="text-xl font-bold text-[#02abb8]">
-                {gridTokenAddress ? (isLoading ? '...' : gridBalanceFormatted) : '—'}
+                {gridTokenAddress ? (isLoading ? '...' : gridBalanceFormatted) : '-'}
               </span>
             </div>
           </div>

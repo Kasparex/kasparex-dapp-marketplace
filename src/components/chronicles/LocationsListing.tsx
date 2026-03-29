@@ -9,6 +9,8 @@ import type { ChroniclesViewMode } from '@/lib/chronicles/types';
 import { filterLocationsByTag, searchLocations } from '@/lib/chronicles/filtering';
 import { sortLocationsByName } from '@/lib/chronicles/sorting';
 import { ChronicleThumb } from './ChronicleFeaturedVisual';
+import { ChroniclesFilterDropdown } from './ChroniclesFilterDropdown';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 export function LocationsListing({ initial }: { initial: ChronicleLocation[] }) {
   const [search, setSearch] = useState('');
@@ -39,22 +41,13 @@ export function LocationsListing({ initial }: { initial: ChronicleLocation[] }) 
             setTagFilter('');
           }}
         >
-          <label className="flex items-center gap-2 shrink-0">
-            <span className="sr-only">Tag</span>
-            <select
-              className="k-filter-select min-w-[180px]"
-              value={tagFilter}
-              onChange={(e) => setTagFilter(e.target.value)}
-              aria-label="Filter by tag"
-            >
-              <option value="">All tags</option>
-              {tagOptions.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </label>
+          <ChroniclesFilterDropdown
+            ariaLabel="Filter by tag"
+            value={tagFilter}
+            onChange={setTagFilter}
+            allLabel="All tags"
+            options={tagOptions.map((t) => ({ value: t, label: t }))}
+          />
           <ChroniclesViewSwitcher value={view} onChange={setView} />
         </FilterBar>
       </div>
@@ -118,7 +111,11 @@ export function LocationsListing({ initial }: { initial: ChronicleLocation[] }) 
             >
               <ChronicleThumb imageUrl={l.featuredImageUrl} alt="" className="h-40 w-full shrink-0" />
               <div className="p-5 sm:p-6">
-                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-2">{l.name}</h3>
+                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-2">
+                  <Tooltip content={l.name} side="top" align="start">
+                    <span className="block">{l.name}</span>
+                  </Tooltip>
+                </h3>
                 <p className="text-sm text-zinc-500 mb-2">{l.visualStyle}</p>
                 <p className="text-base text-zinc-600 dark:text-zinc-400 line-clamp-3">{l.summary}</p>
               </div>

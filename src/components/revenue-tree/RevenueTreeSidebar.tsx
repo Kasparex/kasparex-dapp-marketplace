@@ -109,7 +109,7 @@ export function RevenueTreeSidebar({
           />
         )}
       >
-        {/* Quick Links — at top */}
+        {/* Quick Links - at top */}
         <div className="mb-6">
           <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3 px-1">
             Quick Links

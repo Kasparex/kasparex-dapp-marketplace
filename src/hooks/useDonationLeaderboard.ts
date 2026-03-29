@@ -59,7 +59,7 @@ export function useDonationLeaderboard(
       return sorted;
     },
     enabled: Boolean(creatorAddress && escrowAddress && publicClient),
-    staleTime: 5 * 60 * 1000, // 5 min — refetch when campaign donorCount/raisedWei change (query key)
+    staleTime: 5 * 60 * 1000, // 5 min - refetch when campaign donorCount/raisedWei change (query key)
     refetchOnWindowFocus: false,
   });
 

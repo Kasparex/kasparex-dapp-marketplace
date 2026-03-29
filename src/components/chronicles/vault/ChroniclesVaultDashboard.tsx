@@ -43,7 +43,7 @@ export function ChroniclesVaultDashboard() {
         </div>
 
         {!state.isConnected ? (
-          <div className="chronicles-vault-card rounded-2xl border border-cyan-500/25 bg-gradient-to-br from-zinc-50 to-cyan-500/5 dark:from-zinc-900 dark:to-cyan-950/30 p-8 sm:p-10 max-w-lg mx-auto text-center space-y-6">
+          <div className="chronicles-vault-card rounded-2xl border border-cyan-500/25 bg-gradient-to-br from-zinc-50 to-cyan-500/5 dark:from-zinc-900 dark:to-cyan-950/30 p-7 sm:p-8 max-w-lg mx-auto text-center space-y-6">
             <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-500/30 bg-cyan-500/10 text-[#02abb8] mx-auto">
               <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
                 <path

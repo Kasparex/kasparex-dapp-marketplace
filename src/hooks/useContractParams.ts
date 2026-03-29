@@ -25,7 +25,7 @@ const SUPPORTED_PARAMS: Partial<
     balance: {
       abi: TREASURY_ABI,
       functionName: 'getBalance',
-      format: (v) => (v != null ? `${Number(formatEther(v as bigint)).toLocaleString(undefined, { maximumFractionDigits: 2 })} KAS` : '—'),
+      format: (v) => (v != null ? `${Number(formatEther(v as bigint)).toLocaleString(undefined, { maximumFractionDigits: 2 })} KAS` : '-'),
     },
   },
   FeeCollector: {
@@ -35,21 +35,21 @@ const SUPPORTED_PARAMS: Partial<
       format: (v) =>
         typeof v === 'string' && v.startsWith('0x')
           ? `${v.slice(0, 6)}…${v.slice(-4)}`
-          : '—',
+          : '-',
     },
   },
   GRIDToken: {
     symbol: {
       abi: ERC20_VIEW_ABI,
       functionName: 'symbol',
-      format: (v) => (typeof v === 'string' ? v : '—'),
+      format: (v) => (typeof v === 'string' ? v : '-'),
     },
   },
   tGRID: {
     symbol: {
       abi: ERC20_VIEW_ABI,
       functionName: 'symbol',
-      format: (v) => (typeof v === 'string' ? v : '—'),
+      format: (v) => (typeof v === 'string' ? v : '-'),
     },
   },
 };
@@ -62,7 +62,7 @@ export interface UseContractParamResult {
 
 /**
  * Read a single basic parameter for a contract (balance, treasury, symbol).
- * Returns formatted string; "—" if not supported or read fails.
+ * Returns formatted string; "-" if not supported or read fails.
  */
 export function useContractParam(
   chainId: number,
@@ -90,10 +90,10 @@ export function useContractParam(
   const value =
     config && data !== undefined && data !== null
       ? config.format(data)
-      : '—';
+      : '-';
 
   return {
-    value: enabled ? value : '—',
+    value: enabled ? value : '-',
     isLoading: enabled && isLoading,
     error: error ?? null,
   };

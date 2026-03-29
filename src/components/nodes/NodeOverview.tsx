@@ -31,7 +31,7 @@ interface NodeOverviewProps {
 
 export function NodeOverview({ nodeInfo, metrics }: NodeOverviewProps) {
   const status = statusDisplay(nodeInfo.status);
-  const typeLabel = nodeInfo.status !== 'not_registered' ? NODE_TYPE_LABELS[nodeInfo.type] ?? nodeInfo.type : '—';
+  const typeLabel = nodeInfo.status !== 'not_registered' ? NODE_TYPE_LABELS[nodeInfo.type] ?? nodeInfo.type : '-';
 
   return (
     <section id="node-type" className="mb-6">

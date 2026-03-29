@@ -162,7 +162,7 @@ export function CreateAdWizard({
               body: JSON.stringify({ txHash: sync.txHash, metadataCid: sync.metadataCid }),
             });
           } catch {
-            /* ignore — refresh still runs */
+            /* ignore - refresh still runs */
           }
         }
         await new Promise((r) => setTimeout(r, 2500));

@@ -61,10 +61,10 @@ function ContractTreeCard({
         )}
       </div>
       <div className="flex flex-col items-end gap-1.5 text-right shrink-0">
-        {(param0 !== null && param0 !== '—') || (param1 !== null && param1 !== '—') ? (
+        {(param0 !== null && param0 !== '-') || (param1 !== null && param1 !== '-') ? (
           <div className="text-xs text-zinc-500 dark:text-zinc-500 space-y-0.5">
-            {param0 !== null && param0 !== '—' && <div>Params: {param0}</div>}
-            {param1 !== null && param1 !== '—' && <div>{param1}</div>}
+            {param0 !== null && param0 !== '-' && <div>Params: {param0}</div>}
+            {param1 !== null && param1 !== '-' && <div>{param1}</div>}
           </div>
         ) : null}
         <div className="text-xs font-mono">

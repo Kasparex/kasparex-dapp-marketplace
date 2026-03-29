@@ -1,4 +1,4 @@
-# Revenue Tree — V1 + L1-Ready Specification
+# Revenue Tree - V1 + L1-Ready Specification
 
 **Version:** 1.0  
 **Status:** Approved for implementation  
@@ -72,11 +72,11 @@
 
 ### 4.1 Active If Either Path Is Met
 
-**Path 1 — Activity**
+**Path 1 - Activity**
 
 - **Volume in last 30 days ≥ 1000 KAS** on that chain (L2 for V1).
 
-**Path 2 — KREX hold**
+**Path 2 - KREX hold**
 
 - **KREX balance ≥ 10,000,000** (10M) in wallet on that chain, **and**
 - **Volume in last 30 days ≥ 100 KAS** on that chain.

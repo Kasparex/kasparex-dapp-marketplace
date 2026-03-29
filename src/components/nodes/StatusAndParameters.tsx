@@ -15,7 +15,7 @@ function statusDisplay(status: NodeInfo['status']): { label: string; className: 
       return { label: 'Syncing', className: 'text-[#02abb8]' };
     case 'not_registered':
     default:
-      return { label: '—', className: 'text-zinc-500 dark:text-zinc-500' };
+      return { label: '-', className: 'text-zinc-500 dark:text-zinc-500' };
   }
 }
 

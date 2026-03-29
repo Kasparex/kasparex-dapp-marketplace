@@ -183,7 +183,7 @@ export function RevenueTreeGuideModal({ isOpen, onClose }: RevenueTreeGuideModal
           <section>
             <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-3">Genesis Wallets &amp; Levels</h3>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed mb-2">
-              <strong>Genesis wallets</strong> (or genesis levels) are five preset platform wallets configured per deployment—one for each level (L1–L5). They are used in two cases:
+              <strong>Genesis wallets</strong> (or genesis levels) are five preset platform wallets configured per deployment - one for each level (L1-L5). They are used in two cases:
             </p>
             <ul className="list-disc list-inside text-sm text-zinc-600 dark:text-zinc-400 space-y-1.5 mb-2 ml-2">
               <li><strong>First users who do not come from a referral link:</strong> When a user activates without a referrer, their upline slots are filled by the genesis wallets. The revenue split from their payments goes to these five platform wallets instead of to referrers.</li>

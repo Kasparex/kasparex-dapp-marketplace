@@ -55,7 +55,7 @@ export function RevenueTreeLevelModal({
 
   const displayCount = Math.min(level.userCount || 0, 100);
   const mockUsers = useMemo(() => generateMockUsers(level.level, displayCount), [level.level, displayCount]);
-  const reqTxt = LEVEL_REQUIREMENTS[level.level - 1] || "—";
+  const reqTxt = LEVEL_REQUIREMENTS[level.level - 1] || "-";
 
   if (!isOpen) return null;
 

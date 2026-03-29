@@ -9,6 +9,8 @@ import type { ChroniclesViewMode } from '@/lib/chronicles/types';
 import { filterVehiclesByKind, searchVehicles } from '@/lib/chronicles/filtering';
 import { sortVehiclesByName } from '@/lib/chronicles/sorting';
 import { ChronicleThumb } from './ChronicleFeaturedVisual';
+import { ChroniclesFilterDropdown } from './ChroniclesFilterDropdown';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 const kinds: { id: VehicleKind; label: string }[] = [
   { id: 'vehicle', label: 'Vehicles' },
@@ -40,22 +42,13 @@ export function VehiclesListing({ initial }: { initial: ChronicleVehicle[] }) {
             setKindFilter('');
           }}
         >
-          <label className="flex items-center gap-2 shrink-0">
-            <span className="sr-only">Kind</span>
-            <select
-              className="k-filter-select min-w-[180px]"
-              value={kindFilter}
-              onChange={(e) => setKindFilter((e.target.value || '') as VehicleKind | '')}
-              aria-label="Filter by kind"
-            >
-              <option value="">All kinds</option>
-              {kinds.map((k) => (
-                <option key={k.id} value={k.id}>
-                  {k.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <ChroniclesFilterDropdown
+            ariaLabel="Filter by kind"
+            value={kindFilter}
+            onChange={(v) => setKindFilter(v as VehicleKind | '')}
+            allLabel="All kinds"
+            options={kinds.map((k) => ({ value: k.id, label: k.label }))}
+          />
           <ChroniclesViewSwitcher value={view} onChange={setView} />
         </FilterBar>
       </div>
@@ -103,7 +96,9 @@ export function VehiclesListing({ initial }: { initial: ChronicleVehicle[] }) {
               >
                 <span className="flex items-center gap-4 min-w-0">
                   <ChronicleThumb imageUrl={v.featuredImageUrl} alt="" className="w-14 h-14 shrink-0" />
-                  <span className="truncate">{v.name}</span>
+                  <Tooltip content={v.name} side="top" align="start">
+                    <span className="truncate">{v.name}</span>
+                  </Tooltip>
                 </span>
                 <span className="text-xs font-normal text-zinc-500 uppercase shrink-0">{v.kind}</span>
               </Link>
@@ -123,7 +118,11 @@ export function VehiclesListing({ initial }: { initial: ChronicleVehicle[] }) {
               <ChronicleThumb imageUrl={v.featuredImageUrl} alt="" className="h-40 w-full shrink-0" />
               <div className="p-5 sm:p-6">
                 <p className="text-[10px] font-black text-[#02abb8] uppercase mb-1">{v.kind}</p>
-                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-2">{v.name}</h3>
+                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-2">
+                  <Tooltip content={v.name} side="top" align="start">
+                    <span className="block">{v.name}</span>
+                  </Tooltip>
+                </h3>
                 <p className="text-base text-zinc-600 dark:text-zinc-400 line-clamp-3">{v.summary}</p>
               </div>
             </Link>

@@ -2,6 +2,8 @@
 
 import { useEffect, useId, useState, type ReactNode } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 const STORAGE_KEY = 'chronicles-nav-expanded';
 
@@ -29,6 +31,7 @@ export function ChroniclesNavGroup({
   groupId,
   label,
   icon,
+  href,
   defaultOpen = false,
   children,
   active,
@@ -36,10 +39,12 @@ export function ChroniclesNavGroup({
   groupId: string;
   label: string;
   icon?: ReactNode;
+  href?: string;
   defaultOpen?: boolean;
   children: ReactNode;
   active?: boolean;
 }) {
+  const router = useRouter();
   const baseId = useId();
   const panelId = `${baseId}-panel`;
   const [open, setOpen] = useState(defaultOpen);
@@ -67,9 +72,7 @@ export function ChroniclesNavGroup({
 
   return (
     <div className="rounded-lg border border-transparent">
-      <button
-        type="button"
-        onClick={toggle}
+      <div
         aria-expanded={open}
         aria-controls={panelId}
         className={`k-sidebar-item group w-full text-left ${activeClass}`.trim()}
@@ -77,19 +80,44 @@ export function ChroniclesNavGroup({
         {icon != null && (
           <span className="flex-shrink-0 inline-flex items-center justify-center k-sidebar-icon">{icon}</span>
         )}
-        <span className="text-xs font-bold uppercase tracking-wide flex-1 min-w-0 leading-snug break-words line-clamp-2 text-left">
-          {label}
-        </span>
-        <svg
-          className={`w-4 h-4 text-zinc-500 transition-transform shrink-0 ${open ? 'rotate-180' : ''}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          aria-hidden
+        <Link
+          href={href ?? '#'}
+          onClick={(e) => {
+            if (!href) {
+              e.preventDefault();
+            }
+            if (!open) toggle();
+            if (href) {
+              // next/link will navigate, but we keep a router.push fallback for safety
+              router.push(href);
+            }
+          }}
+          className="flex-1 min-w-0"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+          <Tooltip content={label} side="right" align="start">
+            <span className="text-xs font-bold uppercase tracking-wide block min-w-0 leading-snug break-words line-clamp-2 text-left">
+              {label}
+            </span>
+          </Tooltip>
+        </Link>
+
+        <button
+          type="button"
+          aria-label={open ? `Collapse ${label}` : `Expand ${label}`}
+          onClick={() => toggle()}
+          className="ml-auto -mr-2 p-2 rounded-lg text-zinc-500 hover:text-[#02abb8] hover:bg-zinc-100/80 dark:hover:bg-zinc-800/50"
+        >
+          <svg
+            className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
       {open ? (
         <div id={panelId} className="mt-1 ml-2 pl-2 border-l border-zinc-200 dark:border-zinc-800 space-y-0.5 pb-1">
           {children}
@@ -117,9 +145,11 @@ export function ChroniclesNavSublink({
         className={`k-sidebar-item group opacity-60 cursor-default text-zinc-500 dark:text-zinc-500 ${activeClass}`.trim()}
         title="Draft: sync from content/story-management to data/chronicles or unlock via Vault"
       >
-        <span className="text-xs font-bold uppercase tracking-wide flex-1 min-w-0 leading-snug break-words line-clamp-2 pl-6 text-left">
-          {label}
-        </span>
+        <Tooltip content={label} side="right" align="start">
+          <span className="text-xs font-bold uppercase tracking-wide flex-1 min-w-0 leading-snug break-words line-clamp-2 pl-6 text-left">
+            {label}
+          </span>
+        </Tooltip>
         <span className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-500 shrink-0">Draft</span>
       </div>
     );
@@ -127,9 +157,11 @@ export function ChroniclesNavSublink({
   return (
     <Link href={href}>
       <div className={`k-sidebar-item group ${activeClass}`.trim()}>
-        <span className="text-xs font-bold uppercase tracking-wide flex-1 min-w-0 leading-snug break-words line-clamp-2 pl-6 text-left">
-          {label}
-        </span>
+        <Tooltip content={label} side="right" align="start">
+          <span className="text-xs font-bold uppercase tracking-wide flex-1 min-w-0 leading-snug break-words line-clamp-2 pl-6 text-left">
+            {label}
+          </span>
+        </Tooltip>
       </div>
     </Link>
   );

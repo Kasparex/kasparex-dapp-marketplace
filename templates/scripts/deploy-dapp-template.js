@@ -75,7 +75,7 @@ async function main() {
   
   console.log(`\nđź“‹ Network: ${network}`);
   console.log(`   Chain ID: ${isIgra ? '38833' : '167012'}`);
-  console.log(`\nđź”— Ecosystem Contracts:`);
+  console.log(`\n- Ecosystem Contracts:`);
   console.log(`   DApp Registry: ${dAppRegistryAddress} (Required)`);
   console.log(`   Fee Collector: ${feeCollectorAddress} (Default)`);
   console.log(`   Proof of Utility: ${proofOfUtilityAddress} (Default)`);

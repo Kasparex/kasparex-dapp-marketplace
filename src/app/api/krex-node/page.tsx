@@ -99,7 +99,7 @@ export default function KREXNodePage() {
                   <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">Lightweight</h3>
                 </div>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Uses minimal resources (128–256 MB RAM, low CPU) — runs on any machine or Raspberry Pi
+                  Uses minimal resources (128-256 MB RAM, low CPU) - runs on any machine or Raspberry Pi
                 </p>
               </div>
 

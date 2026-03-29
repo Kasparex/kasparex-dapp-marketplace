@@ -13,7 +13,7 @@ import { RevenueTreeContentType } from '@/lib/revenue-tree/types';
 
 function formatWalletDisplay(walletAddress: string, isDemo: boolean): string {
   if (isDemo && DEMO_LABELS[walletAddress]) return DEMO_LABELS[walletAddress];
-  if (!walletAddress || walletAddress === '0x0000000000000000000000000000000000000000') return '—';
+  if (!walletAddress || walletAddress === '0x0000000000000000000000000000000000000000') return '-';
   return `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}`;
 }
 

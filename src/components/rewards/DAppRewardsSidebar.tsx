@@ -92,7 +92,7 @@ export function DAppRewardsSidebar({ dappName }: DAppRewardsSidebarProps) {
                 GRID Supply
               </span>
               <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                {grtMetrics ? `${grtMetrics.progress.toFixed(2)}% minted` : (gridLoading ? '...' : '—')}
+                {grtMetrics ? `${grtMetrics.progress.toFixed(2)}% minted` : (gridLoading ? '...' : '-')}
               </span>
             </div>
             <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2 mb-1">
@@ -102,7 +102,7 @@ export function DAppRewardsSidebar({ dappName }: DAppRewardsSidebarProps) {
               />
             </div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400">
-              {grtMetrics ? `${formatLargeNumber(grtMetrics.minted)} / ${formatLargeNumber(grtMetrics.maxSupply)}` : (gridLoading && gridTokenAddress ? '...' : '—')}
+              {grtMetrics ? `${formatLargeNumber(grtMetrics.minted)} / ${formatLargeNumber(grtMetrics.maxSupply)}` : (gridLoading && gridTokenAddress ? '...' : '-')}
             </div>
           </div>
 

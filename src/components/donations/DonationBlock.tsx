@@ -241,7 +241,7 @@ export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChang
           </div>
           {l1AmountNum >= VDONATIONS_MIN_DONATION_KAS && (
             <div className="text-sm text-zinc-600 dark:text-zinc-400">
-              Platform fee: {l1FeeKas} KAS (1% of donation, min 1 KAS) — goes to the platform address below.
+              Platform fee: {l1FeeKas} KAS (1% of donation, min 1 KAS) - goes to the platform address below.
             </div>
           )}
           {l1Address && (
@@ -260,7 +260,7 @@ export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChang
             disabled={!canDonateL1}
             className="w-full px-4 py-3 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Donate (L1) — send to creator & platform fee
+            Donate (L1) - send to creator & platform fee
           </button>
         </div>
       )}
@@ -276,11 +276,11 @@ export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChang
             <p className="text-sm text-zinc-600 dark:text-zinc-400">Complete both steps. Your wallet will open for each transaction.</p>
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-zinc-100 dark:bg-zinc-800">
-                <span className="text-sm text-zinc-700 dark:text-zinc-300">1. Send {l1AmountKas || '—'} KAS to creator</span>
+                <span className="text-sm text-zinc-700 dark:text-zinc-300">1. Send {l1AmountKas || '-'} KAS to creator</span>
                 <button type="button" onClick={() => setSendModalStep('donation')} disabled={!canDonateL1} className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50">Send</button>
               </div>
               <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-zinc-100 dark:bg-zinc-800">
-                <span className="text-sm text-zinc-700 dark:text-zinc-300">2. Send {l1FeeKas > 0 ? l1FeeKas : '—'} KAS platform fee</span>
+                <span className="text-sm text-zinc-700 dark:text-zinc-300">2. Send {l1FeeKas > 0 ? l1FeeKas : '-'} KAS platform fee</span>
                 <button type="button" onClick={() => setSendModalStep('fee')} disabled={!canDonateL1 || l1FeeKas <= 0} className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50">Send</button>
               </div>
             </div>
