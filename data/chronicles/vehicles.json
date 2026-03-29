@@ -1,0 +1,34 @@
+[
+  {
+    "slug": "kaspaland-aerial-traffic",
+    "name": "Kaspaland aerial traffic",
+    "kind": "vehicle",
+    "summary": "Luminescent craft weaving through the holo-skyline—backdrop to the rooftop anomaly.",
+    "bodyMarkdown": "Described from the [[location:kasparex-rooftop|Kasparex rooftop]]: vehicles zip through the sky leaving **streaks of luminescent blue**, part of the living motion of [[location:kaspaland|Kaspaland]].",
+    "chapterSlugs": ["chapter-03-the-ghost-in-the-code"],
+    "tags": ["sky", "traffic"]
+  },
+  {
+    "slug": "krex-cyber-visor-glasses",
+    "name": "Krex's cybernetic glasses / visor",
+    "kind": "device",
+    "summary": "Signature neon eyewear and combat visor for holographic command layers.",
+    "bodyMarkdown": "Krex's iconic **neon glasses** reflect data rain; his **visor** (activated in [[chapter:chapter-01-the-heart-of-kasparex|Chapter 1]]) envelops him in holographic displays. On the rooftop, the glasses **auto-enhance** distortions in the cybernetic sky.",
+    "ownerCharacterSlug": "krex",
+    "chapterSlugs": [
+      "chapter-01-the-heart-of-kasparex",
+      "chapter-03-the-ghost-in-the-code"
+    ],
+    "tags": ["signature-gear", "ar"]
+  },
+  {
+    "slug": "vector-diamond-machines",
+    "name": "Vector's diamond processing machines",
+    "kind": "device",
+    "summary": "Lore crossover: special machines that process Krex Diamonds (Diamond Veins game).",
+    "bodyMarkdown": "Per [Diamond Veins](/games/diamond-veins) lore, **Vector** builds machines that process condensed network-energy crystals; **ARIA** monitors the pipeline. Chronicles treats this as the same universe's industrial layer beneath [[location:kaspaland|Kaspaland]].",
+    "ownerCharacterSlug": "vector",
+    "chapterSlugs": [],
+    "tags": ["diamond-veins", "crossover"]
+  }
+]

@@ -1,0 +1,36 @@
+[
+  {
+    "slug": "chapter-01-the-heart-of-kasparex",
+    "number": 1,
+    "title": "Chapter 1: The Heart of Kasparex",
+    "teaser": "Null Gang strikes Kasparex; Krex summons Tessa and Vector through the KREX network.",
+    "status": "published",
+    "timeline": "past",
+    "highlightCharacterSlugs": ["krex", "tessa", "vector", "null-gang"],
+    "locationSlugs": ["kaspaland", "kasparex"],
+    "relatedGameSlug": "diamond-veins",
+    "bodyPath": "bodies/chapter-01-the-heart-of-kasparex.md"
+  },
+  {
+    "slug": "chapter-02-shadows-and-secrets",
+    "number": 2,
+    "title": "Chapter 2: Shadows and Secrets",
+    "teaser": "Sarah surfaces in the data streams; listings land on XT and Biconomy; CoinEx is next.",
+    "status": "published",
+    "timeline": "past",
+    "highlightCharacterSlugs": ["krex", "tessa", "vector", "sarah", "null-gang"],
+    "locationSlugs": ["kaspaland", "kasparex"],
+    "bodyPath": "bodies/chapter-02-shadows-and-secrets.md"
+  },
+  {
+    "slug": "chapter-03-the-ghost-in-the-code",
+    "number": 3,
+    "title": "Chapter 3: The Ghost in the Code",
+    "teaser": "Forgotten blocks, The Silent Protocol, and a glitch in the cybernetic sky above Kaspaland.",
+    "status": "published",
+    "timeline": "current",
+    "highlightCharacterSlugs": ["krex", "aria", "silent-protocol"],
+    "locationSlugs": ["kaspaland", "kasparex", "kasparex-rooftop", "forgotten-blocks"],
+    "bodyPath": "bodies/chapter-03-the-ghost-in-the-code.md"
+  }
+]

@@ -1,0 +1,56 @@
+[
+  {
+    "slug": "kaspaland",
+    "name": "Kaspaland",
+    "summary": "Neon metropolis of holo-ads, aerial traffic, underground markets, and the Diamond Veins below.",
+    "bodyMarkdown": "**Kaspaland** is the primary urban setting of Krex's Chronicles: cyber skyscrapers, holographic billboards, autonomous drones, and streets dense with crypto commerce. From [[location:kasparex|Kasparex]]'s tower the **cybernetic sky** can glitch when higher powers interfere.\n\nBeneath the city, **Krex Diamonds** and ancient crystal veins appear in the [Diamond Veins](/games/diamond-veins) experience—treat it as the same world, different depth.",
+    "visualStyle": "Cyberpunk neon, decentralized ad layers, electric veins of light",
+    "roleInStory": "The city Krex protects; stage for gangs, listings, and sky anomalies.",
+    "chapterSlugs": [
+      "chapter-01-the-heart-of-kasparex",
+      "chapter-02-shadows-and-secrets",
+      "chapter-03-the-ghost-in-the-code"
+    ],
+    "characterSlugs": ["krex", "null-gang"],
+    "relatedGameSlug": "diamond-veins",
+    "secretsMarkdown": "Whispers of rare crystal chambers and cores of energy tie to game lore beneath the streets.",
+    "tags": ["city", "primary-setting"]
+  },
+  {
+    "slug": "kasparex",
+    "name": "Kasparex",
+    "summary": "Hidden high-security database center and tower—lifeblood of KREX Token intelligence.",
+    "bodyMarkdown": "**Kasparex** is [[character:krex|Krex]]'s concealed command core in Kaspaland: holo-displays, encrypted feeds, elevators to the [[location:kasparex-rooftop|rooftop]], and the mainframe that **Null Gang** and later **Silent Protocol** target. It is both physical architecture and symbolic heart of the KREX network.",
+    "visualStyle": "Sleek metal corridors, cyan holo UI, living-circuit elevator shafts",
+    "roleInStory": "HQ for Krex's team; first battlefield against the Null Gang.",
+    "chapterSlugs": [
+      "chapter-01-the-heart-of-kasparex",
+      "chapter-02-shadows-and-secrets",
+      "chapter-03-the-ghost-in-the-code"
+    ],
+    "characterSlugs": ["krex", "tessa", "vector", "aria"],
+    "tags": ["hq", "database"]
+  },
+  {
+    "slug": "kasparex-rooftop",
+    "name": "Kasparex Rooftop",
+    "summary": "Night vantage over Kaspaland where the cybernetic sky showed a deliberate glitch.",
+    "bodyMarkdown": "After the Silent Protocol's warning, Krex rides the transparent elevator to the **rooftop** for perspective. Here he observes **aerial traffic** and, critically, **glitches in the cybernetic sky**—encrypted atmospheric projection warping as if something tried to break through. ARIA cross-links the anomaly to [[location:forgotten-blocks|forgotten blocks]] data.",
+    "visualStyle": "Open air, cool night wind, horizon of neon and holo-ads",
+    "roleInStory": "Revelation that network war may alter perceived reality above the city.",
+    "chapterSlugs": ["chapter-03-the-ghost-in-the-code"],
+    "characterSlugs": ["krex", "aria"],
+    "tags": ["vantage", "anomaly"]
+  },
+  {
+    "slug": "forgotten-blocks",
+    "name": "The Forgotten Blocks",
+    "summary": "Obsolete Kaspa ledger fragments—early history, discarded txs—where a cryptic message waited.",
+    "bodyMarkdown": "The **forgotten blocks** are metaphorical and technical edge territory: abandoned early-network history and fragmented trails. A masked signature and message—*Find me before they do*—draw [[character:krex|Krex]] and [[character:aria|ARIA]] into contact with [[character:silent-protocol|The Silent Protocol]].",
+    "visualStyle": "Abstract data archaeology, broken chain fragments, archival dust",
+    "roleInStory": "Plot hinge between Kaspa's past and an active hidden war.",
+    "chapterSlugs": ["chapter-03-the-ghost-in-the-code"],
+    "characterSlugs": ["krex", "aria", "silent-protocol"],
+    "tags": ["network", "kaspa"]
+  }
+]
