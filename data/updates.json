@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1774780527-ce153d1",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat(chronicles): add Krex Chronicles lore hub with wiki routes and seed data (by Kasparex)",
+      "date": "2026-03-29T12:34:25+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1774734478-3c878fa",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Ads: 4s carousel, taller footer slot, inventory select UI, dApps-style filters, 4-col grid (by Kasparex)",
