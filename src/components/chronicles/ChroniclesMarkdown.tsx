@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import { linkifyWikiTokens } from '@/lib/chronicles/linkify';
 
 const prose =
-  'chronicles-prose max-w-none text-base sm:text-lg text-zinc-700 dark:text-zinc-300 [&_strong]:text-zinc-900 [&_strong]:dark:text-zinc-100';
+  'chronicles-prose max-w-none text-lg sm:text-xl text-zinc-700 dark:text-zinc-300 [&_strong]:text-zinc-900 [&_strong]:dark:text-zinc-100';
 
 export function ChroniclesMarkdown({ markdown }: { markdown: string }) {
   const md = linkifyWikiTokens(markdown);
@@ -52,12 +52,12 @@ export function ChroniclesMarkdown({ markdown }: { markdown: string }) {
           li: ({ children }) => <li className="leading-relaxed">{children}</li>,
           hr: () => <hr className="my-12 border-zinc-200 dark:border-zinc-800" />,
           blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-cyan-500/40 pl-5 my-8 italic text-zinc-600 dark:text-zinc-400 text-base sm:text-lg">
+            <blockquote className="border-l-4 border-cyan-500/40 pl-5 my-8 italic text-zinc-600 dark:text-zinc-400 text-lg sm:text-xl">
               {children}
             </blockquote>
           ),
           code: ({ children }) => (
-            <code className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-sm sm:text-base font-mono text-zinc-800 dark:text-zinc-200">
+            <code className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-base sm:text-lg font-mono text-zinc-800 dark:text-zinc-200">
               {children}
             </code>
           ),

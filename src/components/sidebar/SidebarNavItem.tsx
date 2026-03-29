@@ -19,6 +19,8 @@ export interface SidebarNavItemProps {
   href?: string;
   onClick?: () => void;
   className?: string;
+  /** Override default label typography (e.g. Chronicles sidebar). */
+  labelClassName?: string;
   children?: ReactNode;
 }
 
@@ -35,15 +37,19 @@ export function SidebarNavItem({
   href,
   onClick,
   className = '',
+  labelClassName,
   children,
 }: SidebarNavItemProps) {
   const activeClass = active ? 'k-sidebar-item-active' : '';
   const baseClass = `k-sidebar-item group ${activeClass} ${className}`.trim();
+  const labelCn =
+    labelClassName ??
+    'text-[11px] font-bold uppercase tracking-wider flex-1 min-w-0 truncate leading-tight';
 
   const content = (
     <>
       {icon != null && <span className="flex-shrink-0 inline-flex items-center justify-center k-sidebar-icon">{icon}</span>}
-      <span className="text-[11px] font-bold uppercase tracking-wider flex-1 min-w-0 truncate leading-tight">{label}</span>
+      <span className={labelCn}>{label}</span>
       {count != null && <span className="k-sidebar-count">{count}</span>}
       {children}
     </>

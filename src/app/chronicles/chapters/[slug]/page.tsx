@@ -77,7 +77,7 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
     <div>
       <Link
         href="/chronicles/chapters"
-        className="text-sm font-semibold text-zinc-500 hover:text-[#02abb8] inline-flex items-center gap-1 mb-6"
+        className="text-base font-semibold text-zinc-500 hover:text-[#02abb8] inline-flex items-center gap-1 mb-6"
       >
         ← Chapters
       </Link>
@@ -98,7 +98,7 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
               style={{ width: `${progressPct}%` }}
             />
           </div>
-          <p className="text-sm text-zinc-500 mt-2">Timeline: {chapter.timeline}</p>
+          <p className="text-base text-zinc-500 mt-2">Timeline: {chapter.timeline}</p>
 
           <article className="pb-8 pt-10">
             <ChroniclesChapterAccessGate access={chapter.access}>
@@ -116,8 +116,8 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
             href={`/chronicles/chapters/${prev.slug}`}
             className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 hover:border-cyan-500/30 transition-colors"
           >
-            <span className="text-[10px] font-black uppercase text-zinc-500">Previous</span>
-            <p className="font-bold text-zinc-900 dark:text-zinc-100 text-lg">{prev.title}</p>
+            <span className="text-xs font-black uppercase text-zinc-500">Previous</span>
+            <p className="font-bold text-zinc-900 dark:text-zinc-100 text-xl">{prev.title}</p>
           </Link>
         ) : (
           <div className="flex-1" />
@@ -127,8 +127,8 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
             href={`/chronicles/chapters/${next.slug}`}
             className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 hover:border-cyan-500/30 transition-colors text-right sm:text-right"
           >
-            <span className="text-[10px] font-black uppercase text-zinc-500">Next</span>
-            <p className="font-bold text-zinc-900 dark:text-zinc-100 text-lg">{next.title}</p>
+            <span className="text-xs font-black uppercase text-zinc-500">Next</span>
+            <p className="font-bold text-zinc-900 dark:text-zinc-100 text-xl">{next.title}</p>
           </Link>
         ) : (
           <div className="flex-1" />

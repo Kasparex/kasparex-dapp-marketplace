@@ -22,8 +22,8 @@ export default function ChroniclesHomePage() {
             badge="Overview"
           />
           <div>
-            <h2 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-3">{overview.title}</h2>
-            <p className="text-base sm:text-lg text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed">{overview.tagline}</p>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-zinc-900 dark:text-zinc-100 mb-3">{overview.title}</h2>
+            <p className="text-lg sm:text-xl text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed">{overview.tagline}</p>
             <ChroniclesMarkdown markdown={overview.bodyMarkdown} />
           </div>
           <div className="pt-4">
@@ -43,11 +43,11 @@ export default function ChroniclesHomePage() {
                   >
                     <ChronicleThumb imageUrl={c.featuredImageUrl} alt="" className="w-20 h-20 shrink-0 rounded-xl" />
                     <div className="min-w-0">
-                      <span className="text-[10px] font-mono text-zinc-400">Chapter {c.number}</span>
-                      <span className="block font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] text-sm sm:text-base leading-snug">
+                      <span className="text-xs font-mono text-zinc-400">Chapter {c.number}</span>
+                      <span className="block font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] text-base sm:text-lg leading-snug">
                         {c.title}
                       </span>
-                      <span className="text-sm text-zinc-500 line-clamp-2 mt-1">{c.teaser}</span>
+                      <span className="text-base text-zinc-500 line-clamp-2 mt-1">{c.teaser}</span>
                     </div>
                   </Link>
                 </li>
@@ -55,14 +55,14 @@ export default function ChroniclesHomePage() {
             </ol>
             <Link
               href="/chronicles/chapters"
-              className="inline-block mt-5 text-sm font-bold text-[#02abb8] hover:underline"
+              className="inline-block mt-5 text-base font-bold text-[#02abb8] hover:underline"
             >
               All chapters →
             </Link>
           </div>
 
           <div>
-            <h3 className="text-xs font-black uppercase tracking-widest text-[#02abb8] mb-5">Codex fragments</h3>
+            <h3 className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-5">Codex fragments</h3>
             <div className="space-y-5">
               {fragments.map((f) => (
                 <div
@@ -71,7 +71,7 @@ export default function ChroniclesHomePage() {
                 >
                   <ChronicleThumb imageUrl={f.featuredImageUrl} alt="" className="h-32 w-full" />
                   <div className="p-4 sm:p-5">
-                    <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-3">{f.title}</p>
+                    <p className="text-base font-bold text-zinc-900 dark:text-zinc-100 mb-3">{f.title}</p>
                     <ChroniclesMarkdown markdown={f.bodyMarkdown} />
                   </div>
                 </div>
@@ -80,7 +80,7 @@ export default function ChroniclesHomePage() {
           </div>
 
           <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6">
-            <h3 className="text-xs font-black uppercase tracking-widest text-zinc-500 mb-4">Explore</h3>
+            <h3 className="text-sm font-black uppercase tracking-widest text-zinc-500 mb-4">Explore</h3>
             <ul className="space-y-3 text-base font-semibold">
               <li>
                 <Link href="/chronicles/characters" className="text-[#02abb8] hover:underline">
@@ -104,3 +104,4 @@ export default function ChroniclesHomePage() {
     </div>
   );
 }
+

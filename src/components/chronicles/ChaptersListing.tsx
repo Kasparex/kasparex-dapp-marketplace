@@ -77,7 +77,7 @@ export function ChaptersListing({ initialChapters }: { initialChapters: Chronicl
       {view === 'table' && (
         <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
           <table className="w-full text-base">
-            <thead className="bg-zinc-50 dark:bg-zinc-900/80 text-left text-xs font-black uppercase tracking-wider text-zinc-500">
+            <thead className="bg-zinc-50 dark:bg-zinc-900/80 text-left text-sm font-black uppercase tracking-wider text-zinc-500">
               <tr>
                 <th className="p-3 w-16"></th>
                 <th className="p-3">#</th>
@@ -152,11 +152,18 @@ export function ChaptersListing({ initialChapters }: { initialChapters: Chronicl
             >
               <ChronicleThumb imageUrl={c.featuredImageUrl} alt="" className="h-40 w-full shrink-0" />
               <div className="p-5 sm:p-6">
-                <div className="flex items-start justify-between gap-2 mb-3">
-                  <span className="text-xs font-mono text-zinc-400">Ch. {c.number}</span>
-                  <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-md ${timelineBadge(c.timeline)}`}>
-                    {c.timeline}
-                  </span>
+                <div className="flex items-start justify-between gap-2 mb-3 flex-wrap">
+                  <span className="text-sm font-mono text-zinc-400">Ch. {c.number}</span>
+                  <div className="flex flex-wrap gap-1.5 justify-end">
+                    {c.access && c.access.tier !== 'free' ? (
+                      <span className="text-xs font-black uppercase px-2 py-1 rounded-md bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/25">
+                        Vault
+                      </span>
+                    ) : null}
+                    <span className={`text-xs font-bold uppercase px-2 py-1 rounded-md ${timelineBadge(c.timeline)}`}>
+                      {c.timeline}
+                    </span>
+                  </div>
                 </div>
                 <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors mb-2">
                   {c.title}

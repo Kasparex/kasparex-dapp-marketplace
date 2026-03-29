@@ -77,7 +77,7 @@ export function ChroniclesNavGroup({
         {icon != null && (
           <span className="flex-shrink-0 inline-flex items-center justify-center k-sidebar-icon">{icon}</span>
         )}
-        <span className="text-[11px] font-bold uppercase tracking-wider flex-1 min-w-0 truncate leading-tight">
+        <span className="text-xs font-bold uppercase tracking-wide flex-1 min-w-0 leading-snug break-words line-clamp-2 text-left">
           {label}
         </span>
         <svg
@@ -117,17 +117,17 @@ export function ChroniclesNavSublink({
         className={`k-sidebar-item group opacity-60 cursor-default text-zinc-500 dark:text-zinc-500 ${activeClass}`.trim()}
         title="Draft: sync from content/story-management to data/chronicles or unlock via Vault"
       >
-        <span className="text-[10px] font-bold uppercase tracking-wider flex-1 min-w-0 truncate leading-tight pl-6">
+        <span className="text-xs font-bold uppercase tracking-wide flex-1 min-w-0 leading-snug break-words line-clamp-2 pl-6 text-left">
           {label}
         </span>
-        <span className="text-[9px] font-black uppercase text-amber-600 dark:text-amber-500 shrink-0">Draft</span>
+        <span className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-500 shrink-0">Draft</span>
       </div>
     );
   }
   return (
     <Link href={href}>
       <div className={`k-sidebar-item group ${activeClass}`.trim()}>
-        <span className="text-[10px] font-bold uppercase tracking-wider flex-1 min-w-0 truncate leading-tight pl-6">
+        <span className="text-xs font-bold uppercase tracking-wide flex-1 min-w-0 leading-snug break-words line-clamp-2 pl-6 text-left">
           {label}
         </span>
       </div>

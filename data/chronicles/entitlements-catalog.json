@@ -2,11 +2,13 @@
   "offers": [
     {
       "id": "chapter-early-04",
-      "title": "Chapter 4 (early access)",
-      "shortDescription": "Next saga beat before public release. Placeholder SKU.",
+      "title": "Chapter 4 (premium)",
+      "shortDescription": "Echoes of the Veil — the next saga beat. Unlock to read the full chapter.",
       "kind": "chapter",
       "priceLabel": "25 KAS",
-      "targetHref": "/chronicles/chapters"
+      "basePriceKas": 25,
+      "imageUrl": "https://placehold.co/640x360/0e7490/ffffff/png?text=Chapter+4",
+      "targetHref": "/chronicles/chapters/chapter-04-premium-echoes-of-the-veil"
     },
     {
       "id": "lore-null-gang-dossier",
@@ -14,6 +16,8 @@
       "shortDescription": "Extended erasure doctrine and field reports. Premium lore pack.",
       "kind": "lore",
       "priceLabel": "15 KAS",
+      "basePriceKas": 15,
+      "imageUrl": "https://placehold.co/640x360/18181b/a1a1aa/png?text=Null+Gang",
       "targetHref": "/chronicles/characters/null-gang"
     },
     {
@@ -22,6 +26,8 @@
       "shortDescription": "Fashion, vehicles, and outfit concepts from the story bible.",
       "kind": "character",
       "priceLabel": "10 KAS",
+      "basePriceKas": 10,
+      "imageUrl": "https://placehold.co/640x360/164e63/e0f2fe/png?text=Krex",
       "targetHref": "/chronicles/characters/krex"
     },
     {
@@ -29,7 +35,9 @@
       "title": "Vector's Overclock (in-universe schematic)",
       "shortDescription": "Gear / tech asset tied to Diamond Veins crossover. Cosmetic unlock placeholder.",
       "kind": "asset",
-      "priceLabel": "5 KAS"
+      "priceLabel": "5 KAS",
+      "basePriceKas": 5,
+      "imageUrl": "https://placehold.co/640x360/422006/fde68a/png?text=Overclock"
     },
     {
       "id": "asset-aria-refiner",
@@ -37,6 +45,8 @@
       "shortDescription": "In-universe processing rig blueprint. Placeholder item.",
       "kind": "asset",
       "priceLabel": "5 KAS",
+      "basePriceKas": 5,
+      "imageUrl": "https://placehold.co/640x360/14532d/dcfce7/png?text=ARIA",
       "targetHref": "/chronicles/characters/aria"
     }
   ]

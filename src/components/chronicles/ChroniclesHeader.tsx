@@ -9,11 +9,11 @@ export function ChroniclesHeader() {
       <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#02abb8]/10 blur-2xl rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none" />
       <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
         <div className="min-w-0">
-          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#02abb8] mb-2">Lore codex</p>
-          <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
+          <p className="text-sm font-black uppercase tracking-[0.2em] text-[#02abb8] mb-2">Lore codex</p>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
             Krex&apos;s Chronicles
           </h1>
-          <p className="mt-3 text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed">
+          <p className="mt-3 text-lg sm:text-xl text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed">
             Wiki, story, and CMS-ready lore for Kaspaland: the narrative backbone of Kasparex.
           </p>
         </div>

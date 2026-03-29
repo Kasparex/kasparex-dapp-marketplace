@@ -102,9 +102,13 @@ export function ChroniclesSidebar() {
   const isLocations = pathname.startsWith('/chronicles/locations');
   const isVehicles = pathname.startsWith('/chronicles/vehicles');
 
+  const navLabelClass =
+    'text-xs font-bold uppercase tracking-wide flex-1 min-w-0 leading-snug break-words line-clamp-2 text-left';
+
   return (
     <UnifiedSidebar
       storageKeyPrefix="chronicles"
+      defaultWidth={292}
       header={(onHide) => (
         <SidebarHeader
           backHref="/hub"
@@ -114,16 +118,19 @@ export function ChroniclesSidebar() {
         />
       )}
     >
-      <SidebarSection title="Krex's Chronicles">
+      <SidebarSection
+        title="Krex's Chronicles"
+        headingClassName="text-xs sm:text-sm font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.18em] mb-4 px-2"
+      >
         <nav className="space-y-1">
           <Link href="/chronicles">
-            <SidebarNavItem label="Overview" icon={homeIcon} active={isOverview} />
+            <SidebarNavItem label="Overview" icon={homeIcon} active={isOverview} labelClassName={navLabelClass} />
           </Link>
 
           <ChroniclesNavGroup groupId="chapters" label="Chapters" icon={bookIcon} defaultOpen active={isChapters}>
             <Link href="/chronicles/chapters">
               <div className={`k-sidebar-item group ${pathname === '/chronicles/chapters' ? 'k-sidebar-item-active' : ''}`.trim()}>
-                <span className="text-[10px] font-bold uppercase tracking-wider pl-6">All chapters</span>
+                <span className="text-xs font-bold uppercase tracking-wide pl-6">All chapters</span>
               </div>
             </Link>
             {chapters.map((c) => (
@@ -139,7 +146,7 @@ export function ChroniclesSidebar() {
           <ChroniclesNavGroup groupId="characters" label="Characters" icon={usersIcon} active={isCharacters}>
             <Link href="/chronicles/characters">
               <div className={`k-sidebar-item group ${pathname === '/chronicles/characters' ? 'k-sidebar-item-active' : ''}`.trim()}>
-                <span className="text-[10px] font-bold uppercase tracking-wider pl-6">All characters</span>
+                <span className="text-xs font-bold uppercase tracking-wide pl-6">All characters</span>
               </div>
             </Link>
             {characters.map((c) => (
@@ -158,7 +165,7 @@ export function ChroniclesSidebar() {
           <ChroniclesNavGroup groupId="locations" label="Locations" icon={mapIcon} active={isLocations}>
             <Link href="/chronicles/locations">
               <div className={`k-sidebar-item group ${pathname === '/chronicles/locations' ? 'k-sidebar-item-active' : ''}`.trim()}>
-                <span className="text-[10px] font-bold uppercase tracking-wider pl-6">All locations</span>
+                <span className="text-xs font-bold uppercase tracking-wide pl-6">All locations</span>
               </div>
             </Link>
             {locations.map((l) => (
@@ -174,7 +181,7 @@ export function ChroniclesSidebar() {
           <ChroniclesNavGroup groupId="vehicles" label="Vehicles & tech" icon={truckIcon} active={isVehicles}>
             <Link href="/chronicles/vehicles">
               <div className={`k-sidebar-item group ${pathname === '/chronicles/vehicles' ? 'k-sidebar-item-active' : ''}`.trim()}>
-                <span className="text-[10px] font-bold uppercase tracking-wider pl-6">All items</span>
+                <span className="text-xs font-bold uppercase tracking-wide pl-6">All items</span>
               </div>
             </Link>
             {vehicles.map((v) => (
@@ -199,7 +206,7 @@ export function ChroniclesSidebar() {
           </ChroniclesNavGroup>
 
           <Link href="/chronicles/dashboard">
-            <SidebarNavItem label="Vault & unlocks" icon={vaultIcon} active={isDashboard} />
+            <SidebarNavItem label="Vault & unlocks" icon={vaultIcon} active={isDashboard} labelClassName={navLabelClass} />
           </Link>
         </nav>
       </SidebarSection>

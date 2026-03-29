@@ -32,5 +32,22 @@
     "highlightCharacterSlugs": ["krex", "aria", "silent-protocol"],
     "locationSlugs": ["kaspaland", "kasparex", "kasparex-rooftop", "forgotten-blocks"],
     "bodyPath": "bodies/chapter-03-the-ghost-in-the-code.md"
+  },
+  {
+    "slug": "chapter-04-premium-echoes-of-the-veil",
+    "number": 4,
+    "title": "Chapter 4: Echoes of the Veil",
+    "teaser": "Premium arc: signals bleed through the Veil as Kasparex braces for what Null Gang left behind—and what Krex already knows.",
+    "status": "published",
+    "timeline": "future",
+    "highlightCharacterSlugs": ["krex", "tessa", "vector", "null-gang"],
+    "locationSlugs": ["kasparex", "kaspaland"],
+    "relatedGameSlug": "diamond-veins",
+    "bodyPath": "bodies/chapter-04-premium-echoes-of-the-veil.md",
+    "featuredImageUrl": "https://placehold.co/1200x675/155e75/fef9c3/png?text=Chapter+4+Premium",
+    "access": {
+      "contentId": "chapter-early-04",
+      "tier": "premium"
+    }
   }
 ]

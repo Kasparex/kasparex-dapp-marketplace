@@ -30,8 +30,13 @@ export function ChroniclesChapterAccessGate({
     <ChroniclesLockCard
       locked={!ok}
       title={offer?.title ?? 'Premium chapter'}
-      description={offer?.shortDescription ?? 'Connect your wallet and unlock this content in the Vault when purchases go live.'}
+      description={
+        offer?.shortDescription ??
+        'Connect KasWare and unlock this chapter from Vault & unlocks with an on-chain payment.'
+      }
       priceLabel={offer?.priceLabel}
+      vaultHref="/chronicles/dashboard#premium"
+      unlockLabel="Unlock"
     >
       {children}
     </ChroniclesLockCard>

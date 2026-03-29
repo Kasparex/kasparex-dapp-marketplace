@@ -10,6 +10,10 @@ export interface EntitlementOffer {
   kind: EntitlementOfferKind;
   /** Shown on locked cards; not a live price yet */
   priceLabel: string;
+  /** List price in KAS for on-chain unlock verification */
+  basePriceKas: number;
+  /** Card / catalog art */
+  imageUrl?: string;
   /** Optional in-app route when unlocked */
   targetHref?: string;
 }

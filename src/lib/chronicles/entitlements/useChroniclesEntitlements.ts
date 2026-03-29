@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ChroniclesContentId, EntitlementOffer } from './types';
 import catalogFile from '../../../../data/chronicles/entitlements-catalog.json';
 import mockFile from '../../../../data/chronicles/entitlements-mock.json';
+import { getLocalVaultUnlockedIds } from '@/lib/chronicles/vault/localUnlocks';
 
 function normalizeKaspaAddress(address: string | null | undefined): string | null {
   if (!address || typeof address !== 'string') return null;
@@ -13,6 +14,14 @@ function normalizeKaspaAddress(address: string | null | undefined): string | nul
 }
 
 export function useChroniclesEntitlements(connectedAddress: string | null | undefined) {
+  const [localBump, setLocalBump] = useState(0);
+
+  useEffect(() => {
+    const onUnlock = () => setLocalBump((b) => b + 1);
+    window.addEventListener('chronicles-vault-unlock', onUnlock);
+    return () => window.removeEventListener('chronicles-vault-unlock', onUnlock);
+  }, []);
+
   const catalog = useMemo(() => {
     const raw = catalogFile as { offers?: EntitlementOffer[] };
     return raw.offers ?? [];
@@ -23,9 +32,12 @@ export function useChroniclesEntitlements(connectedAddress: string | null | unde
     if (!addr) return new Set<ChroniclesContentId>();
     const mock = mockFile as { byAddress?: Record<string, { unlockedIds?: string[] }> };
     const row = mock.byAddress?.[addr];
-    const ids = row?.unlockedIds ?? [];
-    return new Set(ids as ChroniclesContentId[]);
-  }, [connectedAddress]);
+    const fromMock = new Set((row?.unlockedIds ?? []) as ChroniclesContentId[]);
+    for (const id of getLocalVaultUnlockedIds(addr)) {
+      fromMock.add(id);
+    }
+    return fromMock;
+  }, [connectedAddress, localBump]);
 
   const isUnlocked = useCallback(
     (id: ChroniclesContentId) => {
