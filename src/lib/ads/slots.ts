@@ -16,6 +16,13 @@ export const AD_SLOTS: AdSlotConfig[] = [
     rotation: 'slider',
   },
   {
+    id: 'HALO_CHRONICLES_RIGHT',
+    label: 'Chronicles Halo (right)',
+    pricePerDay: 100,
+    maxAds: 5,
+    rotation: 'slider',
+  },
+  {
     id: 'SIDEBAR_RANDOM',
     label: 'Sidebar',
     pricePerDay: 80,

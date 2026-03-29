@@ -20,6 +20,12 @@ export const AD_SLOT_PLACEMENT_LINKS: {
     placement: 'Magazines listing, halo header right',
   },
   {
+    slotId: 'HALO_CHRONICLES_RIGHT',
+    title: 'Chronicles halo',
+    href: '/chronicles#ad-slot-chronicles-halo',
+    placement: 'Krex Chronicles, halo header right',
+  },
+  {
     slotId: 'SIDEBAR_RANDOM',
     title: 'Studio sidebar',
     href: '/studio/portfolio#ad-slot-studio-sidebar',

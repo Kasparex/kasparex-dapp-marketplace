@@ -1,6 +1,7 @@
 export type AdSlotId =
   | 'HALO_DAPPS_RIGHT'
   | 'HALO_MAGAZINES_RIGHT'
+  | 'HALO_CHRONICLES_RIGHT'
   | 'SIDEBAR_RANDOM'
   | 'FOOTER_BLOCK';
 

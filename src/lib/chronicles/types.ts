@@ -16,6 +16,8 @@ export interface ChronicleOverview {
   title: string;
   tagline: string;
   bodyMarkdown: string;
+  /** Optional hero image URL (Pinata, placehold.co, etc.). Empty uses UI placeholder. */
+  featuredImageUrl?: string;
 }
 
 export interface ChronicleFragment {
@@ -23,6 +25,7 @@ export interface ChronicleFragment {
   title: string;
   bodyMarkdown: string;
   tags: string[];
+  featuredImageUrl?: string;
 }
 
 export interface ChronicleChapterMeta {
@@ -37,6 +40,7 @@ export interface ChronicleChapterMeta {
   relatedGameSlug?: string;
   /** Relative to data/chronicles/, e.g. bodies/chapter-01.md */
   bodyPath: string;
+  featuredImageUrl?: string;
 }
 
 export interface ChronicleChapter extends ChronicleChapterMeta {
@@ -66,6 +70,7 @@ export interface ChronicleCharacter {
     contractAddress?: string;
     utility?: string;
   };
+  featuredImageUrl?: string;
 }
 
 export interface ChronicleLocation {
@@ -80,6 +85,7 @@ export interface ChronicleLocation {
   relatedGameSlug?: string;
   secretsMarkdown?: string;
   tags: string[];
+  featuredImageUrl?: string;
 }
 
 export interface ChronicleVehicle {
@@ -91,6 +97,7 @@ export interface ChronicleVehicle {
   ownerCharacterSlug?: string;
   chapterSlugs: string[];
   tags: string[];
+  featuredImageUrl?: string;
 }
 
 export type ChroniclesViewMode = 'card' | 'compact' | 'table';

@@ -4,10 +4,11 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import type { ChronicleChapterMeta, ChronicleTimeline } from '@/lib/chronicles/types';
 import { FilterBar } from '@/components/FilterBar';
-import { ViewModeToggle } from './ViewModeToggle';
+import { ChroniclesViewSwitcher } from './ChroniclesViewSwitcher';
 import type { ChroniclesViewMode } from '@/lib/chronicles/types';
 import { filterChaptersByTimeline, searchChapters } from '@/lib/chronicles/filtering';
 import { sortChaptersByNumber } from '@/lib/chronicles/sorting';
+import { ChronicleThumb } from './ChronicleFeaturedVisual';
 
 const timelines: { id: ChronicleTimeline; label: string }[] = [
   { id: 'past', label: 'Past' },
@@ -26,58 +27,59 @@ function timelineBadge(t: ChronicleTimeline) {
 
 export function ChaptersListing({ initialChapters }: { initialChapters: ChronicleChapterMeta[] }) {
   const [search, setSearch] = useState('');
-  const [selTimeline, setSelTimeline] = useState<ChronicleTimeline[]>([]);
+  const [timelineFilter, setTimelineFilter] = useState<ChronicleTimeline | ''>('');
   const [view, setView] = useState<ChroniclesViewMode>('card');
 
   const filtered = useMemo(() => {
     let list = sortChaptersByNumber(initialChapters);
     list = searchChapters(list, search);
-    list = filterChaptersByTimeline(list, selTimeline);
+    list = filterChaptersByTimeline(list, timelineFilter ? [timelineFilter] : []);
     return list;
-  }, [initialChapters, search, selTimeline]);
-
-  const toggleTimeline = (id: ChronicleTimeline) => {
-    setSelTimeline((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  };
+  }, [initialChapters, search, timelineFilter]);
 
   const reset = () => {
     setSearch('');
-    setSelTimeline([]);
+    setTimelineFilter('');
   };
 
   return (
     <div>
-      <div className="flex flex-col gap-4 mb-8">
-        <FilterBar search={{ value: search, onChange: setSearch, placeholder: 'Search chapters...' }} onReset={reset}>
-          <div className="flex flex-wrap gap-2 items-center shrink-0">
-            {timelines.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => toggleTimeline(t.id)}
-                className={`h-10 px-3 rounded-lg text-xs font-bold uppercase tracking-wider border transition-colors ${
-                  selTimeline.includes(t.id)
-                    ? 'border-[#02abb8] bg-[#02abb8]/10 text-[#02abb8]'
-                    : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300'
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-          <ViewModeToggle value={view} onChange={setView} />
+      <div className="flex flex-col gap-4 mb-10">
+        <FilterBar
+          flexWrap
+          search={{ value: search, onChange: setSearch, placeholder: 'Search chapters...' }}
+          onReset={reset}
+        >
+          <label className="flex items-center gap-2 shrink-0">
+            <span className="sr-only">Timeline</span>
+            <select
+              className="k-filter-select"
+              value={timelineFilter}
+              onChange={(e) => setTimelineFilter((e.target.value || '') as ChronicleTimeline | '')}
+              aria-label="Filter by timeline"
+            >
+              <option value="">All timelines</option>
+              {timelines.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <ChroniclesViewSwitcher value={view} onChange={setView} />
         </FilterBar>
       </div>
 
-      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
+      <p className="text-base text-zinc-500 dark:text-zinc-400 mb-6">
         {filtered.length} chapter{filtered.length !== 1 ? 's' : ''}
       </p>
 
       {view === 'table' && (
         <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
-          <table className="w-full text-sm">
+          <table className="w-full text-base">
             <thead className="bg-zinc-50 dark:bg-zinc-900/80 text-left text-xs font-black uppercase tracking-wider text-zinc-500">
               <tr>
+                <th className="p-3 w-16"></th>
                 <th className="p-3">#</th>
                 <th className="p-3">Title</th>
                 <th className="p-3">Timeline</th>
@@ -86,7 +88,17 @@ export function ChaptersListing({ initialChapters }: { initialChapters: Chronicl
             </thead>
             <tbody>
               {filtered.map((c) => (
-                <tr key={c.slug} className="border-t border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50/80 dark:hover:bg-zinc-900/50">
+                <tr
+                  key={c.slug}
+                  className="border-t border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50/80 dark:hover:bg-zinc-900/50"
+                >
+                  <td className="p-3 w-16">
+                    <ChronicleThumb
+                      imageUrl={c.featuredImageUrl}
+                      alt=""
+                      className="w-12 h-12 shrink-0"
+                    />
+                  </td>
                   <td className="p-3 font-mono text-zinc-500">{c.number}</td>
                   <td className="p-3 font-semibold text-zinc-900 dark:text-zinc-100">{c.title}</td>
                   <td className="p-3">
@@ -107,20 +119,23 @@ export function ChaptersListing({ initialChapters }: { initialChapters: Chronicl
       )}
 
       {view === 'compact' && (
-        <ul className="space-y-2">
+        <ul className="space-y-3">
           {filtered.map((c) => (
             <li key={c.slug}>
               <Link
                 href={`/chronicles/chapters/${c.slug}`}
-                className="flex items-center justify-between gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-cyan-500/30 hover:bg-cyan-500/5 transition-colors"
+                className="flex items-center gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-cyan-500/30 hover:bg-cyan-500/5 transition-colors"
               >
-                <span className="font-bold text-zinc-900 dark:text-zinc-100">
-                  <span className="text-zinc-400 font-mono mr-2">{c.number}.</span>
-                  {c.title}
-                </span>
-                <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-md shrink-0 ${timelineBadge(c.timeline)}`}>
-                  {c.timeline}
-                </span>
+                <ChronicleThumb imageUrl={c.featuredImageUrl} alt="" className="w-14 h-14 shrink-0" />
+                <div className="min-w-0 flex-1 flex items-center justify-between gap-4">
+                  <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                    <span className="text-zinc-400 font-mono mr-2">{c.number}.</span>
+                    {c.title}
+                  </span>
+                  <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-md shrink-0 ${timelineBadge(c.timeline)}`}>
+                    {c.timeline}
+                  </span>
+                </div>
               </Link>
             </li>
           ))}
@@ -128,23 +143,26 @@ export function ChaptersListing({ initialChapters }: { initialChapters: Chronicl
       )}
 
       {view === 'card' && (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((c) => (
             <Link
               key={c.slug}
               href={`/chronicles/chapters/${c.slug}`}
-              className="group rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 p-5 hover:border-cyan-500/35 hover:shadow-lg hover:shadow-cyan-500/5 transition-all"
+              className="group flex flex-col rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 overflow-hidden hover:border-cyan-500/35 hover:shadow-lg hover:shadow-cyan-500/5 transition-all"
             >
-              <div className="flex items-start justify-between gap-2 mb-3">
-                <span className="text-xs font-mono text-zinc-400">Ch. {c.number}</span>
-                <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-md ${timelineBadge(c.timeline)}`}>
-                  {c.timeline}
-                </span>
+              <ChronicleThumb imageUrl={c.featuredImageUrl} alt="" className="h-40 w-full shrink-0" />
+              <div className="p-5 sm:p-6">
+                <div className="flex items-start justify-between gap-2 mb-3">
+                  <span className="text-xs font-mono text-zinc-400">Ch. {c.number}</span>
+                  <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-md ${timelineBadge(c.timeline)}`}>
+                    {c.timeline}
+                  </span>
+                </div>
+                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors mb-2">
+                  {c.title}
+                </h3>
+                <p className="text-base text-zinc-600 dark:text-zinc-400 line-clamp-3">{c.teaser}</p>
               </div>
-              <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors mb-2">
-                {c.title}
-              </h3>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3">{c.teaser}</p>
             </Link>
           ))}
         </div>

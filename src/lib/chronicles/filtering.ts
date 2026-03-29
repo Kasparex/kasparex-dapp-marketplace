@@ -42,6 +42,12 @@ export function filterCharactersByKind(
   return items.filter((c) => kinds.includes(c.kind));
 }
 
+export function filterLocationsByTag(items: ChronicleLocation[], tag: string): ChronicleLocation[] {
+  const t = tag.trim();
+  if (!t) return items;
+  return items.filter((l) => l.tags.includes(t));
+}
+
 export function searchLocations(items: ChronicleLocation[], q: string): ChronicleLocation[] {
   const s = q.trim().toLowerCase();
   if (!s) return items;

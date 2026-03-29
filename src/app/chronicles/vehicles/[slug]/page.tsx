@@ -2,8 +2,9 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
-import { ChronicleEntityChips } from '@/components/chronicles/ChronicleEntityChips';
 import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
+import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
+import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
 import { getVehicleBySlug, getAllVehicleSlugs, getCharacterBySlug, getChapterSummaries } from '@/lib/chronicles/loaders';
 
 interface PageProps {
@@ -30,40 +31,54 @@ export default async function ChronicleVehiclePage({ params }: PageProps) {
   const chapterLinks = vehicle.chapterSlugs
     .map((s) => {
       const c = chapters.find((x) => x.slug === s);
-      return c ? { slug: s, label: c.title, href: `/chronicles/chapters/${s}` } : null;
+      return c ? { href: `/chronicles/chapters/${s}`, label: c.title } : null;
     })
-    .filter(Boolean) as { slug: string; label: string; href: string }[];
+    .filter(Boolean) as { href: string; label: string }[];
 
   const owner =
     vehicle.ownerCharacterSlug != null ? getCharacterBySlug(vehicle.ownerCharacterSlug) : null;
 
   const showDiamond = vehicle.tags.includes('diamond-veins');
 
+  const asideSections = [
+    {
+      title: 'Summary',
+      body: <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">{vehicle.summary}</p>,
+    },
+    ...(owner
+      ? [
+          {
+            title: 'Owner / operator',
+            links: [{ href: `/chronicles/characters/${owner.slug}`, label: owner.name }],
+          },
+        ]
+      : []),
+    ...(chapterLinks.length > 0 ? [{ title: 'Appearances', links: chapterLinks }] : []),
+    ...(showDiamond ? [{ title: 'Diamond Veins', body: <DiamondVeinsCallout /> }] : []),
+  ];
+
   return (
     <div>
-      <Link href="/chronicles/vehicles" className="text-sm font-semibold text-zinc-500 hover:text-[#02abb8] mb-4 inline-block">
+      <Link
+        href="/chronicles/vehicles"
+        className="text-sm font-semibold text-zinc-500 hover:text-[#02abb8] mb-6 inline-block"
+      >
         ← Vehicles & tech
       </Link>
-      <p className="text-[10px] font-black uppercase tracking-widest text-[#02abb8]">{vehicle.kind}</p>
-      <h1 className="text-3xl font-black text-zinc-900 dark:text-zinc-100 mt-1">{vehicle.name}</h1>
-      {owner && (
-        <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
-          Owner:{' '}
-          <Link href={`/chronicles/characters/${owner.slug}`} className="font-bold text-[#02abb8] hover:underline">
-            {owner.name}
-          </Link>
-        </p>
-      )}
 
-      <ChronicleEntityChips title="Appearances" links={chapterLinks} />
+      <div className="grid gap-10 xl:gap-12 lg:grid-cols-[1fr_320px] xl:grid-cols-[minmax(0,1fr)_340px] items-start">
+        <div className="min-w-0">
+          <ChronicleFeaturedVisual imageUrl={vehicle.featuredImageUrl} alt={vehicle.name} badge={vehicle.kind} />
+          <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">{vehicle.kind}</p>
+          <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100 mt-1">{vehicle.name}</h1>
 
-      {showDiamond && (
-        <div className="mb-8">
-          <DiamondVeinsCallout />
+          <div className="mt-8">
+            <ChroniclesMarkdown markdown={vehicle.bodyMarkdown} />
+          </div>
         </div>
-      )}
 
-      <ChroniclesMarkdown markdown={vehicle.bodyMarkdown} />
+        <ChronicleArticleAside sections={asideSections} />
+      </div>
     </div>
   );
 }

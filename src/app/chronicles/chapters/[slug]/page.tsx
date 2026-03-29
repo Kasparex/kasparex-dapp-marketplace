@@ -2,8 +2,9 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
-import { ChronicleEntityChips } from '@/components/chronicles/ChronicleEntityChips';
 import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
+import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
+import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
 import { getChapterBySlug } from '@/lib/chronicles/server';
 import { getAdjacentChapters, getAllChapterSlugs, getCharacterBySlug, getLocationBySlug } from '@/lib/chronicles/loaders';
 
@@ -35,63 +36,85 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
   const characterLinks = chapter.highlightCharacterSlugs
     .map((s) => {
       const c = getCharacterBySlug(s);
-      return c ? { slug: s, label: c.name, href: `/chronicles/characters/${s}` } : null;
+      return c ? { href: `/chronicles/characters/${s}`, label: c.name } : null;
     })
-    .filter(Boolean) as { slug: string; label: string; href: string }[];
+    .filter(Boolean) as { href: string; label: string }[];
 
   const locationLinks = chapter.locationSlugs
     .map((s) => {
       const l = getLocationBySlug(s);
-      return l ? { slug: s, label: l.name, href: `/chronicles/locations/${s}` } : null;
+      return l ? { href: `/chronicles/locations/${s}`, label: l.name } : null;
     })
-    .filter(Boolean) as { slug: string; label: string; href: string }[];
+    .filter(Boolean) as { href: string; label: string }[];
 
   const total = getAllChapterSlugs().length;
   const progressPct = Math.round((chapter.number / total) * 100);
 
+  const asideSections = [
+    {
+      title: 'In this chapter',
+      links: [...characterLinks, ...locationLinks],
+    },
+    {
+      title: 'Reading order',
+      links: [
+        ...(prev ? [{ href: `/chronicles/chapters/${prev.slug}`, label: `Previous: ${prev.title}` }] : []),
+        ...(next ? [{ href: `/chronicles/chapters/${next.slug}`, label: `Next: ${next.title}` }] : []),
+      ],
+    },
+    ...(chapter.relatedGameSlug === 'diamond-veins'
+      ? [
+          {
+            title: 'Related game',
+            body: <DiamondVeinsCallout />,
+          },
+        ]
+      : []),
+  ];
+
   return (
     <div>
-      <div className="mb-6">
-        <Link
-          href="/chronicles/chapters"
-          className="text-sm font-semibold text-zinc-500 hover:text-[#02abb8] inline-flex items-center gap-1 mb-4"
-        >
-          ← Chapters
-        </Link>
-        <p className="text-[10px] font-black uppercase tracking-widest text-[#02abb8] mb-1">
-          Chapter {chapter.number}
-        </p>
-        <h1 className="text-3xl font-black text-zinc-900 dark:text-zinc-100">{chapter.title}</h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-2">{chapter.teaser}</p>
-        <div className="mt-4 h-1.5 rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden max-w-md">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-[#02abb8]"
-            style={{ width: `${progressPct}%` }}
+      <Link
+        href="/chronicles/chapters"
+        className="text-sm font-semibold text-zinc-500 hover:text-[#02abb8] inline-flex items-center gap-1 mb-6"
+      >
+        ← Chapters
+      </Link>
+
+      <div className="grid gap-10 xl:gap-12 lg:grid-cols-[1fr_320px] xl:grid-cols-[minmax(0,1fr)_340px] items-start">
+        <div className="min-w-0">
+          <ChronicleFeaturedVisual
+            imageUrl={chapter.featuredImageUrl}
+            alt={chapter.title}
+            badge={`Chapter ${chapter.number}`}
           />
+          <p className="text-xs font-black uppercase tracking-widest text-[#02abb8] mb-1">Chapter {chapter.number}</p>
+          <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100">{chapter.title}</h1>
+          <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 mt-3 leading-relaxed">{chapter.teaser}</p>
+          <div className="mt-5 h-2 rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden max-w-md">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-[#02abb8]"
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+          <p className="text-sm text-zinc-500 mt-2">Timeline: {chapter.timeline}</p>
+
+          <article className="pb-8 pt-10">
+            <ChroniclesMarkdown markdown={chapter.bodyMarkdown} />
+          </article>
         </div>
-        <p className="text-xs text-zinc-500 mt-1">Timeline: {chapter.timeline}</p>
+
+        <ChronicleArticleAside sections={asideSections} />
       </div>
 
-      <ChronicleEntityChips title="In this chapter" links={[...characterLinks, ...locationLinks]} />
-
-      {chapter.relatedGameSlug === 'diamond-veins' && (
-        <div className="mb-8">
-          <DiamondVeinsCallout />
-        </div>
-      )}
-
-      <article className="pb-12">
-        <ChroniclesMarkdown markdown={chapter.bodyMarkdown} />
-      </article>
-
-      <div className="flex flex-col sm:flex-row gap-4 justify-between border-t border-zinc-200 dark:border-zinc-800 pt-8">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between border-t border-zinc-200 dark:border-zinc-800 pt-10 mt-12">
         {prev ? (
           <Link
             href={`/chronicles/chapters/${prev.slug}`}
-            className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 hover:border-cyan-500/30 transition-colors"
+            className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 hover:border-cyan-500/30 transition-colors"
           >
             <span className="text-[10px] font-black uppercase text-zinc-500">Previous</span>
-            <p className="font-bold text-zinc-900 dark:text-zinc-100">{prev.title}</p>
+            <p className="font-bold text-zinc-900 dark:text-zinc-100 text-lg">{prev.title}</p>
           </Link>
         ) : (
           <div className="flex-1" />
@@ -99,10 +122,10 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
         {next ? (
           <Link
             href={`/chronicles/chapters/${next.slug}`}
-            className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 hover:border-cyan-500/30 transition-colors text-right sm:text-right"
+            className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 hover:border-cyan-500/30 transition-colors text-right sm:text-right"
           >
             <span className="text-[10px] font-black uppercase text-zinc-500">Next</span>
-            <p className="font-bold text-zinc-900 dark:text-zinc-100">{next.title}</p>
+            <p className="font-bold text-zinc-900 dark:text-zinc-100 text-lg">{next.title}</p>
           </Link>
         ) : (
           <div className="flex-1" />

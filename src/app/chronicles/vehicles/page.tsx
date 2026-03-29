@@ -8,9 +8,11 @@ export default function ChroniclesVehiclesPage() {
   return (
     <div>
       <ChroniclesHeader />
-      <div className="mb-6">
-        <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-1">Vehicles & tech</h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">Craft, transport, and devices of Kaspaland.</p>
+      <div className="mb-8 sm:mb-10">
+        <h2 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">Vehicles & tech</h2>
+        <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">
+          Craft, transport, and devices of Kaspaland.
+        </p>
       </div>
       <VehiclesListing initial={vehicles} />
     </div>

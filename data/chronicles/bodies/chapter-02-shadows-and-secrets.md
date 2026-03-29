@@ -2,27 +2,27 @@
 
 ## Chapter 2: Shadows and Secrets
 
-Kaspaland pulsed with its usual cybernetic rhythm, but [[character:krex|Krex]] could sense an undercurrent of unease in the air. Deep within the [[location:kasparex|Kasparex]] hub, glowing holograms filled the room, projecting streams of encrypted data. The Null Gang's failed infiltration had left its mark—subtle traces of tampering that Krex and his team couldn't ignore.
+Kaspaland pulsed with its usual cybernetic rhythm, but [[character:krex|Krex]] could sense an undercurrent of unease in the air. Deep within the [[location:kasparex|Kasparex]] hub, glowing holograms filled the room, projecting streams of encrypted data. The Null Gang's failed infiltration had left its mark - subtle traces of tampering that Krex and his team couldn't ignore.
 
 [[character:tessa|Tessa]]'s fingers flew across her keyboard as [[character:vector|Vector]] scanned layers of code for clues. The room hummed with their focused energy, but the weight of the unknown hung heavy.
 
 "It's like they wanted us to notice," Vector remarked, leaning back in his chair.
 
-Krex's attention was drawn to a repeating pattern in the data feeds. A name kept appearing—Sarah. It wasn't the first time her name had surfaced, but it carried an air of mystery that even Kaspaland's most experienced operators couldn't decode.
+Krex's attention was drawn to a repeating pattern in the data feeds. A name kept appearing - Sarah. It wasn't the first time her name had surfaced, but it carried an air of mystery that even Kaspaland's most experienced operators couldn't decode.
 
 "Tessa, pull every reference to Sarah from the network," Krex said, narrowing his eyes at the display.
 
 "I'm on it," she replied. "But it's not going to be easy. Whoever she is, she's a ghost in the system."
 
-While his team worked, Krex received a notification—KREX Token had officially been listed on XT and Biconomy. It was a hard-earned victory that solidified the token's presence in the digital market. Investors had already begun staking their claims, fueling KREX's rise in the KRC-20 network.
+While his team worked, Krex received a notification - KREX Token had officially been listed on XT and Biconomy. It was a hard-earned victory that solidified the token's presence in the digital market. Investors had already begun staking their claims, fueling KREX's rise in the KRC-20 network.
 
-But Krex wasn't one to linger on successes. "The next step is CoinEx," he said, his voice resolute. "To get there, we'll need every bit of support we can muster." The team knew what that meant—donations to the project would be critical to reaching this milestone.
+But Krex wasn't one to linger on successes. "The next step is CoinEx," he said, his voice resolute. "To get there, we'll need every bit of support we can muster." The team knew what that meant - donations to the project would be critical to reaching this milestone.
 
 Just as the room settled into focused determination, the holograms flickered. A melodic, almost otherworldly voice echoed through the air.
 
 "Krex, always chasing shadows, aren't you?"
 
-The team froze. Krex's pulse quickened—he recognized the voice immediately.
+The team froze. Krex's pulse quickened - he recognized the voice immediately.
 
 "Sarah," he murmured.
 

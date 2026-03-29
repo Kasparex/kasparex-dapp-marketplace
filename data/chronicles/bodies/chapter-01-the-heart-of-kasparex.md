@@ -18,4 +18,4 @@ As Krex activated his visor, a world of holographic displays and secret code env
 
 ---
 
-**Also in Kasparex:** The underground **Diamond Veins** tie into the same world — mine Krex Diamonds beneath Kaspaland in this canon and in the [Diamond Veins game](/games/diamond-veins).
+**Also in Kasparex:** The underground **Diamond Veins** tie into the same world  -  mine Krex Diamonds beneath Kaspaland in this canon and in the [Diamond Veins game](/games/diamond-veins).

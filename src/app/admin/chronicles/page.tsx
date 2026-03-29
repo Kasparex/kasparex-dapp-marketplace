@@ -51,8 +51,9 @@ export default function AdminChroniclesPage() {
                 Krex&apos;s Chronicles <span className="text-[#02abb8]">Admin</span>
               </h1>
               <p className="text-zinc-600 dark:text-zinc-400 mb-8">
-                Read-only overview. Content lives in <code className="text-xs bg-zinc-200 dark:bg-zinc-800 px-1 rounded">data/chronicles/</code> — edit JSON
-                and markdown bodies in the repo, then deploy.
+                Read-only overview. Content lives in{' '}
+                <code className="text-xs bg-zinc-200 dark:bg-zinc-800 px-1 rounded">data/chronicles/</code>; edit JSON and
+                markdown bodies in the repo, then deploy.
               </p>
 
               <div className="grid sm:grid-cols-2 gap-4 mb-10">

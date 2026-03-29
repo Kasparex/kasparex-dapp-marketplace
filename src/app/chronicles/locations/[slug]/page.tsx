@@ -2,8 +2,9 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
-import { ChronicleEntityChips } from '@/components/chronicles/ChronicleEntityChips';
 import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
+import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
+import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
 import {
   getLocationBySlug,
   getAllLocationSlugs,
@@ -35,47 +36,70 @@ export default async function ChronicleLocationPage({ params }: PageProps) {
   const chapterLinks = location.chapterSlugs
     .map((s) => {
       const c = chapters.find((x) => x.slug === s);
-      return c ? { slug: s, label: c.title, href: `/chronicles/chapters/${s}` } : null;
+      return c ? { href: `/chronicles/chapters/${s}`, label: c.title } : null;
     })
-    .filter(Boolean) as { slug: string; label: string; href: string }[];
+    .filter(Boolean) as { href: string; label: string }[];
 
   const characterLinks = location.characterSlugs
     .map((s) => {
       const ch = getCharacterBySlug(s);
-      return ch ? { slug: s, label: ch.name, href: `/chronicles/characters/${s}` } : null;
+      return ch ? { href: `/chronicles/characters/${s}`, label: ch.name } : null;
     })
-    .filter(Boolean) as { slug: string; label: string; href: string }[];
+    .filter(Boolean) as { href: string; label: string }[];
+
+  const asideSections = [
+    {
+      title: 'Story role',
+      body: <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">{location.roleInStory}</p>,
+    },
+    {
+      title: 'Look & feel',
+      body: <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">{location.visualStyle}</p>,
+    },
+    ...(chapterLinks.length > 0 ? [{ title: 'Chapters', links: chapterLinks }] : []),
+    ...(characterLinks.length > 0 ? [{ title: 'Characters', links: characterLinks }] : []),
+    ...(location.relatedGameSlug === 'diamond-veins'
+      ? [{ title: 'Related game', body: <DiamondVeinsCallout /> }]
+      : []),
+  ];
 
   return (
     <div>
-      <Link href="/chronicles/locations" className="text-sm font-semibold text-zinc-500 hover:text-[#02abb8] mb-4 inline-block">
+      <Link
+        href="/chronicles/locations"
+        className="text-sm font-semibold text-zinc-500 hover:text-[#02abb8] mb-6 inline-block"
+      >
         ← Locations
       </Link>
-      <p className="text-[10px] font-black uppercase tracking-widest text-[#02abb8]">{location.visualStyle}</p>
-      <h1 className="text-3xl font-black text-zinc-900 dark:text-zinc-100 mt-1">{location.name}</h1>
-      <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-2">{location.roleInStory}</p>
 
-      <ChronicleEntityChips title="Chapters" links={chapterLinks} />
-      <ChronicleEntityChips title="Characters" links={characterLinks} />
+      <div className="grid gap-10 xl:gap-12 lg:grid-cols-[1fr_320px] xl:grid-cols-[minmax(0,1fr)_340px] items-start">
+        <div className="min-w-0">
+          <ChronicleFeaturedVisual
+            imageUrl={location.featuredImageUrl}
+            alt={location.name}
+            badge="Location"
+          />
+          <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">{location.visualStyle}</p>
+          <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100 mt-1">{location.name}</h1>
 
-      {location.relatedGameSlug === 'diamond-veins' && (
-        <div className="mb-8">
-          <DiamondVeinsCallout />
-        </div>
-      )}
-
-      <ChroniclesMarkdown markdown={location.bodyMarkdown} />
-
-      {location.secretsMarkdown && (
-        <details className="mt-10 rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-50/80 dark:bg-zinc-900/40">
-          <summary className="cursor-pointer text-sm font-black uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-            Hidden lore
-          </summary>
-          <div className="mt-4">
-            <ChroniclesMarkdown markdown={location.secretsMarkdown} />
+          <div className="mt-8">
+            <ChroniclesMarkdown markdown={location.bodyMarkdown} />
           </div>
-        </details>
-      )}
+
+          {location.secretsMarkdown ? (
+            <details className="mt-12 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
+              <summary className="cursor-pointer text-sm font-black uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                Hidden lore
+              </summary>
+              <div className="mt-4">
+                <ChroniclesMarkdown markdown={location.secretsMarkdown} />
+              </div>
+            </details>
+          ) : null}
+        </div>
+
+        <ChronicleArticleAside sections={asideSections} />
+      </div>
     </div>
   );
 }

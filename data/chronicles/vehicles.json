@@ -3,7 +3,7 @@
     "slug": "kaspaland-aerial-traffic",
     "name": "Kaspaland aerial traffic",
     "kind": "vehicle",
-    "summary": "Luminescent craft weaving through the holo-skyline—backdrop to the rooftop anomaly.",
+    "summary": "Luminescent craft weaving through the holo-skyline - backdrop to the rooftop anomaly.",
     "bodyMarkdown": "Described from the [[location:kasparex-rooftop|Kasparex rooftop]]: vehicles zip through the sky leaving **streaks of luminescent blue**, part of the living motion of [[location:kaspaland|Kaspaland]].",
     "chapterSlugs": ["chapter-03-the-ghost-in-the-code"],
     "tags": ["sky", "traffic"]

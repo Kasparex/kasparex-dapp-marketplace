@@ -19,6 +19,8 @@ export interface FilterBarProps {
   children?: ReactNode;
   /** Optional class for the wrapper. */
   className?: string;
+  /** When true, controls may wrap to a second row (e.g. Chronicles filters + view switcher). */
+  flexWrap?: boolean;
 }
 
 /**
@@ -31,11 +33,14 @@ export function FilterBar({
   resetLabel = 'Reset Filters',
   children,
   className = '',
+  flexWrap = false,
 }: FilterBarProps) {
   const isTyping = (search.value?.length ?? 0) > 0;
 
   return (
-    <div className={`flex flex-nowrap items-center gap-3 min-h-10 overflow-visible ${className}`.trim()}>
+    <div
+      className={`flex ${flexWrap ? 'flex-wrap' : 'flex-nowrap'} items-center gap-3 min-h-10 overflow-visible ${className}`.trim()}
+    >
       <div className="flex-1 min-w-[200px] shrink-0 overflow-visible">
         <div className="k-search-container h-10">
           <input

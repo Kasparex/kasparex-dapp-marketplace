@@ -10,7 +10,7 @@ export function DiamondVeinsCallout({ className = '' }: { className?: string }) 
       </p>
       <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-3">
         Mine Krex Diamonds beneath Kaspaland in the{' '}
-        <strong className="text-zinc-900 dark:text-zinc-100">Diamond Veins</strong> game — same world, underground
+        <strong className="text-zinc-900 dark:text-zinc-100">Diamond Veins</strong> game: same world, underground
         layer.
       </p>
       <Link

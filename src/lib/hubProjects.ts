@@ -63,7 +63,7 @@ export const hubProjects: HubProject[] = [
     name: "Krex's Chronicles",
     category: 'Publishing',
     description:
-      'Central lore hub for Kaspaland: chapters, characters, locations, and tech — wiki and CMS-ready, built for future tokens and cross-links to games like Diamond Veins.',
+      'Central lore hub for Kaspaland: chapters, characters, locations, and tech; wiki and CMS-ready, built for future tokens and cross-links to games like Diamond Veins.',
     route: '/chronicles',
     status: 'beta',
   },

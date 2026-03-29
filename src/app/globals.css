@@ -412,6 +412,19 @@
   border: 1px solid var(--k-control-border);
 }
 
+/* Native selects aligned with k-control-btn surfaces */
+.k-filter-select {
+  @apply h-10 min-w-[140px] pl-3 pr-8 rounded-xl text-sm font-medium text-zinc-900 dark:text-zinc-100 cursor-pointer appearance-none bg-no-repeat transition-all hover:border-[#02abb8]/30;
+  background-color: var(--k-control-bg);
+  border: 1px solid var(--k-control-border);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2371717a'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-position: right 0.5rem center;
+  background-size: 1.25rem 1.25rem;
+}
+.dark .k-filter-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+}
+
 /* Single capsule: one wrapper only, no double borders. Parent must have overflow: visible; no transform. */
 .k-search-container {
   @apply relative flex items-center;
