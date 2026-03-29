@@ -2,10 +2,33 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useMemo } from 'react';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
+import { ChroniclesNavGroup, ChroniclesNavSublink } from '@/components/chronicles/ChroniclesNavGroup';
+import {
+  getAllCharacters,
+  getAllLocations,
+  getAllVehicles,
+  getChapterSummaries,
+} from '@/lib/chronicles/loaders';
+import storyFolderMap from '../../../data/chronicles/story-folder-map.json';
+
+const WORKSPACE_FOLDER_KEYS = new Set([
+  'Community_Posts',
+  'KMAG',
+  'Shared_Lore',
+  'Shared_Media',
+  'SmartContracts_Templates',
+  'Template_Character',
+  'vPROGS_SQUAD',
+]);
+
+function folderToLabel(folder: string) {
+  return folder.replace(/_/g, ' ');
+}
 
 const homeIcon = (
   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -37,10 +60,43 @@ const truckIcon = (
   </svg>
 );
 
+const folderIcon = (
+  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+  </svg>
+);
+
+const vaultIcon = (
+  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+  </svg>
+);
+
+const map = storyFolderMap as Record<string, string | null>;
+
 export function ChroniclesSidebar() {
   const pathname = usePathname();
 
+  const chapters = useMemo(() => getChapterSummaries(), []);
+  const characters = useMemo(() => getAllCharacters().slice().sort((a, b) => a.name.localeCompare(b.name)), []);
+  const locations = useMemo(() => getAllLocations().slice().sort((a, b) => a.name.localeCompare(b.name)), []);
+  const vehicles = useMemo(() => getAllVehicles().slice().sort((a, b) => a.name.localeCompare(b.name)), []);
+
+  const draftCharacterFolders = useMemo(() => {
+    return Object.entries(map)
+      .filter(([key, slug]) => slug === null && !WORKSPACE_FOLDER_KEYS.has(key))
+      .map(([key]) => key)
+      .sort((a, b) => a.localeCompare(b));
+  }, []);
+
+  const workspaceEntries = useMemo(() => {
+    return Object.entries(map)
+      .filter(([key, slug]) => slug === null && WORKSPACE_FOLDER_KEYS.has(key))
+      .sort((a, b) => a[0].localeCompare(b[0]));
+  }, []);
+
   const isOverview = pathname === '/chronicles';
+  const isDashboard = pathname.startsWith('/chronicles/dashboard');
   const isChapters = pathname.startsWith('/chronicles/chapters');
   const isCharacters = pathname.startsWith('/chronicles/characters');
   const isLocations = pathname.startsWith('/chronicles/locations');
@@ -59,21 +115,91 @@ export function ChroniclesSidebar() {
       )}
     >
       <SidebarSection title="Krex's Chronicles">
-        <nav className="space-y-0.5">
+        <nav className="space-y-1">
           <Link href="/chronicles">
             <SidebarNavItem label="Overview" icon={homeIcon} active={isOverview} />
           </Link>
-          <Link href="/chronicles/chapters">
-            <SidebarNavItem label="Chapters" icon={bookIcon} active={isChapters} />
-          </Link>
-          <Link href="/chronicles/characters">
-            <SidebarNavItem label="Characters" icon={usersIcon} active={isCharacters} />
-          </Link>
-          <Link href="/chronicles/locations">
-            <SidebarNavItem label="Locations" icon={mapIcon} active={isLocations} />
-          </Link>
-          <Link href="/chronicles/vehicles">
-            <SidebarNavItem label="Vehicles & tech" icon={truckIcon} active={isVehicles} />
+
+          <ChroniclesNavGroup groupId="chapters" label="Chapters" icon={bookIcon} defaultOpen active={isChapters}>
+            <Link href="/chronicles/chapters">
+              <div className={`k-sidebar-item group ${pathname === '/chronicles/chapters' ? 'k-sidebar-item-active' : ''}`.trim()}>
+                <span className="text-[10px] font-bold uppercase tracking-wider pl-6">All chapters</span>
+              </div>
+            </Link>
+            {chapters.map((c) => (
+              <ChroniclesNavSublink
+                key={c.slug}
+                href={`/chronicles/chapters/${c.slug}`}
+                label={`${c.number}. ${c.title.replace(/^Chapter \d+:\s*/, '')}`}
+                active={pathname === `/chronicles/chapters/${c.slug}`}
+              />
+            ))}
+          </ChroniclesNavGroup>
+
+          <ChroniclesNavGroup groupId="characters" label="Characters" icon={usersIcon} active={isCharacters}>
+            <Link href="/chronicles/characters">
+              <div className={`k-sidebar-item group ${pathname === '/chronicles/characters' ? 'k-sidebar-item-active' : ''}`.trim()}>
+                <span className="text-[10px] font-bold uppercase tracking-wider pl-6">All characters</span>
+              </div>
+            </Link>
+            {characters.map((c) => (
+              <ChroniclesNavSublink
+                key={c.slug}
+                href={`/chronicles/characters/${c.slug}`}
+                label={c.name}
+                active={pathname === `/chronicles/characters/${c.slug}`}
+              />
+            ))}
+            {draftCharacterFolders.map((folder) => (
+              <ChroniclesNavSublink key={folder} label={folderToLabel(folder)} draft />
+            ))}
+          </ChroniclesNavGroup>
+
+          <ChroniclesNavGroup groupId="locations" label="Locations" icon={mapIcon} active={isLocations}>
+            <Link href="/chronicles/locations">
+              <div className={`k-sidebar-item group ${pathname === '/chronicles/locations' ? 'k-sidebar-item-active' : ''}`.trim()}>
+                <span className="text-[10px] font-bold uppercase tracking-wider pl-6">All locations</span>
+              </div>
+            </Link>
+            {locations.map((l) => (
+              <ChroniclesNavSublink
+                key={l.slug}
+                href={`/chronicles/locations/${l.slug}`}
+                label={l.name}
+                active={pathname === `/chronicles/locations/${l.slug}`}
+              />
+            ))}
+          </ChroniclesNavGroup>
+
+          <ChroniclesNavGroup groupId="vehicles" label="Vehicles & tech" icon={truckIcon} active={isVehicles}>
+            <Link href="/chronicles/vehicles">
+              <div className={`k-sidebar-item group ${pathname === '/chronicles/vehicles' ? 'k-sidebar-item-active' : ''}`.trim()}>
+                <span className="text-[10px] font-bold uppercase tracking-wider pl-6">All items</span>
+              </div>
+            </Link>
+            {vehicles.map((v) => (
+              <ChroniclesNavSublink
+                key={v.slug}
+                href={`/chronicles/vehicles/${v.slug}`}
+                label={v.name}
+                active={pathname === `/chronicles/vehicles/${v.slug}`}
+              />
+            ))}
+          </ChroniclesNavGroup>
+
+          <ChroniclesNavGroup groupId="workspace" label="Workspace (source)" icon={folderIcon}>
+            {workspaceEntries.map(([folder]) => (
+              <ChroniclesNavSublink
+                key={folder}
+                href="/chronicles/dashboard#workspace"
+                label={folderToLabel(folder)}
+                active={false}
+              />
+            ))}
+          </ChroniclesNavGroup>
+
+          <Link href="/chronicles/dashboard">
+            <SidebarNavItem label="Vault & unlocks" icon={vaultIcon} active={isDashboard} />
           </Link>
         </nav>
       </SidebarSection>

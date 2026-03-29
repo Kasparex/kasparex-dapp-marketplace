@@ -5,6 +5,7 @@ import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
 import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
+import { ChroniclesChapterAccessGate } from '@/components/chronicles/vault/ChroniclesChapterAccessGate';
 import { getChapterBySlug } from '@/lib/chronicles/server';
 import { getAdjacentChapters, getAllChapterSlugs, getCharacterBySlug, getLocationBySlug } from '@/lib/chronicles/loaders';
 
@@ -100,7 +101,9 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
           <p className="text-sm text-zinc-500 mt-2">Timeline: {chapter.timeline}</p>
 
           <article className="pb-8 pt-10">
-            <ChroniclesMarkdown markdown={chapter.bodyMarkdown} />
+            <ChroniclesChapterAccessGate access={chapter.access}>
+              <ChroniclesMarkdown markdown={chapter.bodyMarkdown} />
+            </ChroniclesChapterAccessGate>
           </article>
         </div>
 

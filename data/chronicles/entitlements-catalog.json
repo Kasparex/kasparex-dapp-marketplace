@@ -1,0 +1,43 @@
+{
+  "offers": [
+    {
+      "id": "chapter-early-04",
+      "title": "Chapter 4 (early access)",
+      "shortDescription": "Next saga beat before public release. Placeholder SKU.",
+      "kind": "chapter",
+      "priceLabel": "25 KAS",
+      "targetHref": "/chronicles/chapters"
+    },
+    {
+      "id": "lore-null-gang-dossier",
+      "title": "Null Gang classified dossier",
+      "shortDescription": "Extended erasure doctrine and field reports. Premium lore pack.",
+      "kind": "lore",
+      "priceLabel": "15 KAS",
+      "targetHref": "/chronicles/characters/null-gang"
+    },
+    {
+      "id": "char-deep-krex",
+      "title": "Krex: classified appendix",
+      "shortDescription": "Fashion, vehicles, and outfit concepts from the story bible.",
+      "kind": "character",
+      "priceLabel": "10 KAS",
+      "targetHref": "/chronicles/characters/krex"
+    },
+    {
+      "id": "asset-vector-overclock",
+      "title": "Vector's Overclock (in-universe schematic)",
+      "shortDescription": "Gear / tech asset tied to Diamond Veins crossover. Cosmetic unlock placeholder.",
+      "kind": "asset",
+      "priceLabel": "5 KAS"
+    },
+    {
+      "id": "asset-aria-refiner",
+      "title": "ARIA Auto-Refiner spec",
+      "shortDescription": "In-universe processing rig blueprint. Placeholder item.",
+      "kind": "asset",
+      "priceLabel": "5 KAS",
+      "targetHref": "/chronicles/characters/aria"
+    }
+  ]
+}

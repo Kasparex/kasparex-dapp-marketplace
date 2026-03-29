@@ -412,6 +412,18 @@
   border: 1px solid var(--k-control-border);
 }
 
+/* Chronicles vault / premium cards: subtle cyan rim */
+.chronicles-vault-card {
+  box-shadow:
+    0 0 0 1px rgba(2, 171, 184, 0.09),
+    0 10px 36px -14px rgba(2, 171, 184, 0.14);
+}
+.dark .chronicles-vault-card {
+  box-shadow:
+    0 0 0 1px rgba(2, 171, 184, 0.14),
+    0 14px 44px -18px rgba(0, 0, 0, 0.55);
+}
+
 /* Native selects aligned with k-control-btn surfaces */
 .k-filter-select {
   @apply h-10 min-w-[140px] pl-3 pr-8 rounded-xl text-sm font-medium text-zinc-900 dark:text-zinc-100 cursor-pointer appearance-none bg-no-repeat transition-all hover:border-[#02abb8]/30;

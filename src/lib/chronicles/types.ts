@@ -12,6 +12,14 @@ export type VehicleKind = 'vehicle' | 'tool' | 'weapon' | 'device';
 
 export type TokenLaunchStatus = 'not-launched' | 'coming' | 'live';
 
+export type ChronicleAccessTier = 'free' | 'early' | 'premium';
+
+/** Maps catalog entities to `entitlements-catalog.json` ids for wallet gating. */
+export interface ChronicleAccessMeta {
+  contentId: string;
+  tier: ChronicleAccessTier;
+}
+
 export interface ChronicleOverview {
   title: string;
   tagline: string;
@@ -41,6 +49,7 @@ export interface ChronicleChapterMeta {
   /** Relative to data/chronicles/, e.g. bodies/chapter-01.md */
   bodyPath: string;
   featuredImageUrl?: string;
+  access?: ChronicleAccessMeta;
 }
 
 export interface ChronicleChapter extends ChronicleChapterMeta {
