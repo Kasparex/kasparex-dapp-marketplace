@@ -57,7 +57,7 @@ function readKey(entityType: ChroniclesLbEntityType, entityId: string): ReadKey 
 }
 
 function readStore(): Store {
-  if (typeof window === 'undefined') return {};
+  if (typeof window === 'undefined') return { v: 2, wallets: {} };
   try {
     const parsed = safeParse(localStorage.getItem(CHRONICLES_LB_LOCAL_STORAGE_KEY));
     if (parsed) return parsed;
