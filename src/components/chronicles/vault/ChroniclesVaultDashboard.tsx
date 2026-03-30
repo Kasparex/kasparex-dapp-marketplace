@@ -37,8 +37,7 @@ export function ChroniclesVaultDashboard() {
             Unlocks & premium access
           </h1>
           <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 mt-4 max-w-2xl leading-relaxed">
-            Pay in KAS from KasWare with an on-chain payload. KREX tiers and KREX / PIXEL NFT holdings lower your price.
-            Unlocks are verified against the treasury transaction and stored in this browser for your wallet address.
+            Pay in KAS from KasWare with an on-chain payload. Unlocks are verified against the treasury transaction and stored in this browser for your wallet address.
           </p>
         </div>
 

@@ -26,8 +26,7 @@ export function VaultDashboardAside({
       <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/90 dark:bg-zinc-900/55 p-5 sm:p-6">
         <h2 className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-3">Your holder perks</h2>
         <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed mb-4">
-          KREX balance tiers and KREX / PIXEL NFT holdings reduce vault prices on-chain. Discounts stack up to{' '}
-          {VAULT_MAX_COMBINED_DISCOUNT_PERCENT}%.
+          KREX holders and eligible NFT holders receive discounts on vault unlocks plus additional perks across the Krex ecosystem (applied automatically on-chain).
         </p>
         <dl className="space-y-3 text-zinc-800 dark:text-zinc-200">
           <div>
@@ -51,6 +50,9 @@ export function VaultDashboardAside({
             </dd>
           </div>
         </dl>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-4 leading-relaxed">
+          Discounts stack up to {VAULT_MAX_COMBINED_DISCOUNT_PERCENT}%. The exact price is shown on each offer card.
+        </p>
       </div>
 
       <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/90 dark:bg-zinc-900/55 p-5 sm:p-6">

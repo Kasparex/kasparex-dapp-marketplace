@@ -144,9 +144,6 @@ export function ChroniclesReadConfirmCard({
 
       {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
       {note ? <p className="text-sm text-amber-700 dark:text-amber-400">{note}</p> : null}
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        Treasury: <span className="font-mono">{treasury}</span>
-      </p>
     </div>
   );
 }

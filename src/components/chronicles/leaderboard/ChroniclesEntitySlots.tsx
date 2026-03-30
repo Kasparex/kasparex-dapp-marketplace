@@ -24,6 +24,11 @@ import {
 } from '@/lib/chronicles/leaderboard/localState';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { EmptyVeinSlotFrame, EmptyVeinSlotPlusIcon } from '@/components/game/EmptyVeinSlotFrame';
+import { ChroniclesNftSlotSelector, chroniclesNftRefToCollectionAndId } from './ChroniclesNftSlotSelector';
+import { fetchNFTMetadata } from '@/lib/nft/metadata';
+import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
+import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 
 type SlotIndex = 1 | 2 | 3;
 
@@ -90,6 +95,8 @@ export function ChroniclesEntitySlots({
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const treasury = getChroniclesVaultTreasuryL1Address();
+  const [selectedSlotIndex, setSelectedSlotIndex] = useState<SlotIndex | null>(null);
+  const [metaMap, setMetaMap] = useState<Record<string, ParsedNFTMetadata>>({});
 
   const nftOptions = useMemo(() => {
     return nfts
@@ -97,6 +104,46 @@ export function ChroniclesEntitySlots({
       .sort((a, b) => a.collection.localeCompare(b.collection) || a.tokenId - b.tokenId)
       .map((n) => ({ ref: `${n.collection}#${n.tokenId}`, label: `${n.collection} #${n.tokenId}` }));
   }, [nfts]);
+
+  const allPlacementRefs = useMemo(() => {
+    const s = new Set<string>();
+    ([1, 2, 3] as const).forEach((i) => {
+      const v = placement(i);
+      if (v) s.add(v);
+    });
+    return s;
+  }, [payerKaspa, entityType, entityId, localBump]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      const next: Record<string, ParsedNFTMetadata> = {};
+      for (const ref of allPlacementRefs) {
+        if (metaMap[ref]) continue;
+        const parsed = chroniclesNftRefToCollectionAndId(ref);
+        if (!parsed) continue;
+        try {
+          const meta = await fetchNFTMetadata(parsed.collection, parsed.tokenId);
+          if (!cancelled && meta) next[ref] = meta;
+        } catch {
+          // ignore
+        }
+      }
+      if (!cancelled && Object.keys(next).length) setMetaMap((prev) => ({ ...prev, ...next }));
+    };
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [allPlacementRefs]);
+
+  const getImageUrlForRef = (ref: string): string | null => {
+    const meta = metaMap[ref] ?? null;
+    const raw = meta?.image ? String(meta.image) : '';
+    if (!raw) return null;
+    if (raw.startsWith('ipfs://')) return getBestGatewayUrl(raw.replace('ipfs://', ''));
+    return raw;
+  };
 
   async function payAndVerify(text: string, amountKas: number) {
     if (!state.isConnected || !state.provider || !payerKaspa) throw new Error('Connect KasWare to continue.');
@@ -188,71 +235,69 @@ export function ChroniclesEntitySlots({
           const isActive = activeSlots.has(slotIndex);
           const value = placement(slotIndex);
           const isThisBusy = busy === slotIndex;
+          const selectedName = value ? (metaMap[value]?.name ?? value) : null;
+          const imageUrl = value ? getImageUrlForRef(value) : null;
           return (
-            <div
-              key={slotIndex}
-              className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/30 p-5 space-y-3"
-            >
+            <div key={slotIndex} className="space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Slot {slotIndex}</p>
-                {slotIndex !== 1 && !isActive ? (
-                  <button
-                    type="button"
-                    onClick={() => void activate(slotIndex)}
-                    disabled={!state.isConnected || busy != null}
-                    className="k-control-btn h-9 text-xs font-bold uppercase tracking-wider"
-                  >
-                    Activate ({CHRONICLES_LB_SLOT_ACTIVATION_KAS} KAS)
-                  </button>
-                ) : (
-                  <span className="text-[11px] font-black uppercase px-2 py-1 rounded-lg border border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
-                    {isActive ? 'Active' : 'Locked'}
-                  </span>
-                )}
+                <span
+                  className={`text-[11px] font-black uppercase px-2 py-1 rounded-lg border ${
+                    isActive
+                      ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                      : 'border-zinc-300/60 dark:border-zinc-700 bg-zinc-200/40 dark:bg-zinc-800/40 text-zinc-600 dark:text-zinc-400'
+                  }`}
+                >
+                  {isActive ? 'Active' : 'Locked'}
+                </span>
               </div>
 
-              {isActive ? (
-                <>
-                  <div className="space-y-2">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500">Insert NFT</label>
-                    <select
-                      className="k-select !text-sm"
-                      disabled={!state.isConnected || nftsLoading || isThisBusy || busy === 'activate2' || busy === 'activate3'}
-                      value={value ?? ''}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        if (!v) return;
-                        void setSlot(slotIndex, v);
-                      }}
-                    >
-                      <option value="">{nftsLoading ? 'Loading NFTs…' : 'Select an NFT…'}</option>
-                      {nftOptions.map((o) => (
-                        <option key={o.ref} value={o.ref}>
-                          {o.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {value ? (
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-mono text-zinc-700 dark:text-zinc-200 truncate">{value}</p>
-                      <button
-                        type="button"
-                        onClick={() => void clearSlot(slotIndex)}
-                        disabled={!state.isConnected || isThisBusy}
-                        className="k-control-btn h-9 px-3 text-xs font-bold uppercase tracking-wider"
-                      >
-                        {isThisBusy ? 'Clearing…' : 'Remove'}
-                      </button>
+              <EmptyVeinSlotFrame
+                onClick={() => {
+                  if (!isActive) return;
+                  setSelectedSlotIndex(slotIndex);
+                }}
+                disabled={!isActive}
+                frameClassName="aspect-square"
+                className="!bg-white/80 dark:!bg-zinc-950/30"
+              >
+                {!value ? (
+                  <div className="flex flex-col items-center gap-4 text-center">
+                    <EmptyVeinSlotPlusIcon />
+                    <div>
+                      <h3 className="font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide text-base">Insert NFT</h3>
+                      <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">
+                        {isActive ? (nftsLoading ? 'Loading NFTs…' : 'Click to select') : 'Activate to unlock'}
+                      </p>
                     </div>
-                  ) : (
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">Empty slot.</p>
-                  )}
-                </>
-              ) : (
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">Activate to insert an NFT.</p>
-              )}
+                  </div>
+                ) : (
+                  <div className="text-center w-full flex flex-col items-center">
+                    <div className="w-20 h-20 rounded-xl overflow-hidden bg-zinc-200 dark:bg-zinc-800 ring-2 ring-emerald-500/30 flex-shrink-0">
+                      {imageUrl ? (
+                        <img src={imageUrl} alt={selectedName ?? value} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-2xl">🧩</div>
+                      )}
+                    </div>
+                    <h3 className="font-bold text-zinc-900 dark:text-zinc-100 text-sm mt-2 truncate max-w-[14rem]">
+                      {selectedName}
+                    </h3>
+                    <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">Click to manage</p>
+                  </div>
+                )}
+              </EmptyVeinSlotFrame>
+
+              {slotIndex !== 1 && !isActive ? (
+                <button
+                  type="button"
+                  onClick={() => void activate(slotIndex)}
+                  disabled={!state.isConnected || busy != null}
+                  className="k-control-btn w-full h-11 text-xs font-bold uppercase tracking-wider"
+                >
+                  {busy === (slotIndex === 2 ? 'activate2' : 'activate3') ? 'Activating…' : `Activate (${CHRONICLES_LB_SLOT_ACTIVATION_KAS} KAS)`}
+                </button>
+              ) : null}
             </div>
           );
         })}
@@ -260,9 +305,27 @@ export function ChroniclesEntitySlots({
 
       {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
       {note ? <p className="text-sm text-amber-700 dark:text-amber-400">{note}</p> : null}
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        Treasury: <span className="font-mono">{treasury}</span>
-      </p>
+
+      {selectedSlotIndex !== null && (
+        <ChroniclesNftSlotSelector
+          isOpen={true}
+          title={`Slot ${selectedSlotIndex}`}
+          description={`Inserting or removing an NFT costs ${CHRONICLES_LB_SLOT_CHANGE_KAS} KAS.`}
+          currentValue={placement(selectedSlotIndex)}
+          inUseRefs={allPlacementRefs}
+          onClose={() => setSelectedSlotIndex(null)}
+          onSelect={(ref) => {
+            void setSlot(selectedSlotIndex, ref);
+          }}
+          onRemove={
+            placement(selectedSlotIndex)
+              ? () => {
+                  void clearSlot(selectedSlotIndex);
+                }
+              : undefined
+          }
+        />
+      )}
     </div>
   );
 }

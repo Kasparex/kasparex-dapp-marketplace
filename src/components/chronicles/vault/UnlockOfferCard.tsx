@@ -168,11 +168,6 @@ export function UnlockOfferCard({
             </button>
             {payError ? <p className="text-sm text-red-600 dark:text-red-400">{payError}</p> : null}
             {verifyNote ? <p className="text-sm text-amber-700 dark:text-amber-400">{verifyNote}</p> : null}
-            {!krexLoading && !nftLoading ? (
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                KREX tier and NFT perks apply automatically when both wallets are connected.
-              </p>
-            ) : null}
           </div>
         ) : null}
 

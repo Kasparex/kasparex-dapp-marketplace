@@ -117,14 +117,17 @@ export function ChroniclesSidebar() {
   const navLabelClass =
     'text-xs font-bold uppercase tracking-wide flex-1 min-w-0 leading-snug break-words line-clamp-2 text-left';
 
+  const backHref = pathname === '/chronicles' ? '/hub' : '/chronicles';
+  const backLabel = pathname === '/chronicles' ? '< back to hub' : '< back to chronicles';
+
   return (
     <UnifiedSidebar
       storageKeyPrefix="chronicles"
       defaultWidth={292}
       header={(onHide) => (
         <SidebarHeader
-          backHref="/hub"
-          backLabel="Back to Hub"
+          backHref={backHref}
+          backLabel={backLabel}
           onHide={onHide}
           className="bg-white dark:bg-zinc-950"
         />
@@ -134,6 +137,28 @@ export function ChroniclesSidebar() {
         title="Krex's Chronicles"
         headingClassName="text-xs sm:text-sm font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.18em] mb-4 px-2"
       >
+        <div className="px-1.5 mb-3 space-y-2">
+          <Link
+            href="/chronicles/leaderboard"
+            className={`k-control-btn w-full justify-center gap-2 ${
+              pathname.startsWith('/chronicles/leaderboard')
+                ? '!border-amber-500/40 !bg-amber-500/15 !text-amber-800 dark:!text-amber-300'
+                : '!border-amber-500/30 !bg-amber-500/10 !text-amber-800 dark:!text-amber-300 hover:!bg-amber-500/15'
+            }`}
+          >
+            {trophyIcon}
+            <span className="text-xs font-black uppercase tracking-widest">Leaderboard</span>
+          </Link>
+          <Link
+            href="/chronicles/dashboard"
+            className={`k-control-btn w-full justify-center gap-2 ${
+              isDashboard ? '!border-emerald-500/35 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300' : ''
+            }`}
+          >
+            {vaultIcon}
+            <span className="text-xs font-black uppercase tracking-widest">Vault &amp; unlocks</span>
+          </Link>
+        </div>
         <nav className="space-y-1">
           <Tooltip content="Overview" side="right" align="start">
             <Link href="/chronicles">
@@ -225,23 +250,6 @@ export function ChroniclesSidebar() {
               />
             ))}
           </ChroniclesNavGroup>
-
-          <Tooltip content="Vault & unlocks" side="right" align="start">
-            <Link href="/chronicles/dashboard">
-              <SidebarNavItem label="Vault & unlocks" icon={vaultIcon} active={isDashboard} labelClassName={navLabelClass} />
-            </Link>
-          </Tooltip>
-
-          <Tooltip content="Leaderboard" side="right" align="start">
-            <Link href="/chronicles/leaderboard">
-              <SidebarNavItem
-                label="Leaderboard"
-                icon={trophyIcon}
-                active={pathname.startsWith('/chronicles/leaderboard')}
-                labelClassName={navLabelClass}
-              />
-            </Link>
-          </Tooltip>
         </nav>
       </SidebarSection>
     </UnifiedSidebar>
