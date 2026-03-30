@@ -51,18 +51,15 @@ export function UnlockOfferCard({
     }
   }, [state.address]);
 
-  const discountHint =
-    baseKas > 0
-      ? `List ${baseKas} KAS. You pay ${effectiveKas} KAS (KREX -${krexTierDiscountPercent(
-          krexTier
-        )}%, NFT -${chroniclesNftTierDiscountPercent(nftStatus)}%)`
-      : null;
+  const krexDiscount = baseKas > 0 ? krexTierDiscountPercent(krexTier) : 0;
+  const nftDiscount = baseKas > 0 ? chroniclesNftTierDiscountPercent(nftStatus) : 0;
+  const hasDiscount = baseKas > 0 && effectiveKas > 0 && effectiveKas < baseKas;
 
   async function handlePay() {
     setPayError(null);
     setVerifyNote(null);
     if (!state.isConnected || !state.provider || !payerNorm || baseKas <= 0) {
-      setPayError('Connect KasWare to pay.');
+      setPayError('Connect your wallet to continue.');
       return;
     }
     setPayBusy(true);
@@ -151,10 +148,35 @@ export function UnlockOfferCard({
         <p className="text-xs font-black uppercase tracking-widest text-[#02abb8] mb-2">{offer.kind}</p>
         <h3 className="font-black text-zinc-900 dark:text-zinc-100 text-lg mb-2 leading-snug">{offer.title}</h3>
         <p className="text-base text-zinc-600 dark:text-zinc-400 flex-1 leading-relaxed">{offer.shortDescription}</p>
-        <p className="text-sm font-mono text-zinc-500 mt-3">{offer.priceLabel}</p>
-        {discountHint ? (
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2 leading-snug">{discountHint}</p>
-        ) : null}
+        {baseKas > 0 ? (
+          <div className="mt-4 space-y-2">
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <span className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums">{effectiveKas} KAS</span>
+              {hasDiscount ? (
+                <span className="text-sm font-mono text-zinc-400 line-through tabular-nums">{baseKas} KAS</span>
+              ) : (
+                <span className="text-sm font-mono text-zinc-500">{offer.priceLabel}</span>
+              )}
+            </div>
+
+            {(krexDiscount > 0 || nftDiscount > 0) && (
+              <div className="flex flex-wrap gap-2">
+                {krexDiscount > 0 ? (
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-xs font-bold uppercase tracking-wider">
+                    KREX −{krexDiscount}%
+                  </span>
+                ) : null}
+                {nftDiscount > 0 ? (
+                  <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/25 text-cyan-700 dark:text-cyan-300 text-xs font-bold uppercase tracking-wider">
+                    NFT −{nftDiscount}%
+                  </span>
+                ) : null}
+              </div>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm font-mono text-zinc-500 mt-3">{offer.priceLabel}</p>
+        )}
 
         {!unlocked && state.isConnected && baseKas > 0 ? (
           <div className="mt-4 space-y-2.5">

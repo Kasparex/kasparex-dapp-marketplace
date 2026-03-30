@@ -37,7 +37,7 @@ export function ChroniclesVaultDashboard() {
             Unlocks & premium access
           </h1>
           <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 mt-4 max-w-2xl leading-relaxed">
-            Pay in KAS from KasWare with an on-chain payload. Unlocks are verified against the treasury transaction and stored in this browser for your wallet address.
+            Unlocks are activated by a KAS payment to the treasury that includes an encoded payload. Once verified, unlocks are saved in this browser for your Kaspa address.
           </p>
         </div>
 
@@ -56,20 +56,12 @@ export function ChroniclesVaultDashboard() {
             <div>
               <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-100">Connect your Kaspa wallet</h2>
               <p className="text-base text-zinc-500 dark:text-zinc-400 mt-3 leading-relaxed">
-                Use KasWare to pay and to show unlocks. NFT discounts use collections detected on your Kaspa address.
+                Connect a wallet to view your address and unlocks. Holder discounts are based on collections detected on your Kaspa address.
               </p>
             </div>
             <div className="flex justify-center">
               <KasWareWalletButton />
             </div>
-            <p className="text-sm text-zinc-400">
-              Demo unlocks: add your <code className="text-xs bg-zinc-200 dark:bg-zinc-800 px-1 rounded">kaspa:</code>{' '}
-              address to{' '}
-              <code className="text-xs bg-zinc-200 dark:bg-zinc-800 px-1 rounded">
-                data/chronicles/entitlements-mock.json
-              </code>
-              .
-            </p>
           </div>
         ) : (
           <>
@@ -110,7 +102,7 @@ export function ChroniclesVaultDashboard() {
             <VaultSection
               id="premium"
               title="Premium & locked offers"
-              subtitle="Pay with KasWare. The indexer may take a short moment to confirm your transaction."
+              subtitle="Send the required KAS payment to the treasury. The indexer may take a short moment to confirm your transaction."
             >
               {lockedOffers.length === 0 ? (
                 <p className="text-base text-zinc-500 col-span-full">Everything in the catalog is unlocked for this wallet.</p>

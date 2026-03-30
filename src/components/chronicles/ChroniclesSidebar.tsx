@@ -133,32 +133,32 @@ export function ChroniclesSidebar() {
         />
       )}
     >
+      <div className="px-3 pt-3 pb-1 space-y-2">
+        <Link
+          href="/chronicles/leaderboard"
+          className={`k-control-btn w-full justify-center gap-2 ${
+            pathname.startsWith('/chronicles/leaderboard')
+              ? '!border-amber-500/40 !bg-amber-500/15 !text-amber-800 dark:!text-amber-300'
+              : '!border-amber-500/30 !bg-amber-500/10 !text-amber-800 dark:!text-amber-300 hover:!bg-amber-500/15'
+          }`}
+        >
+          {trophyIcon}
+          <span className="text-xs font-black uppercase tracking-widest">Leaderboard</span>
+        </Link>
+        <Link
+          href="/chronicles/dashboard"
+          className={`k-control-btn w-full justify-center gap-2 ${
+            isDashboard ? '!border-emerald-500/35 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300' : ''
+          }`}
+        >
+          {vaultIcon}
+          <span className="text-xs font-black uppercase tracking-widest">Vault &amp; unlocks</span>
+        </Link>
+      </div>
       <SidebarSection
         title="Krex's Chronicles"
         headingClassName="text-xs sm:text-sm font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.18em] mb-4 px-2"
       >
-        <div className="px-1.5 mb-3 space-y-2">
-          <Link
-            href="/chronicles/leaderboard"
-            className={`k-control-btn w-full justify-center gap-2 ${
-              pathname.startsWith('/chronicles/leaderboard')
-                ? '!border-amber-500/40 !bg-amber-500/15 !text-amber-800 dark:!text-amber-300'
-                : '!border-amber-500/30 !bg-amber-500/10 !text-amber-800 dark:!text-amber-300 hover:!bg-amber-500/15'
-            }`}
-          >
-            {trophyIcon}
-            <span className="text-xs font-black uppercase tracking-widest">Leaderboard</span>
-          </Link>
-          <Link
-            href="/chronicles/dashboard"
-            className={`k-control-btn w-full justify-center gap-2 ${
-              isDashboard ? '!border-emerald-500/35 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300' : ''
-            }`}
-          >
-            {vaultIcon}
-            <span className="text-xs font-black uppercase tracking-widest">Vault &amp; unlocks</span>
-          </Link>
-        </div>
         <nav className="space-y-1">
           <Tooltip content="Overview" side="right" align="start">
             <Link href="/chronicles">
@@ -240,13 +240,12 @@ export function ChroniclesSidebar() {
             ))}
           </ChroniclesNavGroup>
 
-          <ChroniclesNavGroup groupId="workspace" label="Workspace (source)" icon={folderIcon} href="/chronicles/dashboard#workspace">
+          <ChroniclesNavGroup groupId="workspace" label="Workspace (source)" icon={folderIcon} disabled>
             {workspaceEntries.map(([folder]) => (
               <ChroniclesNavSublink
                 key={folder}
-                href="/chronicles/dashboard#workspace"
                 label={folderToLabel(folder)}
-                active={false}
+                draft
               />
             ))}
           </ChroniclesNavGroup>

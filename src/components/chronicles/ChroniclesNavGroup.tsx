@@ -35,6 +35,7 @@ export function ChroniclesNavGroup({
   defaultOpen = false,
   children,
   active,
+  disabled = false,
 }: {
   groupId: string;
   label: string;
@@ -43,6 +44,7 @@ export function ChroniclesNavGroup({
   defaultOpen?: boolean;
   children: ReactNode;
   active?: boolean;
+  disabled?: boolean;
 }) {
   const router = useRouter();
   const baseId = useId();
@@ -59,6 +61,7 @@ export function ChroniclesNavGroup({
   }, [groupId, defaultOpen]);
 
   const toggle = () => {
+    if (disabled) return;
     setOpen((prev) => {
       const next = !prev;
       const all = loadExpanded();
@@ -69,13 +72,14 @@ export function ChroniclesNavGroup({
   };
 
   const activeClass = active ? 'k-sidebar-item-active' : '';
+  const disabledClass = disabled ? 'opacity-60 cursor-default pointer-events-none' : '';
 
   return (
     <div className="rounded-lg border border-transparent">
       <div
         aria-expanded={open}
         aria-controls={panelId}
-        className={`k-sidebar-item group w-full text-left ${activeClass}`.trim()}
+        className={`k-sidebar-item group w-full text-left flex items-center ${activeClass} ${disabledClass}`.trim()}
       >
         {icon != null && (
           <span className="flex-shrink-0 inline-flex items-center justify-center k-sidebar-icon">{icon}</span>
@@ -86,7 +90,7 @@ export function ChroniclesNavGroup({
             if (!href) {
               e.preventDefault();
             }
-            if (!open) toggle();
+            if (!open && !disabled) toggle();
             if (href) {
               // next/link will navigate, but we keep a router.push fallback for safety
               router.push(href);
@@ -105,7 +109,8 @@ export function ChroniclesNavGroup({
           type="button"
           aria-label={open ? `Collapse ${label}` : `Expand ${label}`}
           onClick={() => toggle()}
-          className="ml-auto -mr-2 p-2 rounded-lg text-zinc-500 hover:text-[#02abb8] hover:bg-zinc-100/80 dark:hover:bg-zinc-800/50"
+          disabled={disabled}
+          className="ml-auto p-2 rounded-lg text-zinc-500 hover:text-[#02abb8] hover:bg-zinc-100/80 dark:hover:bg-zinc-800/50 shrink-0"
         >
           <svg
             className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`}

@@ -1,11 +1,6 @@
 import Link from 'next/link';
 import type { KREXTier, NFTStatus } from '@/lib/rewards/types';
-import { VAULT_MAX_COMBINED_DISCOUNT_PERCENT } from '@/lib/chronicles/vault/constants';
 import { AdSlider } from '@/components/ads/AdSlider';
-
-function tierLabel(t: KREXTier): string {
-  return t.replace('Tier', 'Tier ');
-}
 
 export function VaultDashboardAside({
   krexTier,
@@ -18,48 +13,24 @@ export function VaultDashboardAside({
   isKrexLoading: boolean;
   isNftLoading: boolean;
 }) {
-  const hasNft = !!(nft?.hasKREXPRIME || nft?.hasPIXELKREX);
-  const hasDiamond = !!(nft?.hasDiamondKREXPRIME || nft?.hasDiamondPIXELKREX);
-
   return (
     <aside className="space-y-6 lg:sticky lg:top-6 self-start text-[15px] sm:text-base">
       <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/90 dark:bg-zinc-900/55 p-5 sm:p-6">
         <h2 className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-3">Your holder perks</h2>
-        <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed mb-4">
-          KREX holders and eligible NFT holders receive discounts on vault unlocks plus additional perks across the Krex ecosystem (applied automatically on-chain).
-        </p>
-        <dl className="space-y-3 text-zinc-800 dark:text-zinc-200">
-          <div>
-            <dt className="text-xs font-bold uppercase tracking-wider text-zinc-500">KREX tier</dt>
-            <dd className="font-semibold mt-0.5">
-              {isKrexLoading ? 'Loading…' : tierLabel(krexTier)}
-            </dd>
-          </div>
+        <dl className="space-y-2 text-zinc-800 dark:text-zinc-200">
           <div>
             <dt className="text-xs font-bold uppercase tracking-wider text-zinc-500">NFT tier</dt>
-            <dd className="font-semibold mt-0.5">
-              {isNftLoading
-                ? 'Loading…'
-                : nft?.hasRarestNFT
-                  ? 'Rarest (max perk)'
-                  : hasDiamond
-                    ? 'Diamond KREX / PIXEL'
-                    : hasNft
-                      ? 'KREXPRIME / PIXELKREX'
-                      : 'No qualifying NFT on this Kaspa address'}
-            </dd>
+            <dd className="font-semibold mt-0.5">PIXELKREX / KREXPRIME</dd>
           </div>
         </dl>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-4 leading-relaxed">
-          Discounts stack up to {VAULT_MAX_COMBINED_DISCOUNT_PERCENT}%. The exact price is shown on each offer card.
-        </p>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-4 leading-relaxed">The exact price is shown on each offer card.</p>
       </div>
 
       <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/90 dark:bg-zinc-900/55 p-5 sm:p-6">
         <h2 className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-3">How payments work</h2>
         <ol className="list-decimal pl-5 space-y-2 text-zinc-600 dark:text-zinc-400 leading-relaxed">
-          <li>Connect KasWare and choose an item below.</li>
-          <li>Pay the shown KAS amount to the treasury with the encoded payload (your wallet adds it).</li>
+          <li>Connect a wallet and choose an item below.</li>
+          <li>Send the shown KAS amount to the treasury address with the encoded payload (your wallet adds it).</li>
           <li>We verify the transaction against the catalog; your unlock is saved in this browser.</li>
         </ol>
         <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-4 leading-relaxed">
