@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1774902160-f80f273",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Chronicles: restore NFT metadata image loading (by Kasparex)",
+      "date": "2026-03-30T22:22:05+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1774899577-fe067a5",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Chronicles: fix NFT modal images and Compound UTXO copy (by Kasparex)",
