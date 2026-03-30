@@ -31,7 +31,6 @@ import { fetchNFTMetadata } from '@/lib/nft/metadata';
 import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { pointsForNftInSlot } from '@/lib/leaderboard/nftPoints';
-import { CompoundUtxosHelpModal } from './CompoundUtxosHelpModal';
 
 type SlotIndex = 1 | 2 | 3;
 
@@ -102,7 +101,6 @@ export function ChroniclesEntitySlots({
   const [note, setNote] = useState<string | null>(null);
   const treasury = getChroniclesVaultTreasuryL1Address();
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<SlotIndex | null>(null);
-  const [utxoHelpOpen, setUtxoHelpOpen] = useState(false);
   const [metaMap, setMetaMap] = useState<Record<string, ParsedNFTMetadata>>({});
 
   const nftOptions = useMemo(() => {
@@ -259,12 +257,9 @@ export function ChroniclesEntitySlots({
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-3xl">
-              If KasWare shows <span className="font-semibold">“Storage mass exceeds maximum”</span>, your wallet likely has fragmented UTXOs. Consolidate
-              them with send-to-self, then try again.
+              If you see <span className="font-semibold">“Storage mass exceeds maximum”</span>, compound UTXOs in your KasWare wallet. Open the wallet →
+              UTXO tab → click “Compound”, then try the action again.
             </p>
-            <button type="button" onClick={() => setUtxoHelpOpen(true)} className="k-control-btn h-9 px-4 text-xs font-bold uppercase tracking-wide">
-              Compound UTXOs
-            </button>
           </div>
         </div>
         <div className="shrink-0 text-right">
@@ -377,8 +372,6 @@ export function ChroniclesEntitySlots({
           }
         />
       )}
-
-      <CompoundUtxosHelpModal isOpen={utxoHelpOpen} onClose={() => setUtxoHelpOpen(false)} address={payerKaspa} />
     </div>
   );
 }

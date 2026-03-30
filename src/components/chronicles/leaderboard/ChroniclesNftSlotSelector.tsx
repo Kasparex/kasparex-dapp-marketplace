@@ -54,47 +54,58 @@ function useNFTMetas(nfts: SimpleNft[], isOpen: boolean) {
 
     let cancelled = false;
     const load = async () => {
-      const next: Record<string, ParsedNFTMetadata> = {};
-      for (const nft of nfts) {
+      const tasks = nfts.map(async (nft) => {
         const k = `${nft.collection}-${nft.tokenId}`;
-        let parsed: ParsedNFTMetadata | null = null;
+        if (metadataMap[k]) return { k, parsed: null as ParsedNFTMetadata | null };
 
-        // 1) For known/configured collections, use our proven metadata fetcher
+        // 1) Known/configured collections: use our cached metadata fetcher
         if (getCollectionById(nft.collection)) {
           try {
-            parsed = await fetchNFTMetadata(nft.collection, nft.tokenId);
+            const meta = await fetchNFTMetadata(nft.collection, nft.tokenId);
+            return { k, parsed: meta };
           } catch {
-            /* ignore */
+            // ignore
           }
         }
 
-        // 2) For unknown collections, try the Stream-provided base URI (best-effort)
-        if (!parsed) {
-          const streamBase = (nft.buri ?? '').trim();
-          const metaPath = streamBase ? streamMetaJsonPathFromBaseUri(streamBase, nft.tokenId) : null;
-          if (metaPath) {
-            try {
-              const raw = await fetchJSON<NFTMetadata>(metaPath);
-              if (raw) {
-                const traits: NFTTrait[] = (raw.attributes || raw.traits || []) as NFTTrait[];
-                parsed = {
-                  tokenId: nft.tokenId,
-                  name: raw.name ? String(raw.name) : `${nft.collection} #${nft.tokenId}`,
-                  description: raw.description ? String(raw.description) : undefined,
-                  image: raw.image ? String(raw.image) : undefined,
-                  traits,
-                  rawMetadata: raw,
-                };
-              }
-            } catch {
-              // ignore
-            }
-          }
+        // 2) Unknown collections: best-effort from Stream base URI
+        const streamBase = (nft.buri ?? '').trim();
+        const metaPath = streamBase ? streamMetaJsonPathFromBaseUri(streamBase, nft.tokenId) : null;
+        if (!metaPath) return { k, parsed: null as ParsedNFTMetadata | null };
+        try {
+          const raw = await fetchJSON<NFTMetadata>(metaPath);
+          if (!raw) return { k, parsed: null as ParsedNFTMetadata | null };
+          const traits: NFTTrait[] = (raw.attributes || raw.traits || []) as NFTTrait[];
+          const parsed: ParsedNFTMetadata = {
+            tokenId: nft.tokenId,
+            name: raw.name ? String(raw.name) : `${nft.collection} #${nft.tokenId}`,
+            description: raw.description ? String(raw.description) : undefined,
+            image: raw.image ? String(raw.image) : undefined,
+            traits,
+            rawMetadata: raw,
+          };
+          return { k, parsed };
+        } catch {
+          return { k, parsed: null as ParsedNFTMetadata | null };
         }
+      });
 
-        if (parsed) next[k] = parsed;
+      // Batch + concurrency: keep UI responsive and let images appear progressively.
+      const CONCURRENCY = 12;
+      for (let i = 0; i < tasks.length; i += CONCURRENCY) {
+        const slice = tasks.slice(i, i + CONCURRENCY);
+        const settled = await Promise.allSettled(slice);
+        if (cancelled) return;
+        const next: Record<string, ParsedNFTMetadata> = {};
+        for (const s of settled) {
+          if (s.status !== 'fulfilled') continue;
+          if (!s.value.parsed) continue;
+          next[s.value.k] = s.value.parsed;
+        }
+        if (Object.keys(next).length) {
+          setMetadataMap((prev) => ({ ...prev, ...next }));
+        }
       }
-      if (!cancelled) setMetadataMap((prev) => ({ ...prev, ...next }));
     };
     void load();
     return () => {
@@ -231,7 +242,7 @@ export function ChroniclesNftSlotSelector({
                   >
                     <div className="aspect-square relative bg-zinc-200 dark:bg-zinc-800">
                       {imageUrl ? (
-                        <img src={imageUrl} alt={meta?.name ?? ref} className="w-full h-full object-cover" />
+                        <img src={imageUrl} alt={meta?.name ?? ref} className="w-full h-full object-cover" loading="lazy" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-4xl">🧩</div>
                       )}
