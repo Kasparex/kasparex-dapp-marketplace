@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import type { KREXTier, NFTStatus } from '@/lib/rewards/types';
-import { AdSlider } from '@/components/ads/AdSlider';
 
 export function VaultDashboardAside({
   krexTier,
@@ -57,13 +56,6 @@ export function VaultDashboardAside({
             </Link>
           </li>
         </ul>
-      </div>
-
-      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/90 dark:bg-zinc-900/55 p-5 sm:p-6">
-        <h2 className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-3">Ad slots</h2>
-        <div className="flex items-center justify-center min-h-[200px]">
-          <AdSlider slotId="HALO_CHRONICLES_RIGHT" />
-        </div>
       </div>
     </aside>
   );

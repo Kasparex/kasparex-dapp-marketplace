@@ -21,7 +21,7 @@ export function VaultSection({
           <p className="text-base text-zinc-500 dark:text-zinc-400 mt-2 max-w-2xl leading-relaxed">{subtitle}</p>
         ) : null}
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">{children}</div>
+      <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">{children}</div>
     </section>
   );
 }

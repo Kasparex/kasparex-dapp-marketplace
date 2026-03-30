@@ -2,7 +2,10 @@
 
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { useMemo, useState } from 'react';
 import { ChroniclesHeader } from '@/components/chronicles/ChroniclesHeader';
+import { FilterBar } from '@/components/FilterBar';
+import { ChroniclesFilterDropdown } from '@/components/chronicles/ChroniclesFilterDropdown';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
@@ -10,6 +13,7 @@ import { useChroniclesEntitlements } from '@/lib/chronicles/entitlements/useChro
 import { VaultSection } from './VaultSection';
 import { UnlockOfferCard } from './UnlockOfferCard';
 import { VaultDashboardAside } from './VaultDashboardAside';
+import type { EntitlementOffer } from '@/lib/chronicles/entitlements/types';
 
 const KasWareWalletButton = dynamic(
   () => import('@/components/KasWareWalletButton').then((m) => ({ default: m.KasWareWalletButton })),
@@ -22,16 +26,49 @@ export function ChroniclesVaultDashboard() {
   const { tier: krexTier, isLoading: krexLoading } = useKREXBalance();
   const { nftStatus, isLoading: nftLoading } = useNFTStatus();
 
-  const chapterOffers = catalog.filter((o) => o.kind === 'chapter');
-  const assetOffers = catalog.filter((o) => o.kind === 'asset');
+  const [search, setSearch] = useState('');
+  const [kindFilter, setKindFilter] = useState<'' | 'chapter' | 'asset'>('');
+  const [statusFilter, setStatusFilter] = useState<'' | 'unlocked' | 'locked'>('');
+  const [sort, setSort] = useState<'title-asc' | 'price-asc' | 'price-desc'>('title-asc');
 
-  const unlockedChapters = chapterOffers.filter((o) => isUnlocked(o.id));
-  const unlockedAssets = assetOffers.filter((o) => isUnlocked(o.id));
-  const lockedOffers = catalog.filter((o) => !isUnlocked(o.id));
+  const offers = useMemo(() => {
+    return catalog.map((o) => ({ offer: o, unlocked: isUnlocked(o.id) }));
+  }, [catalog, isUnlocked]);
+
+  const filteredOffers = useMemo(() => {
+    let list = offers.slice();
+    if (kindFilter) list = list.filter((x) => x.offer.kind === kindFilter);
+    if (statusFilter) list = list.filter((x) => (statusFilter === 'unlocked' ? x.unlocked : !x.unlocked));
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter((x) => {
+        const o = x.offer;
+        return (
+          o.title.toLowerCase().includes(q) ||
+          o.shortDescription.toLowerCase().includes(q) ||
+          o.kind.toLowerCase().includes(q)
+        );
+      });
+    }
+
+    const price = (o: EntitlementOffer) => (o.basePriceKas > 0 ? o.basePriceKas : 0);
+    list.sort((a, b) => {
+      if (sort === 'title-asc') return a.offer.title.localeCompare(b.offer.title);
+      if (sort === 'price-asc') return price(a.offer) - price(b.offer) || a.offer.title.localeCompare(b.offer.title);
+      return price(b.offer) - price(a.offer) || a.offer.title.localeCompare(b.offer.title);
+    });
+
+    return list;
+  }, [offers, kindFilter, statusFilter, search, sort]);
 
   return (
     <div className="pb-16">
-      <ChroniclesHeader />
+      <ChroniclesHeader
+        kicker="Vault & unlocks"
+        title="Vault & Unlocks"
+        subtitle="Unlocks are activated by a KAS payment to the treasury that includes an encoded payload. Once verified, unlocks are saved in this browser for your Kaspa address."
+        showHaloAd={false}
+      />
       <div className="mb-8 sm:mb-10">
         <h2 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">Vault &amp; unlocks</h2>
         <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
@@ -74,39 +111,67 @@ export function ChroniclesVaultDashboard() {
               </Link>
             </div>
 
-            <VaultSection
-              id="unlocked-chapters"
-              title="My unlocked chapters"
-              subtitle="Early access SKUs appear here after payment or mock entitlements."
-            >
-              {unlockedChapters.length === 0 ? (
-                <p className="text-base text-zinc-500 col-span-full">No unlocked chapter SKUs yet.</p>
-              ) : (
-                unlockedChapters.map((o) => <UnlockOfferCard key={o.id} offer={o} unlocked />)
-              )}
-            </VaultSection>
+            <div className="flex flex-col gap-4">
+              <FilterBar
+                flexWrap
+                search={{ value: search, onChange: setSearch, placeholder: 'Search vault offers...' }}
+                onReset={() => {
+                  setSearch('');
+                  setKindFilter('');
+                  setStatusFilter('');
+                  setSort('title-asc');
+                }}
+              >
+                <ChroniclesFilterDropdown
+                  ariaLabel="Filter by kind"
+                  value={kindFilter}
+                  onChange={(v) => setKindFilter(v as '' | 'chapter' | 'asset')}
+                  allLabel="All kinds"
+                  options={[
+                    { value: 'chapter', label: 'Chapters' },
+                    { value: 'asset', label: 'Items' },
+                  ]}
+                  minWidthClassName="min-w-[160px]"
+                />
+                <ChroniclesFilterDropdown
+                  ariaLabel="Filter by status"
+                  value={statusFilter}
+                  onChange={(v) => setStatusFilter(v as '' | 'unlocked' | 'locked')}
+                  allLabel="All statuses"
+                  options={[
+                    { value: 'unlocked', label: 'Unlocked' },
+                    { value: 'locked', label: 'Locked' },
+                  ]}
+                  minWidthClassName="min-w-[160px]"
+                />
+                <ChroniclesFilterDropdown
+                  ariaLabel="Sort offers"
+                  value={sort}
+                  onChange={(v) => setSort(v as 'title-asc' | 'price-asc' | 'price-desc')}
+                  allLabel="Title (A–Z)"
+                  options={[
+                    { value: 'title-asc', label: 'Title (A–Z)' },
+                    { value: 'price-asc', label: 'List price (low→high)' },
+                    { value: 'price-desc', label: 'List price (high→low)' },
+                  ]}
+                  minWidthClassName="min-w-[190px]"
+                />
+              </FilterBar>
+
+              <p className="text-base text-zinc-500 dark:text-zinc-400">
+                {filteredOffers.length} offer{filteredOffers.length !== 1 ? 's' : ''}
+              </p>
+            </div>
 
             <VaultSection
-              id="unlocked-assets"
-              title="My items"
-              subtitle="Gear, tech, and in-universe vault SKUs."
-            >
-              {unlockedAssets.length === 0 ? (
-                <p className="text-base text-zinc-500 col-span-full">No gear or tech unlocked yet.</p>
-              ) : (
-                unlockedAssets.map((o) => <UnlockOfferCard key={o.id} offer={o} unlocked />)
-              )}
-            </VaultSection>
-
-            <VaultSection
-              id="premium"
-              title="Premium & locked offers"
+              id="offers"
+              title="Offers"
               subtitle="Send the required KAS payment to the treasury. The indexer may take a short moment to confirm your transaction."
             >
-              {lockedOffers.length === 0 ? (
-                <p className="text-base text-zinc-500 col-span-full">Everything in the catalog is unlocked for this wallet.</p>
+              {filteredOffers.length === 0 ? (
+                <p className="text-base text-zinc-500 col-span-full">No matching offers.</p>
               ) : (
-                lockedOffers.map((o) => <UnlockOfferCard key={`locked-${o.id}`} offer={o} unlocked={false} />)
+                filteredOffers.map(({ offer, unlocked }) => <UnlockOfferCard key={offer.id} offer={offer} unlocked={unlocked} />)
               )}
             </VaultSection>
           </>
