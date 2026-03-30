@@ -148,17 +148,34 @@ export function ChroniclesEntitySlots({
 
   async function payAndVerify(text: string, amountKas: number, kind: 'slot:activate' | 'slot:set' | 'slot:clear') {
     if (!state.isConnected || !state.provider || !payerKaspa) throw new Error('Connect KasWare to continue.');
-    const txRes = await sendKaspaTransaction(state.provider as KaspaWalletProvider, {
-      to: treasury,
-      amount: String(kasToSompi(amountKas)),
-      payload: chroniclesLbPayloadHexFromText(text),
-    });
-    if (txRes.status === 'failed' || !txRes.txHash) throw new Error(txRes.error ?? 'Transaction was rejected or failed');
-    const hash = extractKaspaTransactionId(txRes.txHash) ?? txRes.txHash;
-    recordLocalPendingTx(payerKaspa, hash, kind);
-    const vr = await verifyLoop(hash, payerKaspa);
-    if (!vr.ok) throw new Error(vr.error);
-    return { txHash: vr.txHash, txTimeMs: vr.txTimeMs };
+
+    const send = async (kas: number) => {
+      const txRes = await sendKaspaTransaction(state.provider as KaspaWalletProvider, {
+        to: treasury,
+        amount: String(kasToSompi(kas)),
+        payload: chroniclesLbPayloadHexFromText(text),
+      });
+      if (txRes.status === 'failed' || !txRes.txHash) throw new Error(txRes.error ?? 'Transaction was rejected or failed');
+      const hash = extractKaspaTransactionId(txRes.txHash) ?? txRes.txHash;
+      recordLocalPendingTx(payerKaspa, hash, kind);
+      const vr = await verifyLoop(hash, payerKaspa);
+      if (!vr.ok) throw new Error(vr.error);
+      return { txHash: vr.txHash, txTimeMs: vr.txTimeMs, paidKas: kas };
+    };
+
+    try {
+      return await send(amountKas);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e ?? '');
+      const storageMass = msg.toLowerCase().includes('storage mass exceeds maximum');
+      // KasWare often fails small payments when the wallet has many small UTXOs.
+      // Paying a bit more can trigger a different coin selection with fewer inputs.
+      if (storageMass && amountKas <= 0.11) {
+        setNote('Wallet UTXOs are fragmented; retrying with a larger payment to fit mass limits…');
+        return await send(1);
+      }
+      throw e;
+    }
   }
 
   async function activate(slotIndex: 2 | 3) {
