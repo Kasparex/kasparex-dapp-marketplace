@@ -255,6 +255,10 @@ export function ChroniclesEntitySlots({
             Slot 1 is free. Slots 2-3 cost {CHRONICLES_LB_SLOT_ACTIVATION_KAS} KAS to activate. Setting or clearing a slot costs{' '}
             {CHRONICLES_LB_SLOT_CHANGE_KAS} KAS.
           </p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-3 max-w-3xl">
+            If KasWare shows <span className="font-semibold">“Storage mass exceeds maximum”</span>, your wallet likely has fragmented UTXOs. Use KasWare’s
+            send-to-self to consolidate UTXOs, then try again.
+          </p>
         </div>
         <div className="shrink-0 text-right">
           <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Slot rewards</p>

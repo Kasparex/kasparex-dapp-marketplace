@@ -2,10 +2,11 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useNFTStatus } from '@/hooks/useNFTStatus';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
+import { fetchNFTsByAddress } from '@/lib/nft/krc721-stream-api';
 import { fetchNFTMetadata } from '@/lib/nft/metadata';
 import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
-import type { UserNFT } from '@/lib/nft/nft-query';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { getNftRarityFromMetadata, pointsForNftInSlot } from '@/lib/leaderboard/nftPoints';
 
@@ -24,7 +25,17 @@ function parseNftRef(ref: string): { collection: string; tokenId: number } | nul
   return { collection, tokenId };
 }
 
-function useNFTMetas(nfts: UserNFT[], isOpen: boolean) {
+type SimpleNft = { collection: string; tokenId: number };
+
+function normAddr(a: string): string {
+  try {
+    return normalizeKaspaAddress(a);
+  } catch {
+    return a.startsWith('kaspa:') ? a : `kaspa:${a}`;
+  }
+}
+
+function useNFTMetas(nfts: SimpleNft[], isOpen: boolean) {
   const [metadataMap, setMetadataMap] = useState<Record<string, ParsedNFTMetadata>>({});
 
   const key = useMemo(
@@ -77,11 +88,35 @@ export function ChroniclesNftSlotSelector({
   onSelect: (nftRef: string) => void;
   onRemove?: () => void;
 }) {
-  const { nfts, isLoading } = useNFTStatus();
-  const sorted = useMemo(
-    () => nfts.slice().sort((a, b) => a.collection.localeCompare(b.collection) || a.tokenId - b.tokenId),
-    [nfts]
-  );
+  const { state } = useKaspaWallet();
+  const payerKaspa = state.address ? normAddr(state.address) : '';
+  const [rawNfts, setRawNfts] = useState<SimpleNft[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (!payerKaspa) return;
+    let cancelled = false;
+    const run = async () => {
+      setIsLoading(true);
+      try {
+        const tokens = await fetchNFTsByAddress(payerKaspa);
+        if (cancelled) return;
+        const next = tokens
+          .map((t) => ({ collection: String(t.tick ?? '').toUpperCase().trim(), tokenId: parseInt(String(t.tokenId), 10) }))
+          .filter((t) => t.collection && Number.isFinite(t.tokenId));
+        setRawNfts(next);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, payerKaspa]);
+
+  const sorted = useMemo(() => rawNfts.slice().sort((a, b) => a.collection.localeCompare(b.collection) || a.tokenId - b.tokenId), [rawNfts]);
   const metaMap = useNFTMetas(sorted, isOpen);
 
   if (!isOpen) return null;
