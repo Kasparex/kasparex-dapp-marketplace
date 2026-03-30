@@ -18,6 +18,10 @@ export function VaultDashboardAside({
         <h2 className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-3">Your holder perks</h2>
         <dl className="space-y-2 text-zinc-800 dark:text-zinc-200">
           <div>
+            <dt className="text-xs font-bold uppercase tracking-wider text-zinc-500">KREX tier</dt>
+            <dd className="font-semibold mt-0.5">{isKrexLoading ? 'Loading…' : krexTier.replace('Tier', 'Tier ')}</dd>
+          </div>
+          <div>
             <dt className="text-xs font-bold uppercase tracking-wider text-zinc-500">NFT tier</dt>
             <dd className="font-semibold mt-0.5">PIXELKREX / KREXPRIME</dd>
           </div>

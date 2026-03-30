@@ -5,11 +5,32 @@ import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout
 import { ChronicleFeaturedVisual, ChronicleThumb } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { getOverview, getFragments, getChapterSummaries } from '@/lib/chronicles/loaders';
 import { AdSlider } from '@/components/ads/AdSlider';
+import { ChroniclesReadConfirmCard } from '@/components/chronicles/leaderboard/ChroniclesReadConfirmCard';
 
 export default function ChroniclesHomePage() {
   const overview = getOverview();
   const fragments = getFragments();
   const chapters = getChapterSummaries();
+
+  const currentChapter =
+    chapters
+      .filter((c) => c.timeline === 'current')
+      .slice()
+      .sort((a, b) => b.number - a.number)[0] ?? null;
+
+  const timelineChapters = (() => {
+    const current = chapters
+      .filter((c) => c.timeline === 'current')
+      .slice()
+      .sort((a, b) => b.number - a.number);
+    const past = chapters
+      .filter((c) => c.timeline === 'past')
+      .slice()
+      .sort((a, b) => b.number - a.number);
+    const combined = [...current, ...past];
+    const base = combined.length ? combined : chapters.slice().sort((a, b) => b.number - a.number);
+    return base.slice(0, 5);
+  })();
 
   return (
     <div>
@@ -27,6 +48,9 @@ export default function ChroniclesHomePage() {
             <p className="text-lg sm:text-xl text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed">{overview.tagline}</p>
             <ChroniclesMarkdown markdown={overview.bodyMarkdown} />
           </div>
+          {currentChapter ? (
+            <ChroniclesReadConfirmCard entityType="chapter" entityId={currentChapter.slug} title="Read confirmed" />
+          ) : null}
           <div className="pt-4">
             <DiamondVeinsCallout />
           </div>
@@ -36,11 +60,17 @@ export default function ChroniclesHomePage() {
           <div>
             <h3 className="text-xs font-black uppercase tracking-widest text-[#02abb8] mb-5">Story timeline</h3>
             <ol className="space-y-4">
-              {chapters.map((c) => (
+              {timelineChapters.map((c) => {
+                const isCurrent = c.timeline === 'current';
+                return (
                 <li key={c.slug}>
                   <Link
                     href={`/chronicles/chapters/${c.slug}`}
-                    className="group flex gap-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 hover:border-cyan-500/30 transition-colors"
+                    className={`group flex gap-4 rounded-2xl border p-4 transition-colors ${
+                      isCurrent
+                        ? 'border-cyan-500/40 bg-cyan-500/5 dark:bg-cyan-950/30'
+                        : 'border-zinc-200 dark:border-zinc-800 hover:border-cyan-500/30'
+                    }`}
                   >
                     <ChronicleThumb imageUrl={c.featuredImageUrl} alt="" className="w-20 h-20 shrink-0 rounded-xl" />
                     <div className="min-w-0">
@@ -52,7 +82,8 @@ export default function ChroniclesHomePage() {
                     </div>
                   </Link>
                 </li>
-              ))}
+              );
+              })}
             </ol>
             <Link
               href="/chronicles/chapters"
