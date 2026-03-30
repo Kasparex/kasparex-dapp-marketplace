@@ -49,6 +49,9 @@ export function SeasonProgressCard({ title = 'Your season progress' }: { title?:
   }, [addr, season.id]);
 
   const timeLeft = season.endUtcMs - now;
+  const duration = Math.max(1, season.endUtcMs - season.startUtcMs);
+  const elapsed = Math.min(duration, Math.max(0, now - season.startUtcMs));
+  const pct = (elapsed / duration) * 100;
 
   function exportJson() {
     setError(null);
@@ -91,6 +94,20 @@ export function SeasonProgressCard({ title = 'Your season progress' }: { title?:
           <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">
             Season <span className="font-mono">{season.id}</span> ends in {msToTimeLeft(timeLeft)}.
           </p>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="h-2.5 rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
+          <div
+            className="h-full bg-[#02abb8]"
+            style={{ width: `${pct.toFixed(2)}%` }}
+            aria-label="Season progress"
+          />
+        </div>
+        <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
+          <span>{new Date(season.startUtcMs).toLocaleDateString()}</span>
+          <span>{new Date(season.endUtcMs).toLocaleDateString()}</span>
         </div>
       </div>
 

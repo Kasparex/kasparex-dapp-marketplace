@@ -18,6 +18,7 @@ type PendingTx = { txHash: string; createdAtMs: number; kind: TxKind };
 type SeasonRow = {
   activated?: Record<string, true>;
   placements?: Record<string, string | null>;
+  placementRarities?: Record<string, 'diamond' | 'rare' | 'standard'>;
   reads?: Record<string, true>;
   verifiedTxs?: Record<string, VerifiedTx>;
   pendingTxs?: Record<string, PendingTx>;
@@ -236,7 +237,7 @@ export function recordLocalSetSlot(
   entityId: string,
   slotIndex: SlotIndex,
   nftRef: string | null,
-  meta?: { txHash?: string; txTimeMs?: number; seasonId?: SeasonId }
+  meta?: { txHash?: string; txTimeMs?: number; seasonId?: SeasonId; rarity?: 'diamond' | 'rare' | 'standard' }
 ) {
   const a = normalizeAddr(addr);
   const store = readStore();
@@ -245,6 +246,15 @@ export function recordLocalSetSlot(
   const placements = row.placements ?? {};
   placements[slotKey(entityType, entityId, slotIndex)] = nftRef;
   row.placements = placements;
+  if (meta?.rarity) {
+    const rarities = row.placementRarities ?? {};
+    rarities[slotKey(entityType, entityId, slotIndex)] = meta.rarity;
+    row.placementRarities = rarities;
+  } else if (nftRef == null && row.placementRarities) {
+    const next = { ...row.placementRarities };
+    delete next[slotKey(entityType, entityId, slotIndex)];
+    row.placementRarities = next;
+  }
   if (meta?.txHash && typeof meta.txTimeMs === 'number') {
     recordLocalVerifiedTx(a, meta.txHash, meta.txTimeMs, nftRef ? 'slot:set' : 'slot:clear', sId);
   }
@@ -274,6 +284,7 @@ export function getChroniclesLocalSeasonSnapshot(addr: string, seasonId?: Season
   seasonId: SeasonId;
   activated: Record<string, true>;
   placements: Record<string, string | null>;
+  placementRarities: Record<string, 'diamond' | 'rare' | 'standard'>;
   reads: Record<string, true>;
   pendingTxs: Record<string, PendingTx>;
   verifiedTxs: Record<string, VerifiedTx>;
@@ -286,6 +297,7 @@ export function getChroniclesLocalSeasonSnapshot(addr: string, seasonId?: Season
     seasonId: sId,
     activated: row.activated ?? {},
     placements: row.placements ?? {},
+    placementRarities: row.placementRarities ?? {},
     reads: row.reads ?? {},
     pendingTxs: row.pendingTxs ?? {},
     verifiedTxs: row.verifiedTxs ?? {},

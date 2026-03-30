@@ -24,12 +24,12 @@ import {
   recordLocalSetSlot,
 } from '@/lib/chronicles/leaderboard/localState';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
-import { Tooltip } from '@/components/ui/Tooltip';
 import { EmptyVeinSlotFrame, EmptyVeinSlotPlusIcon } from '@/components/game/EmptyVeinSlotFrame';
 import { ChroniclesNftSlotSelector, chroniclesNftRefToCollectionAndId } from './ChroniclesNftSlotSelector';
 import { fetchNFTMetadata } from '@/lib/nft/metadata';
 import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { getNftRarityFromMetadata, pointsForNftInSlot } from '@/lib/leaderboard/nftPoints';
 
 type SlotIndex = 1 | 2 | 3;
 
@@ -192,7 +192,10 @@ export function ChroniclesEntitySlots({
     try {
       const text = buildChroniclesLbSetSlotText({ entityType, entityId, slotIndex, nftRef, payerKaspa });
       const v = await payAndVerify(text, CHRONICLES_LB_SLOT_CHANGE_KAS, 'slot:set');
-      recordLocalSetSlot(payerKaspa, entityType, entityId, slotIndex, nftRef, { txHash: v.txHash, txTimeMs: v.txTimeMs });
+      const parsed = chroniclesNftRefToCollectionAndId(nftRef);
+      const metaKey = parsed ? `${parsed.collection}#${parsed.tokenId}` : null;
+      const rarity = metaKey ? getNftRarityFromMetadata(metaMap[metaKey] ?? null) : 'standard';
+      recordLocalSetSlot(payerKaspa, entityType, entityId, slotIndex, nftRef, { txHash: v.txHash, txTimeMs: v.txTimeMs, rarity });
       setNote(`Slot ${slotIndex} updated.`);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Set failed');
@@ -228,11 +231,12 @@ export function ChroniclesEntitySlots({
             {CHRONICLES_LB_SLOT_CHANGE_KAS} KAS.
           </p>
         </div>
-        <Tooltip content="See leaderboard" side="top" align="end">
-          <a href="/chronicles/leaderboard" className="k-control-btn shrink-0">
-            Leaderboard
+        <div className="shrink-0 text-right">
+          <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Slot rewards</p>
+          <a href="/chronicles/leaderboard/points" className="text-sm font-bold text-[#02abb8] hover:underline">
+            See points →
           </a>
-        </Tooltip>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
@@ -240,7 +244,10 @@ export function ChroniclesEntitySlots({
           const isActive = activeSlots.has(slotIndex);
           const value = placement(slotIndex);
           const isThisBusy = busy === slotIndex;
-          const selectedName = value ? (metaMap[value]?.name ?? value) : null;
+          const parsed = value ? chroniclesNftRefToCollectionAndId(value) : null;
+          const collectionName = parsed?.collection ?? (value ? value.split('#')[0] : null);
+          const rarity = value ? getNftRarityFromMetadata(metaMap[value] ?? null) : 'standard';
+          const points = collectionName ? pointsForNftInSlot({ collection: collectionName, rarity }).points : 0;
           const imageUrl = value ? getImageUrlForRef(value) : null;
           return (
             <div key={slotIndex} className="space-y-3">
@@ -280,15 +287,18 @@ export function ChroniclesEntitySlots({
                   <div className="text-center w-full flex flex-col items-center">
                     <div className="w-20 h-20 rounded-xl overflow-hidden bg-zinc-200 dark:bg-zinc-800 ring-2 ring-emerald-500/30 flex-shrink-0">
                       {imageUrl ? (
-                        <img src={imageUrl} alt={selectedName ?? value} className="w-full h-full object-cover" />
+                        <img src={imageUrl} alt={collectionName ?? value} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-2xl">🧩</div>
                       )}
                     </div>
                     <h3 className="font-bold text-zinc-900 dark:text-zinc-100 text-sm mt-2 truncate max-w-[14rem]">
-                      {selectedName}
+                      {collectionName}
                     </h3>
-                    <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">Click to manage</p>
+                    <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                      {rarity !== 'standard' ? `${rarity.toUpperCase()} · ` : ''}
+                      {points} pts
+                    </p>
                   </div>
                 )}
               </EmptyVeinSlotFrame>

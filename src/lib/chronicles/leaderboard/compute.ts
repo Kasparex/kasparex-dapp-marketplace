@@ -2,12 +2,14 @@ import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { getFullTransactionsForAddress, type KaspaRestTransaction } from '@/lib/kaspa/api';
 import { getChroniclesVaultTreasuryL1Address } from '@/lib/chronicles/vault/config';
 import {
-  CHRONICLES_LB_POINTS_PER_FILLED_SLOT,
   CHRONICLES_LB_POINTS_PER_READ_CONFIRM,
   type ChroniclesLbEntityType,
 } from './constants';
 import { parseChroniclesLbPayload } from './parse';
 import type { ChroniclesLbEvent } from './types';
+import { fetchNFTMetadata } from '@/lib/nft/metadata';
+import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
+import { getNftRarityFromMetadata, pointsForNftInSlot } from '@/lib/leaderboard/nftPoints';
 
 export type ChroniclesLeaderboardRow = {
   wallet: string;
@@ -94,20 +96,21 @@ function slotIsActive(state: WalletState, k: SlotKey): boolean {
 }
 
 function computeRow(wallet: string, state: WalletState): ChroniclesLeaderboardRow {
-  let filled = 0;
-  for (const [k, v] of state.placements.entries()) {
-    if (!slotIsActive(state, k)) continue;
-    if (v != null && String(v).trim().length > 0) filled += 1;
-  }
-  const reads = state.reads.size;
-  const totalScore = filled * CHRONICLES_LB_POINTS_PER_FILLED_SLOT + reads * CHRONICLES_LB_POINTS_PER_READ_CONFIRM;
+  // (sync placeholder) – replaced by async scoring below
   return {
     wallet,
-    totalScore,
-    filledSlotsCount: filled,
-    confirmedReadsCount: reads,
+    totalScore: 0,
+    filledSlotsCount: 0,
+    confirmedReadsCount: state.reads.size,
     lastActivityMs: state.lastActivityMs,
   };
+}
+
+function parseNftRef(ref: string): { collection: string; tokenId: number } | null {
+  const [collection, tokenStr] = String(ref ?? '').split('#');
+  const tokenId = Number(tokenStr);
+  if (!collection || !Number.isFinite(tokenId)) return null;
+  return { collection, tokenId };
 }
 
 export async function computeChroniclesLeaderboard(options?: { limit?: number }): Promise<ChroniclesLeaderboardRow[]> {
@@ -127,8 +130,51 @@ export async function computeChroniclesLeaderboard(options?: { limit?: number })
     applyEvent(state, e, txTimeMs(tx));
   }
 
-  const rows = Array.from(byWallet.entries())
-    .map(([wallet, state]) => computeRow(wallet, state))
+  const metaCache = new Map<string, ParsedNFTMetadata | null>();
+
+  const rows = (
+    await Promise.all(
+      Array.from(byWallet.entries()).map(async ([wallet, state]) => {
+        let filled = 0;
+        let slotPoints = 0;
+        for (const [k, v] of state.placements.entries()) {
+          if (!slotIsActive(state, k)) continue;
+          if (v == null || String(v).trim().length === 0) continue;
+          filled += 1;
+
+          const parsed = parseNftRef(v);
+          const collection = parsed?.collection ?? String(v).split('#')[0] ?? '';
+          let rarity: 'diamond' | 'rare' | 'standard' = 'standard';
+
+          if (parsed) {
+            const cacheKey = `${parsed.collection}#${parsed.tokenId}`;
+            let meta = metaCache.get(cacheKey);
+            if (meta === undefined) {
+              try {
+                meta = (await fetchNFTMetadata(parsed.collection, parsed.tokenId)) ?? null;
+              } catch {
+                meta = null;
+              }
+              metaCache.set(cacheKey, meta);
+            }
+            rarity = getNftRarityFromMetadata(meta);
+          }
+
+          slotPoints += pointsForNftInSlot({ collection, rarity }).points;
+        }
+
+        const reads = state.reads.size;
+        const totalScore = slotPoints + reads * CHRONICLES_LB_POINTS_PER_READ_CONFIRM;
+        return {
+          wallet,
+          totalScore,
+          filledSlotsCount: filled,
+          confirmedReadsCount: reads,
+          lastActivityMs: state.lastActivityMs,
+        } satisfies ChroniclesLeaderboardRow;
+      })
+    )
+  )
     .filter((r) => r.totalScore > 0)
     .sort((a, b) => b.totalScore - a.totalScore || b.lastActivityMs - a.lastActivityMs);
 

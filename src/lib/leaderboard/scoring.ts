@@ -1,9 +1,6 @@
-import {
-  CHRONICLES_LB_POINTS_PER_FILLED_SLOT,
-  CHRONICLES_LB_POINTS_PER_READ_CONFIRM,
-  type ChroniclesLbEntityType,
-} from '@/lib/chronicles/leaderboard/constants';
+import { CHRONICLES_LB_POINTS_PER_READ_CONFIRM, type ChroniclesLbEntityType } from '@/lib/chronicles/leaderboard/constants';
 import type { SeasonId } from './seasons';
+import { pointsForNftInSlot, type NftRarity } from './nftPoints';
 
 type SlotIndex = 1 | 2 | 3;
 type SlotKey = `${ChroniclesLbEntityType}:${string}:${SlotIndex}`;
@@ -27,17 +24,27 @@ export function scoreChroniclesSeason(input: {
   seasonId: SeasonId;
   activated: Record<string, true>;
   placements: Record<string, string | null>;
+  placementRarities?: Record<string, NftRarity>;
   reads: Record<string, true>;
   pendingTxs?: Record<string, unknown>;
   verifiedTxs?: Record<string, unknown>;
 }): ChroniclesSeasonScore {
   let filled = 0;
+  let slotPoints = 0;
   for (const [k, v] of Object.entries(input.placements) as Array<[SlotKey, string | null]>) {
     if (!slotIsActive(input.activated, k)) continue;
-    if (v != null && String(v).trim().length > 0) filled += 1;
+    if (v != null && String(v).trim().length > 0) {
+      filled += 1;
+      const parsed = (() => {
+        const [collection] = String(v).split('#');
+        return { collection: String(collection ?? '').trim() };
+      })();
+      const rarity = input.placementRarities?.[k] ?? 'standard';
+      slotPoints += pointsForNftInSlot({ collection: parsed.collection, rarity }).points;
+    }
   }
   const reads = Object.keys(input.reads).length;
-  const totalPoints = filled * CHRONICLES_LB_POINTS_PER_FILLED_SLOT + reads * CHRONICLES_LB_POINTS_PER_READ_CONFIRM;
+  const totalPoints = slotPoints + reads * CHRONICLES_LB_POINTS_PER_READ_CONFIRM;
 
   return {
     seasonId: input.seasonId,

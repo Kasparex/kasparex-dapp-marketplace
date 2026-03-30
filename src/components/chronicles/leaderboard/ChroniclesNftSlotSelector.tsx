@@ -7,6 +7,7 @@ import { fetchNFTMetadata } from '@/lib/nft/metadata';
 import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
 import type { UserNFT } from '@/lib/nft/nft-query';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { getNftRarityFromMetadata, pointsForNftInSlot } from '@/lib/leaderboard/nftPoints';
 
 function getNFTImageUrl(metadata: ParsedNFTMetadata | null): string | null {
   if (!metadata?.image) return null;
@@ -142,6 +143,8 @@ export function ChroniclesNftSlotSelector({
                 const k = `${nft.collection}-${nft.tokenId}`;
                 const meta = metaMap[k] ?? null;
                 const imageUrl = getNFTImageUrl(meta);
+                const rarity = getNftRarityFromMetadata(meta);
+                const pts = pointsForNftInSlot({ collection: nft.collection, rarity }).points;
                 const inUse = inUseRefs.has(ref) && ref !== currentValue;
                 return (
                   <div
@@ -168,7 +171,10 @@ export function ChroniclesNftSlotSelector({
                       <p className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 truncate">
                         {meta?.name ?? `${nft.collection} #${nft.tokenId}`}
                       </p>
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400">#{nft.tokenId}</p>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                        #{nft.tokenId} · {nft.collection}
+                        {rarity !== 'standard' ? ` · ${rarity.toUpperCase()}` : ''} · {pts} pts
+                      </p>
                       <button
                         type="button"
                         onClick={() => {
