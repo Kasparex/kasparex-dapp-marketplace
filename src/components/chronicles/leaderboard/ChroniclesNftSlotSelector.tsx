@@ -15,30 +15,13 @@ import { getCollectionById } from '@/lib/nft/collections';
 import { getBestGatewayUrl, fetchJSON } from '@/lib/ipfs/gateway';
 import { pointsForNftInSlot } from '@/lib/leaderboard/nftPoints';
 
-function cidRootFromUri(baseUri: string): string {
-  const s = baseUri.trim();
-  if (!s) return '';
-  let rest = s.startsWith('ipfs://') ? s.replace(/^ipfs:\/\//i, '').replace(/\/+$/, '') : s.replace(/\/+$/, '');
-  if (rest.includes('/ipfs/')) {
-    rest = (rest.split('/ipfs/')[1] ?? '').replace(/\/+$/, '');
-  }
-  const firstSeg = rest.split('/')[0];
-  return firstSeg ?? '';
-}
-
-function getNFTImageUrl(metadata: ParsedNFTMetadata | null, cidRootFallback?: string): string | null {
+function getNFTImageUrl(metadata: ParsedNFTMetadata | null): string | null {
   if (!metadata?.image) return null;
   const img = String(metadata.image).trim();
   if (img.startsWith('ipfs://')) {
     return getBestGatewayUrl(img.replace(/^ipfs:\/\//i, ''));
   }
-  if (/^https?:\/\//i.test(img)) return img;
-  const root = (cidRootFallback ?? '').replace(/\/+$/, '');
-  if (root) {
-    const rel = img.replace(/^\.\//, '').replace(/^\/+/, '');
-    return getBestGatewayUrl(`${root}/${rel}`);
-  }
-  return null;
+  return img;
 }
 
 function parseNftRef(ref: string): { collection: string; tokenId: number } | null {
@@ -67,10 +50,6 @@ function useNFTMetas(nfts: SimpleNft[], isOpen: boolean) {
   );
 
   useEffect(() => {
-    if (!isOpen) {
-      setMetadataMap({});
-      return;
-    }
     if (nfts.length === 0) return;
 
     let cancelled = false;
@@ -80,28 +59,8 @@ function useNFTMetas(nfts: SimpleNft[], isOpen: boolean) {
         const k = `${nft.collection}-${nft.tokenId}`;
         let parsed: ParsedNFTMetadata | null = null;
 
-        const streamBase = (nft.buri ?? '').trim();
-        const metaPath = streamBase ? streamMetaJsonPathFromBaseUri(streamBase, nft.tokenId) : null;
-        if (metaPath) {
-          try {
-            const raw = await fetchJSON<NFTMetadata>(metaPath);
-            if (raw) {
-              const traits: NFTTrait[] = (raw.attributes || raw.traits || []) as NFTTrait[];
-              parsed = {
-                tokenId: nft.tokenId,
-                name: raw.name ? String(raw.name) : `${nft.collection} #${nft.tokenId}`,
-                description: raw.description ? String(raw.description) : undefined,
-                image: raw.image ? String(raw.image) : undefined,
-                traits,
-                rawMetadata: raw,
-              };
-            }
-          } catch {
-            // ignore
-          }
-        }
-
-        if (!parsed && getCollectionById(nft.collection)) {
+        // 1) For known/configured collections, use our proven metadata fetcher
+        if (getCollectionById(nft.collection)) {
           try {
             parsed = await fetchNFTMetadata(nft.collection, nft.tokenId);
           } catch {
@@ -109,9 +68,33 @@ function useNFTMetas(nfts: SimpleNft[], isOpen: boolean) {
           }
         }
 
+        // 2) For unknown collections, try the Stream-provided base URI (best-effort)
+        if (!parsed) {
+          const streamBase = (nft.buri ?? '').trim();
+          const metaPath = streamBase ? streamMetaJsonPathFromBaseUri(streamBase, nft.tokenId) : null;
+          if (metaPath) {
+            try {
+              const raw = await fetchJSON<NFTMetadata>(metaPath);
+              if (raw) {
+                const traits: NFTTrait[] = (raw.attributes || raw.traits || []) as NFTTrait[];
+                parsed = {
+                  tokenId: nft.tokenId,
+                  name: raw.name ? String(raw.name) : `${nft.collection} #${nft.tokenId}`,
+                  description: raw.description ? String(raw.description) : undefined,
+                  image: raw.image ? String(raw.image) : undefined,
+                  traits,
+                  rawMetadata: raw,
+                };
+              }
+            } catch {
+              // ignore
+            }
+          }
+        }
+
         if (parsed) next[k] = parsed;
       }
-      if (!cancelled) setMetadataMap(next);
+      if (!cancelled) setMetadataMap((prev) => ({ ...prev, ...next }));
     };
     void load();
     return () => {
@@ -234,10 +217,7 @@ export function ChroniclesNftSlotSelector({
                 const ref = `${nft.collection}#${nft.tokenId}`;
                 const k = `${nft.collection}-${nft.tokenId}`;
                 const meta = metaMap[k] ?? null;
-                const coll = getCollectionById(nft.collection);
-                const cidRoot =
-                  cidRootFromUri(nft.buri ?? '') || (coll ? cidRootFromUri(coll.baseUri) : '');
-                const imageUrl = getNFTImageUrl(meta, cidRoot || undefined);
+                const imageUrl = getNFTImageUrl(meta);
                 const scoring = pointsForNftInSlot({ collection: nft.collection, tokenId: nft.tokenId });
                 const inUse = inUseRefs.has(ref) && ref !== currentValue;
                 return (
