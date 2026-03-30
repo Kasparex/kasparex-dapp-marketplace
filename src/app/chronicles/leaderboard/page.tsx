@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ChroniclesLeaderboardPage() {
-  const initialRows = await computeChroniclesLeaderboard({ limit: 1200 });
+  const initialRows = await computeChroniclesLeaderboard({ limit: 300 });
   const rows = initialRows.slice(0, 20);
 
   return (

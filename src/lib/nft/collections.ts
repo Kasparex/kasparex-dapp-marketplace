@@ -60,6 +60,17 @@ export const collections: Record<string, CollectionConfig> = {
     description: 'PIXELKREX NFT collection',
     traitImagesBaseUri: 'ipfs://bafybeichueiciyapedscvqi2lh7h7cb3tnxm6wlfhugn464hacr6hxzheq',
   },
+  KASGOTHS: {
+    id: 'KASGOTHS',
+    name: 'KASGOTHS',
+    slug: 'KASGOTHS',
+    deployer: 'kaspa:qqre4wt08dp0rvmxwqgwdkz4zu4m36g9uvmfledd27mx939uxe2yjpmmd37zq',
+    baseUri: 'ipfs://bafybeiblzc3nklnsnbc3sleeea2fghjfbv3tbuhf2lfzp7pcfpsxtl5x6i',
+    kaspaComUrl: 'https://kaspa.com/nft/collections/kasgoths',
+    description: 'KASGOTHS partner NFT collection',
+    isPartnerCollection: true,
+    partnerName: 'KASGOTHS',
+  },
 };
 
 /**
