@@ -1,29 +1,44 @@
 'use client';
 
 import type { ChroniclesLbEntityType } from './constants';
+import { currentSeasonWindowUtc, isWithinSeason, type SeasonId } from '@/lib/leaderboard/seasons';
 
-export const CHRONICLES_LB_LOCAL_STORAGE_KEY = 'chronicles-leaderboard-local-v1';
+export const CHRONICLES_LB_LOCAL_STORAGE_KEY = 'chronicles-leaderboard-local-v2';
 
 type SlotIndex = 1 | 2 | 3;
 
 type SlotKey = `${ChroniclesLbEntityType}:${string}:${SlotIndex}`;
 type ReadKey = `${ChroniclesLbEntityType}:${string}`;
 
-type WalletRow = {
+type TxKind = 'read' | 'slot:activate' | 'slot:set' | 'slot:clear';
+
+type VerifiedTx = { txHash: string; txTimeMs: number; kind: TxKind };
+type PendingTx = { txHash: string; createdAtMs: number; kind: TxKind };
+
+type SeasonRow = {
   activated?: Record<string, true>;
   placements?: Record<string, string | null>;
   reads?: Record<string, true>;
+  verifiedTxs?: Record<string, VerifiedTx>;
+  pendingTxs?: Record<string, PendingTx>;
 };
 
-type Store = Record<string, WalletRow>;
+type WalletRow = {
+  seasons?: Record<string, SeasonRow>;
+};
 
-function safeParse(raw: string | null): Store {
-  if (!raw) return {};
+type Store = { v: 2; wallets: Record<string, WalletRow> };
+
+function safeParse(raw: string | null): Store | null {
+  if (!raw) return null;
   try {
     const p = JSON.parse(raw) as Store;
-    return typeof p === 'object' && p !== null ? p : {};
+    if (typeof p !== 'object' || p === null) return null;
+    if ((p as { v?: unknown }).v !== 2) return null;
+    if (typeof (p as { wallets?: unknown }).wallets !== 'object') return null;
+    return p;
   } catch {
-    return {};
+    return null;
   }
 }
 
@@ -44,9 +59,38 @@ function readKey(entityType: ChroniclesLbEntityType, entityId: string): ReadKey 
 function readStore(): Store {
   if (typeof window === 'undefined') return {};
   try {
-    return safeParse(localStorage.getItem(CHRONICLES_LB_LOCAL_STORAGE_KEY));
+    const parsed = safeParse(localStorage.getItem(CHRONICLES_LB_LOCAL_STORAGE_KEY));
+    if (parsed) return parsed;
+    // migrate v1 -> v2 (best-effort, no season metadata available)
+    const legacyRaw = localStorage.getItem('chronicles-leaderboard-local-v1');
+    if (!legacyRaw) return { v: 2, wallets: {} };
+    const legacy = (() => {
+      try {
+        const p = JSON.parse(legacyRaw) as Record<string, { activated?: Record<string, true>; placements?: Record<string, string | null>; reads?: Record<string, true> }>;
+        return typeof p === 'object' && p !== null ? p : null;
+      } catch {
+        return null;
+      }
+    })();
+    if (!legacy) return { v: 2, wallets: {} };
+    const season = currentSeasonWindowUtc();
+    const wallets: Record<string, WalletRow> = {};
+    for (const [addr, row] of Object.entries(legacy)) {
+      wallets[addr] = {
+        seasons: {
+          [season.id]: {
+            activated: row.activated ?? {},
+            placements: row.placements ?? {},
+            reads: row.reads ?? {},
+          },
+        },
+      };
+    }
+    const next: Store = { v: 2, wallets };
+    localStorage.setItem(CHRONICLES_LB_LOCAL_STORAGE_KEY, JSON.stringify(next));
+    return next;
   } catch {
-    return {};
+    return { v: 2, wallets: {} };
   }
 }
 
@@ -60,9 +104,78 @@ function writeStore(next: Store) {
   }
 }
 
-export function getLocalActivatedSlots(addr: string, entityType: ChroniclesLbEntityType, entityId: string): Set<SlotIndex> {
+function currentSeasonId(): SeasonId {
+  return currentSeasonWindowUtc().id;
+}
+
+function ensureSeasonRow(store: Store, addrNorm: string, seasonId: SeasonId): SeasonRow {
+  const w = store.wallets[addrNorm] ?? {};
+  const seasons = w.seasons ?? {};
+  const row = seasons[seasonId] ?? {};
+  seasons[seasonId] = row;
+  store.wallets[addrNorm] = { ...w, seasons };
+  return row;
+}
+
+function withinCurrentSeason(txTimeMs: number, seasonId: SeasonId): boolean {
+  const window = seasonId === currentSeasonId() ? currentSeasonWindowUtc() : currentSeasonWindowUtc(txTimeMs);
+  // If someone passes a historical season id, we still allow by comparing to the computed month window of txTimeMs.
+  // This keeps gating logic simple without persisting season metadata in local storage.
+  const seasonWindow = seasonId === window.id ? window : currentSeasonWindowUtc(txTimeMs);
+  return isWithinSeason(txTimeMs, seasonWindow);
+}
+
+export function exportChroniclesLeaderboardLocal(): string {
+  const store = readStore();
+  return JSON.stringify(store);
+}
+
+export function importChroniclesLeaderboardLocal(rawJson: string): { ok: true } | { ok: false; error: string } {
+  try {
+    const parsed = safeParse(rawJson);
+    if (!parsed) return { ok: false, error: 'Invalid store JSON.' };
+    writeStore(parsed);
+    return { ok: true };
+  } catch {
+    return { ok: false, error: 'Invalid store JSON.' };
+  }
+}
+
+export function recordLocalPendingTx(addr: string, txHash: string, kind: TxKind, seasonId?: SeasonId) {
   const a = normalizeAddr(addr);
-  const row = readStore()[a] ?? {};
+  if (!a || !txHash) return;
+  const store = readStore();
+  const sId = seasonId ?? currentSeasonId();
+  const row = ensureSeasonRow(store, a, sId);
+  const pending = row.pendingTxs ?? {};
+  pending[txHash] = { txHash, createdAtMs: Date.now(), kind };
+  row.pendingTxs = pending;
+  writeStore(store);
+}
+
+export function recordLocalVerifiedTx(addr: string, txHash: string, txTimeMs: number, kind: TxKind, seasonId?: SeasonId) {
+  const a = normalizeAddr(addr);
+  if (!a || !txHash) return;
+  const store = readStore();
+  const sId = seasonId ?? currentSeasonId();
+  if (!withinCurrentSeason(txTimeMs, sId)) return;
+  const row = ensureSeasonRow(store, a, sId);
+  const verified = row.verifiedTxs ?? {};
+  if (verified[txHash]) return; // idempotent
+  verified[txHash] = { txHash, txTimeMs, kind };
+  row.verifiedTxs = verified;
+  if (row.pendingTxs && row.pendingTxs[txHash]) {
+    const next = { ...row.pendingTxs };
+    delete next[txHash];
+    row.pendingTxs = next;
+  }
+  writeStore(store);
+}
+
+export function getLocalActivatedSlots(addr: string, entityType: ChroniclesLbEntityType, entityId: string, seasonId?: SeasonId): Set<SlotIndex> {
+  const a = normalizeAddr(addr);
+  const store = readStore();
+  const row = store.wallets[a]?.seasons?.[seasonId ?? currentSeasonId()] ?? {};
   const activated = row.activated ?? {};
   const out = new Set<SlotIndex>();
   for (const i of [2, 3] as const) {
@@ -77,30 +190,43 @@ export function getLocalSlotPlacement(
   addr: string,
   entityType: ChroniclesLbEntityType,
   entityId: string,
-  slotIndex: SlotIndex
+  slotIndex: SlotIndex,
+  seasonId?: SeasonId
 ): string | null {
   const a = normalizeAddr(addr);
-  const row = readStore()[a] ?? {};
+  const store = readStore();
+  const row = store.wallets[a]?.seasons?.[seasonId ?? currentSeasonId()] ?? {};
   const placements = row.placements ?? {};
   const v = placements[slotKey(entityType, entityId, slotIndex)];
   if (v === undefined) return null;
   return v;
 }
 
-export function getLocalReadConfirmed(addr: string, entityType: ChroniclesLbEntityType, entityId: string): boolean {
+export function getLocalReadConfirmed(addr: string, entityType: ChroniclesLbEntityType, entityId: string, seasonId?: SeasonId): boolean {
   const a = normalizeAddr(addr);
-  const row = readStore()[a] ?? {};
+  const store = readStore();
+  const row = store.wallets[a]?.seasons?.[seasonId ?? currentSeasonId()] ?? {};
   const reads = row.reads ?? {};
   return reads[readKey(entityType, entityId)] === true;
 }
 
-export function recordLocalActivate(addr: string, entityType: ChroniclesLbEntityType, entityId: string, slotIndex: 2 | 3) {
+export function recordLocalActivate(
+  addr: string,
+  entityType: ChroniclesLbEntityType,
+  entityId: string,
+  slotIndex: 2 | 3,
+  meta?: { txHash?: string; txTimeMs?: number; seasonId?: SeasonId }
+) {
   const a = normalizeAddr(addr);
   const store = readStore();
-  const row = store[a] ?? {};
+  const sId = meta?.seasonId ?? currentSeasonId();
+  const row = ensureSeasonRow(store, a, sId);
   const activated = row.activated ?? {};
   activated[slotKey(entityType, entityId, slotIndex)] = true;
-  store[a] = { ...row, activated };
+  row.activated = activated;
+  if (meta?.txHash && typeof meta.txTimeMs === 'number') {
+    recordLocalVerifiedTx(a, meta.txHash, meta.txTimeMs, 'slot:activate', sId);
+  }
   writeStore(store);
 }
 
@@ -109,24 +235,60 @@ export function recordLocalSetSlot(
   entityType: ChroniclesLbEntityType,
   entityId: string,
   slotIndex: SlotIndex,
-  nftRef: string | null
+  nftRef: string | null,
+  meta?: { txHash?: string; txTimeMs?: number; seasonId?: SeasonId }
 ) {
   const a = normalizeAddr(addr);
   const store = readStore();
-  const row = store[a] ?? {};
+  const sId = meta?.seasonId ?? currentSeasonId();
+  const row = ensureSeasonRow(store, a, sId);
   const placements = row.placements ?? {};
   placements[slotKey(entityType, entityId, slotIndex)] = nftRef;
-  store[a] = { ...row, placements };
+  row.placements = placements;
+  if (meta?.txHash && typeof meta.txTimeMs === 'number') {
+    recordLocalVerifiedTx(a, meta.txHash, meta.txTimeMs, nftRef ? 'slot:set' : 'slot:clear', sId);
+  }
   writeStore(store);
 }
 
-export function recordLocalRead(addr: string, entityType: ChroniclesLbEntityType, entityId: string) {
+export function recordLocalRead(
+  addr: string,
+  entityType: ChroniclesLbEntityType,
+  entityId: string,
+  meta?: { txHash?: string; txTimeMs?: number; seasonId?: SeasonId }
+) {
   const a = normalizeAddr(addr);
   const store = readStore();
-  const row = store[a] ?? {};
+  const sId = meta?.seasonId ?? currentSeasonId();
+  const row = ensureSeasonRow(store, a, sId);
   const reads = row.reads ?? {};
   reads[readKey(entityType, entityId)] = true;
-  store[a] = { ...row, reads };
+  row.reads = reads;
+  if (meta?.txHash && typeof meta.txTimeMs === 'number') {
+    recordLocalVerifiedTx(a, meta.txHash, meta.txTimeMs, 'read', sId);
+  }
   writeStore(store);
+}
+
+export function getChroniclesLocalSeasonSnapshot(addr: string, seasonId?: SeasonId): {
+  seasonId: SeasonId;
+  activated: Record<string, true>;
+  placements: Record<string, string | null>;
+  reads: Record<string, true>;
+  pendingTxs: Record<string, PendingTx>;
+  verifiedTxs: Record<string, VerifiedTx>;
+} {
+  const a = normalizeAddr(addr);
+  const sId = seasonId ?? currentSeasonId();
+  const store = readStore();
+  const row = store.wallets[a]?.seasons?.[sId] ?? {};
+  return {
+    seasonId: sId,
+    activated: row.activated ?? {},
+    placements: row.placements ?? {},
+    reads: row.reads ?? {},
+    pendingTxs: row.pendingTxs ?? {},
+    verifiedTxs: row.verifiedTxs ?? {},
+  };
 }
 

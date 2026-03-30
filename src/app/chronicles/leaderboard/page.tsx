@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { computeChroniclesLeaderboard } from '@/lib/chronicles/leaderboard/compute';
 import { ChroniclesLeaderboardTable } from '@/components/chronicles/leaderboard/ChroniclesLeaderboardTable';
+import { SeasonProgressCard } from '@/components/leaderboard/SeasonProgressCard';
+import { GlobalTop100Preview } from '@/components/leaderboard/GlobalTop100Preview';
 
 export const metadata: Metadata = {
   title: "Leaderboard · Krex's Chronicles",
@@ -31,6 +33,9 @@ export default async function ChroniclesLeaderboardPage() {
           </Link>
         </div>
       </div>
+
+      <SeasonProgressCard />
+      <GlobalTop100Preview />
 
       <ChroniclesLeaderboardTable rows={rows} />
     </div>

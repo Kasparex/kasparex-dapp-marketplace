@@ -19,6 +19,7 @@ import {
 import {
   getLocalActivatedSlots,
   getLocalSlotPlacement,
+  recordLocalPendingTx,
   recordLocalActivate,
   recordLocalSetSlot,
 } from '@/lib/chronicles/leaderboard/localState';
@@ -40,7 +41,10 @@ function normAddr(a: string): string {
   }
 }
 
-async function verifyLoop(txHash: string, payerKaspa: string): Promise<{ ok: true } | { ok: false; error: string }> {
+async function verifyLoop(
+  txHash: string,
+  payerKaspa: string
+): Promise<{ ok: true; txHash: string; txTimeMs: number } | { ok: false; error: string }> {
   let last: string | null = null;
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
@@ -49,8 +53,8 @@ async function verifyLoop(txHash: string, payerKaspa: string): Promise<{ ok: tru
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ txHash, payerAddress: payerKaspa }),
       });
-      const j = (await res.json()) as { ok?: boolean; error?: string };
-      if (j.ok) return { ok: true };
+      const j = (await res.json()) as { ok?: boolean; error?: string; txHash?: string; txTimeMs?: number };
+      if (j.ok) return { ok: true, txHash: String(j.txHash ?? txHash), txTimeMs: Number(j.txTimeMs ?? Date.now()) };
       const msg = (j.error ?? '').toLowerCase();
       const indexing = msg.includes('not found');
       if (!indexing) return { ok: false, error: j.error ?? 'Verification failed.' };
@@ -145,7 +149,7 @@ export function ChroniclesEntitySlots({
     return raw;
   };
 
-  async function payAndVerify(text: string, amountKas: number) {
+  async function payAndVerify(text: string, amountKas: number, kind: 'slot:activate' | 'slot:set' | 'slot:clear') {
     if (!state.isConnected || !state.provider || !payerKaspa) throw new Error('Connect KasWare to continue.');
     const txRes = await sendKaspaTransaction(state.provider as KaspaWalletProvider, {
       to: treasury,
@@ -155,9 +159,10 @@ export function ChroniclesEntitySlots({
     });
     if (txRes.status === 'failed' || !txRes.txHash) throw new Error(txRes.error ?? 'Transaction was rejected or failed');
     const hash = extractKaspaTransactionId(txRes.txHash) ?? txRes.txHash;
+    recordLocalPendingTx(payerKaspa, hash, kind);
     const vr = await verifyLoop(hash, payerKaspa);
     if (!vr.ok) throw new Error(vr.error);
-    return hash;
+    return { txHash: vr.txHash, txTimeMs: vr.txTimeMs };
   }
 
   async function activate(slotIndex: 2 | 3) {
@@ -166,8 +171,8 @@ export function ChroniclesEntitySlots({
     setBusy(slotIndex === 2 ? 'activate2' : 'activate3');
     try {
       const text = buildChroniclesLbActivateSlotText({ entityType, entityId, slotIndex, payerKaspa });
-      await payAndVerify(text, CHRONICLES_LB_SLOT_ACTIVATION_KAS);
-      recordLocalActivate(payerKaspa, entityType, entityId, slotIndex);
+      const v = await payAndVerify(text, CHRONICLES_LB_SLOT_ACTIVATION_KAS, 'slot:activate');
+      recordLocalActivate(payerKaspa, entityType, entityId, slotIndex, { txHash: v.txHash, txTimeMs: v.txTimeMs });
       setNote(`Slot ${slotIndex} activated.`);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Activation failed');
@@ -186,8 +191,8 @@ export function ChroniclesEntitySlots({
     setBusy(slotIndex);
     try {
       const text = buildChroniclesLbSetSlotText({ entityType, entityId, slotIndex, nftRef, payerKaspa });
-      await payAndVerify(text, CHRONICLES_LB_SLOT_CHANGE_KAS);
-      recordLocalSetSlot(payerKaspa, entityType, entityId, slotIndex, nftRef);
+      const v = await payAndVerify(text, CHRONICLES_LB_SLOT_CHANGE_KAS, 'slot:set');
+      recordLocalSetSlot(payerKaspa, entityType, entityId, slotIndex, nftRef, { txHash: v.txHash, txTimeMs: v.txTimeMs });
       setNote(`Slot ${slotIndex} updated.`);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Set failed');
@@ -203,8 +208,8 @@ export function ChroniclesEntitySlots({
     setBusy(slotIndex);
     try {
       const text = buildChroniclesLbClearSlotText({ entityType, entityId, slotIndex, payerKaspa });
-      await payAndVerify(text, CHRONICLES_LB_SLOT_CHANGE_KAS);
-      recordLocalSetSlot(payerKaspa, entityType, entityId, slotIndex, null);
+      const v = await payAndVerify(text, CHRONICLES_LB_SLOT_CHANGE_KAS, 'slot:clear');
+      recordLocalSetSlot(payerKaspa, entityType, entityId, slotIndex, null, { txHash: v.txHash, txTimeMs: v.txTimeMs });
       setNote(`Slot ${slotIndex} cleared.`);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Clear failed');

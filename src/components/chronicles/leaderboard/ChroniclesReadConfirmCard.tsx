@@ -14,7 +14,7 @@ import {
   buildChroniclesLbReadConfirmText,
   chroniclesLbPayloadHexFromText,
 } from '@/lib/chronicles/leaderboard/payload';
-import { getLocalReadConfirmed, recordLocalRead } from '@/lib/chronicles/leaderboard/localState';
+import { getLocalReadConfirmed, recordLocalPendingTx, recordLocalRead } from '@/lib/chronicles/leaderboard/localState';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 function normAddr(a: string): string {
@@ -28,7 +28,7 @@ function normAddr(a: string): string {
 async function verifyLoop(
   txHash: string,
   payerKaspa: string
-): Promise<{ ok: true } | { ok: false; error: string }> {
+): Promise<{ ok: true; txHash: string; txTimeMs: number } | { ok: false; error: string }> {
   let last: string | null = null;
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
@@ -37,8 +37,8 @@ async function verifyLoop(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ txHash, payerAddress: payerKaspa }),
       });
-      const j = (await res.json()) as { ok?: boolean; error?: string };
-      if (j.ok) return { ok: true };
+      const j = (await res.json()) as { ok?: boolean; error?: string; txHash?: string; txTimeMs?: number };
+      if (j.ok) return { ok: true, txHash: String(j.txHash ?? txHash), txTimeMs: Number(j.txTimeMs ?? Date.now()) };
       const msg = (j.error ?? '').toLowerCase();
       const indexing = msg.includes('not found');
       if (!indexing) return { ok: false, error: j.error ?? 'Verification failed.' };
@@ -100,9 +100,10 @@ export function ChroniclesReadConfirmCard({
         throw new Error(txRes.error ?? 'Transaction was rejected or failed');
       }
       const hash = extractKaspaTransactionId(txRes.txHash) ?? txRes.txHash;
+      recordLocalPendingTx(payerKaspa, hash, 'read');
       const vr = await verifyLoop(hash, payerKaspa);
       if (!vr.ok) throw new Error(vr.error);
-      recordLocalRead(payerKaspa, entityType, entityId);
+      recordLocalRead(payerKaspa, entityType, entityId, { txHash: vr.txHash, txTimeMs: vr.txTimeMs });
       setNote('Read confirmed on-chain.');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Confirmation failed');

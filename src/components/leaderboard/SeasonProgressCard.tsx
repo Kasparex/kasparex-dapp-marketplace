@@ -1,0 +1,145 @@
+'use client';
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
+import { currentSeasonWindowUtc } from '@/lib/leaderboard/seasons';
+import {
+  exportChroniclesLeaderboardLocal,
+  getChroniclesLocalSeasonSnapshot,
+  importChroniclesLeaderboardLocal,
+} from '@/lib/chronicles/leaderboard/localState';
+import { scoreChroniclesSeason } from '@/lib/leaderboard/scoring';
+
+function normAddr(a: string): string {
+  try {
+    return normalizeKaspaAddress(a);
+  } catch {
+    return a.startsWith('kaspa:') ? a : `kaspa:${a}`;
+  }
+}
+
+function msToTimeLeft(ms: number): string {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  if (h <= 0) return `${m}m`;
+  return `${h}h ${m}m`;
+}
+
+export function SeasonProgressCard({ title = 'Your season progress' }: { title?: string }) {
+  const { state } = useKaspaWallet();
+  const addr = state.address ? normAddr(state.address) : '';
+  const [now, setNow] = useState(() => Date.now());
+  const [note, setNote] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(t);
+  }, []);
+
+  const season = useMemo(() => currentSeasonWindowUtc(now), [now]);
+
+  const score = useMemo(() => {
+    if (!addr) return null;
+    const snap = getChroniclesLocalSeasonSnapshot(addr, season.id);
+    return scoreChroniclesSeason(snap);
+  }, [addr, season.id]);
+
+  const timeLeft = season.endUtcMs - now;
+
+  function exportJson() {
+    setError(null);
+    setNote(null);
+    try {
+      const raw = exportChroniclesLeaderboardLocal();
+      const blob = new Blob([raw], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `kxc-chronicles-leaderboard-local_${season.id}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setNote('Exported local season data.');
+    } catch {
+      setError('Export failed.');
+    }
+  }
+
+  async function importJsonFile(file: File) {
+    setError(null);
+    setNote(null);
+    try {
+      const raw = await file.text();
+      const res = importChroniclesLeaderboardLocal(raw);
+      if (!res.ok) throw new Error(res.error);
+      setNote('Imported local season data.');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Import failed.');
+    } finally {
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-6 sm:p-7 space-y-4 chronicles-vault-card">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">{title}</p>
+          <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">
+            Season <span className="font-mono">{season.id}</span> ends in {msToTimeLeft(timeLeft)}.
+          </p>
+        </div>
+      </div>
+
+      {!addr ? (
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">Connect your Kaspa wallet to see your local season progress.</p>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-4">
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/30 px-4 py-3">
+            <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">Points</p>
+            <p className="text-xl font-black text-zinc-900 dark:text-zinc-100">{score?.totalPoints ?? 0}</p>
+          </div>
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/30 px-4 py-3">
+            <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">Reads</p>
+            <p className="text-xl font-black text-zinc-900 dark:text-zinc-100">{score?.confirmedReadsCount ?? 0}</p>
+          </div>
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/30 px-4 py-3">
+            <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">Filled slots</p>
+            <p className="text-xl font-black text-zinc-900 dark:text-zinc-100">{score?.filledSlotsCount ?? 0}</p>
+          </div>
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/30 px-4 py-3">
+            <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">Pending</p>
+            <p className="text-xl font-black text-zinc-900 dark:text-zinc-100">{score?.pendingTxCount ?? 0}</p>
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center gap-3">
+        <button type="button" onClick={exportJson} className="k-control-btn">
+          Export
+        </button>
+        <button type="button" onClick={() => fileRef.current?.click()} className="k-control-btn">
+          Import
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="application/json"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void importJsonFile(f);
+          }}
+        />
+        {addr ? <span className="text-xs text-zinc-500 dark:text-zinc-400 font-mono truncate">{addr}</span> : null}
+      </div>
+
+      {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
+      {note ? <p className="text-sm text-amber-700 dark:text-amber-400">{note}</p> : null}
+    </div>
+  );
+}
+
