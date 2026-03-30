@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1774899577-fe067a5",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Chronicles: fix NFT modal images and Compound UTXO copy (by Kasparex)",
+      "date": "2026-03-30T21:32:55+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1774780527-ce153d1",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: feat(chronicles): add Krex Chronicles lore hub with wiki routes and seed data (by Kasparex)",
