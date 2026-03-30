@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1774908206-51eeba4",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Chronicles: add featured images for Rooftop and Forgotten Blocks (by Kasparex)",
+      "date": "2026-03-31T00:02:55+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1774903188-46dd191",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Chronicles: speed up NFT modal images; simplify UTXO hint (by Kasparex)",
