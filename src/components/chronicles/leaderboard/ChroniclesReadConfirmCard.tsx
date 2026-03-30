@@ -93,7 +93,6 @@ export function ChroniclesReadConfirmCard({
       const txRes = await sendKaspaTransaction(state.provider as KaspaWalletProvider, {
         to: treasury,
         amount: String(kasToSompi(CHRONICLES_LB_READ_CONFIRM_KAS)),
-        note: text,
         payload: chroniclesLbPayloadHexFromText(text),
       });
       if (txRes.status === 'failed' || !txRes.txHash) {

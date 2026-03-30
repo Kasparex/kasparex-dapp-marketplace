@@ -151,7 +151,6 @@ export function ChroniclesEntitySlots({
     const txRes = await sendKaspaTransaction(state.provider as KaspaWalletProvider, {
       to: treasury,
       amount: String(kasToSompi(amountKas)),
-      note: text,
       payload: chroniclesLbPayloadHexFromText(text),
     });
     if (txRes.status === 'failed' || !txRes.txHash) throw new Error(txRes.error ?? 'Transaction was rejected or failed');
