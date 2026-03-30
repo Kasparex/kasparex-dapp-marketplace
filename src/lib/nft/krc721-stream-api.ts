@@ -19,7 +19,10 @@ function getApiUrl(endpoint: string): string {
 export interface KRC721StreamToken {
   tick: string; // Note: API uses "tick" not "ticker"
   tokenId: string; // Note: API returns tokenId as string
-  buri?: string; // Base URI for metadata
+  /** Base URI for token metadata (field name varies by API version) */
+  buri?: string;
+  baseUri?: string;
+  base_uri?: string;
   [key: string]: unknown;
 }
 
@@ -99,6 +102,31 @@ export async function fetchNFTsByAddress(
     console.error('[KRC721 Stream] Error fetching NFTs:', error);
     return [];
   }
+}
+
+/** Resolve metadata base URI from a stream token (handles alternate JSON keys). */
+export function streamTokenBaseUri(token: KRC721StreamToken): string | null {
+  const t = token as Record<string, unknown>;
+  const candidates = [token.buri, token.baseUri, token.base_uri, t.BURI, t.baseURI, t.metadataUri, t.metadata_uri]
+    .filter((v): v is string => typeof v === 'string' && v.trim().length > 0)
+    .map((s) => s.trim());
+  return candidates[0] ?? null;
+}
+
+/**
+ * Build IPFS path (CID/subpath) for `{tokenId}.json` under the collection base URI. */
+export function streamMetaJsonPathFromBaseUri(baseUri: string, tokenId: number): string | null {
+  const s = baseUri.trim();
+  if (!s) return null;
+  let rest = s;
+  if (rest.startsWith('ipfs://')) {
+    rest = rest.replace(/^ipfs:\/\//i, '').replace(/\/+$/, '');
+  } else if (rest.includes('/ipfs/')) {
+    const parts = rest.split('/ipfs/');
+    rest = (parts[1] ?? '').replace(/\/+$/, '');
+  }
+  if (!rest) return null;
+  return `${rest}/${tokenId}.json`;
 }
 
 /**

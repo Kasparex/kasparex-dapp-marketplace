@@ -24,7 +24,7 @@ export function CompoundUtxosHelpModal({
           <div>
             <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Compound UTXOs (KasWare)</h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-              Fixes “Storage mass exceeds maximum” by consolidating many small UTXOs into fewer larger ones.
+              If you see “Storage mass exceeds maximum”, compound UTXOs in KasWare, then try the slot action again.
             </p>
           </div>
           <button
@@ -59,15 +59,15 @@ export function CompoundUtxosHelpModal({
             </div>
           </div>
 
-          <ol className="space-y-2 text-sm text-zinc-700 dark:text-zinc-300 list-decimal pl-5">
-            <li>Open KasWare → Send.</li>
-            <li>Paste your own address as the recipient (send-to-self).</li>
-            <li>Send a single amount that covers your usual activity (e.g. 10–50 KAS).</li>
-            <li>After it confirms, try the slot action again.</li>
-          </ol>
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/30 p-4">
+            <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
+              Open your <span className="font-semibold">KasWare</span> wallet, go to the <span className="font-semibold">UTXO</span>{' '}
+              tab, tap <span className="font-semibold">Compound</span>, wait for it to finish, then return here and try again.
+            </p>
+          </div>
 
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            We can’t compound UTXOs automatically from the app (wallets don’t expose a safe “consolidate” API), but this send-to-self is the standard fix.
+            The app cannot run Compound for you; it must be done inside KasWare.
           </p>
         </div>
       </div>
