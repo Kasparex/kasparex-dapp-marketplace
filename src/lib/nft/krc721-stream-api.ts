@@ -8,6 +8,14 @@
 
 const KRC721_STREAM_API_BASE = 'https://mainnet.krc721.stream/api/v1/krc721/mainnet';
 
+function getApiUrl(endpoint: string): string {
+  // In browser, use proxy route to avoid CORS.
+  if (typeof window !== 'undefined') {
+    return `/api/krc721-stream?endpoint=${encodeURIComponent(endpoint)}`;
+  }
+  return `https://mainnet.krc721.stream${endpoint}`;
+}
+
 export interface KRC721StreamToken {
   tick: string; // Note: API uses "tick" not "ticker"
   tokenId: string; // Note: API returns tokenId as string
@@ -49,7 +57,8 @@ export async function fetchNFTsByAddress(
     
     console.log('[KRC721 Stream] Fetching NFTs for address:', normalizedAddress);
     
-    const url = `${KRC721_STREAM_API_BASE}/address/${encodeURIComponent(normalizedAddress)}`;
+    const endpoint = `/api/v1/krc721/mainnet/address/${encodeURIComponent(normalizedAddress)}`;
+    const url = getApiUrl(endpoint);
     console.log('[KRC721 Stream] API URL:', url);
     
     const response = await fetch(url, {

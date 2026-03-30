@@ -172,7 +172,17 @@ export function ChroniclesEntitySlots({
       // Paying a bit more can trigger a different coin selection with fewer inputs.
       if (storageMass && amountKas <= 0.11) {
         setNote('Wallet UTXOs are fragmented; retrying with a larger payment to fit mass limits…');
-        return await send(1);
+        try {
+          return await send(5);
+        } catch (e2) {
+          const msg2 = e2 instanceof Error ? e2.message : String(e2 ?? '');
+          if (msg2.toLowerCase().includes('storage mass exceeds maximum')) {
+            throw new Error(
+              "Your wallet's UTXOs are too fragmented to fund a small 0.1 KAS transaction within Kaspa mass limits. Please consolidate UTXOs in your wallet (send to yourself once) and retry."
+            );
+          }
+          throw e2;
+        }
       }
       throw e;
     }
