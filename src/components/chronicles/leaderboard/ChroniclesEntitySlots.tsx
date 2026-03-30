@@ -30,7 +30,8 @@ import { ChroniclesNftSlotSelector, chroniclesNftRefToCollectionAndId } from './
 import { fetchNFTMetadata } from '@/lib/nft/metadata';
 import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
-import { getNftRarityFromMetadata, pointsForNftInSlot } from '@/lib/leaderboard/nftPoints';
+import { pointsForNftInSlot } from '@/lib/leaderboard/nftPoints';
+import { CompoundUtxosHelpModal } from './CompoundUtxosHelpModal';
 
 type SlotIndex = 1 | 2 | 3;
 
@@ -101,6 +102,7 @@ export function ChroniclesEntitySlots({
   const [note, setNote] = useState<string | null>(null);
   const treasury = getChroniclesVaultTreasuryL1Address();
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<SlotIndex | null>(null);
+  const [utxoHelpOpen, setUtxoHelpOpen] = useState(false);
   const [metaMap, setMetaMap] = useState<Record<string, ParsedNFTMetadata>>({});
 
   const nftOptions = useMemo(() => {
@@ -255,10 +257,15 @@ export function ChroniclesEntitySlots({
             Slot 1 is free. Slots 2-3 cost {CHRONICLES_LB_SLOT_ACTIVATION_KAS} KAS to activate. Setting or clearing a slot costs{' '}
             {CHRONICLES_LB_SLOT_CHANGE_KAS} KAS.
           </p>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-3 max-w-3xl">
-            If KasWare shows <span className="font-semibold">“Storage mass exceeds maximum”</span>, your wallet likely has fragmented UTXOs. Use KasWare’s
-            send-to-self to consolidate UTXOs, then try again.
-          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-3xl">
+              If KasWare shows <span className="font-semibold">“Storage mass exceeds maximum”</span>, your wallet likely has fragmented UTXOs. Consolidate
+              them with send-to-self, then try again.
+            </p>
+            <button type="button" onClick={() => setUtxoHelpOpen(true)} className="k-control-btn h-9 px-4 text-xs font-bold uppercase tracking-wide">
+              Compound UTXOs
+            </button>
+          </div>
         </div>
         <div className="shrink-0 text-right">
           <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Slot rewards</p>
@@ -275,8 +282,8 @@ export function ChroniclesEntitySlots({
           const isThisBusy = busy === slotIndex;
           const parsed = value ? chroniclesNftRefToCollectionAndId(value) : null;
           const collectionName = parsed?.collection ?? (value ? value.split('#')[0] : null);
-          const rarity = value ? getNftRarityFromMetadata(metaMap[value] ?? null) : 'standard';
-          const points = collectionName ? pointsForNftInSlot({ collection: collectionName, rarity }).points : 0;
+          const scoring =
+            parsed && collectionName ? pointsForNftInSlot({ collection: collectionName, tokenId: parsed.tokenId }) : { points: 0, rarity: 'standard' as const, type: 'standard' as const };
           const imageUrl = value ? getImageUrlForRef(value) : null;
           return (
             <div key={slotIndex} className="space-y-3">
@@ -325,8 +332,8 @@ export function ChroniclesEntitySlots({
                       {collectionName}
                     </h3>
                     <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">
-                      {rarity !== 'standard' ? `${rarity.toUpperCase()} · ` : ''}
-                      {points} pts
+                      {scoring.rarity !== 'standard' ? `${scoring.rarity.toUpperCase()} · ` : ''}
+                      {scoring.points} pts
                     </p>
                   </div>
                 )}
@@ -370,6 +377,8 @@ export function ChroniclesEntitySlots({
           }
         />
       )}
+
+      <CompoundUtxosHelpModal isOpen={utxoHelpOpen} onClose={() => setUtxoHelpOpen(false)} address={payerKaspa} />
     </div>
   );
 }

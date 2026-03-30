@@ -5,10 +5,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { fetchNFTsByAddress } from '@/lib/nft/krc721-stream-api';
-import { fetchNFTMetadata } from '@/lib/nft/metadata';
-import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
+import type { ParsedNFTMetadata, NFTMetadata, NFTTrait } from '@/lib/nft/metadata';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { getNftRarityFromMetadata, pointsForNftInSlot } from '@/lib/leaderboard/nftPoints';
+import { fetchJSON } from '@/lib/ipfs/gateway';
 
 function getNFTImageUrl(metadata: ParsedNFTMetadata | null): string | null {
   if (!metadata?.image) return null;
@@ -25,7 +25,7 @@ function parseNftRef(ref: string): { collection: string; tokenId: number } | nul
   return { collection, tokenId };
 }
 
-type SimpleNft = { collection: string; tokenId: number };
+type SimpleNft = { collection: string; tokenId: number; buri?: string | null };
 
 function normAddr(a: string): string {
   try {
@@ -52,8 +52,22 @@ function useNFTMetas(nfts: SimpleNft[], isOpen: boolean) {
         const k = `${nft.collection}-${nft.tokenId}`;
         if (metadataMap[k]) continue;
         try {
-          const meta = await fetchNFTMetadata(nft.collection, nft.tokenId);
-          if (!cancelled && meta) next[k] = meta;
+          // Prefer Stream's buri so we can render images for *any* collection without pre-config.
+          const buri = (nft.buri ?? '').toString().trim();
+          const cid = buri.startsWith('ipfs://') ? buri.replace('ipfs://', '') : buri;
+          const path = cid ? `${cid}/${nft.tokenId}.json` : '';
+          const raw = path ? await fetchJSON<NFTMetadata>(path) : null;
+          if (!raw) continue;
+          const traits: NFTTrait[] = (raw.attributes || raw.traits || []) as NFTTrait[];
+          const parsed: ParsedNFTMetadata = {
+            tokenId: nft.tokenId,
+            name: raw.name ? String(raw.name) : `${nft.collection} #${nft.tokenId}`,
+            description: raw.description ? String(raw.description) : undefined,
+            image: raw.image ? String(raw.image) : undefined,
+            traits,
+            rawMetadata: raw,
+          };
+          if (!cancelled) next[k] = parsed;
         } catch {
           // ignore
         }
@@ -103,7 +117,11 @@ export function ChroniclesNftSlotSelector({
         const tokens = await fetchNFTsByAddress(payerKaspa);
         if (cancelled) return;
         const next = tokens
-          .map((t) => ({ collection: String(t.tick ?? '').toUpperCase().trim(), tokenId: parseInt(String(t.tokenId), 10) }))
+          .map((t) => ({
+            collection: String(t.tick ?? '').toUpperCase().trim(),
+            tokenId: parseInt(String(t.tokenId), 10),
+            buri: typeof t.buri === 'string' ? t.buri : null,
+          }))
           .filter((t) => t.collection && Number.isFinite(t.tokenId));
         setRawNfts(next);
       } finally {
@@ -178,8 +196,7 @@ export function ChroniclesNftSlotSelector({
                 const k = `${nft.collection}-${nft.tokenId}`;
                 const meta = metaMap[k] ?? null;
                 const imageUrl = getNFTImageUrl(meta);
-                const rarity = getNftRarityFromMetadata(meta);
-                const pts = pointsForNftInSlot({ collection: nft.collection, rarity }).points;
+                const scoring = pointsForNftInSlot({ collection: nft.collection, tokenId: nft.tokenId });
                 const inUse = inUseRefs.has(ref) && ref !== currentValue;
                 return (
                   <div
@@ -208,7 +225,7 @@ export function ChroniclesNftSlotSelector({
                       </p>
                       <p className="text-xs text-zinc-500 dark:text-zinc-400">
                         #{nft.tokenId} · {nft.collection}
-                        {rarity !== 'standard' ? ` · ${rarity.toUpperCase()}` : ''} · {pts} pts
+                        {scoring.rarity !== 'standard' ? ` · ${scoring.rarity.toUpperCase()}` : ''} · {scoring.points} pts
                       </p>
                       <button
                         type="button"

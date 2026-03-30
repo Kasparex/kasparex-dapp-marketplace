@@ -35,12 +35,11 @@ export function scoreChroniclesSeason(input: {
     if (!slotIsActive(input.activated, k)) continue;
     if (v != null && String(v).trim().length > 0) {
       filled += 1;
-      const parsed = (() => {
-        const [collection] = String(v).split('#');
-        return { collection: String(collection ?? '').trim() };
-      })();
-      const rarity = input.placementRarities?.[k] ?? 'standard';
-      slotPoints += pointsForNftInSlot({ collection: parsed.collection, rarity }).points;
+      const [collectionRaw, tokenIdRaw] = String(v).split('#');
+      const collection = String(collectionRaw ?? '').trim();
+      const tokenId = tokenIdRaw != null ? Number(tokenIdRaw) : undefined;
+      // Use the same scoring path as the global leaderboard (token-id allowlists for Premium tiers).
+      slotPoints += pointsForNftInSlot({ collection, tokenId }).points;
     }
   }
   const reads = Object.keys(input.reads).length;
