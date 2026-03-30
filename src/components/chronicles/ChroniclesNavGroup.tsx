@@ -110,7 +110,7 @@ export function ChroniclesNavGroup({
           aria-label={open ? `Collapse ${label}` : `Expand ${label}`}
           onClick={() => toggle()}
           disabled={disabled}
-          className="ml-auto p-2 rounded-lg text-zinc-500 hover:text-[#02abb8] hover:bg-zinc-100/80 dark:hover:bg-zinc-800/50 shrink-0"
+          className="ml-auto -mr-2 p-2 rounded-lg text-zinc-500 hover:text-[#02abb8] hover:bg-zinc-100/80 dark:hover:bg-zinc-800/50 shrink-0"
         >
           <svg
             className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`}

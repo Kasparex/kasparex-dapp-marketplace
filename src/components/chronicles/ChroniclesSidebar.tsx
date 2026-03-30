@@ -133,7 +133,7 @@ export function ChroniclesSidebar() {
         />
       )}
     >
-      <div className="px-3 pt-3 pb-1 space-y-2">
+      <div className="px-3 pt-3 pb-4 space-y-2 border-b border-zinc-200/70 dark:border-zinc-800/70 mb-4">
         <Link
           href="/chronicles/leaderboard"
           className={`k-control-btn w-full justify-center gap-2 ${
@@ -157,7 +157,7 @@ export function ChroniclesSidebar() {
       </div>
       <SidebarSection
         title="Krex's Chronicles"
-        headingClassName="text-xs sm:text-sm font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.18em] mb-4 px-2"
+        headingClassName="text-xs sm:text-sm font-black text-[#02abb8] uppercase tracking-[0.18em] mb-4 px-2"
       >
         <nav className="space-y-1">
           <Tooltip content="Overview" side="right" align="start">

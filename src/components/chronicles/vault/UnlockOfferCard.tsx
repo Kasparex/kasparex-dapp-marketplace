@@ -22,6 +22,9 @@ import {
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { recordVaultUnlock } from '@/lib/chronicles/vault/localUnlocks';
 
+const PLACEHOLDER_IMAGE_DATA_URI =
+  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='750' viewBox='0 0 1200 750'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23e4e4e7'/><stop offset='1' stop-color='%23d4d4d8'/></linearGradient></defs><rect width='1200' height='750' fill='url(%23g)'/><g opacity='0.25' stroke='%239ca3af' stroke-width='2'><path d='M-50 650 L450 150' /><path d='M100 780 L700 180' /><path d='M350 820 L1000 170' /><path d='M600 820 L1250 170' /></g><rect x='80' y='80' width='1040' height='590' rx='28' fill='none' stroke='%23a1a1aa' stroke-width='2' opacity='0.35'/></svg>";
+
 export function UnlockOfferCard({
   offer,
   unlocked,
@@ -129,20 +132,14 @@ export function UnlockOfferCard({
 
   const inner = (
     <div className="chronicles-vault-card rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/60 overflow-hidden h-full flex flex-col">
-      <div className="relative w-full aspect-[16/10] bg-gradient-to-br from-zinc-200 to-cyan-500/20 dark:from-zinc-800 dark:to-cyan-950/50">
-        {offer.imageUrl ? (
-          <Image
-            src={offer.imageUrl}
-            alt={offer.title}
-            fill
-            className="object-cover"
-            sizes="(max-width: 640px) 100vw, 320px"
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-zinc-400 text-sm font-semibold">
-            No image
-          </div>
-        )}
+      <div className="relative w-full aspect-[16/10] bg-zinc-200 dark:bg-zinc-800">
+        <Image
+          src={offer.imageUrl || PLACEHOLDER_IMAGE_DATA_URI}
+          alt={offer.title}
+          fill
+          className="object-cover"
+          sizes="(max-width: 640px) 100vw, 320px"
+        />
       </div>
       <div className="p-6 flex flex-col flex-1 min-h-0">
         <p className="text-xs font-black uppercase tracking-widest text-[#02abb8] mb-2">{offer.kind}</p>

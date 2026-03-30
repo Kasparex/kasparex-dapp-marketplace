@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { ChroniclesHeader } from '@/components/chronicles/ChroniclesHeader';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
@@ -29,18 +30,16 @@ export function ChroniclesVaultDashboard() {
   const lockedOffers = catalog.filter((o) => !isUnlocked(o.id));
 
   return (
-    <div className="grid gap-10 xl:gap-12 lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_340px] items-start pb-16">
-      <div className="min-w-0 space-y-14">
-        <div>
-          <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">Chronicles vault</p>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
-            Unlocks & premium access
-          </h1>
-          <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 mt-4 max-w-2xl leading-relaxed">
-            Unlocks are activated by a KAS payment to the treasury that includes an encoded payload. Once verified, unlocks are saved in this browser for your Kaspa address.
-          </p>
-        </div>
+    <div className="pb-16">
+      <ChroniclesHeader />
+      <div className="mb-8 sm:mb-10">
+        <h2 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">Vault &amp; unlocks</h2>
+        <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
+          Unlocks are activated by a KAS payment to the treasury that includes an encoded payload. Once verified, unlocks are saved in this browser for your Kaspa address.
+        </p>
+      </div>
 
+      <div className="min-w-0 space-y-14">
         {!state.isConnected ? (
           <div className="chronicles-vault-card rounded-2xl border border-cyan-500/25 bg-gradient-to-br from-zinc-50 to-cyan-500/5 dark:from-zinc-900 dark:to-cyan-950/30 p-7 sm:p-8 max-w-lg mx-auto text-center space-y-6">
             <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-500/30 bg-cyan-500/10 text-[#02abb8] mx-auto">
@@ -54,7 +53,7 @@ export function ChroniclesVaultDashboard() {
               </svg>
             </div>
             <div>
-              <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-100">Connect your Kaspa wallet</h2>
+              <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100">Connect your Kaspa wallet</h3>
               <p className="text-base text-zinc-500 dark:text-zinc-400 mt-3 leading-relaxed">
                 Connect a wallet to view your address and unlocks. Holder discounts are based on collections detected on your Kaspa address.
               </p>
@@ -113,6 +112,15 @@ export function ChroniclesVaultDashboard() {
           </>
         )}
 
+        <div className="space-y-6">
+          <VaultDashboardAside
+            krexTier={krexTier}
+            nft={nftStatus}
+            isKrexLoading={krexLoading}
+            isNftLoading={nftLoading}
+          />
+        </div>
+
         <section id="workspace" className="scroll-mt-24 chronicles-vault-card rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8 space-y-3">
           <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100">Workspace (source files)</h2>
           <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
@@ -132,13 +140,6 @@ export function ChroniclesVaultDashboard() {
           </p>
         </section>
       </div>
-
-      <VaultDashboardAside
-        krexTier={krexTier}
-        nft={nftStatus}
-        isKrexLoading={krexLoading}
-        isNftLoading={nftLoading}
-      />
     </div>
   );
 }
