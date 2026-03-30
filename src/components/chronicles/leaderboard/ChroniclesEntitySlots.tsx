@@ -19,6 +19,7 @@ import {
 import {
   getLocalActivatedSlots,
   getLocalSlotPlacement,
+  getChroniclesAllPlacedNftRefs,
   recordLocalPendingTx,
   recordLocalActivate,
   recordLocalSetSlot,
@@ -110,12 +111,8 @@ export function ChroniclesEntitySlots({
   }, [nfts]);
 
   const allPlacementRefs = useMemo(() => {
-    const s = new Set<string>();
-    ([1, 2, 3] as const).forEach((i) => {
-      const v = placement(i);
-      if (v) s.add(v);
-    });
-    return s;
+    if (!payerKaspa) return new Set<string>();
+    return getChroniclesAllPlacedNftRefs(payerKaspa);
   }, [payerKaspa, entityType, entityId, localBump]);
 
   useEffect(() => {
@@ -193,8 +190,10 @@ export function ChroniclesEntitySlots({
       const text = buildChroniclesLbSetSlotText({ entityType, entityId, slotIndex, nftRef, payerKaspa });
       const v = await payAndVerify(text, CHRONICLES_LB_SLOT_CHANGE_KAS, 'slot:set');
       const parsed = chroniclesNftRefToCollectionAndId(nftRef);
-      const metaKey = parsed ? `${parsed.collection}#${parsed.tokenId}` : null;
-      const rarity = metaKey ? getNftRarityFromMetadata(metaMap[metaKey] ?? null) : 'standard';
+      const rarity =
+        parsed && (parsed.collection === 'KREXPRIME' || parsed.collection === 'PIXELKREX')
+          ? pointsForNftInSlot({ collection: parsed.collection, tokenId: parsed.tokenId }).rarity
+          : 'standard';
       recordLocalSetSlot(payerKaspa, entityType, entityId, slotIndex, nftRef, { txHash: v.txHash, txTimeMs: v.txTimeMs, rarity });
       setNote(`Slot ${slotIndex} updated.`);
     } catch (e) {

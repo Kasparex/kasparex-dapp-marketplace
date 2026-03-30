@@ -304,3 +304,17 @@ export function getChroniclesLocalSeasonSnapshot(addr: string, seasonId?: Season
   };
 }
 
+export function getChroniclesAllPlacedNftRefs(addr: string, seasonId?: SeasonId): Set<string> {
+  const a = normalizeAddr(addr);
+  const sId = seasonId ?? currentSeasonId();
+  const store = readStore();
+  const seasons = store.wallets[a]?.seasons ?? {};
+  const row = seasons[sId] ?? {};
+  const placements = row.placements ?? {};
+  const out = new Set<string>();
+  for (const v of Object.values(placements)) {
+    if (v && String(v).trim().length > 0) out.add(String(v));
+  }
+  return out;
+}
+

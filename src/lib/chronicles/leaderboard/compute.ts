@@ -7,9 +7,7 @@ import {
 } from './constants';
 import { parseChroniclesLbPayload } from './parse';
 import type { ChroniclesLbEvent } from './types';
-import { fetchNFTMetadata } from '@/lib/nft/metadata';
-import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
-import { getNftRarityFromMetadata, pointsForNftInSlot } from '@/lib/leaderboard/nftPoints';
+import { pointsForNftInSlot } from '@/lib/leaderboard/nftPoints';
 
 export type ChroniclesLeaderboardRow = {
   wallet: string;
@@ -130,51 +128,30 @@ export async function computeChroniclesLeaderboard(options?: { limit?: number })
     applyEvent(state, e, txTimeMs(tx));
   }
 
-  const metaCache = new Map<string, ParsedNFTMetadata | null>();
+  const rows = Array.from(byWallet.entries()).map(([wallet, state]) => {
+    let filled = 0;
+    let slotPoints = 0;
+    for (const [k, v] of state.placements.entries()) {
+      if (!slotIsActive(state, k)) continue;
+      if (v == null || String(v).trim().length === 0) continue;
+      filled += 1;
 
-  const rows = (
-    await Promise.all(
-      Array.from(byWallet.entries()).map(async ([wallet, state]) => {
-        let filled = 0;
-        let slotPoints = 0;
-        for (const [k, v] of state.placements.entries()) {
-          if (!slotIsActive(state, k)) continue;
-          if (v == null || String(v).trim().length === 0) continue;
-          filled += 1;
+      const parsed = parseNftRef(v);
+      const collection = parsed?.collection ?? String(v).split('#')[0] ?? '';
+      const tokenId = parsed?.tokenId;
+      slotPoints += pointsForNftInSlot({ collection, tokenId }).points;
+    }
 
-          const parsed = parseNftRef(v);
-          const collection = parsed?.collection ?? String(v).split('#')[0] ?? '';
-          let rarity: 'diamond' | 'rare' | 'standard' = 'standard';
-
-          if (parsed) {
-            const cacheKey = `${parsed.collection}#${parsed.tokenId}`;
-            let meta = metaCache.get(cacheKey);
-            if (meta === undefined) {
-              try {
-                meta = (await fetchNFTMetadata(parsed.collection, parsed.tokenId)) ?? null;
-              } catch {
-                meta = null;
-              }
-              metaCache.set(cacheKey, meta);
-            }
-            rarity = getNftRarityFromMetadata(meta);
-          }
-
-          slotPoints += pointsForNftInSlot({ collection, rarity }).points;
-        }
-
-        const reads = state.reads.size;
-        const totalScore = slotPoints + reads * CHRONICLES_LB_POINTS_PER_READ_CONFIRM;
-        return {
-          wallet,
-          totalScore,
-          filledSlotsCount: filled,
-          confirmedReadsCount: reads,
-          lastActivityMs: state.lastActivityMs,
-        } satisfies ChroniclesLeaderboardRow;
-      })
-    )
-  )
+    const reads = state.reads.size;
+    const totalScore = slotPoints + reads * CHRONICLES_LB_POINTS_PER_READ_CONFIRM;
+    return {
+      wallet,
+      totalScore,
+      filledSlotsCount: filled,
+      confirmedReadsCount: reads,
+      lastActivityMs: state.lastActivityMs,
+    } satisfies ChroniclesLeaderboardRow;
+  })
     .filter((r) => r.totalScore > 0)
     .sort((a, b) => b.totalScore - a.totalScore || b.lastActivityMs - a.lastActivityMs);
 
