@@ -1,7 +1,6 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { ChroniclesHeader } from '@/components/chronicles/ChroniclesHeader';
 import { FilterBar } from '@/components/FilterBar';
@@ -66,15 +65,9 @@ export function ChroniclesVaultDashboard() {
       <ChroniclesHeader
         kicker="Vault & unlocks"
         title="Vault & Unlocks"
-        subtitle="Unlocks are activated by a KAS payment to the treasury that includes an encoded payload. Once verified, unlocks are saved in this browser for your Kaspa address."
-        showHaloAd={false}
+        subtitle="Unlock premium chapters, items, and future perks. Unlocks are verified on-chain and saved in this browser for your Kaspa address."
+        showHaloAd
       />
-      <div className="mb-8 sm:mb-10">
-        <h2 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">Vault &amp; unlocks</h2>
-        <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
-          Unlocks are activated by a KAS payment to the treasury that includes an encoded payload. Once verified, unlocks are saved in this browser for your Kaspa address.
-        </p>
-      </div>
 
       <div className="min-w-0 space-y-14">
         {!state.isConnected ? (
@@ -101,72 +94,58 @@ export function ChroniclesVaultDashboard() {
           </div>
         ) : (
           <>
-            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/50 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-              <p className="text-base text-zinc-600 dark:text-zinc-400">
-                Connected:{' '}
-                <span className="font-mono text-sm text-zinc-900 dark:text-zinc-100 break-all">{state.address}</span>
-              </p>
-              <Link href="/chronicles" className="text-base font-bold text-[#02abb8] hover:underline">
-                Back to lore
-              </Link>
-            </div>
-
-            <div className="flex flex-col gap-4">
-              <FilterBar
-                flexWrap
-                search={{ value: search, onChange: setSearch, placeholder: 'Search vault offers...' }}
-                onReset={() => {
-                  setSearch('');
-                  setKindFilter('');
-                  setStatusFilter('');
-                  setSort('title-asc');
-                }}
-              >
-                <ChroniclesFilterDropdown
-                  ariaLabel="Filter by kind"
-                  value={kindFilter}
-                  onChange={(v) => setKindFilter(v as '' | 'chapter' | 'asset')}
-                  allLabel="All kinds"
-                  options={[
-                    { value: 'chapter', label: 'Chapters' },
-                    { value: 'asset', label: 'Items' },
-                  ]}
-                  minWidthClassName="min-w-[160px]"
-                />
-                <ChroniclesFilterDropdown
-                  ariaLabel="Filter by status"
-                  value={statusFilter}
-                  onChange={(v) => setStatusFilter(v as '' | 'unlocked' | 'locked')}
-                  allLabel="All statuses"
-                  options={[
-                    { value: 'unlocked', label: 'Unlocked' },
-                    { value: 'locked', label: 'Locked' },
-                  ]}
-                  minWidthClassName="min-w-[160px]"
-                />
-                <ChroniclesFilterDropdown
-                  ariaLabel="Sort offers"
-                  value={sort}
-                  onChange={(v) => setSort(v as 'title-asc' | 'price-asc' | 'price-desc')}
-                  allLabel="Title (A–Z)"
-                  options={[
-                    { value: 'title-asc', label: 'Title (A–Z)' },
-                    { value: 'price-asc', label: 'List price (low→high)' },
-                    { value: 'price-desc', label: 'List price (high→low)' },
-                  ]}
-                  minWidthClassName="min-w-[190px]"
-                />
-              </FilterBar>
-
-              <p className="text-base text-zinc-500 dark:text-zinc-400">
-                {filteredOffers.length} offer{filteredOffers.length !== 1 ? 's' : ''}
-              </p>
-            </div>
-
             <VaultSection
               id="offers"
               title="Offers"
               subtitle="Send the required KAS payment to the treasury. The indexer may take a short moment to confirm your transaction."
+              count={filteredOffers.length}
+              controls={
+                <FilterBar
+                  flexWrap
+                  search={{ value: search, onChange: setSearch, placeholder: 'Search vault offers...' }}
+                  onReset={() => {
+                    setSearch('');
+                    setKindFilter('');
+                    setStatusFilter('');
+                    setSort('title-asc');
+                  }}
+                >
+                  <ChroniclesFilterDropdown
+                    ariaLabel="Filter by kind"
+                    value={kindFilter}
+                    onChange={(v) => setKindFilter(v as '' | 'chapter' | 'asset')}
+                    allLabel="All kinds"
+                    options={[
+                      { value: 'chapter', label: 'Chapters' },
+                      { value: 'asset', label: 'Items' },
+                    ]}
+                    minWidthClassName="min-w-[160px]"
+                  />
+                  <ChroniclesFilterDropdown
+                    ariaLabel="Filter by status"
+                    value={statusFilter}
+                    onChange={(v) => setStatusFilter(v as '' | 'unlocked' | 'locked')}
+                    allLabel="All statuses"
+                    options={[
+                      { value: 'unlocked', label: 'Unlocked' },
+                      { value: 'locked', label: 'Locked' },
+                    ]}
+                    minWidthClassName="min-w-[160px]"
+                  />
+                  <ChroniclesFilterDropdown
+                    ariaLabel="Sort offers"
+                    value={sort}
+                    onChange={(v) => setSort(v as 'title-asc' | 'price-asc' | 'price-desc')}
+                    allLabel="Title (A–Z)"
+                    options={[
+                      { value: 'title-asc', label: 'Title (A–Z)' },
+                      { value: 'price-asc', label: 'List price (low→high)' },
+                      { value: 'price-desc', label: 'List price (high→low)' },
+                    ]}
+                    minWidthClassName="min-w-[190px]"
+                  />
+                </FilterBar>
+              }
             >
               {filteredOffers.length === 0 ? (
                 <p className="text-base text-zinc-500 col-span-full">No matching offers.</p>
