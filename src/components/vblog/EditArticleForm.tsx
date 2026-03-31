@@ -119,7 +119,18 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
     setUnlockedModules(getAuthorUnlockedModules(kaspaState.address));
   }, [kaspaState.address]);
 
-  const moduleItems = [
+  type ModuleItem = {
+    id: VBlogModuleId;
+    title: string;
+    description: string;
+    unlocked: boolean;
+    enabled: boolean;
+    onToggle: (next: boolean) => void;
+    fields: JSX.Element | null;
+    readOnly?: boolean;
+  };
+
+  const moduleItems: ModuleItem[] = [
     {
       id: 'premium_section',
       title: 'Premium section unlock',
@@ -193,7 +204,7 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
       fields: null,
       readOnly: true,
     },
-  ] as const;
+  ];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
