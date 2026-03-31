@@ -1,5 +1,7 @@
 'use client';
 
+import { AdSlider } from '@/components/ads/AdSlider';
+
 interface VBlogHeaderProps {
   onStartWriting?: () => void;
 }
@@ -13,7 +15,8 @@ export function VBlogHeader({ onStartWriting }: VBlogHeaderProps) {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,#00c2b2,transparent_50%)]" />
       </div>
 
-      <div className="relative z-10 max-w-4xl">
+      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+        <div className="min-w-0 max-w-4xl">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-700 dark:text-orange-400 text-xs font-bold uppercase tracking-widest mb-6">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
@@ -38,27 +41,15 @@ export function VBlogHeader({ onStartWriting }: VBlogHeaderProps) {
             Start Writing
           </button>
         </div>
+        </div>
+        <div
+          id="ad-slot-vblog-halo"
+          className="hidden lg:flex items-center justify-center flex-shrink-0 relative w-[280px] min-h-[200px] scroll-mt-24"
+        >
+          <AdSlider slotId="HALO_VBLOG_RIGHT" />
+        </div>
       </div>
 
-      <div className="absolute right-0 bottom-0 top-0 w-1/3 hidden lg:flex items-center justify-center opacity-30">
-        <div className="relative w-64 h-80 rounded-2xl border-2 border-orange-500/30 transform -rotate-12 -translate-x-12 translate-y-12 shadow-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center p-8">
-          <div className="w-full space-y-3">
-            <div className="h-2 w-full bg-zinc-300 dark:bg-zinc-800 rounded"></div>
-            <div className="h-2 w-3/4 bg-zinc-300 dark:bg-zinc-800 rounded"></div>
-            <div className="h-2 w-full bg-zinc-300 dark:bg-zinc-800 rounded"></div>
-            <div className="h-2 w-1/2 bg-zinc-300 dark:bg-zinc-800 rounded"></div>
-          </div>
-        </div>
-        <div className="relative w-64 h-80 rounded-2xl border-2 border-amber-500/30 transform rotate-6 shadow-2xl overflow-hidden bg-zinc-200 dark:bg-zinc-800 flex flex-col p-6">
-          <div className="w-12 h-12 rounded-full bg-amber-500/20 mb-4 flex items-center justify-center">
-            <svg className="w-6 h-6 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </div>
-          <div className="text-amber-500 text-xs font-black mb-1">DECENTRALIZED BLOGGING</div>
-          <div className="text-zinc-500 text-[10px] leading-relaxed">Powered by IPFS & Kaspa</div>
-        </div>
-      </div>
     </div>
   );
 }

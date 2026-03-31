@@ -61,25 +61,23 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
 
   return (
     <article className="max-w-6xl mx-auto">
-      {/* Premium Header / Hero Section */}
-      <div className="relative mb-16 rounded-[40px] overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 shadow-2xl shadow-orange-500/5">
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-amber-500/5" />
+      <div className="relative mb-12 rounded-2xl overflow-hidden bg-zinc-50/80 dark:bg-zinc-900/45 border border-zinc-200 dark:border-zinc-800">
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent" />
 
-        <div className="relative flex flex-col lg:flex-row min-h-[400px]">
-          {/* Article Info Panel */}
-          <div className="flex-1 p-8 sm:p-12 lg:p-16 flex flex-col justify-center">
-            <div className="flex flex-wrap items-center gap-3 mb-8">
-              <span className="px-3 py-1 bg-orange-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-orange-500/20">
+        <div className="relative flex flex-col lg:flex-row min-h-[360px]">
+          <div className="flex-1 p-8 sm:p-10 lg:p-12 flex flex-col justify-center">
+            <div className="flex flex-wrap items-center gap-3 mb-6">
+              <span className="px-3 py-1 bg-[#02abb8]/15 text-[#02abb8] text-[10px] font-black uppercase tracking-widest rounded-full">
                 {article.category}
               </span>
-              <span className={`px-3 py-1 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg ${article.status === 'published' || article.status === 'on-chain-ready' ? 'bg-emerald-500' :
+              <span className={`px-3 py-1 text-white text-[10px] font-black uppercase tracking-widest rounded-full ${article.status === 'published' || article.status === 'on-chain-ready' ? 'bg-emerald-500' :
                 article.status === 'pending' ? 'bg-amber-500' : 'bg-zinc-500'
                 }`}>
                 {article.status === 'on-chain-ready' ? 'Published' : article.status}
               </span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-zinc-900 dark:text-zinc-100 mb-8 leading-[1.1] uppercase tracking-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-8 leading-tight tracking-tight">
               {article.title}
             </h1>
 
@@ -87,8 +85,8 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
               <div className="flex items-center gap-3">
                 <Avatar address={authorAddress} size={48} className="ring-2 ring-orange-500/20" />
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-black uppercase tracking-tighter text-zinc-400">Worded by</span>
-                  <Link href={authorProfileUrl} className="text-sm font-bold text-zinc-900 dark:text-zinc-100 hover:text-orange-500 transition-colors">
+                  <span className="text-[10px] font-black uppercase tracking-tighter text-zinc-400">By</span>
+                  <Link href={authorProfileUrl} className="text-sm font-bold text-zinc-900 dark:text-zinc-100 hover:text-[#02abb8] transition-colors">
                     {authorDisplay}
                   </Link>
                 </div>
@@ -101,8 +99,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
             </div>
           </div>
 
-          {/* Hero Image Panel */}
-          <div className="w-full lg:w-[40%] relative min-h-[300px] lg:min-h-full bg-zinc-100 dark:bg-zinc-800 border-l border-zinc-100 dark:border-zinc-800">
+          <div className="w-full lg:w-[40%] relative min-h-[260px] lg:min-h-full bg-zinc-100 dark:bg-zinc-800 border-l border-zinc-200 dark:border-zinc-800">
             {article.featuredImage ? (
               <img
                 src={article.featuredImage}
@@ -115,7 +112,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
             ) : (
               <div className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br ${article.category === 'Development' ? 'from-cyan-500 to-blue-600' :
                 article.category === 'Ecosystem' ? 'from-emerald-500 to-teal-600' :
-                  'from-orange-500 to-red-600'
+                  'from-[#02abb8] to-cyan-700'
                 }`}>
                 <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
                 <svg className="w-24 h-24 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -126,12 +123,11 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
           </div>
         </div>
 
-        {/* Global Author Controls */}
         {isAuthor && (
-          <div className="absolute top-8 right-8 flex items-center gap-3 z-30">
+          <div className="absolute top-6 right-6 flex items-center gap-3 z-30">
             <button
               onClick={handleEdit}
-              className="p-3 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md text-zinc-900 dark:text-zinc-100 rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:scale-110 transition-all shadow-xl"
+              className="p-3 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md text-zinc-900 dark:text-zinc-100 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:scale-105 transition-all"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -139,7 +135,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
             </button>
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="p-3 bg-red-500 text-white rounded-2xl hover:scale-110 transition-all shadow-xl"
+              className="p-3 bg-red-500 text-white rounded-xl hover:scale-105 transition-all"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -149,26 +145,23 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
         )}
       </div>
 
-      {/* Two-Column Layout Container */}
       <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
-        {/* Main Article Content Panel */}
         <div className="flex-1 min-w-0">
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-[40px] p-8 sm:p-12 lg:p-20 shadow-2xl shadow-orange-500/5 mb-16">
+          <div className="bg-zinc-50/80 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 sm:p-10 lg:p-12 mb-16">
             <div
               className="prose prose-zinc dark:prose-invert max-w-none 
-                prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100 prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tight
-                prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:leading-[1.8] prose-p:text-xl
-                prose-a:text-orange-500 prose-a:font-bold prose-a:no-underline hover:prose-a:underline
+                prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100 prose-headings:font-black prose-headings:tracking-tight
+                prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:leading-[1.8] prose-p:text-lg
+                prose-a:text-[#02abb8] prose-a:font-bold prose-a:no-underline hover:prose-a:underline
                 prose-strong:text-zinc-900 dark:prose-strong:text-zinc-100 prose-strong:font-black
-                prose-blockquote:border-l-orange-500 prose-blockquote:bg-orange-500/5 prose-blockquote:rounded-3xl prose-blockquote:px-8 prose-blockquote:py-4 prose-blockquote:font-medium prose-blockquote:italic
-                prose-img:rounded-[32px] prose-img:shadow-2xl"
+                prose-blockquote:border-l-[#02abb8] prose-blockquote:bg-[#02abb8]/5 prose-blockquote:rounded-2xl prose-blockquote:px-6 prose-blockquote:py-4 prose-blockquote:font-medium prose-blockquote:italic
+                prose-img:rounded-2xl"
               dangerouslySetInnerHTML={{ __html: parseMarkdown(article.content) }}
             />
           </div>
         </div>
 
-        {/* Right Sidebar Column */}
-        <div className="w-full lg:w-[320px] xl:w-[380px] shrink-0">
+        <div className="w-full lg:w-[320px] xl:w-[340px] shrink-0">
           <ArticleSidebar article={article} />
         </div>
       </div>

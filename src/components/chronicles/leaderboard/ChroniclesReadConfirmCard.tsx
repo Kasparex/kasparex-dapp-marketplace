@@ -16,6 +16,8 @@ import {
 } from '@/lib/chronicles/leaderboard/payload';
 import { getLocalReadConfirmed, recordLocalPendingTx, recordLocalRead } from '@/lib/chronicles/leaderboard/localState';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { chroniclesLbEffectivePriceKas } from '@/lib/chronicles/leaderboard/pricing';
 
 function normAddr(a: string): string {
   try {
@@ -61,7 +63,9 @@ export function ChroniclesReadConfirmCard({
   title?: string;
 }) {
   const { state } = useKaspaWallet();
+  const { tier } = useKREXBalance();
   const payerKaspa = state.address ? normAddr(state.address) : '';
+  const readConfirmPriceKas = chroniclesLbEffectivePriceKas(CHRONICLES_LB_READ_CONFIRM_KAS, tier);
   const [localBump, setLocalBump] = useState(0);
   useEffect(() => {
     const on = () => setLocalBump((x) => x + 1);
@@ -92,7 +96,7 @@ export function ChroniclesReadConfirmCard({
       const text = buildChroniclesLbReadConfirmText({ entityType, entityId, payerKaspa });
       const txRes = await sendKaspaTransaction(state.provider as KaspaWalletProvider, {
         to: treasury,
-        amount: String(kasToSompi(CHRONICLES_LB_READ_CONFIRM_KAS)),
+        amount: String(kasToSompi(readConfirmPriceKas)),
         payload: chroniclesLbPayloadHexFromText(text),
       });
       if (txRes.status === 'failed' || !txRes.txHash) {
@@ -117,7 +121,8 @@ export function ChroniclesReadConfirmCard({
         <div>
           <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">{title}</p>
           <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
-            Confirm you read this content with an on-chain action. Costs {CHRONICLES_LB_READ_CONFIRM_KAS} KAS and adds points to the leaderboard.
+            Confirm you read this content with an on-chain action. Base cost is {CHRONICLES_LB_READ_CONFIRM_KAS} KAS and your
+            holder price ({tier}) is {readConfirmPriceKas} KAS.
           </p>
         </div>
         <Tooltip content="See leaderboard" side="top" align="end">
@@ -138,7 +143,7 @@ export function ChroniclesReadConfirmCard({
           disabled={!state.isConnected || busy}
           className="k-control-btn text-sm font-bold uppercase tracking-wide disabled:opacity-50"
         >
-          {busy ? 'Confirming…' : `Confirm read (${CHRONICLES_LB_READ_CONFIRM_KAS} KAS)`}
+          {busy ? 'Confirming…' : `Confirm read (${readConfirmPriceKas} KAS)`}
         </button>
       )}
 

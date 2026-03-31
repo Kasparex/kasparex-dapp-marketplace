@@ -115,10 +115,10 @@ export function ChroniclesSidebar() {
   const isVehicles = pathname.startsWith('/chronicles/vehicles');
 
   const navLabelClass =
-    'text-xs font-bold uppercase tracking-wide flex-1 min-w-0 leading-snug break-words line-clamp-2 text-left';
+    'text-xs font-bold uppercase tracking-wide flex-1 min-w-0 leading-tight truncate whitespace-nowrap text-left';
 
   const backHref = pathname === '/chronicles' ? '/hub' : '/chronicles';
-  const backLabel = pathname === '/chronicles' ? '< back to hub' : '< back to chronicles';
+  const backLabel = pathname === '/chronicles' ? 'Back to hub' : 'Back to chronicles';
 
   return (
     <UnifiedSidebar

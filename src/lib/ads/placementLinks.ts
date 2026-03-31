@@ -26,6 +26,18 @@ export const AD_SLOT_PLACEMENT_LINKS: {
     placement: 'Krex Chronicles, halo header right',
   },
   {
+    slotId: 'HALO_VBLOG_RIGHT',
+    title: 'vBlog halo',
+    href: '/vblog#ad-slot-vblog-halo',
+    placement: 'vBlog listing, halo header right',
+  },
+  {
+    slotId: 'VBLOG_ARTICLE_ASIDE_BOTTOM',
+    title: 'vBlog article aside',
+    href: '/vblog#ad-slot-vblog-article-aside-bottom',
+    placement: 'vBlog article page, right aside bottom',
+  },
+  {
     slotId: 'SIDEBAR_RANDOM',
     title: 'Studio sidebar',
     href: '/studio/portfolio#ad-slot-studio-sidebar',

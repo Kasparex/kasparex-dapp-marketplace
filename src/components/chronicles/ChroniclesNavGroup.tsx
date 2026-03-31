@@ -100,7 +100,7 @@ export function ChroniclesNavGroup({
             className="flex-1 min-w-0"
           >
             <Tooltip content={label} side="right" align="start">
-              <span className="text-xs font-bold uppercase tracking-wide block min-w-0 leading-snug break-words line-clamp-2 text-left">
+              <span className="text-xs font-bold uppercase tracking-wide block min-w-0 leading-tight truncate whitespace-nowrap text-left">
                 {label}
               </span>
             </Tooltip>
@@ -112,7 +112,7 @@ export function ChroniclesNavGroup({
           aria-label={open ? `Collapse ${label}` : `Expand ${label}`}
           onClick={() => toggle()}
           disabled={disabled}
-          className="ml-auto w-10 h-10 flex items-center justify-center rounded-lg text-zinc-500 hover:text-[#02abb8] hover:bg-zinc-100/80 dark:hover:bg-zinc-800/50 shrink-0"
+          className="ml-auto w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:text-[#02abb8] hover:bg-zinc-100/80 dark:hover:bg-zinc-800/50 shrink-0"
         >
           <svg
             className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`}

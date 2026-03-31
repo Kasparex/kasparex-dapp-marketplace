@@ -31,6 +31,8 @@ import { fetchNFTMetadata } from '@/lib/nft/metadata';
 import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { pointsForNftInSlot } from '@/lib/leaderboard/nftPoints';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { chroniclesLbEffectivePriceKas } from '@/lib/chronicles/leaderboard/pricing';
 
 type SlotIndex = 1 | 2 | 3;
 
@@ -78,6 +80,7 @@ export function ChroniclesEntitySlots({
   title?: string;
 }) {
   const { state } = useKaspaWallet();
+  const { tier } = useKREXBalance();
   const payerKaspa = state.address ? normAddr(state.address) : '';
   const { nfts, isLoading: nftsLoading } = useNFTStatus();
 
@@ -102,6 +105,8 @@ export function ChroniclesEntitySlots({
   const treasury = getChroniclesVaultTreasuryL1Address();
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<SlotIndex | null>(null);
   const [metaMap, setMetaMap] = useState<Record<string, ParsedNFTMetadata>>({});
+  const activationPriceKas = chroniclesLbEffectivePriceKas(CHRONICLES_LB_SLOT_ACTIVATION_KAS, tier);
+  const slotChangePriceKas = chroniclesLbEffectivePriceKas(CHRONICLES_LB_SLOT_CHANGE_KAS, tier);
 
   const nftOptions = useMemo(() => {
     return nfts
@@ -194,7 +199,7 @@ export function ChroniclesEntitySlots({
     setBusy(slotIndex === 2 ? 'activate2' : 'activate3');
     try {
       const text = buildChroniclesLbActivateSlotText({ entityType, entityId, slotIndex, payerKaspa });
-      const v = await payAndVerify(text, CHRONICLES_LB_SLOT_ACTIVATION_KAS, 'slot:activate');
+      const v = await payAndVerify(text, activationPriceKas, 'slot:activate');
       recordLocalActivate(payerKaspa, entityType, entityId, slotIndex, { txHash: v.txHash, txTimeMs: v.txTimeMs });
       setNote(`Slot ${slotIndex} activated.`);
     } catch (e) {
@@ -214,7 +219,7 @@ export function ChroniclesEntitySlots({
     setBusy(slotIndex);
     try {
       const text = buildChroniclesLbSetSlotText({ entityType, entityId, slotIndex, nftRef, payerKaspa });
-      const v = await payAndVerify(text, CHRONICLES_LB_SLOT_CHANGE_KAS, 'slot:set');
+      const v = await payAndVerify(text, slotChangePriceKas, 'slot:set');
       const parsed = chroniclesNftRefToCollectionAndId(nftRef);
       const rarity =
         parsed && (parsed.collection === 'KREXPRIME' || parsed.collection === 'PIXELKREX')
@@ -236,7 +241,7 @@ export function ChroniclesEntitySlots({
     setBusy(slotIndex);
     try {
       const text = buildChroniclesLbClearSlotText({ entityType, entityId, slotIndex, payerKaspa });
-      const v = await payAndVerify(text, CHRONICLES_LB_SLOT_CHANGE_KAS, 'slot:clear');
+      const v = await payAndVerify(text, slotChangePriceKas, 'slot:clear');
       recordLocalSetSlot(payerKaspa, entityType, entityId, slotIndex, null, { txHash: v.txHash, txTimeMs: v.txTimeMs });
       setNote(`Slot ${slotIndex} cleared.`);
     } catch (e) {
@@ -252,8 +257,11 @@ export function ChroniclesEntitySlots({
         <div>
           <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">{title}</p>
           <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
-            Slot 1 is free. Slots 2-3 cost {CHRONICLES_LB_SLOT_ACTIVATION_KAS} KAS to activate. Setting or clearing a slot costs{' '}
-            {CHRONICLES_LB_SLOT_CHANGE_KAS} KAS.
+            Slot 1 is free. Slots 2-3 base cost is {CHRONICLES_LB_SLOT_ACTIVATION_KAS} KAS to activate, and setting or clearing a
+            slot is {CHRONICLES_LB_SLOT_CHANGE_KAS} KAS base.
+          </p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">
+            Your holder pricing ({tier}): activate {activationPriceKas} KAS, set/clear {slotChangePriceKas} KAS.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-3xl">
@@ -264,7 +272,7 @@ export function ChroniclesEntitySlots({
         </div>
         <div className="shrink-0 text-right">
           <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Slot rewards</p>
-          <a href="/chronicles/leaderboard/points" className="text-sm font-bold text-[#02abb8] hover:underline">
+          <a href="/chronicles/leaderboard#points-table" className="text-sm font-bold text-[#02abb8] hover:underline">
             See points →
           </a>
         </div>
@@ -341,7 +349,7 @@ export function ChroniclesEntitySlots({
                   disabled={!state.isConnected || busy != null}
                   className="k-control-btn w-full h-11 text-xs font-bold uppercase tracking-wider"
                 >
-                  {busy === (slotIndex === 2 ? 'activate2' : 'activate3') ? 'Activating…' : `Activate (${CHRONICLES_LB_SLOT_ACTIVATION_KAS} KAS)`}
+                  {busy === (slotIndex === 2 ? 'activate2' : 'activate3') ? 'Activating…' : `Activate (${activationPriceKas} KAS)`}
                 </button>
               ) : null}
             </div>
@@ -356,7 +364,7 @@ export function ChroniclesEntitySlots({
         <ChroniclesNftSlotSelector
           isOpen={true}
           title={`Slot ${selectedSlotIndex}`}
-          description={`Inserting or removing an NFT costs ${CHRONICLES_LB_SLOT_CHANGE_KAS} KAS.`}
+          description={`Inserting or removing an NFT costs ${slotChangePriceKas} KAS.`}
           currentValue={placement(selectedSlotIndex)}
           inUseRefs={allPlacementRefs}
           onClose={() => setSelectedSlotIndex(null)}

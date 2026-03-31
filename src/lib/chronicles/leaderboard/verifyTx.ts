@@ -7,6 +7,7 @@ import {
   CHRONICLES_LB_SLOT_ACTIVATION_KAS,
   CHRONICLES_LB_SLOT_CHANGE_KAS,
 } from './constants';
+import { chroniclesLbMinimumAcceptedKas } from './pricing';
 import { parseChroniclesLbPayload } from './parse';
 import type { ChroniclesLbEvent } from './types';
 
@@ -112,10 +113,10 @@ export async function verifyChroniclesLbTx(input: VerifyChroniclesLbTxInput): Pr
     return { ok: false, error: 'Payload payer does not match connected wallet.' };
   }
 
-  const minKas = requiredKasForEvent(parsed);
+  const minKas = chroniclesLbMinimumAcceptedKas(requiredKasForEvent(parsed));
   const paid = sumOutputsToTreasury(tx, treasuryNorm);
   if (paid < kasToSompi(minKas)) {
-    return { ok: false, error: `Treasury output too low (need at least ${minKas} KAS).` };
+    return { ok: false, error: `Treasury output too low (need at least ${minKas} KAS after holder discount floor).` };
   }
 
   const payers = payerAddressesFromTx(tx);

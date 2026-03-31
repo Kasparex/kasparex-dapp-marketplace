@@ -19,7 +19,7 @@ export function ChroniclesHeader({
       <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#02abb8]/10 blur-2xl rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none" />
       <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
         <div className="min-w-0">
-          <p className="text-sm font-black uppercase tracking-[0.2em] text-[#02abb8] mb-2">{kicker}</p>
+          <p className="text-sm font-black uppercase tracking-[0.2em] text-[#02abb8] mb-4">{kicker}</p>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
             {title}
           </h1>

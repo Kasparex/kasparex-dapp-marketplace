@@ -16,7 +16,7 @@ export function SidebarHeader({ backHref, backLabel, onHide, className = '' }: S
     >
       <Link
         href={backHref}
-        className="text-zinc-500 dark:text-zinc-400 hover:text-[#02abb8] font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
+        className="text-zinc-600 dark:text-zinc-300 hover:text-[#02abb8] text-sm font-medium tracking-normal flex items-center gap-2 transition-colors group"
       >
         <svg
           className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform"

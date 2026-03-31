@@ -47,7 +47,10 @@ export default async function ChroniclesLeaderboardPage() {
 
       <ChroniclesLeaderboardTableLazy initialRows={rows} initialLimit={20} step={30} />
 
-      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-6 sm:p-7 space-y-6 chronicles-vault-card">
+      <div
+        id="points-table"
+        className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-6 sm:p-7 space-y-6 chronicles-vault-card"
+      >
         <div>
           <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">Points</p>
           <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">

@@ -18,19 +18,10 @@ export default function ChroniclesHomePage() {
       .slice()
       .sort((a, b) => b.number - a.number)[0] ?? null;
 
-  const timelineChapters = (() => {
-    const current = chapters
-      .filter((c) => c.timeline === 'current')
-      .slice()
-      .sort((a, b) => b.number - a.number);
-    const past = chapters
-      .filter((c) => c.timeline === 'past')
-      .slice()
-      .sort((a, b) => b.number - a.number);
-    const combined = [...current, ...past];
-    const base = combined.length ? combined : chapters.slice().sort((a, b) => b.number - a.number);
-    return base.slice(0, 5);
-  })();
+  const timelineChapters = chapters
+    .slice()
+    .sort((a, b) => b.number - a.number)
+    .slice(0, 5);
 
   return (
     <div>
@@ -44,7 +35,7 @@ export default function ChroniclesHomePage() {
             badge="Overview"
           />
           <div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-zinc-900 dark:text-zinc-100 mb-3">{overview.title}</h2>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-zinc-900 dark:text-zinc-100 mb-4">{overview.title}</h2>
             <p className="text-lg sm:text-xl text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed">{overview.tagline}</p>
             <ChroniclesMarkdown markdown={overview.bodyMarkdown} />
           </div>

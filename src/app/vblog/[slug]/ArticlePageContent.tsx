@@ -6,6 +6,8 @@ import { Footer } from '@/components/Footer';
 import { ArticleDetail } from '@/components/vblog/ArticleDetail';
 import { ArticleMetadata } from '@/components/vblog/ArticleMetadata';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
+import { ChroniclesEntitySlots } from '@/components/chronicles/leaderboard/ChroniclesEntitySlots';
+import { ChroniclesReadConfirmCard } from '@/components/chronicles/leaderboard/ChroniclesReadConfirmCard';
 import { useVBlog } from '@/hooks/useVBlog';
 import { notFound } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -81,6 +83,10 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
 
           <div className="space-y-16">
             <ArticleDetail article={article} />
+            <div className="space-y-6">
+              <ChroniclesEntitySlots entityType="chapter" entityId={`vblog-${article.slug}`} title="Article slots" />
+              <ChroniclesReadConfirmCard entityType="chapter" entityId={`vblog-${article.slug}`} title="Confirmed read" />
+            </div>
             <div className="pt-12 border-t border-zinc-200 dark:border-zinc-800">
               <ArticleMetadata article={article} />
             </div>
