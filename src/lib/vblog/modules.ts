@@ -1,10 +1,13 @@
 import { VBlogModuleId } from '@/lib/vblog/types';
+import type { KREXTier } from '@/lib/rewards/types';
+import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 
 export type VBlogModuleOffer = {
   id: VBlogModuleId;
   title: string;
   description: string;
   unlockPriceKas: number;
+  featuredImage?: string;
 };
 
 export type VBlogAuthorModuleEntitlements = Record<string, VBlogModuleId[]>;
@@ -45,32 +48,47 @@ export const VBLOG_MODULE_OFFERS: VBlogModuleOffer[] = [
     title: 'Premium Section Unlocks',
     description: 'Add paid premium sections with author payout and platform fee split.',
     unlockPriceKas: 25,
+    featuredImage: '',
   },
   {
     id: 'tip_box',
     title: 'Standard Tipping Box',
     description: 'Enable 10 / 50 / 100 KAS tips and custom amount support.',
     unlockPriceKas: 8,
+    featuredImage: '',
   },
   {
     id: 'tip_to_reveal',
     title: 'Tip-to-Reveal Bonus',
     description: 'Unlock hidden bonus content after reader reaches a tip threshold.',
     unlockPriceKas: 12,
+    featuredImage: '',
   },
   {
     id: 'premium_poll',
     title: 'Premium Polls',
     description: 'Allow paid readers to vote once on upcoming article direction.',
     unlockPriceKas: 10,
+    featuredImage: '',
   },
   {
     id: 'reading_receipts_badges',
     title: 'Reading Receipts + Badges',
     description: 'Enable on-chain reading receipt tracking and streak badge levels.',
     unlockPriceKas: 15,
+    featuredImage: '',
   },
 ];
+
+export function getVBlogModuleDiscountPercent(tier: KREXTier): number {
+  return krexTierDiscountPercent(tier);
+}
+
+export function getVBlogModuleEffectivePriceKas(baseKas: number, tier: KREXTier): number {
+  const discount = getVBlogModuleDiscountPercent(tier);
+  const factor = 1 - discount / 100;
+  return Math.max(0.01, Math.round(baseKas * factor * 100) / 100);
+}
 
 function safeParse<T>(value: string | null, fallback: T): T {
   if (!value) return fallback;

@@ -16,6 +16,7 @@ import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { getVBlogBaseFeeKas } from '@/lib/vblog/pricing';
 import { getAuthorUnlockedModules } from '@/lib/vblog/modules';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { VBlogModuleUnlockCards } from './VBlogModuleUnlockCards';
 
 interface EditArticleFormProps {
   article: VBlogArticle;
@@ -360,6 +361,13 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
             setLinkedIssueNumber(issueNum);
           }}
           disabled={isSubmitting}
+        />
+
+        <VBlogModuleUnlockCards
+          title="Unlock related modules"
+          onUnlockChange={(ids) => setUnlockedModules(ids)}
+          recommendedModuleIds={['premium_section', 'tip_box', 'tip_to_reveal', 'premium_poll']}
+          showToggleLabel="Show all modules"
         />
 
         <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 space-y-4">
