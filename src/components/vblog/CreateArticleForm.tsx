@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { VBlogArticle, VBlogModuleId } from '@/lib/vblog/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
@@ -104,7 +104,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
     unlocked: boolean;
     enabled: boolean;
     onToggle: (next: boolean) => void;
-    fields: JSX.Element | null;
+    fields: ReactNode;
     readOnly?: boolean;
   };
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { type ReactNode, useState, useEffect } from 'react';
 import { VBlogArticle, VBlogModuleId } from '@/lib/vblog/types';
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import {
@@ -126,7 +126,7 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
     unlocked: boolean;
     enabled: boolean;
     onToggle: (next: boolean) => void;
-    fields: JSX.Element | null;
+    fields: ReactNode;
     readOnly?: boolean;
   };
 
