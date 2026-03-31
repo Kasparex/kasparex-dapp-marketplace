@@ -3,7 +3,7 @@
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 
 export function AuthorPricing() {
-    const { createFee, editFee } = useVBlogPricing();
+    const { createFee, editFee, deleteFee } = useVBlogPricing();
 
     const benefits = [
         {
@@ -81,6 +81,10 @@ export function AuthorPricing() {
                             <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
                                 <span className="text-sm font-bold text-zinc-300">Edit Fee</span>
                                 <span className="text-lg font-black text-orange-400">{editFee} <span className="text-[10px] text-zinc-500">KAS</span></span>
+                            </div>
+                            <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
+                                <span className="text-sm font-bold text-zinc-300">Delete Fee</span>
+                                <span className="text-lg font-black text-orange-400">{deleteFee} <span className="text-[10px] text-zinc-500">KAS</span></span>
                             </div>
                         </div>
                     </div>

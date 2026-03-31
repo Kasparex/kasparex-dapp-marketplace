@@ -2,8 +2,6 @@
 
 import { useState } from 'react';
 import { VBlogArticle } from '@/lib/vblog/types';
-import { KASFeeConfirmation } from './KASFeeConfirmation';
-import { KASFeeInfo } from '@/lib/vblog/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
@@ -52,7 +50,6 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
   const [cid, setCid] = useState('');
   const [linkedMagazineId, setLinkedMagazineId] = useState<string | undefined>();
   const [linkedIssueNumber, setLinkedIssueNumber] = useState<number | undefined>();
-  const [showFeeConfirmation, setShowFeeConfirmation] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const createQuote = pricing.estimateQuote({
@@ -102,8 +99,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
       return;
     }
 
-    // Show fee confirmation
-    setShowFeeConfirmation(true);
+    void handleConfirm();
   };
 
   const handleConfirm = async () => {
@@ -152,13 +148,13 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
   };
 
   return (
-    <>
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
+        <div className="space-y-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8">
         <div>
-          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+          <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-4 tracking-tight">
             Create New Article
           </h3>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
+          <p className="text-base text-zinc-600 dark:text-zinc-400 mb-6 leading-relaxed">
             Fill in the details below to create a new article. Estimated cost: {createQuote.totalKas} KAS ({createQuote.chunkCount} chunk{createQuote.chunkCount === 1 ? '' : 's'}, {createQuote.payloadBytes} bytes){pricing.tier.hasKREXDiscount ? ' (KREX holder discount)' : ''}.
           </p>
           {pricing.tier.hasNFTPerks && (
@@ -192,7 +188,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Enter article title"
             maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.title.max : CONTENT_LIMITS.title.max}
-            className="k-input"
+            className="k-input text-base"
             required
             disabled={isSubmitting}
           />
@@ -216,7 +212,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
             placeholder="Enter a brief description of the article"
             rows={3}
             maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max}
-            className="k-textarea min-h-[80px]"
+            className="k-textarea min-h-[96px] text-base"
             required
             disabled={isSubmitting}
           />
@@ -234,14 +230,15 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
             placeholder="Write your article content here..."
             maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max}
             disabled={isSubmitting}
-            rows={10}
-            className="k-textarea"
+            rows={14}
+            className="k-textarea text-base leading-relaxed"
           />
         </div>
 
         <div>
           <label className="k-label">
             Featured Image URL or CID
+            <span className="text-red-500 ml-1">*</span>
           </label>
           <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-2">
             Recommended size: 1200x630px (1.91:1 aspect ratio) for optimal display
@@ -251,8 +248,9 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
             value={featuredImage}
             onChange={(e) => setFeaturedImage(e.target.value)}
             placeholder="Enter image URL or CID"
-            className="k-input"
+            className="k-input text-base"
             disabled={isSubmitting}
+            required
           />
         </div>
 
@@ -318,9 +316,6 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
         </div>
 
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
-          <div className="mr-auto text-xs text-zinc-500 dark:text-zinc-400">
-            Base {createQuote.baseFeeKas} + Size {createQuote.sizeFeeKas} + Network {createQuote.networkFeeBufferKas} = {createQuote.totalKas} KAS
-          </div>
           {onCancel && (
             <button
               type="button"
@@ -331,34 +326,38 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
               Cancel
             </button>
           )}
+        </div>
+        </div>
+        <aside className="xl:sticky xl:top-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4">
+          <h4 className="text-sm font-black uppercase tracking-widest text-[#02abb8]">Calculation breakdown</h4>
+          <div className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <div className="flex justify-between"><span>Base fee</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{createQuote.baseFeeKas} KAS</span></div>
+            <div className="flex justify-between"><span>Size fee</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{createQuote.sizeFeeKas} KAS</span></div>
+            <div className="flex justify-between"><span>Network buffer</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{createQuote.networkFeeBufferKas} KAS</span></div>
+            <div className="flex justify-between"><span>Payload bytes</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{createQuote.payloadBytes}</span></div>
+            <div className="flex justify-between"><span>Chunk estimate</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{createQuote.chunkCount}</span></div>
+          </div>
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-3">
+            <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
+            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{createQuote.totalKas} KAS</p>
+          </div>
+          <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-sm text-amber-800 dark:text-amber-300">
+            One Kaspa L1 payment will be requested. Ensure your wallet has enough KAS for fee + network cost.
+          </div>
+          {pricing.tier.hasKREXDiscount && (
+            <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm text-emerald-800 dark:text-emerald-300">
+              KREX discount applied to the base fee.
+            </div>
+          )}
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-4 py-2.5 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? 'Creating...' : 'Create Article'}
           </button>
-        </div>
+        </aside>
       </form>
-
-      <KASFeeConfirmation
-        isOpen={showFeeConfirmation}
-        onClose={() => setShowFeeConfirmation(false)}
-        onConfirm={handleConfirm}
-        feeInfo={{
-          amount: createQuote.totalKas,
-          action: 'create',
-          description: `This action will cost ${createQuote.totalKas} KAS (${createQuote.payloadBytes} bytes across ${createQuote.chunkCount} transaction chunk${createQuote.chunkCount === 1 ? '' : 's'})${pricing.tier.hasKREXDiscount ? '. KREX holder discount applied to base fee.' : '.'}`,
-          payloadBytes: createQuote.payloadBytes,
-          chunkCount: createQuote.chunkCount,
-          baseFeeKas: createQuote.baseFeeKas,
-          sizeFeeKas: createQuote.sizeFeeKas,
-          networkFeeBufferKas: createQuote.networkFeeBufferKas,
-          totalKas: createQuote.totalKas,
-        }}
-        isProcessing={isSubmitting}
-      />
-    </>
   );
 }
 

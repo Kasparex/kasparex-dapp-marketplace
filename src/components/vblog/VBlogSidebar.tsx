@@ -1,9 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
-import { SidebarSection } from '@/components/sidebar/SidebarSection';
+import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
 import { SidebarTags } from '@/components/sidebar/SidebarTags';
@@ -69,34 +68,21 @@ export function VBlogSidebar({
     onCategoryChange(id === ALL_ID ? null : id);
   };
 
+  const backHref = activeView === 'explore' ? '/hub' : '/vblog';
+  const backLabel = activeView === 'explore' ? 'Back to hub' : 'Back to vBlog';
   const header = (onHide: () => void) => (
-    <div className="flex-shrink-0 bg-transparent border-b border-zinc-200 dark:border-zinc-800 p-4">
-      <div className="flex items-center justify-between">
-        <Link
-          href="/hub"
-          className="text-zinc-500 dark:text-zinc-400 hover:text-[#02abb8] font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
-        >
-          <svg className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
-          </svg>
-          Back to Hub
-        </Link>
-        <button type="button" onClick={onHide} className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-colors" aria-label="Hide sidebar">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-        </button>
-      </div>
-    </div>
+    <SidebarHeader backHref={backHref} backLabel={backLabel} onHide={onHide} />
   );
 
   return (
     <UnifiedSidebar storageKeyPrefix="vblog" header={header}>
       {onCreateArticle && (
           <div className="mb-6">
-            <button type="button" onClick={onCreateArticle} className="w-full flex items-center gap-3 px-4 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl transition-all shadow-lg shadow-orange-500/20 group">
-              <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <button type="button" onClick={onCreateArticle} className="k-control-btn w-full justify-center gap-2 !bg-orange-500 hover:!bg-orange-600 !text-white !border-orange-400/30 !rounded-xl">
+              <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
               </div>
-              <span className="text-sm font-black uppercase tracking-widest text-left">Create Article</span>
+              <span className="text-xs font-black uppercase tracking-widest text-left">Create Article</span>
             </button>
           </div>
         )}

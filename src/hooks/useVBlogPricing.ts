@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { computeVBlogArticlePrice, type VBlogAction, type VBlogPriceQuote, type VBlogPricingDraft } from '@/lib/vblog/pricing';
+import { computeVBlogArticlePrice, VBLOG_DELETE_BASE_FEE_KAS, type VBlogAction, type VBlogPriceQuote, type VBlogPricingDraft } from '@/lib/vblog/pricing';
 const KREX_DISCOUNT_THRESHOLD = 10_000_000; // 10M KREX
 const KREXPRIME_NFT_COLLECTION = 'KREXPRIME';
 const PIXELKREX_NFT_COLLECTION = 'PIXELKREX';
@@ -18,6 +18,7 @@ interface UserTier {
 interface PricingInfo {
   createFee: number;
   editFee: number;
+  deleteFee: number;
   isPremium: boolean;
   tier: UserTier;
   estimateQuote: (draft: VBlogPricingDraft, action: VBlogAction) => VBlogPriceQuote;
@@ -64,7 +65,8 @@ export function useVBlogPricing() {
   // Initialize with default values - always return a stable object
   const [pricingInfo, setPricingInfo] = useState<PricingInfo>({
     createFee: 10.41,
-    editFee: 10.41,
+    editFee: 2.41,
+    deleteFee: VBLOG_DELETE_BASE_FEE_KAS,
     isPremium: false,
     tier: {
       hasKREXDiscount: false,
@@ -90,14 +92,15 @@ export function useVBlogPricing() {
           // CRITICAL: Only update state if it's different to prevent infinite loops
           // Check if current state is already the default before setting
           setPricingInfo(prev => {
-            if (prev.createFee === 10.41 && prev.editFee === 10.41 && !prev.isPremium &&
+            if (prev.createFee === 10.41 && prev.editFee === 2.41 && prev.deleteFee === VBLOG_DELETE_BASE_FEE_KAS && !prev.isPremium &&
               !prev.tier.hasKREXDiscount && !prev.tier.hasNFTPerks &&
               prev.tier.nftCollections.length === 0) {
               return prev; // Already at default, don't update
             }
             return {
               createFee: 10.41,
-              editFee: 10.41,
+              editFee: 2.41,
+              deleteFee: VBLOG_DELETE_BASE_FEE_KAS,
               isPremium: false,
               tier: {
                 hasKREXDiscount: false,
@@ -143,6 +146,7 @@ export function useVBlogPricing() {
                 return {
                   createFee: newCreateFee,
                   editFee: newEditFee,
+                  deleteFee: VBLOG_DELETE_BASE_FEE_KAS,
                   isPremium: hasNFTPerks,
                   tier: {
                     hasKREXDiscount: hasKREXDiscountInner,
@@ -159,14 +163,15 @@ export function useVBlogPricing() {
             if (isMounted) {
               console.error('Error loading pricing info:', error);
               setPricingInfo(prev => {
-                if (prev.createFee === 10.41 && prev.editFee === 10.41 && !prev.isPremium &&
+                if (prev.createFee === 10.41 && prev.editFee === 2.41 && prev.deleteFee === VBLOG_DELETE_BASE_FEE_KAS && !prev.isPremium &&
                   !prev.tier.hasKREXDiscount && !prev.tier.hasNFTPerks &&
                   prev.tier.nftCollections.length === 0) {
                   return prev; // Already at default
                 }
                 return {
                   createFee: 10.41,
-                  editFee: 10.41,
+                  editFee: 2.41,
+                  deleteFee: VBLOG_DELETE_BASE_FEE_KAS,
                   isPremium: false,
                   tier: {
                     hasKREXDiscount: false,
@@ -184,14 +189,15 @@ export function useVBlogPricing() {
         // Ultimate fallback
         if (isMounted) {
           setPricingInfo(prev => {
-            if (prev.createFee === 10.41 && prev.editFee === 10.41 && !prev.isPremium &&
+            if (prev.createFee === 10.41 && prev.editFee === 2.41 && prev.deleteFee === VBLOG_DELETE_BASE_FEE_KAS && !prev.isPremium &&
               !prev.tier.hasKREXDiscount && !prev.tier.hasNFTPerks &&
               prev.tier.nftCollections.length === 0) {
               return prev; // Already at default
             }
             return {
               createFee: 10.41,
-              editFee: 10.41,
+              editFee: 2.41,
+              deleteFee: VBLOG_DELETE_BASE_FEE_KAS,
               isPremium: false,
               tier: {
                 hasKREXDiscount: false,

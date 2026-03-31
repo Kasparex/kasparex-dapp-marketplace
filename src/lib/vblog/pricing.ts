@@ -1,7 +1,9 @@
 import type { VBlogArticle } from '@/lib/vblog/types';
 
 export const VBLOG_CHUNK_SIZE_BYTES = 180;
-export const VBLOG_BASE_FEE_KAS = 10;
+export const VBLOG_CREATE_BASE_FEE_KAS = 10;
+export const VBLOG_EDIT_BASE_FEE_KAS = 2;
+export const VBLOG_DELETE_BASE_FEE_KAS = 0.1;
 export const VBLOG_PER_CHUNK_KAS = 0.35;
 export const VBLOG_PER_KB_KAS = 0.2;
 
@@ -27,6 +29,11 @@ export interface VBlogPriceQuote {
   sizeFeeKas: number;
   networkFeeBufferKas: number;
   totalKas: number;
+}
+
+export function getVBlogBaseFeeKas(action: VBlogAction): number {
+  if (action === 'edit') return VBLOG_EDIT_BASE_FEE_KAS;
+  return VBLOG_CREATE_BASE_FEE_KAS;
 }
 
 function round2(value: number): number {
@@ -102,7 +109,7 @@ export function computeVBlogArticlePrice(
   const payload = buildCanonicalArticlePayload(draft, action);
   const { payloadBytes, chunkCount } = computeArticleChunkPlan(payload);
   const discount = Math.min(Math.max(discountPercent, 0), 90) / 100;
-  const baseFeeKas = VBLOG_BASE_FEE_KAS * (1 - discount);
+  const baseFeeKas = getVBlogBaseFeeKas(action) * (1 - discount);
   const sizeFeeKas = chunkCount * VBLOG_PER_CHUNK_KAS + (payloadBytes / 1024) * VBLOG_PER_KB_KAS;
   const networkFeeBufferKas = Math.max(0.05, chunkCount * 0.01);
   const totalKas = round2(baseFeeKas + sizeFeeKas + networkFeeBufferKas);

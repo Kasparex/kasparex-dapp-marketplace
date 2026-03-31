@@ -60,6 +60,14 @@ export function buildVBlogCommitPayloadHex(args: Parameters<typeof buildVBlogCom
   return utf8ToHex(buildVBlogCommitPlainNote(args));
 }
 
+export function buildVBlogDeletePlainNote(articleId: string, payerAddress: string): string {
+  return `${VBLOG_PAYLOAD_PREFIX}delete:${articleId}:${payerAddress.trim()}`;
+}
+
+export function buildVBlogDeletePayloadHex(articleId: string, payerAddress: string): string {
+  return utf8ToHex(buildVBlogDeletePlainNote(articleId, payerAddress));
+}
+
 export function computeVBlogRootHash(chunkHexList: string[]): string {
   return fnv1aHex(chunkHexList.join('|'));
 }

@@ -22,12 +22,15 @@ import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import {
   buildCanonicalArticlePayload,
   fnv1aHex,
+  VBLOG_DELETE_BASE_FEE_KAS,
   VBLOG_CHUNK_SIZE_BYTES,
 } from '@/lib/vblog/pricing';
 import {
   splitPayloadToHexChunks,
   buildVBlogCommitPayloadHex,
   buildVBlogCommitPlainNote,
+  buildVBlogDeletePayloadHex,
+  buildVBlogDeletePlainNote,
   computeVBlogRootHash,
 } from '@/lib/vblog/payloadHex';
 
@@ -295,12 +298,31 @@ export function useVBlog() {
    * TODO: Replace with actual smart contract call
    */
   const deleteExistingArticle = useCallback(async (articleId: string): Promise<boolean> => {
+    const existing = getAllArticles().find((a) => a.id === articleId);
+    if (!existing) {
+      return false;
+    }
+    if (!kaspaState.isConnected || !kaspaState.provider || !kaspaState.address) {
+      throw new Error('Kaspa wallet must be connected to delete an article.');
+    }
+    const treasury = getVBlogTreasuryL1Address();
+    const note = buildVBlogDeletePlainNote(existing.articleId ?? articleId, kaspaState.address);
+    const payload = buildVBlogDeletePayloadHex(existing.articleId ?? articleId, kaspaState.address);
+    const tx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
+      to: treasury,
+      amount: String(kasToSompi(VBLOG_DELETE_BASE_FEE_KAS)),
+      note,
+      payload,
+    });
+    if (tx.status === 'failed' || !tx.txHash) {
+      throw new Error(tx.error ?? 'Delete transaction failed');
+    }
     const deleted = deleteArticle(articleId);
     if (deleted) {
       loadArticles(); // Reload articles
     }
     return deleted;
-  }, [loadArticles]);
+  }, [kaspaState.address, kaspaState.isConnected, kaspaState.provider, loadArticles]);
 
   return {
     articles,

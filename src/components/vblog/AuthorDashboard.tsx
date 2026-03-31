@@ -10,6 +10,7 @@ import { EditArticleForm } from './EditArticleForm';
 import { ArticleList } from './ArticleList';
 import { AuthorPricing } from './AuthorPricing';
 import { Alert } from '@/components/Alert';
+import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 
 interface AuthorDashboardProps {
   createIntentKey?: number;
@@ -24,6 +25,7 @@ export function AuthorDashboard({ createIntentKey = 0 }: AuthorDashboardProps) {
   const isWalletConnected = kaspaState.isConnected || isEVMConnected;
 
   const { createNewArticle, updateExistingArticle, deleteExistingArticle, getAuthorArticles, loadArticles } = useVBlog();
+  const pricing = useVBlogPricing();
   const [activeTab, setActiveTab] = useState<'create' | 'my-articles'>('create');
   const [editingArticle, setEditingArticle] = useState<VBlogArticle | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -76,7 +78,7 @@ export function AuthorDashboard({ createIntentKey = 0 }: AuthorDashboardProps) {
   };
 
   const handleDeleteArticle = async (articleId: string) => {
-    if (!confirm('Are you sure you want to delete this article? This action cannot be undone.')) {
+    if (!confirm(`Deleting an article costs ${pricing.deleteFee} KAS and cannot be undone. Continue?`)) {
       return;
     }
 
@@ -97,9 +99,9 @@ export function AuthorDashboard({ createIntentKey = 0 }: AuthorDashboardProps) {
   };
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8">
       {/* Navigation Tabs */}
-      <div className="flex bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-1.5 gap-1.5 rounded-2xl shadow-sm max-w-sm mx-auto">
+      <div className="flex bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-1.5 gap-1.5 rounded-2xl shadow-sm max-w-md">
         <button
           onClick={() => {
             setActiveTab('create');
@@ -110,7 +112,7 @@ export function AuthorDashboard({ createIntentKey = 0 }: AuthorDashboardProps) {
             : 'text-zinc-500 hover:text-zinc-100 dark:hover:text-zinc-100'
             }`}
         >
-          {editingArticle ? 'Edit Article' : 'Draft Article'}
+          {editingArticle ? 'Edit Article' : 'Create Article'}
         </button>
         <button
           onClick={() => {
@@ -158,6 +160,9 @@ export function AuthorDashboard({ createIntentKey = 0 }: AuthorDashboardProps) {
               <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">
                 Personal <span className="text-orange-500">Archive</span>
               </h3>
+              <p className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
+                Delete fee: {pricing.deleteFee} KAS
+              </p>
             </div>
             <ArticleList articles={authorArticles} onEdit={handleEdit} onDelete={handleDeleteArticle} />
           </div>

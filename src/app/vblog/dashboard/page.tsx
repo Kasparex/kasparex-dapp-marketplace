@@ -41,13 +41,14 @@ export default function VBlogDashboardPage() {
           />
 
           {/* Main Content Area */}
-          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800 text-base sm:text-[17px]">
+          <div className="flex-1 min-w-0 p-4 sm:p-8 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800 text-base sm:text-lg">
             <div className="max-w-6xl mx-auto">
               <div className="mb-12">
-                <h1 className="text-4xl font-black text-zinc-900 dark:text-zinc-100 mb-2 uppercase tracking-tight">
+                <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">Creator dashboard</p>
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-3 tracking-tight">
                   Creator <span className="text-orange-500">Center</span>
                 </h1>
-                <p className="text-zinc-500 dark:text-zinc-400 font-bold text-sm uppercase tracking-widest">
+                <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
                   Manage your decentralized vBlog publications
                 </p>
               </div>
