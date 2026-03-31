@@ -1,3 +1,35 @@
+export type VBlogModuleId =
+  | 'premium_section'
+  | 'tip_box'
+  | 'tip_to_reveal'
+  | 'premium_poll'
+  | 'reading_receipts_badges';
+
+export interface VBlogTipBoxConfig {
+  presets: number[];
+  allowCustom: boolean;
+}
+
+export interface VBlogPremiumPollConfig {
+  question: string;
+  options: string[];
+}
+
+export interface VBlogModulesConfig {
+  premiumSectionEnabled?: boolean;
+  premiumSectionContent?: string;
+  premiumSectionPriceKas?: number;
+  premiumSectionPayoutAddress?: string;
+  tipBoxEnabled?: boolean;
+  tipBox?: VBlogTipBoxConfig;
+  tipToRevealEnabled?: boolean;
+  tipToRevealContent?: string;
+  tipToRevealThresholdKas?: number;
+  premiumPollEnabled?: boolean;
+  premiumPoll?: VBlogPremiumPollConfig;
+  readingReceiptsEnabled?: boolean;
+}
+
 export interface VBlogArticle {
   id: string;
   slug: string;
@@ -36,6 +68,7 @@ export interface VBlogArticle {
     networkFeeBufferKas: number;
     totalKas: number;
   };
+  modules?: VBlogModulesConfig;
 }
 
 export interface VBlogComment {

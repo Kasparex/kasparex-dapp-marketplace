@@ -1,12 +1,19 @@
 'use client';
 
 import { VBlogArticle } from '@/lib/vblog/types';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { useAccount } from 'wagmi';
+import { getReceiptStreakAndBadge } from '@/lib/vblog/modules';
 
 interface ArticleMetadataProps {
   article: VBlogArticle;
 }
 
 export function ArticleMetadata({ article }: ArticleMetadataProps) {
+  const { state: kaspaState } = useKaspaWallet();
+  const { address: evmAddress } = useAccount();
+  const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : '');
+  const receiptBadge = walletAddress ? getReceiptStreakAndBadge(walletAddress) : { streak: 0, badge: 'No badge' };
   return (
     <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 mt-8">
       <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
@@ -41,6 +48,15 @@ export function ArticleMetadata({ article }: ArticleMetadataProps) {
           </label>
           <p className="text-sm text-zinc-900 dark:text-zinc-100 mt-1 font-mono break-all">
             {article.txHash || 'N/A'}
+          </p>
+        </div>
+
+        <div>
+          <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
+            Reader Streak Badge
+          </label>
+          <p className="text-sm text-zinc-900 dark:text-zinc-100 mt-1">
+            {receiptBadge.badge} ({receiptBadge.streak} day streak)
           </p>
         </div>
       </div>

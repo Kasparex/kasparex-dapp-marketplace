@@ -14,6 +14,8 @@ import { Alert } from '@/components/Alert';
 import { VBlogMagazineIntegration } from './VBlogMagazineIntegration';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { getVBlogBaseFeeKas } from '@/lib/vblog/pricing';
+import { getAuthorUnlockedModules } from '@/lib/vblog/modules';
+import { useKaspaWallet } from '@/lib/kaspa/context';
 
 interface EditArticleFormProps {
   article: VBlogArticle;
@@ -35,6 +37,7 @@ const CATEGORIES = [
 
 export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleFormProps) {
   const pricing = useVBlogPricing();
+  const { state: kaspaState } = useKaspaWallet();
   const [title, setTitle] = useState(article.title);
   const [description, setDescription] = useState(article.description);
   const [content, setContent] = useState(article.content);
@@ -47,6 +50,19 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
+  const [unlockedModules, setUnlockedModules] = useState<string[]>([]);
+  const [premiumSectionEnabled, setPremiumSectionEnabled] = useState(Boolean(article.modules?.premiumSectionEnabled));
+  const [premiumSectionContent, setPremiumSectionContent] = useState(article.modules?.premiumSectionContent ?? '');
+  const [premiumSectionPriceKas, setPremiumSectionPriceKas] = useState(String(article.modules?.premiumSectionPriceKas ?? 10));
+  const [premiumSectionPayoutAddress, setPremiumSectionPayoutAddress] = useState(article.modules?.premiumSectionPayoutAddress ?? '');
+  const [tipBoxEnabled, setTipBoxEnabled] = useState(Boolean(article.modules?.tipBoxEnabled));
+  const [tipToRevealEnabled, setTipToRevealEnabled] = useState(Boolean(article.modules?.tipToRevealEnabled));
+  const [tipToRevealContent, setTipToRevealContent] = useState(article.modules?.tipToRevealContent ?? '');
+  const [tipToRevealThresholdKas, setTipToRevealThresholdKas] = useState(String(article.modules?.tipToRevealThresholdKas ?? 25));
+  const [premiumPollEnabled, setPremiumPollEnabled] = useState(Boolean(article.modules?.premiumPollEnabled));
+  const [pollQuestion, setPollQuestion] = useState(article.modules?.premiumPoll?.question ?? '');
+  const [pollOptions, setPollOptions] = useState((article.modules?.premiumPoll?.options ?? ['Option 1', 'Option 2']).join(', '));
+  const [readingReceiptsEnabled, setReadingReceiptsEnabled] = useState(Boolean(article.modules?.readingReceiptsEnabled));
   const updateQuote = pricing.estimateQuote({
     title,
     description,
@@ -72,7 +88,27 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
     setCid(article.cid || '');
     setLinkedMagazineId(article.linkedMagazineId);
     setLinkedIssueNumber(article.linkedIssueNumber);
+    setPremiumSectionEnabled(Boolean(article.modules?.premiumSectionEnabled));
+    setPremiumSectionContent(article.modules?.premiumSectionContent ?? '');
+    setPremiumSectionPriceKas(String(article.modules?.premiumSectionPriceKas ?? 10));
+    setPremiumSectionPayoutAddress(article.modules?.premiumSectionPayoutAddress ?? '');
+    setTipBoxEnabled(Boolean(article.modules?.tipBoxEnabled));
+    setTipToRevealEnabled(Boolean(article.modules?.tipToRevealEnabled));
+    setTipToRevealContent(article.modules?.tipToRevealContent ?? '');
+    setTipToRevealThresholdKas(String(article.modules?.tipToRevealThresholdKas ?? 25));
+    setPremiumPollEnabled(Boolean(article.modules?.premiumPollEnabled));
+    setPollQuestion(article.modules?.premiumPoll?.question ?? '');
+    setPollOptions((article.modules?.premiumPoll?.options ?? ['Option 1', 'Option 2']).join(', '));
+    setReadingReceiptsEnabled(Boolean(article.modules?.readingReceiptsEnabled));
   }, [article]);
+
+  useEffect(() => {
+    if (!kaspaState.address) {
+      setUnlockedModules([]);
+      return;
+    }
+    setUnlockedModules(getAuthorUnlockedModules(kaspaState.address));
+  }, [kaspaState.address]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,6 +139,24 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
       setError('Content is required');
       return;
     }
+
+    if (premiumSectionEnabled) {
+      if (!premiumSectionContent.trim() || !premiumSectionPayoutAddress.trim()) {
+        setError('Premium section needs content and payout wallet address.');
+        return;
+      }
+    }
+    if (tipToRevealEnabled && !tipToRevealContent.trim()) {
+      setError('Tip-to-reveal bonus content is required when enabled.');
+      return;
+    }
+    if (premiumPollEnabled) {
+      const options = pollOptions.split(',').map((x) => x.trim()).filter(Boolean);
+      if (!pollQuestion.trim() || options.length < 2) {
+        setError('Premium poll requires a question and at least 2 options.');
+        return;
+      }
+    }
     const contentValidation = validateContent(content, pricing.isPremium);
     if (!contentValidation.valid) {
       setError(contentValidation.error ?? 'Content validation failed');
@@ -131,6 +185,22 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
         cid: cid.trim() || undefined,
         linkedMagazineId,
         linkedIssueNumber,
+        modules: {
+          premiumSectionEnabled,
+          premiumSectionContent: premiumSectionEnabled ? premiumSectionContent.trim() : undefined,
+          premiumSectionPriceKas: premiumSectionEnabled ? Number(premiumSectionPriceKas) : undefined,
+          premiumSectionPayoutAddress: premiumSectionEnabled ? premiumSectionPayoutAddress.trim() : undefined,
+          tipBoxEnabled,
+          tipBox: tipBoxEnabled ? { presets: [10, 50, 100], allowCustom: true } : undefined,
+          tipToRevealEnabled,
+          tipToRevealContent: tipToRevealEnabled ? tipToRevealContent.trim() : undefined,
+          tipToRevealThresholdKas: tipToRevealEnabled ? Number(tipToRevealThresholdKas) : undefined,
+          premiumPollEnabled,
+          premiumPoll: premiumPollEnabled
+            ? { question: pollQuestion.trim(), options: pollOptions.split(',').map((x) => x.trim()).filter(Boolean) }
+            : undefined,
+          readingReceiptsEnabled,
+        },
       });
     } catch (err) {
       console.error('Error updating article:', err);
@@ -291,6 +361,56 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
           }}
           disabled={isSubmitting}
         />
+
+        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 space-y-4">
+          <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Vault modules</p>
+
+          <label className="flex items-center justify-between text-sm">
+            <span>Premium section unlock</span>
+            <input type="checkbox" checked={premiumSectionEnabled} disabled={!unlockedModules.includes('premium_section') || isSubmitting} onChange={(e) => setPremiumSectionEnabled(e.target.checked)} />
+          </label>
+          {premiumSectionEnabled && (
+            <div className="space-y-2">
+              <textarea value={premiumSectionContent} onChange={(e) => setPremiumSectionContent(e.target.value)} rows={4} className="k-textarea" placeholder="Premium section content" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <input className="k-input" value={premiumSectionPriceKas} onChange={(e) => setPremiumSectionPriceKas(e.target.value)} placeholder="Unlock price KAS" />
+                <input className="k-input" value={premiumSectionPayoutAddress} onChange={(e) => setPremiumSectionPayoutAddress(e.target.value)} placeholder="Payout Kaspa address" />
+              </div>
+            </div>
+          )}
+
+          <label className="flex items-center justify-between text-sm">
+            <span>Tip box</span>
+            <input type="checkbox" checked={tipBoxEnabled} disabled={!unlockedModules.includes('tip_box') || isSubmitting} onChange={(e) => setTipBoxEnabled(e.target.checked)} />
+          </label>
+
+          <label className="flex items-center justify-between text-sm">
+            <span>Tip-to-reveal bonus</span>
+            <input type="checkbox" checked={tipToRevealEnabled} disabled={!unlockedModules.includes('tip_to_reveal') || isSubmitting} onChange={(e) => setTipToRevealEnabled(e.target.checked)} />
+          </label>
+          {tipToRevealEnabled && (
+            <div className="space-y-2">
+              <textarea value={tipToRevealContent} onChange={(e) => setTipToRevealContent(e.target.value)} rows={3} className="k-textarea" placeholder="Bonus content" />
+              <input className="k-input" value={tipToRevealThresholdKas} onChange={(e) => setTipToRevealThresholdKas(e.target.value)} placeholder="Reveal threshold KAS" />
+            </div>
+          )}
+
+          <label className="flex items-center justify-between text-sm">
+            <span>Premium poll (paid readers vote)</span>
+            <input type="checkbox" checked={premiumPollEnabled} disabled={!unlockedModules.includes('premium_poll') || isSubmitting} onChange={(e) => setPremiumPollEnabled(e.target.checked)} />
+          </label>
+          {premiumPollEnabled && (
+            <div className="space-y-2">
+              <input className="k-input" value={pollQuestion} onChange={(e) => setPollQuestion(e.target.value)} placeholder="Poll question" />
+              <input className="k-input" value={pollOptions} onChange={(e) => setPollOptions(e.target.value)} placeholder="Options comma-separated" />
+            </div>
+          )}
+
+          <label className="flex items-center justify-between text-sm">
+            <span>Reading receipts + badges</span>
+            <input type="checkbox" checked={readingReceiptsEnabled} disabled={!unlockedModules.includes('reading_receipts_badges') || isSubmitting} onChange={(e) => setReadingReceiptsEnabled(e.target.checked)} />
+          </label>
+        </div>
 
         <div>
           <label className="k-label">

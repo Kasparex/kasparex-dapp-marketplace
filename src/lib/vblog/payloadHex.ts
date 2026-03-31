@@ -2,7 +2,7 @@ import { fnv1aHex } from '@/lib/vblog/pricing';
 
 export const VBLOG_PAYLOAD_PREFIX = 'kvb1:';
 
-function utf8ToHex(text: string): string {
+export function utf8ToHex(text: string): string {
   if (typeof Buffer !== 'undefined') {
     return Buffer.from(text, 'utf8').toString('hex');
   }
@@ -66,6 +66,19 @@ export function buildVBlogDeletePlainNote(articleId: string, payerAddress: strin
 
 export function buildVBlogDeletePayloadHex(articleId: string, payerAddress: string): string {
   return utf8ToHex(buildVBlogDeletePlainNote(articleId, payerAddress));
+}
+
+export function buildVBlogPremiumUnlockPlainNote(args: {
+  articleId: string;
+  moduleId: 'premium_unlock' | 'tip_to_reveal_unlock' | 'tip_box';
+  payerAddress: string;
+  amountKas: number;
+}): string {
+  return `${VBLOG_PAYLOAD_PREFIX}reader:${args.articleId}:${args.moduleId}:${args.payerAddress.trim()}:${args.amountKas.toFixed(2)}`;
+}
+
+export function buildVBlogPremiumUnlockPayloadHex(args: Parameters<typeof buildVBlogPremiumUnlockPlainNote>[0]): string {
+  return utf8ToHex(buildVBlogPremiumUnlockPlainNote(args));
 }
 
 export function computeVBlogRootHash(chunkHexList: string[]): string {

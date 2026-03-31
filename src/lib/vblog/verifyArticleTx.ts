@@ -127,3 +127,43 @@ export async function verifyVBlogArticleTxBundle(input: VerifyInput): Promise<Ve
 
   return { ok: true };
 }
+
+type VerifyModulePaymentInput = {
+  payerAddress: string;
+  articleId: string;
+  moduleId: 'premium_unlock' | 'tip_to_reveal_unlock' | 'tip_box';
+  expectedAuthorAddress: string;
+  expectedAuthorKas: number;
+  expectedPlatformKas: number;
+  authorTxHash: string;
+  platformTxHash: string;
+};
+
+export async function verifyVBlogModulePaymentSplit(input: VerifyModulePaymentInput): Promise<VerifyResult> {
+  let payerNorm: string;
+  let authorNorm: string;
+  let treasuryNorm: string;
+  try {
+    payerNorm = normalizeKaspaAddress(input.payerAddress);
+    authorNorm = normalizeKaspaAddress(input.expectedAuthorAddress);
+    treasuryNorm = normalizeKaspaAddress(getVBlogTreasuryL1Address());
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Invalid address' };
+  }
+
+  const authorTx = await getRestTransactionById(input.authorTxHash, { maxAttempts: 6, delayMs: 1200 });
+  const platformTx = await getRestTransactionById(input.platformTxHash, { maxAttempts: 6, delayMs: 1200 });
+  if (!authorTx || !platformTx) return { ok: false, error: 'Payment transaction not found yet' };
+  if (!txHasPayerInput(authorTx, payerNorm) || !txHasPayerInput(platformTx, payerNorm)) {
+    return { ok: false, error: 'Payer mismatch in payment split' };
+  }
+
+  const authorMin = kasToSompi(input.expectedAuthorKas);
+  const platformMin = kasToSompi(input.expectedPlatformKas);
+  const paidAuthor = txPaysTreasurySompi(authorTx, authorNorm);
+  const paidPlatform = txPaysTreasurySompi(platformTx, treasuryNorm);
+  if (paidAuthor < authorMin) return { ok: false, error: 'Author payout underpaid' };
+  if (paidPlatform < platformMin) return { ok: false, error: 'Platform fee underpaid' };
+
+  return { ok: true };
+}

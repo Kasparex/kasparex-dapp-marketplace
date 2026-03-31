@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { formatAddress, formatDate, parseMarkdown } from '@/lib/vblog/utils';
@@ -10,6 +10,21 @@ import { useAccount } from 'wagmi';
 import { useVBlog } from '@/hooks/useVBlog';
 import { Avatar } from '@/components/Avatar';
 import { ArticleSidebar } from './ArticleSidebar';
+import { getVBlogPlatformFeeBps, getVBlogTreasuryL1Address } from '@/lib/vblog/config';
+import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
+import type { KaspaWalletProvider } from '@/lib/kaspa/types';
+import { kasToSompi } from '@/lib/ads/config';
+import { buildVBlogPremiumUnlockPayloadHex, buildVBlogPremiumUnlockPlainNote, utf8ToHex } from '@/lib/vblog/payloadHex';
+import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
+import {
+  getPollVotes,
+  getReceiptStreakAndBadge,
+  hasPollVote,
+  hasReaderEntitlement,
+  savePollVote,
+  saveReaderEntitlement,
+  saveReadingReceipt,
+} from '@/lib/vblog/modules';
 
 interface ArticleDetailProps {
   article: VBlogArticle;
@@ -23,6 +38,11 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [customTipKas, setCustomTipKas] = useState('25');
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [isProcessingAction, setIsProcessingAction] = useState(false);
+  const [refreshTick, setRefreshTick] = useState(0);
+  const [selectedPollOption, setSelectedPollOption] = useState(0);
 
   // Check if current user is the author
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
@@ -36,6 +56,165 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
   const authorDisplay = formatAddress(article.author);
   const authorAddress = article.author.replace(/^(evm:|kaspa:)/, '');
   const authorProfileUrl = `/user/${authorAddress}`;
+  const premiumUnlockEntitled = walletAddress ? hasReaderEntitlement(walletAddress, article.id, 'premium_unlock') : false;
+  const tipRevealEntitled = walletAddress ? hasReaderEntitlement(walletAddress, article.id, 'tip_to_reveal_unlock') : false;
+  const canVotePoll = walletAddress ? premiumUnlockEntitled && !hasPollVote(article.id, walletAddress) : false;
+  const pollVotes = useMemo(() => getPollVotes(article.id), [article.id, refreshTick]);
+  const receiptBadge = walletAddress ? getReceiptStreakAndBadge(walletAddress) : { streak: 0, badge: 'No badge' };
+  const pollTotalVotes = pollVotes.length;
+
+  const performSplitPayment = async (moduleId: 'premium_unlock' | 'tip_to_reveal_unlock' | 'tip_box', totalKas: number) => {
+    if (!walletAddress || !kaspaState.provider || !kaspaState.isConnected || !kaspaState.address) {
+      throw new Error('Kaspa wallet required');
+    }
+    const bps = getVBlogPlatformFeeBps();
+    const platformKas = Math.max(0.01, Math.round((totalKas * bps) / 100) / 100);
+    const authorKas = Math.max(0.01, Math.round((totalKas - platformKas) * 100) / 100);
+    const payoutAddress = article.modules?.premiumSectionPayoutAddress || article.author;
+    const note = buildVBlogPremiumUnlockPlainNote({
+      articleId: article.id,
+      moduleId,
+      payerAddress: walletAddress,
+      amountKas: totalKas,
+    });
+    const payload = buildVBlogPremiumUnlockPayloadHex({
+      articleId: article.id,
+      moduleId,
+      payerAddress: walletAddress,
+      amountKas: totalKas,
+    });
+
+    const authorTx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
+      to: payoutAddress,
+      amount: String(kasToSompi(authorKas)),
+      note,
+      payload,
+    });
+    if (authorTx.status === 'failed' || !authorTx.txHash) {
+      throw new Error(authorTx.error ?? 'Author payout transaction failed');
+    }
+    const platformTx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
+      to: getVBlogTreasuryL1Address(),
+      amount: String(kasToSompi(platformKas)),
+      note: `${note}:fee`,
+      payload,
+    });
+    if (platformTx.status === 'failed' || !platformTx.txHash) {
+      throw new Error(platformTx.error ?? 'Platform fee transaction failed');
+    }
+    const authorTxHash = extractKaspaTransactionId(authorTx.txHash) ?? authorTx.txHash;
+    const platformTxHash = extractKaspaTransactionId(platformTx.txHash) ?? platformTx.txHash;
+    const verifyRes = await fetch('/api/vblog/modules/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        payerAddress: walletAddress,
+        articleId: article.id,
+        moduleId,
+        expectedAuthorAddress: payoutAddress,
+        expectedAuthorKas: authorKas,
+        expectedPlatformKas: platformKas,
+        authorTxHash,
+        platformTxHash,
+      }),
+    });
+    const verifyJson = (await verifyRes.json()) as { ok?: boolean; error?: string };
+    if (!verifyJson.ok) throw new Error(verifyJson.error ?? 'Verification failed');
+    return { authorTxHash, platformTxHash };
+  };
+
+  const handlePremiumUnlock = async () => {
+    try {
+      setActionError(null);
+      setIsProcessingAction(true);
+      const totalKas = Number(article.modules?.premiumSectionPriceKas ?? 0);
+      const txs = await performSplitPayment('premium_unlock', totalKas);
+      if (!walletAddress) return;
+      saveReaderEntitlement({
+        wallet: walletAddress,
+        articleId: article.id,
+        moduleId: 'premium_unlock',
+        txHashes: [txs.authorTxHash, txs.platformTxHash],
+        createdAt: new Date().toISOString(),
+      });
+      setRefreshTick((x) => x + 1);
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : 'Unlock failed');
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
+  const handleTip = async (amountKas: number) => {
+    try {
+      setActionError(null);
+      setIsProcessingAction(true);
+      const txs = await performSplitPayment('tip_box', amountKas);
+      if (!walletAddress) return;
+      saveReaderEntitlement({
+        wallet: walletAddress,
+        articleId: article.id,
+        moduleId: 'tip_box',
+        txHashes: [txs.authorTxHash, txs.platformTxHash],
+        createdAt: new Date().toISOString(),
+      });
+      if (article.modules?.tipToRevealEnabled && amountKas >= Number(article.modules.tipToRevealThresholdKas ?? 0)) {
+        saveReaderEntitlement({
+          wallet: walletAddress,
+          articleId: article.id,
+          moduleId: 'tip_to_reveal_unlock',
+          txHashes: [txs.authorTxHash, txs.platformTxHash],
+          createdAt: new Date().toISOString(),
+        });
+      }
+      setRefreshTick((x) => x + 1);
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : 'Tip failed');
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
+  const handlePollVote = async () => {
+    if (!walletAddress || !canVotePoll) return;
+    savePollVote({
+      articleId: article.id,
+      wallet: walletAddress,
+      optionIndex: selectedPollOption,
+      votedAt: new Date().toISOString(),
+    });
+    setRefreshTick((x) => x + 1);
+  };
+
+  const handleReadingReceipt = async () => {
+    if (!walletAddress || !kaspaState.provider || !kaspaState.isConnected) return;
+    try {
+      setActionError(null);
+      setIsProcessingAction(true);
+      const note = `kvb1:receipt:${article.id}:${walletAddress}:${Date.now()}`;
+      const tx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
+        to: getVBlogTreasuryL1Address(),
+        amount: String(kasToSompi(0.01)),
+        note,
+        payload: utf8ToHex(note),
+      });
+      if (tx.status === 'failed' || !tx.txHash) {
+        throw new Error(tx.error ?? 'Reading receipt failed');
+      }
+      const txHash = extractKaspaTransactionId(tx.txHash) ?? tx.txHash;
+      saveReadingReceipt({
+        articleId: article.id,
+        wallet: walletAddress,
+        txHash,
+        createdAt: new Date().toISOString(),
+      });
+      setRefreshTick((x) => x + 1);
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : 'Receipt failed');
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -156,6 +335,92 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
             }}
             dangerouslySetInnerHTML={{ __html: parseMarkdown(article.content) }}
           />
+
+          {actionError && (
+            <p className="mt-4 text-sm text-red-600 dark:text-red-300">{actionError}</p>
+          )}
+
+          {article.modules?.premiumSectionEnabled && (
+            <div className="mt-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-zinc-50/80 dark:bg-zinc-900/40">
+              <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Premium section</p>
+              {!premiumUnlockEntitled ? (
+                <div className="mt-3 space-y-3">
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">Unlock this section for {article.modules.premiumSectionPriceKas} KAS.</p>
+                  <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={handlePremiumUnlock} className="k-control-btn">
+                    {isProcessingAction ? 'Processing...' : 'Unlock premium content'}
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-3 prose prose-zinc dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: parseMarkdown(article.modules.premiumSectionContent ?? '') }} />
+              )}
+            </div>
+          )}
+
+          {article.modules?.tipBoxEnabled && (
+            <div className="mt-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-zinc-50/80 dark:bg-zinc-900/40">
+              <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Support the author</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {[10, 50, 100].map((amount) => (
+                  <button key={amount} disabled={isProcessingAction || !kaspaState.isConnected} onClick={() => void handleTip(amount)} className="k-control-btn">
+                    Tip {amount} KAS
+                  </button>
+                ))}
+                <input value={customTipKas} onChange={(e) => setCustomTipKas(e.target.value)} className="k-input max-w-[140px]" />
+                <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={() => void handleTip(Number(customTipKas) || 1)} className="k-control-btn">Custom tip</button>
+              </div>
+            </div>
+          )}
+
+          {article.modules?.tipToRevealEnabled && (
+            <div className="mt-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-zinc-50/80 dark:bg-zinc-900/40">
+              <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Tip-to-Reveal Bonus</p>
+              {!tipRevealEntitled ? (
+                <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">Tip at least {article.modules.tipToRevealThresholdKas} KAS to reveal bonus content.</p>
+              ) : (
+                <div className="mt-3 prose prose-zinc dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: parseMarkdown(article.modules.tipToRevealContent ?? '') }} />
+              )}
+            </div>
+          )}
+
+          {article.modules?.premiumPollEnabled && premiumUnlockEntitled && (
+            <div className="mt-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-zinc-50/80 dark:bg-zinc-900/40">
+              <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Premium poll</p>
+              <p className="mt-2 text-sm font-bold text-zinc-900 dark:text-zinc-100">{article.modules.premiumPoll?.question}</p>
+              <div className="mt-3 space-y-2">
+                {(article.modules.premiumPoll?.options ?? []).map((option, index) => {
+                  const votes = pollVotes.filter((x) => x.optionIndex === index).length;
+                  const pct = pollTotalVotes > 0 ? Math.round((votes / pollTotalVotes) * 100) : 0;
+                  return (
+                    <label key={option} className="flex items-center justify-between gap-3 text-sm">
+                      <span className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          checked={selectedPollOption === index}
+                          onChange={() => setSelectedPollOption(index)}
+                          disabled={!canVotePoll}
+                        />
+                        {option}
+                      </span>
+                      <span className="text-zinc-500">{votes} ({pct}%)</span>
+                    </label>
+                  );
+                })}
+              </div>
+              <button disabled={!canVotePoll} onClick={handlePollVote} className="mt-4 k-control-btn">
+                {canVotePoll ? 'Submit vote' : 'Vote submitted or premium unlock required'}
+              </button>
+            </div>
+          )}
+
+          {article.modules?.readingReceiptsEnabled && (
+            <div className="mt-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-zinc-50/80 dark:bg-zinc-900/40">
+              <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Reading receipts + badges</p>
+              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Current streak: {receiptBadge.streak} day(s) | Badge: {receiptBadge.badge}</p>
+              <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={handleReadingReceipt} className="mt-3 k-control-btn">
+                Record on-chain reading receipt
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="w-full lg:w-[320px] xl:w-[340px] shrink-0">
