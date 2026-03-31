@@ -55,7 +55,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
   // Format author address (last 5 digits)
   const authorDisplay = formatAddress(article.author);
   const authorAddress = article.author.replace(/^(evm:|kaspa:)/, '');
-  const authorProfileUrl = `/user/${authorAddress}`;
+  const authorProfileUrl = `/vblog/author/${encodeURIComponent(article.author)}`;
   const premiumUnlockEntitled = walletAddress ? hasReaderEntitlement(walletAddress, article.id, 'premium_unlock') : false;
   const tipRevealEntitled = walletAddress ? hasReaderEntitlement(walletAddress, article.id, 'tip_to_reveal_unlock') : false;
   const canVotePoll = walletAddress ? premiumUnlockEntitled && !hasPollVote(article.id, walletAddress) : false;
@@ -238,8 +238,8 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
   };
 
   return (
-    <article className="max-w-6xl mx-auto">
-      <div className="relative mb-10 rounded-2xl overflow-hidden bg-zinc-50/80 dark:bg-zinc-900/45 border border-zinc-200 dark:border-zinc-800 select-text">
+    <article className="max-w-6xl mx-auto font-sans">
+      <div id="article-header" className="relative mb-10 rounded-2xl overflow-hidden bg-zinc-50/80 dark:bg-zinc-900/45 border border-zinc-200 dark:border-zinc-800 select-text">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent" />
 
         <div className="relative flex flex-col lg:flex-row min-h-[360px]">
@@ -247,10 +247,10 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
             <p className="text-sm font-black uppercase tracking-[0.2em] text-[#02abb8] mb-4">
               {article.category}
             </p>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-6 leading-tight tracking-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-6 leading-tight">
               {article.title}
             </h1>
-            <p className="text-lg sm:text-xl text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-2xl mb-8 select-text">
+            <p id="article-intro" className="text-lg sm:text-xl text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-2xl mb-8 select-text">
               {article.description}
             </p>
 
@@ -258,16 +258,16 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
               <div className="flex items-center gap-3">
                 <Avatar address={authorAddress} size={44} className="ring-2 ring-cyan-500/20" />
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-black uppercase tracking-tighter text-zinc-400">By</span>
-                  <Link href={authorProfileUrl} className="text-sm font-bold text-zinc-900 dark:text-zinc-100 hover:text-[#02abb8] transition-colors">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">By</span>
+                  <Link href={authorProfileUrl} className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:text-[#02abb8] transition-colors">
                     {authorDisplay}
                   </Link>
                 </div>
               </div>
 
               <div className="flex flex-col">
-                <span className="text-[10px] font-black uppercase tracking-tighter text-zinc-400">Timestamped</span>
-                <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{formatDate(article.publishDate)}</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Published</span>
+                <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{formatDate(article.publishDate)}</span>
               </div>
             </div>
           </div>
@@ -321,6 +321,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
       <div className="flex flex-col lg:flex-row gap-10 xl:gap-12">
         <div className="flex-1 min-w-0">
           <div
+            id="article-main"
             className="prose prose-zinc dark:prose-invert max-w-none 
               prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100 prose-headings:font-black prose-headings:tracking-tight
               prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:leading-relaxed prose-p:text-xl sm:prose-p:text-2xl prose-p:mb-5
@@ -340,6 +341,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
             <p className="mt-4 text-sm text-red-600 dark:text-red-300">{actionError}</p>
           )}
 
+          <div id="article-modules">
           {article.modules?.premiumSectionEnabled && (
             <div className="mt-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-zinc-50/80 dark:bg-zinc-900/40">
               <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Premium section</p>
@@ -421,6 +423,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
               </button>
             </div>
           )}
+          </div>
         </div>
 
         <div className="w-full lg:w-[320px] xl:w-[340px] shrink-0">

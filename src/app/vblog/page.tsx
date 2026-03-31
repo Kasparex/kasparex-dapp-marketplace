@@ -111,7 +111,7 @@ export default function VBlogPage() {
           <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800 font-sans text-base sm:text-[17px]">
             <div className="max-w-6xl mx-auto">
               {/* Unified Header */}
-              <VBlogHeader onStartWriting={openEditorDashboard} />
+              <VBlogHeader />
 
               {/* Pricing & Service Fees Widget */}
               <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">

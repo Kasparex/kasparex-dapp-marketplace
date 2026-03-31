@@ -6,6 +6,7 @@ import { Footer } from '@/components/Footer';
 import { ArticleDetail } from '@/components/vblog/ArticleDetail';
 import { ArticleMetadata } from '@/components/vblog/ArticleMetadata';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
+import { VBlogSidebar } from '@/components/vblog/VBlogSidebar';
 import { ChroniclesEntitySlots } from '@/components/chronicles/leaderboard/ChroniclesEntitySlots';
 import { ChroniclesReadConfirmCard } from '@/components/chronicles/leaderboard/ChroniclesReadConfirmCard';
 import { useVBlog } from '@/hooks/useVBlog';
@@ -17,7 +18,7 @@ interface ArticlePageContentProps {
 }
 
 export function ArticlePageContent({ slug }: ArticlePageContentProps) {
-  const { getArticle } = useVBlog();
+  const { getArticle, articles } = useVBlog();
   const [article, setArticle] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -49,8 +50,20 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
     <div className="flex flex-col min-h-screen bg-white dark:bg-zinc-950">
       <Header />
 
-      <main className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto bg-white dark:bg-zinc-950 text-base sm:text-[17px]">
-        <div className="w-full max-w-5xl mx-auto">
+      <main className="flex-1 min-h-[calc(100vh-4rem)]">
+        <div className="flex flex-col lg:flex-row h-full">
+          <VBlogSidebar
+            articles={articles}
+            selectedCategory={null}
+            selectedTags={[]}
+            searchQuery=""
+            onCategoryChange={() => {}}
+            onTagToggle={() => {}}
+            onSearchChange={() => {}}
+            activeView="explore"
+          />
+          <div className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto bg-white dark:bg-zinc-950 text-base sm:text-[17px] border-l border-zinc-200 dark:border-zinc-800">
+        <div className="w-full max-w-5xl mx-auto font-sans">
           <nav className="flex items-center gap-2 text-sm text-zinc-500 font-medium mb-8">
             <Link href="/vblog" className="hover:text-[#02abb8] transition-colors">Articles</Link>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -82,6 +95,16 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
           )}
 
           <div className="space-y-16">
+            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/50 p-4">
+              <p className="text-xs font-black uppercase tracking-widest text-[#02abb8] mb-3">Article navigation</p>
+              <div className="flex flex-wrap gap-2">
+                <a href="#article-header" className="k-control-btn !py-1.5 !px-3 !text-[11px]">Header</a>
+                <a href="#article-intro" className="k-control-btn !py-1.5 !px-3 !text-[11px]">Intro</a>
+                <a href="#article-main" className="k-control-btn !py-1.5 !px-3 !text-[11px]">Main text</a>
+                <a href="#article-modules" className="k-control-btn !py-1.5 !px-3 !text-[11px]">Modules</a>
+                <a href="#article-comments" className="k-control-btn !py-1.5 !px-3 !text-[11px]">Comments</a>
+              </div>
+            </div>
             <ArticleDetail article={article} />
             <div className="space-y-6">
               <ChroniclesEntitySlots entityType="chapter" entityId={`vblog-${article.slug}`} title="Article slots" />
@@ -90,10 +113,12 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
             <div className="pt-12 border-t border-zinc-200 dark:border-zinc-800">
               <ArticleMetadata article={article} />
             </div>
-            <div className="pt-12 border-t border-zinc-200 dark:border-zinc-800">
+            <div id="article-comments" className="pt-12 border-t border-zinc-200 dark:border-zinc-800">
               <CommentsSection articleId={article.id} />
             </div>
           </div>
+        </div>
+        </div>
         </div>
       </main>
 

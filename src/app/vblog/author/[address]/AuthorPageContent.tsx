@@ -11,7 +11,8 @@ import Link from 'next/link';
 
 export function AuthorPageContent() {
   const params = useParams();
-  const address = params?.address as string | undefined;
+  const rawAddress = params?.address as string | undefined;
+  const address = rawAddress ? decodeURIComponent(rawAddress) : undefined;
   const { getAuthorArticles } = useVBlog();
   
   const authorArticles = address ? getAuthorArticles(address) : [];

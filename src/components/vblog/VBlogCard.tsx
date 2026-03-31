@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { formatAddress, formatDate, getArticleExcerpt } from '@/lib/vblog/utils';
 
@@ -19,9 +18,8 @@ export function VBlogCard({ article }: VBlogCardProps) {
       href={`/vblog/${article.slug}`}
       className="group"
     >
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-100 dark:border-zinc-800 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-orange-500/10 hover:-translate-y-1.5 flex flex-col h-full shadow-sm">
+      <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-100 dark:border-zinc-800 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-orange-500/10 hover:-translate-y-1.5 flex flex-col h-full shadow-sm font-sans">
         <div className="relative aspect-video overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10 opacity-60 group-hover:opacity-40 transition-opacity" />
 
           {/* Badges Overlay */}
           <div className="absolute top-4 left-4 z-20 flex flex-wrap gap-2">
@@ -61,26 +59,24 @@ export function VBlogCard({ article }: VBlogCardProps) {
             </div>
           )}
 
-          <div className="absolute bottom-4 left-4 right-4 z-20">
-            <h3 className="text-xl font-black text-white leading-tight group-hover:text-orange-400 transition-colors line-clamp-1">
-              {article.title}
-            </h3>
-          </div>
         </div>
 
         <div className="p-6 flex flex-col flex-1">
-          <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-6 line-clamp-2 leading-relaxed flex-1">
+          <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 leading-snug mb-2">
+            {article.title}
+          </h3>
+          <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-6 line-clamp-3 leading-relaxed flex-1">
             {excerpt}
           </p>
 
           <div className="flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800 pt-5">
             <div className="flex flex-col">
-              <span className="text-[10px] font-black uppercase tracking-tighter text-zinc-400 dark:text-zinc-500">Author</span>
-              <span className="text-sm font-bold text-zinc-900 dark:text-zinc-200">{authorDisplay}</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Author</span>
+              <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-200">{authorDisplay}</span>
             </div>
             <div className="text-right">
-              <span className="text-[10px] font-black uppercase tracking-tighter text-zinc-400 dark:text-zinc-500">Published</span>
-              <span className="block text-sm font-bold text-zinc-900 dark:text-zinc-200">{formatDate(article.publishDate)}</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Published</span>
+              <span className="block text-sm font-semibold text-zinc-900 dark:text-zinc-200">{formatDate(article.publishDate)}</span>
             </div>
           </div>
         </div>
