@@ -412,6 +412,26 @@
   border: 1px solid var(--k-control-border);
 }
 
+.k-switch {
+  @apply relative inline-flex h-6 w-11 items-center rounded-full border transition-colors;
+  background: rgba(113, 113, 122, 0.35);
+  border-color: rgba(113, 113, 122, 0.45);
+}
+
+.k-switch.k-switch-on {
+  background: rgba(2, 171, 184, 0.28);
+  border-color: rgba(2, 171, 184, 0.45);
+}
+
+.k-switch-thumb {
+  @apply inline-block h-4 w-4 rounded-full bg-white shadow transition-transform;
+  transform: translateX(0.25rem);
+}
+
+.k-switch.k-switch-on .k-switch-thumb {
+  transform: translateX(1.35rem);
+}
+
 /* Chronicles vault / premium cards: subtle cyan rim */
 .chronicles-vault-card {
   box-shadow:

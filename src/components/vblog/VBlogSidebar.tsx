@@ -7,6 +7,8 @@ import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
 import { SidebarTags } from '@/components/sidebar/SidebarTags';
+import { SidebarSection } from '@/components/sidebar/SidebarSection';
+import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 
 interface VBlogSidebarProps {
   articles: VBlogArticle[];
@@ -101,15 +103,18 @@ export function VBlogSidebar({
           </Link>
         </div>
         {activeView === 'article' ? (
-          <div className="space-y-2">
-            <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Article navigation</p>
-            {articleNavItems.map((item) => (
-              <a key={item.id} href={`#${item.id}`} className="k-control-btn w-full justify-start gap-2">
-                {item.icon ?? <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-6 4h10" /></svg>}
-                <span>{item.label}</span>
-              </a>
-            ))}
-          </div>
+          <SidebarSection title="Article navigation">
+            <nav className="space-y-0.5">
+              {articleNavItems.map((item) => (
+                <SidebarNavItem
+                  key={item.id}
+                  href={`#${item.id}`}
+                  label={item.label}
+                  icon={item.icon ?? <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-6 4h10" /></svg>}
+                />
+              ))}
+            </nav>
+          </SidebarSection>
         ) : (
           <>
             <SidebarCategories

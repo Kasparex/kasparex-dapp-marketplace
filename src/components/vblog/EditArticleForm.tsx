@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { VBlogArticle } from '@/lib/vblog/types';
+import { VBlogArticle, VBlogModuleId } from '@/lib/vblog/types';
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import {
   validateTitle,
@@ -118,6 +118,82 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
     }
     setUnlockedModules(getAuthorUnlockedModules(kaspaState.address));
   }, [kaspaState.address]);
+
+  const moduleItems = [
+    {
+      id: 'premium_section',
+      title: 'Premium section unlock',
+      description: 'Adds paid premium content with custom payout settings.',
+      unlocked: unlockedModules.includes('premium_section'),
+      enabled: premiumSectionEnabled,
+      onToggle: setPremiumSectionEnabled,
+      fields: premiumSectionEnabled ? (
+        <div className="space-y-2">
+          <textarea value={premiumSectionContent} onChange={(e) => setPremiumSectionContent(e.target.value)} rows={4} className="k-textarea" placeholder="Premium section content" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <input className="k-input" value={premiumSectionPriceKas} onChange={(e) => setPremiumSectionPriceKas(e.target.value)} placeholder="Unlock price KAS" />
+            <input className="k-input" value={premiumSectionPayoutAddress} onChange={(e) => setPremiumSectionPayoutAddress(e.target.value)} placeholder="Payout Kaspa address" />
+          </div>
+        </div>
+      ) : null,
+    },
+    {
+      id: 'tip_box',
+      title: 'Tip box',
+      description: 'Lets readers support you with quick or custom tips.',
+      unlocked: unlockedModules.includes('tip_box'),
+      enabled: tipBoxEnabled,
+      onToggle: setTipBoxEnabled,
+      fields: null,
+    },
+    {
+      id: 'tip_to_reveal',
+      title: 'Tip-to-reveal bonus',
+      description: 'Unlock hidden bonus content after a tip threshold.',
+      unlocked: unlockedModules.includes('tip_to_reveal'),
+      enabled: tipToRevealEnabled,
+      onToggle: setTipToRevealEnabled,
+      fields: tipToRevealEnabled ? (
+        <div className="space-y-2">
+          <textarea value={tipToRevealContent} onChange={(e) => setTipToRevealContent(e.target.value)} rows={3} className="k-textarea" placeholder="Bonus content" />
+          <input className="k-input" value={tipToRevealThresholdKas} onChange={(e) => setTipToRevealThresholdKas(e.target.value)} placeholder="Reveal threshold KAS" />
+        </div>
+      ) : null,
+    },
+    {
+      id: 'premium_poll',
+      title: 'Premium poll',
+      description: 'Enable paid-reader voting and private poll insights.',
+      unlocked: unlockedModules.includes('premium_poll'),
+      enabled: premiumPollEnabled,
+      onToggle: setPremiumPollEnabled,
+      fields: premiumPollEnabled ? (
+        <div className="space-y-2">
+          <input className="k-input" value={pollQuestion} onChange={(e) => setPollQuestion(e.target.value)} placeholder="Poll question" />
+          <input className="k-input" value={pollOptions} onChange={(e) => setPollOptions(e.target.value)} placeholder="Options comma-separated" />
+        </div>
+      ) : null,
+    },
+    {
+      id: 'reading_receipts_badges',
+      title: 'Reading receipts + badges',
+      description: 'Track reader streaks with on-chain receipt proofs.',
+      unlocked: unlockedModules.includes('reading_receipts_badges'),
+      enabled: readingReceiptsEnabled,
+      onToggle: setReadingReceiptsEnabled,
+      fields: null,
+    },
+    {
+      id: 'magazine_integration',
+      title: 'Magazine integration',
+      description: 'Connect article directly to a magazine issue.',
+      unlocked: unlockedModules.includes('magazine_integration'),
+      enabled: Boolean(linkedMagazineId && linkedIssueNumber),
+      onToggle: () => {},
+      fields: null,
+      readOnly: true,
+    },
+  ] as const;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -390,100 +466,38 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
         <section className="space-y-4 pt-2">
           <div className="flex items-center justify-between gap-3">
             <p className="text-base font-black uppercase tracking-widest text-orange-600 dark:text-orange-300">Vault modules & unlocks</p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">Unlock and configure modules in one place</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Interactive modules with unlock + configure states</p>
           </div>
-
-          <div className="relative rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 space-y-3">
-            <label className="flex items-center justify-between text-sm">
-              <span>Premium section unlock</span>
-              <input type="checkbox" checked={premiumSectionEnabled} disabled={!unlockedModules.includes('premium_section') || isSubmitting} onChange={(e) => setPremiumSectionEnabled(e.target.checked)} />
-            </label>
-            {premiumSectionEnabled && (
-              <div className="space-y-2">
-                <textarea value={premiumSectionContent} onChange={(e) => setPremiumSectionContent(e.target.value)} rows={4} className="k-textarea" placeholder="Premium section content" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  <input className="k-input" value={premiumSectionPriceKas} onChange={(e) => setPremiumSectionPriceKas(e.target.value)} placeholder="Unlock price KAS" />
-                  <input className="k-input" value={premiumSectionPayoutAddress} onChange={(e) => setPremiumSectionPayoutAddress(e.target.value)} placeholder="Payout Kaspa address" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {moduleItems.map((module) => (
+              <div key={module.id} className={`rounded-2xl border p-4 space-y-3 ${module.unlocked ? 'border-cyan-400/35 bg-cyan-500/[0.03]' : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/40'}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-black text-zinc-900 dark:text-zinc-100">{module.title}</p>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{module.description}</p>
+                  </div>
+                  {module.unlocked ? (
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={module.enabled}
+                      onClick={() => !module.readOnly && module.onToggle(!module.enabled)}
+                      disabled={Boolean(module.readOnly) || isSubmitting}
+                      className={`k-switch ${module.enabled ? 'k-switch-on' : ''} ${module.readOnly ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    >
+                      <span className="k-switch-thumb" />
+                    </button>
+                  ) : (
+                    <span className="text-[10px] uppercase tracking-widest font-black text-amber-600 dark:text-amber-300">Locked</span>
+                  )}
                 </div>
+                {module.unlocked ? module.fields : (
+                  <div className="pt-1">
+                    <VBlogInlineModuleUnlockCard moduleId={module.id as VBlogModuleId} onUnlocked={(ids) => setUnlockedModules(ids)} />
+                  </div>
+                )}
               </div>
-            )}
-            {!unlockedModules.includes('premium_section') && (
-              <div className="absolute inset-0 rounded-2xl bg-white/60 dark:bg-zinc-900/65 backdrop-blur-sm flex items-center justify-center p-4">
-                <VBlogInlineModuleUnlockCard moduleId="premium_section" onUnlocked={(ids) => setUnlockedModules(ids)} />
-              </div>
-            )}
-          </div>
-
-          <div className="relative rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 space-y-3">
-            <label className="flex items-center justify-between text-sm">
-              <span>Tip box</span>
-              <input type="checkbox" checked={tipBoxEnabled} disabled={!unlockedModules.includes('tip_box') || isSubmitting} onChange={(e) => setTipBoxEnabled(e.target.checked)} />
-            </label>
-            {!unlockedModules.includes('tip_box') && (
-              <div className="absolute inset-0 rounded-2xl bg-white/60 dark:bg-zinc-900/65 backdrop-blur-sm flex items-center justify-center p-4">
-                <VBlogInlineModuleUnlockCard moduleId="tip_box" onUnlocked={(ids) => setUnlockedModules(ids)} />
-              </div>
-            )}
-          </div>
-
-          <div className="relative rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 space-y-3">
-            <label className="flex items-center justify-between text-sm">
-              <span>Tip-to-reveal bonus</span>
-              <input type="checkbox" checked={tipToRevealEnabled} disabled={!unlockedModules.includes('tip_to_reveal') || isSubmitting} onChange={(e) => setTipToRevealEnabled(e.target.checked)} />
-            </label>
-            {tipToRevealEnabled && (
-              <div className="space-y-2">
-                <textarea value={tipToRevealContent} onChange={(e) => setTipToRevealContent(e.target.value)} rows={3} className="k-textarea" placeholder="Bonus content" />
-                <input className="k-input" value={tipToRevealThresholdKas} onChange={(e) => setTipToRevealThresholdKas(e.target.value)} placeholder="Reveal threshold KAS" />
-              </div>
-            )}
-            {!unlockedModules.includes('tip_to_reveal') && (
-              <div className="absolute inset-0 rounded-2xl bg-white/60 dark:bg-zinc-900/65 backdrop-blur-sm flex items-center justify-center p-4">
-                <VBlogInlineModuleUnlockCard moduleId="tip_to_reveal" onUnlocked={(ids) => setUnlockedModules(ids)} />
-              </div>
-            )}
-          </div>
-
-          <div className="relative rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 space-y-3">
-            <label className="flex items-center justify-between text-sm">
-              <span>Premium poll (paid readers vote)</span>
-              <input type="checkbox" checked={premiumPollEnabled} disabled={!unlockedModules.includes('premium_poll') || isSubmitting} onChange={(e) => setPremiumPollEnabled(e.target.checked)} />
-            </label>
-            {premiumPollEnabled && (
-              <div className="space-y-2">
-                <input className="k-input" value={pollQuestion} onChange={(e) => setPollQuestion(e.target.value)} placeholder="Poll question" />
-                <input className="k-input" value={pollOptions} onChange={(e) => setPollOptions(e.target.value)} placeholder="Options comma-separated" />
-              </div>
-            )}
-            {!unlockedModules.includes('premium_poll') && (
-              <div className="absolute inset-0 rounded-2xl bg-white/60 dark:bg-zinc-900/65 backdrop-blur-sm flex items-center justify-center p-4">
-                <VBlogInlineModuleUnlockCard moduleId="premium_poll" onUnlocked={(ids) => setUnlockedModules(ids)} />
-              </div>
-            )}
-          </div>
-
-          <div className="relative rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 space-y-3">
-            <label className="flex items-center justify-between text-sm">
-              <span>Reading receipts + badges</span>
-              <input type="checkbox" checked={readingReceiptsEnabled} disabled={!unlockedModules.includes('reading_receipts_badges') || isSubmitting} onChange={(e) => setReadingReceiptsEnabled(e.target.checked)} />
-            </label>
-            {!unlockedModules.includes('reading_receipts_badges') && (
-              <div className="absolute inset-0 rounded-2xl bg-white/60 dark:bg-zinc-900/65 backdrop-blur-sm flex items-center justify-center p-4">
-                <VBlogInlineModuleUnlockCard moduleId="reading_receipts_badges" onUnlocked={(ids) => setUnlockedModules(ids)} />
-              </div>
-            )}
-          </div>
-
-          <div className="relative rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 space-y-3">
-            <label className="flex items-center justify-between text-sm">
-              <span>Magazine integration</span>
-              <input type="checkbox" checked={Boolean(linkedMagazineId && linkedIssueNumber)} disabled={!unlockedModules.includes('magazine_integration') || isSubmitting} readOnly />
-            </label>
-            {!unlockedModules.includes('magazine_integration') && (
-              <div className="absolute inset-0 rounded-2xl bg-white/60 dark:bg-zinc-900/65 backdrop-blur-sm flex items-center justify-center p-4">
-                <VBlogInlineModuleUnlockCard moduleId="magazine_integration" onUnlocked={(ids) => setUnlockedModules(ids)} />
-              </div>
-            )}
+            ))}
           </div>
         </section>
 
@@ -517,8 +531,8 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
           )}
         </div>
         </div>
-        <aside className="xl:sticky xl:top-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4">
-          <h4 className="text-sm font-black uppercase tracking-widest text-[#02abb8]">Calculation breakdown</h4>
+        <aside className="xl:sticky xl:top-6 bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(2,171,184,0.4)]">
+          <h4 className="text-xs font-black uppercase tracking-[0.18em] text-[#02abb8]">Calculation breakdown</h4>
           <div className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
             <div className="flex justify-between"><span>Base fee</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{updateQuote.baseFeeKas} KAS</span></div>
             <div className="flex justify-between"><span>Size fee</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{updateQuote.sizeFeeKas} KAS</span></div>

@@ -254,20 +254,21 @@ export function VBlogInlineModuleUnlockCard({
   if (!offer) return null;
 
   const payKas = getVBlogModuleEffectivePriceKas(offer.unlockPriceKas, tier, nftStatus);
+  const isUnlocked = kaspaState.address ? getAuthorUnlockedModules(kaspaState.address).includes(offer.id) : false;
 
   return (
-    <div className="w-full max-w-[360px] rounded-2xl border border-orange-300/40 dark:border-orange-500/25 bg-white/95 dark:bg-zinc-900/80 overflow-hidden">
+    <div className={`w-full max-w-[420px] rounded-2xl border bg-white/95 dark:bg-zinc-900/80 overflow-hidden ${isUnlocked ? 'border-emerald-400/40 dark:border-emerald-500/30' : 'border-orange-300/40 dark:border-orange-500/25'}`}>
       <div className="h-20 bg-gradient-to-br from-zinc-100 via-zinc-50 to-orange-500/10 dark:from-zinc-900 dark:via-zinc-950 dark:to-orange-950/35 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-[11px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-        Locked module
+        {isUnlocked ? 'Module active' : 'Locked module'}
       </div>
       <div className="p-4">
         <p className="text-sm font-black text-zinc-900 dark:text-zinc-100">{offer.title}</p>
         <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">{offer.description}</p>
-        <p className="mt-2 text-sm font-black text-zinc-900 dark:text-zinc-100">{payKas} KAS</p>
+        {!isUnlocked ? <p className="mt-2 text-sm font-black text-zinc-900 dark:text-zinc-100">{payKas} KAS</p> : <p className="mt-2 text-xs font-bold text-emerald-600 dark:text-emerald-300">Unlocked for this wallet. You can now enable it in the editor.</p>}
         <button
           type="button"
           className="mt-3 k-control-btn !bg-orange-500 hover:!bg-orange-600 !text-white !border-orange-400/30 w-full justify-center"
-          disabled={busy || !kaspaState.isConnected || !kaspaState.address || !kaspaState.provider}
+          disabled={isUnlocked || busy || !kaspaState.isConnected || !kaspaState.address || !kaspaState.provider}
           onClick={async () => {
             if (!kaspaState.isConnected || !kaspaState.address || !kaspaState.provider) return;
             setBusy(true);
@@ -289,7 +290,7 @@ export function VBlogInlineModuleUnlockCard({
             }
           }}
         >
-          {busy ? 'Unlocking...' : `Unlock ${offer.title}`}
+          {isUnlocked ? 'Module active' : busy ? 'Unlocking...' : `Unlock ${offer.title}`}
         </button>
       </div>
     </div>
