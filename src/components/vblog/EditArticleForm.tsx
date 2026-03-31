@@ -47,6 +47,17 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
   const [showFeeConfirmation, setShowFeeConfirmation] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const updateQuote = pricing.estimateQuote({
+    title,
+    description,
+    content,
+    category,
+    tags: tags.split(',').map((tag) => tag.trim()).filter(Boolean),
+    featuredImage,
+    linkedMagazineId,
+    linkedIssueNumber,
+    author: article.author,
+  }, 'edit');
 
   useEffect(() => {
     setTitle(article.title);
@@ -136,7 +147,7 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
             Edit Article
           </h3>
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
-            Update your article details. Updating an article costs {pricing.editFee} KAS{pricing.tier.hasKREXDiscount ? ' (KREX holder discount)' : ''}.
+            Update your article details. Estimated cost: {updateQuote.totalKas} KAS ({updateQuote.chunkCount} chunk{updateQuote.chunkCount === 1 ? '' : 's'}, {updateQuote.payloadBytes} bytes){pricing.tier.hasKREXDiscount ? ' (KREX holder discount)' : ''}.
           </p>
           {pricing.tier.hasNFTPerks && (
             <Alert type="success" compact className="mb-4">
@@ -292,6 +303,9 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
         </div>
 
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+          <div className="mr-auto text-xs text-zinc-500 dark:text-zinc-400">
+            Base {updateQuote.baseFeeKas} + Size {updateQuote.sizeFeeKas} + Network {updateQuote.networkFeeBufferKas} = {updateQuote.totalKas} KAS
+          </div>
           {onCancel && (
             <button
               type="button"
@@ -317,9 +331,15 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
         onClose={() => setShowFeeConfirmation(false)}
         onConfirm={handleConfirm}
         feeInfo={{
-          amount: pricing.editFee,
+          amount: updateQuote.totalKas,
           action: 'update',
-          description: `This action will cost ${pricing.editFee} KAS (article update fee)${pricing.tier.hasKREXDiscount ? '. KREX holder discount applied.' : '.'}`,
+          description: `This action will cost ${updateQuote.totalKas} KAS (${updateQuote.payloadBytes} bytes across ${updateQuote.chunkCount} transaction chunk${updateQuote.chunkCount === 1 ? '' : 's'})${pricing.tier.hasKREXDiscount ? '. KREX holder discount applied to base fee.' : '.'}`,
+          payloadBytes: updateQuote.payloadBytes,
+          chunkCount: updateQuote.chunkCount,
+          baseFeeKas: updateQuote.baseFeeKas,
+          sizeFeeKas: updateQuote.sizeFeeKas,
+          networkFeeBufferKas: updateQuote.networkFeeBufferKas,
+          totalKas: updateQuote.totalKas,
         }}
         isProcessing={isSubmitting}
       />

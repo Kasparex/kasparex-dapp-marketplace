@@ -55,6 +55,17 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
   const [showFeeConfirmation, setShowFeeConfirmation] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const createQuote = pricing.estimateQuote({
+    title,
+    description,
+    content,
+    category,
+    tags: tags.split(',').map((tag) => tag.trim()).filter(Boolean),
+    featuredImage,
+    linkedMagazineId,
+    linkedIssueNumber,
+    author: walletAddress ?? undefined,
+  }, 'create');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,7 +159,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
             Create New Article
           </h3>
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
-            Fill in the details below to create a new article. Creating an article costs {pricing.createFee} KAS{pricing.tier.hasKREXDiscount ? ' (KREX holder discount)' : ''}.
+            Fill in the details below to create a new article. Estimated cost: {createQuote.totalKas} KAS ({createQuote.chunkCount} chunk{createQuote.chunkCount === 1 ? '' : 's'}, {createQuote.payloadBytes} bytes){pricing.tier.hasKREXDiscount ? ' (KREX holder discount)' : ''}.
           </p>
           {pricing.tier.hasNFTPerks && (
             <Alert type="success" compact className="mb-4">
@@ -307,6 +318,9 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
         </div>
 
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+          <div className="mr-auto text-xs text-zinc-500 dark:text-zinc-400">
+            Base {createQuote.baseFeeKas} + Size {createQuote.sizeFeeKas} + Network {createQuote.networkFeeBufferKas} = {createQuote.totalKas} KAS
+          </div>
           {onCancel && (
             <button
               type="button"
@@ -332,9 +346,15 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
         onClose={() => setShowFeeConfirmation(false)}
         onConfirm={handleConfirm}
         feeInfo={{
-          amount: pricing.createFee,
+          amount: createQuote.totalKas,
           action: 'create',
-          description: `This action will cost ${pricing.createFee} KAS (article creation fee)${pricing.tier.hasKREXDiscount ? '. KREX holder discount applied.' : '.'}`,
+          description: `This action will cost ${createQuote.totalKas} KAS (${createQuote.payloadBytes} bytes across ${createQuote.chunkCount} transaction chunk${createQuote.chunkCount === 1 ? '' : 's'})${pricing.tier.hasKREXDiscount ? '. KREX holder discount applied to base fee.' : '.'}`,
+          payloadBytes: createQuote.payloadBytes,
+          chunkCount: createQuote.chunkCount,
+          baseFeeKas: createQuote.baseFeeKas,
+          sizeFeeKas: createQuote.sizeFeeKas,
+          networkFeeBufferKas: createQuote.networkFeeBufferKas,
+          totalKas: createQuote.totalKas,
         }}
         isProcessing={isSubmitting}
       />

@@ -12,10 +12,30 @@ export interface VBlogArticle {
   cid?: string; // Content CID for decentralized storage
   articleId?: string; // On-chain article ID
   txHash?: string; // Transaction hash for article creation/update
-  status: 'draft' | 'published' | 'on-chain-ready' | 'pending';
+  status:
+    | 'draft'
+    | 'published'
+    | 'on-chain-ready'
+    | 'pending'
+    | 'paying_chunks'
+    | 'committing'
+    | 'verifying'
+    | 'verified'
+    | 'verification_pending';
   updatedAt?: string; // ISO date string for last update
   linkedMagazineId?: string; // ID of the magazine this article is linked to
   linkedIssueNumber?: number; // Issue number within the magazine
+  chunkTxHashes?: string[];
+  commitTxHash?: string;
+  contentHash?: string;
+  pricingSnapshot?: {
+    payloadBytes: number;
+    chunkCount: number;
+    baseFeeKas: number;
+    sizeFeeKas: number;
+    networkFeeBufferKas: number;
+    totalKas: number;
+  };
 }
 
 export interface VBlogComment {
@@ -38,5 +58,11 @@ export interface KASFeeInfo {
   amount: number;
   action: 'create' | 'update' | 'comment';
   description: string;
+  payloadBytes?: number;
+  chunkCount?: number;
+  baseFeeKas?: number;
+  sizeFeeKas?: number;
+  networkFeeBufferKas?: number;
+  totalKas?: number;
 }
 

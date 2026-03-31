@@ -12,6 +12,26 @@ import {
   addComment,
 } from '@/lib/vblog/data';
 import { VBlogArticle, VBlogComment } from '@/lib/vblog/types';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
+import type { KaspaWalletProvider } from '@/lib/kaspa/types';
+import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
+import { kasToSompi } from '@/lib/ads/config';
+import { getVBlogTreasuryL1Address } from '@/lib/vblog/config';
+import { useVBlogPricing } from '@/hooks/useVBlogPricing';
+import {
+  buildCanonicalArticlePayload,
+  fnv1aHex,
+  VBLOG_CHUNK_SIZE_BYTES,
+} from '@/lib/vblog/pricing';
+import {
+  splitPayloadToHexChunks,
+  buildVBlogChunkPayloadHex,
+  buildVBlogChunkPlainNote,
+  buildVBlogCommitPayloadHex,
+  buildVBlogCommitPlainNote,
+  computeVBlogRootHash,
+} from '@/lib/vblog/payloadHex';
 
 /**
  * Hook for managing vBlog data
@@ -19,6 +39,8 @@ import { VBlogArticle, VBlogComment } from '@/lib/vblog/types';
 export function useVBlog() {
   const [articles, setArticles] = useState<VBlogArticle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { state: kaspaState } = useKaspaWallet();
+  const pricing = useVBlogPricing();
 
   const loadArticles = useCallback(() => {
     setIsLoading(true);
@@ -53,19 +75,171 @@ export function useVBlog() {
     return getArticlesByAuthor(authorAddress);
   }, []);
 
-  /**
-   * Create a new article
-   * TODO: Replace with actual smart contract call
-   */
+  const sendVBlogTxBundle = useCallback(async (args: {
+    articleId: string;
+    op: 'create' | 'edit';
+    author: string;
+    payload: string;
+    totalKas: number;
+    contentHash: string;
+  }) => {
+    if (!kaspaState.isConnected || !kaspaState.provider || !kaspaState.address) {
+      throw new Error('Kaspa wallet must be connected to pay for article transactions.');
+    }
+    const chunkHexList = splitPayloadToHexChunks(args.payload, VBLOG_CHUNK_SIZE_BYTES);
+    const chunkCount = chunkHexList.length;
+    const rootHash = computeVBlogRootHash(chunkHexList);
+    const treasury = getVBlogTreasuryL1Address();
+    const txTotalCount = chunkCount + 1;
+    const perTxKas = Math.ceil((args.totalKas / txTotalCount) * 100) / 100;
+    const chunkTxHashes: string[] = [];
+
+    for (let i = 0; i < chunkCount; i++) {
+      const note = buildVBlogChunkPlainNote({
+        articleId: args.articleId,
+        op: args.op,
+        chunkIndex: i,
+        chunkTotal: chunkCount,
+        contentHash: args.contentHash,
+        chunkDataHex: chunkHexList[i],
+      });
+      const payloadHex = buildVBlogChunkPayloadHex({
+        articleId: args.articleId,
+        op: args.op,
+        chunkIndex: i,
+        chunkTotal: chunkCount,
+        contentHash: args.contentHash,
+        chunkDataHex: chunkHexList[i],
+      });
+      const tx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
+        to: treasury,
+        amount: String(kasToSompi(perTxKas)),
+        note,
+        payload: payloadHex,
+      });
+      if (tx.status === 'failed' || !tx.txHash) {
+        throw new Error(tx.error ?? `Chunk payment failed at chunk ${i + 1}`);
+      }
+      chunkTxHashes.push(extractKaspaTransactionId(tx.txHash) ?? tx.txHash);
+    }
+
+    const paidChunkKas = perTxKas * chunkCount;
+    const commitKas = Math.max(0.01, Math.ceil((args.totalKas - paidChunkKas) * 100) / 100);
+    const commitNote = buildVBlogCommitPlainNote({
+      articleId: args.articleId,
+      op: args.op,
+      chunkTotal: chunkCount,
+      rootHash,
+      version: 1,
+    });
+    const commitPayload = buildVBlogCommitPayloadHex({
+      articleId: args.articleId,
+      op: args.op,
+      chunkTotal: chunkCount,
+      rootHash,
+      version: 1,
+    });
+    const commitTx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
+      to: treasury,
+      amount: String(kasToSompi(commitKas)),
+      note: commitNote,
+      payload: commitPayload,
+    });
+    if (commitTx.status === 'failed' || !commitTx.txHash) {
+      throw new Error(commitTx.error ?? 'Commit transaction failed');
+    }
+    const commitTxHash = extractKaspaTransactionId(commitTx.txHash) ?? commitTx.txHash;
+
+    let verified = false;
+    let lastError = 'Verification failed.';
+    for (let attempt = 0; attempt < 10; attempt++) {
+      try {
+        const verifyRes = await fetch('/api/vblog/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            articleId: args.articleId,
+            op: args.op,
+            payerAddress: args.author,
+            chunkTxHashes,
+            commitTxHash,
+            chunkHexList,
+            contentHash: args.contentHash,
+            rootHash,
+            requiredTotalKas: args.totalKas,
+          }),
+        });
+        const verifyJson = (await verifyRes.json()) as { ok?: boolean; error?: string };
+        if (verifyJson.ok) {
+          verified = true;
+          break;
+        }
+        lastError = verifyJson.error ?? lastError;
+      } catch {
+        lastError = 'Verification endpoint unavailable.';
+      }
+      if (attempt < 9) {
+        await new Promise((r) => setTimeout(r, 1400 + attempt * 450));
+      }
+    }
+
+    return {
+      chunkTxHashes,
+      commitTxHash,
+      chunkHexList,
+      rootHash,
+      verified,
+      lastError,
+    };
+  }, [kaspaState.address, kaspaState.isConnected, kaspaState.provider]);
+
   const createNewArticle = useCallback(async (
     articleData: Omit<VBlogArticle, 'id' | 'slug' | 'publishDate' | 'cid' | 'articleId' | 'txHash' | 'status'>
   ): Promise<VBlogArticle> => {
-    // Mock smart contract call
-    // TODO: Replace with actual smart contract call
-    const newArticle = createArticle(articleData);
+    const articleId = `vba-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const canonicalPayload = buildCanonicalArticlePayload(articleData, 'create');
+    const contentHash = fnv1aHex(canonicalPayload);
+    const quote = pricing.estimateQuote({
+      title: articleData.title,
+      description: articleData.description,
+      content: articleData.content,
+      category: articleData.category,
+      tags: articleData.tags,
+      featuredImage: articleData.featuredImage,
+      linkedMagazineId: articleData.linkedMagazineId,
+      linkedIssueNumber: articleData.linkedIssueNumber,
+      author: articleData.author,
+    }, 'create');
+    const bundle = await sendVBlogTxBundle({
+      articleId,
+      op: 'create',
+      author: articleData.author,
+      payload: canonicalPayload,
+      totalKas: quote.totalKas,
+      contentHash,
+    });
+    const newArticle = createArticle(articleData, {
+      articleId,
+      txHash: bundle.commitTxHash,
+      status: bundle.verified ? 'verified' : 'verification_pending',
+      chunkTxHashes: bundle.chunkTxHashes,
+      commitTxHash: bundle.commitTxHash,
+      contentHash,
+      pricingSnapshot: {
+        payloadBytes: quote.payloadBytes,
+        chunkCount: quote.chunkCount,
+        baseFeeKas: quote.baseFeeKas,
+        sizeFeeKas: quote.sizeFeeKas,
+        networkFeeBufferKas: quote.networkFeeBufferKas,
+        totalKas: quote.totalKas,
+      },
+    });
+    if (!bundle.verified) {
+      console.warn('Article created with pending verification:', bundle.lastError);
+    }
     loadArticles(); // Reload articles
     return newArticle;
-  }, [loadArticles]);
+  }, [loadArticles, pricing, sendVBlogTxBundle]);
 
   /**
    * Update an existing article
@@ -75,12 +249,61 @@ export function useVBlog() {
     articleId: string,
     updates: Partial<Omit<VBlogArticle, 'id' | 'author' | 'publishDate'>>
   ): Promise<VBlogArticle | null> => {
-    // Mock smart contract call
-    // TODO: Replace with actual smart contract call
-    const updated = updateArticle(articleId, updates);
+    const existing = getAllArticles().find((a) => a.id === articleId);
+    if (!existing) {
+      throw new Error('Article not found');
+    }
+    const merged: VBlogArticle = { ...existing, ...updates };
+    const canonicalPayload = buildCanonicalArticlePayload({
+      title: merged.title,
+      description: merged.description,
+      content: merged.content,
+      category: merged.category,
+      tags: merged.tags,
+      featuredImage: merged.featuredImage,
+      linkedMagazineId: merged.linkedMagazineId,
+      linkedIssueNumber: merged.linkedIssueNumber,
+      author: merged.author,
+    }, 'edit');
+    const contentHash = fnv1aHex(canonicalPayload);
+    const quote = pricing.estimateQuote({
+      title: merged.title,
+      description: merged.description,
+      content: merged.content,
+      category: merged.category,
+      tags: merged.tags,
+      featuredImage: merged.featuredImage,
+      linkedMagazineId: merged.linkedMagazineId,
+      linkedIssueNumber: merged.linkedIssueNumber,
+      author: merged.author,
+    }, 'edit');
+    const chainArticleId = existing.articleId ?? `vba-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const bundle = await sendVBlogTxBundle({
+      articleId: chainArticleId,
+      op: 'edit',
+      author: merged.author,
+      payload: canonicalPayload,
+      totalKas: quote.totalKas,
+      contentHash,
+    });
+    const updated = updateArticle(articleId, updates, {
+      txHash: bundle.commitTxHash,
+      status: bundle.verified ? 'verified' : 'verification_pending',
+      chunkTxHashes: bundle.chunkTxHashes,
+      commitTxHash: bundle.commitTxHash,
+      contentHash,
+      pricingSnapshot: {
+        payloadBytes: quote.payloadBytes,
+        chunkCount: quote.chunkCount,
+        baseFeeKas: quote.baseFeeKas,
+        sizeFeeKas: quote.sizeFeeKas,
+        networkFeeBufferKas: quote.networkFeeBufferKas,
+        totalKas: quote.totalKas,
+      },
+    });
     loadArticles(); // Reload articles
     return updated;
-  }, [loadArticles]);
+  }, [loadArticles, pricing, sendVBlogTxBundle]);
 
   /**
    * Get comments for an article

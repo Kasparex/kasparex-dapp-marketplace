@@ -43,7 +43,10 @@ export function getArticlesByAuthor(authorAddress: string): VBlogArticle[] {
 /**
  * Create a new article
  */
-export function createArticle(articleData: Omit<VBlogArticle, 'id' | 'slug' | 'publishDate' | 'cid' | 'articleId' | 'txHash' | 'status'>): VBlogArticle {
+export function createArticle(
+  articleData: Omit<VBlogArticle, 'id' | 'slug' | 'publishDate' | 'cid' | 'articleId' | 'txHash' | 'status'>,
+  metadata?: Partial<Pick<VBlogArticle, 'cid' | 'articleId' | 'txHash' | 'status' | 'chunkTxHashes' | 'commitTxHash' | 'contentHash' | 'pricingSnapshot'>>
+): VBlogArticle {
   const articles = getAllArticles();
   
   const newArticle: VBlogArticle = {
@@ -51,10 +54,14 @@ export function createArticle(articleData: Omit<VBlogArticle, 'id' | 'slug' | 'p
     id: `article-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
     slug: generateArticleSlug(articleData.title),
     publishDate: new Date().toISOString(),
-    cid: generateMockCID(),
-    articleId: generateMockArticleId(),
-    txHash: generateMockTxHash(),
-    status: 'on-chain-ready',
+    cid: metadata?.cid ?? generateMockCID(),
+    articleId: metadata?.articleId ?? generateMockArticleId(),
+    txHash: metadata?.txHash ?? generateMockTxHash(),
+    status: metadata?.status ?? 'on-chain-ready',
+    chunkTxHashes: metadata?.chunkTxHashes,
+    commitTxHash: metadata?.commitTxHash,
+    contentHash: metadata?.contentHash,
+    pricingSnapshot: metadata?.pricingSnapshot,
   };
 
   articles.unshift(newArticle); // Add to beginning
@@ -66,7 +73,11 @@ export function createArticle(articleData: Omit<VBlogArticle, 'id' | 'slug' | 'p
 /**
  * Update an existing article
  */
-export function updateArticle(articleId: string, updates: Partial<Omit<VBlogArticle, 'id' | 'author' | 'publishDate'>>): VBlogArticle | null {
+export function updateArticle(
+  articleId: string,
+  updates: Partial<Omit<VBlogArticle, 'id' | 'author' | 'publishDate'>>,
+  metadata?: Partial<Pick<VBlogArticle, 'txHash' | 'status' | 'chunkTxHashes' | 'commitTxHash' | 'contentHash' | 'pricingSnapshot'>>
+): VBlogArticle | null {
   const articles = getAllArticles();
   const index = articles.findIndex(a => a.id === articleId);
   
@@ -76,8 +87,13 @@ export function updateArticle(articleId: string, updates: Partial<Omit<VBlogArti
     ...articles[index],
     ...updates,
     updatedAt: new Date().toISOString(),
-    txHash: generateMockTxHash(), // New transaction for update
+    txHash: metadata?.txHash ?? generateMockTxHash(), // New transaction for update
     slug: updates.title ? generateArticleSlug(updates.title) : articles[index].slug,
+    status: metadata?.status ?? updates.status ?? articles[index].status,
+    chunkTxHashes: metadata?.chunkTxHashes ?? updates.chunkTxHashes ?? articles[index].chunkTxHashes,
+    commitTxHash: metadata?.commitTxHash ?? updates.commitTxHash ?? articles[index].commitTxHash,
+    contentHash: metadata?.contentHash ?? updates.contentHash ?? articles[index].contentHash,
+    pricingSnapshot: metadata?.pricingSnapshot ?? updates.pricingSnapshot ?? articles[index].pricingSnapshot,
   };
 
   articles[index] = updatedArticle;

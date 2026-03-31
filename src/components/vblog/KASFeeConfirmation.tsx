@@ -74,9 +74,20 @@ export function KASFeeConfirmation({
             </p>
           </div>
 
+          {(feeInfo.payloadBytes !== undefined || feeInfo.chunkCount !== undefined) && (
+            <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 mb-4">
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-2">
+                Payload size: <strong>{feeInfo.payloadBytes ?? 0}</strong> bytes, chunks: <strong>{feeInfo.chunkCount ?? 0}</strong>
+              </p>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                Breakdown: base {feeInfo.baseFeeKas ?? 0} + size {feeInfo.sizeFeeKas ?? 0} + network {feeInfo.networkFeeBufferKas ?? 0} = {feeInfo.totalKas ?? feeInfo.amount} KAS
+              </p>
+            </div>
+          )}
+
           <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 mb-6">
             <p className="text-xs text-zinc-600 dark:text-zinc-400">
-              <strong>Note:</strong> This action will require a KAS payment. In the final version, this will trigger a smart contract transaction. For now, this is a simulation.
+              <strong>Note:</strong> This action sends real Kaspa L1 transactions with payload chunks and a final commit transaction.
             </p>
           </div>
         </div>
