@@ -56,13 +56,16 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
           const parsed = JSON.parse(stored);
           // Validate stored state and verify wallet is still connected
           if (parsed.isConnected && parsed.address && parsed.provider) {
-            // Verify wallet is still actually connected
+            // Verify wallet is still actually connected.
+            // Some wallet extensions report false during early page init,
+            // so avoid hard-disconnecting on a single negative signal.
             const walletProvider = getWalletProvider(parsed.provider);
-            const isActuallyConnected = walletProvider?.isConnected?.() ?? false;
-            
-            if (!isActuallyConnected) {
+            const hasProvider = Boolean(walletProvider);
+            const isActuallyConnected = walletProvider?.isConnected?.();
+
+            if (!hasProvider) {
               // Wallet is not actually connected, clear stored state
-              console.log('Stored wallet state found but wallet is not connected, clearing...');
+              console.log('Stored wallet state found but provider is missing, clearing...');
               localStorage.removeItem(STORAGE_KEY);
               localStorage.removeItem(SIWK_STORAGE_KEY);
               return {

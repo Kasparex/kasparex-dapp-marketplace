@@ -101,15 +101,15 @@ export function AuthorDashboard({ createIntentKey = 0 }: AuthorDashboardProps) {
   return (
     <div className="space-y-8">
       {/* Navigation Tabs */}
-      <div className="flex bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-1.5 gap-1.5 rounded-2xl shadow-sm max-w-md">
+      <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl w-fit border border-zinc-200 dark:border-zinc-800">
         <button
           onClick={() => {
             setActiveTab('create');
             setEditingArticle(null);
           }}
-          className={`flex-1 px-6 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${activeTab === 'create'
-            ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md'
-            : 'text-zinc-500 hover:text-zinc-100 dark:hover:text-zinc-100'
+          className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'create'
+            ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700'
+            : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
             }`}
         >
           {editingArticle ? 'Edit Article' : 'Create Article'}
@@ -119,9 +119,9 @@ export function AuthorDashboard({ createIntentKey = 0 }: AuthorDashboardProps) {
             setActiveTab('my-articles');
             setEditingArticle(null);
           }}
-          className={`flex-1 px-6 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${activeTab === 'my-articles'
-            ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md'
-            : 'text-zinc-500 hover:text-zinc-100 dark:hover:text-zinc-100'
+          className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'my-articles'
+            ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700'
+            : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
             }`}
         >
           Archive ({authorArticles.length})

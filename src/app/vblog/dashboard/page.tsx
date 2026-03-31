@@ -8,9 +8,10 @@ import { VBlogSidebar } from '@/components/vblog/VBlogSidebar';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useSearchParams } from 'next/navigation';
+import { detectKaspaWallets } from '@/lib/kaspa/wallet';
 
 export default function VBlogDashboardPage() {
-  const { state } = useKaspaWallet();
+  const { state, connect } = useKaspaWallet();
   const { articles } = useVBlog();
   const searchParams = useSearchParams();
   const initialCreateIntent = searchParams.get('tab') === 'create' ? 1 : 0;
@@ -20,6 +21,24 @@ export default function VBlogDashboardPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isConnectingWallet, setIsConnectingWallet] = useState(false);
+
+  const handleConnectWallet = async () => {
+    const hasKasware = detectKaspaWallets().some((w) => w.id === 'kasware' && w.isInstalled);
+    if (!hasKasware) {
+      window.open('https://chrome.google.com/webstore/detail/hklhheigdmpoolooomdihmhlpjjdbklf', '_blank');
+      return;
+    }
+    setIsConnectingWallet(true);
+    try {
+      await connect('kasware', {
+        enableSIWK: true,
+        siwkParams: { appName: 'Kasparex dApps' },
+      });
+    } finally {
+      setIsConnectingWallet(false);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -55,7 +74,7 @@ export default function VBlogDashboardPage() {
 
               {!state.isConnected ? (
                 <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[32px] p-12 text-center shadow-2xl shadow-orange-500/5">
-                  <div className="w-20 h-20 bg-orange-500/10 rounded-3xl flex items-center justify-center mx-auto mb-8">
+                  <div className="w-20 h-20 bg-[#02abb8]/10 rounded-3xl flex items-center justify-center mx-auto mb-8">
                     <svg className="w-10 h-10 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
@@ -66,8 +85,15 @@ export default function VBlogDashboardPage() {
                   <p className="text-zinc-500 dark:text-zinc-400 mb-8 max-w-md mx-auto font-medium">
                     Please connect your Kaspa or EVM wallet to access your personal dashboard and manage your syndicated articles.
                   </p>
-                  <div className="inline-block px-8 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl font-black text-sm uppercase tracking-widest transition-all hover:scale-105">
-                    Use Connect Button in Header
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => void handleConnectWallet()}
+                      disabled={isConnectingWallet}
+                      className="k-control-btn !bg-[#02abb8] hover:!bg-[#0296a1] !text-white !border-[#02abb8]/50 px-6"
+                    >
+                      {isConnectingWallet ? 'Connecting...' : 'Connect Wallet'}
+                    </button>
                   </div>
                 </div>
               ) : (

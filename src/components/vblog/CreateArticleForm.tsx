@@ -14,6 +14,8 @@ import {
 } from '@/lib/vblog/limits';
 import { Alert } from '@/components/Alert';
 import { VBlogMagazineIntegration } from './VBlogMagazineIntegration';
+import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
+import { getVBlogBaseFeeKas } from '@/lib/vblog/pricing';
 
 interface CreateArticleFormProps {
   onSubmit: (article: Omit<VBlogArticle, 'id' | 'slug' | 'publishDate' | 'cid' | 'articleId' | 'txHash' | 'status'>) => Promise<void>;
@@ -52,6 +54,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
   const [linkedIssueNumber, setLinkedIssueNumber] = useState<number | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
   const createQuote = pricing.estimateQuote({
     title,
     description,
@@ -63,6 +66,9 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
     linkedIssueNumber,
     author: walletAddress ?? undefined,
   }, 'create');
+  const fullBaseFee = getVBlogBaseFeeKas('create');
+  const discountKas = Math.max(0, fullBaseFee - createQuote.baseFeeKas);
+  const discountPercent = fullBaseFee > 0 ? Math.round((discountKas / fullBaseFee) * 100) : 0;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -345,8 +351,17 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
           </div>
           {pricing.tier.hasKREXDiscount && (
             <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm text-emerald-800 dark:text-emerald-300">
-              KREX discount applied to the base fee.
+              KREX discount: -{discountKas.toFixed(2)} KAS ({discountPercent}% off base fee).
             </div>
+          )}
+          {!pricing.tier.hasKREXDiscount && (
+            <button
+              type="button"
+              onClick={() => setIsKrexWizardOpen(true)}
+              className="w-full k-control-btn !border-emerald-500/30 !text-emerald-700 dark:!text-emerald-300"
+            >
+              Buy KREX to unlock discount
+            </button>
           )}
           <button
             type="submit"
@@ -356,6 +371,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
             {isSubmitting ? 'Creating...' : 'Create Article'}
           </button>
         </aside>
+        <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
       </form>
   );
 }
