@@ -3,7 +3,8 @@ export type VBlogModuleId =
   | 'tip_box'
   | 'tip_to_reveal'
   | 'premium_poll'
-  | 'reading_receipts_badges';
+  | 'reading_receipts_badges'
+  | 'magazine_integration';
 
 export interface VBlogTipBoxConfig {
   presets: number[];
@@ -68,6 +69,8 @@ export interface VBlogArticle {
     networkFeeBufferKas: number;
     totalKas: number;
   };
+  primaryLink?: string;
+  socialLinks?: string[];
   modules?: VBlogModulesConfig;
 }
 

@@ -1,6 +1,11 @@
 import { VBlogModuleId } from '@/lib/vblog/types';
 import type { KREXTier } from '@/lib/rewards/types';
-import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
+import type { NFTStatus } from '@/lib/rewards/types';
+import {
+  chroniclesNftTierDiscountPercent,
+  krexTierDiscountPercent,
+} from '@/lib/chronicles/vault/pricing';
+import { VAULT_MAX_COMBINED_DISCOUNT_PERCENT } from '@/lib/chronicles/vault/constants';
 
 export type VBlogModuleOffer = {
   id: VBlogModuleId;
@@ -78,14 +83,39 @@ export const VBLOG_MODULE_OFFERS: VBlogModuleOffer[] = [
     unlockPriceKas: 15,
     featuredImage: '',
   },
+  {
+    id: 'magazine_integration',
+    title: 'Magazine Integration',
+    description: 'Link articles to Magazine issues and enable contributor syndication paths.',
+    unlockPriceKas: 18,
+    featuredImage: '',
+  },
 ];
 
 export function getVBlogModuleDiscountPercent(tier: KREXTier): number {
   return krexTierDiscountPercent(tier);
 }
 
-export function getVBlogModuleEffectivePriceKas(baseKas: number, tier: KREXTier): number {
-  const discount = getVBlogModuleDiscountPercent(tier);
+export function getVBlogModuleNftDiscountPercent(nft: NFTStatus | null | undefined): number {
+  return chroniclesNftTierDiscountPercent(nft);
+}
+
+export function getVBlogModuleCombinedDiscountPercent(
+  tier: KREXTier,
+  nft: NFTStatus | null | undefined,
+): number {
+  return Math.min(
+    VAULT_MAX_COMBINED_DISCOUNT_PERCENT,
+    getVBlogModuleDiscountPercent(tier) + getVBlogModuleNftDiscountPercent(nft),
+  );
+}
+
+export function getVBlogModuleEffectivePriceKas(
+  baseKas: number,
+  tier: KREXTier,
+  nft: NFTStatus | null | undefined,
+): number {
+  const discount = getVBlogModuleCombinedDiscountPercent(tier, nft);
   const factor = 1 - discount / 100;
   return Math.max(0.01, Math.round(baseKas * factor * 100) / 100);
 }

@@ -18,6 +18,24 @@ export function ArticleSidebar({ article }: ArticleSidebarProps) {
     return (
         <div className="space-y-6">
             <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/90 dark:bg-zinc-900/55 p-5 sm:p-6">
+                <h4 className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-4">Author links</h4>
+                <div className="space-y-2 text-sm">
+                    {article.primaryLink ? (
+                        <a href={article.primaryLink} target="_blank" rel="noreferrer" className="block font-bold text-orange-600 hover:text-orange-500 break-all">
+                            Main link: {article.primaryLink}
+                        </a>
+                    ) : (
+                        <p className="text-zinc-500 dark:text-zinc-400">No primary link provided.</p>
+                    )}
+                    {(article.socialLinks ?? []).slice(0, 3).map((link, index) => (
+                        <a key={`${link}-${index}`} href={link} target="_blank" rel="noreferrer" className="block text-zinc-700 dark:text-zinc-300 hover:text-[#02abb8] break-all">
+                            Social {index + 1}: {link}
+                        </a>
+                    ))}
+                </div>
+            </div>
+
+            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/90 dark:bg-zinc-900/55 p-5 sm:p-6">
                 <h4 className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-4">KREX holder status</h4>
                 <div className="text-2xl font-black text-zinc-900 dark:text-zinc-100">
                     {balance.toLocaleString()} <span className="text-xs text-[#02abb8] lowercase pr-1">krex</span>

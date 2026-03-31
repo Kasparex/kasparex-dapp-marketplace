@@ -40,10 +40,10 @@ export default function VBlogVaultPage() {
               <div className="rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-white via-cyan-500/5 to-transparent dark:from-zinc-900 dark:via-cyan-500/10 dark:to-zinc-950 p-8 sm:p-10">
                 <p className="text-sm font-black uppercase tracking-[0.2em] text-[#02abb8] mb-4">Vault & unlocks</p>
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight mb-4">
-                  vBlog creator perks
+                  Unlock vBlog monetization modules
                 </h1>
                 <p className="text-lg sm:text-xl text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
-                  Unlock reduced fees, publishing boosts, and premium access controls for your vBlog experience.
+                  Unlock modules once, then activate premium sections, tips, polls, and badge systems across your articles. Holder discounts (KREX + NFTs) apply to unlock pricing.
                 </p>
               </div>
 
@@ -56,7 +56,7 @@ export default function VBlogVaultPage() {
                 <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-6">
                   <p className="text-xs font-black uppercase tracking-widest text-zinc-500 mb-2">Holder discount</p>
                   <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{discountPct}%</p>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">Applied to publish and edit actions.</p>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">KREX tier baseline; NFTs can increase unlock discount.</p>
                 </div>
                 <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-6">
                   <p className="text-xs font-black uppercase tracking-widest text-zinc-500 mb-2">NFT holdings</p>

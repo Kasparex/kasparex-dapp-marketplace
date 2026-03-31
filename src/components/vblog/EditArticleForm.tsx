@@ -48,6 +48,10 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
   const [cid, setCid] = useState(article.cid || '');
   const [linkedMagazineId, setLinkedMagazineId] = useState<string | undefined>(article.linkedMagazineId);
   const [linkedIssueNumber, setLinkedIssueNumber] = useState<number | undefined>(article.linkedIssueNumber);
+  const [primaryLink, setPrimaryLink] = useState(article.primaryLink ?? '');
+  const [socialLink1, setSocialLink1] = useState(article.socialLinks?.[0] ?? '');
+  const [socialLink2, setSocialLink2] = useState(article.socialLinks?.[1] ?? '');
+  const [socialLink3, setSocialLink3] = useState(article.socialLinks?.[2] ?? '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
@@ -89,6 +93,10 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
     setCid(article.cid || '');
     setLinkedMagazineId(article.linkedMagazineId);
     setLinkedIssueNumber(article.linkedIssueNumber);
+    setPrimaryLink(article.primaryLink ?? '');
+    setSocialLink1(article.socialLinks?.[0] ?? '');
+    setSocialLink2(article.socialLinks?.[1] ?? '');
+    setSocialLink3(article.socialLinks?.[2] ?? '');
     setPremiumSectionEnabled(Boolean(article.modules?.premiumSectionEnabled));
     setPremiumSectionContent(article.modules?.premiumSectionContent ?? '');
     setPremiumSectionPriceKas(String(article.modules?.premiumSectionPriceKas ?? 10));
@@ -186,6 +194,8 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
         cid: cid.trim() || undefined,
         linkedMagazineId,
         linkedIssueNumber,
+        primaryLink: primaryLink.trim() || undefined,
+        socialLinks: [socialLink1, socialLink2, socialLink3].map((x) => x.trim()).filter(Boolean),
         modules: {
           premiumSectionEnabled,
           premiumSectionContent: premiumSectionEnabled ? premiumSectionContent.trim() : undefined,
@@ -353,6 +363,17 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
           </div>
         </div>
 
+        <div className="space-y-2">
+          <label className="k-label">Main promotion link (optional)</label>
+          <input className="k-input" value={primaryLink} onChange={(e) => setPrimaryLink(e.target.value)} placeholder="https://yourwebsite.com" disabled={isSubmitting} />
+          <label className="k-label">Social links (up to 3)</label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <input className="k-input" value={socialLink1} onChange={(e) => setSocialLink1(e.target.value)} placeholder="https://x.com/..." disabled={isSubmitting} />
+            <input className="k-input" value={socialLink2} onChange={(e) => setSocialLink2(e.target.value)} placeholder="https://instagram.com/..." disabled={isSubmitting} />
+            <input className="k-input" value={socialLink3} onChange={(e) => setSocialLink3(e.target.value)} placeholder="https://youtube.com/..." disabled={isSubmitting} />
+          </div>
+        </div>
+
         <VBlogMagazineIntegration
           linkedMagazineId={linkedMagazineId}
           linkedIssueNumber={linkedIssueNumber}
@@ -360,18 +381,17 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
             setLinkedMagazineId(magId);
             setLinkedIssueNumber(issueNum);
           }}
-          disabled={isSubmitting}
+          disabled={isSubmitting || !unlockedModules.includes('magazine_integration')}
         />
+        {!unlockedModules.includes('magazine_integration') && (
+          <p className="text-xs text-amber-700 dark:text-amber-300">Unlock the Magazine Integration module to enable article-to-issue linking.</p>
+        )}
 
-        <VBlogModuleUnlockCards
-          title="Unlock related modules"
-          onUnlockChange={(ids) => setUnlockedModules(ids)}
-          recommendedModuleIds={['premium_section', 'tip_box', 'tip_to_reveal', 'premium_poll']}
-          showToggleLabel="Show all modules"
-        />
-
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 space-y-4">
-          <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Vault modules</p>
+        <section className="space-y-4 pt-2">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-base font-black uppercase tracking-widest text-orange-600 dark:text-orange-300">Vault modules</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Enable unlocked modules for this article</p>
+          </div>
 
           <label className="flex items-center justify-between text-sm">
             <span>Premium section unlock</span>
@@ -418,7 +438,14 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
             <span>Reading receipts + badges</span>
             <input type="checkbox" checked={readingReceiptsEnabled} disabled={!unlockedModules.includes('reading_receipts_badges') || isSubmitting} onChange={(e) => setReadingReceiptsEnabled(e.target.checked)} />
           </label>
-        </div>
+        </section>
+
+        <VBlogModuleUnlockCards
+          title="Unlock related modules"
+          onUnlockChange={(ids) => setUnlockedModules(ids)}
+          recommendedModuleIds={['premium_section', 'tip_box', 'tip_to_reveal', 'premium_poll', 'magazine_integration']}
+          showToggleLabel="Show all modules"
+        />
 
         <div>
           <label className="k-label">
