@@ -150,7 +150,22 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
 
     const cleanup = onKaspaAccountChange(state.provider, async (accounts) => {
       if (accounts.length === 0) {
-        // Wallet disconnected
+        // Some providers may emit transient empty arrays during page transitions.
+        // Re-check address before forcing disconnect.
+        try {
+          const currentAddress = await getKaspaAddress(state.provider!);
+          if (currentAddress) {
+            setState(prev => ({
+              ...prev,
+              isConnected: true,
+              address: currentAddress,
+              error: null,
+            }));
+            return;
+          }
+        } catch {
+          // fall through to disconnect
+        }
         setState({
           isConnected: false,
           address: null,

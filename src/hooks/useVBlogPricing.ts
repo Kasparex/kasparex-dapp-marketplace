@@ -73,7 +73,7 @@ export function useVBlogPricing() {
       hasNFTPerks: false,
       nftCollections: [],
     },
-    estimateQuote: (draft, action) => computeVBlogArticlePrice(draft, action),
+    estimateQuote: (draft, action) => computeVBlogArticlePrice(draft, action, 0),
   });
 
   useEffect(() => {
@@ -107,7 +107,7 @@ export function useVBlogPricing() {
                 hasNFTPerks: false,
                 nftCollections: [],
               },
-              estimateQuote: (draft, action) => computeVBlogArticlePrice(draft, action),
+              estimateQuote: (draft, action) => computeVBlogArticlePrice(draft, action, 0),
             };
           });
           return;
@@ -179,7 +179,7 @@ export function useVBlogPricing() {
                     nftCollections: [],
                   },
                   estimateQuote: (draft, action) =>
-                    computeVBlogArticlePrice(draft, action, discountPercent),
+                    computeVBlogArticlePrice(draft, action, 0),
                 };
               });
             }
@@ -204,7 +204,7 @@ export function useVBlogPricing() {
                 hasNFTPerks: false,
                 nftCollections: [],
               },
-              estimateQuote: (draft, action) => computeVBlogArticlePrice(draft, action, discountPercent),
+              estimateQuote: (draft, action) => computeVBlogArticlePrice(draft, action, 0),
             };
           });
         }
@@ -219,7 +219,7 @@ export function useVBlogPricing() {
         clearTimeout(timeoutId);
       }
     };
-  }, [walletAddress, isWalletConnected, krexBalance]);
+  }, [walletAddress, isWalletConnected, krexBalance, discountPercent]);
 
   return pricingInfo;
 }

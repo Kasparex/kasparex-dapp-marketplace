@@ -60,7 +60,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
 
   return (
     <article className="max-w-6xl mx-auto">
-      <div className="relative mb-10 rounded-2xl overflow-hidden bg-zinc-50/80 dark:bg-zinc-900/45 border border-zinc-200 dark:border-zinc-800">
+      <div className="relative mb-10 rounded-2xl overflow-hidden bg-zinc-50/80 dark:bg-zinc-900/45 border border-zinc-200 dark:border-zinc-800 select-text">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent" />
 
         <div className="relative flex flex-col lg:flex-row min-h-[360px]">
@@ -71,7 +71,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-6 leading-tight tracking-tight">
               {article.title}
             </h1>
-            <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-2xl mb-8">
+            <p className="text-lg sm:text-xl text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-2xl mb-8 select-text">
               {article.description}
             </p>
 
@@ -144,11 +144,16 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
           <div
             className="prose prose-zinc dark:prose-invert max-w-none 
               prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100 prose-headings:font-black prose-headings:tracking-tight
-              prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:leading-relaxed prose-p:text-lg sm:prose-p:text-xl prose-p:mb-5
+              prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:leading-relaxed prose-p:text-xl sm:prose-p:text-2xl prose-p:mb-5
               prose-a:text-[#02abb8] prose-a:font-bold prose-a:no-underline hover:prose-a:underline
               prose-strong:text-zinc-900 dark:prose-strong:text-zinc-100 prose-strong:font-black
               prose-blockquote:border-l-[#02abb8] prose-blockquote:bg-[#02abb8]/5 prose-blockquote:rounded-2xl prose-blockquote:px-6 prose-blockquote:py-4 prose-blockquote:font-medium prose-blockquote:italic
-              prose-img:rounded-2xl"
+              prose-img:rounded-2xl select-text cursor-text"
+            onClick={(e) => {
+              const selection = window.getSelection()?.toString().trim();
+              if (!selection) return;
+              void navigator.clipboard.writeText(selection).catch(() => undefined);
+            }}
             dangerouslySetInnerHTML={{ __html: parseMarkdown(article.content) }}
           />
         </div>
