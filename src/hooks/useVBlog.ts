@@ -26,8 +26,6 @@ import {
 } from '@/lib/vblog/pricing';
 import {
   splitPayloadToHexChunks,
-  buildVBlogChunkPayloadHex,
-  buildVBlogChunkPlainNote,
   buildVBlogCommitPayloadHex,
   buildVBlogCommitPlainNote,
   computeVBlogRootHash,
@@ -90,46 +88,13 @@ export function useVBlog() {
     const chunkCount = chunkHexList.length;
     const rootHash = computeVBlogRootHash(chunkHexList);
     const treasury = getVBlogTreasuryL1Address();
-    const txTotalCount = chunkCount + 1;
-    const perTxKas = Math.ceil((args.totalKas / txTotalCount) * 100) / 100;
-    const chunkTxHashes: string[] = [];
-
-    for (let i = 0; i < chunkCount; i++) {
-      const note = buildVBlogChunkPlainNote({
-        articleId: args.articleId,
-        op: args.op,
-        chunkIndex: i,
-        chunkTotal: chunkCount,
-        contentHash: args.contentHash,
-        chunkDataHex: chunkHexList[i],
-      });
-      const payloadHex = buildVBlogChunkPayloadHex({
-        articleId: args.articleId,
-        op: args.op,
-        chunkIndex: i,
-        chunkTotal: chunkCount,
-        contentHash: args.contentHash,
-        chunkDataHex: chunkHexList[i],
-      });
-      const tx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
-        to: treasury,
-        amount: String(kasToSompi(perTxKas)),
-        note,
-        payload: payloadHex,
-      });
-      if (tx.status === 'failed' || !tx.txHash) {
-        throw new Error(tx.error ?? `Chunk payment failed at chunk ${i + 1}`);
-      }
-      chunkTxHashes.push(extractKaspaTransactionId(tx.txHash) ?? tx.txHash);
-    }
-
-    const paidChunkKas = perTxKas * chunkCount;
-    const commitKas = Math.max(0.01, Math.ceil((args.totalKas - paidChunkKas) * 100) / 100);
+    const paymentKas = Math.max(0.01, Math.ceil(args.totalKas * 100) / 100);
     const commitNote = buildVBlogCommitPlainNote({
       articleId: args.articleId,
       op: args.op,
       chunkTotal: chunkCount,
       rootHash,
+      contentHash: args.contentHash,
       version: 1,
     });
     const commitPayload = buildVBlogCommitPayloadHex({
@@ -137,11 +102,12 @@ export function useVBlog() {
       op: args.op,
       chunkTotal: chunkCount,
       rootHash,
+      contentHash: args.contentHash,
       version: 1,
     });
     const commitTx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
       to: treasury,
-      amount: String(kasToSompi(commitKas)),
+      amount: String(kasToSompi(paymentKas)),
       note: commitNote,
       payload: commitPayload,
     });
@@ -161,7 +127,6 @@ export function useVBlog() {
             articleId: args.articleId,
             op: args.op,
             payerAddress: args.author,
-            chunkTxHashes,
             commitTxHash,
             chunkHexList,
             contentHash: args.contentHash,
@@ -184,7 +149,7 @@ export function useVBlog() {
     }
 
     return {
-      chunkTxHashes,
+      chunkTxHashes: [commitTxHash],
       commitTxHash,
       chunkHexList,
       rootHash,

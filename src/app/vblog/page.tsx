@@ -8,23 +8,26 @@ import { VBlogHeader } from '@/components/vblog/VBlogHeader';
 import { VBlogCard } from '@/components/vblog/VBlogCard';
 import { VBlogSidebar } from '@/components/vblog/VBlogSidebar';
 import { VBlogSortFilters, type VBlogSortOption } from '@/components/vblog/VBlogSortFilters';
-import { VBlogSubmissionModal } from '@/components/vblog/VBlogSubmissionModal';
 import { VBlogRewardsSection } from '@/components/vblog/VBlogRewardsSection';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { FilterBar } from '@/components/FilterBar';
+import { useRouter } from 'next/navigation';
 
 export default function VBlogPage() {
-  const { articles, isLoading, loadArticles } = useVBlog();
+  const { articles, isLoading } = useVBlog();
   const pricing = useVBlogPricing();
   const { state } = useKaspaWallet();
+  const router = useRouter();
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<VBlogSortOption>('newest');
-  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  const openEditorDashboard = () => {
+    router.push('/vblog/dashboard?tab=create');
+  };
 
   const filteredArticles = useMemo(() => {
     let filtered = [...articles];
@@ -100,7 +103,7 @@ export default function VBlogPage() {
             onCategoryChange={setSelectedCategory}
             onTagToggle={handleTagToggle}
             onSearchChange={setSearchQuery}
-            onCreateArticle={() => setIsSubmitModalOpen(true)}
+            onCreateArticle={openEditorDashboard}
             activeView="explore"
           />
 
@@ -108,7 +111,7 @@ export default function VBlogPage() {
           <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800 font-sans text-base sm:text-[17px]">
             <div className="max-w-6xl mx-auto">
               {/* Unified Header */}
-              <VBlogHeader onStartWriting={() => setIsSubmitModalOpen(true)} />
+              <VBlogHeader onStartWriting={openEditorDashboard} />
 
               {/* Pricing & Service Fees Widget */}
               <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -145,7 +148,7 @@ export default function VBlogPage() {
                   <VBlogSortFilters
                     sortBy={sortBy}
                     onSortChange={setSortBy}
-                    onAddArticle={() => setIsSubmitModalOpen(true)}
+                    onAddArticle={openEditorDashboard}
                   />
                 </FilterBar>
                 {/* Selected Tags Row */}
@@ -203,12 +206,6 @@ export default function VBlogPage() {
           </div>
         </div>
       </main>
-
-      <VBlogSubmissionModal
-        isOpen={isSubmitModalOpen}
-        onClose={() => setIsSubmitModalOpen(false)}
-        onSuccess={loadArticles}
-      />
 
       <Footer />
     </div>

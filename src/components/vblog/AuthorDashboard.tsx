@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -11,7 +11,11 @@ import { ArticleList } from './ArticleList';
 import { AuthorPricing } from './AuthorPricing';
 import { Alert } from '@/components/Alert';
 
-export function AuthorDashboard() {
+interface AuthorDashboardProps {
+  createIntentKey?: number;
+}
+
+export function AuthorDashboard({ createIntentKey = 0 }: AuthorDashboardProps) {
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
 
@@ -23,6 +27,11 @@ export function AuthorDashboard() {
   const [activeTab, setActiveTab] = useState<'create' | 'my-articles'>('create');
   const [editingArticle, setEditingArticle] = useState<VBlogArticle | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setActiveTab('create');
+    setEditingArticle(null);
+  }, [createIntentKey]);
 
   const authorArticles = walletAddress ? getAuthorArticles(walletAddress) : [];
 

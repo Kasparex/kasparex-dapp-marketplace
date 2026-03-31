@@ -46,9 +46,10 @@ export function buildVBlogCommitPlainNote(args: {
   op: 'create' | 'edit';
   chunkTotal: number;
   rootHash: string;
+  contentHash: string;
   version?: number;
 }): string {
-  return `${VBLOG_PAYLOAD_PREFIX}commit:${args.articleId}:${args.op}:${args.chunkTotal}:${args.rootHash}:${args.version ?? 1}`;
+  return `${VBLOG_PAYLOAD_PREFIX}commit:${args.articleId}:${args.op}:${args.chunkTotal}:${args.rootHash}:${args.contentHash}:${args.version ?? 1}`;
 }
 
 export function buildVBlogChunkPayloadHex(args: Parameters<typeof buildVBlogChunkPlainNote>[0]): string {

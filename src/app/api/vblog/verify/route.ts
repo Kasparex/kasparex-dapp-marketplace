@@ -8,7 +8,6 @@ export async function POST(request: NextRequest) {
       articleId?: string;
       op?: 'create' | 'edit';
       payerAddress?: string;
-      chunkTxHashes?: string[];
       commitTxHash?: string;
       chunkHexList?: string[];
       contentHash?: string;
@@ -18,19 +17,16 @@ export async function POST(request: NextRequest) {
     const articleId = (body.articleId ?? '').trim();
     const op: 'create' | 'edit' = body.op === 'edit' ? 'edit' : 'create';
     const payerAddress = (body.payerAddress ?? '').trim();
-    const chunkTxHashes = Array.isArray(body.chunkTxHashes)
-      ? body.chunkTxHashes.map((x) => extractKaspaTransactionId(x) ?? x.trim().replace(/^0x/i, '').toLowerCase())
-      : [];
     const commitTxHash = extractKaspaTransactionId(body.commitTxHash ?? '') ?? (body.commitTxHash ?? '').trim().replace(/^0x/i, '').toLowerCase();
     const chunkHexList = Array.isArray(body.chunkHexList) ? body.chunkHexList.map((x) => String(x)) : [];
     const contentHash = (body.contentHash ?? '').trim();
     const rootHash = (body.rootHash ?? '').trim();
     const requiredTotalKas = Number(body.requiredTotalKas ?? 0);
 
-    if (!articleId || !payerAddress || chunkTxHashes.length === 0 || !commitTxHash || !contentHash || !rootHash || !Number.isFinite(requiredTotalKas) || requiredTotalKas <= 0) {
+    if (!articleId || !payerAddress || !commitTxHash || !contentHash || !rootHash || !Number.isFinite(requiredTotalKas) || requiredTotalKas <= 0) {
       return NextResponse.json({ ok: false, error: 'Missing required verification fields' }, { status: 400 });
     }
-    if (!/^[0-9a-f]{64}$/.test(commitTxHash) || chunkTxHashes.some((x) => !/^[0-9a-f]{64}$/.test(x))) {
+    if (!/^[0-9a-f]{64}$/.test(commitTxHash)) {
       return NextResponse.json({ ok: false, error: 'Invalid tx hash format' }, { status: 400 });
     }
 
@@ -38,7 +34,6 @@ export async function POST(request: NextRequest) {
       articleId,
       op,
       payerAddress,
-      chunkTxHashes,
       commitTxHash,
       chunkHexList,
       contentHash,

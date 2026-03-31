@@ -5,14 +5,16 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { AuthorDashboard } from '@/components/vblog/AuthorDashboard';
 import { VBlogSidebar } from '@/components/vblog/VBlogSidebar';
-import { VBlogSubmissionModal } from '@/components/vblog/VBlogSubmissionModal';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useVBlog } from '@/hooks/useVBlog';
+import { useSearchParams } from 'next/navigation';
 
 export default function VBlogDashboardPage() {
   const { state } = useKaspaWallet();
-  const { articles, loadArticles } = useVBlog();
-  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  const { articles } = useVBlog();
+  const searchParams = useSearchParams();
+  const initialCreateIntent = searchParams.get('tab') === 'create' ? 1 : 0;
+  const [createIntentKey, setCreateIntentKey] = useState(initialCreateIntent);
 
   // Filter state for sidebar (though dashboard mostly manages its own)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -34,7 +36,7 @@ export default function VBlogDashboardPage() {
             onCategoryChange={setSelectedCategory}
             onTagToggle={(tag) => setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])}
             onSearchChange={setSearchQuery}
-            onCreateArticle={() => setIsSubmitModalOpen(true)}
+            onCreateArticle={() => setCreateIntentKey((x) => x + 1)}
             activeView="dashboard"
           />
 
@@ -68,18 +70,12 @@ export default function VBlogDashboardPage() {
                   </div>
                 </div>
               ) : (
-                <AuthorDashboard />
+                <AuthorDashboard createIntentKey={createIntentKey} />
               )}
             </div>
           </div>
         </div>
       </main>
-
-      <VBlogSubmissionModal
-        isOpen={isSubmitModalOpen}
-        onClose={() => setIsSubmitModalOpen(false)}
-        onSuccess={loadArticles}
-      />
 
       <Footer />
     </div>

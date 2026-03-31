@@ -87,7 +87,7 @@ export function KASFeeConfirmation({
 
           <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 mb-6">
             <p className="text-xs text-zinc-600 dark:text-zinc-400">
-              <strong>Note:</strong> This action sends real Kaspa L1 transactions with payload chunks and a final commit transaction.
+              <strong>Note:</strong> This action sends one real Kaspa L1 payment transaction. Payload chunks are used for deterministic price calculation and verification metadata.
             </p>
           </div>
         </div>

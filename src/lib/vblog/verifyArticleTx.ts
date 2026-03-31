@@ -2,13 +2,12 @@ import { kasToSompi } from '@/lib/ads/config';
 import { getRestTransactionById, type KaspaRestTransaction, type KaspaRestTxOutput } from '@/lib/kaspa/api';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { getVBlogTreasuryL1Address } from '@/lib/vblog/config';
-import { buildVBlogCommitPlainNote, buildVBlogChunkPlainNote } from '@/lib/vblog/payloadHex';
+import { buildVBlogCommitPlainNote, computeVBlogRootHash } from '@/lib/vblog/payloadHex';
 
 type VerifyInput = {
   articleId: string;
   op: 'create' | 'edit';
   payerAddress: string;
-  chunkTxHashes: string[];
   commitTxHash: string;
   chunkHexList: string[];
   contentHash: string;
@@ -93,32 +92,16 @@ export async function verifyVBlogArticleTxBundle(input: VerifyInput): Promise<Ve
     return { ok: false, error: e instanceof Error ? e.message : 'Invalid address' };
   }
 
-  if (input.chunkTxHashes.length === 0 || input.chunkTxHashes.length !== input.chunkHexList.length) {
-    return { ok: false, error: 'Invalid chunk bundle' };
+  if (input.chunkHexList.length === 0) {
+    return { ok: false, error: 'Invalid chunk metadata' };
+  }
+  const recomputedRoot = computeVBlogRootHash(input.chunkHexList);
+  if (recomputedRoot !== input.rootHash) {
+    return { ok: false, error: 'Invalid chunk root hash' };
   }
 
   const minSompi = kasToSompi(input.requiredTotalKas);
   let paidSompi = 0;
-
-  for (let i = 0; i < input.chunkTxHashes.length; i++) {
-    const tx = await getRestTransactionById(input.chunkTxHashes[i], { maxAttempts: 8, delayMs: 1400 });
-    if (!tx) return { ok: false, error: `Chunk transaction ${i + 1} not found yet` };
-    const expectedPayload = buildVBlogChunkPlainNote({
-      articleId: input.articleId,
-      op: input.op,
-      chunkIndex: i,
-      chunkTotal: input.chunkHexList.length,
-      contentHash: input.contentHash,
-      chunkDataHex: input.chunkHexList[i],
-    });
-    if (!txPayload(tx).startsWith(expectedPayload)) {
-      return { ok: false, error: `Chunk payload mismatch at index ${i + 1}` };
-    }
-    if (!txHasPayerInput(tx, payerNorm)) {
-      return { ok: false, error: `Chunk transaction ${i + 1} payer mismatch` };
-    }
-    paidSompi += txPaysTreasurySompi(tx, treasuryNorm);
-  }
 
   const commitTx = await getRestTransactionById(input.commitTxHash, { maxAttempts: 8, delayMs: 1400 });
   if (!commitTx) return { ok: false, error: 'Commit transaction not found yet' };
@@ -127,6 +110,7 @@ export async function verifyVBlogArticleTxBundle(input: VerifyInput): Promise<Ve
     op: input.op,
     chunkTotal: input.chunkHexList.length,
     rootHash: input.rootHash,
+    contentHash: input.contentHash,
     version: 1,
   });
   if (!txPayload(commitTx).startsWith(expectedCommit)) {
