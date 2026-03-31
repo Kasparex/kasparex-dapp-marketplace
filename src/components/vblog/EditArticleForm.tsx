@@ -16,7 +16,7 @@ import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { getVBlogBaseFeeKas } from '@/lib/vblog/pricing';
 import { getAuthorUnlockedModules } from '@/lib/vblog/modules';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { VBlogInlineModuleUnlockCard, VBlogModuleUnlockCards } from './VBlogModuleUnlockCards';
+import { VBlogInlineModuleUnlockCard } from './VBlogModuleUnlockCards';
 
 interface EditArticleFormProps {
   article: VBlogArticle;
@@ -392,13 +392,6 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
             <p className="text-base font-black uppercase tracking-widest text-orange-600 dark:text-orange-300">Vault modules & unlocks</p>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">Unlock and configure modules in one place</p>
           </div>
-
-          <VBlogModuleUnlockCards
-            title="Unlock related modules"
-            onUnlockChange={(ids) => setUnlockedModules(ids)}
-            recommendedModuleIds={['premium_section', 'tip_box', 'tip_to_reveal', 'premium_poll', 'magazine_integration']}
-            showToggleLabel="Show all modules"
-          />
 
           <div className="relative rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 space-y-3">
             <label className="flex items-center justify-between text-sm">

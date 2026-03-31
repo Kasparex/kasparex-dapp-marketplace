@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
@@ -17,7 +18,7 @@ interface VBlogSidebarProps {
   onSearchChange: (query: string) => void;
   onCreateArticle?: () => void;
   activeView?: 'explore' | 'dashboard' | 'vault' | 'article';
-  articleNavItems?: Array<{ id: string; label: string }>;
+  articleNavItems?: Array<{ id: string; label: string; icon?: ReactNode }>;
 }
 
 function VBlogCategoryIcon({ id, className = '' }: { id: string | null; className?: string }) {
@@ -103,8 +104,9 @@ export function VBlogSidebar({
           <div className="space-y-2">
             <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Article navigation</p>
             {articleNavItems.map((item) => (
-              <a key={item.id} href={`#${item.id}`} className="k-control-btn w-full justify-start">
-                {item.label}
+              <a key={item.id} href={`#${item.id}`} className="k-control-btn w-full justify-start gap-2">
+                {item.icon ?? <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-6 4h10" /></svg>}
+                <span>{item.label}</span>
               </a>
             ))}
           </div>

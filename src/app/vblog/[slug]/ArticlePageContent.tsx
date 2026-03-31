@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ArticleDetail } from '@/components/vblog/ArticleDetail';
-import { ArticleMetadata } from '@/components/vblog/ArticleMetadata';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
 import { VBlogSidebar } from '@/components/vblog/VBlogSidebar';
 import { ChroniclesEntitySlots } from '@/components/chronicles/leaderboard/ChroniclesEntitySlots';
@@ -62,11 +61,11 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
             onSearchChange={() => {}}
             activeView="article"
             articleNavItems={[
-              { id: 'article-header', label: 'Header' },
-              { id: 'article-intro', label: 'Intro' },
-              { id: 'article-main', label: 'Main text' },
-              { id: 'article-modules', label: 'Modules' },
-              { id: 'article-comments', label: 'Comments' },
+              { id: 'article-header', label: 'Overview', icon: <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h10" /></svg> },
+              { id: 'article-intro', label: 'Intro', icon: <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01" /></svg> },
+              { id: 'article-main', label: 'Main Content', icon: <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6M7 8h10" /></svg> },
+              { id: 'article-modules', label: 'Premium & Modules', icon: <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg> },
+              { id: 'article-comments', label: 'Comments', icon: <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h8m-8 4h6M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4-.8L3 20l1.3-3.9A7.4 7.4 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg> },
             ]}
           />
           <div className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto bg-white dark:bg-zinc-950 text-base sm:text-[17px] border-l border-zinc-200 dark:border-zinc-800">
@@ -106,9 +105,6 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
             <div className="space-y-6">
               <ChroniclesEntitySlots entityType="chapter" entityId={`vblog-${article.slug}`} title="Article slots" />
               <ChroniclesReadConfirmCard entityType="chapter" entityId={`vblog-${article.slug}`} title="Confirmed read" />
-            </div>
-            <div className="pt-12 border-t border-zinc-200 dark:border-zinc-800">
-              <ArticleMetadata article={article} />
             </div>
             <div id="article-comments" className="pt-12 border-t border-zinc-200 dark:border-zinc-800">
               <CommentsSection articleId={article.id} />

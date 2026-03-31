@@ -148,7 +148,6 @@ export default function VBlogPage() {
                   <VBlogSortFilters
                     sortBy={sortBy}
                     onSortChange={setSortBy}
-                    onAddArticle={openEditorDashboard}
                   />
                 </FilterBar>
                 {/* Selected Tags Row */}
