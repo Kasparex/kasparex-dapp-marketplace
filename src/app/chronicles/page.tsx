@@ -53,19 +53,26 @@ export default function ChroniclesHomePage() {
             <ol className="space-y-4">
               {timelineChapters.map((c) => {
                 const isCurrent = c.timeline === 'current';
+                const isLatest = timelineChapters[0]?.slug === c.slug;
+                const isPremium = c.access?.tier === 'premium';
+                const isHighlighted = isCurrent || isLatest || isPremium;
                 return (
                 <li key={c.slug}>
                   <Link
                     href={`/chronicles/chapters/${c.slug}`}
                     className={`group flex gap-4 rounded-2xl border p-4 transition-colors ${
-                      isCurrent
+                      isHighlighted
                         ? 'border-cyan-500/40 bg-cyan-500/5 dark:bg-cyan-950/30'
                         : 'border-zinc-200 dark:border-zinc-800 hover:border-cyan-500/30'
                     }`}
                   >
                     <ChronicleThumb imageUrl={c.featuredImageUrl} alt="" className="w-20 h-20 shrink-0 rounded-xl" />
                     <div className="min-w-0">
-                      <span className="text-xs font-mono text-zinc-400">Chapter {c.number}</span>
+                      <span className="text-xs font-mono text-zinc-400">
+                        Chapter {c.number}
+                        {isPremium ? ' · Premium' : ''}
+                        {isLatest ? ' · Latest' : ''}
+                      </span>
                       <span className="block font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] text-base sm:text-lg leading-snug">
                         {c.title}
                       </span>

@@ -8,7 +8,6 @@ import { formatAddress, formatDate, parseMarkdown } from '@/lib/vblog/utils';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 import { useVBlog } from '@/hooks/useVBlog';
-import { Alert } from '@/components/Alert';
 import { Avatar } from '@/components/Avatar';
 import { ArticleSidebar } from './ArticleSidebar';
 
@@ -19,7 +18,7 @@ interface ArticleDetailProps {
 
 export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
   const { state: kaspaState } = useKaspaWallet();
-  const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
+  const { address: evmAddress } = useAccount();
   const { deleteExistingArticle } = useVBlog();
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -61,29 +60,24 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
 
   return (
     <article className="max-w-6xl mx-auto">
-      <div className="relative mb-12 rounded-2xl overflow-hidden bg-zinc-50/80 dark:bg-zinc-900/45 border border-zinc-200 dark:border-zinc-800">
+      <div className="relative mb-10 rounded-2xl overflow-hidden bg-zinc-50/80 dark:bg-zinc-900/45 border border-zinc-200 dark:border-zinc-800">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent" />
 
         <div className="relative flex flex-col lg:flex-row min-h-[360px]">
           <div className="flex-1 p-8 sm:p-10 lg:p-12 flex flex-col justify-center">
-            <div className="flex flex-wrap items-center gap-3 mb-6">
-              <span className="px-3 py-1 bg-[#02abb8]/15 text-[#02abb8] text-[10px] font-black uppercase tracking-widest rounded-full">
-                {article.category}
-              </span>
-              <span className={`px-3 py-1 text-white text-[10px] font-black uppercase tracking-widest rounded-full ${article.status === 'published' || article.status === 'on-chain-ready' ? 'bg-emerald-500' :
-                article.status === 'pending' ? 'bg-amber-500' : 'bg-zinc-500'
-                }`}>
-                {article.status === 'on-chain-ready' ? 'Published' : article.status}
-              </span>
-            </div>
-
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-8 leading-tight tracking-tight">
+            <p className="text-sm font-black uppercase tracking-[0.2em] text-[#02abb8] mb-4">
+              {article.category}
+            </p>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-6 leading-tight tracking-tight">
               {article.title}
             </h1>
+            <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-2xl mb-8">
+              {article.description}
+            </p>
 
             <div className="flex flex-wrap items-center gap-8">
               <div className="flex items-center gap-3">
-                <Avatar address={authorAddress} size={48} className="ring-2 ring-orange-500/20" />
+                <Avatar address={authorAddress} size={44} className="ring-2 ring-cyan-500/20" />
                 <div className="flex flex-col">
                   <span className="text-[10px] font-black uppercase tracking-tighter text-zinc-400">By</span>
                   <Link href={authorProfileUrl} className="text-sm font-bold text-zinc-900 dark:text-zinc-100 hover:text-[#02abb8] transition-colors">
@@ -145,20 +139,18 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
         )}
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
+      <div className="flex flex-col lg:flex-row gap-10 xl:gap-12">
         <div className="flex-1 min-w-0">
-          <div className="bg-zinc-50/80 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 sm:p-10 lg:p-12 mb-16">
-            <div
-              className="prose prose-zinc dark:prose-invert max-w-none 
-                prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100 prose-headings:font-black prose-headings:tracking-tight
-                prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:leading-[1.8] prose-p:text-lg
-                prose-a:text-[#02abb8] prose-a:font-bold prose-a:no-underline hover:prose-a:underline
-                prose-strong:text-zinc-900 dark:prose-strong:text-zinc-100 prose-strong:font-black
-                prose-blockquote:border-l-[#02abb8] prose-blockquote:bg-[#02abb8]/5 prose-blockquote:rounded-2xl prose-blockquote:px-6 prose-blockquote:py-4 prose-blockquote:font-medium prose-blockquote:italic
-                prose-img:rounded-2xl"
-              dangerouslySetInnerHTML={{ __html: parseMarkdown(article.content) }}
-            />
-          </div>
+          <div
+            className="prose prose-zinc dark:prose-invert max-w-none 
+              prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100 prose-headings:font-black prose-headings:tracking-tight
+              prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:leading-[1.8] prose-p:text-lg
+              prose-a:text-[#02abb8] prose-a:font-bold prose-a:no-underline hover:prose-a:underline
+              prose-strong:text-zinc-900 dark:prose-strong:text-zinc-100 prose-strong:font-black
+              prose-blockquote:border-l-[#02abb8] prose-blockquote:bg-[#02abb8]/5 prose-blockquote:rounded-2xl prose-blockquote:px-6 prose-blockquote:py-4 prose-blockquote:font-medium prose-blockquote:italic
+              prose-img:rounded-2xl"
+            dangerouslySetInnerHTML={{ __html: parseMarkdown(article.content) }}
+          />
         </div>
 
         <div className="w-full lg:w-[320px] xl:w-[340px] shrink-0">
