@@ -16,7 +16,7 @@ import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { getVBlogBaseFeeKas } from '@/lib/vblog/pricing';
 import { getAuthorUnlockedModules } from '@/lib/vblog/modules';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { VBlogModuleUnlockCards } from './VBlogModuleUnlockCards';
+import { VBlogInlineModuleUnlockCard, VBlogModuleUnlockCards } from './VBlogModuleUnlockCards';
 
 interface EditArticleFormProps {
   article: VBlogArticle;
@@ -415,7 +415,9 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
               </div>
             )}
             {!unlockedModules.includes('premium_section') && (
-              <div className="absolute inset-0 rounded-2xl bg-white/60 dark:bg-zinc-900/65 backdrop-blur-sm flex items-center justify-center text-xs font-bold text-zinc-600 dark:text-zinc-300">Locked module - unlock above to configure</div>
+              <div className="absolute inset-0 rounded-2xl bg-white/60 dark:bg-zinc-900/65 backdrop-blur-sm flex items-center justify-center p-4">
+                <VBlogInlineModuleUnlockCard moduleId="premium_section" onUnlocked={(ids) => setUnlockedModules(ids)} />
+              </div>
             )}
           </div>
 
@@ -425,7 +427,9 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
               <input type="checkbox" checked={tipBoxEnabled} disabled={!unlockedModules.includes('tip_box') || isSubmitting} onChange={(e) => setTipBoxEnabled(e.target.checked)} />
             </label>
             {!unlockedModules.includes('tip_box') && (
-              <div className="absolute inset-0 rounded-2xl bg-white/60 dark:bg-zinc-900/65 backdrop-blur-sm flex items-center justify-center text-xs font-bold text-zinc-600 dark:text-zinc-300">Locked module - unlock above to configure</div>
+              <div className="absolute inset-0 rounded-2xl bg-white/60 dark:bg-zinc-900/65 backdrop-blur-sm flex items-center justify-center p-4">
+                <VBlogInlineModuleUnlockCard moduleId="tip_box" onUnlocked={(ids) => setUnlockedModules(ids)} />
+              </div>
             )}
           </div>
 
@@ -441,7 +445,9 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
               </div>
             )}
             {!unlockedModules.includes('tip_to_reveal') && (
-              <div className="absolute inset-0 rounded-2xl bg-white/60 dark:bg-zinc-900/65 backdrop-blur-sm flex items-center justify-center text-xs font-bold text-zinc-600 dark:text-zinc-300">Locked module - unlock above to configure</div>
+              <div className="absolute inset-0 rounded-2xl bg-white/60 dark:bg-zinc-900/65 backdrop-blur-sm flex items-center justify-center p-4">
+                <VBlogInlineModuleUnlockCard moduleId="tip_to_reveal" onUnlocked={(ids) => setUnlockedModules(ids)} />
+              </div>
             )}
           </div>
 
@@ -457,7 +463,9 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
               </div>
             )}
             {!unlockedModules.includes('premium_poll') && (
-              <div className="absolute inset-0 rounded-2xl bg-white/60 dark:bg-zinc-900/65 backdrop-blur-sm flex items-center justify-center text-xs font-bold text-zinc-600 dark:text-zinc-300">Locked module - unlock above to configure</div>
+              <div className="absolute inset-0 rounded-2xl bg-white/60 dark:bg-zinc-900/65 backdrop-blur-sm flex items-center justify-center p-4">
+                <VBlogInlineModuleUnlockCard moduleId="premium_poll" onUnlocked={(ids) => setUnlockedModules(ids)} />
+              </div>
             )}
           </div>
 
@@ -467,7 +475,9 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
               <input type="checkbox" checked={readingReceiptsEnabled} disabled={!unlockedModules.includes('reading_receipts_badges') || isSubmitting} onChange={(e) => setReadingReceiptsEnabled(e.target.checked)} />
             </label>
             {!unlockedModules.includes('reading_receipts_badges') && (
-              <div className="absolute inset-0 rounded-2xl bg-white/60 dark:bg-zinc-900/65 backdrop-blur-sm flex items-center justify-center text-xs font-bold text-zinc-600 dark:text-zinc-300">Locked module - unlock above to configure</div>
+              <div className="absolute inset-0 rounded-2xl bg-white/60 dark:bg-zinc-900/65 backdrop-blur-sm flex items-center justify-center p-4">
+                <VBlogInlineModuleUnlockCard moduleId="reading_receipts_badges" onUnlocked={(ids) => setUnlockedModules(ids)} />
+              </div>
             )}
           </div>
 
@@ -477,7 +487,9 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
               <input type="checkbox" checked={Boolean(linkedMagazineId && linkedIssueNumber)} disabled={!unlockedModules.includes('magazine_integration') || isSubmitting} readOnly />
             </label>
             {!unlockedModules.includes('magazine_integration') && (
-              <div className="absolute inset-0 rounded-2xl bg-white/60 dark:bg-zinc-900/65 backdrop-blur-sm flex items-center justify-center text-xs font-bold text-zinc-600 dark:text-zinc-300">Locked module - unlock above to configure</div>
+              <div className="absolute inset-0 rounded-2xl bg-white/60 dark:bg-zinc-900/65 backdrop-blur-sm flex items-center justify-center p-4">
+                <VBlogInlineModuleUnlockCard moduleId="magazine_integration" onUnlocked={(ids) => setUnlockedModules(ids)} />
+              </div>
             )}
           </div>
         </section>

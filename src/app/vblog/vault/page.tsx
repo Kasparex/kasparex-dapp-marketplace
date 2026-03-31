@@ -79,7 +79,7 @@ export default function VBlogVaultPage() {
                 </div>
               </div>
 
-              <VBlogModuleUnlockCards title="Author module unlocks" />
+              <VBlogModuleUnlockCards title="Author module unlocks" enableControls />
 
               <div className="flex flex-wrap gap-3">
                 <Link href="/vblog/dashboard" className="k-control-btn">Go to Author Dashboard</Link>

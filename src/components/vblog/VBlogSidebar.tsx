@@ -16,7 +16,8 @@ interface VBlogSidebarProps {
   onTagToggle: (tag: string) => void;
   onSearchChange: (query: string) => void;
   onCreateArticle?: () => void;
-  activeView?: 'explore' | 'dashboard' | 'vault';
+  activeView?: 'explore' | 'dashboard' | 'vault' | 'article';
+  articleNavItems?: Array<{ id: string; label: string }>;
 }
 
 function VBlogCategoryIcon({ id, className = '' }: { id: string | null; className?: string }) {
@@ -50,6 +51,7 @@ export function VBlogSidebar({
   onSearchChange,
   onCreateArticle,
   activeView = 'explore',
+  articleNavItems = [],
 }: VBlogSidebarProps) {
   const categories = Array.from(new Set(articles.map((a) => a.category))).sort();
   const allTags = Array.from(new Set(articles.flatMap((a) => a.tags))).sort();
@@ -68,7 +70,7 @@ export function VBlogSidebar({
     onCategoryChange(id === ALL_ID ? null : id);
   };
 
-  const backHref = activeView === 'explore' ? '/hub' : '/vblog';
+  const backHref = activeView === 'article' ? '/vblog' : activeView === 'explore' ? '/hub' : '/vblog';
   const backLabel = activeView === 'explore' ? 'Back to hub' : 'Back to vBlog';
   const header = (onHide: () => void) => (
     <SidebarHeader backHref={backHref} backLabel={backLabel} onHide={onHide} />
@@ -76,17 +78,18 @@ export function VBlogSidebar({
 
   return (
     <UnifiedSidebar storageKeyPrefix="vblog" header={header}>
-      {onCreateArticle && (
-          <div className="mb-6">
-            <button type="button" onClick={onCreateArticle} className="k-control-btn w-full justify-center gap-2 !bg-orange-500 hover:!bg-orange-600 !text-white !border-orange-400/30 !rounded-xl">
-              <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
-              </div>
-              <span className="text-xs font-black uppercase tracking-widest text-left">Create Article</span>
-            </button>
-          </div>
-        )}
         <div className="mb-6 space-y-2">
+          {onCreateArticle ? (
+            <button type="button" onClick={onCreateArticle} className="k-control-btn w-full justify-center gap-2 !bg-orange-500 hover:!bg-orange-600 !text-white !border-orange-400/30">
+              <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
+              Create Article
+            </button>
+          ) : (
+            <Link href="/vblog/dashboard?tab=create" className="k-control-btn w-full justify-center gap-2 !bg-orange-500 hover:!bg-orange-600 !text-white !border-orange-400/30">
+              <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
+              Create Article
+            </Link>
+          )}
           <Link href="/vblog/dashboard" className={`k-control-btn w-full justify-center gap-2 ${activeView === 'dashboard' ? '!bg-cyan-600 !text-white' : ''}`}>
             <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
             Author Dashboard
@@ -96,26 +99,39 @@ export function VBlogSidebar({
             Vault & Unlocks
           </Link>
         </div>
-        <SidebarCategories
-          title="Categories"
-          items={categoryItems}
-          selectedIds={selectedCategory == null ? ALL_ID : selectedCategory}
-          onSelect={handleCategorySelect}
-          multi={false}
-        />
-        {allTags.length > 0 && <SidebarTags title="Tags" tags={allTags} selectedTags={selectedTags} onToggle={onTagToggle} />}
-        {(selectedCategory !== null || selectedTags.length > 0 || searchQuery) && (
-          <button
-            type="button"
-            onClick={() => {
-              onCategoryChange(null);
-              onSearchChange('');
-              selectedTags.forEach((tag) => onTagToggle(tag));
-            }}
-            className="w-full mt-4 k-control-btn"
-          >
-            Clear All Filters
-          </button>
+        {activeView === 'article' ? (
+          <div className="space-y-2">
+            <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Article navigation</p>
+            {articleNavItems.map((item) => (
+              <a key={item.id} href={`#${item.id}`} className="k-control-btn w-full justify-start">
+                {item.label}
+              </a>
+            ))}
+          </div>
+        ) : (
+          <>
+            <SidebarCategories
+              title="Categories"
+              items={categoryItems}
+              selectedIds={selectedCategory == null ? ALL_ID : selectedCategory}
+              onSelect={handleCategorySelect}
+              multi={false}
+            />
+            {allTags.length > 0 && <SidebarTags title="Tags" tags={allTags} selectedTags={selectedTags} onToggle={onTagToggle} />}
+            {(selectedCategory !== null || selectedTags.length > 0 || searchQuery) && (
+              <button
+                type="button"
+                onClick={() => {
+                  onCategoryChange(null);
+                  onSearchChange('');
+                  selectedTags.forEach((tag) => onTagToggle(tag));
+                }}
+                className="w-full mt-4 k-control-btn"
+              >
+                Clear All Filters
+              </button>
+            )}
+          </>
         )}
     </UnifiedSidebar>
   );

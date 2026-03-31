@@ -60,7 +60,14 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
             onCategoryChange={() => {}}
             onTagToggle={() => {}}
             onSearchChange={() => {}}
-            activeView="explore"
+            activeView="article"
+            articleNavItems={[
+              { id: 'article-header', label: 'Header' },
+              { id: 'article-intro', label: 'Intro' },
+              { id: 'article-main', label: 'Main text' },
+              { id: 'article-modules', label: 'Modules' },
+              { id: 'article-comments', label: 'Comments' },
+            ]}
           />
           <div className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto bg-white dark:bg-zinc-950 text-base sm:text-[17px] border-l border-zinc-200 dark:border-zinc-800">
         <div className="w-full max-w-5xl mx-auto font-sans">
@@ -95,16 +102,6 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
           )}
 
           <div className="space-y-16">
-            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/50 p-4">
-              <p className="text-xs font-black uppercase tracking-widest text-[#02abb8] mb-3">Article navigation</p>
-              <div className="flex flex-wrap gap-2">
-                <a href="#article-header" className="k-control-btn !py-1.5 !px-3 !text-[11px]">Header</a>
-                <a href="#article-intro" className="k-control-btn !py-1.5 !px-3 !text-[11px]">Intro</a>
-                <a href="#article-main" className="k-control-btn !py-1.5 !px-3 !text-[11px]">Main text</a>
-                <a href="#article-modules" className="k-control-btn !py-1.5 !px-3 !text-[11px]">Modules</a>
-                <a href="#article-comments" className="k-control-btn !py-1.5 !px-3 !text-[11px]">Comments</a>
-              </div>
-            </div>
             <ArticleDetail article={article} />
             <div className="space-y-6">
               <ChroniclesEntitySlots entityType="chapter" entityId={`vblog-${article.slug}`} title="Article slots" />

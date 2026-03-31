@@ -20,6 +20,8 @@ import {
 } from '@/lib/vblog/modules';
 import { utf8ToHex } from '@/lib/vblog/payloadHex';
 import type { VBlogModuleId } from '@/lib/vblog/types';
+import { FilterBar } from '@/components/FilterBar';
+import { ChroniclesFilterDropdown } from '@/components/chronicles/ChroniclesFilterDropdown';
 
 interface VBlogModuleUnlockCardsProps {
   title?: string;
@@ -27,6 +29,7 @@ interface VBlogModuleUnlockCardsProps {
   onUnlockChange?: (ids: string[]) => void;
   recommendedModuleIds?: VBlogModuleId[];
   showToggleLabel?: string;
+  enableControls?: boolean;
 }
 
 export function VBlogModuleUnlockCards({
@@ -35,6 +38,7 @@ export function VBlogModuleUnlockCards({
   onUnlockChange,
   recommendedModuleIds,
   showToggleLabel = 'Show all modules',
+  enableControls = false,
 }: VBlogModuleUnlockCardsProps) {
   const { state: kaspaState } = useKaspaWallet();
   const { tier } = useKREXBalance();
@@ -42,6 +46,9 @@ export function VBlogModuleUnlockCards({
   const [refreshTick, setRefreshTick] = useState(0);
   const [unlockingModuleId, setUnlockingModuleId] = useState<string | null>(null);
   const [showAllModules, setShowAllModules] = useState(false);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'' | 'locked' | 'unlocked'>('');
+  const [sort, setSort] = useState<'title-asc' | 'price-asc' | 'price-desc'>('title-asc');
   const krexDiscountPct = getVBlogModuleDiscountPercent(tier);
   const nftDiscountPct = getVBlogModuleNftDiscountPercent(nftStatus);
   const combinedDiscountPct = getVBlogModuleCombinedDiscountPercent(tier, nftStatus);
@@ -60,6 +67,26 @@ export function VBlogModuleUnlockCards({
       .filter((offer) => order.has(offer.id))
       .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
   }, [recommendedModuleIds, showAllModules]);
+
+  const visibleCards = useMemo(() => {
+    let list = cards.slice();
+    if (search.trim()) {
+      const q = search.toLowerCase().trim();
+      list = list.filter((x) => x.title.toLowerCase().includes(q) || x.description.toLowerCase().includes(q));
+    }
+    if (statusFilter) {
+      list = list.filter((x) => {
+        const isUnlocked = unlocked.includes(x.id);
+        return statusFilter === 'unlocked' ? isUnlocked : !isUnlocked;
+      });
+    }
+    list.sort((a, b) => {
+      if (sort === 'title-asc') return a.title.localeCompare(b.title);
+      if (sort === 'price-asc') return a.unlockPriceKas - b.unlockPriceKas;
+      return b.unlockPriceKas - a.unlockPriceKas;
+    });
+    return list;
+  }, [cards, search, statusFilter, sort, unlocked]);
 
   const handleUnlock = async (moduleId: VBlogModuleId, basePriceKas: number) => {
     if (!kaspaState.address || !kaspaState.provider || !kaspaState.isConnected) return;
@@ -111,8 +138,44 @@ export function VBlogModuleUnlockCards({
         </div>
       ) : null}
 
+      {enableControls ? (
+        <FilterBar
+          search={{ value: search, onChange: setSearch, placeholder: 'Search module offers...' }}
+          onReset={() => {
+            setSearch('');
+            setStatusFilter('');
+            setSort('title-asc');
+          }}
+          flexWrap
+        >
+          <ChroniclesFilterDropdown
+            ariaLabel="Filter by status"
+            value={statusFilter}
+            onChange={(v) => setStatusFilter(v as '' | 'locked' | 'unlocked')}
+            allLabel="All statuses"
+            options={[
+              { value: 'locked', label: 'Locked' },
+              { value: 'unlocked', label: 'Unlocked' },
+            ]}
+            minWidthClassName="min-w-[160px]"
+          />
+          <ChroniclesFilterDropdown
+            ariaLabel="Sort module offers"
+            value={sort}
+            onChange={(v) => setSort(v as 'title-asc' | 'price-asc' | 'price-desc')}
+            allLabel="Title (A-Z)"
+            options={[
+              { value: 'title-asc', label: 'Title (A-Z)' },
+              { value: 'price-asc', label: 'Price (low-high)' },
+              { value: 'price-desc', label: 'Price (high-low)' },
+            ]}
+            minWidthClassName="min-w-[180px]"
+          />
+        </FilterBar>
+      ) : null}
+
       <div className="grid gap-4 md:grid-cols-2">
-        {cards.map((offer) => {
+        {visibleCards.map((offer) => {
           const isUnlocked = unlocked.includes(offer.id);
           const isUnlocking = unlockingModuleId === offer.id;
           const effectiveKas = getVBlogModuleEffectivePriceKas(offer.unlockPriceKas, tier, nftStatus);
@@ -173,6 +236,63 @@ export function VBlogModuleUnlockCards({
         <p className="text-sm text-amber-700 dark:text-amber-300">Connect Kaspa wallet to unlock modules.</p>
       ) : null}
     </section>
+  );
+}
+
+export function VBlogInlineModuleUnlockCard({
+  moduleId,
+  onUnlocked,
+}: {
+  moduleId: VBlogModuleId;
+  onUnlocked?: (ids: string[]) => void;
+}) {
+  const offer = VBLOG_MODULE_OFFERS.find((x) => x.id === moduleId);
+  const { state: kaspaState } = useKaspaWallet();
+  const { tier } = useKREXBalance();
+  const { nftStatus } = useNFTStatus();
+  const [busy, setBusy] = useState(false);
+  if (!offer) return null;
+
+  const payKas = getVBlogModuleEffectivePriceKas(offer.unlockPriceKas, tier, nftStatus);
+
+  return (
+    <div className="w-full max-w-[360px] rounded-2xl border border-orange-300/40 dark:border-orange-500/25 bg-white/95 dark:bg-zinc-900/80 overflow-hidden">
+      <div className="h-20 bg-gradient-to-br from-zinc-100 via-zinc-50 to-orange-500/10 dark:from-zinc-900 dark:via-zinc-950 dark:to-orange-950/35 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-[11px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+        Locked module
+      </div>
+      <div className="p-4">
+        <p className="text-sm font-black text-zinc-900 dark:text-zinc-100">{offer.title}</p>
+        <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">{offer.description}</p>
+        <p className="mt-2 text-sm font-black text-zinc-900 dark:text-zinc-100">{payKas} KAS</p>
+        <button
+          type="button"
+          className="mt-3 k-control-btn !bg-orange-500 hover:!bg-orange-600 !text-white !border-orange-400/30 w-full justify-center"
+          disabled={busy || !kaspaState.isConnected || !kaspaState.address || !kaspaState.provider}
+          onClick={async () => {
+            if (!kaspaState.isConnected || !kaspaState.address || !kaspaState.provider) return;
+            setBusy(true);
+            try {
+              const note = `kvb1:module_unlock:${offer.id}:${Date.now()}`;
+              const tx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
+                to: getVBlogTreasuryL1Address(),
+                amount: String(kasToSompi(payKas)),
+                note,
+                payload: utf8ToHex(note),
+              });
+              if (tx.status === 'failed' || !tx.txHash) {
+                throw new Error(tx.error ?? 'Unlock transaction failed');
+              }
+              const nextUnlocked = unlockAuthorModule(kaspaState.address, offer.id);
+              onUnlocked?.(nextUnlocked);
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          {busy ? 'Unlocking...' : `Unlock ${offer.title}`}
+        </button>
+      </div>
+    </div>
   );
 }
 
