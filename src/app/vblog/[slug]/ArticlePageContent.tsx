@@ -49,7 +49,7 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
     <div className="flex flex-col min-h-screen bg-white dark:bg-zinc-950">
       <Header />
 
-      <main className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto bg-white dark:bg-zinc-950">
+      <main className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto bg-white dark:bg-zinc-950 text-base sm:text-[17px]">
         <div className="w-full max-w-5xl mx-auto">
           <nav className="flex items-center gap-2 text-sm text-zinc-500 font-medium mb-8">
             <Link href="/vblog" className="hover:text-[#02abb8] transition-colors">Articles</Link>

@@ -17,7 +17,7 @@ interface VBlogSidebarProps {
   onTagToggle: (tag: string) => void;
   onSearchChange: (query: string) => void;
   onCreateArticle?: () => void;
-  activeView?: 'explore' | 'dashboard';
+  activeView?: 'explore' | 'dashboard' | 'vault';
 }
 
 function VBlogCategoryIcon({ id, className = '' }: { id: string | null; className?: string }) {
@@ -96,13 +96,14 @@ export function VBlogSidebar({
               <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
               </div>
-              <span className="text-xs font-black uppercase tracking-widest text-left">Create Article</span>
+              <span className="text-sm font-black uppercase tracking-widest text-left">Create Article</span>
             </button>
           </div>
         )}
         <div className="mb-6 space-y-0.5">
           <SidebarNavItem href="/vblog/dashboard" label="Author Dashboard" active={activeView === 'dashboard'} icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>} />
           <SidebarNavItem href="/vblog" label="Explore Articles" active={activeView === 'explore'} icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>} />
+          <SidebarNavItem href="/vblog/vault" label="Vault & Unlocks" active={activeView === 'vault'} icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>} />
         </div>
         <SidebarCategories
           title="Categories"

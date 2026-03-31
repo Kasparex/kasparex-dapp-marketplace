@@ -144,7 +144,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
           <div
             className="prose prose-zinc dark:prose-invert max-w-none 
               prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100 prose-headings:font-black prose-headings:tracking-tight
-              prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:leading-[1.8] prose-p:text-lg
+              prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:leading-relaxed prose-p:text-lg sm:prose-p:text-xl prose-p:mb-5
               prose-a:text-[#02abb8] prose-a:font-bold prose-a:no-underline hover:prose-a:underline
               prose-strong:text-zinc-900 dark:prose-strong:text-zinc-100 prose-strong:font-black
               prose-blockquote:border-l-[#02abb8] prose-blockquote:bg-[#02abb8]/5 prose-blockquote:rounded-2xl prose-blockquote:px-6 prose-blockquote:py-4 prose-blockquote:font-medium prose-blockquote:italic

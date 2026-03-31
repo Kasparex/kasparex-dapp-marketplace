@@ -62,25 +62,25 @@ export function VBlogCard({ article }: VBlogCardProps) {
           )}
 
           <div className="absolute bottom-4 left-4 right-4 z-20">
-            <h3 className="text-lg font-black text-white leading-tight group-hover:text-orange-400 transition-colors line-clamp-1">
+            <h3 className="text-xl font-black text-white leading-tight group-hover:text-orange-400 transition-colors line-clamp-1">
               {article.title}
             </h3>
           </div>
         </div>
 
         <div className="p-6 flex flex-col flex-1">
-          <p className="text-zinc-500 dark:text-zinc-400 text-xs mb-6 line-clamp-2 leading-relaxed flex-1">
+          <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-6 line-clamp-2 leading-relaxed flex-1">
             {excerpt}
           </p>
 
           <div className="flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800 pt-5">
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-tighter text-zinc-400 dark:text-zinc-500">Author</span>
-              <span className="text-xs font-bold text-zinc-900 dark:text-zinc-200">{authorDisplay}</span>
+              <span className="text-sm font-bold text-zinc-900 dark:text-zinc-200">{authorDisplay}</span>
             </div>
             <div className="text-right">
               <span className="text-[10px] font-black uppercase tracking-tighter text-zinc-400 dark:text-zinc-500">Published</span>
-              <span className="block text-xs font-bold text-zinc-900 dark:text-zinc-200">{formatDate(article.publishDate)}</span>
+              <span className="block text-sm font-bold text-zinc-900 dark:text-zinc-200">{formatDate(article.publishDate)}</span>
             </div>
           </div>
         </div>

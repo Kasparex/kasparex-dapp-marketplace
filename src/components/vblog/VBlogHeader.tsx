@@ -25,11 +25,11 @@ export function VBlogHeader({ onStartWriting }: VBlogHeaderProps) {
           On-Chain Publishing
         </div>
 
-        <h1 className="text-4xl md:text-6xl font-black text-zinc-900 dark:text-white mb-6 leading-tight">
+        <h1 className="text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-6 leading-tight tracking-tight">
           Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-600 dark:from-orange-400 dark:to-amber-400">vBlog</span>
         </h1>
 
-        <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed mb-8">
+        <p className="text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed mb-8">
           The decentralized voice of the Kaspa ecosystem. Every post is permanently linked to IPFS, ensuring your content is truly on-chain and community-driven.
         </p>
 

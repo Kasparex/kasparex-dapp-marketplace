@@ -34,7 +34,7 @@ export function AuthorPageContent() {
     <div className="flex flex-col min-h-screen">
       <Header />
       
-      <main className="flex-1">
+      <main className="flex-1 text-base sm:text-[17px]">
         <div className="p-4 sm:p-6 lg:p-8 lg:pl-6">
           <div className="max-w-7xl mx-auto">
             <div className="mb-6">
@@ -47,7 +47,7 @@ export function AuthorPageContent() {
                 </svg>
                 Go back to vBlog
               </Link>
-              <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+              <h1 className="text-4xl font-black text-zinc-900 dark:text-zinc-100 mb-2 tracking-tight">
                 Author: {formatAddress(address)}
               </h1>
               <p className="text-zinc-600 dark:text-zinc-400">

@@ -39,7 +39,7 @@ export default function VBlogDashboardPage() {
           />
 
           {/* Main Content Area */}
-          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
+          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800 text-base sm:text-[17px]">
             <div className="max-w-6xl mx-auto">
               <div className="mb-12">
                 <h1 className="text-4xl font-black text-zinc-900 dark:text-zinc-100 mb-2 uppercase tracking-tight">

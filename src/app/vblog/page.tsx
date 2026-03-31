@@ -105,7 +105,7 @@ export default function VBlogPage() {
           />
 
           {/* Main Content Area */}
-          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800 font-sans">
+          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800 font-sans text-base sm:text-[17px]">
             <div className="max-w-6xl mx-auto">
               {/* Unified Header */}
               <VBlogHeader onStartWriting={() => setIsSubmitModalOpen(true)} />
@@ -128,10 +128,10 @@ export default function VBlogPage() {
 
               {/* Page Header */}
               <div className="mt-12 mb-6">
-                <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-1 uppercase tracking-tight">
+                <h2 className="text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2 uppercase tracking-tight">
                   Available articles
                 </h2>
-                <p className="text-[10px] font-bold text-zinc-500 uppercase">
+                <p className="text-xs font-bold text-zinc-500 uppercase">
                   {filteredArticles.length} article{filteredArticles.length !== 1 ? 's' : ''} found
                 </p>
               </div>
