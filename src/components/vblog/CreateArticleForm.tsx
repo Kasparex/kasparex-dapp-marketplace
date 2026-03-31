@@ -104,7 +104,6 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
 
   const handleConfirm = async () => {
     setIsSubmitting(true);
-    setShowFeeConfirmation(false);
 
     try {
       const tagsArray = tags

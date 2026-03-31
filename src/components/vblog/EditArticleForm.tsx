@@ -108,7 +108,6 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
 
   const handleConfirm = async () => {
     setIsSubmitting(true);
-    setShowFeeConfirmation(false);
 
     try {
       const tagsArray = tags
