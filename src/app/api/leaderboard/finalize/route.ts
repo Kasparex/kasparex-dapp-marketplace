@@ -19,5 +19,5 @@ export async function GET(req: NextRequest) {
   const now = Date.now();
   const season = ((req.nextUrl.searchParams.get('season') ?? '').trim() as SeasonId) || seasonToFinalize(now);
   const result = await finalizeSeasonSnapshot(season, now);
-  return NextResponse.json({ ok: true, season, ...result });
+  return NextResponse.json({ season, ...result });
 }
