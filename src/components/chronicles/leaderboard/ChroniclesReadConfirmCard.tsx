@@ -18,6 +18,7 @@ import { getLocalReadConfirmed, recordLocalPendingTx, recordLocalRead } from '@/
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { chroniclesLbEffectivePriceKas } from '@/lib/chronicles/leaderboard/pricing';
+import { isStorageMassErrorMessage, readHighMassMode, retryKasCandidates, writeHighMassMode } from '@/lib/chronicles/leaderboard/massMode';
 
 function normAddr(a: string): string {
   try {
@@ -25,22 +26,6 @@ function normAddr(a: string): string {
   } catch {
     return a.startsWith('kaspa:') ? a : `kaspa:${a}`;
   }
-}
-
-function isStorageMassErrorMessage(msg: string): boolean {
-  const m = msg.toLowerCase();
-  return m.includes('storage mass exceeds maximum') || (m.includes('mass') && m.includes('maximum'));
-}
-
-function retryKasCandidates(baseKas: number): number[] {
-  const ladder = [baseKas, 0.2, 0.5, 1, 2, 5, 10];
-  const unique: number[] = [];
-  for (const x of ladder) {
-    const v = Number.isFinite(x) ? Number(x.toFixed(8)) : 0;
-    if (v <= 0) continue;
-    if (!unique.some((u) => Math.abs(u - v) < 1e-9)) unique.push(v);
-  }
-  return unique;
 }
 
 async function verifyLoop(
@@ -97,7 +82,12 @@ export function ChroniclesReadConfirmCard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  const [highMassMode, setHighMassMode] = useState(false);
   const treasury = getChroniclesVaultTreasuryL1Address();
+
+  useEffect(() => {
+    setHighMassMode(readHighMassMode());
+  }, []);
 
   async function confirmRead() {
     setError(null);
@@ -111,12 +101,12 @@ export function ChroniclesReadConfirmCard({
     try {
       const text = buildChroniclesLbReadConfirmText({ entityType, entityId, payerKaspa });
       const payload = chroniclesLbPayloadHexFromText(text);
-      const attempts = retryKasCandidates(readConfirmPriceKas);
+      const attempts = retryKasCandidates(readConfirmPriceKas, highMassMode);
       let txHash: string | null = null;
       for (let i = 0; i < attempts.length; i++) {
         const kas = attempts[i];
         if (i > 0) {
-          setNote(`Wallet UTXO mass too high; retrying with ${kas} KAS to reduce input count…`);
+          setNote(`Wallet UTXO mass too high; retrying with ${kas} KAS to reduce input count${highMassMode ? ' (high-mass mode)' : ''}…`);
         }
         const txRes = await sendKaspaTransaction(state.provider as KaspaWalletProvider, {
           to: treasury,
@@ -164,6 +154,18 @@ export function ChroniclesReadConfirmCard({
           </a>
         </Tooltip>
       </div>
+      <label className="inline-flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={highMassMode}
+          onChange={(e) => {
+            const next = e.target.checked;
+            setHighMassMode(next);
+            writeHighMassMode(next);
+          }}
+        />
+        High-mass mode (use larger fallback payments first)
+      </label>
 
       {confirmed ? (
         <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-700 dark:text-emerald-300">

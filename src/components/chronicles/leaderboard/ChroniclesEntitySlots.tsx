@@ -33,6 +33,12 @@ import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { pointsForNftInSlot } from '@/lib/leaderboard/nftPoints';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { chroniclesLbEffectivePriceKas } from '@/lib/chronicles/leaderboard/pricing';
+import {
+  isStorageMassErrorMessage,
+  readHighMassMode,
+  retryKasCandidates,
+  writeHighMassMode,
+} from '@/lib/chronicles/leaderboard/massMode';
 
 type SlotIndex = 1 | 2 | 3;
 
@@ -42,22 +48,6 @@ function normAddr(a: string): string {
   } catch {
     return a.startsWith('kaspa:') ? a : `kaspa:${a}`;
   }
-}
-
-function isStorageMassErrorMessage(msg: string): boolean {
-  const m = msg.toLowerCase();
-  return m.includes('storage mass exceeds maximum') || (m.includes('mass') && m.includes('maximum'));
-}
-
-function retryKasCandidates(baseKas: number): number[] {
-  const ladder = [baseKas, 0.2, 0.5, 1, 2, 5, 10];
-  const unique: number[] = [];
-  for (const x of ladder) {
-    const v = Number.isFinite(x) ? Number(x.toFixed(8)) : 0;
-    if (v <= 0) continue;
-    if (!unique.some((u) => Math.abs(u - v) < 1e-9)) unique.push(v);
-  }
-  return unique;
 }
 
 async function verifyLoop(
@@ -121,8 +111,13 @@ export function ChroniclesEntitySlots({
   const treasury = getChroniclesVaultTreasuryL1Address();
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<SlotIndex | null>(null);
   const [metaMap, setMetaMap] = useState<Record<string, ParsedNFTMetadata>>({});
+  const [highMassMode, setHighMassMode] = useState(false);
   const activationPriceKas = chroniclesLbEffectivePriceKas(CHRONICLES_LB_SLOT_ACTIVATION_KAS, tier);
   const slotChangePriceKas = chroniclesLbEffectivePriceKas(CHRONICLES_LB_SLOT_CHANGE_KAS, tier);
+
+  useEffect(() => {
+    setHighMassMode(readHighMassMode());
+  }, []);
 
   const nftOptions = useMemo(() => {
     return nfts
@@ -184,12 +179,12 @@ export function ChroniclesEntitySlots({
       return { txHash: vr.txHash, txTimeMs: vr.txTimeMs, paidKas: kas };
     };
 
-    const candidates = retryKasCandidates(amountKas);
+    const candidates = retryKasCandidates(amountKas, highMassMode);
     for (let i = 0; i < candidates.length; i++) {
       const kas = candidates[i];
       try {
         if (i > 0) {
-          setNote(`Wallet UTXO mass too high; retrying with ${kas} KAS to reduce input count…`);
+          setNote(`Wallet UTXO mass too high; retrying with ${kas} KAS to reduce input count${highMassMode ? ' (high-mass mode)' : ''}…`);
         }
         return await send(kas);
       } catch (e) {
@@ -277,6 +272,18 @@ export function ChroniclesEntitySlots({
               If you see <span className="font-semibold">“Storage mass exceeds maximum”</span>, compound UTXOs in your KasWare wallet. Open the wallet →
               UTXO tab → click “Compound”, then try the action again.
             </p>
+            <label className="inline-flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={highMassMode}
+                onChange={(e) => {
+                  const next = e.target.checked;
+                  setHighMassMode(next);
+                  writeHighMassMode(next);
+                }}
+              />
+              High-mass mode (start retries from larger KAS amounts)
+            </label>
           </div>
         </div>
         <div className="shrink-0 text-right">
