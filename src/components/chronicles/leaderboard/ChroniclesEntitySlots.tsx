@@ -257,8 +257,8 @@ export function ChroniclesEntitySlots({
 
   return (
     <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-6 sm:p-7 space-y-4 chronicles-vault-card">
-      <div className="flex items-start justify-between gap-4">
-        <div>
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">{title}</p>
           <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
             Slot 1 is free. Slots 2-3 base cost is {CHRONICLES_LB_SLOT_ACTIVATION_KAS} KAS to activate, and setting or clearing a
@@ -272,22 +272,34 @@ export function ChroniclesEntitySlots({
               If you see <span className="font-semibold">“Storage mass exceeds maximum”</span>, compound UTXOs in your KasWare wallet. Open the wallet →
               UTXO tab → click “Compound”, then try the action again.
             </p>
-            <label className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white/70 dark:bg-zinc-900/50 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-200 cursor-pointer">
+            <label className="inline-flex items-center gap-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white/80 dark:bg-zinc-900/60 px-3 py-2.5 text-sm normal-case text-zinc-700 dark:text-zinc-200 cursor-pointer">
+              <span
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  highMassMode ? 'bg-[#02abb8]' : 'bg-zinc-300 dark:bg-zinc-700'
+                }`}
+                aria-hidden
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                    highMassMode ? 'translate-x-5' : 'translate-x-1'
+                  }`}
+                />
+              </span>
               <input
                 type="checkbox"
                 checked={highMassMode}
-                className="h-4 w-4 rounded border-zinc-400 text-[#02abb8] focus:ring-2 focus:ring-[#02abb8] focus:ring-offset-0"
+                className="sr-only"
                 onChange={(e) => {
                   const next = e.target.checked;
                   setHighMassMode(next);
                   writeHighMassMode(next);
                 }}
               />
-              high-mass mode (start retries from larger kas amounts)
+              <span className="leading-snug">high-mass mode - start retries from larger kas amounts</span>
             </label>
           </div>
         </div>
-        <div className="shrink-0 text-right">
+        <div className="text-left lg:text-right whitespace-nowrap">
           <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Slot rewards</p>
           <a href="/chronicles/leaderboard#points-table" className="text-sm font-bold text-[#02abb8] hover:underline">
             See points →

@@ -154,18 +154,30 @@ export function ChroniclesReadConfirmCard({
           </a>
         </Tooltip>
       </div>
-      <label className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white/70 dark:bg-zinc-900/50 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-200 cursor-pointer">
+      <label className="inline-flex items-center gap-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white/80 dark:bg-zinc-900/60 px-3 py-2.5 text-sm normal-case text-zinc-700 dark:text-zinc-200 cursor-pointer">
+        <span
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+            highMassMode ? 'bg-[#02abb8]' : 'bg-zinc-300 dark:bg-zinc-700'
+          }`}
+          aria-hidden
+        >
+          <span
+            className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+              highMassMode ? 'translate-x-5' : 'translate-x-1'
+            }`}
+          />
+        </span>
         <input
           type="checkbox"
           checked={highMassMode}
-          className="h-4 w-4 rounded border-zinc-400 text-[#02abb8] focus:ring-2 focus:ring-[#02abb8] focus:ring-offset-0"
+          className="sr-only"
           onChange={(e) => {
             const next = e.target.checked;
             setHighMassMode(next);
             writeHighMassMode(next);
           }}
         />
-        high-mass mode (use larger fallback payments first)
+        <span className="leading-snug">high-mass mode - use larger fallback payments first</span>
       </label>
 
       {confirmed ? (
