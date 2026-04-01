@@ -40,6 +40,7 @@ function nftCollectionPageHref(collection: string): string {
 type SimpleNft = { collection: string; tokenId: number; buri?: string | null };
 const KREXPRIME_KASPACOM = 'https://www.kaspa.com/nft/collections/KREXPRIME';
 const PIXELKREX_KASPACOM = 'https://kaspa.com/nft/collections/PIXELKREX';
+type NftFilterTier = 'all' | 'diamond' | 'rarest' | 'partner-rare';
 
 function normAddr(a: string): string {
   try {
@@ -180,15 +181,36 @@ export function ChroniclesNftSlotSelector({
   }, [isOpen, payerKaspa]);
 
   const sorted = useMemo(() => rawNfts.slice().sort((a, b) => a.collection.localeCompare(b.collection) || a.tokenId - b.tokenId), [rawNfts]);
+  const [collectionFilter, setCollectionFilter] = useState<string>('all');
+  const [tierFilter, setTierFilter] = useState<NftFilterTier>('all');
   const [visibleCount, setVisibleCount] = useState(36);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!isOpen) return;
     setVisibleCount(36);
   }, [isOpen, payerKaspa]);
-  const visibleNfts = useMemo(() => sorted.slice(0, visibleCount), [sorted, visibleCount]);
+  const collectionOptions = useMemo(() => ['all', ...Array.from(new Set(sorted.map((n) => n.collection)))], [sorted]);
+  const filtered = useMemo(() => {
+    return sorted.filter((nft) => {
+      if (collectionFilter !== 'all' && nft.collection !== collectionFilter) return false;
+      if (tierFilter === 'all') return true;
+      const scoring = pointsForNftInSlot({ collection: nft.collection, tokenId: nft.tokenId });
+      if (tierFilter === 'diamond') return scoring.rarity === 'diamond';
+      if (tierFilter === 'rarest') return scoring.rarity === 'rare';
+      if (tierFilter === 'partner-rare') {
+        // Reserved for non-core collections with rare/rarest classes.
+        const isCore = nft.collection === 'KREXPRIME' || nft.collection === 'PIXELKREX';
+        return !isCore && scoring.rarity === 'rare';
+      }
+      return true;
+    });
+  }, [sorted, collectionFilter, tierFilter]);
+  useEffect(() => {
+    setVisibleCount(36);
+  }, [collectionFilter, tierFilter]);
+  const visibleNfts = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
   const metaMap = useNFTMetas(visibleNfts, isOpen);
-  const canLoadMore = visibleCount < sorted.length;
+  const canLoadMore = visibleCount < filtered.length;
   useEffect(() => {
     if (!canLoadMore || !loadMoreRef.current) return;
     const el = loadMoreRef.current;
@@ -201,7 +223,7 @@ export function ChroniclesNftSlotSelector({
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [canLoadMore, sorted.length]);
+  }, [canLoadMore, filtered.length]);
 
   if (!isOpen) return null;
 
@@ -274,7 +296,54 @@ export function ChroniclesNftSlotSelector({
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <>
+              <div className="mb-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">Collection</label>
+                  <select
+                    value={collectionFilter}
+                    onChange={(e) => setCollectionFilter(e.target.value)}
+                    className="rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 px-2 py-1.5 text-xs text-zinc-700 dark:text-zinc-200"
+                  >
+                    {collectionOptions.map((c) => (
+                      <option key={c} value={c}>
+                        {c === 'all' ? 'All collections' : c}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="ml-auto flex flex-wrap gap-2">
+                    {([
+                      ['all', 'All'],
+                      ['diamond', 'Diamond'],
+                      ['rarest', 'Rarest'],
+                      ['partner-rare', 'Partner rare'],
+                    ] as Array<[NftFilterTier, string]>).map(([value, label]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setTierFilter(value)}
+                        className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${
+                          tierFilter === value
+                            ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-700 dark:text-emerald-300'
+                            : 'bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:border-emerald-400'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <p className="mt-2 text-[11px] text-zinc-500 dark:text-zinc-400">
+                  Showing {visibleNfts.length} of {filtered.length} NFTs
+                </p>
+              </div>
+              {filtered.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 p-6 text-center">
+                  <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">No NFTs match current filters</p>
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Try another collection or rarity filter.</p>
+                </div>
+              ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {visibleNfts.map((nft) => {
                 const ref = `${nft.collection}#${nft.tokenId}`;
                 const k = `${nft.collection}-${nft.tokenId}`;
@@ -348,13 +417,15 @@ export function ChroniclesNftSlotSelector({
                   </div>
                 );
               })}
-            </div>
+              </div>
+              )}
+            </>
           )}
           {canLoadMore ? (
             <div ref={loadMoreRef} className="mt-4 flex justify-center">
               <button
                 type="button"
-                onClick={() => setVisibleCount((x) => Math.min(x + 36, sorted.length))}
+                onClick={() => setVisibleCount((x) => Math.min(x + 36, filtered.length))}
                 className="k-control-btn text-sm"
               >
                 Load more NFTs
