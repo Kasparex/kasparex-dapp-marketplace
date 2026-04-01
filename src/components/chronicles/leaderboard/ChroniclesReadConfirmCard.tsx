@@ -177,7 +177,18 @@ export function ChroniclesReadConfirmCard({
             writeHighMassMode(next);
           }}
         />
-        <span className="leading-snug">high-mass mode - use larger fallback payments first</span>
+        <span className="leading-snug">high-mass mode</span>
+        <Tooltip
+          content={
+            "Use this when wallet shows 'Storage mass exceeds maximum'. It retries with larger KAS amounts to help wallet select fewer inputs."
+          }
+          side="top"
+          align="start"
+        >
+          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-400 text-[10px] font-black text-zinc-500">
+            i
+          </span>
+        </Tooltip>
       </label>
 
       {confirmed ? (

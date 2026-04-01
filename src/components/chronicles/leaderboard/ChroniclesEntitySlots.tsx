@@ -33,6 +33,7 @@ import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { pointsForNftInSlot } from '@/lib/leaderboard/nftPoints';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { chroniclesLbEffectivePriceKas } from '@/lib/chronicles/leaderboard/pricing';
+import { Tooltip } from '@/components/ui/Tooltip';
 import {
   isStorageMassErrorMessage,
   readHighMassMode,
@@ -264,14 +265,11 @@ export function ChroniclesEntitySlots({
             Slot 1 is free. Slots 2-3 base cost is {CHRONICLES_LB_SLOT_ACTIVATION_KAS} KAS to activate, and setting or clearing a
             slot is {CHRONICLES_LB_SLOT_CHANGE_KAS} KAS base.
           </p>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">
-            Your holder pricing ({tier}): activate {activationPriceKas} KAS, set/clear {slotChangePriceKas} KAS.
-          </p>
+          <div className="mt-2 inline-flex items-center gap-2 rounded-lg border border-[#02abb8]/30 bg-[#02abb8]/10 px-3 py-1.5 text-sm">
+            <span className="font-semibold text-zinc-800 dark:text-zinc-100">your holder pricing ({tier})</span>
+            <span className="text-[#02abb8] font-bold">activate {activationPriceKas} KAS, set/clear {slotChangePriceKas} KAS</span>
+          </div>
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-3xl">
-              If you see <span className="font-semibold">“Storage mass exceeds maximum”</span>, compound UTXOs in your KasWare wallet. Open the wallet →
-              UTXO tab → click “Compound”, then try the action again.
-            </p>
             <label className="inline-flex items-center gap-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white/80 dark:bg-zinc-900/60 px-3 py-2.5 text-sm normal-case text-zinc-700 dark:text-zinc-200 cursor-pointer">
               <span
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
@@ -295,7 +293,18 @@ export function ChroniclesEntitySlots({
                   writeHighMassMode(next);
                 }}
               />
-              <span className="leading-snug">high-mass mode - start retries from larger kas amounts</span>
+              <span className="leading-snug">high-mass mode</span>
+              <Tooltip
+                content={
+                  "Use this when wallet shows 'Storage mass exceeds maximum'. It retries with larger KAS amounts to help wallet select fewer inputs. If needed, compound in KasWare: wallet > UTXO tab > Compound."
+                }
+                side="top"
+                align="start"
+              >
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-400 text-[10px] font-black text-zinc-500">
+                  i
+                </span>
+              </Tooltip>
             </label>
           </div>
         </div>

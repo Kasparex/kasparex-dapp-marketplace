@@ -24,11 +24,30 @@ export function ProjectedRewardsCards() {
       setLoading(true);
       setError(null);
       try {
+        // Prefer internal API, then fallback directly to Kaspa API if needed.
+        let kas = 0;
         const res = await fetch(`/api/kaspa/balance?address=${encodeURIComponent(wallet)}`, { cache: 'no-store' });
         const j = (await res.json()) as BalanceResponse;
-        if (!j.success || !j.balance) throw new Error('Could not load rewards wallet balance.');
-        const sompis = Number(j.balance);
-        const kas = Number.isFinite(sompis) ? sompis / 100000000 : 0;
+        if (j.success && j.balance) {
+          const sompis = Number(j.balance);
+          kas = Number.isFinite(sompis) ? sompis / 100000000 : 0;
+        } else {
+          const addressNoPrefix = wallet.replace(/^kaspa:/i, '');
+          const fallback = await fetch('https://api.kaspa.org/v1/addresses/utxos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify({ addresses: [addressNoPrefix] }),
+            cache: 'no-store',
+          });
+          if (!fallback.ok) throw new Error('Could not load rewards wallet balance.');
+          const data = (await fallback.json()) as { entries?: Array<{ amount?: number | string }>; utxos?: Array<{ amount?: number | string }> };
+          const source = Array.isArray(data.entries) ? data.entries : Array.isArray(data.utxos) ? data.utxos : [];
+          const sumSompis = source.reduce((acc, x) => {
+            const v = typeof x.amount === 'string' ? Number(x.amount) : Number(x.amount ?? 0);
+            return Number.isFinite(v) && v > 0 ? acc + v : acc;
+          }, 0);
+          kas = sumSompis / 100000000;
+        }
         if (!cancelled) setBalanceKas(kas);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : 'Could not load rewards wallet balance.');
@@ -50,7 +69,7 @@ export function ProjectedRewardsCards() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">Projected rewards</p>
-          <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">
+          <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
             Estimated from rewards wallet balance. These values are live until the season snapshot is finalized.
           </p>
         </div>
@@ -76,10 +95,10 @@ export function ProjectedRewardsCards() {
         </div>
       </div>
 
-      <div className="text-xs text-zinc-500 dark:text-zinc-400 space-y-1">
+      <div className="text-sm text-zinc-600 dark:text-zinc-300 space-y-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-950/20 px-3 py-2">
         <p>Rewards wallet: <span className="font-mono break-all">{wallet}</span></p>
-        <p>Balance: {loading ? 'Loading…' : `${fmt(breakdown.balanceKas)} KAS`} · Pool ({poolPercent}%): {loading ? '…' : `${fmt(breakdown.poolKas)} KAS`}</p>
-        {error ? <p className="text-red-600 dark:text-red-400">{error}</p> : null}
+        <p><span className="font-semibold">Balance:</span> {loading ? 'Loading…' : `${fmt(breakdown.balanceKas)} KAS`} · <span className="font-semibold">Pool ({poolPercent}%):</span> {loading ? '…' : `${fmt(breakdown.poolKas)} KAS`}</p>
+        {error ? <p className="text-red-600 dark:text-red-400">Could not load rewards wallet balance from APIs.</p> : null}
       </div>
     </div>
   );
