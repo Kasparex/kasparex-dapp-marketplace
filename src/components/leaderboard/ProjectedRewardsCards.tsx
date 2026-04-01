@@ -64,12 +64,11 @@ export function ProjectedRewardsCards() {
 
   const breakdown = useMemo(() => computeRewardBreakdown(balanceKas), [balanceKas]);
   const helpText = `Pool is ${poolPercent}% of rewards wallet balance. Split is ${split[0]}/${split[1]}/${split[2]}. Final values are frozen at season close.`;
-  const scenarios = useMemo(
+  const winnerBonuses = useMemo(
     () => [
-      { label: 'Current', mul: 1 },
-      { label: '+25%', mul: 1.25 },
-      { label: '+50%', mul: 1.5 },
-      { label: '+100%', mul: 2 },
+      { place: '1st', krex: '500 KREX', nft: '1x Premium NFT (top tier)' },
+      { place: '2nd', krex: '250 KREX', nft: '1x Premium NFT (mid tier)' },
+      { place: '3rd', krex: '100 KREX', nft: '1x Premium NFT (entry tier)' },
     ],
     []
   );
@@ -147,24 +146,19 @@ export function ProjectedRewardsCards() {
                 <table className="w-full text-sm">
                   <thead className="bg-zinc-100 dark:bg-zinc-800/70">
                     <tr>
-                      <th className="px-3 py-2 text-left font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Scenario</th>
-                      <th className="px-3 py-2 text-left font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Wallet balance</th>
-                      <th className="px-3 py-2 text-left font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Pool ({poolPercent}%)</th>
-                      <th className="px-3 py-2 text-left font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">1st / 2nd / 3rd</th>
+                      <th className="px-3 py-2 text-left font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Place</th>
+                      <th className="px-3 py-2 text-left font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Bonus KREX</th>
+                      <th className="px-3 py-2 text-left font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Premium NFT bonus</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {scenarios.map((s) => {
-                      const b = computeRewardBreakdown(balanceKas * s.mul);
-                      return (
-                        <tr key={s.label} className="border-t border-zinc-200 dark:border-zinc-800">
-                          <td className="px-3 py-2">{s.label}</td>
-                          <td className="px-3 py-2">{fmt(b.balanceKas)} KAS</td>
-                          <td className="px-3 py-2">{fmt(b.poolKas)} KAS</td>
-                          <td className="px-3 py-2">{fmt(b.firstKas)} / {fmt(b.secondKas)} / {fmt(b.thirdKas)} KAS</td>
-                        </tr>
-                      );
-                    })}
+                    {winnerBonuses.map((row) => (
+                      <tr key={row.place} className="border-t border-zinc-200 dark:border-zinc-800">
+                        <td className="px-3 py-2">{row.place}</td>
+                        <td className="px-3 py-2">{row.krex}</td>
+                        <td className="px-3 py-2">{row.nft}</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>

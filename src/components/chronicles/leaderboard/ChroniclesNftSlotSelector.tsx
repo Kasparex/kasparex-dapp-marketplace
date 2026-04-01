@@ -177,7 +177,7 @@ export function ChroniclesNftSlotSelector({
   }, [isOpen, payerKaspa]);
 
   const sorted = useMemo(() => rawNfts.slice().sort((a, b) => a.collection.localeCompare(b.collection) || a.tokenId - b.tokenId), [rawNfts]);
-  const [collectionFilter, setCollectionFilter] = useState<string>('all');
+  const [collectionFilter, setCollectionFilter] = useState<string>('');
   const [tierFilter, setTierFilter] = useState<NftFilterTier>('all');
   const [sortMode, setSortMode] = useState<NftSortMode>('default');
   const [visibleCount, setVisibleCount] = useState(36);
@@ -189,7 +189,7 @@ export function ChroniclesNftSlotSelector({
   const collectionOptions = useMemo(() => ['all', ...Array.from(new Set(sorted.map((n) => n.collection)))], [sorted]);
   const filtered = useMemo(() => {
     const base = sorted.filter((nft) => {
-      if (collectionFilter !== 'all' && nft.collection !== collectionFilter) return false;
+      if (collectionFilter && nft.collection !== collectionFilter) return false;
       if (tierFilter === 'all') return true;
       const scoring = pointsForNftInSlot({ collection: nft.collection, tokenId: nft.tokenId });
       if (tierFilter === 'diamond') return scoring.rarity === 'diamond';
@@ -301,15 +301,15 @@ export function ChroniclesNftSlotSelector({
             </div>
           ) : (
             <>
-              <div className="mb-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-3">
-                <div className="flex flex-wrap items-center gap-3">
+              <div className="mb-4">
+                <div className="flex flex-wrap md:flex-nowrap items-center gap-2 md:justify-between">
                   <ChroniclesFilterDropdown
                     ariaLabel="Filter by collection"
                     value={collectionFilter as '' | string}
                     onChange={(v) => setCollectionFilter(v as string)}
                     allLabel="All collections"
                     options={collectionOptions.filter((c) => c !== 'all').map((c) => ({ value: c, label: c }))}
-                    minWidthClassName="min-w-[180px]"
+                    minWidthClassName="min-w-[170px] !bg-zinc-100 dark:!bg-zinc-800/80 !border-zinc-300 dark:!border-zinc-600"
                   />
                   <ChroniclesFilterDropdown
                     ariaLabel="Filter by rarity"
@@ -322,7 +322,7 @@ export function ChroniclesNftSlotSelector({
                       { value: 'rarest', label: 'Rarest' },
                       { value: 'partner-rare', label: 'Partner rare' },
                     ]}
-                    minWidthClassName="min-w-[170px]"
+                    minWidthClassName="min-w-[170px] !bg-zinc-100 dark:!bg-zinc-800/80 !border-zinc-300 dark:!border-zinc-600"
                   />
                   <ChroniclesFilterDropdown
                     ariaLabel="Sort NFTs"
@@ -334,18 +334,18 @@ export function ChroniclesNftSlotSelector({
                       { value: 'points-desc', label: 'Points (high→low)' },
                       { value: 'points-asc', label: 'Points (low→high)' },
                     ]}
-                    minWidthClassName="min-w-[180px]"
+                    minWidthClassName="min-w-[180px] !bg-zinc-100 dark:!bg-zinc-800/80 !border-zinc-300 dark:!border-zinc-600"
                   />
                   <button
                     type="button"
-                    className="k-control-btn"
+                    className="k-control-btn !bg-zinc-100 dark:!bg-zinc-800/80 !border-zinc-300 dark:!border-zinc-600"
                     onClick={() => {
-                      setCollectionFilter('all');
+                      setCollectionFilter('');
                       setTierFilter('all');
                       setSortMode('default');
                     }}
                   >
-                    Reset Filters
+                    Reset
                   </button>
                 </div>
                 <p className="mt-2 text-[11px] text-zinc-500 dark:text-zinc-400">
