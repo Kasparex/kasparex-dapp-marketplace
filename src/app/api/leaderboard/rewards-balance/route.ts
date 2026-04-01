@@ -53,60 +53,71 @@ export async function GET(req: NextRequest) {
     }
 
     // Fallback: direct endpoint sweep for broader API compatibility.
-    const addressWithoutPrefix = address.replace(/^kaspa:/i, '');
+    const addressWithoutPrefix = address.replace(/^kaspa:/i, '').trim();
+    const normalizedPrefixed = address.toLowerCase().startsWith('kaspa:') ? address.trim() : `kaspa:${addressWithoutPrefix}`;
+    const candidateAddresses = Array.from(new Set([addressWithoutPrefix, normalizedPrefixed]));
+
     const postEndpoints = ['https://api.kaspa.org/v1/addresses/utxos'];
     for (const endpoint of postEndpoints) {
       try {
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({ addresses: [addressWithoutPrefix] }),
-          cache: 'no-store',
-          signal: AbortSignal.timeout(12000),
-        });
-        if (!res.ok) {
-          if (debug) diagnostics.push({ source: endpoint, ok: false, status: res.status, detail: res.statusText });
-          continue;
+        for (const candidate of candidateAddresses) {
+          const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify({ addresses: [candidate] }),
+            cache: 'no-store',
+            signal: AbortSignal.timeout(12000),
+          });
+          if (!res.ok) {
+            if (debug) diagnostics.push({ source: `${endpoint} [${candidate}]`, ok: false, status: res.status, detail: res.statusText });
+            continue;
+          }
+          const data = await res.json();
+          const sum = sumSompisFromPayload(data);
+          if (sum >= 0n) {
+            if (debug) diagnostics.push({ source: `${endpoint} [${candidate}]`, ok: true });
+            return NextResponse.json({ success: true, balance: sum.toString(), source: 'direct-utxos', diagnostics: debug ? diagnostics : undefined });
+          }
+          if (debug) diagnostics.push({ source: `${endpoint} [${candidate}]`, ok: false, detail: 'Parsed empty/invalid payload' });
         }
-        const data = await res.json();
-        const sum = sumSompisFromPayload(data);
-        if (sum >= 0n) {
-          if (debug) diagnostics.push({ source: endpoint, ok: true });
-          return NextResponse.json({ success: true, balance: sum.toString(), source: 'direct-utxos', diagnostics: debug ? diagnostics : undefined });
-        }
-        if (debug) diagnostics.push({ source: endpoint, ok: false, detail: 'Parsed empty/invalid payload' });
       } catch {
         if (debug) diagnostics.push({ source: endpoint, ok: false, detail: 'Network/timeout error' });
         // continue
       }
     }
 
-    const getEndpoints = [
-      `https://api.kaspa.org/v1/addresses/${addressWithoutPrefix}/balance`,
-      `https://api.kaspa.org/addresses/${addressWithoutPrefix}/balance`,
-    ];
-    for (const endpoint of getEndpoints) {
-      try {
-        const res = await fetch(endpoint, {
-          method: 'GET',
-          headers: { Accept: 'application/json' },
-          cache: 'no-store',
-          signal: AbortSignal.timeout(12000),
-        });
-        if (!res.ok) {
-          if (debug) diagnostics.push({ source: endpoint, ok: false, status: res.status, detail: res.statusText });
-          continue;
+    for (const candidate of candidateAddresses) {
+      const encoded = encodeURIComponent(candidate);
+      const getEndpoints = [
+        `https://api.kaspa.org/v1/addresses/${encoded}/balance`,
+        `https://api.kaspa.org/addresses/${encoded}/balance`,
+        `https://api.kaspa.org/v1/addresses/${encoded}`,
+        `https://api.kaspa.org/addresses/${encoded}`,
+        `https://api.kaspa.org/v1/address/${encoded}`,
+      ];
+      for (const endpoint of getEndpoints) {
+        try {
+          const res = await fetch(endpoint, {
+            method: 'GET',
+            headers: { Accept: 'application/json' },
+            cache: 'no-store',
+            signal: AbortSignal.timeout(12000),
+          });
+          if (!res.ok) {
+            if (debug) diagnostics.push({ source: endpoint, ok: false, status: res.status, detail: res.statusText });
+            continue;
+          }
+          const data = await res.json();
+          const sum = sumSompisFromPayload(data);
+          if (sum >= 0n) {
+            if (debug) diagnostics.push({ source: endpoint, ok: true });
+            return NextResponse.json({ success: true, balance: sum.toString(), source: 'direct-balance', diagnostics: debug ? diagnostics : undefined });
+          }
+          if (debug) diagnostics.push({ source: endpoint, ok: false, detail: 'Parsed empty/invalid payload' });
+        } catch {
+          if (debug) diagnostics.push({ source: endpoint, ok: false, detail: 'Network/timeout error' });
+          // continue
         }
-        const data = await res.json();
-        const sum = sumSompisFromPayload(data);
-        if (sum >= 0n) {
-          if (debug) diagnostics.push({ source: endpoint, ok: true });
-          return NextResponse.json({ success: true, balance: sum.toString(), source: 'direct-balance', diagnostics: debug ? diagnostics : undefined });
-        }
-        if (debug) diagnostics.push({ source: endpoint, ok: false, detail: 'Parsed empty/invalid payload' });
-      } catch {
-        if (debug) diagnostics.push({ source: endpoint, ok: false, detail: 'Network/timeout error' });
-        // continue
       }
     }
     return NextResponse.json(
