@@ -318,3 +318,37 @@ export function getChroniclesAllPlacedNftRefs(addr: string, seasonId?: SeasonId)
   return out;
 }
 
+export function getChroniclesNftUsageByRef(
+  addr: string,
+  seasonId?: SeasonId
+): Record<string, Array<{ entityType: ChroniclesLbEntityType; entityId: string; slotIndex: SlotIndex; href: string; label: string }>> {
+  const a = normalizeAddr(addr);
+  const sId = seasonId ?? currentSeasonId();
+  const store = readStore();
+  const row = store.wallets[a]?.seasons?.[sId] ?? {};
+  const placements = row.placements ?? {};
+  const out: Record<string, Array<{ entityType: ChroniclesLbEntityType; entityId: string; slotIndex: SlotIndex; href: string; label: string }>> = {};
+
+  for (const [key, val] of Object.entries(placements)) {
+    if (!val || String(val).trim().length === 0) continue;
+    const parts = key.split(':');
+    if (parts.length < 3) continue;
+    const slotIndex = Number(parts[parts.length - 1]) as SlotIndex;
+    const entityType = parts[0] as ChroniclesLbEntityType;
+    const entityId = parts.slice(1, parts.length - 1).join(':');
+    const href =
+      entityType === 'chapter'
+        ? `/chronicles/chapters/${encodeURIComponent(entityId)}`
+        : entityType === 'character'
+          ? `/chronicles/characters/${encodeURIComponent(entityId)}`
+          : entityType === 'location'
+            ? `/chronicles/locations/${encodeURIComponent(entityId)}`
+            : `/chronicles/vehicles/${encodeURIComponent(entityId)}`;
+    const label = `${entityType} ${entityId} (slot ${slotIndex})`;
+    const ref = String(val);
+    if (!out[ref]) out[ref] = [];
+    out[ref].push({ entityType, entityId, slotIndex, href, label });
+  }
+  return out;
+}
+

@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import {
@@ -38,6 +38,8 @@ function nftCollectionPageHref(collection: string): string {
 }
 
 type SimpleNft = { collection: string; tokenId: number; buri?: string | null };
+const KREXPRIME_KASPACOM = 'https://www.kaspa.com/nft/collections/KREXPRIME';
+const PIXELKREX_KASPACOM = 'https://kaspa.com/nft/collections/PIXELKREX';
 
 function normAddr(a: string): string {
   try {
@@ -128,6 +130,8 @@ export function ChroniclesNftSlotSelector({
   description,
   currentValue,
   inUseRefs,
+  usageByRef = {},
+  currentContext,
   onClose,
   onSelect,
   onRemove,
@@ -137,6 +141,8 @@ export function ChroniclesNftSlotSelector({
   description?: string;
   currentValue: string | null;
   inUseRefs: Set<string>;
+  usageByRef?: Record<string, Array<{ entityType: string; entityId: string; slotIndex: number; href: string; label: string }>>;
+  currentContext?: { entityType: string; entityId: string; slotIndex: number };
   onClose: () => void;
   onSelect: (nftRef: string) => void;
   onRemove?: () => void;
@@ -174,7 +180,28 @@ export function ChroniclesNftSlotSelector({
   }, [isOpen, payerKaspa]);
 
   const sorted = useMemo(() => rawNfts.slice().sort((a, b) => a.collection.localeCompare(b.collection) || a.tokenId - b.tokenId), [rawNfts]);
-  const metaMap = useNFTMetas(sorted, isOpen);
+  const [visibleCount, setVisibleCount] = useState(36);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!isOpen) return;
+    setVisibleCount(36);
+  }, [isOpen, payerKaspa]);
+  const visibleNfts = useMemo(() => sorted.slice(0, visibleCount), [sorted, visibleCount]);
+  const metaMap = useNFTMetas(visibleNfts, isOpen);
+  const canLoadMore = visibleCount < sorted.length;
+  useEffect(() => {
+    if (!canLoadMore || !loadMoreRef.current) return;
+    const el = loadMoreRef.current;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const hit = entries.some((e) => e.isIntersecting);
+        if (hit) setVisibleCount((x) => Math.min(x + 24, sorted.length));
+      },
+      { rootMargin: '200px' }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [canLoadMore, sorted.length]);
 
   if (!isOpen) return null;
 
@@ -227,16 +254,39 @@ export function ChroniclesNftSlotSelector({
               <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-2xl">🛰️</div>
               <p className="font-semibold text-zinc-700 dark:text-zinc-300">No NFTs found</p>
               <p className="text-sm text-zinc-500 dark:text-zinc-400">Connect a wallet that can read your NFT holdings.</p>
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                <a
+                  href={KREXPRIME_KASPACOM}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30 transition-colors"
+                >
+                  Buy KREXPRIME
+                </a>
+                <a
+                  href={PIXELKREX_KASPACOM}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30 transition-colors"
+                >
+                  Buy PIXELKREX
+                </a>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {sorted.map((nft) => {
+              {visibleNfts.map((nft) => {
                 const ref = `${nft.collection}#${nft.tokenId}`;
                 const k = `${nft.collection}-${nft.tokenId}`;
                 const meta = metaMap[k] ?? null;
                 const imageUrl = getNFTImageUrl(meta);
                 const scoring = pointsForNftInSlot({ collection: nft.collection, tokenId: nft.tokenId });
                 const inUse = inUseRefs.has(ref) && ref !== currentValue;
+                const rawUsage = usageByRef[ref] ?? [];
+                const usage = rawUsage.filter((u) => {
+                  if (!currentContext) return true;
+                  return !(u.entityType === currentContext.entityType && u.entityId === currentContext.entityId && u.slotIndex === currentContext.slotIndex);
+                });
                 return (
                   <div
                     key={ref}
@@ -274,6 +324,14 @@ export function ChroniclesNftSlotSelector({
                       >
                         Open collection page
                       </a>
+                      {inUse && usage.length > 0 ? (
+                        <div className="mt-1 text-[11px] text-zinc-600 dark:text-zinc-300">
+                          <span className="font-semibold">Used in:</span>{' '}
+                          <a href={usage[0].href} target="_blank" rel="noreferrer" className="text-cyan-600 dark:text-cyan-400 hover:underline">
+                            {usage[0].label}
+                          </a>
+                        </div>
+                      ) : null}
                       <button
                         type="button"
                         onClick={() => {
@@ -292,6 +350,17 @@ export function ChroniclesNftSlotSelector({
               })}
             </div>
           )}
+          {canLoadMore ? (
+            <div ref={loadMoreRef} className="mt-4 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setVisibleCount((x) => Math.min(x + 36, sorted.length))}
+                className="k-control-btn text-sm"
+              >
+                Load more NFTs
+              </button>
+            </div>
+          ) : null}
         </div>
 
         <div className="p-4 bg-zinc-50 dark:bg-zinc-800/30 border-t border-zinc-200 dark:border-zinc-800 text-center">

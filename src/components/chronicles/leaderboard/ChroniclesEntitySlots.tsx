@@ -20,6 +20,7 @@ import {
   getLocalActivatedSlots,
   getLocalSlotPlacement,
   getChroniclesAllPlacedNftRefs,
+  getChroniclesNftUsageByRef,
   recordLocalPendingTx,
   recordLocalActivate,
   recordLocalSetSlot,
@@ -131,6 +132,11 @@ export function ChroniclesEntitySlots({
     if (!payerKaspa) return new Set<string>();
     return getChroniclesAllPlacedNftRefs(payerKaspa);
   }, [payerKaspa, entityType, entityId, localBump]);
+
+  const usageByRef = useMemo(() => {
+    if (!payerKaspa) return {};
+    return getChroniclesNftUsageByRef(payerKaspa);
+  }, [payerKaspa, localBump]);
 
   useEffect(() => {
     let cancelled = false;
@@ -405,6 +411,8 @@ export function ChroniclesEntitySlots({
           description={`Inserting or removing an NFT costs ${slotChangePriceKas} KAS.`}
           currentValue={placement(selectedSlotIndex)}
           inUseRefs={allPlacementRefs}
+          usageByRef={usageByRef}
+          currentContext={selectedSlotIndex !== null ? { entityType, entityId, slotIndex: selectedSlotIndex } : undefined}
           onClose={() => setSelectedSlotIndex(null)}
           onSelect={(ref) => {
             void setSlot(selectedSlotIndex, ref);

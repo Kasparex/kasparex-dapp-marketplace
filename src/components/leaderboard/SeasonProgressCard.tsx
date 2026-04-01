@@ -10,7 +10,6 @@ import {
   importChroniclesLeaderboardLocal,
 } from '@/lib/chronicles/leaderboard/localState';
 import { scoreChroniclesSeason } from '@/lib/leaderboard/scoring';
-import { Tooltip } from '@/components/ui/Tooltip';
 
 function normAddr(a: string): string {
   try {
@@ -93,9 +92,9 @@ export function SeasonProgressCard({ title = 'Your season progress' }: { title?:
         <div>
           <div className="flex items-center gap-2">
             <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">{title}</p>
-            <Tooltip content="This is local wallet progress in your browser for the current season. Export to back it up.">
+            <span title="This is local wallet progress in your browser for the current season. Export to back it up.">
               <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-400 text-[10px] font-black text-zinc-500">i</span>
-            </Tooltip>
+            </span>
           </div>
           <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">
             Season <span className="font-mono">{season.id}</span> ends in {msToTimeLeft(timeLeft)}.
