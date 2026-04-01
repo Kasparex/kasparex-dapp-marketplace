@@ -31,16 +31,11 @@ function parseNftRef(ref: string): { collection: string; tokenId: number } | nul
   return { collection, tokenId };
 }
 
-function nftCollectionPageHref(collection: string): string {
-  const cfg = getCollectionById(collection);
-  if (cfg?.slug) return `/nft/${encodeURIComponent(cfg.slug)}`;
-  return `/nft`;
-}
-
 type SimpleNft = { collection: string; tokenId: number; buri?: string | null };
 const KREXPRIME_KASPACOM = 'https://www.kaspa.com/nft/collections/KREXPRIME';
 const PIXELKREX_KASPACOM = 'https://kaspa.com/nft/collections/PIXELKREX';
 type NftFilterTier = 'all' | 'diamond' | 'rarest' | 'partner-rare';
+type NftSortMode = 'default' | 'points-desc' | 'points-asc';
 
 function normAddr(a: string): string {
   try {
@@ -183,6 +178,7 @@ export function ChroniclesNftSlotSelector({
   const sorted = useMemo(() => rawNfts.slice().sort((a, b) => a.collection.localeCompare(b.collection) || a.tokenId - b.tokenId), [rawNfts]);
   const [collectionFilter, setCollectionFilter] = useState<string>('all');
   const [tierFilter, setTierFilter] = useState<NftFilterTier>('all');
+  const [sortMode, setSortMode] = useState<NftSortMode>('default');
   const [visibleCount, setVisibleCount] = useState(36);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -191,7 +187,7 @@ export function ChroniclesNftSlotSelector({
   }, [isOpen, payerKaspa]);
   const collectionOptions = useMemo(() => ['all', ...Array.from(new Set(sorted.map((n) => n.collection)))], [sorted]);
   const filtered = useMemo(() => {
-    return sorted.filter((nft) => {
+    const base = sorted.filter((nft) => {
       if (collectionFilter !== 'all' && nft.collection !== collectionFilter) return false;
       if (tierFilter === 'all') return true;
       const scoring = pointsForNftInSlot({ collection: nft.collection, tokenId: nft.tokenId });
@@ -204,10 +200,17 @@ export function ChroniclesNftSlotSelector({
       }
       return true;
     });
-  }, [sorted, collectionFilter, tierFilter]);
+    if (sortMode === 'default') return base;
+    const withPoints = base.map((nft) => ({ nft, points: pointsForNftInSlot({ collection: nft.collection, tokenId: nft.tokenId }).points }));
+    withPoints.sort((a, b) => {
+      if (sortMode === 'points-desc') return b.points - a.points || a.nft.tokenId - b.nft.tokenId;
+      return a.points - b.points || a.nft.tokenId - b.nft.tokenId;
+    });
+    return withPoints.map((x) => x.nft);
+  }, [sorted, collectionFilter, tierFilter, sortMode]);
   useEffect(() => {
     setVisibleCount(36);
-  }, [collectionFilter, tierFilter]);
+  }, [collectionFilter, tierFilter, sortMode]);
   const visibleNfts = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
   const metaMap = useNFTMetas(visibleNfts, isOpen);
   const canLoadMore = visibleCount < filtered.length;
@@ -311,6 +314,16 @@ export function ChroniclesNftSlotSelector({
                       </option>
                     ))}
                   </select>
+                  <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">Sort</label>
+                  <select
+                    value={sortMode}
+                    onChange={(e) => setSortMode(e.target.value as NftSortMode)}
+                    className="rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 px-2 py-1.5 text-xs text-zinc-700 dark:text-zinc-200"
+                  >
+                    <option value="default">Default</option>
+                    <option value="points-desc">Points: high to low</option>
+                    <option value="points-asc">Points: low to high</option>
+                  </select>
                   <div className="ml-auto flex flex-wrap gap-2">
                     {([
                       ['all', 'All'],
@@ -383,16 +396,11 @@ export function ChroniclesNftSlotSelector({
                       </p>
                       <p className="text-xs text-zinc-500 dark:text-zinc-400">
                         #{nft.tokenId} · {nft.collection}
-                        {scoring.rarity !== 'standard' ? ` · ${scoring.rarity.toUpperCase()}` : ''} · {scoring.points} pts
+                        {scoring.rarity !== 'standard' ? ` · ${scoring.rarity.toUpperCase()}` : ''}
                       </p>
-                      <a
-                        href={nftCollectionPageHref(nft.collection)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mt-1 inline-flex text-[11px] font-semibold text-cyan-600 dark:text-cyan-400 hover:underline"
-                      >
-                        Open collection page
-                      </a>
+                      <p className="mt-0.5 text-xs font-extrabold text-amber-600 dark:text-amber-300">
+                        {scoring.points} pts
+                      </p>
                       {inUse && usage.length > 0 ? (
                         <div className="mt-1 text-[11px] text-zinc-600 dark:text-zinc-300">
                           <span className="font-semibold">Used in:</span>{' '}

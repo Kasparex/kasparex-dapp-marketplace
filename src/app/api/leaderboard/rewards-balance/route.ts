@@ -55,7 +55,31 @@ export async function GET(req: NextRequest) {
     // Fallback: direct endpoint sweep for broader API compatibility.
     const addressWithoutPrefix = address.replace(/^kaspa:/i, '').trim();
     const normalizedPrefixed = address.toLowerCase().startsWith('kaspa:') ? address.trim() : `kaspa:${addressWithoutPrefix}`;
-    const candidateAddresses = Array.from(new Set([addressWithoutPrefix, normalizedPrefixed]));
+    const candidateAddresses = Array.from(new Set([normalizedPrefixed, addressWithoutPrefix]));
+
+    // Fast path: this is the endpoint variant currently confirmed to work in production.
+    const preferredEndpoint = `https://api.kaspa.org/addresses/${encodeURIComponent(normalizedPrefixed)}/balance`;
+    try {
+      const preferredRes = await fetch(preferredEndpoint, {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
+        signal: AbortSignal.timeout(10000),
+      });
+      if (preferredRes.ok) {
+        const preferredData = await preferredRes.json();
+        const preferredSum = sumSompisFromPayload(preferredData);
+        if (preferredSum >= 0n) {
+          if (debug) diagnostics.push({ source: preferredEndpoint, ok: true });
+          return NextResponse.json({ success: true, balance: preferredSum.toString(), source: 'direct-balance', diagnostics: debug ? diagnostics : undefined });
+        }
+        if (debug) diagnostics.push({ source: preferredEndpoint, ok: false, detail: 'Parsed empty/invalid payload' });
+      } else if (debug) {
+        diagnostics.push({ source: preferredEndpoint, ok: false, status: preferredRes.status, detail: preferredRes.statusText });
+      }
+    } catch {
+      if (debug) diagnostics.push({ source: preferredEndpoint, ok: false, detail: 'Network/timeout error' });
+    }
 
     const postEndpoints = ['https://api.kaspa.org/v1/addresses/utxos'];
     for (const endpoint of postEndpoints) {
@@ -89,12 +113,14 @@ export async function GET(req: NextRequest) {
     for (const candidate of candidateAddresses) {
       const encoded = encodeURIComponent(candidate);
       const getEndpoints = [
-        `https://api.kaspa.org/v1/addresses/${encoded}/balance`,
         `https://api.kaspa.org/addresses/${encoded}/balance`,
-        `https://api.kaspa.org/v1/addresses/${encoded}`,
-        `https://api.kaspa.org/addresses/${encoded}`,
-        `https://api.kaspa.org/v1/address/${encoded}`,
+        `https://api.kaspa.org/v1/addresses/${encoded}/balance`,
       ];
+      if (debug) {
+        getEndpoints.push(`https://api.kaspa.org/v1/addresses/${encoded}`);
+        getEndpoints.push(`https://api.kaspa.org/addresses/${encoded}`);
+        getEndpoints.push(`https://api.kaspa.org/v1/address/${encoded}`);
+      }
       for (const endpoint of getEndpoints) {
         try {
           const res = await fetch(endpoint, {
