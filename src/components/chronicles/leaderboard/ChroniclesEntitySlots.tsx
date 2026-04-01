@@ -272,17 +272,18 @@ export function ChroniclesEntitySlots({
               If you see <span className="font-semibold">“Storage mass exceeds maximum”</span>, compound UTXOs in your KasWare wallet. Open the wallet →
               UTXO tab → click “Compound”, then try the action again.
             </p>
-            <label className="inline-flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300 cursor-pointer">
+            <label className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white/70 dark:bg-zinc-900/50 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-200 cursor-pointer">
               <input
                 type="checkbox"
                 checked={highMassMode}
+                className="h-4 w-4 rounded border-zinc-400 text-[#02abb8] focus:ring-2 focus:ring-[#02abb8] focus:ring-offset-0"
                 onChange={(e) => {
                   const next = e.target.checked;
                   setHighMassMode(next);
                   writeHighMassMode(next);
                 }}
               />
-              High-mass mode (start retries from larger KAS amounts)
+              high-mass mode (start retries from larger kas amounts)
             </label>
           </div>
         </div>
