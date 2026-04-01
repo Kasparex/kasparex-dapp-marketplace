@@ -44,6 +44,22 @@ function normAddr(a: string): string {
   }
 }
 
+function isStorageMassErrorMessage(msg: string): boolean {
+  const m = msg.toLowerCase();
+  return m.includes('storage mass exceeds maximum') || (m.includes('mass') && m.includes('maximum'));
+}
+
+function retryKasCandidates(baseKas: number): number[] {
+  const ladder = [baseKas, 0.2, 0.5, 1, 2, 5, 10];
+  const unique: number[] = [];
+  for (const x of ladder) {
+    const v = Number.isFinite(x) ? Number(x.toFixed(8)) : 0;
+    if (v <= 0) continue;
+    if (!unique.some((u) => Math.abs(u - v) < 1e-9)) unique.push(v);
+  }
+  return unique;
+}
+
 async function verifyLoop(
   txHash: string,
   payerKaspa: string
@@ -168,29 +184,22 @@ export function ChroniclesEntitySlots({
       return { txHash: vr.txHash, txTimeMs: vr.txTimeMs, paidKas: kas };
     };
 
-    try {
-      return await send(amountKas);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e ?? '');
-      const storageMass = msg.toLowerCase().includes('storage mass exceeds maximum');
-      // KasWare often fails small payments when the wallet has many small UTXOs.
-      // Paying a bit more can trigger a different coin selection with fewer inputs.
-      if (storageMass && amountKas <= 0.11) {
-        setNote('Wallet UTXOs are fragmented; retrying with a larger payment to fit mass limits…');
-        try {
-          return await send(5);
-        } catch (e2) {
-          const msg2 = e2 instanceof Error ? e2.message : String(e2 ?? '');
-          if (msg2.toLowerCase().includes('storage mass exceeds maximum')) {
-            throw new Error(
-              "Your wallet's UTXOs are too fragmented to fund a small 0.1 KAS transaction within Kaspa mass limits. Please consolidate UTXOs in your wallet (send to yourself once) and retry."
-            );
-          }
-          throw e2;
+    const candidates = retryKasCandidates(amountKas);
+    for (let i = 0; i < candidates.length; i++) {
+      const kas = candidates[i];
+      try {
+        if (i > 0) {
+          setNote(`Wallet UTXO mass too high; retrying with ${kas} KAS to reduce input count…`);
         }
+        return await send(kas);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e ?? '');
+        if (!isStorageMassErrorMessage(msg)) throw e;
       }
-      throw e;
     }
+    throw new Error(
+      "Transaction cannot fit Kaspa mass limits with your current UTXO set. Try wallet maintenance: 1) Compound repeatedly until UTXO count drops, 2) send 20-50 KAS to yourself once or twice, 3) retry in 1-2 minutes."
+    );
   }
 
   async function activate(slotIndex: 2 | 3) {

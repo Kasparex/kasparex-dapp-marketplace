@@ -27,6 +27,22 @@ function normAddr(a: string): string {
   }
 }
 
+function isStorageMassErrorMessage(msg: string): boolean {
+  const m = msg.toLowerCase();
+  return m.includes('storage mass exceeds maximum') || (m.includes('mass') && m.includes('maximum'));
+}
+
+function retryKasCandidates(baseKas: number): number[] {
+  const ladder = [baseKas, 0.2, 0.5, 1, 2, 5, 10];
+  const unique: number[] = [];
+  for (const x of ladder) {
+    const v = Number.isFinite(x) ? Number(x.toFixed(8)) : 0;
+    if (v <= 0) continue;
+    if (!unique.some((u) => Math.abs(u - v) < 1e-9)) unique.push(v);
+  }
+  return unique;
+}
+
 async function verifyLoop(
   txHash: string,
   payerKaspa: string
@@ -94,15 +110,32 @@ export function ChroniclesReadConfirmCard({
     setBusy(true);
     try {
       const text = buildChroniclesLbReadConfirmText({ entityType, entityId, payerKaspa });
-      const txRes = await sendKaspaTransaction(state.provider as KaspaWalletProvider, {
-        to: treasury,
-        amount: String(kasToSompi(readConfirmPriceKas)),
-        payload: chroniclesLbPayloadHexFromText(text),
-      });
-      if (txRes.status === 'failed' || !txRes.txHash) {
-        throw new Error(txRes.error ?? 'Transaction was rejected or failed');
+      const payload = chroniclesLbPayloadHexFromText(text);
+      const attempts = retryKasCandidates(readConfirmPriceKas);
+      let txHash: string | null = null;
+      for (let i = 0; i < attempts.length; i++) {
+        const kas = attempts[i];
+        if (i > 0) {
+          setNote(`Wallet UTXO mass too high; retrying with ${kas} KAS to reduce input count…`);
+        }
+        const txRes = await sendKaspaTransaction(state.provider as KaspaWalletProvider, {
+          to: treasury,
+          amount: String(kasToSompi(kas)),
+          payload,
+        });
+        if (txRes.status !== 'failed' && txRes.txHash) {
+          txHash = txRes.txHash;
+          break;
+        }
+        const msg = txRes.error ?? 'Transaction was rejected or failed';
+        if (!isStorageMassErrorMessage(msg)) throw new Error(msg);
       }
-      const hash = extractKaspaTransactionId(txRes.txHash) ?? txRes.txHash;
+      if (!txHash) {
+        throw new Error(
+          "Transaction cannot fit Kaspa mass limits with your current UTXO set. Try wallet maintenance: 1) Compound repeatedly until UTXO count drops, 2) send 20-50 KAS to yourself once or twice, 3) retry in 1-2 minutes."
+        );
+      }
+      const hash = extractKaspaTransactionId(txHash) ?? txHash;
       recordLocalPendingTx(payerKaspa, hash, 'read');
       const vr = await verifyLoop(hash, payerKaspa);
       if (!vr.ok) throw new Error(vr.error);
