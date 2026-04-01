@@ -147,6 +147,12 @@ export function ChroniclesReadConfirmCard({
             Confirm you read this content with an on-chain action. Base cost is {CHRONICLES_LB_READ_CONFIRM_KAS} KAS and your
             holder price ({tier}) is {readConfirmPriceKas} KAS.
           </p>
+          <div className="mt-3 flex items-center gap-3">
+            <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Read rewards</p>
+            <a href="/chronicles/leaderboard#points-table" className="text-sm font-bold text-[#02abb8] hover:underline">
+              See points →
+            </a>
+          </div>
         </div>
         <Tooltip content="See leaderboard" side="top" align="end">
           <a href="/chronicles/leaderboard" className="k-control-btn shrink-0">
@@ -154,42 +160,44 @@ export function ChroniclesReadConfirmCard({
           </a>
         </Tooltip>
       </div>
-      <label className="inline-flex items-center gap-4 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white/80 dark:bg-zinc-900/60 px-4 py-2.5 text-sm font-medium normal-case tracking-normal text-zinc-700 dark:text-zinc-200 cursor-pointer">
-        <span
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-            highMassMode ? 'bg-[#02abb8]' : 'bg-zinc-300 dark:bg-zinc-700'
-          }`}
-          aria-hidden
-        >
+      <div className="ml-auto w-full sm:w-auto sm:min-w-[220px] rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white/80 dark:bg-zinc-900/60 px-4 py-3">
+        <label className="inline-flex items-center gap-3 cursor-pointer">
           <span
-            className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
-              highMassMode ? 'translate-x-5' : 'translate-x-1'
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              highMassMode ? 'bg-[#02abb8]' : 'bg-zinc-300 dark:bg-zinc-700'
             }`}
-          />
-        </span>
-        <input
-          type="checkbox"
-          checked={highMassMode}
-          className="sr-only"
-          onChange={(e) => {
-            const next = e.target.checked;
-            setHighMassMode(next);
-            writeHighMassMode(next);
-          }}
-        />
-        <span className="leading-snug">High-mass mode</span>
-        <Tooltip
-          content={
-            "Use this when wallet shows 'Storage mass exceeds maximum'. It retries with larger KAS amounts to help wallet select fewer inputs."
-          }
-          side="top"
-          align="start"
-        >
-          <span className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-400 text-[10px] font-black text-zinc-500">
-            i
+            aria-hidden
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                highMassMode ? 'translate-x-5' : 'translate-x-1'
+              }`}
+            />
           </span>
-        </Tooltip>
-      </label>
+          <input
+            type="checkbox"
+            checked={highMassMode}
+            className="sr-only"
+            onChange={(e) => {
+              const next = e.target.checked;
+              setHighMassMode(next);
+              writeHighMassMode(next);
+            }}
+          />
+          <Tooltip
+            content={
+              "Use this when wallet shows 'Storage mass exceeds maximum'. It retries with larger KAS amounts to help wallet select fewer inputs."
+            }
+            side="top"
+            align="end"
+          >
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-400 text-[10px] font-black text-zinc-500">
+              i
+            </span>
+          </Tooltip>
+        </label>
+        <p className="mt-2 text-sm font-semibold text-zinc-700 dark:text-zinc-200">High-mass mode</p>
+      </div>
 
       {confirmed ? (
         <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-700 dark:text-emerald-300">

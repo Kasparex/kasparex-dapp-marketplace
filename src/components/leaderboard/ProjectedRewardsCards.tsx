@@ -14,6 +14,7 @@ export function ProjectedRewardsCards() {
   const [balanceKas, setBalanceKas] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [openDetails, setOpenDetails] = useState(false);
   const wallet = rewardsWalletAddress();
   const poolPercent = rewardsPoolPercent();
   const split = rewardsSplits();
@@ -63,6 +64,15 @@ export function ProjectedRewardsCards() {
 
   const breakdown = useMemo(() => computeRewardBreakdown(balanceKas), [balanceKas]);
   const helpText = `Pool is ${poolPercent}% of rewards wallet balance. Split is ${split[0]}/${split[1]}/${split[2]}. Final values are frozen at season close.`;
+  const scenarios = useMemo(
+    () => [
+      { label: 'Current', mul: 1 },
+      { label: '+25%', mul: 1.25 },
+      { label: '+50%', mul: 1.5 },
+      { label: '+100%', mul: 2 },
+    ],
+    []
+  );
 
   return (
     <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-6 sm:p-7 space-y-4 chronicles-vault-card">
@@ -81,18 +91,22 @@ export function ProjectedRewardsCards() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/30 px-4 py-3">
-          <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">1st place</p>
-          <p className="text-xl font-black text-zinc-900 dark:text-zinc-100">{loading ? '...' : `${fmt(breakdown.firstKas)} KAS`}</p>
-        </div>
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/30 px-4 py-3">
-          <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">2nd place</p>
-          <p className="text-xl font-black text-zinc-900 dark:text-zinc-100">{loading ? '...' : `${fmt(breakdown.secondKas)} KAS`}</p>
-        </div>
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/30 px-4 py-3">
-          <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">3rd place</p>
-          <p className="text-xl font-black text-zinc-900 dark:text-zinc-100">{loading ? '...' : `${fmt(breakdown.thirdKas)} KAS`}</p>
-        </div>
+        {[
+          { place: '1st place', value: breakdown.firstKas, icon: '🏆', color: 'text-amber-500' },
+          { place: '2nd place', value: breakdown.secondKas, icon: '🥈', color: 'text-zinc-400' },
+          { place: '3rd place', value: breakdown.thirdKas, icon: '🥉', color: 'text-orange-500' },
+        ].map((card) => (
+          <button
+            key={card.place}
+            type="button"
+            onClick={() => setOpenDetails(true)}
+            className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/30 px-4 py-3 text-left hover:border-[#02abb8]/50 transition-colors"
+          >
+            <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">{card.place}</p>
+            <p className={`mt-1 text-lg ${card.color}`}>{card.icon}</p>
+            <p className="text-xl font-black text-zinc-900 dark:text-zinc-100">{loading ? '...' : `${fmt(card.value)} KAS`}</p>
+          </button>
+        ))}
       </div>
 
       <div className="text-sm text-zinc-600 dark:text-zinc-300 space-y-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-950/20 px-3 py-2">
@@ -100,6 +114,64 @@ export function ProjectedRewardsCards() {
         <p><span className="font-semibold">Balance:</span> {loading ? 'Loading…' : `${fmt(breakdown.balanceKas)} KAS`} · <span className="font-semibold">Pool ({poolPercent}%):</span> {loading ? '…' : `${fmt(breakdown.poolKas)} KAS`}</p>
         {error ? <p className="text-red-600 dark:text-red-400">Could not load rewards wallet balance from APIs.</p> : null}
       </div>
+
+      {openDetails ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm" onClick={() => setOpenDetails(false)} aria-hidden />
+          <div className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 px-5 py-4">
+              <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100">Projected rewards details</h3>
+              <button type="button" className="k-control-btn" onClick={() => setOpenDetails(false)}>
+                Close
+              </button>
+            </div>
+            <div className="max-h-[75vh] overflow-y-auto space-y-5 p-5">
+              <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-zinc-100 dark:bg-zinc-800/70">
+                    <tr>
+                      <th className="px-3 py-2 text-left font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Place</th>
+                      <th className="px-3 py-2 text-left font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Split</th>
+                      <th className="px-3 py-2 text-left font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Estimated KAS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-t border-zinc-200 dark:border-zinc-800"><td className="px-3 py-2">1st</td><td className="px-3 py-2">{split[0]}%</td><td className="px-3 py-2 font-semibold">{fmt(breakdown.firstKas)}</td></tr>
+                    <tr className="border-t border-zinc-200 dark:border-zinc-800"><td className="px-3 py-2">2nd</td><td className="px-3 py-2">{split[1]}%</td><td className="px-3 py-2 font-semibold">{fmt(breakdown.secondKas)}</td></tr>
+                    <tr className="border-t border-zinc-200 dark:border-zinc-800"><td className="px-3 py-2">3rd</td><td className="px-3 py-2">{split[2]}%</td><td className="px-3 py-2 font-semibold">{fmt(breakdown.thirdKas)}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-zinc-100 dark:bg-zinc-800/70">
+                    <tr>
+                      <th className="px-3 py-2 text-left font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Scenario</th>
+                      <th className="px-3 py-2 text-left font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Wallet balance</th>
+                      <th className="px-3 py-2 text-left font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Pool ({poolPercent}%)</th>
+                      <th className="px-3 py-2 text-left font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">1st / 2nd / 3rd</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {scenarios.map((s) => {
+                      const b = computeRewardBreakdown(balanceKas * s.mul);
+                      return (
+                        <tr key={s.label} className="border-t border-zinc-200 dark:border-zinc-800">
+                          <td className="px-3 py-2">{s.label}</td>
+                          <td className="px-3 py-2">{fmt(b.balanceKas)} KAS</td>
+                          <td className="px-3 py-2">{fmt(b.poolKas)} KAS</td>
+                          <td className="px-3 py-2">{fmt(b.firstKas)} / {fmt(b.secondKas)} / {fmt(b.thirdKas)} KAS</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

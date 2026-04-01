@@ -14,6 +14,7 @@ import { fetchNFTMetadata } from '@/lib/nft/metadata';
 import { getCollectionById } from '@/lib/nft/collections';
 import { getBestGatewayUrl, fetchJSON } from '@/lib/ipfs/gateway';
 import { pointsForNftInSlot } from '@/lib/leaderboard/nftPoints';
+import { ChroniclesFilterDropdown } from '@/components/chronicles/ChroniclesFilterDropdown';
 
 function getNFTImageUrl(metadata: ParsedNFTMetadata | null): string | null {
   if (!metadata?.image) return null;
@@ -302,49 +303,50 @@ export function ChroniclesNftSlotSelector({
             <>
               <div className="mb-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-3">
                 <div className="flex flex-wrap items-center gap-3">
-                  <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">Collection</label>
-                  <select
-                    value={collectionFilter}
-                    onChange={(e) => setCollectionFilter(e.target.value)}
-                    className="rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 px-2 py-1.5 text-xs text-zinc-700 dark:text-zinc-200"
+                  <ChroniclesFilterDropdown
+                    ariaLabel="Filter by collection"
+                    value={collectionFilter as '' | string}
+                    onChange={(v) => setCollectionFilter(v as string)}
+                    allLabel="All collections"
+                    options={collectionOptions.filter((c) => c !== 'all').map((c) => ({ value: c, label: c }))}
+                    minWidthClassName="min-w-[180px]"
+                  />
+                  <ChroniclesFilterDropdown
+                    ariaLabel="Filter by rarity"
+                    value={tierFilter as '' | NftFilterTier}
+                    onChange={(v) => setTierFilter((v || 'all') as NftFilterTier)}
+                    allLabel="All rarities"
+                    allValue={''}
+                    options={[
+                      { value: 'diamond', label: 'Diamond' },
+                      { value: 'rarest', label: 'Rarest' },
+                      { value: 'partner-rare', label: 'Partner rare' },
+                    ]}
+                    minWidthClassName="min-w-[170px]"
+                  />
+                  <ChroniclesFilterDropdown
+                    ariaLabel="Sort NFTs"
+                    value={sortMode as '' | NftSortMode}
+                    onChange={(v) => setSortMode((v || 'default') as NftSortMode)}
+                    allLabel="Default sort"
+                    allValue={''}
+                    options={[
+                      { value: 'points-desc', label: 'Points (high→low)' },
+                      { value: 'points-asc', label: 'Points (low→high)' },
+                    ]}
+                    minWidthClassName="min-w-[180px]"
+                  />
+                  <button
+                    type="button"
+                    className="k-control-btn"
+                    onClick={() => {
+                      setCollectionFilter('all');
+                      setTierFilter('all');
+                      setSortMode('default');
+                    }}
                   >
-                    {collectionOptions.map((c) => (
-                      <option key={c} value={c}>
-                        {c === 'all' ? 'All collections' : c}
-                      </option>
-                    ))}
-                  </select>
-                  <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">Sort</label>
-                  <select
-                    value={sortMode}
-                    onChange={(e) => setSortMode(e.target.value as NftSortMode)}
-                    className="rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 px-2 py-1.5 text-xs text-zinc-700 dark:text-zinc-200"
-                  >
-                    <option value="default">Default</option>
-                    <option value="points-desc">Points: high to low</option>
-                    <option value="points-asc">Points: low to high</option>
-                  </select>
-                  <div className="ml-auto flex flex-wrap gap-2">
-                    {([
-                      ['all', 'All'],
-                      ['diamond', 'Diamond'],
-                      ['rarest', 'Rarest'],
-                      ['partner-rare', 'Partner rare'],
-                    ] as Array<[NftFilterTier, string]>).map(([value, label]) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => setTierFilter(value)}
-                        className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${
-                          tierFilter === value
-                            ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-700 dark:text-emerald-300'
-                            : 'bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:border-emerald-400'
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
+                    Reset Filters
+                  </button>
                 </div>
                 <p className="mt-2 text-[11px] text-zinc-500 dark:text-zinc-400">
                   Showing {visibleNfts.length} of {filtered.length} NFTs

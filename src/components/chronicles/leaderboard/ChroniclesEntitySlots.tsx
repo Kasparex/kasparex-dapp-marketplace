@@ -275,8 +275,16 @@ export function ChroniclesEntitySlots({
             <span className="font-semibold text-zinc-800 dark:text-zinc-100">your holder pricing ({tier})</span>
             <span className="text-[#02abb8] font-bold">activate {activationPriceKas} KAS, set/clear {slotChangePriceKas} KAS</span>
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <label className="inline-flex items-center gap-4 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white/80 dark:bg-zinc-900/60 px-4 py-2.5 text-sm font-medium normal-case tracking-normal text-zinc-700 dark:text-zinc-200 cursor-pointer">
+          <div className="mt-3 flex items-center gap-3">
+            <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Slot rewards</p>
+            <a href="/chronicles/leaderboard#points-table" className="text-sm font-bold text-[#02abb8] hover:underline">
+              See points →
+            </a>
+          </div>
+        </div>
+        <div className="w-full lg:w-auto lg:min-w-[220px]">
+          <div className="rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white/80 dark:bg-zinc-900/60 px-4 py-3">
+            <label className="inline-flex items-center gap-3 cursor-pointer">
               <span
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                   highMassMode ? 'bg-[#02abb8]' : 'bg-zinc-300 dark:bg-zinc-700'
@@ -299,26 +307,20 @@ export function ChroniclesEntitySlots({
                   writeHighMassMode(next);
                 }}
               />
-              <span className="leading-snug">High-mass mode</span>
               <Tooltip
                 content={
                   "Use this when wallet shows 'Storage mass exceeds maximum'. It retries with larger KAS amounts to help wallet select fewer inputs. If needed, compound in KasWare: wallet > UTXO tab > Compound."
                 }
                 side="top"
-                align="start"
+                align="end"
               >
-                <span className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-400 text-[10px] font-black text-zinc-500">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-400 text-[10px] font-black text-zinc-500">
                   i
                 </span>
               </Tooltip>
             </label>
+            <p className="mt-2 text-sm font-semibold text-zinc-700 dark:text-zinc-200">High-mass mode</p>
           </div>
-        </div>
-        <div className="text-left lg:text-right whitespace-nowrap">
-          <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Slot rewards</p>
-          <a href="/chronicles/leaderboard#points-table" className="text-sm font-bold text-[#02abb8] hover:underline">
-            See points →
-          </a>
         </div>
       </div>
 
