@@ -31,6 +31,12 @@ function parseNftRef(ref: string): { collection: string; tokenId: number } | nul
   return { collection, tokenId };
 }
 
+function nftCollectionPageHref(collection: string): string {
+  const cfg = getCollectionById(collection);
+  if (cfg?.slug) return `/nft/${encodeURIComponent(cfg.slug)}`;
+  return `/nft`;
+}
+
 type SimpleNft = { collection: string; tokenId: number; buri?: string | null };
 
 function normAddr(a: string): string {
@@ -260,6 +266,14 @@ export function ChroniclesNftSlotSelector({
                         #{nft.tokenId} · {nft.collection}
                         {scoring.rarity !== 'standard' ? ` · ${scoring.rarity.toUpperCase()}` : ''} · {scoring.points} pts
                       </p>
+                      <a
+                        href={nftCollectionPageHref(nft.collection)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-1 inline-flex text-[11px] font-semibold text-cyan-600 dark:text-cyan-400 hover:underline"
+                      >
+                        Open collection page
+                      </a>
                       <button
                         type="button"
                         onClick={() => {

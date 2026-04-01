@@ -154,7 +154,7 @@ export function ChroniclesReadConfirmCard({
           </a>
         </Tooltip>
       </div>
-      <label className="inline-flex items-center gap-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white/80 dark:bg-zinc-900/60 px-3 py-2.5 text-sm normal-case text-zinc-700 dark:text-zinc-200 cursor-pointer">
+      <label className="inline-flex items-center gap-4 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white/80 dark:bg-zinc-900/60 px-4 py-2.5 text-sm font-medium normal-case tracking-normal text-zinc-700 dark:text-zinc-200 cursor-pointer">
         <span
           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
             highMassMode ? 'bg-[#02abb8]' : 'bg-zinc-300 dark:bg-zinc-700'
@@ -177,7 +177,7 @@ export function ChroniclesReadConfirmCard({
             writeHighMassMode(next);
           }}
         />
-        <span className="leading-snug">high-mass mode</span>
+        <span className="leading-snug">High-mass mode</span>
         <Tooltip
           content={
             "Use this when wallet shows 'Storage mass exceeds maximum'. It retries with larger KAS amounts to help wallet select fewer inputs."
@@ -185,7 +185,7 @@ export function ChroniclesReadConfirmCard({
           side="top"
           align="start"
         >
-          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-400 text-[10px] font-black text-zinc-500">
+          <span className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-400 text-[10px] font-black text-zinc-500">
             i
           </span>
         </Tooltip>

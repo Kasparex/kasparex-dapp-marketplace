@@ -120,7 +120,7 @@ export function SeasonProgressCard({ title = 'Your season progress' }: { title?:
       {!addr ? (
         <p className="text-sm text-zinc-600 dark:text-zinc-400">Connect your Kaspa wallet to see your local season progress.</p>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/30 px-4 py-3">
             <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">Points</p>
             <p className="text-xl font-black text-zinc-900 dark:text-zinc-100">{score?.totalPoints ?? 0}</p>
@@ -132,15 +132,6 @@ export function SeasonProgressCard({ title = 'Your season progress' }: { title?:
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/30 px-4 py-3">
             <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">Filled slots</p>
             <p className="text-xl font-black text-zinc-900 dark:text-zinc-100">{score?.filledSlotsCount ?? 0}</p>
-          </div>
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/30 px-4 py-3">
-            <div className="flex items-center gap-1">
-              <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">Pending</p>
-              <Tooltip content="Transactions sent for read/slot actions that are not yet verified by the indexer.">
-                <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-zinc-400 text-[9px] font-black text-zinc-500">i</span>
-              </Tooltip>
-            </div>
-            <p className="text-xl font-black text-zinc-900 dark:text-zinc-100">{score?.pendingTxCount ?? 0}</p>
           </div>
         </div>
       )}

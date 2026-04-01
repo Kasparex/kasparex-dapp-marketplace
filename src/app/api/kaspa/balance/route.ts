@@ -46,17 +46,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Validate address using SDK
-    if (!isValidKaspaAddress(address)) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid Kaspa address format' },
-        { status: 400 }
-      );
+    // Normalize address for API calls. We keep a permissive fallback path because
+    // some valid wallet strings can still fail strict client-side validators.
+    const addressWithoutPrefix = address.replace(/^kaspa:/i, '').trim();
+    if (!addressWithoutPrefix) {
+      return NextResponse.json({ success: false, error: 'Invalid Kaspa address format' }, { status: 400 });
     }
-
-    // Normalize address (ensure kaspa: prefix for API calls)
-    const addressWithoutPrefix = address.replace(/^kaspa:/i, '');
-    const fullAddress = address.startsWith('kaspa:') ? address : `kaspa:${addressWithoutPrefix}`;
+    const strictValid = isValidKaspaAddress(address);
+    if (!strictValid) {
+      console.debug('Balance route continuing with permissive address mode:', address);
+    }
 
     // Method 1: Use official Kaspa REST API - GetUtxosByAddresses
     // According to Integration Guide, this is the recommended way to get balance

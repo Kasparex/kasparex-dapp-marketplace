@@ -26,7 +26,7 @@ export function ProjectedRewardsCards() {
       try {
         // Prefer internal API, then fallback directly to Kaspa API if needed.
         let kas = 0;
-        const res = await fetch(`/api/kaspa/balance?address=${encodeURIComponent(wallet)}`, { cache: 'no-store' });
+        const res = await fetch(`/api/leaderboard/rewards-balance?address=${encodeURIComponent(wallet)}`, { cache: 'no-store' });
         const j = (await res.json()) as BalanceResponse;
         if (j.success && j.balance) {
           const sompis = Number(j.balance);
