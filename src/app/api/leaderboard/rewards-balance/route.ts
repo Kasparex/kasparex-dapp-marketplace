@@ -33,6 +33,8 @@ function sumSompisFromPayload(data: unknown): bigint {
 export async function GET(req: NextRequest) {
   try {
     const address = (req.nextUrl.searchParams.get('address') ?? '').trim();
+    const debug = req.nextUrl.searchParams.get('debug') === '1';
+    const diagnostics: Array<{ source: string; ok: boolean; detail?: string; status?: number }> = [];
     if (!address) {
       return NextResponse.json({ success: false, error: 'Address parameter is required' }, { status: 400 });
     }
@@ -41,9 +43,12 @@ export async function GET(req: NextRequest) {
     try {
       const sompis = await getBalance(address);
       if (Number.isFinite(sompis) && sompis >= 0) {
+        if (debug) diagnostics.push({ source: 'lib/kaspa/api#getBalance', ok: true });
         return NextResponse.json({ success: true, balance: String(sompis), source: 'lib/kaspa/api' });
       }
+      if (debug) diagnostics.push({ source: 'lib/kaspa/api#getBalance', ok: false, detail: 'Non-finite balance returned' });
     } catch {
+      if (debug) diagnostics.push({ source: 'lib/kaspa/api#getBalance', ok: false, detail: 'Request failed' });
       // try fallback below
     }
 
@@ -59,11 +64,19 @@ export async function GET(req: NextRequest) {
           cache: 'no-store',
           signal: AbortSignal.timeout(12000),
         });
-        if (!res.ok) continue;
+        if (!res.ok) {
+          if (debug) diagnostics.push({ source: endpoint, ok: false, status: res.status, detail: res.statusText });
+          continue;
+        }
         const data = await res.json();
         const sum = sumSompisFromPayload(data);
-        if (sum >= 0n) return NextResponse.json({ success: true, balance: sum.toString(), source: 'direct-utxos' });
+        if (sum >= 0n) {
+          if (debug) diagnostics.push({ source: endpoint, ok: true });
+          return NextResponse.json({ success: true, balance: sum.toString(), source: 'direct-utxos', diagnostics: debug ? diagnostics : undefined });
+        }
+        if (debug) diagnostics.push({ source: endpoint, ok: false, detail: 'Parsed empty/invalid payload' });
       } catch {
+        if (debug) diagnostics.push({ source: endpoint, ok: false, detail: 'Network/timeout error' });
         // continue
       }
     }
@@ -80,21 +93,33 @@ export async function GET(req: NextRequest) {
           cache: 'no-store',
           signal: AbortSignal.timeout(12000),
         });
-        if (!res.ok) continue;
+        if (!res.ok) {
+          if (debug) diagnostics.push({ source: endpoint, ok: false, status: res.status, detail: res.statusText });
+          continue;
+        }
         const data = await res.json();
         const sum = sumSompisFromPayload(data);
-        if (sum >= 0n) return NextResponse.json({ success: true, balance: sum.toString(), source: 'direct-balance' });
+        if (sum >= 0n) {
+          if (debug) diagnostics.push({ source: endpoint, ok: true });
+          return NextResponse.json({ success: true, balance: sum.toString(), source: 'direct-balance', diagnostics: debug ? diagnostics : undefined });
+        }
+        if (debug) diagnostics.push({ source: endpoint, ok: false, detail: 'Parsed empty/invalid payload' });
       } catch {
+        if (debug) diagnostics.push({ source: endpoint, ok: false, detail: 'Network/timeout error' });
         // continue
       }
     }
-    return NextResponse.json({ success: false, error: 'Could not load rewards wallet balance.', balance: null }, { status: 200 });
+    return NextResponse.json(
+      { success: false, error: 'Could not load rewards wallet balance.', balance: null, diagnostics: debug ? diagnostics : undefined },
+      { status: 200 }
+    );
   } catch (error) {
     return NextResponse.json(
       {
         success: false,
         error: error instanceof Error ? error.message : 'Could not load rewards wallet balance.',
         balance: null,
+        diagnostics: req.nextUrl.searchParams.get('debug') === '1' ? [{ source: 'route', ok: false, detail: 'Unhandled route error' }] : undefined,
       },
       { status: 200 }
     );
