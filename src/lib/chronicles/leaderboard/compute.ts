@@ -8,6 +8,7 @@ import {
 import { parseChroniclesLbPayload } from './parse';
 import type { ChroniclesLbEvent } from './types';
 import { pointsForNftInSlot } from '@/lib/leaderboard/nftPoints';
+import { currentSeasonWindowUtc, seasonWindowFromSeasonId, type SeasonId } from '@/lib/leaderboard/seasons';
 
 export type ChroniclesLeaderboardRow = {
   wallet: string;
@@ -111,9 +112,10 @@ function parseNftRef(ref: string): { collection: string; tokenId: number } | nul
   return { collection, tokenId };
 }
 
-export async function computeChroniclesLeaderboard(options?: { limit?: number }): Promise<ChroniclesLeaderboardRow[]> {
+export async function computeChroniclesLeaderboard(options?: { limit?: number; seasonId?: SeasonId }): Promise<ChroniclesLeaderboardRow[]> {
   const treasury = getChroniclesVaultTreasuryL1Address();
   const txs = await getFullTransactionsForAddress(treasury, options?.limit ?? 300);
+  const season = options?.seasonId ? seasonWindowFromSeasonId(options.seasonId) : currentSeasonWindowUtc();
 
   const byWallet = new Map<string, WalletState>();
 
@@ -121,11 +123,13 @@ export async function computeChroniclesLeaderboard(options?: { limit?: number })
   const sorted = txs.slice().sort((a, b) => txTimeMs(a) - txTimeMs(b));
 
   for (const tx of sorted) {
+    const eventTimeMs = txTimeMs(tx);
+    if (eventTimeMs < season.startUtcMs || eventTimeMs >= season.endUtcMs) continue;
     const e = parseChroniclesLbPayload(tx.payload ?? null);
     if (!e) continue;
     const wallet = normAddr(e.payerKaspa);
     const state = ensureState(byWallet, wallet);
-    applyEvent(state, e, txTimeMs(tx));
+    applyEvent(state, e, eventTimeMs);
   }
 
   const rows = Array.from(byWallet.entries()).map(([wallet, state]) => {

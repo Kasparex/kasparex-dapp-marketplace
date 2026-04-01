@@ -10,6 +10,7 @@ import {
   importChroniclesLeaderboardLocal,
 } from '@/lib/chronicles/leaderboard/localState';
 import { scoreChroniclesSeason } from '@/lib/leaderboard/scoring';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 function normAddr(a: string): string {
   try {
@@ -90,7 +91,12 @@ export function SeasonProgressCard({ title = 'Your season progress' }: { title?:
     <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-6 sm:p-7 space-y-4 chronicles-vault-card">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">{title}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">{title}</p>
+            <Tooltip content="This is local wallet progress in your browser for the current season. Export to back it up.">
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-400 text-[10px] font-black text-zinc-500">i</span>
+            </Tooltip>
+          </div>
           <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">
             Season <span className="font-mono">{season.id}</span> ends in {msToTimeLeft(timeLeft)}.
           </p>
@@ -128,7 +134,12 @@ export function SeasonProgressCard({ title = 'Your season progress' }: { title?:
             <p className="text-xl font-black text-zinc-900 dark:text-zinc-100">{score?.filledSlotsCount ?? 0}</p>
           </div>
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/30 px-4 py-3">
-            <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">Pending</p>
+            <div className="flex items-center gap-1">
+              <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">Pending</p>
+              <Tooltip content="Transactions sent for read/slot actions that are not yet verified by the indexer.">
+                <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-zinc-400 text-[9px] font-black text-zinc-500">i</span>
+              </Tooltip>
+            </div>
             <p className="text-xl font-black text-zinc-900 dark:text-zinc-100">{score?.pendingTxCount ?? 0}</p>
           </div>
         </div>

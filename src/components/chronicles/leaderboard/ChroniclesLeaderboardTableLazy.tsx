@@ -5,10 +5,12 @@ import { ChroniclesLeaderboardTable, type ChroniclesLeaderboardRow } from './Chr
 
 export function ChroniclesLeaderboardTableLazy({
   initialRows,
+  seasonId,
   initialLimit = 20,
   step = 30,
 }: {
   initialRows: ChroniclesLeaderboardRow[];
+  seasonId: string;
   initialLimit?: number;
   step?: number;
 }) {
@@ -19,14 +21,15 @@ export function ChroniclesLeaderboardTableLazy({
 
   useEffect(() => {
     setRows(initialRows);
-  }, [initialRows]);
+    setLimit(Math.max(initialLimit, initialRows.length));
+  }, [initialRows, initialLimit, seasonId]);
 
   async function loadMore() {
     setError(null);
     setBusy(true);
     try {
       const nextLimit = Math.min(300, limit + step);
-      const res = await fetch(`/api/chronicles/leaderboard/rows?limit=${nextLimit}`, { cache: 'no-store' });
+      const res = await fetch(`/api/chronicles/leaderboard/rows?limit=${nextLimit}&season=${encodeURIComponent(seasonId)}`, { cache: 'no-store' });
       const j = (await res.json()) as { ok?: boolean; rows?: ChroniclesLeaderboardRow[]; error?: string };
       if (!j.ok || !Array.isArray(j.rows)) throw new Error(j.error ?? 'Could not load more rows.');
       setRows(j.rows);

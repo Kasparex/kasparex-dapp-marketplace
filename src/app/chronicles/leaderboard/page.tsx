@@ -4,7 +4,9 @@ import { computeChroniclesLeaderboard } from '@/lib/chronicles/leaderboard/compu
 import { ChroniclesLeaderboardTableLazy } from '@/components/chronicles/leaderboard/ChroniclesLeaderboardTableLazy';
 import { SeasonProgressCard } from '@/components/leaderboard/SeasonProgressCard';
 import { GlobalTop100Preview } from '@/components/leaderboard/GlobalTop100Preview';
+import { ProjectedRewardsCards } from '@/components/leaderboard/ProjectedRewardsCards';
 import { NFT_POINTS } from '@/lib/leaderboard/nftPoints';
+import { currentSeasonWindowUtc } from '@/lib/leaderboard/seasons';
 import {
   CHRONICLES_LB_POINTS_PER_READ_CONFIRM,
   CHRONICLES_LB_READ_CONFIRM_KAS,
@@ -18,7 +20,8 @@ export const metadata: Metadata = {
 };
 
 export default async function ChroniclesLeaderboardPage() {
-  const initialRows = await computeChroniclesLeaderboard({ limit: 300 });
+  const season = currentSeasonWindowUtc();
+  const initialRows = await computeChroniclesLeaderboard({ limit: 300, seasonId: season.id });
   const rows = initialRows.slice(0, 20);
 
   return (
@@ -32,6 +35,12 @@ export default async function ChroniclesLeaderboardPage() {
           Scores are derived from treasury transactions that confirm reads and slot actions. Confirming a read awards points,
           and filling active slots adds points to your total.
         </p>
+        <p
+          className="text-xs text-zinc-500 dark:text-zinc-400 mt-3 inline-flex rounded-lg border border-zinc-300/70 dark:border-zinc-700 px-3 py-1"
+          title="This table only includes verified events inside this UTC month season."
+        >
+          Live season: <span className="font-mono ml-1">{season.id}</span>
+        </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <Link href="/chronicles" className="k-control-btn">
             Back to Chronicles
@@ -44,8 +53,18 @@ export default async function ChroniclesLeaderboardPage() {
 
       <SeasonProgressCard />
       <GlobalTop100Preview />
+      <ProjectedRewardsCards />
 
-      <ChroniclesLeaderboardTableLazy initialRows={rows} initialLimit={20} step={30} />
+      <ChroniclesLeaderboardTableLazy initialRows={rows} seasonId={season.id} initialLimit={20} step={30} />
+
+      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-6 sm:p-7 space-y-3 chronicles-vault-card">
+        <p className="text-sm font-black uppercase tracking-widest text-[#02abb8]">How this leaderboard works</p>
+        <ul className="text-sm text-zinc-600 dark:text-zinc-400 space-y-1 list-disc pl-5">
+          <li><strong>Live season leaderboard</strong>: monthly UTC ranking from verified on-chain actions.</li>
+          <li><strong>Global Top 100</strong>: immutable snapshot after season finalization.</li>
+          <li><strong>Your season progress</strong>: local browser wallet preview and pending tx tracker.</li>
+        </ul>
+      </div>
 
       <div
         id="points-table"
@@ -70,19 +89,19 @@ export default async function ChroniclesLeaderboardPage() {
             </thead>
             <tbody className="text-zinc-700 dark:text-zinc-300">
               <tr className="border-t border-zinc-200 dark:border-zinc-800">
-                <td className="py-3 pr-6 font-semibold">Confirm read</td>
+                <td className="py-3 pr-6 font-semibold" title="One read confirmation per entity per wallet in each season.">Confirm read</td>
                 <td className="py-3 pr-6">{CHRONICLES_LB_READ_CONFIRM_KAS} KAS</td>
                 <td className="py-3 pr-6 font-black text-zinc-900 dark:text-zinc-100">{CHRONICLES_LB_POINTS_PER_READ_CONFIRM}</td>
                 <td className="py-3">One per entity per wallet per season.</td>
               </tr>
               <tr className="border-t border-zinc-200 dark:border-zinc-800">
-                <td className="py-3 pr-6 font-semibold">Activate slot (2–3)</td>
+                <td className="py-3 pr-6 font-semibold" title="Activation unlocks slots 2 and 3 for scoring in the current season.">Activate slot (2–3)</td>
                 <td className="py-3 pr-6">{CHRONICLES_LB_SLOT_ACTIVATION_KAS} KAS</td>
                 <td className="py-3 pr-6">—</td>
                 <td className="py-3">Unlocks slot for scoring.</td>
               </tr>
               <tr className="border-t border-zinc-200 dark:border-zinc-800">
-                <td className="py-3 pr-6 font-semibold">Set / clear slot</td>
+                <td className="py-3 pr-6 font-semibold" title="Set and clear updates use last-write-wins and only active slots count.">Set / clear slot</td>
                 <td className="py-3 pr-6">{CHRONICLES_LB_SLOT_CHANGE_KAS} KAS</td>
                 <td className="py-3 pr-6">—</td>
                 <td className="py-3">Score comes from what’s currently inserted in active slots.</td>

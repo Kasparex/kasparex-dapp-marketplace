@@ -46,3 +46,15 @@ export function isWithinSeason(txTimeUtcMs: number, season: SeasonWindow): boole
   return txTimeUtcMs >= season.startUtcMs && txTimeUtcMs < season.endUtcMs;
 }
 
+export function previousSeasonId(id: SeasonId): SeasonId {
+  const [yStr, mStr] = id.split('-');
+  const year = Number(yStr);
+  const month = Number(mStr);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) {
+    throw new Error(`Invalid season id: ${id}`);
+  }
+  const prevYear = month === 1 ? year - 1 : year;
+  const prevMonth = month === 1 ? 12 : month - 1;
+  return `${prevYear}-${pad2(prevMonth)}` as SeasonId;
+}
+
