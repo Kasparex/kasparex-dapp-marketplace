@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { computeChroniclesLeaderboard } from '@/lib/chronicles/leaderboard/compute';
+import { computeGlobalLeaderboard } from '@/lib/leaderboard/computeGlobalLeaderboard';
 import type { SeasonId } from '@/lib/leaderboard/seasons';
 
 let cache: { atMs: number; seasonId: SeasonId; rows: unknown[] } | null = null;
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: true, rows: (cache.rows as any[]).slice(0, limit), cached: true });
   }
 
-  const rows = await computeChroniclesLeaderboard({ limit: 2000, seasonId });
+  const rows = await computeGlobalLeaderboard({ limit: 2000, seasonId });
   cache = { atMs: now, seasonId, rows };
   return NextResponse.json({ ok: true, rows: rows.slice(0, limit), cached: false });
 }

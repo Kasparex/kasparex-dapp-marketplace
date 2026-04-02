@@ -81,8 +81,16 @@ function getCurrentSectionTitle(pathname: string): string {
   if (pathname.startsWith('/chronicles')) {
     return 'Chronicles';
   }
-  if (pathname.startsWith('/rewards-and-points') || pathname.startsWith('/points')) {
+  if (
+    pathname.startsWith('/rewards-and-points') ||
+    pathname.startsWith('/rewards') ||
+    pathname.startsWith('/points') ||
+    pathname.startsWith('/tiers')
+  ) {
     return 'Rewards';
+  }
+  if (pathname.startsWith('/leaderboard')) {
+    return 'Leaderboard';
   }
   if (pathname.startsWith('/tree')) {
     return 'Revenue Tree';
@@ -487,10 +495,10 @@ export function Header() {
         <div className="flex items-center gap-2 sm:gap-3 pr-2 sm:pr-4 lg:pr-6">
           <AdminLink />
           <Link
-            href="/rewards-and-points/tiers"
+            href="/leaderboard"
             className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
-            aria-label="Rewards Tiers"
-            title="Rewards Tiers"
+            aria-label="Leaderboard"
+            title="Leaderboard"
           >
             <svg
               className="h-5 w-5 text-zinc-600 dark:text-zinc-400"
@@ -502,7 +510,7 @@ export function Header() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                d="M8 21h8m-4 0v-4m6-14h2a2 2 0 012 2v1a6 6 0 01-6 6M6 3H4a2 2 0 00-2 2v1a6 6 0 006 6m10-9H6v5a6 6 0 006 6 6 6 0 006-6V3z"
               />
             </svg>
           </Link>

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { KREX_TIERS, type KREXTier, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION } from '@/lib/rewards/types';
+import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { KREXBuyWizard } from './KREXBuyWizard';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -28,27 +28,12 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
   const hasKREX = krexBalance > 0;
   const effectiveTier = hasKREX ? currentTier : null;
 
-  // Calculate NFT status for fee reduction
-  const hasAnyNFT = !!(nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX ||
-    (nftStatus?.partnerCollections && Object.values(nftStatus.partnerCollections).some(v => v)));
-  const hasDiamondNFT = !!(nftStatus?.hasDiamondKREXPRIME || nftStatus?.hasDiamondPIXELKREX ||
-    (nftStatus?.partnerDiamonds && Object.values(nftStatus.partnerDiamonds).some(v => v)));
-  const hasRarestNFT = !!nftStatus?.hasRarestNFT;
-
-  // Calculate actual fee with reductions
+  // KREX tier table is KREX-only (do not include NFT reductions here).
   const baseFee = 1.0;
   const calculateActualFee = (tier: typeof tiers[0]) => {
     let fee = baseFee;
     // Apply tier reduction
     fee = Math.max(0, fee - tier.feeReduction);
-    // Apply NFT reductions (stack with tier reduction)
-    if (hasRarestNFT) {
-      fee = 0; // Zero fee
-    } else if (hasDiamondNFT) {
-      fee = Math.max(0, fee - DIAMOND_NFT_FEE_REDUCTION);
-    } else if (hasAnyNFT) {
-      fee = Math.max(0, fee - NFT_FEE_REDUCTION);
-    }
     return fee;
   };
 
