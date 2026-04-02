@@ -10,6 +10,7 @@ import {
   importChroniclesLeaderboardLocal,
 } from '@/lib/chronicles/leaderboard/localState';
 import { scoreChroniclesSeason } from '@/lib/leaderboard/scoring';
+import { RewardTooltip } from '@/components/rewards/RewardTooltip';
 
 function normAddr(a: string): string {
   try {
@@ -92,9 +93,14 @@ export function SeasonProgressCard({ title = 'Your season progress' }: { title?:
         <div>
           <div className="flex items-center gap-2">
             <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">{title}</p>
-            <span title="This is local wallet progress in your browser for the current season. Export to back it up.">
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-400 text-[10px] font-black text-zinc-500">i</span>
-            </span>
+            <RewardTooltip
+              showTrailingIcon={false}
+              description="This card shows local wallet progress in your browser for the current UTC season (reads, slots, and points). The public table updates when your on-chain actions are indexed. Use Export and Import to back up or move this data between browsers."
+            >
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-400 text-[10px] font-black text-zinc-500">
+                i
+              </span>
+            </RewardTooltip>
           </div>
           <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">
             Season <span className="font-mono">{season.id}</span> ends in {msToTimeLeft(timeLeft)}.

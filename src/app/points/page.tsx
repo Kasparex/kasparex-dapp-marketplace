@@ -24,7 +24,9 @@ export default function PointsPage() {
 
         <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto bg-white dark:bg-zinc-950">
           <div className="max-w-6xl mx-auto">
-            <PointsHeader />
+            <div id="points-intro" className="scroll-mt-24">
+              <PointsHeader />
+            </div>
             <PointsTables />
           </div>
         </div>

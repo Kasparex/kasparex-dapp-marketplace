@@ -86,7 +86,7 @@ export function RewardsPageContent() {
   return (
     <div className="space-y-6">
       <RedeemPanel />
-      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/40 p-4 sm:p-5">
+      <div id="rewards-filters" className="scroll-mt-24 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/40 p-4 sm:p-5">
         <FilterBar
           search={{ value: search, onChange: setSearch, placeholder: 'Search rewards, requirements, benefits…' }}
           onReset={() => {
@@ -142,7 +142,7 @@ export function RewardsPageContent() {
       ) : filtered.length === 0 ? (
         <div className="p-10 text-center text-zinc-500 dark:text-zinc-400">No rewards match your filters.</div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div id="rewards-grid" className="scroll-mt-24 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((r) => {
             const typeBadge = badgeForType(r.type);
             return (

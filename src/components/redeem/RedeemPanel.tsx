@@ -64,7 +64,7 @@ export function RedeemPanel() {
   }
 
   return (
-    <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/40 p-5 sm:p-6 space-y-4">
+    <div id="redeem" className="scroll-mt-24 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/40 p-5 sm:p-6 space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-black uppercase tracking-widest text-[#02abb8]">Redeem</p>

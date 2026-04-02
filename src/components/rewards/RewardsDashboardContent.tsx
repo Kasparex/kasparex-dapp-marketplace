@@ -285,7 +285,7 @@ export function RewardsDashboardContent({
       <div className="space-y-8">
         {/* KREX Tier Rewards Table */}
         {(!filters.types.length || filters.types.includes('krex-tier')) && (
-          <div id="krex-tier-rewards">
+          <div id="krex-tier-rewards" className="scroll-mt-24">
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
               KREX Tier Rewards
             </h2>
@@ -304,7 +304,7 @@ export function RewardsDashboardContent({
 
         {/* NFT Rewards Table */}
         {(!filters.types.length || filters.types.includes('nft')) && (
-          <div id="nft-rewards">
+          <div id="nft-rewards" className="scroll-mt-24">
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
               NFT Rewards (PIXELKREX and KREXPRIME)
             </h2>
@@ -323,7 +323,7 @@ export function RewardsDashboardContent({
 
         {/* Node Rewards Table */}
         {(!filters.types.length || filters.types.includes('node')) && (
-          <div id="node-rewards">
+          <div id="node-rewards" className="scroll-mt-24">
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
               Node Rewards
             </h2>
@@ -342,7 +342,7 @@ export function RewardsDashboardContent({
 
         {/* Premium Features Table */}
         {(!filters.types.length || filters.types.includes('premium')) && (
-          <div id="premium-features">
+          <div id="premium-features" className="scroll-mt-24">
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
               Premium Features
             </h2>

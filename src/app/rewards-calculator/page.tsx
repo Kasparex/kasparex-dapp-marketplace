@@ -20,7 +20,9 @@ export default function RewardsCalculatorPage() {
         <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto bg-white dark:bg-zinc-950">
           <div className="max-w-6xl mx-auto">
             <RewardsCalculatorHeader />
-            <RewardCalculator />
+            <div id="reward-calculator" className="scroll-mt-24">
+              <RewardCalculator />
+            </div>
           </div>
         </div>
       </main>

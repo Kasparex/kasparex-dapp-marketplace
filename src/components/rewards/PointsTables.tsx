@@ -11,7 +11,10 @@ import {
 export function PointsTables() {
   return (
     <div className="space-y-8">
-      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-6 sm:p-7 space-y-6">
+      <div
+        id="module-scoring-rules"
+        className="scroll-mt-24 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-6 sm:p-7 space-y-6"
+      >
         <div>
           <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">Module scoring rules</p>
           <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
@@ -53,7 +56,10 @@ export function PointsTables() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-6 sm:p-7 space-y-6">
+      <div
+        id="nft-slot-points"
+        className="scroll-mt-24 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-6 sm:p-7 space-y-6"
+      >
         <div>
           <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">NFT slot points</p>
           <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">

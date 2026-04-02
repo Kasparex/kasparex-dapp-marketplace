@@ -6,9 +6,11 @@ import { createPortal } from 'react-dom';
 interface RewardTooltipProps {
   description: string;
   children: React.ReactNode;
+  /** When false, only `children` are shown (no extra trailing info glyph). */
+  showTrailingIcon?: boolean;
 }
 
-export function RewardTooltip({ description, children }: RewardTooltipProps) {
+export function RewardTooltip({ description, children, showTrailingIcon = true }: RewardTooltipProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
@@ -62,19 +64,21 @@ export function RewardTooltip({ description, children }: RewardTooltipProps) {
         className="inline-flex items-center gap-1 cursor-help"
       >
         {children}
-        <svg
-          className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
+        {showTrailingIcon ? (
+          <svg
+            className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        ) : null}
       </div>
 
       {showTooltip && tooltipPosition && typeof window !== 'undefined' && createPortal(
@@ -86,7 +90,7 @@ export function RewardTooltip({ description, children }: RewardTooltipProps) {
             left: `${tooltipPosition.left}px`,
           }}
         >
-          <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed">
+          <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
             {description}
           </p>
         </div>,

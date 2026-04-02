@@ -1,6 +1,6 @@
 'use client';
 
-import { Tooltip } from '@/components/ui/Tooltip';
+import { CopyableAddress } from '@/components/donations/CopyableAddress';
 
 export type ChroniclesLeaderboardRow = {
   wallet: string;
@@ -9,12 +9,6 @@ export type ChroniclesLeaderboardRow = {
   confirmedReadsCount: number;
   lastActivityMs: number;
 };
-
-function shortWallet(w: string): string {
-  const t = w.trim();
-  if (t.length <= 18) return t;
-  return `${t.slice(0, 10)}…${t.slice(-6)}`;
-}
 
 function medalRowClass(rank: number): string {
   if (rank === 1) return 'bg-amber-500/10 border-amber-500/25';
@@ -61,9 +55,7 @@ export function ChroniclesLeaderboardTable({ rows }: { rows: ChroniclesLeaderboa
                   </div>
                 </td>
                 <td className="p-4">
-                  <Tooltip content={r.wallet} side="top" align="start">
-                    <span className="font-mono text-sm text-zinc-900 dark:text-zinc-100">{shortWallet(r.wallet)}</span>
-                  </Tooltip>
+                  <CopyableAddress value={r.wallet} truncate />
                 </td>
                 <td className="p-4 text-right font-black text-zinc-900 dark:text-zinc-100">{r.totalScore.toLocaleString()}</td>
                 <td className="p-4 text-right text-zinc-600 dark:text-zinc-300">{r.filledSlotsCount}</td>

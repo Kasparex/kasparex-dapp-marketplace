@@ -26,6 +26,7 @@ const EVMWalletButton = dynamic(
 import { useBalanceVisibility } from '@/hooks/useBalanceVisibility';
 import Link from 'next/link';
 import { hubProjects, type HubProject } from '@/lib/hubProjects';
+import { HeaderLeaderboardLink } from '@/components/HeaderLeaderboardLink';
 
 function AdminLink() {
   const { isAdmin } = useAdmin();
@@ -91,6 +92,9 @@ function getCurrentSectionTitle(pathname: string): string {
   }
   if (pathname.startsWith('/leaderboard')) {
     return 'Leaderboard';
+  }
+  if (pathname.startsWith('/rewards-calculator')) {
+    return 'Rewards';
   }
   if (pathname.startsWith('/tree')) {
     return 'Revenue Tree';
@@ -494,26 +498,7 @@ export function Header() {
         {/* Right side: Wallet Connect and Theme Toggle - no padding, flush to right */}
         <div className="flex items-center gap-2 sm:gap-3 pr-2 sm:pr-4 lg:pr-6">
           <AdminLink />
-          <Link
-            href="/leaderboard"
-            className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
-            aria-label="Leaderboard"
-            title="Leaderboard"
-          >
-            <svg
-              className="h-5 w-5 text-zinc-600 dark:text-zinc-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 21h8m-4 0v-4m6-14h2a2 2 0 012 2v1a6 6 0 01-6 6M6 3H4a2 2 0 00-2 2v1a6 6 0 006 6m10-9H6v5a6 6 0 006 6 6 6 0 006-6V3z"
-              />
-            </svg>
-          </Link>
+          <HeaderLeaderboardLink />
           <button
             onClick={toggleBalanceVisibility}
             className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
