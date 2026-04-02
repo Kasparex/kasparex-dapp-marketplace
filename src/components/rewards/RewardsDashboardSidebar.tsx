@@ -19,10 +19,65 @@ interface RewardsDashboardSidebarProps {
 }
 
 const REWARD_SECTIONS = [
-  { id: 'krex-tier-rewards', label: 'KREX Tier Rewards' },
-  { id: 'nft-rewards', label: 'NFT Rewards' },
-  { id: 'node-rewards', label: 'Node Rewards' },
-  { id: 'premium-features', label: 'Premium Features' },
+  {
+    id: 'krex-tier-rewards',
+    label: 'KREX Tier Rewards',
+    icon: (
+      <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+        />
+      </svg>
+    ),
+  },
+  {
+    id: 'nft-rewards',
+    label: 'NFT Rewards',
+    icon: (
+      <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M20 12V8a2 2 0 00-2-2h-4M4 12V8a2 2 0 012-2h4m10 12h-4m-8 0H4m0 0v-4m0 4v4a2 2 0 002 2h4m10-6v4a2 2 0 01-2 2h-4M12 6v12"
+        />
+      </svg>
+    ),
+  },
+  {
+    id: 'node-rewards',
+    label: 'Node Rewards',
+    icon: (
+      <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M4 7a4 4 0 014-4h8a4 4 0 014 4v10a4 4 0 01-4 4H8a4 4 0 01-4-4V7z"
+        />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 8h8M8 12h8M8 16h6" />
+      </svg>
+    ),
+  },
+  {
+    id: 'premium-features',
+    label: 'Premium Features',
+    icon: (
+      <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M12 8c-3.314 0-6 1.343-6 3v6c0 1.657 2.686 3 6 3s6-1.343 6-3v-6c0-1.657-2.686-3-6-3z"
+        />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 11c0 1.657 2.686 3 6 3s6-1.343 6-3" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 8V6a3 3 0 116 0v2" />
+      </svg>
+    ),
+  },
 ] as const;
 
 export function RewardsDashboardSidebar({
@@ -119,36 +174,15 @@ export function RewardsDashboardSidebar({
           />
         </nav>
       </SidebarSection>
-      <div className="relative mb-4">
-        <div className="k-search-container h-10">
-          <svg
-            className="k-search-icon"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search rewards..."
-            className={`k-search-input h-10 w-full pl-10 ${searchQuery.length > 0 ? 'is-typing' : ''}`.trim()}
-          />
-        </div>
-      </div>
       <SidebarSection title="Reward Types">
-        <nav className="space-y-1">
+        <nav className="space-y-0.5">
           {REWARD_SECTIONS.map((section) => (
-            <button
+            <SidebarNavItem
               key={section.id}
-              type="button"
               onClick={() => scrollToSection(section.id)}
-              className="k-sidebar-item w-full text-left"
-            >
-              <span className="truncate">{section.label}</span>
-            </button>
+              label={section.label}
+              icon={section.icon}
+            />
           ))}
         </nav>
       </SidebarSection>

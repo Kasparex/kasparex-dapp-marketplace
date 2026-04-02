@@ -1,6 +1,6 @@
 'use client';
 
-export function RewardsHeader() {
+export function TiersHeader() {
   return (
     <div className="relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/60 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/30 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50">
       <div className="absolute inset-0 overflow-hidden">
@@ -9,14 +9,14 @@ export function RewardsHeader() {
       </div>
       <div className="relative z-10 flex flex-col gap-6">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#02abb8]/10 border border-[#02abb8]/25 text-[#017a84] dark:text-[#8ff1f8] text-[10px] font-black uppercase tracking-[0.2em] w-fit">
-          Rewards
+          Tiers
         </div>
         <div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight">
-            Rewards, perks &amp; badges
+            Tiers &amp; multipliers
           </h1>
           <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
-            Browse everything you can unlock across Kasparex — filter by type, search benefits, and see what’s already active for your wallet.
+            Compare KREX tiers, NFT multipliers, node perks, and premium features that affect your rewards and scoring.
           </p>
         </div>
       </div>

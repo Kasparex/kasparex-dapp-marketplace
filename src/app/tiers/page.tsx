@@ -5,6 +5,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { RewardsDashboardSidebar } from '@/components/rewards/RewardsDashboardSidebar';
 import { RewardsDashboardContent } from '@/components/rewards/RewardsDashboardContent';
+import { TiersHeader } from '@/components/rewards/TiersHeader';
 
 export default function TiersPage() {
   const [filters, setFilters] = useState({
@@ -24,6 +25,9 @@ export default function TiersPage() {
           onSearchChange={setSearchQuery}
         />
         <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6">
+          <div className="max-w-6xl mx-auto">
+            <TiersHeader />
+          </div>
           <RewardsDashboardContent filters={filters} searchQuery={searchQuery} />
         </div>
       </main>

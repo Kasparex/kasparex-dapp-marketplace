@@ -137,12 +137,19 @@ export async function computeGlobalLeaderboard(options?: { limit?: number; seaso
 
     state.lastActivityMs = Math.max(state.lastActivityMs, eventTimeMs);
     if (e.kind === 'slot:activate') {
+      // Slot activation is the on-chain unlock/entry point for the NFT slots module.
+      state.unlockedModules.add('nft_slots');
       state.activatedSlots.add(slotKey({ entityType: e.entityType, entityId: e.entityId, slotIndex: e.slotIndex }));
     } else if (e.kind === 'slot:set') {
+      // Any slot action implies the module is active for this wallet.
+      state.unlockedModules.add('nft_slots');
       state.placements.set(slotKey({ entityType: e.entityType, entityId: e.entityId, slotIndex: e.slotIndex }), e.nftRef);
     } else if (e.kind === 'slot:clear') {
+      state.unlockedModules.add('nft_slots');
       state.placements.set(slotKey({ entityType: e.entityType, entityId: e.entityId, slotIndex: e.slotIndex }), null);
     } else if (e.kind === 'read') {
+      // Confirmed reads are paid on-chain events; treat them as module activation for this wallet.
+      state.unlockedModules.add('confirmed_reads');
       state.reads.add(readKey({ entityType: e.entityType, entityId: e.entityId }));
     }
   }

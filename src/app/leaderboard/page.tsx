@@ -32,7 +32,7 @@ export default async function LeaderboardPage() {
         </div>
 
         <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto bg-white dark:bg-zinc-950">
-          <div className="max-w-6xl mx-auto space-y-8 pb-12">
+          <div className="space-y-8 pb-12">
             <div>
               <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">Leaderboard</p>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">

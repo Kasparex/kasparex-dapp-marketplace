@@ -63,8 +63,18 @@ export function PointsSidebarSimple() {
 
       <SidebarSection title="Points">
         <nav className="space-y-0.5">
-          <SidebarNavItem href="/points" label="Rules & tables" active={pathname.startsWith('/points')} />
-          <SidebarNavItem href="/rewards-calculator" label="Rewards calculator" active={pathname.startsWith('/rewards-calculator')} />
+          <SidebarNavItem
+            href="/points"
+            label="Rules & tables"
+            active={pathname.startsWith('/points')}
+            icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v2a2 2 0 002 2h2a2 2 0 002-2v-2M9 17V7a2 2 0 012-2h2a2 2 0 012 2v10M9 17H7a2 2 0 01-2-2V9a2 2 0 012-2h2m6 10h2a2 2 0 002-2V9a2 2 0 00-2-2h-2" /></svg>}
+          />
+          <SidebarNavItem
+            href="/rewards-calculator"
+            label="Rewards calculator"
+            active={pathname.startsWith('/rewards-calculator')}
+            icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>}
+          />
         </nav>
       </SidebarSection>
     </UnifiedSidebar>
