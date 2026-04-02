@@ -24,6 +24,29 @@ export function ChroniclesLeaderboardTableLazy({
     setLimit(Math.max(initialLimit, initialRows.length));
   }, [initialRows, initialLimit, seasonId]);
 
+  useEffect(() => {
+    if (initialRows.length > 0) return;
+    // Load first page immediately when rendered without server-provided rows.
+    void (async () => {
+      setError(null);
+      setBusy(true);
+      try {
+        const nextLimit = Math.min(300, Math.max(1, initialLimit));
+        const res = await fetch(`/api/chronicles/leaderboard/rows?limit=${nextLimit}&season=${encodeURIComponent(seasonId)}`, {
+          cache: 'no-store',
+        });
+        const j = (await res.json()) as { ok?: boolean; rows?: ChroniclesLeaderboardRow[]; error?: string };
+        if (!j.ok || !Array.isArray(j.rows)) throw new Error(j.error ?? 'Could not load leaderboard.');
+        setRows(j.rows);
+        setLimit(nextLimit);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Could not load leaderboard.');
+      } finally {
+        setBusy(false);
+      }
+    })();
+  }, [initialRows.length, initialLimit, seasonId]);
+
   async function loadMore() {
     setError(null);
     setBusy(true);

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { computeGlobalLeaderboard } from '@/lib/leaderboard/computeGlobalLeaderboard';
 import { ChroniclesLeaderboardTableLazy } from '@/components/chronicles/leaderboard/ChroniclesLeaderboardTableLazy';
 import { SeasonProgressCard } from '@/components/leaderboard/SeasonProgressCard';
 import { GlobalTop100Preview } from '@/components/leaderboard/GlobalTop100Preview';
@@ -15,10 +14,8 @@ export const metadata: Metadata = {
   description: 'Global on-chain leaderboard for Kasparex Hub activities.',
 };
 
-export default async function LeaderboardPage() {
+export default function LeaderboardPage() {
   const season = currentSeasonWindowUtc();
-  const initialRows = await computeGlobalLeaderboard({ limit: 2000, seasonId: season.id });
-  const rows = initialRows.slice(0, 20);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -61,7 +58,7 @@ export default async function LeaderboardPage() {
             <GlobalTop100Preview />
             <ProjectedRewardsCards />
 
-            <ChroniclesLeaderboardTableLazy initialRows={rows} seasonId={season.id} initialLimit={20} step={30} />
+            <ChroniclesLeaderboardTableLazy initialRows={[]} seasonId={season.id} initialLimit={20} step={30} />
 
             <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-6 sm:p-7 space-y-3 chronicles-vault-card">
               <p className="text-sm font-black uppercase tracking-widest text-[#02abb8]">How this leaderboard works</p>

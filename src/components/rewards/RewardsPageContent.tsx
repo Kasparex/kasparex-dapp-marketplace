@@ -1,10 +1,12 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { FilterBar } from '@/components/FilterBar';
 import { ChroniclesFilterDropdown } from '@/components/chronicles/ChroniclesFilterDropdown';
+import { RedeemPanel } from '@/components/redeem/RedeemPanel';
 import {
   filterRewards,
   getUserRewardStatus,
@@ -83,6 +85,7 @@ export function RewardsPageContent() {
 
   return (
     <div className="space-y-6">
+      <RedeemPanel />
       <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/40 p-4 sm:p-5">
         <FilterBar
           search={{ value: search, onChange: setSearch, placeholder: 'Search rewards, requirements, benefits…' }}
@@ -145,8 +148,10 @@ export function RewardsPageContent() {
             return (
               <div
                 key={r.id}
-                className={`rounded-2xl border p-5 bg-white dark:bg-zinc-900/60 transition-colors ${
-                  r.isUnlocked ? 'border-emerald-500/25' : 'border-zinc-200 dark:border-zinc-800'
+                className={`rounded-2xl border p-5 transition-colors ${
+                  r.isUnlocked
+                    ? 'border-emerald-500/25 bg-emerald-50/40 dark:bg-emerald-950/10'
+                    : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60'
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -198,6 +203,31 @@ export function RewardsPageContent() {
                     ))}
                   </ul>
                 ) : null}
+
+                <div className="mt-5 flex flex-wrap items-center gap-2">
+                  {r.type === 'krex-tier' ? (
+                    <Link href="/tiers#krex-tier-rewards" className="k-control-btn">
+                      Buy KREX
+                    </Link>
+                  ) : null}
+                  {r.type === 'nft' ? (
+                    <Link href="/tiers#nft-rewards" className="k-control-btn">
+                      Buy NFTs
+                    </Link>
+                  ) : null}
+                  {!r.isUnlocked ? (
+                    <Link href={r.type === 'krex-tier' ? '/tiers#krex-tier-rewards' : r.type === 'nft' ? '/tiers#nft-rewards' : '/tiers'} className="k-control-btn">
+                      View requirements
+                    </Link>
+                  ) : (
+                    <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Active
+                    </span>
+                  )}
+                </div>
               </div>
             );
           })}

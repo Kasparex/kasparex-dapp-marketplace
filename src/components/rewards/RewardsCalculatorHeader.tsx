@@ -1,7 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-
 export function RewardsCalculatorHeader() {
   return (
     <div className="relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:from-zinc-950 dark:via-[#02abb8]/20 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50">
@@ -24,17 +22,6 @@ export function RewardsCalculatorHeader() {
           <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed mb-8">
             Simulate GRID and XP based on KAS spent, KREX tier, NFT ownership, node status, and seasonal boosters.
           </p>
-          <div className="flex flex-wrap gap-4">
-            <Link href="/rewards" className="k-cta-secondary">
-              View Rewards
-            </Link>
-            <Link href="/points" className="k-cta-secondary">
-              Points rules
-            </Link>
-            <Link href="/hub" className="k-cta-secondary">
-              Go to Hub
-            </Link>
-          </div>
         </div>
         <div className="hidden lg:flex items-center justify-center flex-shrink-0 opacity-90">
           <div className="relative">
