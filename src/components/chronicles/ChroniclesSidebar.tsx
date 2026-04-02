@@ -126,9 +126,7 @@ export function ChroniclesSidebar() {
         <Link
           href="/chronicles/dashboard"
           className={`k-control-btn w-full justify-center gap-2 ${
-            isDashboard
-              ? '!border-amber-500/40 !bg-amber-500/15 !text-amber-800 dark:!text-amber-300'
-              : '!border-amber-500/30 !bg-amber-500/10 !text-amber-800 dark:!text-amber-300 hover:!bg-amber-500/15'
+            isDashboard ? '!border-emerald-500/35 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300' : ''
           }`}
         >
           {vaultIcon}

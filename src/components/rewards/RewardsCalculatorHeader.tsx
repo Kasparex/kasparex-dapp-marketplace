@@ -25,8 +25,11 @@ export function RewardsCalculatorHeader() {
             Simulate GRID and XP based on KAS spent, KREX tier, NFT ownership, node status, and seasonal boosters.
           </p>
           <div className="flex flex-wrap gap-4">
-            <Link href="/rewards-and-points" className="k-cta-secondary">
-              View Points & Perks
+            <Link href="/rewards" className="k-cta-secondary">
+              View Rewards
+            </Link>
+            <Link href="/points" className="k-cta-secondary">
+              Points rules
             </Link>
             <Link href="/hub" className="k-cta-secondary">
               Go to Hub
