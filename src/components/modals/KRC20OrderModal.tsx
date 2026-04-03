@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useKaspaWallet } from '@/lib/kaspa/context';
 import { createKRC20Order, buyKRC20Token, cancelKRC20Order } from '@/lib/kaspa/kasware';
 import { kasToSompis } from '@/lib/kaspa/api';
 import { getErrorMessage } from '@/lib/utils';
@@ -16,6 +17,7 @@ interface KRC20OrderModalProps {
 }
 
 export function KRC20OrderModal({ isOpen, onClose, mode, currentBalance, krc20Tokens = [] }: KRC20OrderModalProps) {
+  const { state: kaspaState } = useKaspaWallet();
   const [krc20Tick, setKrc20Tick] = useState('');
   const [krc20Amount, setKrc20Amount] = useState('');
   const [kasAmount, setKasAmount] = useState('');
@@ -127,7 +129,10 @@ export function KRC20OrderModal({ isOpen, onClose, mode, currentBalance, krc20To
     }
   };
 
+  const orderBookBlocked = kaspaState.provider === 'kastle';
+
   const handleSubmit = () => {
+    if (orderBookBlocked) return;
     if (mode === 'create') {
       handleCreateOrder();
     } else if (mode === 'buy') {
@@ -213,6 +218,11 @@ export function KRC20OrderModal({ isOpen, onClose, mode, currentBalance, krc20To
             </div>
           ) : (
             <>
+              {orderBookBlocked && (
+                <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 text-sm text-amber-900 dark:text-amber-200">
+                  KasWare-only: KRC-20 order book actions are not available when using Kastle. Connect with KasWare to create, buy, or cancel orders.
+                </div>
+              )}
               {mode === 'create' && (
                 <>
                   <div>
@@ -225,7 +235,7 @@ export function KRC20OrderModal({ isOpen, onClose, mode, currentBalance, krc20To
                       onChange={(e) => setKrc20Tick(e.target.value)}
                       placeholder="KASPA"
                       className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
-                      disabled={isProcessing}
+                      disabled={isProcessing || orderBookBlocked}
                     />
                   </div>
 
@@ -241,7 +251,7 @@ export function KRC20OrderModal({ isOpen, onClose, mode, currentBalance, krc20To
                       step="0.00000001"
                       min="0"
                       className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      disabled={isProcessing}
+                      disabled={isProcessing || orderBookBlocked}
                     />
                   </div>
 
@@ -257,7 +267,7 @@ export function KRC20OrderModal({ isOpen, onClose, mode, currentBalance, krc20To
                       step="0.00000001"
                       min="0"
                       className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      disabled={isProcessing}
+                      disabled={isProcessing || orderBookBlocked}
                     />
                     {currentBalance && (
                       <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
@@ -279,7 +289,7 @@ export function KRC20OrderModal({ isOpen, onClose, mode, currentBalance, krc20To
                     placeholder='{"transaction": "..."}'
                     rows={6}
                     className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-                    disabled={isProcessing}
+                    disabled={isProcessing || orderBookBlocked}
                   />
                 </div>
               )}
@@ -296,7 +306,7 @@ export function KRC20OrderModal({ isOpen, onClose, mode, currentBalance, krc20To
                       onChange={(e) => setKrc20Tick(e.target.value)}
                       placeholder="KASPA"
                       className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
-                      disabled={isProcessing}
+                      disabled={isProcessing || orderBookBlocked}
                     />
                   </div>
 
@@ -310,7 +320,7 @@ export function KRC20OrderModal({ isOpen, onClose, mode, currentBalance, krc20To
                       placeholder='{"transaction": "..."}'
                       rows={4}
                       className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-                      disabled={isProcessing}
+                      disabled={isProcessing || orderBookBlocked}
                     />
                   </div>
 
@@ -324,7 +334,7 @@ export function KRC20OrderModal({ isOpen, onClose, mode, currentBalance, krc20To
                       onChange={(e) => setSendCommitTxId(e.target.value)}
                       placeholder=""
                       className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      disabled={isProcessing}
+                      disabled={isProcessing || orderBookBlocked}
                     />
                   </div>
                 </>
@@ -343,7 +353,7 @@ export function KRC20OrderModal({ isOpen, onClose, mode, currentBalance, krc20To
                     step="1"
                     min="0"
                     className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    disabled={isProcessing}
+                    disabled={isProcessing || orderBookBlocked}
                   />
                 </div>
               )}
@@ -364,7 +374,7 @@ export function KRC20OrderModal({ isOpen, onClose, mode, currentBalance, krc20To
                 </button>
                 <button
                   onClick={handleSubmit}
-                  disabled={isProcessing}
+                  disabled={isProcessing || orderBookBlocked}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                 >
                   {isProcessing ? (

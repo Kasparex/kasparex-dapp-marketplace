@@ -8,7 +8,7 @@ import { VBlogSidebar } from '@/components/vblog/VBlogSidebar';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useSearchParams } from 'next/navigation';
-import { detectKaspaWallets } from '@/lib/kaspa/wallet';
+import { detectKaspaWallets, KASPA_WALLET_PROVIDERS } from '@/lib/kaspa/wallet';
 
 export default function VBlogDashboardPage() {
   const { state, connect } = useKaspaWallet();
@@ -23,15 +23,20 @@ export default function VBlogDashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isConnectingWallet, setIsConnectingWallet] = useState(false);
 
-  const handleConnectWallet = async () => {
-    const hasKasware = detectKaspaWallets().some((w) => w.id === 'kasware' && w.isInstalled);
-    if (!hasKasware) {
-      window.open('https://chrome.google.com/webstore/detail/hklhheigdmpoolooomdihmhlpjjdbklf', '_blank');
+  const handleConnectKaspa = async (provider: 'kasware' | 'kastle') => {
+    const detected = detectKaspaWallets();
+    const installed = detected.some((w) => w.id === provider && w.isInstalled);
+    if (!installed) {
+      const url =
+        provider === 'kasware'
+          ? KASPA_WALLET_PROVIDERS.kasware.downloadUrl
+          : KASPA_WALLET_PROVIDERS.kastle.documentationUrl;
+      if (url) window.open(url, '_blank');
       return;
     }
     setIsConnectingWallet(true);
     try {
-      await connect('kasware', {
+      await connect(provider, {
         enableSIWK: true,
         siwkParams: { appName: 'Kasparex dApps' },
       });
@@ -88,11 +93,19 @@ export default function VBlogDashboardPage() {
                   <div className="flex flex-wrap items-center justify-center gap-3">
                     <button
                       type="button"
-                      onClick={() => void handleConnectWallet()}
+                      onClick={() => void handleConnectKaspa('kasware')}
                       disabled={isConnectingWallet}
                       className="k-control-btn !bg-[#02abb8] hover:!bg-[#0296a1] !text-white !border-[#02abb8]/50 px-6"
                     >
-                      {isConnectingWallet ? 'Connecting...' : 'Connect Wallet'}
+                      {isConnectingWallet ? 'Connecting...' : 'Connect KasWare'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleConnectKaspa('kastle')}
+                      disabled={isConnectingWallet}
+                      className="k-control-btn !bg-cyan-700 hover:!bg-cyan-800 !text-white !border-cyan-600/50 px-6"
+                    >
+                      {isConnectingWallet ? 'Connecting...' : 'Connect Kastle'}
                     </button>
                   </div>
                 </div>

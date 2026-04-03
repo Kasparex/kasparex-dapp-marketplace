@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { useKasWare } from '@/hooks/useKasWare';
+import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { BASE_YIELDS, getBonusForTrait, getNFTTier, type BonusType } from '@/lib/game/diamond-bonuses';
@@ -20,7 +20,8 @@ import {
   MINING_RUN_OPTIONS,
 } from '@/lib/game/diamond-veins-config';
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
-import { getKasWare, signKRC20Transaction } from '@/lib/kaspa/kasware';
+import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
+import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 
 export interface MiningSlot {
   type: 'worker' | 'operator' | 'booster';
@@ -38,7 +39,6 @@ export interface ActiveBoost {
   txHash?: string;
 }
 
-const SOMPI_PER_KAS_FACTOR = 100_000_000;
 const DIAMOND_VEINS_STORAGE_KEY = 'diamond-veins-state';
 const RECONNECT_GRACE_MS = 24 * 60 * 60 * 1000; // 24h – must reconnect at least once per day for mining to continue
 
@@ -79,50 +79,24 @@ function savePersistedState(state: PersistedMiningState) {
 
 export function useDiamondMining() {
   const { state: walletState } = useKaspaWallet();
-  const { sendTransaction: sendKAS, balance: kasBalanceStr } = useKasWare();
+  const { balanceInKas, refresh: refreshKasBalance, isLoading: kasBalanceHookLoading } = useKaspaBalance();
   const { nfts } = useNFTStatus();
   const { balance: krexBalance, l1Balance: krexL1Balance, tier: krexTier } = useKREXBalance();
-  const [kasBalanceFetched, setKasBalanceFetched] = useState<number | null>(null);
 
-  const isKasWare =
-    (typeof window !== 'undefined' && walletState.isConnected && !!(window as any).kasware) ||
-    walletState.provider?.toLowerCase() === 'kasware';
-  const canPayWithL1 = !!(walletState.isConnected && isKasWare);
-
-  const fetchKasBalance = useCallback(() => {
-    if (!canPayWithL1) return;
-    const w = getKasWare();
-    if (!w || typeof w.getBalance !== 'function') return;
-    w.getBalance()
-      .then((res) => {
-        if (res == null) return;
-        let val: number;
-        if (typeof res === 'object' && 'balance' in res) val = Number((res as { balance: string | number }).balance);
-        else if (typeof res === 'object' && 'amount' in res) val = Number((res as { amount: string | number }).amount);
-        else val = Number(res);
-        if (Number.isNaN(val) || val < 0) return;
-        const strVal = val.toString();
-        const hasDecimals = strVal.includes('.');
-        const decimalPlaces = hasDecimals ? strVal.split('.')[1]?.length || 0 : 0;
-        const kas = val < 0.01 && decimalPlaces > 6 ? val : val / SOMPI_PER_KAS_FACTOR;
-        setKasBalanceFetched(kas);
-      })
-      .catch(() => {});
-  }, [canPayWithL1]);
+  const canPayWithL1 =
+    walletState.isConnected &&
+    (walletState.provider === 'kasware' || walletState.provider === 'kastle');
 
   useEffect(() => {
-    if (!canPayWithL1) {
-      setKasBalanceFetched(null);
-      return;
-    }
-    fetchKasBalance();
+    if (!canPayWithL1) return;
+    void refreshKasBalance();
     const t = setInterval(() => {
-      fetchKasBalance();
+      void refreshKasBalance();
     }, 2500);
     return () => clearInterval(t);
-  }, [canPayWithL1, fetchKasBalance]);
+  }, [canPayWithL1, refreshKasBalance]);
 
-  const kasBalance = kasBalanceFetched ?? (kasBalanceStr != null ? parseFloat(String(kasBalanceStr)) : 0);
+  const kasBalance = balanceInKas ?? 0;
 
   const defaultSlots: MiningSlot[] = [
     { type: 'worker', nftId: null, collection: 'KREXPRIME' },
@@ -366,9 +340,9 @@ export function useDiamondMining() {
   const buyBoost = useCallback(
     async (itemId: string, name: string, priceKrex: number, type: BonusType, multiplier: number) => {
       const priceAfterDiscount = getPriceAfterDiscount(priceKrex);
-      const canPayL1 = walletState.isConnected && isKasWare;
+      const canPayL1 = walletState.isConnected && canPayWithL1 && walletState.provider;
       if (!canPayL1) {
-        console.warn('[Diamond Veins] L1 KasWare required for Garage purchase');
+        console.warn('[Diamond Veins] Connect KasWare or Kastle (L1) for Garage purchase');
         return;
       }
       if (krexL1Balance < priceAfterDiscount) {
@@ -389,7 +363,8 @@ export function useDiamondMining() {
         const inscribeJsonString = JSON.stringify(inscribeJson);
         const priorityFeeKAS = 0.001;
 
-        const txHash = await signKRC20Transaction(
+        const txHash = await signKrc20Transfer(
+          walletState.provider!,
           inscribeJsonString,
           KRC20_TRANSFER_TYPE,
           DIAMOND_VEINS_GARAGE_ADDRESS,
@@ -427,14 +402,14 @@ export function useDiamondMining() {
         setBuyingItemId(null);
       }
     },
-    [walletState.isConnected, isKasWare, krexL1Balance, getPriceAfterDiscount]
+    [walletState.isConnected, canPayWithL1, walletState.provider, krexL1Balance, getPriceAfterDiscount]
   );
 
   const buyBoostWithKAS = useCallback(
     async (itemId: string, name: string, priceKAS: number, type: BonusType, multiplier: number) => {
-      const canPayL1 = walletState.isConnected && isKasWare;
+      const canPayL1 = walletState.isConnected && canPayWithL1 && walletState.provider;
       if (!canPayL1) {
-        console.warn('[Diamond Veins] L1 KasWare required for Garage purchase');
+        console.warn('[Diamond Veins] Connect KasWare or Kastle (L1) for Garage purchase');
         return;
       }
       if (kasBalance < priceKAS) return;
@@ -443,7 +418,15 @@ export function useDiamondMining() {
 
       try {
         const sompi = Math.round(priceKAS * SOMPI_PER_KAS);
-        const txHash = await sendKAS(DIAMOND_VEINS_GARAGE_ADDRESS, sompi);
+        const to = DIAMOND_VEINS_GARAGE_ADDRESS.replace(/^kaspa:/i, '');
+        const sent = await sendKaspaTransaction(walletState.provider!, {
+          to,
+          amount: String(sompi),
+        });
+        if (sent.status === 'failed') {
+          throw new Error(sent.error || 'KAS transfer failed');
+        }
+        const txHash = sent.txHash;
 
         const boost: ActiveBoost = {
           id: `${itemId}-${Date.now()}`,
@@ -469,7 +452,7 @@ export function useDiamondMining() {
         );
 
         setActiveBoosts((prev) => [...prev, boost]);
-        fetchKasBalance();
+        void refreshKasBalance();
       } catch (err) {
         console.error('[Diamond Veins] Garage KAS purchase failed:', err);
         throw err;
@@ -477,7 +460,7 @@ export function useDiamondMining() {
         setBuyingItemId(null);
       }
     },
-    [walletState.isConnected, isKasWare, kasBalance, sendKAS, fetchKasBalance]
+    [walletState.isConnected, canPayWithL1, walletState.provider, kasBalance, refreshKasBalance]
   );
 
   return {
@@ -503,8 +486,8 @@ export function useDiamondMining() {
     refinementPointsTotal,
     lastRefineClaim,
     clearLastRefineClaim: () => setLastRefineClaim(null),
-    kasBalanceLoading: canPayWithL1 && kasBalanceFetched === null && (kasBalanceStr === null || kasBalanceStr === undefined),
-    refreshKasBalance: fetchKasBalance,
+    kasBalanceLoading: canPayWithL1 && kasBalanceHookLoading && balanceInKas === null,
+    refreshKasBalance,
     removeSlot,
     miningRun: miningRunEndTime > Date.now() ? { endTime: miningRunEndTime, multiplier: miningRunMultiplier, optionIndex: miningRunOptionIndex, option: miningRunOptionIndex != null ? MINING_RUN_OPTIONS[miningRunOptionIndex] : null } : null,
     startMiningRun: (optionIndex: number) => {

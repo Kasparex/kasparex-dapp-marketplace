@@ -9,7 +9,7 @@ import { Alert } from '@/components/Alert';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 
 export function SendKASWidget() {
-  const { state, connect } = useKaspaWallet();
+  const { state } = useKaspaWallet();
   const { balance: kasBalance, balanceInKas, isLoading: isBalanceLoading, refresh: refreshBalance } = useKaspaBalance();
   const [toAddress, setToAddress] = useState('');
   const [amount, setAmount] = useState('');
@@ -89,12 +89,9 @@ export function SendKASWidget() {
   if (!state.isConnected) {
     return (
       <div className="p-6 space-y-4">
-        <button
-          onClick={() => connect('kasware')}
-          className="w-full px-4 py-3 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
-        >
-          Connect Kaspa Wallet
-        </button>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          Connect <strong>KasWare</strong> or <strong>Kastle</strong> from the site header to send KAS.
+        </p>
       </div>
     );
   }

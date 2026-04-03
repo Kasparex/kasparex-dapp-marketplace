@@ -61,10 +61,14 @@ export function useKaspaTokenBalance(
     setError(null);
 
     try {
-      // Try KasWare first if available
-      if (typeof window !== 'undefined') {
+      // Try KasWare when it is the active L1 connection (avoid wrong balance if both extensions exist)
+      if (typeof window !== 'undefined' && kaspaState.provider === 'kasware') {
         const win = window as any;
-        if (win.kasware && typeof win.kasware.getKRC20Balance === 'function') {
+        if (
+          win.kasware &&
+          typeof win.kasware.getKRC20Balance === 'function' &&
+          (typeof win.kasware.isConnected !== 'function' || win.kasware.isConnected())
+        ) {
           try {
             const tokens = await win.kasware.getKRC20Balance();
             if (tokens && Array.isArray(tokens)) {
@@ -135,7 +139,7 @@ export function useKaspaTokenBalance(
     } finally {
       setIsLoading(false);
     }
-  }, [address, ticker]);
+  }, [address, ticker, kaspaState.provider]);
 
   useEffect(() => {
     fetchBalance();

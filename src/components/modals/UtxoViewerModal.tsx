@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { getUtxoEntries } from '@/lib/kaspa/kasware';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { getL1UtxoEntries } from '@/lib/kaspa/l1WalletActions';
 import { sompisToKas } from '@/lib/kaspa/api';
 import { getErrorMessage } from '@/lib/utils';
 
@@ -12,25 +13,22 @@ interface UtxoViewerModalProps {
 }
 
 export function UtxoViewerModal({ isOpen, onClose }: UtxoViewerModalProps) {
+  const { state: kaspaState } = useKaspaWallet();
   const [utxos, setUtxos] = useState<Array<{ amount: number | string; [key: string]: any }>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchUtxos();
-    } else {
-      setUtxos([]);
-      setError(null);
-    }
-  }, [isOpen]);
-
-  const fetchUtxos = async () => {
+  const fetchUtxos = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const entries = await getUtxoEntries();
+      if (!kaspaState.isConnected || !kaspaState.provider) {
+        setError('Connect a Kaspa wallet first');
+        setUtxos([]);
+        return;
+      }
+      const entries = await getL1UtxoEntries(kaspaState.provider);
       setUtxos(entries || []);
     } catch (err) {
       const errorMessage = getErrorMessage(err, 'Failed to fetch UTXOs');
@@ -39,7 +37,16 @@ export function UtxoViewerModal({ isOpen, onClose }: UtxoViewerModalProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [kaspaState.isConnected, kaspaState.provider]);
+
+  useEffect(() => {
+    if (isOpen) {
+      void fetchUtxos();
+    } else {
+      setUtxos([]);
+      setError(null);
+    }
+  }, [isOpen, fetchUtxos]);
 
   const formatAmount = (amount: number | string): string => {
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;

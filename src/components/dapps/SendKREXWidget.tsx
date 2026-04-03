@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { signKRC20Transaction, getKRC20Balance } from '@/lib/kaspa/kasware';
+import { queryL1KREXBalance } from '@/lib/krex/l1-balance';
+import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
 import { Alert } from '@/components/Alert';
 
 export function SendKREXWidget() {
-  const { state, connect } = useKaspaWallet();
+  const { state } = useKaspaWallet();
   const [toAddress, setToAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [krexBalance, setKrexBalance] = useState<number>(0);
@@ -18,44 +19,14 @@ export function SendKREXWidget() {
   const [txHash, setTxHash] = useState<string | null>(null);
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
 
-  // Fetch KREX balance when connected
+  // Fetch KREX balance when connected (Kasplex indexer; works for KasWare and Kastle)
   useEffect(() => {
     const fetchBalance = async () => {
-      if (state.isConnected && state.provider === 'kasware') {
+      if (state.isConnected && state.address) {
         setIsLoadingBalance(true);
         try {
-          const tokens = await getKRC20Balance();
-          if (tokens && Array.isArray(tokens)) {
-            const krexToken = tokens.find((token) => token.tick?.toUpperCase() === 'KREX');
-            if (krexToken) {
-              // Handle balance/amount property and decimals like other balance hooks
-              const rawBalance = krexToken.balance ?? krexToken.amount;
-              const decimals = krexToken.dec !== undefined ? Number(krexToken.dec) : 8;
-
-              // Store decimals for use in transfers
-              setKrexDecimals(decimals);
-
-              if (rawBalance !== undefined && rawBalance !== null) {
-                const rawBalanceNum = typeof rawBalance === 'string'
-                  ? parseFloat(rawBalance)
-                  : Number(rawBalance);
-
-                if (!isNaN(rawBalanceNum)) {
-                  // Convert from smallest unit to actual balance (divide by 10^decimals)
-                  const balance = rawBalanceNum / Math.pow(10, decimals);
-                  setKrexBalance(balance);
-                } else {
-                  setKrexBalance(0);
-                }
-              } else {
-                setKrexBalance(0);
-              }
-            } else {
-              setKrexBalance(0);
-            }
-          } else {
-            setKrexBalance(0);
-          }
+          const bal = await queryL1KREXBalance(state.address);
+          setKrexBalance(bal);
         } catch (err) {
           console.error('Error fetching KREX balance:', err);
           setKrexBalance(0);
@@ -67,12 +38,16 @@ export function SendKREXWidget() {
       }
     };
 
-    fetchBalance();
-  }, [state.isConnected, state.provider]);
+    void fetchBalance();
+  }, [state.isConnected, state.address]);
 
   const handleSend = async () => {
-    if (!state.isConnected || state.provider !== 'kasware') {
+    if (!state.isConnected || !state.provider) {
       setError('Please connect your Kaspa wallet first');
+      return;
+    }
+    if (state.provider !== 'kasware' && state.provider !== 'kastle') {
+      setError('KREX send requires KasWare or Kastle');
       return;
     }
 
@@ -143,11 +118,12 @@ export function SendKREXWidget() {
       // Priority fee: 0.001 KAS to ensure transaction is processed (in KAS units)
       // Note: The wallet will automatically calculate the base network fee for the KRC-20 transfer
       const priorityFeeKAS = 0.001;
-      const txHash = await signKRC20Transaction(
+      const txHash = await signKrc20Transfer(
+        state.provider,
         inscribeJsonString,
         4, // Transfer type as number (4 = transfer)
-        recipientAddress, // Recipient address (with kaspa: prefix as per KasWare API)
-        priorityFeeKAS // Priority fee in KAS (optional, helps with transaction priority)
+        recipientAddress,
+        priorityFeeKAS
       );
 
       setTxHash(txHash);
@@ -155,32 +131,13 @@ export function SendKREXWidget() {
       setToAddress('');
       setAmount('');
 
-      // Refresh balance
-      try {
-        const tokens = await getKRC20Balance();
-        if (tokens && Array.isArray(tokens)) {
-          const krexToken = tokens.find((token) => token.tick?.toUpperCase() === 'KREX');
-          if (krexToken) {
-            const rawBalance = krexToken.balance ?? krexToken.amount;
-            const decimals = krexToken.dec !== undefined ? Number(krexToken.dec) : 8;
-
-            // Update decimals if changed
-            setKrexDecimals(decimals);
-
-            if (rawBalance !== undefined && rawBalance !== null) {
-              const rawBalanceNum = typeof rawBalance === 'string'
-                ? parseFloat(rawBalance)
-                : Number(rawBalance);
-
-              if (!isNaN(rawBalanceNum)) {
-                const balance = rawBalanceNum / Math.pow(10, decimals);
-                setKrexBalance(balance);
-              }
-            }
-          }
+      if (state.address) {
+        try {
+          const bal = await queryL1KREXBalance(state.address);
+          setKrexBalance(bal);
+        } catch (err) {
+          console.error('Error refreshing balance:', err);
         }
-      } catch (err) {
-        console.error('Error refreshing balance:', err);
       }
 
       // Clear success message after 5 seconds
@@ -233,12 +190,9 @@ export function SendKREXWidget() {
   if (!state.isConnected) {
     return (
       <div className="p-6 space-y-4">
-        <button
-          onClick={() => connect('kasware')}
-          className="w-full px-4 py-3 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
-        >
-          Connect Kaspa Wallet
-        </button>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          Connect <strong>KasWare</strong> or <strong>Kastle</strong> from the site header to send KREX.
+        </p>
       </div>
     );
   }

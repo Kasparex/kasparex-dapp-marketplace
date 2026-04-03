@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useCommentCredits } from '@/hooks/useCommentCredits';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
-import { sendKaspa } from '@/lib/kaspa/kasware';
+import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import { kasToSompis } from '@/lib/kaspa/api';
 import { getErrorMessage } from '@/lib/utils';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -145,8 +145,12 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
     }
 
     // Only allow Kaspa wallet for now (EVM support can be added later)
-    if (!kaspaState.isConnected || !kaspaState.address) {
+    if (!kaspaState.isConnected || !kaspaState.address || !kaspaState.provider) {
       setError('Please connect your Kaspa wallet to purchase credits');
+      return;
+    }
+    if (kaspaState.provider !== 'kasware' && kaspaState.provider !== 'kastle') {
+      setError('Comment credits purchase requires KasWare or Kastle on L1');
       return;
     }
 
@@ -164,10 +168,15 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
 
       // Send transaction to treasury
       setIsConfirming(true);
-      const hash = await sendKaspa(treasuryAddress, sompiAmount, {
+      const sent = await sendKaspaTransaction(kaspaState.provider, {
+        to: treasuryAddress,
+        amount: String(sompiAmount),
         note: `Comment Credits Purchase: ${creditsToReceive} credits`,
       });
-
+      if (sent.status === 'failed') {
+        throw new Error(sent.error || 'Transaction failed');
+      }
+      const hash = sent.txHash;
       setTxHash(hash);
       
       // Wait a moment for transaction to be processed
