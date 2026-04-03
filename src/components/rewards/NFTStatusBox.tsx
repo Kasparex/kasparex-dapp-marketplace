@@ -24,11 +24,17 @@ export function NFTStatusBox({ layout = 'default' }: { layout?: NFTStatusBoxLayo
     partnerDiamonds: {},
   };
   
-  const hasAnyNFT = status.hasKREXPRIME || status.hasPIXELKREX || 
-    (status.partnerCollections && Object.values(status.partnerCollections).some(v => v));
-  const hasDiamondNFT = status.hasDiamondKREXPRIME || status.hasDiamondPIXELKREX ||
-    (status.partnerDiamonds && Object.values(status.partnerDiamonds).some(v => v));
-  const hasRarestNFT = status.hasRarestNFT;
+  const hasAnyNFT = Boolean(
+    status.hasKREXPRIME ||
+      status.hasPIXELKREX ||
+      (status.partnerCollections && Object.values(status.partnerCollections).some((v) => v))
+  );
+  const hasDiamondNFT = Boolean(
+    status.hasDiamondKREXPRIME ||
+      status.hasDiamondPIXELKREX ||
+      (status.partnerDiamonds && Object.values(status.partnerDiamonds).some((v) => v))
+  );
+  const hasRarestNFT = Boolean(status.hasRarestNFT);
   const partnerCollections = getPartnerCollections();
   const [showModal, setShowModal] = useState(false);
   const [showBuyWizard, setShowBuyWizard] = useState(false);
