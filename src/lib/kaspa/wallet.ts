@@ -32,6 +32,11 @@ export const KASPA_WALLET_PROVIDERS: Record<KaspaWalletProvider, Omit<KaspaWalle
     downloadUrl: 'https://chrome.google.com/webstore/detail/hklhheigdmpoolooomdihmhlpjjdbklf',
     documentationUrl: 'https://docs.kasware.xyz/wallet/',
   },
+  kastle: {
+    id: 'kastle',
+    name: 'Kastle',
+    documentationUrl: 'https://docs.kastle.cc/',
+  },
   kaspium: {
     id: 'kaspium',
     name: 'Kaspium',
@@ -81,6 +86,14 @@ export function detectKaspaWallets(): KaspaWalletProviderInfo[] {
   if (win.kasware) {
     providers.push({
       ...KASPA_WALLET_PROVIDERS.kasware,
+      isInstalled: true,
+    });
+  }
+
+  // Check Kastle - check for window.kastle
+  if ((win as any).kastle) {
+    providers.push({
+      ...KASPA_WALLET_PROVIDERS.kastle,
       isInstalled: true,
     });
   }
@@ -222,6 +235,110 @@ function createKasWareAdapter(kasware: any): ExtendedWalletProviderInterface {
   return adapter;
 }
 
+function createKastleAdapter(kastle: any): ExtendedWalletProviderInterface {
+  const adapter: ExtendedWalletProviderInterface = {
+    isConnected: () => {
+      if (typeof kastle.isConnected === 'function') {
+        try {
+          return Boolean(kastle.isConnected());
+        } catch {
+          return true;
+        }
+      }
+      return true;
+    },
+    getAddress: async () => {
+      if (typeof kastle.getAccount === 'function') {
+        const acc = await kastle.getAccount();
+        return acc?.address || null;
+      }
+      if (typeof kastle.request === 'function') {
+        const r = await kastle.request('kas:get_account');
+        if (r && typeof r === 'object' && 'address' in (r as any)) {
+          return (r as any).address || null;
+        }
+      }
+      if (typeof kastle.getAddress === 'function') {
+        return await kastle.getAddress();
+      }
+      if (typeof kastle.requestAccounts === 'function') {
+        const accounts = await kastle.requestAccounts();
+        return Array.isArray(accounts) && accounts.length > 0 ? accounts[0] : null;
+      }
+      return null;
+    },
+    requestConnection: async () => {
+      if (typeof kastle.connect === 'function') {
+        const ok = await kastle.connect();
+        if (!ok) throw new Error('Kastle connection rejected');
+      } else if (typeof kastle.request === 'function') {
+        const ok = await kastle.request('kas:connect');
+        if (ok === false) throw new Error('Kastle connection rejected');
+      } else if (typeof kastle.requestAccounts === 'function') {
+        const accounts = await kastle.requestAccounts();
+        if (!Array.isArray(accounts) || accounts.length === 0) {
+          throw new Error('No accounts returned from Kastle');
+        }
+      } else {
+        throw new Error('Kastle wallet API not available');
+      }
+
+      const addr = await adapter.getAddress();
+      if (!addr) throw new Error('Failed to get address from Kastle');
+      return addr;
+    },
+    disconnect: async () => {
+      if (typeof kastle.disconnect === 'function') {
+        await kastle.disconnect();
+      }
+    },
+    signMessage: async (message: string) => {
+      if (typeof kastle.signMessage === 'function') {
+        return await kastle.signMessage(message);
+      }
+      if (typeof kastle.request === 'function') {
+        const sig = await kastle.request('kas:sign_message', message);
+        if (typeof sig === 'string') return sig;
+      }
+      throw new Error('signMessage not available');
+    },
+    sendTransaction: async (transaction: any) => {
+      if (typeof kastle.sendKaspa === 'function') {
+        const toAddress = transaction.to;
+        const sompi = typeof transaction.amount === 'string' ? parseInt(transaction.amount, 10) : transaction.amount;
+        const options: Record<string, any> = {};
+        if (transaction.fee) {
+          options.priorityFee = typeof transaction.fee === 'string' ? parseFloat(transaction.fee) : transaction.fee;
+        }
+        if (transaction.note != null && transaction.note !== '') {
+          options.note = transaction.note;
+        }
+        if (transaction.payload != null && transaction.payload !== '') {
+          options.payload = transaction.payload;
+        }
+        return await kastle.sendKaspa(toAddress, sompi, options);
+      }
+      throw new Error('sendKaspa not available');
+    },
+    on: (event: 'accountsChanged', callback: (accounts: string[]) => void) => {
+      if (typeof kastle.on === 'function') {
+        kastle.on(event, callback);
+      }
+    },
+    removeListener: (event: 'accountsChanged', callback: (accounts: string[]) => void) => {
+      if (typeof kastle.removeListener === 'function') {
+        kastle.removeListener(event, callback);
+      }
+    },
+  };
+
+  if (typeof kastle.getBalance === 'function') {
+    adapter.getBalance = async () => await kastle.getBalance();
+  }
+
+  return adapter;
+}
+
 export function getWalletProvider(provider: KaspaWalletProvider): ExtendedWalletProviderInterface | null {
   if (typeof window === 'undefined') {
     return null;
@@ -235,6 +352,11 @@ export function getWalletProvider(provider: KaspaWalletProvider): ExtendedWallet
       if (!kasware) return null;
       // Create adapter for KasWare to match SDK interface
       return createKasWareAdapter(kasware);
+    }
+    case 'kastle': {
+      const kastle = (win as any).kastle;
+      if (!kastle) return null;
+      return createKastleAdapter(kastle);
     }
     case 'kaspium':
       return win.kaspium || null;
@@ -312,6 +434,44 @@ export async function connectKaspaWallet(
         } else {
           throw new Error('KasWare wallet API not available. Please update your KasWare extension.');
         }
+        break;
+      }
+
+      case 'kastle': {
+        const kastle = (win as any).kastle;
+        if (!kastle) {
+          throw new Error('Kastle wallet is not installed');
+        }
+
+        if (typeof kastle.connect === 'function') {
+          const ok = await kastle.connect();
+          if (!ok) throw new Error('Kastle connection rejected');
+        } else if (typeof kastle.request === 'function') {
+          const ok = await kastle.request('kas:connect');
+          if (ok === false) throw new Error('Kastle connection rejected');
+        } else if (typeof kastle.requestAccounts === 'function') {
+          const accounts = await kastle.requestAccounts();
+          if (!Array.isArray(accounts) || accounts.length === 0) {
+            throw new Error('No accounts returned from Kastle wallet');
+          }
+        } else {
+          throw new Error('Kastle wallet API not available. Please update your Kastle extension.');
+        }
+
+        if (typeof kastle.getAccount === 'function') {
+          const acc = await kastle.getAccount();
+          address = acc?.address || null;
+        } else if (typeof kastle.request === 'function') {
+          const r = await kastle.request('kas:get_account');
+          address =
+            r && typeof r === 'object' && 'address' in (r as any) ? (r as any).address : null;
+        } else if (typeof kastle.getAddress === 'function') {
+          address = await kastle.getAddress();
+        } else if (typeof kastle.requestAccounts === 'function') {
+          const accounts = await kastle.requestAccounts();
+          address = Array.isArray(accounts) ? accounts[0] : null;
+        }
+
         break;
       }
 

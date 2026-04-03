@@ -9,6 +9,7 @@
  */
 export type KaspaWalletProvider = 
   | 'kasware'
+  | 'kastle'
   | 'kaspium'
   | 'okx'
   | 'safepal'
@@ -76,6 +77,8 @@ export interface KaspaWalletProviderInterface {
  */
 export interface WindowWithKaspa extends Window {
   kasware?: KaspaWalletProviderInterface;
+  /** Kastle injects `window.kastle` (API differs; we adapt in `wallet.ts`). */
+  kastle?: any;
   kaspium?: KaspaWalletProviderInterface;
   okx?: {
     kaspa?: KaspaWalletProviderInterface;

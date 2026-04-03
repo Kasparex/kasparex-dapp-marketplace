@@ -9,8 +9,8 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { placeholderGames, getGameBySlug } from '@/lib/games/games';
 import Link from 'next/link';
 
-const KasWareWalletButton = dynamic(
-  () => import('@/components/KasWareWalletButton').then((mod) => ({ default: mod.KasWareWalletButton })),
+const KaspaL1WalletButton = dynamic(
+  () => import('@/components/KaspaL1WalletButton').then((mod) => ({ default: mod.KaspaL1WalletButton })),
   { ssr: false }
 );
 
@@ -79,7 +79,7 @@ function DiamondVeinsContent() {
                   Wallet connection required to deploy your NFT workers and start mining Krex Diamonds.
                 </p>
                 <div className="[&_button]:h-14 [&_button]:px-8 [&_button]:text-base">
-                  <KasWareWalletButton />
+                  <KaspaL1WalletButton />
                 </div>
               </div>
             ) : (

@@ -14,8 +14,8 @@ const TestnetBanner = dynamic(
   { ssr: false }
 );
 
-const KasWareWalletButton = dynamic(
-  () => import('./KasWareWalletButton').then((mod) => ({ default: mod.KasWareWalletButton })),
+const KaspaL1WalletButton = dynamic(
+  () => import('./KaspaL1WalletButton').then((mod) => ({ default: mod.KaspaL1WalletButton })),
   { ssr: false }
 );
 
@@ -619,7 +619,7 @@ export function Header() {
             )}
           </button>
           <div className="flex-shrink-0">
-            <KasWareWalletButton />
+            <KaspaL1WalletButton />
           </div>
           <div className="flex-shrink-0">
             <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>

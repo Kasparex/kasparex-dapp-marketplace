@@ -14,8 +14,8 @@ import { UnlockOfferCard } from './UnlockOfferCard';
 import { VaultDashboardAside } from './VaultDashboardAside';
 import type { EntitlementOffer } from '@/lib/chronicles/entitlements/types';
 
-const KasWareWalletButton = dynamic(
-  () => import('@/components/KasWareWalletButton').then((m) => ({ default: m.KasWareWalletButton })),
+const KaspaL1WalletButton = dynamic(
+  () => import('@/components/KaspaL1WalletButton').then((m) => ({ default: m.KaspaL1WalletButton })),
   { ssr: false }
 );
 
@@ -89,7 +89,7 @@ export function ChroniclesVaultDashboard() {
               </p>
             </div>
             <div className="flex justify-center">
-              <KasWareWalletButton />
+              <KaspaL1WalletButton />
             </div>
           </div>
         ) : (
