@@ -82,6 +82,17 @@ export const collections: Record<string, CollectionConfig> = {
     isPartnerCollection: true,
     partnerName: 'KASZOMBIES',
   },
+  '21MCOVEN': {
+    id: '21MCOVEN',
+    name: '21MCOVEN',
+    slug: '21MCOVEN',
+    deployer: 'kaspa:qqre4wt08dp0rvmxwqgwdkz4zu4m36g9uvmfledd27mx939uxe2yjpmmd37zq',
+    baseUri: 'ipfs://bafybeidr4lx3kpk3hoyz4a5qihyazfkbjtjkbvpxgj2vor7nlboug7dzmi',
+    kaspaComUrl: 'https://kaspa.com/nft/collections/21MCOVEN',
+    description: '21 Million Coven partner collection (KasBTC / Kasgoths ecosystem)',
+    isPartnerCollection: true,
+    partnerName: '21MCOVEN',
+  },
 };
 
 /** Premium collections with full tooling (rarity, traits, PFP) in NFT Tools. */

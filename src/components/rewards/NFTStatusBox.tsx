@@ -10,7 +10,14 @@ import { getPartnerCollections } from '@/lib/nft/collections';
 
 export type NFTStatusBoxLayout = 'default' | 'compact-cards';
 
-export function NFTStatusBox({ layout = 'default' }: { layout?: NFTStatusBoxLayout }) {
+export function NFTStatusBox({
+  layout = 'default',
+  /** Sidebar compact: only KREXPRIME / PIXELKREX tiles (no partner mini-cards). */
+  premiumCollectionsOnly = false,
+}: {
+  layout?: NFTStatusBoxLayout;
+  premiumCollectionsOnly?: boolean;
+}) {
   const { nftStatus, nftPoints, isLoading } = useNFTStatus();
   
   // Use real NFT status if available, otherwise use empty status
@@ -29,11 +36,13 @@ export function NFTStatusBox({ layout = 'default' }: { layout?: NFTStatusBoxLayo
       status.hasPIXELKREX ||
       (status.partnerCollections && Object.values(status.partnerCollections).some((v) => v))
   );
+  const hasAnyPremiumNFT = Boolean(status.hasKREXPRIME || status.hasPIXELKREX);
   const hasDiamondNFT = Boolean(
     status.hasDiamondKREXPRIME ||
       status.hasDiamondPIXELKREX ||
       (status.partnerDiamonds && Object.values(status.partnerDiamonds).some((v) => v))
   );
+  const hasDiamondPremiumNFT = Boolean(status.hasDiamondKREXPRIME || status.hasDiamondPIXELKREX);
   const hasRarestNFT = Boolean(status.hasRarestNFT);
   const partnerCollections = getPartnerCollections();
   const [showModal, setShowModal] = useState(false);
@@ -145,20 +154,23 @@ export function NFTStatusBox({ layout = 'default' }: { layout?: NFTStatusBoxLayo
   );
 
   if (layout === 'compact-cards') {
+    const compactAny = premiumCollectionsOnly ? hasAnyPremiumNFT : hasAnyNFT;
+    const compactDiamond = premiumCollectionsOnly ? hasDiamondPremiumNFT : hasDiamondNFT;
+
     const miniCard = (
       label: string,
       ok: boolean,
       sub?: string,
       okClass = 'text-green-600 dark:text-green-400'
     ) => (
-      <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50/90 dark:bg-zinc-900/70 px-2 py-1.5 min-h-[52px] flex flex-col justify-center">
-        <div className="text-[9px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 truncate" title={label}>
+      <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50/90 dark:bg-zinc-900/70 px-2.5 py-2 min-h-[56px] flex flex-col justify-center">
+        <div className="text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 truncate" title={label}>
           {label}
         </div>
-        <div className={`text-[11px] font-semibold leading-tight ${ok ? okClass : 'text-zinc-500 dark:text-zinc-500'}`}>
+        <div className={`text-[12px] font-semibold leading-tight ${ok ? okClass : 'text-zinc-500 dark:text-zinc-500'}`}>
           {ok ? '✓ Held' : '—'}
         </div>
-        {sub ? <div className="text-[9px] text-zinc-500 dark:text-zinc-500 truncate">{sub}</div> : null}
+        {sub ? <div className="text-[10px] text-zinc-500 dark:text-zinc-500 truncate">{sub}</div> : null}
       </div>
     );
 
@@ -166,10 +178,10 @@ export function NFTStatusBox({ layout = 'default' }: { layout?: NFTStatusBoxLayo
       <>
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-1">
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-400">NFT status</h3>
+            <h3 className="text-[11px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-400">NFT status</h3>
             <div className="flex items-center gap-1 shrink-0">
-              {hasAnyNFT ? (
-                <span className="text-[9px] px-1.5 py-0.5 bg-green-500/10 text-green-600 dark:text-green-400 rounded font-bold">
+              {compactAny ? (
+                <span className="text-[10px] px-1.5 py-0.5 bg-green-500/10 text-green-600 dark:text-green-400 rounded font-bold">
                   Active
                 </span>
               ) : null}
@@ -187,7 +199,7 @@ export function NFTStatusBox({ layout = 'default' }: { layout?: NFTStatusBoxLayo
           </div>
 
           {isLoading ? (
-            <p className="text-[10px] text-zinc-500 dark:text-zinc-400 py-1">Loading…</p>
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 py-1">Loading…</p>
           ) : (
             <>
               <div className="grid grid-cols-2 gap-1.5">
@@ -195,7 +207,7 @@ export function NFTStatusBox({ layout = 'default' }: { layout?: NFTStatusBoxLayo
                 {miniCard('PIXELKREX', status.hasPIXELKREX)}
               </div>
 
-              {partnerCollections.length > 0 && status.partnerCollections ? (
+              {!premiumCollectionsOnly && partnerCollections.length > 0 && status.partnerCollections ? (
                 <div className="grid grid-cols-2 gap-1.5">
                   {partnerCollections.map((partnerColl) => {
                     const hasPartnerNFT = status.partnerCollections![partnerColl.id] || false;
@@ -214,16 +226,16 @@ export function NFTStatusBox({ layout = 'default' }: { layout?: NFTStatusBoxLayo
               ) : null}
 
               <div className="grid grid-cols-3 gap-1">
-                {miniCard('Any', hasAnyNFT, undefined, 'text-blue-600 dark:text-blue-400')}
-                {miniCard('💎', hasDiamondNFT, undefined, 'text-purple-600 dark:text-purple-400')}
+                {miniCard('Any', compactAny, undefined, 'text-blue-600 dark:text-blue-400')}
+                {miniCard('💎', compactDiamond, undefined, 'text-purple-600 dark:text-purple-400')}
                 {miniCard('⭐', hasRarestNFT, undefined, 'text-yellow-600 dark:text-yellow-400')}
               </div>
 
-              {hasAnyNFT ? (
-                <p className="text-[9px] text-zinc-500 dark:text-zinc-400 leading-snug border-t border-zinc-200 dark:border-zinc-700 pt-1.5">
+              {compactAny ? (
+                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-snug border-t border-zinc-200 dark:border-zinc-700 pt-1.5">
                   {hasRarestNFT ? (
                     <span className="text-yellow-600 dark:text-yellow-400 font-semibold">Top tier</span>
-                  ) : hasDiamondNFT ? (
+                  ) : compactDiamond ? (
                     <span className="text-purple-600 dark:text-purple-400 font-semibold">Diamond perks</span>
                   ) : (
                     <span className="text-green-600 dark:text-green-400 font-semibold">Holder perks</span>
@@ -235,7 +247,7 @@ export function NFTStatusBox({ layout = 'default' }: { layout?: NFTStatusBoxLayo
               <button
                 type="button"
                 onClick={() => setShowBuyWizard(true)}
-                className="w-full mt-1 px-2 py-1.5 text-[10px] font-bold text-center bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
+                className="w-full mt-1 px-2 py-1.5 text-[11px] font-bold text-center bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
               >
                 Buy / Bridge
               </button>

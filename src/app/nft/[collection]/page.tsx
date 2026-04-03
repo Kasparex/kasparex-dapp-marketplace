@@ -69,7 +69,6 @@ export default function CollectionPage() {
               }
             }}
             collectionSlug={collection}
-            collectionName={collectionConfig.name}
           />
 
           {/* Content */}

@@ -318,6 +318,25 @@ export function getChroniclesAllPlacedNftRefs(addr: string, seasonId?: SeasonId)
   return out;
 }
 
+/** Rarity recorded when an NFT was placed in a Chronicles leaderboard slot (current season). */
+export function getChroniclesStoredRarityForNftRef(
+  addr: string,
+  nftRef: string,
+  seasonId?: SeasonId
+): 'diamond' | 'rare' | 'standard' | undefined {
+  const a = normalizeAddr(addr);
+  const sId = seasonId ?? currentSeasonId();
+  const store = readStore();
+  const row = store.wallets[a]?.seasons?.[sId] ?? {};
+  const placements = row.placements ?? {};
+  const placementRarities = row.placementRarities ?? {};
+  const target = String(nftRef).trim();
+  for (const [key, val] of Object.entries(placements)) {
+    if (val && String(val).trim() === target) return placementRarities[key];
+  }
+  return undefined;
+}
+
 export function getChroniclesNftUsageByRef(
   addr: string,
   seasonId?: SeasonId

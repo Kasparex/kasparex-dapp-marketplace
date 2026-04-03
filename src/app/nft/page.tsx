@@ -80,8 +80,12 @@ export default function NFTPage() {
               }
             }}
             isListingPage={true}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
+            onListingSectionNavigate={(sectionId) => {
+              setActiveTab('collections');
+              requestAnimationFrame(() =>
+                document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              );
+            }}
           />
 
           <main className="flex-1 min-w-0 min-h-[calc(100vh-4rem)]">
@@ -96,7 +100,25 @@ export default function NFTPage() {
                     </div>
                   )}
 
-                  <section className="mb-14 scroll-mt-24" aria-labelledby="nft-premium-heading">
+                  <div className="mb-8 max-w-xl">
+                    <label htmlFor="nft-collection-search" className="sr-only">
+                      Search collections
+                    </label>
+                    <input
+                      id="nft-collection-search"
+                      type="search"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search collections…"
+                      className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#02abb8]/40"
+                    />
+                  </div>
+
+                  <section
+                    id="nft-section-premium"
+                    className="mb-14 scroll-mt-24"
+                    aria-labelledby="nft-premium-heading"
+                  >
                     <div className="mb-5">
                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#02abb8] mb-1">Premium</p>
                       <h2 id="nft-premium-heading" className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -124,7 +146,11 @@ export default function NFTPage() {
                     )}
                   </section>
 
-                  <section className="mb-14 scroll-mt-24" aria-labelledby="nft-partner-heading">
+                  <section
+                    id="nft-section-partner"
+                    className="mb-14 scroll-mt-24"
+                    aria-labelledby="nft-partner-heading"
+                  >
                     <div className="mb-5">
                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400 mb-1">
                         Partner
@@ -154,7 +180,11 @@ export default function NFTPage() {
                     )}
                   </section>
 
-                  <section className="mb-6 scroll-mt-24" aria-labelledby="nft-standard-heading">
+                  <section
+                    id="nft-section-standard"
+                    className="mb-6 scroll-mt-24"
+                    aria-labelledby="nft-standard-heading"
+                  >
                     <div className="mb-4">
                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-500 mb-1">
                         Standard
@@ -179,7 +209,7 @@ export default function NFTPage() {
                 </div>
               </div>
             ) : (
-              <section className="py-8 sm:py-12">
+              <section id="nft-section-my-nfts" className="py-8 sm:py-12 scroll-mt-24">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                   <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">My NFTs</h2>
                   <UserNFTsTab />

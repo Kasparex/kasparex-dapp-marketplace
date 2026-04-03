@@ -8,6 +8,7 @@ export const NFT_POINTS = {
   partnerCollections: {
     KASGOTHS: { base: 10 },
     KASZOMBIES: { base: 10 },
+    '21MCOVEN': { base: 10 },
   } as Record<string, { base: number }>,
   premium: { base: 15, diamond: 25, rare: 50 },
   partner: { base: 10 },
