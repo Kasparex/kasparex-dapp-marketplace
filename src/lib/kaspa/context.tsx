@@ -13,10 +13,10 @@ import {
   connectKaspaWallet, 
   disconnectKaspaWallet, 
   getKaspaAddress,
-  detectKaspaWallets,
   onKaspaAccountChange,
   getWalletProvider,
 } from './wallet';
+import { disconnectWagmiWallet } from '@/lib/evm/disconnectWagmi';
 import { isSIWKExpired } from './auth';
 
 interface KaspaWalletContextType {
@@ -149,6 +149,11 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
     }
 
     const cleanup = onKaspaAccountChange(state.provider, async (accounts) => {
+      // KasWare / Kastle account switch or reconnect should not leave an unrelated EVM session active.
+      if (accounts.length > 0) {
+        await disconnectWagmiWallet();
+      }
+
       if (accounts.length === 0) {
         // Some providers may emit transient empty arrays during page transitions.
         // Re-check address before forcing disconnect.
@@ -166,6 +171,7 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
         } catch {
           // fall through to disconnect
         }
+        await disconnectWagmiWallet();
         setState({
           isConnected: false,
           address: null,
@@ -236,6 +242,8 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
       }
       
       setState(newState);
+      // L1 Kaspa connect is independent from EVM; avoid auto-pairing an EVM wallet.
+      await disconnectWagmiWallet();
       console.log('Wallet state updated successfully:', { 
         isConnected: newState.isConnected, 
         address: newState.address, 

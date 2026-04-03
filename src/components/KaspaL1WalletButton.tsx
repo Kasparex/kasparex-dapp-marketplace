@@ -12,7 +12,7 @@ import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
-import { detectKaspaWallets, KASPA_WALLET_PROVIDERS } from '@/lib/kaspa/wallet';
+import { detectKaspaWallets, formatKaspaAddress } from '@/lib/kaspa/wallet';
 import { getErrorMessage } from '@/lib/utils';
 import { useBalanceVisibility, maskAddress, formatBalanceForDisplay } from '@/hooks/useBalanceVisibility';
 
@@ -87,7 +87,8 @@ export function KaspaL1WalletButton() {
 
   // Kastle connected UI (basic)
   if (state.isConnected && state.address && state.provider === 'kastle') {
-    const displayAddress = maskAddress(state.address, isBalanceVisible);
+    const formatAddressForDisplay = (addr: string): string => formatKaspaAddress(addr).display;
+    const displayAddress = maskAddress(formatAddressForDisplay(state.address), isBalanceVisible);
     const displayBalance = formatBalanceForDisplay(balance, 'KAS', false, isBalanceVisible);
 
     return (
@@ -98,7 +99,7 @@ export function KaspaL1WalletButton() {
           aria-label="Kastle Wallet"
         >
           <span className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 rounded-[6px] border border-cyan-300/50 dark:border-cyan-600/40 shadow-sm">
-            L1 Kaspa
+            L1 Kastle
           </span>
           <span className="text-zinc-900 dark:text-zinc-100 hidden sm:inline">{displayAddress}</span>
           <span className="text-zinc-900 dark:text-zinc-100 sm:hidden">Kastle</span>
@@ -122,7 +123,7 @@ export function KaspaL1WalletButton() {
                 </span>
               </div>
               <div className="text-xs text-zinc-500 dark:text-zinc-400 font-mono break-all mb-3">
-                {maskAddress(state.address, isBalanceVisible)}
+                {maskAddress(formatAddressForDisplay(state.address), isBalanceVisible)}
               </div>
               <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-3 mb-3">
                 <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">KAS Balance</div>
