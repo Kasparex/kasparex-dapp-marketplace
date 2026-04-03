@@ -9,18 +9,30 @@ import { createConnector, type CreateConnectorFn } from 'wagmi';
  * announcements whose `info.rdns` is already claimed by an explicit connector).
  *
  * If Kastle changes its announced `rdns`, add the new value here.
+ *
+ * Kastle (forbole/kastle) uses `rdns: "https://kastle.cc/"` in `entrypoints/injected.ts`.
+ * Without reserving that exact string, wagmi MIPD still registers its EIP-1193 provider and
+ * L1 account switches emit `accountsChanged` → Connect EVM appears tied to Kastle.
+ *
  * @see https://eips.ethereum.org/EIPS/eip-6963
  */
 export const KASTLE_MIPD_RDNS_BLOCKLIST = [
+  // Actual value from Kastle extension (must match `info.rdns` exactly)
+  'https://kastle.cc/',
+  // Legacy / alternate guesses (harmless if unused)
   'cc.kastle',
   'io.kastle',
   'app.kastle',
   'com.kastle.wallet',
 ] as const;
 
+function rdnsToSafeConnectorId(rdns: string): string {
+  return `mipd-kastle-block-${rdns.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
+}
+
 function mipdRdnsReservation(rdns: string): CreateConnectorFn {
   return createConnector((wagmiConfig) => ({
-    id: `mipd-reserved:${rdns}`,
+    id: rdnsToSafeConnectorId(rdns),
     name: 'Kastle',
     rdns,
     type: 'injected' as const,
