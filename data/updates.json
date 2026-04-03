@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1775247963-799ab44",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix(nft): coerce NFT status booleans for compact cards (Vercel tsc) (by Kasparex)",
+      "date": "2026-04-03T22:25:17+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1774908206-51eeba4",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Chronicles: add featured images for Rooftop and Forgotten Blocks (by Kasparex)",
