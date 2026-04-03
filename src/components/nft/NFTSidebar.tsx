@@ -283,9 +283,9 @@ export function NFTSidebar({
             ))}
           </nav>
 
-          {/* NFT Status Box - show on both listing and collection pages, under menu */}
+          {/* Compact NFT status cards — same data as rewards NFT status, tuned for narrow sidebar */}
           <div className="mt-4">
-            <NFTStatusBox />
+            <NFTStatusBox layout="compact-cards" />
           </div>
         </div>
       </aside>

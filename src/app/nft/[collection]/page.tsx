@@ -10,6 +10,7 @@ import { PFPBuilder } from '@/components/nft/PFPBuilder';
 import { UserNFTsTab } from '@/components/nft/UserNFTsTab';
 import { CollectionStats } from '@/components/nft/CollectionStats';
 import { NFTSidebar } from '@/components/nft/NFTSidebar';
+import { NFTHaloHeader } from '@/components/nft/NFTHaloHeader';
 import { getCollectionBySlug, isValidCollection, type CollectionConfig } from '@/lib/nft/collections';
 import Link from 'next/link';
 
@@ -73,19 +74,13 @@ export default function CollectionPage() {
 
           {/* Content */}
           <main className="flex-1 min-w-0 min-h-[calc(100vh-4rem)]">
-            {/* Hero Section - Only in right column */}
-            <section className="bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
-              <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-                <div className="max-w-4xl">
-                  <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-3">
-                    {collectionConfig.name}
-                  </h1>
-                  <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400">
-                    {collectionConfig.description || `Explore ${collectionConfig.name} collection`}
-                  </p>
-                </div>
-              </div>
-            </section>
+            <NFTHaloHeader
+              variant="collection"
+              collectionName={collectionConfig.name}
+              collectionDescription={
+                collectionConfig.description || `Explore ${collectionConfig.name} in Kasparex NFT Tools.`
+              }
+            />
             
             <section className="py-8 sm:py-12">
               <div className="container mx-auto px-4 sm:px-6 lg:px-8">

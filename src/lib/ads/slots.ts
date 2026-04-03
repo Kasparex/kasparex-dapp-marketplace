@@ -30,6 +30,13 @@ export const AD_SLOTS: AdSlotConfig[] = [
     rotation: 'slider',
   },
   {
+    id: 'HALO_NFT_RIGHT',
+    label: 'NFT Tools Halo (right)',
+    pricePerDay: 100,
+    maxAds: 5,
+    rotation: 'slider',
+  },
+  {
     id: 'VBLOG_ARTICLE_ASIDE_BOTTOM',
     label: 'vBlog article aside (bottom)',
     pricePerDay: 80,

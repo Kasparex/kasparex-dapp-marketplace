@@ -71,7 +71,25 @@ export const collections: Record<string, CollectionConfig> = {
     isPartnerCollection: true,
     partnerName: 'KASGOTHS',
   },
+  KASZOMBIES: {
+    id: 'KASZOMBIES',
+    name: 'KASZOMBIES',
+    slug: 'KASZOMBIES',
+    deployer: 'kaspa:qqre4wt08dp0rvmxwqgwdkz4zu4m36g9uvmfledd27mx939uxe2yjpmmd37zq',
+    baseUri: 'ipfs://bafybeigurxcxzqt2b7ksru4gaoldxg73kcidz7xwnxok5wdvgkc2wclpaa',
+    kaspaComUrl: 'https://kaspa.com/nft/collections/KASZOMBIES',
+    description: 'KASZOMBIES partner collection (KasBTC / Kasgoths ecosystem)',
+    isPartnerCollection: true,
+    partnerName: 'KASZOMBIES',
+  },
 };
+
+/** Premium collections with full tooling (rarity, traits, PFP) in NFT Tools. */
+export const NFT_TOOLS_PREMIUM_IDS = ['KREXPRIME', 'PIXELKREX'] as const;
+
+export function getNftToolsPremiumCollections(): CollectionConfig[] {
+  return NFT_TOOLS_PREMIUM_IDS.map((id) => collections[id]).filter(Boolean);
+}
 
 /**
  * Get collection by slug

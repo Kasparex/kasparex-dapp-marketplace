@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useAccount } from 'wagmi';
 import { createPortal } from 'react-dom';
 import { NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_MULTIPLIER, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_MULTIPLIER, RAREST_NFT_FEE_REDUCTION } from '@/lib/rewards/types';
 import { NFTBuyWizard } from './NFTBuyWizard';
@@ -9,8 +8,9 @@ import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { NFT_POINTS } from '@/lib/nft/points';
 import { getPartnerCollections } from '@/lib/nft/collections';
 
-export function NFTStatusBox() {
-  const { isConnected } = useAccount();
+export type NFTStatusBoxLayout = 'default' | 'compact-cards';
+
+export function NFTStatusBox({ layout = 'default' }: { layout?: NFTStatusBoxLayout }) {
   const { nftStatus, nftPoints, isLoading } = useNFTStatus();
   
   // Use real NFT status if available, otherwise use empty status
@@ -32,6 +32,215 @@ export function NFTStatusBox() {
   const partnerCollections = getPartnerCollections();
   const [showModal, setShowModal] = useState(false);
   const [showBuyWizard, setShowBuyWizard] = useState(false);
+
+  const rewardsModal =
+    showModal && typeof window !== 'undefined'
+      ? createPortal(
+          <div
+            className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
+            onClick={() => setShowModal(false)}
+          >
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
+
+            <div
+              className="relative bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-zinc-200 dark:border-zinc-800"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">NFT Rewards</h2>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                    KREXPRIME and PIXELKREX NFT holders unlock additional rewards
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+                  aria-label="Close modal"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="p-6">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-zinc-200 dark:border-zinc-700">
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">NFT Type</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                          Reward Multiplier
+                        </th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee Reduction</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Points</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                          🖼️ Regular NFT
+                          <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">(KREXPRIME or PIXELKREX)</div>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">+{NFT_MULTIPLIER}x</td>
+                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">-{NFT_FEE_REDUCTION}%</td>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">{NFT_POINTS.REGULAR} point</td>
+                      </tr>
+                      <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                          💎 Diamond NFT
+                          <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">(Any Diamond from any collection)</div>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">+{DIAMOND_NFT_MULTIPLIER}x</td>
+                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">-{DIAMOND_NFT_FEE_REDUCTION}%</td>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">{NFT_POINTS.DIAMOND} points</td>
+                      </tr>
+                      <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
+                          ⭐ Rarest NFT
+                          <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">(#515 PIXELKREX or #345 KREXPRIME)</div>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">+{RAREST_NFT_MULTIPLIER}x</td>
+                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">-{RAREST_NFT_FEE_REDUCTION}% (Zero Fee)</td>
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">{NFT_POINTS.RAREST} points</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="mt-6 grid grid-cols-2 gap-4">
+                  <button
+                    className="px-6 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
+                    onClick={() => {
+                      console.log('Buy KREXPRIME clicked');
+                    }}
+                  >
+                    Buy KREXPRIME
+                  </button>
+                  <button
+                    className="px-6 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
+                    onClick={() => {
+                      console.log('Buy PIXELKREX clicked');
+                    }}
+                  >
+                    Buy PIXELKREX
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )
+      : null;
+
+  const buyWizard = (
+    <NFTBuyWizard isOpen={showBuyWizard} onClose={() => setShowBuyWizard(false)} />
+  );
+
+  if (layout === 'compact-cards') {
+    const miniCard = (
+      label: string,
+      ok: boolean,
+      sub?: string,
+      okClass = 'text-green-600 dark:text-green-400'
+    ) => (
+      <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50/90 dark:bg-zinc-900/70 px-2 py-1.5 min-h-[52px] flex flex-col justify-center">
+        <div className="text-[9px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 truncate" title={label}>
+          {label}
+        </div>
+        <div className={`text-[11px] font-semibold leading-tight ${ok ? okClass : 'text-zinc-500 dark:text-zinc-500'}`}>
+          {ok ? '✓ Held' : '—'}
+        </div>
+        {sub ? <div className="text-[9px] text-zinc-500 dark:text-zinc-500 truncate">{sub}</div> : null}
+      </div>
+    );
+
+    return (
+      <>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-1">
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-400">NFT status</h3>
+            <div className="flex items-center gap-1 shrink-0">
+              {hasAnyNFT ? (
+                <span className="text-[9px] px-1.5 py-0.5 bg-green-500/10 text-green-600 dark:text-green-400 rounded font-bold">
+                  Active
+                </span>
+              ) : null}
+              <button
+                type="button"
+                className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 rounded"
+                onClick={() => setShowModal(true)}
+                aria-label="View NFT rewards"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {isLoading ? (
+            <p className="text-[10px] text-zinc-500 dark:text-zinc-400 py-1">Loading…</p>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-1.5">
+                {miniCard('KREXPRIME', status.hasKREXPRIME)}
+                {miniCard('PIXELKREX', status.hasPIXELKREX)}
+              </div>
+
+              {partnerCollections.length > 0 && status.partnerCollections ? (
+                <div className="grid grid-cols-2 gap-1.5">
+                  {partnerCollections.map((partnerColl) => {
+                    const hasPartnerNFT = status.partnerCollections![partnerColl.id] || false;
+                    const hasPartnerDiamond = status.partnerDiamonds?.[partnerColl.id] || false;
+                    return (
+                      <div key={partnerColl.id}>
+                        {miniCard(
+                          partnerColl.partnerName || partnerColl.name,
+                          hasPartnerNFT,
+                          hasPartnerNFT && hasPartnerDiamond ? '💎 Diamond' : undefined
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
+
+              <div className="grid grid-cols-3 gap-1">
+                {miniCard('Any', hasAnyNFT, undefined, 'text-blue-600 dark:text-blue-400')}
+                {miniCard('💎', hasDiamondNFT, undefined, 'text-purple-600 dark:text-purple-400')}
+                {miniCard('⭐', hasRarestNFT, undefined, 'text-yellow-600 dark:text-yellow-400')}
+              </div>
+
+              {hasAnyNFT ? (
+                <p className="text-[9px] text-zinc-500 dark:text-zinc-400 leading-snug border-t border-zinc-200 dark:border-zinc-700 pt-1.5">
+                  {hasRarestNFT ? (
+                    <span className="text-yellow-600 dark:text-yellow-400 font-semibold">Top tier</span>
+                  ) : hasDiamondNFT ? (
+                    <span className="text-purple-600 dark:text-purple-400 font-semibold">Diamond perks</span>
+                  ) : (
+                    <span className="text-green-600 dark:text-green-400 font-semibold">Holder perks</span>
+                  )}
+                  <span className="text-zinc-500 dark:text-zinc-500"> · +{nftPoints} pts</span>
+                </p>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={() => setShowBuyWizard(true)}
+                className="w-full mt-1 px-2 py-1.5 text-[10px] font-bold text-center bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
+              >
+                Buy / Bridge
+              </button>
+            </>
+          )}
+        </div>
+        {rewardsModal}
+        {buyWizard}
+      </>
+    );
+  }
 
   return (
     <>
@@ -141,141 +350,8 @@ export function NFTStatusBox() {
       </div>
       </div>
 
-      {/* NFT Rewards Modal */}
-      {showModal && typeof window !== 'undefined' && createPortal(
-        <div
-          className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
-          onClick={() => setShowModal(false)}
-        >
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
-          
-          {/* Modal Content */}
-          <div
-            className="relative bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-zinc-200 dark:border-zinc-800"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                  NFT Rewards
-                </h2>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-                  KREXPRIME and PIXELKREX NFT holders unlock additional rewards
-                </p>
-              </div>
-              <button
-                onClick={() => setShowModal(false)}
-                className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
-                aria-label="Close modal"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Table */}
-            <div className="p-6">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-zinc-200 dark:border-zinc-700">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">NFT Type</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reward Multiplier</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee Reduction</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Points</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                        🖼️ Regular NFT
-                        <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                          (KREXPRIME or PIXELKREX)
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
-                        +{NFT_MULTIPLIER}x
-                      </td>
-                      <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                        -{NFT_FEE_REDUCTION}%
-                      </td>
-                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                        {NFT_POINTS.REGULAR} point
-                      </td>
-                    </tr>
-                    <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                        💎 Diamond NFT
-                        <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                          (Any Diamond from any collection)
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
-                        +{DIAMOND_NFT_MULTIPLIER}x
-                      </td>
-                      <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                        -{DIAMOND_NFT_FEE_REDUCTION}%
-                      </td>
-                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                        {NFT_POINTS.DIAMOND} points
-                      </td>
-                    </tr>
-                    <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                        ⭐ Rarest NFT
-                        <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                          (#515 PIXELKREX or #345 KREXPRIME)
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
-                        +{RAREST_NFT_MULTIPLIER}x
-                      </td>
-                      <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                        -{RAREST_NFT_FEE_REDUCTION}% (Zero Fee)
-                      </td>
-                      <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                        {NFT_POINTS.RAREST} points
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Buy Buttons */}
-              <div className="mt-6 grid grid-cols-2 gap-4">
-                <button
-                  className="px-6 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
-                  onClick={() => {
-                    // TODO: Add link when provided
-                    console.log('Buy KREXPRIME clicked');
-                  }}
-                >
-                  Buy KREXPRIME
-                </button>
-                <button
-                  className="px-6 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
-                  onClick={() => {
-                    // TODO: Add link when provided
-                    console.log('Buy PIXELKREX clicked');
-                  }}
-                >
-                  Buy PIXELKREX
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-
-      {/* NFT Buy & Bridge Wizard */}
-      <NFTBuyWizard
-        isOpen={showBuyWizard}
-        onClose={() => setShowBuyWizard(false)}
-      />
+      {rewardsModal}
+      {buyWizard}
     </>
   );
 }

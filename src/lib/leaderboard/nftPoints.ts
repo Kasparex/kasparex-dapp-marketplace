@@ -7,6 +7,7 @@ export const NFT_POINTS = {
   premiumCollections: ['KREXPRIME', 'PIXELKREX'] as const,
   partnerCollections: {
     KASGOTHS: { base: 10 },
+    KASZOMBIES: { base: 10 },
   } as Record<string, { base: number }>,
   premium: { base: 15, diamond: 25, rare: 50 },
   partner: { base: 10 },

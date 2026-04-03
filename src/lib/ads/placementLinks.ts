@@ -32,6 +32,12 @@ export const AD_SLOT_PLACEMENT_LINKS: {
     placement: 'vBlog listing, halo header right',
   },
   {
+    slotId: 'HALO_NFT_RIGHT',
+    title: 'NFT Tools halo',
+    href: '/nft#ad-slot-nft-halo',
+    placement: 'NFT Tools, halo header right',
+  },
+  {
     slotId: 'VBLOG_ARTICLE_ASIDE_BOTTOM',
     title: 'vBlog article aside',
     href: '/vblog#ad-slot-vblog-article-aside-bottom',
