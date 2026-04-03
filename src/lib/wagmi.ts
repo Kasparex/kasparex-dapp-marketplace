@@ -1,7 +1,9 @@
 'use client';
 
-import { getDefaultConfig } from '@rainbow-me/rainbowkit';
+import { getDefaultWallets } from '@rainbow-me/rainbowkit';
+import { createConfig, http } from 'wagmi';
 import { defineChain, type Chain } from 'viem';
+import { createKastleMipdBlockConnectors } from '@/lib/evm/kastleMipdBlock';
 
 /**
  * Kasplex L2 Mainnet Chain Configuration
@@ -239,10 +241,27 @@ if (typeof window !== 'undefined' && (!walletConnectProjectId || walletConnectPr
   );
 }
 
-export const config = getDefaultConfig({
+const wagmiChains = [
+  kasplexL2Mainnet,
+  kasplexL2Testnet,
+  igraGalleonTestnet,
+  igraMainnet,
+] as const;
+
+const { connectors: rainbowKitConnectors } = getDefaultWallets({
   appName: 'Kasparex dApps',
   projectId: walletConnectProjectId || 'default-project-id',
-  chains: [kasplexL2Mainnet, kasplexL2Testnet, igraGalleonTestnet, igraMainnet],
-  ssr: true, // Enable SSR support for Next.js
+});
+
+export const config = createConfig({
+  chains: wagmiChains,
+  connectors: [...createKastleMipdBlockConnectors(), ...rainbowKitConnectors],
+  transports: {
+    [kasplexL2Mainnet.id]: http(),
+    [kasplexL2Testnet.id]: http(),
+    [igraGalleonTestnet.id]: http(),
+    [igraMainnet.id]: http(),
+  },
+  ssr: true,
 });
 

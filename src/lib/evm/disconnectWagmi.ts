@@ -33,6 +33,15 @@ async function disconnectAllConnections(): Promise<void> {
   }
 }
 
+/** True if any wagmi connection is active (WalletConnect, MetaMask, injected, etc.). */
+export function wagmiHasActiveConnections(): boolean {
+  try {
+    return getConnections(config).length > 0;
+  } catch {
+    return false;
+  }
+}
+
 /** Clears wagmi / RainbowKit EVM sessions and blocks instant reinject reconnect. */
 export async function disconnectWagmiWallet(): Promise<void> {
   try {
