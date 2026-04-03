@@ -19,7 +19,6 @@ import {
 import {
   disconnectWagmiWallet,
   scheduleDisconnectWagmiWalletBursts,
-  wagmiHasActiveConnections,
 } from '@/lib/evm/disconnectWagmi';
 import { isSIWKExpired } from './auth';
 
@@ -41,9 +40,8 @@ const SIWK_STORAGE_KEY = 'kaspa_siwk_auth';
  */
 export function KaspaWalletProvider({ children }: { children: ReactNode }) {
   /**
-   * KasWare (and some L1 wallets) share `window.ethereum` with wagmi. After a Kaspa
-   * account switch, EIP-1193 `accountsChanged` can reconnect EVM and clear wagmi's
-   * disconnect shim. While this timestamp is in the future, we tear EVM down again.
+   * KasWare-only: after a Kaspa account switch, `window.ethereum` may emit `accountsChanged`
+   * and wagmi can re-attach. While this timestamp is in the future, we run disconnect bursts.
    */
   const suppressEvmReconnectUntilRef = useRef(0);
 
@@ -153,11 +151,14 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
     }
   }, [state]);
 
-  // KasWare / Kastle: same browser provider may emit Ethereum `accountsChanged` when Kaspa accounts change.
+  // KasWare: `window.ethereum` can mirror Kaspa account changes; briefly suppress wagmi reinject.
+  // Kastle: do not listen here — the same `ethereum` object can emit when switching L1 even when
+  // EVM is connected via WalletConnect / MetaMask, and disconnecting would drop that unrelated session.
+  // Kastle EVM isolation is handled by wagmi MIPD rdns reservation (`kastleMipdBlock.ts`).
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!state.isConnected || !state.provider) return;
-    if (state.provider !== 'kasware' && state.provider !== 'kastle') return;
+    if (state.provider !== 'kasware') return;
 
     const ethereum = (window as unknown as {
       ethereum?: {
@@ -168,12 +169,6 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
     if (!ethereum?.on) return;
 
     const onEthAccountsChanged = () => {
-      // Kastle shares one EIP-1193 provider with L1; any eth account change while L1 is
-      // active would retarget wagmi. EVM here must stay independent → drop EVM session.
-      if (state.provider === 'kastle' && wagmiHasActiveConnections()) {
-        scheduleDisconnectWagmiWalletBursts();
-        return;
-      }
       if (Date.now() < suppressEvmReconnectUntilRef.current) {
         scheduleDisconnectWagmiWalletBursts();
       }
@@ -192,8 +187,9 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
     }
 
     const cleanup = onKaspaAccountChange(state.provider, async (accounts) => {
-      // KasWare / Kastle account switch or reconnect should not leave an unrelated EVM session active.
-      if (accounts.length > 0) {
+      // KasWare: shared `window.ethereum` can re-attach wagmi after L1 switch — tear down EVM bursts.
+      // Kastle: never disconnect wagmi here; users often pair L1 Kastle with a separate EVM (WC / MetaMask).
+      if (accounts.length > 0 && state.provider === 'kasware') {
         suppressEvmReconnectUntilRef.current = Date.now() + 1500;
         scheduleDisconnectWagmiWalletBursts();
       }
