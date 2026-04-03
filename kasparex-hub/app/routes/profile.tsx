@@ -1,8 +1,7 @@
 import { Header } from "~/components/layout/Header";
 import { Footer } from "~/components/layout/Footer";
 import { useKaspaWallet } from "~/lib/kaspa/provider";
-import { KaspaWalletModal } from "~/components/wallets/KaspaWalletModal";
-import { useState } from "react";
+import { KaspaL1WalletConnect } from "~/components/wallets/KaspaL1WalletConnect";
 import { NFTStatusBox } from "~/components/nft/NFTStatusBox";
 import { useNFTStatus } from "~/hooks/useNFTStatus";
 import { getBestGatewayUrl } from "~/lib/ipfs/gateway";
@@ -17,15 +16,19 @@ export const meta = () => {
   ];
 };
 
+function formatKas(n: number | null): string {
+  if (n === null || !Number.isFinite(n)) return "—";
+  return n.toLocaleString(undefined, { maximumFractionDigits: 8 });
+}
+
 export default function Profile() {
-  const { address, isConnected, balance, disconnect } = useKaspaWallet();
+  const { address, isConnected, balance, network } = useKaspaWallet();
   const { nfts, isLoading: nftsLoading } = useNFTStatus();
-  const [showWalletModal, setShowWalletModal] = useState(false);
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      
+
       <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-8">
@@ -37,21 +40,23 @@ export default function Profile() {
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
               Wallet Connection
             </h2>
-            
-            {!isConnected ? (
-              <div>
-                <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-                  Connect your Kaspa wallet to view your NFTs and status.
-                </p>
-                <button
-                  onClick={() => setShowWalletModal(true)}
-                  className="px-6 py-3 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
-                >
-                  Connect Wallet
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
+
+            <p className="text-zinc-600 dark:text-zinc-400 mb-4">
+              Connect with{" "}
+              <span className="font-medium text-zinc-800 dark:text-zinc-200">
+                KasWare
+              </span>{" "}
+              or{" "}
+              <span className="font-medium text-zinc-800 dark:text-zinc-200">
+                Kastle
+              </span>{" "}
+              to view balances and your NFTs.
+            </p>
+
+            <KaspaL1WalletConnect variant="comfortable" />
+
+            {isConnected && address && (
+              <div className="space-y-4 mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
                 <div>
                   <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                     Address
@@ -60,22 +65,30 @@ export default function Profile() {
                     {address}
                   </div>
                 </div>
+                {network && (
+                  <div>
+                    <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                      Network
+                    </label>
+                    <div className="mt-1 p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg text-sm text-zinc-900 dark:text-zinc-100">
+                      {network}
+                    </div>
+                  </div>
+                )}
                 {balance !== null && (
                   <div>
                     <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       Balance
                     </label>
                     <div className="mt-1 p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg text-sm text-zinc-900 dark:text-zinc-100">
-                      {typeof balance === 'number' ? balance.toLocaleString() : balance} KAS
+                      {formatKas(balance)} KAS
                     </div>
                   </div>
                 )}
-                <button
-                  onClick={disconnect}
-                  className="px-4 py-2 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium transition-colors"
-                >
-                  Disconnect
-                </button>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Copy address, refresh balance, or disconnect from the wallet
+                  menu on the button above.
+                </p>
               </div>
             )}
           </div>
@@ -93,9 +106,11 @@ export default function Profile() {
               <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
                 Your NFTs
               </h2>
-              
+
               {nftsLoading ? (
-                <div className="text-zinc-600 dark:text-zinc-400">Loading NFTs...</div>
+                <div className="text-zinc-600 dark:text-zinc-400">
+                  Loading NFTs...
+                </div>
               ) : nfts.length === 0 ? (
                 <div className="text-zinc-600 dark:text-zinc-400">
                   No NFTs found in your wallet.
@@ -104,8 +119,10 @@ export default function Profile() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {nfts.map((nft) => {
                     const imageUri = `${nft.collectionConfig.baseUri}/${nft.tokenId}.png`;
-                    const imageUrl = getBestGatewayUrl(imageUri.replace(/^ipfs:\/\//, ''));
-                    
+                    const imageUrl = getBestGatewayUrl(
+                      imageUri.replace(/^ipfs:\/\//, "")
+                    );
+
                     return (
                       <div
                         key={`${nft.collection}-${nft.tokenId}`}
@@ -117,7 +134,8 @@ export default function Profile() {
                             alt={`${nft.collection} #${nft.tokenId}`}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
+                              (e.target as HTMLImageElement).style.display =
+                                "none";
                             }}
                           />
                         </div>
@@ -140,11 +158,6 @@ export default function Profile() {
       </main>
 
       <Footer />
-
-      <KaspaWalletModal
-        isOpen={showWalletModal}
-        onClose={() => setShowWalletModal(false)}
-      />
     </div>
   );
 }

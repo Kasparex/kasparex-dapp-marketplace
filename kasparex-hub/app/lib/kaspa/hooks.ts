@@ -15,11 +15,10 @@ export function useKaspaBalance() {
 }
 
 /**
- * Hook for Kaspa network
+ * Hook for Kaspa network (mainnet / testnet from wallet)
  */
 export function useKaspaNetwork() {
-  const { walletType, isConnected } = useKaspaWalletContext();
-  // In the future, this could return network info from the wallet
-  return { network: walletType, isConnected };
+  const { network, isConnected } = useKaspaWalletContext();
+  return { network, isConnected };
 }
 

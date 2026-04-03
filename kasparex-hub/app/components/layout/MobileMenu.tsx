@@ -1,6 +1,5 @@
 import { Link } from "@remix-run/react";
-import { KaswareButton } from "../wallets/KaswareButton";
-import { KastleButton } from "../wallets/KastleButton";
+import { KaspaL1WalletConnect } from "../wallets/KaspaL1WalletConnect";
 import { EVMWalletButton } from "../wallets/EVMWalletButton";
 
 interface MobileMenuProps {
@@ -94,8 +93,9 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
               {/* Kaspa Wallets */}
               <div className="space-y-2 mb-4">
                 <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">Kaspa Wallets</div>
-                <KaswareButton />
-                <KastleButton />
+                <div className="relative w-full">
+                  <KaspaL1WalletConnect fullWidthMenu />
+                </div>
               </div>
               {/* EVM Wallets */}
               <div className="space-y-2">

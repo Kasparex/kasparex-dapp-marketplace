@@ -1,9 +1,11 @@
 /**
  * Kasware Wallet Integration
- * 
+ *
  * Fresh implementation for connecting to Kasware wallet extension
  * Documentation: https://docs.kasware.xyz/
  */
+
+import { kaswareBalanceToKas } from "./balance";
 
 export interface KaswareProvider {
   requestAccounts(): Promise<string[]>;
@@ -16,8 +18,8 @@ export interface KaswareProvider {
   getKRC20Balance(): Promise<Array<{ tick: string; amount: string | number; [key: string]: any }>>;
   getNetwork(): Promise<string>;
   getVersion(): Promise<string>;
-  on(event: 'accountsChanged', callback: (accounts: string[]) => void): void;
-  removeListener(event: 'accountsChanged', callback: (accounts: string[]) => void): void;
+  on(event: string, callback: (...args: unknown[]) => void): void;
+  removeListener(event: string, callback: (...args: unknown[]) => void): void;
 }
 
 /**
@@ -73,22 +75,44 @@ export async function getKaswareAddress(): Promise<string | null> {
   }
 }
 
-/**
- * Get balance from Kasware
- */
-export async function getKaswareBalance(): Promise<string | number | null> {
+/** Balance in KAS (not sompi), normalized from wallet payload. */
+export async function getKaswareBalanceKas(): Promise<number | null> {
   const provider = getKaswareProvider();
   if (!provider) return null;
 
   try {
-    const balance = await provider.getBalance();
-    if (typeof balance === 'object' && balance !== null && 'balance' in balance) {
-      return balance.balance;
-    }
-    return balance;
+    const raw = await provider.getBalance();
+    return kaswareBalanceToKas(raw);
   } catch (error) {
-    console.error('Error getting Kasware balance:', error);
+    console.error("Error getting Kasware balance:", error);
     return null;
+  }
+}
+
+export async function getKaswareNetwork(): Promise<string | null> {
+  const provider = getKaswareProvider();
+  if (!provider || typeof provider.getNetwork !== "function") return null;
+  try {
+    return await provider.getNetwork();
+  } catch (error) {
+    console.error("Error getting Kasware network:", error);
+    return null;
+  }
+}
+
+export async function getKaswareKrc20Balances(): Promise<
+  Array<{ tick: string; amount: string | number; [key: string]: unknown }>
+> {
+  const provider = getKaswareProvider();
+  if (!provider || typeof provider.getKRC20Balance !== "function") {
+    return [];
+  }
+  try {
+    const list = await provider.getKRC20Balance();
+    return Array.isArray(list) ? list : [];
+  } catch (error) {
+    console.error("Error getting Kasware KRC-20 balances:", error);
+    return [];
   }
 }
 
