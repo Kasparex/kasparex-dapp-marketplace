@@ -11,6 +11,7 @@ import { calculateCost, type CostBreakdown } from '@/lib/payments/calculator';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { DONATION_ESCROW_ABI } from '@/lib/contracts/abis';
 import { getChainById, getNativeCurrencySymbol } from '@/lib/wagmi';
+import type { DApp, DAppStatus } from '@/lib/dapps';
 import {
   VDONATIONS_MIN_DONATION_KAS,
   VDONATIONS_MIN_DONATION_WEI,
@@ -29,9 +30,10 @@ import { TransactionSuccessModal } from '@/components/modals/TransactionSuccessM
 import { TransactionPendingModal } from '@/components/donations/TransactionPendingModal';
 import type { Address } from 'viem';
 
-function getCrowdKASDApp(chainId: number | undefined) {
+function getCrowdKASDApp(chainId: number | undefined): DApp {
   const chain = chainId ? getChainById(chainId) : undefined;
   const isTestnet = Boolean(chain?.testnet);
+  const status: DAppStatus = isTestnet ? 'Testnet' : 'Mainnet';
   return {
     id: 'donations',
     name: 'Kasparex CrowdKAS',
@@ -43,7 +45,7 @@ function getCrowdKASDApp(chainId: number | undefined) {
     process: '',
     benefits: '',
     developer: '',
-    status: isTestnet ? 'Testnet' : 'Mainnet',
+    status,
     provider: '',
   };
 }
