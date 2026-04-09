@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "./utils/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
@@ -12,7 +11,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * @notice One tree per wallet; upline immutable at activation; revenue to upline or matched Genesis when inactive.
  * Version 5 Design: Pull payment for platform, tiered activity maintenance, Push-Up Rule activation, anti-spam.
  */
-contract RevenueTreeManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
+contract RevenueTreeManager is Ownable, ReentrancyGuard {
     // --- Constants ---
     uint256 public constant BPS = 10000;
     uint256 public constant SECONDS_PER_DAY = 86400;
@@ -80,12 +79,7 @@ contract RevenueTreeManager is Initializable, OwnableUpgradeable, ReentrancyGuar
      * @param _minVolumePerCall Anti-spam volume floor per transaction
      * @param _krexMinVolumeFloor Absolute minimum volume required with max KREX discount
      */
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
-
-    function initialize(
+    constructor(
         address[] memory _genesisWallets,
         address _platformWallet,
         address _krexToken,
@@ -93,33 +87,30 @@ contract RevenueTreeManager is Initializable, OwnableUpgradeable, ReentrancyGuar
         uint256 _baseActivityThreshold,
         uint256 _minVolumePerCall,
         uint256 _krexMinVolumeFloor
-    ) public initializer {
-        __Ownable_init(msg.sender);
-        __ReentrancyGuard_init();
-
+    ) Ownable(msg.sender) {
         if (_platformWallet == address(0)) revert InvalidAddress();
-        
+
         numLevels = 5;
         if (_genesisWallets.length < numLevels) revert InvalidConfiguration();
         genesisWallets = _genesisWallets;
-        
+
         platformWallet = _platformWallet;
         krexToken = IERC20(_krexToken);
-        
+
         activationThreshold = _activationThreshold;
         baseActivityThreshold = _baseActivityThreshold;
         minVolumePerCall = _minVolumePerCall;
         krexMinVolumeFloor = _krexMinVolumeFloor;
-        
+
         levelBps = new uint256[](5);
-        levelBps[0] = 200;  // L1 2%
-        levelBps[1] = 500;  // L2 5%
+        levelBps[0] = 200; // L1 2%
+        levelBps[1] = 500; // L2 5%
         levelBps[2] = 1000; // L3 10%
         levelBps[3] = 2000; // L4 20%
         levelBps[4] = 4500; // L5 45%
-        
+
         platformBps = 1800; // 18% remainder
-        
+
         levelVolumeMultipliers = new uint256[](5);
         levelVolumeMultipliers[0] = 1;
         levelVolumeMultipliers[1] = 2;

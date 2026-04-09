@@ -102,7 +102,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
   },
   igraMainnet: {
     Treasury: "",
-    FeeCollector: "",
+    FeeCollector: "0xaC941a612b30Fe15F84a961a1FaCF2Ea5c2ef21E",
     DAppRegistry: "",
     SimplePayment: "",
     PlatformSubscription: "",
@@ -119,15 +119,15 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     SecureProofOfUtility: "",
     FeeHandler: "",
     AffiliateManager: "",
-    LoyaltyPoints: "",
+    LoyaltyPoints: "0x5A60E418f6B04bD1eb0AEF8088a6D5DB81FAd0cA",
     ProfileRegistry: "",
     UserProfileDashboard: "",
     AdminDashboard: "",
     PromoMintRouter: "",
-    RevenueTreeManager: "",
-    FeeRouter: "",
+    RevenueTreeManager: "0xe32a9445F5771DaE70b5148515cFc012621BA101",
+    FeeRouter: "0x0530c962A17fB4602418087689e762e5989f1D43",
     GenesisBadge: "",
-    DonationEscrow: "",
+    DonationEscrow: "0xD3D759E7d7d0F68C704D973247e254157FEDD825",
   },
 };
 

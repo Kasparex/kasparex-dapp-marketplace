@@ -15,16 +15,26 @@ const path = require('path');
 
 function getFeeOverrides(chainId) {
   if (Number(chainId) === 38833) {
-    return { gasPrice: hre.ethers.parseUnits('2000', 'gwei') };
+    return { type: 0, gasPrice: hre.ethers.parseUnits('2000', 'gwei') };
   }
   return {};
 }
 
 async function deployNoEstimate(factory, args, overrides) {
+  console.log('   Preparing deploy tx...');
   const txReq = await factory.getDeployTransaction(...args);
+  console.log('   Deploy tx prepared. Sending...');
   if (!txReq.gasLimit) txReq.gasLimit = 8_000_000n;
-  const signer = factory.runner;
-  const sent = await signer.sendTransaction({ ...txReq, ...overrides });
+  const { Wallet } = require('ethers');
+  const { JsonRpcProvider } = require('ethers');
+  const pk = process.env.PRIVATE_KEY;
+  if (!pk) throw new Error('PRIVATE_KEY missing');
+  const provider = new JsonRpcProvider(process.env.IGRA_MAINNET_RPC || 'https://rpc.igralabs.com:8545');
+  const wallet = new Wallet(pk, provider);
+  const sent = await Promise.race([
+    wallet.sendTransaction({ ...txReq, ...overrides }),
+    new Promise((_, rej) => setTimeout(() => rej(new Error('sendTransaction timeout (30s)')), 30000)),
+  ]);
   console.log('   Tx hash:', sent.hash);
   const receipt = await Promise.race([
     sent.wait(),
