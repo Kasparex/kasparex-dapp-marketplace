@@ -30,9 +30,10 @@ const statusOptions: { value: DAppStatus | 'all'; label: string }[] = [
 
 const networkOptions: { label: string; logo?: string }[] = [
   { label: 'All' },
-  { label: 'Kasplex L2 Mainnet', logo: '/img/logos/kasplex.png' },
-  { label: 'Kasplex L2 Testnet', logo: '/img/logos/kasplex.png' },
-  { label: 'Igra Caravel Testnet', logo: '/img/logos/igra.png' },
+  { label: 'Kasplex Mainnet', logo: '/img/logos/kasplex.png' },
+  { label: 'Kasplex Testnet', logo: '/img/logos/kasplex.png' },
+  { label: 'Igra Testnet', logo: '/img/logos/igra.png' },
+  { label: 'Igra Mainnet', logo: '/img/logos/igra.png' },
   { label: 'vProgs', logo: '/img/logos/kaspa.png' },
 ];
 

@@ -147,7 +147,7 @@ function TestEcosystemContent() {
             Testing Instructions
           </h3>
           <ul className="list-disc list-inside space-y-1 text-blue-800 dark:text-blue-200 text-sm">
-            <li>Connect your wallet to Kasplex L2 Testnet (Chain ID: 167012)</li>
+            <li>Connect your wallet to Kasplex Testnet (Chain ID: 167012)</li>
             <li>Check that all contract addresses are displayed correctly</li>
             <li>Verify GRID token balance shows (if you have any)</li>
             <li>Check Proof of Utility events (should be empty initially)</li>

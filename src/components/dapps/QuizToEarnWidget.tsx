@@ -75,7 +75,7 @@ export function QuizToEarnWidget() {
 
   const handleSubmitAnswer = async () => {
     if (!contractAddress || contractAddress === '' || !contractAddress.startsWith('0x')) {
-      alert('Quiz-to-Earn contract is not deployed on this network. Please switch to Kasplex L2 Testnet (Chain ID: 167012).');
+      alert('Quiz-to-Earn contract is not deployed on this network. Please switch to Kasplex Testnet (Chain ID: 167012).');
       return;
     }
 
@@ -175,7 +175,7 @@ export function QuizToEarnWidget() {
         {!contractAddress && (
           <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
             <p className="text-sm text-yellow-700 dark:text-yellow-400">
-              ⚠️ Quiz-to-Earn contract is not deployed on this network. Please switch to Kasplex L2 Testnet (Chain ID: 167012).
+              ⚠️ Quiz-to-Earn contract is not deployed on this network. Please switch to Kasplex Testnet (Chain ID: 167012).
             </p>
           </div>
         )}

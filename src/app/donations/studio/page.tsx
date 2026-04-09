@@ -6,6 +6,8 @@ import { useAccount, useChainId, useSwitchChain, useReadContract, useWriteContra
 import { parseEther, formatEther } from 'viem';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { CrowdKASSidebar } from '@/components/donations/CrowdKASSidebar';
+import { CrowdKASRightPanel } from '@/components/donations/CrowdKASRightPanel';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { DONATION_ESCROW_ABI } from '@/lib/contracts/abis';
 import { getIPFSClient } from '@/lib/ipfs/client';
@@ -16,6 +18,8 @@ import { getChainById } from '@/lib/wagmi';
 import { CHAIN_IDS } from '@/lib/wagmi';
 import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
 import type { Address } from 'viem';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { detectKaspaWallets, KASPA_WALLET_PROVIDERS } from '@/lib/kaspa/wallet';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
 
@@ -36,6 +40,27 @@ export default function DonationsStudioPage() {
   const { switchChain, isPending: isSwitchPending } = useSwitchChain();
   const escrowAddress = getContractAddress(chainId, 'DonationEscrow');
   const currentChain = chainId ? getChainById(chainId) : null;
+  const { state: kaspaState, connect: connectKaspa } = useKaspaWallet();
+  const [isConnectingKaspa, setIsConnectingKaspa] = useState(false);
+
+  const handleConnectKaspa = async (provider: 'kasware' | 'kastle') => {
+    const detected = detectKaspaWallets();
+    const installed = detected.some((w) => w.id === provider && w.isInstalled);
+    if (!installed) {
+      const url =
+        provider === 'kasware'
+          ? KASPA_WALLET_PROVIDERS.kasware.downloadUrl
+          : KASPA_WALLET_PROVIDERS.kastle.documentationUrl;
+      if (url) window.open(url, '_blank');
+      return;
+    }
+    setIsConnectingKaspa(true);
+    try {
+      await connectKaspa(provider, { enableSIWK: true, siwkParams: { appName: 'Kasparex CrowdKAS' } });
+    } finally {
+      setIsConnectingKaspa(false);
+    }
+  };
 
   const { data: isVerified } = useReadContract({
     address: (escrowAddress || undefined) as Address | undefined,
@@ -253,43 +278,59 @@ export default function DonationsStudioPage() {
   const canClaim = campaign && targetReached && deadlinePassed;
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950">
+    <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <Header />
-      <main className="flex-1 container mx-auto px-4 py-8 max-w-2xl">
-        <div className="mb-8">
-          <Link href="/donations" className="text-sm text-zinc-500 dark:text-zinc-400 hover:underline mb-4 inline-block">
-            ← All campaigns
-          </Link>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">Donations Studio</h1>
-          <p className="text-zinc-600 dark:text-zinc-400 mt-1">Verify your wallet and create your donation campaign.</p>
-        </div>
+      <main className="flex-1 min-h-[calc(100vh-4rem)]">
+        <div className="flex flex-col lg:flex-row h-full">
+          <CrowdKASSidebar
+            kaspaAddress={kaspaState.address}
+            kaspaConnected={kaspaState.isConnected}
+            onConnectKaspa={(p) => void handleConnectKaspa(p)}
+            isConnectingKaspa={isConnectingKaspa}
+          />
+          <div className="flex-1 min-w-0 p-4 sm:p-8 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800 text-base sm:text-lg">
+            <div className="max-w-6xl mx-auto">
+              <div className="mb-10">
+                <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">Crowdfunding studio</p>
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-3 tracking-tight">
+                  Crowd<span className="text-orange-500">KAS</span> Studio
+                </h1>
+                <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
+                  Verify your wallet and create or manage your crowdfunding campaign.
+                </p>
+              </div>
 
-        {!isConnected && (
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 text-center text-zinc-500 dark:text-zinc-400">
-            Connect your L2 (EVM) wallet to continue.
-          </div>
-        )}
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 xl:gap-10 items-start">
+                <div className="space-y-8">
+                  {!isConnected && (
+                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[32px] p-10 text-center shadow-2xl shadow-orange-500/5">
+                      <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-3">EVM Wallet Required</h2>
+                      <p className="text-zinc-500 dark:text-zinc-400 max-w-md mx-auto font-medium">
+                        Connect your L2 (EVM) wallet to verify and manage your campaign.
+                      </p>
+                    </div>
+                  )}
 
-        {isConnected && !escrowAddress && (
-          <div className="rounded-xl border border-amber-200 dark:border-amber-800 p-4 text-amber-800 dark:text-amber-200 space-y-3">
-            <p>
-              Donations runs on <strong>IGRA Galleon Testnet</strong>. You are currently on{' '}
-              <strong>{currentChain?.name ?? `chain ${chainId}`}</strong>.
-            </p>
-            <p className="text-sm">Switch your wallet to IGRA Galleon Testnet to verify and create campaigns.</p>
-            <button
-              type="button"
-              onClick={() => switchChain?.({ chainId: VDONATIONS_CHAIN_ID })}
-              disabled={isSwitchPending}
-              className="px-4 py-2 rounded-lg bg-amber-600 text-white font-medium hover:bg-amber-700 disabled:opacity-50"
-            >
-              {isSwitchPending ? 'Switching…' : 'Switch to IGRA Galleon Testnet'}
-            </button>
-          </div>
-        )}
+                  {isConnected && !escrowAddress && (
+                    <div className="rounded-2xl border border-amber-200 dark:border-amber-800 p-5 bg-amber-50 dark:bg-amber-950/20 text-amber-900 dark:text-amber-100 space-y-3">
+                      <p className="font-semibold">
+                        CrowdKAS runs on <strong>Igra Mainnet</strong>. You are currently on{' '}
+                        <strong>{currentChain?.name ?? `chain ${chainId}`}</strong>.
+                      </p>
+                      <p className="text-sm">Switch your wallet to Igra Mainnet to verify and create campaigns.</p>
+                      <button
+                        type="button"
+                        onClick={() => switchChain?.({ chainId: VDONATIONS_CHAIN_ID })}
+                        disabled={isSwitchPending}
+                        className="k-control-btn !bg-amber-600 hover:!bg-amber-700 !text-white !border-amber-500/30"
+                      >
+                        {isSwitchPending ? 'Switching…' : 'Switch to Igra Mainnet'}
+                      </button>
+                    </div>
+                  )}
 
-        {isConnected && escrowAddress && (
-          <div className="space-y-8">
+                  {isConnected && escrowAddress && (
+                    <div className="space-y-8">
             {/* Verify */}
             <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 bg-white dark:bg-zinc-900">
               <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Verify your wallet</h2>
@@ -367,7 +408,18 @@ export default function DonationsStudioPage() {
                     </ul>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">L1 Kaspa address (for direct KAS donations)</label>
+                    <div className="flex items-center justify-between gap-3 mb-1">
+                      <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">L1 Kaspa address (for direct KAS donations)</label>
+                      {kaspaState.isConnected && kaspaState.address && (
+                        <button
+                          type="button"
+                          onClick={() => setCreateForm((f) => ({ ...f, l1KaspaAddress: kaspaState.address || '' }))}
+                          className="text-xs font-semibold text-[#02abb8] hover:underline"
+                        >
+                          Use connected wallet
+                        </button>
+                      )}
+                    </div>
                     <input
                       type="text"
                       value={createForm.l1KaspaAddress}
@@ -521,7 +573,18 @@ export default function DonationsStudioPage() {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">L1 Kaspa address</label>
+                        <div className="flex items-center justify-between gap-3 mb-1">
+                          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">L1 Kaspa address</label>
+                          {kaspaState.isConnected && kaspaState.address && (
+                            <button
+                              type="button"
+                              onClick={() => setEditForm((f) => ({ ...f, l1KaspaAddress: kaspaState.address || '' }))}
+                              className="text-[11px] font-semibold text-[#02abb8] hover:underline"
+                            >
+                              Use connected wallet
+                            </button>
+                          )}
+                        </div>
                         <input
                           type="text"
                           value={editForm.l1KaspaAddress}
@@ -589,8 +652,15 @@ export default function DonationsStudioPage() {
                 )}
               </section>
             )}
+                    </div>
+                  )}
+                </div>
+
+                <CrowdKASRightPanel requiredChainId={VDONATIONS_CHAIN_ID} />
+              </div>
+            </div>
           </div>
-        )}
+        </div>
       </main>
       <Footer />
     </div>

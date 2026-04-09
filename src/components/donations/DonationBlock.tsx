@@ -10,7 +10,7 @@ import { FeeDisplay } from '@/components/ui/FeeDisplay';
 import { calculateCost, type CostBreakdown } from '@/lib/payments/calculator';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { DONATION_ESCROW_ABI } from '@/lib/contracts/abis';
-import { getNativeCurrencySymbol } from '@/lib/wagmi';
+import { getChainById, getNativeCurrencySymbol } from '@/lib/wagmi';
 import {
   VDONATIONS_MIN_DONATION_KAS,
   VDONATIONS_MIN_DONATION_WEI,
@@ -29,21 +29,24 @@ import { TransactionSuccessModal } from '@/components/modals/TransactionSuccessM
 import { TransactionPendingModal } from '@/components/donations/TransactionPendingModal';
 import type { Address } from 'viem';
 
-/** Minimal DApp shape for Donations fee calculator (KREX/NFT discounts) */
-const VDONATIONS_DAPP = {
-  id: 'donations',
-  name: 'Kasparex Donations',
-  slug: 'donations',
-  category: 'payment' as const,
-  network: 'IGRA Galleon Testnet',
-  networkType: 'L2' as const,
-  utility: '',
-  process: '',
-  benefits: '',
-  developer: '',
-  status: 'Testnet' as const,
-  provider: '',
-};
+function getCrowdKASDApp(chainId: number | undefined) {
+  const chain = chainId ? getChainById(chainId) : undefined;
+  const isTestnet = Boolean(chain?.testnet);
+  return {
+    id: 'donations',
+    name: 'Kasparex CrowdKAS',
+    slug: 'donations',
+    category: 'payment' as const,
+    network: chain?.name ?? 'L2',
+    networkType: 'L2' as const,
+    utility: '',
+    process: '',
+    benefits: '',
+    developer: '',
+    status: (isTestnet ? 'Testnet' : 'Mainnet') as const,
+    provider: '',
+  };
+}
 
 interface DonationBlockProps {
   campaign: DonationCampaign;
@@ -87,7 +90,7 @@ export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChang
     const amountNum = parseFloat(l2Amount);
     if (amountNum < 10) return null;
     return calculateCost({
-      dapp: VDONATIONS_DAPP,
+      dapp: getCrowdKASDApp(chainId),
       actionId: 'donation',
       krexBalance: krexBalance ?? 0,
       krexTier: tier,
@@ -163,7 +166,7 @@ export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChang
       {mode === 'L2' && (
         <div className="space-y-4">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Donate iKAS to the escrow. Min {formatEther(VDONATIONS_MIN_DONATION_WEI)} iKAS (10 iKAS). You get tGRID/GRID and points with KREX/NFT multipliers.
+            Donate iKAS to the escrow. Min {formatEther(VDONATIONS_MIN_DONATION_WEI)} iKAS (10 iKAS). Rewards (if enabled) are handled automatically on-chain.
           </p>
           <div className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 p-3 text-sm text-zinc-700 dark:text-zinc-300">
             <p className="font-medium text-zinc-900 dark:text-zinc-100 mb-1">Where does the fee go?</p>

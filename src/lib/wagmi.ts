@@ -12,7 +12,7 @@ import { createKastleMipdBlockConnectors } from '@/lib/evm/kastleMipdBlock';
  */
 export const kasplexL2Mainnet = defineChain({
   id: 202555,
-  name: 'Kasplex L2 Mainnet',
+  name: 'Kasplex Mainnet',
   network: 'kasplex',
   nativeCurrency: {
     name: 'Kaspa',
@@ -39,7 +39,7 @@ export const kasplexL2Mainnet = defineChain({
  */
 export const kasplexL2Testnet = defineChain({
   id: 167012,
-  name: 'Kasplex L2 Testnet',
+  name: 'Kasplex Testnet',
   network: 'kasplex-testnet',
   nativeCurrency: {
     name: 'Kaspa',
@@ -61,13 +61,13 @@ export const kasplexL2Testnet = defineChain({
 });
 
 /**
- * IGRA Galleon Testnet (38836)
- * Active Igra testnet; use tKREX ERC-20 for Revenue Tree KREX path when configured.
+ * Igra Testnet (38836)
+ * Active Igra testnet; use tKREX ERC-20 when configured.
  * @see https://igra-labs.gitbook.io/igralabs-docs/quickstart/network-info#galleon-testnet
  */
 export const igraGalleonTestnet = defineChain({
   id: 38836,
-  name: 'IGRA Galleon Testnet',
+  name: 'Igra Testnet',
   network: 'igra-galleon-testnet',
   nativeCurrency: {
     name: 'Kaspa',
@@ -81,7 +81,7 @@ export const igraGalleonTestnet = defineChain({
   },
   blockExplorers: {
     default: {
-      name: 'Igra Galleon Testnet Explorer',
+      name: 'Igra Testnet Explorer',
       url: 'https://explorer.galleon-testnet.igralabs.com',
     },
   },

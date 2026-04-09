@@ -24,19 +24,19 @@ export function NetworkSelector({ className = '' }: NetworkSelectorProps) {
   const networks = [
     {
       id: CHAIN_IDS.KASPLEX_L2_MAINNET,
-      name: 'Kasplex L2 Mainnet',
+      name: 'Kasplex Mainnet',
       type: 'EVM',
       isVProgs: false,
     },
     {
       id: CHAIN_IDS.KASPLEX_L2_TESTNET,
-      name: 'Kasplex L2 Testnet',
+      name: 'Kasplex Testnet',
       type: 'EVM',
       isVProgs: false,
     },
     {
       id: CHAIN_IDS.IGRA_GALLEON_TESTNET,
-      name: 'IGRA Galleon Testnet',
+      name: 'Igra Testnet',
       type: 'EVM',
       isVProgs: false,
     },

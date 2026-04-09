@@ -751,7 +751,7 @@ export function SimplePaymentWidget() {
               <div className="mt-2 p-3 bg-zinc-50 dark:bg-zinc-950 rounded-lg text-xs space-y-1 border border-zinc-200 dark:border-zinc-800">
                 <p className="font-semibold">Debug Info:</p>
                 <p>Contract Address: {contractAddress || '❌ EMPTY - This is why button is disabled!'}</p>
-                <p>Chain ID: {chainId} (167012 = Kasplex Testnet, 38836 = IGRA Galleon Testnet, 38833 = Igra Mainnet)</p>
+                <p>Chain ID: {chainId} (167012 = Kasplex Testnet, 38836 = Igra Testnet, 38833 = Igra Mainnet)</p>
                 <p>Recipient: {recipientAddress ? '✅ SET' : '❌ EMPTY'}</p>
                 <p>Amount: {amount || '❌ EMPTY'}</p>
                 <p>Amount (BigInt): {amountBigInt.toString()}</p>

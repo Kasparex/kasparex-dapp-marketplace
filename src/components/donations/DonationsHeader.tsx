@@ -15,20 +15,23 @@ export function DonationsHeader() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
           </span>
-          Donations
+          CrowdKAS
         </div>
         <h1 className="text-4xl md:text-6xl font-black text-zinc-900 dark:text-white mb-6 leading-tight">
-          Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400">Donations</span>
+          Kasparex{' '}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400">
+            CrowdKAS
+          </span>
         </h1>
         <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed mb-8">
-          Support your favorite creators and projects through verifiable donation campaigns. Contribute directly via L1 or use L2 escrow for enhanced security and automated rewards.
+          Crowdfund creators and projects with verifiable on-chain campaigns. Contribute directly via L1, or use L2 escrow for goal-based crowdfunding with refunds.
         </p>
         <div className="flex flex-wrap gap-4">
           <Link
             href="/donations/studio"
             className="inline-flex items-center gap-2 px-6 py-3 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 rounded-xl font-bold text-sm tracking-wide hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border border-zinc-200 dark:border-zinc-700"
           >
-            <span>Campaign Studio</span>
+            <span>CrowdKAS Studio</span>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>

@@ -641,7 +641,7 @@ export function ProfileEditModal({
                       {isTreasuryAvailable ? '✓ ' : ''}Ensure Treasury is available on your network
                       {!isTreasuryAvailable && (
                         <span className="block text-xs text-zinc-500 dark:text-zinc-400 mt-1 ml-4">
-                          Switch to Kasplex L2 Testnet (167012) or Mainnet (202555)
+                          Switch to Kasplex Testnet (167012) or Kasplex Mainnet (202555)
                         </span>
                       )}
                     </span>
@@ -688,7 +688,7 @@ export function ProfileEditModal({
                   <p>
                     <strong className="text-zinc-900 dark:text-zinc-100">Treasury not available?</strong>
                     <br />
-                    Make sure you&apos;re connected to Kasplex L2 Testnet or Mainnet. Treasury contract must be deployed on your current network.
+                    Make sure you&apos;re connected to Kasplex Testnet or Kasplex Mainnet. Treasury contract must be deployed on your current network.
                   </p>
                   <p>
                     <strong className="text-zinc-900 dark:text-zinc-100">Transaction failed?</strong>

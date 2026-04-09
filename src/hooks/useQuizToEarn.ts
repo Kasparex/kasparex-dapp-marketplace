@@ -513,7 +513,7 @@ export function useQuizToEarn(): UseQuizToEarnReturn {
     // CRITICAL: Validate contract address BEFORE calling writeContract
     // Empty or invalid addresses cause wagmi to return function-type errors
     if (!contractAddress || contractAddress === '' || !contractAddress.startsWith('0x') || contractAddress.length !== 42) {
-      const errorMsg = 'Quiz-to-Earn contract is not deployed on this network. Please switch to Kasplex L2 Testnet (Chain ID: 167012).';
+      const errorMsg = 'Quiz-to-Earn contract is not deployed on this network. Please switch to Kasplex Testnet (Chain ID: 167012).';
       setError(errorMsg);
       console.warn('Invalid contract address:', contractAddress, 'Chain ID:', chainId);
       return;

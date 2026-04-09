@@ -92,7 +92,7 @@ export const placeholderDApps: DApp[] = [
       { label: 'X (Twitter)', url: 'https://x.com/kasparex' },
     ],
     status: 'Testnet',
-    network: 'Kasplex L2 Testnet',
+    network: 'Kasplex Testnet',
     networkType: 'L2',
     provider: 'Kasparex',
     version: '1.0.0',
@@ -100,7 +100,7 @@ export const placeholderDApps: DApp[] = [
     security: 'Built with OpenZeppelin contracts for security. All smart contracts use ReentrancyGuard to prevent reentrancy attacks. Fee collection is automated and transparent. Contracts are audited and follow best practices for EVM development.',
     roadmap: 'Q4 2025: Testnet launch and initial testing\nQ1 2026: Mainnet deployment\nQ2 2026: Enhanced features including batch payments and payment scheduling\nQ3 2026: Integration with Token Builder for automatic utility attachment',
     createdAt: '2025-11-05T16:21:29.306Z',
-    supportedChainIds: [167012, 38836, 38833], // Kasplex L2 Testnet, IGRA Galleon Testnet, Igra Mainnet
+    supportedChainIds: [167012, 38836, 38833], // Kasplex Testnet, Igra Testnet, Igra Mainnet
     // Contract address will be fetched from environment variables via getContractAddress
     // deployerAddress will be fetched from DAppRegistry contract
   },
@@ -142,14 +142,14 @@ export const placeholderDApps: DApp[] = [
       { label: 'X (Twitter)', url: 'https://x.com/kasparex' },
     ],
     status: 'Testnet',
-    network: 'Kasplex L2',
+    network: 'Kasplex Testnet',
     provider: 'Kasparex',
     version: '1.0.0',
     description: 'DAO Voting enables community members to submit dApp ideas and vote on them. All proposals and votes are stored on-chain. Proposals that reach the vote threshold are automatically flagged for marketplace review.',
     security: 'Built with OpenZeppelin contracts for security. All smart contracts use ReentrancyGuard to prevent reentrancy attacks. Fee collection is automated and transparent.',
     roadmap: 'Q4 2025: Testnet launch and initial testing\nQ1 2026: Mainnet deployment\nQ2 2026: Enhanced features including proposal categories and advanced filtering\nQ3 2026: Integration with marketplace for automatic listing of approved proposals',
     createdAt: new Date().toISOString(),
-    supportedChainIds: [167012, 202555, 38836, 38833], // Kasplex L2 Testnet, Mainnet, IGRA Galleon Testnet, Igra Mainnet
+    supportedChainIds: [167012, 202555, 38836, 38833], // Kasplex Testnet, Kasplex Mainnet, Igra Testnet, Igra Mainnet
     // Contract address will be fetched from environment variables via getContractAddress
     // deployerAddress will be fetched from DAppRegistry contract
   },

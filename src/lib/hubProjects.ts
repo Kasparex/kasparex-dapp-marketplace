@@ -133,9 +133,9 @@ export const hubProjects: HubProject[] = [
   },
   {
     id: 'kasparex-donations',
-    name: 'Kasparex Donations',
+    name: 'Kasparex CrowdKAS',
     category: 'Creator Tools',
-    description: 'Support your favorite creators and projects through verifiable donation campaigns. Contribute directly via L1 or use L2 escrow for enhanced security.',
+    description: 'Crowdfund creators and projects with verifiable on-chain campaigns. Contribute via L1 or use L2 escrow for goal-based crowdfunding with refunds.',
     route: '/donations',
     status: 'beta',
   },

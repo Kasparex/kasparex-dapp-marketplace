@@ -1,4 +1,4 @@
-# Kasparex vDonations - Post-deploy setup
+# Kasparex CrowdKAS - Post-deploy setup (Igra Testnet + Igra Mainnet)
 
 After deploying DonationEscrow (see `scripts/deploy-donation-escrow.js`), do the following so L2 donations work. L1 donations are direct (send KAS to creator and optionally platform fee); no points or recording.
 
@@ -35,7 +35,11 @@ Set these where the app runs (e.g. Vercel → Project → Settings → Environme
 
 | Variable | Where | Description |
 |----------|--------|-------------|
-| `NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_38836` | Frontend | Deployed DonationEscrow address (or use `NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_IGRA_GALLEON_TESTNET`) |
+| `NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_38836` | Frontend | Deployed DonationEscrow address (Igra Testnet) |
+| `NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_38833` | Frontend | Deployed DonationEscrow address (Igra Mainnet) |
+| `NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_IGRA_MAINNET` | Frontend | Alternative naming for Igra Mainnet DonationEscrow address |
+| `NEXT_PUBLIC_FEE_ROUTER_ADDRESS_IGRA_MAINNET` | Frontend | (Recommended) FeeRouter on Igra Mainnet |
+| `NEXT_PUBLIC_LOYALTY_POINTS_ADDRESS_IGRA_MAINNET` | Frontend | (Recommended) LoyaltyPoints on Igra Mainnet |
 
 **Optional:**
 
@@ -54,7 +58,19 @@ See `.env.example` for the full list.
 2. **Set** `NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_38836` (and any optional vars) in Vercel (or your host).
 3. Redeploy the app so it picks up the new env.
 
-After that, vDonations is ready to use.
+After that, CrowdKAS is ready to use.
+
+---
+
+## Igra Mainnet notes (38833)
+
+When you deploy to **Igra Mainnet**, run the same steps but use the `igraMainnet` Hardhat network:
+
+```bash
+npx hardhat run scripts/setup-vdonations-auth.js --network igraMainnet
+```
+
+Then set the `NEXT_PUBLIC_*_IGRA_MAINNET` env vars in your host (Vercel) and redeploy.
 
 ---
 

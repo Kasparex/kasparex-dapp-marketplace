@@ -11,6 +11,7 @@ This guide explains how to securely manage private keys for deploying and managi
 3. **NEVER use your main wallet's private key for development**
 4. **Always use testnet for development and testing**
 5. **Use separate wallets for different environments (testnet/mainnet)**
+6. **If a key was ever committed, treat it as compromised and rotate immediately**
 
 ## Environment Variables Setup
 
@@ -142,9 +143,10 @@ These are public addresses and safe to expose in the frontend.
    git commit -m "Remove .env file"
    ```
 
-2. **Rotate the private key** immediately
+2. **Rotate the private key** immediately (assume it is compromised even if the repo is private)
 3. **Update all deployments** with new key
 4. **Consider using git-secret** for encrypted secrets
+5. **Purge git history** if the repository was shared/public (e.g. `git filter-repo`), then force-push as needed
 
 ## Additional Security Measures
 
