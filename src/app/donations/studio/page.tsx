@@ -6,8 +6,7 @@ import { useAccount, useChainId, useSwitchChain, useReadContract, useWriteContra
 import { parseEther, formatEther } from 'viem';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { CrowdKASSidebar } from '@/components/donations/CrowdKASSidebar';
-import { CrowdKASRightPanel } from '@/components/donations/CrowdKASRightPanel';
+import { DonationsSidebar } from '@/components/donations/DonationsSidebar';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { DONATION_ESCROW_ABI } from '@/lib/contracts/abis';
 import { getIPFSClient } from '@/lib/ipfs/client';
@@ -19,7 +18,6 @@ import { CHAIN_IDS } from '@/lib/wagmi';
 import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
 import type { Address } from 'viem';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { detectKaspaWallets, KASPA_WALLET_PROVIDERS } from '@/lib/kaspa/wallet';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
 
@@ -40,27 +38,12 @@ export default function DonationsStudioPage() {
   const { switchChain, isPending: isSwitchPending } = useSwitchChain();
   const escrowAddress = getContractAddress(chainId, 'DonationEscrow');
   const currentChain = chainId ? getChainById(chainId) : null;
-  const { state: kaspaState, connect: connectKaspa } = useKaspaWallet();
-  const [isConnectingKaspa, setIsConnectingKaspa] = useState(false);
+  const { state: kaspaState } = useKaspaWallet();
 
-  const handleConnectKaspa = async (provider: 'kasware' | 'kastle') => {
-    const detected = detectKaspaWallets();
-    const installed = detected.some((w) => w.id === provider && w.isInstalled);
-    if (!installed) {
-      const url =
-        provider === 'kasware'
-          ? KASPA_WALLET_PROVIDERS.kasware.downloadUrl
-          : KASPA_WALLET_PROVIDERS.kastle.documentationUrl;
-      if (url) window.open(url, '_blank');
-      return;
-    }
-    setIsConnectingKaspa(true);
-    try {
-      await connectKaspa(provider, { enableSIWK: true, siwkParams: { appName: 'Kasparex CrowdKAS' } });
-    } finally {
-      setIsConnectingKaspa(false);
-    }
-  };
+  const onRequiredChain = chainId === VDONATIONS_CHAIN_ID;
+  const hasEscrowConfigured = Boolean(escrowAddress);
+  const showWrongChainNudge = isConnected && !onRequiredChain;
+  const showMissingConfigNudge = isConnected && onRequiredChain && !hasEscrowConfigured;
 
   const { data: isVerified } = useReadContract({
     address: (escrowAddress || undefined) as Address | undefined,
@@ -277,43 +260,65 @@ export default function DonationsStudioPage() {
   const deadlinePassed = campaign && BigInt(Math.floor(Date.now() / 1000)) >= campaign.deadline;
   const canClaim = campaign && targetReached && deadlinePassed;
 
-  return (
-    <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <Header />
-      <main className="flex-1 min-h-[calc(100vh-4rem)]">
-        <div className="flex flex-col lg:flex-row h-full">
-          <CrowdKASSidebar
-            kaspaAddress={kaspaState.address}
-            kaspaConnected={kaspaState.isConnected}
-            onConnectKaspa={(p) => void handleConnectKaspa(p)}
-            isConnectingKaspa={isConnectingKaspa}
-          />
-          <div className="flex-1 min-w-0 p-4 sm:p-8 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800 text-base sm:text-lg">
-            <div className="max-w-6xl mx-auto">
-              <div className="mb-10">
-                <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">Crowdfunding studio</p>
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-3 tracking-tight">
-                  Crowd<span className="text-orange-500">KAS</span> Studio
-                </h1>
-                <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
-                  Verify your wallet and create or manage your crowdfunding campaign.
-                </p>
-              </div>
+  const sidebarStatusCounts = { all: 1, active: 1, ended: 0 };
 
-              <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 xl:gap-10 items-start">
-                <div className="space-y-8">
+  return (
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950">
+      <Header />
+      <main className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col lg:flex-row">
+          <div className="hidden lg:block flex-shrink-0">
+            <DonationsSidebar
+              selectedStatus="all"
+              onStatusChange={() => {}}
+              searchQuery=""
+              onSearchChange={() => {}}
+              onResetFilters={() => {}}
+              statusCounts={sidebarStatusCounts}
+              backLink={{ href: '/donations', label: 'All campaigns' }}
+            />
+          </div>
+          <div className="lg:hidden flex-shrink-0">
+            <DonationsSidebar
+              selectedStatus="all"
+              onStatusChange={() => {}}
+              searchQuery=""
+              onSearchChange={() => {}}
+              onResetFilters={() => {}}
+              statusCounts={sidebarStatusCounts}
+              backLink={{ href: '/donations', label: 'All campaigns' }}
+            />
+          </div>
+
+          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:px-8 lg:py-8">
+            <Link href="/donations" className="text-sm text-zinc-500 dark:text-zinc-400 hover:underline mb-4 inline-block">
+              ← All campaigns
+            </Link>
+
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-10 items-start">
+              <div className="lg:col-span-3 space-y-6">
+                <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 md:p-8">
+                  <div className="mb-6">
+                    <p className="text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400 mb-2">
+                      CrowdKAS Studio
+                    </p>
+                    <h1 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+                      Create and manage your campaign
+                    </h1>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                      Your EVM wallet is used for on-chain actions. Your Kaspa L1 wallet (optional) helps fill your L1 donation address.
+                    </p>
+                  </div>
+
                   {!isConnected && (
-                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[32px] p-10 text-center shadow-2xl shadow-orange-500/5">
-                      <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-3">EVM Wallet Required</h2>
-                      <p className="text-zinc-500 dark:text-zinc-400 max-w-md mx-auto font-medium">
-                        Connect your L2 (EVM) wallet to verify and manage your campaign.
-                      </p>
+                    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 text-center text-zinc-500 dark:text-zinc-400">
+                      Connect your L2 (EVM) wallet to continue.
                     </div>
                   )}
 
-                  {isConnected && !escrowAddress && (
-                    <div className="rounded-2xl border border-amber-200 dark:border-amber-800 p-5 bg-amber-50 dark:bg-amber-950/20 text-amber-900 dark:text-amber-100 space-y-3">
-                      <p className="font-semibold">
+                  {showWrongChainNudge && (
+                    <div className="rounded-xl border border-amber-200 dark:border-amber-800 p-4 bg-amber-50 dark:bg-amber-950/20 text-amber-900 dark:text-amber-100 space-y-3">
+                      <p>
                         CrowdKAS runs on <strong>Igra Mainnet</strong>. You are currently on{' '}
                         <strong>{currentChain?.name ?? `chain ${chainId}`}</strong>.
                       </p>
@@ -329,7 +334,17 @@ export default function DonationsStudioPage() {
                     </div>
                   )}
 
-                  {isConnected && escrowAddress && (
+                  {showMissingConfigNudge && (
+                    <div className="rounded-xl border border-red-200 dark:border-red-800 p-4 bg-red-50 dark:bg-red-950/20 text-red-900 dark:text-red-100 space-y-2">
+                      <p className="font-semibold">CrowdKAS contracts are not configured for Igra Mainnet yet.</p>
+                      <p className="text-sm">
+                        You are on <strong>Igra Mainnet</strong>, but `DonationEscrow` address is missing for chain {VDONATIONS_CHAIN_ID}.
+                        Set `NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_IGRA_MAINNET` (or `NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_38833`) in Vercel and redeploy.
+                      </p>
+                    </div>
+                  )}
+
+                  {isConnected && escrowAddress && onRequiredChain && (
                     <div className="space-y-8">
             {/* Verify */}
             <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 bg-white dark:bg-zinc-900">
@@ -655,8 +670,35 @@ export default function DonationsStudioPage() {
                     </div>
                   )}
                 </div>
+              </div>
 
-                <CrowdKASRightPanel requiredChainId={VDONATIONS_CHAIN_ID} />
+              <div className="lg:col-span-2 space-y-4">
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
+                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Network</h3>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Required: <span className="font-semibold">Igra Mainnet</span>
+                  </p>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Current: <span className="font-semibold">{currentChain?.name ?? (chainId ? `chain ${chainId}` : 'Not connected')}</span>
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
+                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">How it works</h3>
+                  <ol className="list-decimal list-inside space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                    <li>Verify your wallet (tiny on-chain tx).</li>
+                    <li>Create your campaign (goal + deadline).</li>
+                    <li>Share the campaign link.</li>
+                    <li>After deadline: creator claims if goal reached, otherwise donors can refund.</li>
+                  </ol>
+                </div>
+
+                {kaspaState.isConnected && kaspaState.address && (
+                  <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
+                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Kaspa L1 wallet</h3>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 break-all font-mono">{kaspaState.address}</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
