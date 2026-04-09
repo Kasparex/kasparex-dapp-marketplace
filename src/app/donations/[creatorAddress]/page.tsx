@@ -128,7 +128,7 @@ export default function DonationCampaignPage() {
                 <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
                   <div className="aspect-[16/9] w-full bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden">
                     <img
-                      src={metadata?.imageHash ? getGatewayUrl(metadata.imageHash) : DEFAULT_DONATION_IMAGE}
+                      src={metadata?.imageUrl || (metadata?.imageHash ? getGatewayUrl(metadata.imageHash) : DEFAULT_DONATION_IMAGE)}
                       alt=""
                       className="w-full h-full object-cover"
                     />

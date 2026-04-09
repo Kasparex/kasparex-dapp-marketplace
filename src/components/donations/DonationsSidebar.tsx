@@ -28,11 +28,21 @@ const statusItems: { id: DonationFilterStatus; label: string }[] = [
 const quickActions = [
   {
     id: 'studio',
-    label: 'Campaign Studio',
+    label: 'Create campaign',
     href: '/donations/studio',
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+      </svg>
+    ),
+  },
+  {
+    id: 'vaults',
+    label: 'Vaults & unlocks',
+    href: '/vblog/vault',
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c1.657 0 3-1.343 3-3S13.657 2 12 2 9 3.343 9 5s1.343 3 3 3zm0 0c-3.866 0-7 3.134-7 7v3a2 2 0 002 2h10a2 2 0 002-2v-3c0-3.866-3.134-7-7-7z" />
       </svg>
     ),
   },

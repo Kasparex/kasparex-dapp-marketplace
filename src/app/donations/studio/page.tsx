@@ -18,6 +18,7 @@ import { CHAIN_IDS } from '@/lib/wagmi';
 import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
 import type { Address } from 'viem';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { ImageUpload } from '@/components/ui/ImageUpload';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
 
@@ -77,7 +78,15 @@ export default function DonationsStudioPage() {
   const createError = txError;
   const claimError = txError;
   const updateError = txError;
-  const [createForm, setCreateForm] = useState<DonationCampaignMetadata & { targetKAS: string; endDate: string }>({
+  type FeaturedImageMode = 'url' | 'ipfs';
+  type StudioCampaignForm = DonationCampaignMetadata & {
+    targetKAS: string;
+    endDate: string;
+    featuredImageMode: FeaturedImageMode;
+    featuredImageValue: string;
+  };
+
+  const [createForm, setCreateForm] = useState<StudioCampaignForm>({
     title: '',
     description: '',
     goals: [],
@@ -85,12 +94,14 @@ export default function DonationsStudioPage() {
     l1KaspaAddress: '',
     targetKAS: '1000',
     endDate: '',
+    featuredImageMode: 'ipfs',
+    featuredImageValue: '',
   });
   const [goalInput, setGoalInput] = useState('');
   const [createSubmitting, setCreateSubmitting] = useState(false);
   const [createErrorMsg, setCreateErrorMsg] = useState<string | null>(null);
 
-  const [editForm, setEditForm] = useState<DonationCampaignMetadata & { targetKAS: string; endDate: string }>({
+  const [editForm, setEditForm] = useState<StudioCampaignForm>({
     title: '',
     description: '',
     goals: [],
@@ -98,6 +109,8 @@ export default function DonationsStudioPage() {
     l1KaspaAddress: '',
     targetKAS: '1000',
     endDate: '',
+    featuredImageMode: 'ipfs',
+    featuredImageValue: '',
   });
   const [editGoalInput, setEditGoalInput] = useState('');
   const [editLoadingMeta, setEditLoadingMeta] = useState(false);
@@ -143,12 +156,17 @@ export default function DonationsStudioPage() {
     setCreateSubmitting(true);
     setCreateErrorMsg(null);
     try {
+      const featuredImageMode = createForm.featuredImageMode;
+      const featuredImageValue = createForm.featuredImageValue.trim();
+
       const metadata: DonationCampaignMetadata = {
         title: createForm.title,
         description: createForm.description || '',
         goals: createForm.goals?.length ? createForm.goals : undefined,
         socialLinks: Object.keys(createForm.socialLinks || {}).length ? createForm.socialLinks : undefined,
         l1KaspaAddress: createForm.l1KaspaAddress.trim(),
+        imageUrl: featuredImageMode === 'url' && featuredImageValue ? featuredImageValue : undefined,
+        imageHash: featuredImageMode === 'ipfs' && featuredImageValue ? featuredImageValue : undefined,
       };
       const client = getIPFSClient();
       const ipfsHash = await client.uploadJSON(metadata as unknown as Record<string, unknown>);
@@ -184,6 +202,8 @@ export default function DonationsStudioPage() {
     try {
       const meta = await fetchCampaignMetadata(campaign.ipfsHash);
       const endDate = campaign.deadline ? new Date(Number(campaign.deadline) * 1000).toISOString().slice(0, 16) : '';
+      const featuredImageMode: FeaturedImageMode = meta?.imageUrl ? 'url' : 'ipfs';
+      const featuredImageValue = (meta?.imageUrl || meta?.imageHash || '').trim();
       setEditForm({
         title: meta?.title ?? '',
         description: meta?.description ?? '',
@@ -192,6 +212,8 @@ export default function DonationsStudioPage() {
         l1KaspaAddress: campaign.l1Address?.trim() ?? meta?.l1KaspaAddress ?? '',
         targetKAS: campaign.targetWei ? formatEther(campaign.targetWei) : '1000',
         endDate,
+        featuredImageMode,
+        featuredImageValue,
       });
       setShowEditForm(true);
     } catch (e) {
@@ -230,12 +252,16 @@ export default function DonationsStudioPage() {
     setEditSubmitting(true);
     setEditErrorMsg(null);
     try {
+      const featuredImageMode = editForm.featuredImageMode;
+      const featuredImageValue = editForm.featuredImageValue.trim();
       const metadata: DonationCampaignMetadata = {
         title: editForm.title,
         description: editForm.description || '',
         goals: editForm.goals?.length ? editForm.goals : undefined,
         socialLinks: Object.keys(editForm.socialLinks || {}).length ? editForm.socialLinks : undefined,
         l1KaspaAddress: editForm.l1KaspaAddress.trim(),
+        imageUrl: featuredImageMode === 'url' && featuredImageValue ? featuredImageValue : undefined,
+        imageHash: featuredImageMode === 'ipfs' && featuredImageValue ? featuredImageValue : undefined,
       };
       const client = getIPFSClient();
       const ipfsHash = await client.uploadJSON(metadata as unknown as Record<string, unknown>);
@@ -397,6 +423,43 @@ export default function DonationsStudioPage() {
                     />
                   </div>
                   <div>
+                    <div className="flex items-center justify-between gap-3 mb-2">
+                      <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Featured image</label>
+                      <div className="inline-flex rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => setCreateForm((f) => ({ ...f, featuredImageMode: 'url' }))}
+                          className={`px-3 py-1.5 text-xs font-bold ${createForm.featuredImageMode === 'url' ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300'}`}
+                        >
+                          URL
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setCreateForm((f) => ({ ...f, featuredImageMode: 'ipfs' }))}
+                          className={`px-3 py-1.5 text-xs font-bold ${createForm.featuredImageMode === 'ipfs' ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300'}`}
+                        >
+                          IPFS
+                        </button>
+                      </div>
+                    </div>
+                    <ImageUpload
+                      label=""
+                      value={createForm.featuredImageValue}
+                      onChange={(v) => setCreateForm((f) => ({ ...f, featuredImageValue: v }))}
+                      onFileSelect={async (file) => {
+                        const client = getIPFSClient();
+                        return await client.uploadFile(file, { filename: (file as File).name });
+                      }}
+                      placeholder={createForm.featuredImageMode === 'url' ? 'https://…' : 'CID (or upload a file)'}
+                      aspectRatio="video"
+                      showUrlInput={true}
+                      showFileUpload={createForm.featuredImageMode === 'ipfs'}
+                    />
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                      URL is fastest. IPFS keeps your campaign image permanent (recommended).
+                    </p>
+                  </div>
+                  <div>
                     <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Goals (optional)</label>
                     <div className="flex gap-2 mb-2">
                       <input
@@ -537,6 +600,40 @@ export default function DonationsStudioPage() {
                           onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
                           rows={3}
                           className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between gap-3 mb-2">
+                          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">Featured image</label>
+                          <div className="inline-flex rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+                            <button
+                              type="button"
+                              onClick={() => setEditForm((f) => ({ ...f, featuredImageMode: 'url' }))}
+                              className={`px-3 py-1.5 text-[11px] font-bold ${editForm.featuredImageMode === 'url' ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300'}`}
+                            >
+                              URL
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditForm((f) => ({ ...f, featuredImageMode: 'ipfs' }))}
+                              className={`px-3 py-1.5 text-[11px] font-bold ${editForm.featuredImageMode === 'ipfs' ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300'}`}
+                            >
+                              IPFS
+                            </button>
+                          </div>
+                        </div>
+                        <ImageUpload
+                          label=""
+                          value={editForm.featuredImageValue}
+                          onChange={(v) => setEditForm((f) => ({ ...f, featuredImageValue: v }))}
+                          onFileSelect={async (file) => {
+                            const client = getIPFSClient();
+                            return await client.uploadFile(file, { filename: (file as File).name });
+                          }}
+                          placeholder={editForm.featuredImageMode === 'url' ? 'https://…' : 'CID (or upload a file)'}
+                          aspectRatio="video"
+                          showUrlInput={true}
+                          showFileUpload={editForm.featuredImageMode === 'ipfs'}
                         />
                       </div>
                       <div>

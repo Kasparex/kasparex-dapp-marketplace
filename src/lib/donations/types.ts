@@ -14,7 +14,10 @@ export interface DonationCampaignMetadata {
     [key: string]: string | undefined;
   };
   l1KaspaAddress?: string; // optional duplicate; contract also stores l1Address
-  imageHash?: string; // IPFS hash of cover image
+  /** IPFS CID of cover image (preferred for permanence). */
+  imageHash?: string;
+  /** Direct image URL (http/https). */
+  imageUrl?: string;
 }
 
 /** On-chain campaign (from contract campaigns(creator)) */
