@@ -76,13 +76,9 @@ async function main() {
     process.exit(1);
   }
 
-  const gridTreasuryAddress = process.env.GRID_TREASURY_ADDRESS || '';
-  if (!gridTreasuryAddress) {
-    console.error('\nGRID_TREASURY_ADDRESS is required (receives 5%% tGRID). Set in .env');
-    process.exit(1);
-  }
+  const gridTreasuryAddress = process.env.GRID_TREASURY_ADDRESS || deployer.address;
 
-  console.log('Deploying full stack on IGRA Galleon Testnet with account:', deployer.address);
+  console.log('Deploying full stack on Igra Mainnet with account:', deployer.address);
   const overrides = getFeeOverrides(chainId);
 
   let tgridAddress = process.env.TGRID_ADDRESS || '';
@@ -145,10 +141,8 @@ async function main() {
   // 5. tKREX (for RTM on 38836) and RevenueTreeManager
   let krexTokenAddress = process.env.KREX_TOKEN_ADDRESS || hre.ethers.ZeroAddress;
   if (!process.env.KREX_TOKEN_ADDRESS) {
-    console.log('\n5a. Deploying tKREX...');
-    const tKREX = await hre.ethers.getContractFactory('tKREX');
-    krexTokenAddress = await deployNoEstimate(tKREX, [], overrides);
-    console.log('   tKREX at:', krexTokenAddress);
+    console.warn('\n5a. KREX_TOKEN_ADDRESS not set. RevenueTreeManager tiering will be disabled (set KREX_TOKEN_ADDRESS=0x9C31... for Igra Mainnet KREX).');
+    krexTokenAddress = hre.ethers.ZeroAddress;
   }
   console.log('\n5b. Deploying RevenueTreeManager...');
   const genesis = getGenesis();
@@ -264,7 +258,7 @@ async function main() {
   };
   const outDir = path.join(__dirname, '..', 'deployments');
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
-  const outPath = path.join(outDir, `igra-galleon-testnet-${new Date().toISOString().slice(0, 10)}.json`);
+  const outPath = path.join(outDir, `igraMainnet-${new Date().toISOString().slice(0, 10)}.json`);
   fs.writeFileSync(outPath, JSON.stringify(out, null, 2));
   console.log('\nWrote:', outPath);
   console.log('\n--- Set these in .env and Vercel ---');

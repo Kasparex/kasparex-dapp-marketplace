@@ -8,17 +8,13 @@
  * Env:
  *   PRIVATE_KEY - must be owner of FeeRouter and LoyaltyPoints (or deployer who did configure-igra-galleon-rewards)
  *   DONATION_ESCROW_ADDRESS - deployed DonationEscrow address (or set in deployments/donation-escrow-igra-galleon-testnet.json)
- *   FEE_ROUTER_ADDRESS - optional (default 38836)
- *   LOYALTY_POINTS_ADDRESS - optional (default 38836)
+ *   FEE_ROUTER_ADDRESS - required on Igra Mainnet
+ *   LOYALTY_POINTS_ADDRESS - required on Igra Mainnet
  */
 
 const hre = require('hardhat');
 const fs = require('fs');
 const path = require('path');
-
-// Use same FeeRouter as app (igraMainnet) so donation fees distribute to Revenue Tree
-const FEE_ROUTER_38836 = '0xd556624Cd557cb4fA3a23964Ced4838e1ffA6E5A';
-const LOYALTY_POINTS_38836 = '0x1cF432A52A0f2D09c8E7450CC40E4FC1422E8936';
 
 function getOverrides(chainId) {
   if (Number(chainId) === 38833) {
@@ -38,22 +34,26 @@ async function main() {
 
   let donationEscrowAddress = process.env.DONATION_ESCROW_ADDRESS?.trim();
   if (!donationEscrowAddress) {
-    const deploymentsPath = path.join(__dirname, '..', 'deployments', 'donation-escrow-igra-galleon-testnet.json');
+    const deploymentsPath = path.join(__dirname, '..', 'deployments', 'donation-escrow-igraMainnet.json');
     if (fs.existsSync(deploymentsPath)) {
       const data = JSON.parse(fs.readFileSync(deploymentsPath, 'utf8'));
       donationEscrowAddress = data.DonationEscrow;
     }
   }
   if (!donationEscrowAddress) {
-    console.error('Set DONATION_ESCROW_ADDRESS or run deploy-donation-escrow.js first (creates deployments/donation-escrow-igra-galleon-testnet.json).');
+    console.error('Set DONATION_ESCROW_ADDRESS or run deploy-donation-escrow.js first (creates deployments/donation-escrow-igraMainnet.json).');
     process.exit(1);
   }
 
-  const feeRouterAddress = (process.env.FEE_ROUTER_ADDRESS || FEE_ROUTER_38836).trim();
-  const loyaltyPointsAddress = (process.env.LOYALTY_POINTS_ADDRESS || LOYALTY_POINTS_38836).trim();
+  const feeRouterAddress = (process.env.FEE_ROUTER_ADDRESS || '').trim();
+  const loyaltyPointsAddress = (process.env.LOYALTY_POINTS_ADDRESS || '').trim();
+  if (!feeRouterAddress || !loyaltyPointsAddress) {
+    console.error('Set FEE_ROUTER_ADDRESS and LOYALTY_POINTS_ADDRESS for Igra Mainnet.');
+    process.exit(1);
+  }
   const overrides = getOverrides(chainId);
 
-  console.log('vDonations auth setup on IGRA Galleon Testnet');
+  console.log('CrowdKAS auth setup on Igra Mainnet');
   console.log('Account:', deployer.address);
   console.log('DonationEscrow:', donationEscrowAddress);
   console.log('FeeRouter:', feeRouterAddress);

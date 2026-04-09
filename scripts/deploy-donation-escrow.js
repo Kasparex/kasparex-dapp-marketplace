@@ -1,5 +1,5 @@
 /**
- * Deploy DonationEscrow (Kasparex vDonations) on IGRA Galleon Testnet.
+ * Deploy DonationEscrow (Kasparex CrowdKAS) on Igra Mainnet (38833).
  * Usage: npx hardhat run scripts/deploy-donation-escrow.js --network igraMainnet
  * Env: PRIVATE_KEY, FEE_ROUTER_ADDRESS, LOYALTY_POINTS_ADDRESS, (optional) RECORDER_ADDRESS (defaults to deployer)
  */
@@ -8,8 +8,6 @@ const hre = require('hardhat');
 const fs = require('fs');
 const path = require('path');
 
-const FEE_ROUTER_38836 = '0xd556624Cd557cb4fA3a23964Ced4838e1ffA6E5A';
-const LOYALTY_POINTS_38836 = '0x1cF432A52A0f2D09c8E7450CC40E4FC1422E8936';
 const FEE_BPS = 1000; // 10% â€” goes to FeeRouter; set FeeRouter.setTreeBpsByType("donation", 10000) so 100% of this goes to Revenue Tree
 
 function getOverrides(chainId) {
@@ -28,12 +26,16 @@ async function main() {
     process.exit(1);
   }
 
-  const feeRouterAddress = (process.env.FEE_ROUTER_ADDRESS || FEE_ROUTER_38836).trim();
-  const loyaltyPointsAddress = (process.env.LOYALTY_POINTS_ADDRESS || LOYALTY_POINTS_38836).trim();
+  const feeRouterAddress = (process.env.FEE_ROUTER_ADDRESS || '').trim();
+  const loyaltyPointsAddress = (process.env.LOYALTY_POINTS_ADDRESS || '').trim();
+  if (!feeRouterAddress || !loyaltyPointsAddress) {
+    console.error('Set FEE_ROUTER_ADDRESS and LOYALTY_POINTS_ADDRESS in env for Igra Mainnet.');
+    process.exit(1);
+  }
   const recorderAddress = (process.env.RECORDER_ADDRESS || deployer.address).trim();
   const overrides = getOverrides(chainId);
 
-  console.log('Deploying DonationEscrow (vDonations) on IGRA Galleon Testnet');
+  console.log('Deploying DonationEscrow (CrowdKAS) on Igra Mainnet');
   console.log('Deployer:', deployer.address);
   console.log('FeeRouter:', feeRouterAddress);
   console.log('LoyaltyPoints:', loyaltyPointsAddress);
@@ -65,7 +67,7 @@ async function main() {
   };
   const outDir = path.join(__dirname, '..', 'deployments');
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
-  const outPath = path.join(outDir, 'donation-escrow-igra-galleon-testnet.json');
+  const outPath = path.join(outDir, 'donation-escrow-igraMainnet.json');
   fs.writeFileSync(outPath, JSON.stringify(out, null, 2));
   console.log('Wrote:', outPath);
   console.log('\nNext: 1) Add DonationEscrow to FeeRouter (setAuthorizedDApp). 2) On FeeRouter call setTreeBpsByType("donation", 10000) so 100% of donation fees go to Revenue Tree. 3) Add DonationEscrow to LoyaltyPoints (setAuthorizedCaller). 4) Set baseReward and pointsPer1iKAS for "donation" and "vdonation-l1".');
