@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
 import type { DonationCampaignListItem } from '@/hooks/useDonationCampaigns';
 
 export type DonationSortOption = 'newest' | 'oldest' | 'most-raised' | 'least-raised' | 'ending-soon' | 'most-donors';
@@ -28,8 +29,8 @@ export function sortCampaigns(
 }
 
 const SORT_OPTIONS: { value: DonationSortOption; label: string }[] = [
-  { value: 'newest', label: 'Newest' },
-  { value: 'oldest', label: 'Oldest' },
+  { value: 'newest', label: 'Newest first' },
+  { value: 'oldest', label: 'Oldest first' },
   { value: 'most-raised', label: 'Most raised' },
   { value: 'least-raised', label: 'Least raised' },
   { value: 'ending-soon', label: 'Ending soon' },
@@ -42,21 +43,63 @@ interface DonationSortFiltersProps {
 }
 
 export function DonationSortFilters({ sortBy, onSortChange }: DonationSortFiltersProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const sortContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sortContainerRef.current && !sortContainerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const currentLabel = SORT_OPTIONS.find((opt) => opt.value === sortBy)?.label ?? 'Sort by…';
+
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 shrink-0">Sort</span>
-      <select
-        value={sortBy}
-        onChange={(e) => onSortChange(e.target.value as DonationSortOption)}
-        className="h-10 appearance-none pl-3 pr-8 py-2 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm font-medium text-zinc-700 dark:text-zinc-300 focus:outline-none hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
-        aria-label="Sort campaigns"
-      >
-        {SORT_OPTIONS.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
+      <div className="relative flex-shrink-0 overflow-visible" ref={sortContainerRef}>
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="k-control-btn min-w-[160px]"
+        >
+          <span className="truncate">{currentLabel}</span>
+          <svg className="w-4 h-4 ml-auto shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {isOpen && (
+          <div className="absolute left-0 top-full mt-1.5 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[9999] overflow-hidden">
+            {SORT_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => {
+                  onSortChange(option.value);
+                  setIsOpen(false);
+                }}
+                className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                  sortBy === option.value
+                    ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
+                    : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

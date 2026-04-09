@@ -38,6 +38,12 @@ export const AD_SLOT_PLACEMENT_LINKS: {
     placement: 'NFT Tools, halo header right',
   },
   {
+    slotId: 'HALO_DONATIONS_RIGHT',
+    title: 'CrowdKAS halo',
+    href: '/donations#ad-slot-crowdkas-halo',
+    placement: 'CrowdKAS listing, halo header right',
+  },
+  {
     slotId: 'VBLOG_ARTICLE_ASIDE_BOTTOM',
     title: 'vBlog article aside',
     href: '/vblog#ad-slot-vblog-article-aside-bottom',

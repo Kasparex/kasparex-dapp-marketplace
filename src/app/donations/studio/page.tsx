@@ -286,34 +286,16 @@ export default function DonationsStudioPage() {
   const deadlinePassed = campaign && BigInt(Math.floor(Date.now() / 1000)) >= campaign.deadline;
   const canClaim = campaign && targetReached && deadlinePassed;
 
-  const sidebarStatusCounts = { all: 1, active: 1, ended: 0 };
-
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950">
       <Header />
       <main className="flex-1 flex flex-col">
         <div className="flex-1 flex flex-col lg:flex-row">
           <div className="hidden lg:block flex-shrink-0">
-            <DonationsSidebar
-              selectedStatus="all"
-              onStatusChange={() => {}}
-              searchQuery=""
-              onSearchChange={() => {}}
-              onResetFilters={() => {}}
-              statusCounts={sidebarStatusCounts}
-              backLink={{ href: '/donations', label: 'All campaigns' }}
-            />
+            <DonationsSidebar variant="minimal" backLink={{ href: '/donations', label: 'All campaigns' }} />
           </div>
           <div className="lg:hidden flex-shrink-0">
-            <DonationsSidebar
-              selectedStatus="all"
-              onStatusChange={() => {}}
-              searchQuery=""
-              onSearchChange={() => {}}
-              onResetFilters={() => {}}
-              statusCounts={sidebarStatusCounts}
-              backLink={{ href: '/donations', label: 'All campaigns' }}
-            />
+            <DonationsSidebar variant="minimal" backLink={{ href: '/donations', label: 'All campaigns' }} />
           </div>
 
           <div className="flex-1 min-w-0 p-4 sm:p-6 lg:px-8 lg:py-8">

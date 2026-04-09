@@ -45,33 +45,15 @@ const MOCK_MODULES: MockModule[] = [
 ];
 
 export default function CrowdKasModulesPage() {
-  const sidebarStatusCounts = { all: 0, active: 0, ended: 0 };
-
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950">
       <Header />
       <main className="flex-1 flex flex-col lg:flex-row">
         <div className="hidden lg:block flex-shrink-0">
-          <DonationsSidebar
-            selectedStatus="all"
-            onStatusChange={() => {}}
-            searchQuery=""
-            onSearchChange={() => {}}
-            onResetFilters={() => {}}
-            statusCounts={sidebarStatusCounts}
-            backLink={{ href: '/donations', label: 'All campaigns' }}
-          />
+          <DonationsSidebar variant="minimal" backLink={{ href: '/donations', label: 'All campaigns' }} />
         </div>
         <div className="lg:hidden flex-shrink-0">
-          <DonationsSidebar
-            selectedStatus="all"
-            onStatusChange={() => {}}
-            searchQuery=""
-            onSearchChange={() => {}}
-            onResetFilters={() => {}}
-            statusCounts={sidebarStatusCounts}
-            backLink={{ href: '/donations', label: 'All campaigns' }}
-          />
+          <DonationsSidebar variant="minimal" backLink={{ href: '/donations', label: 'All campaigns' }} />
         </div>
 
         <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">

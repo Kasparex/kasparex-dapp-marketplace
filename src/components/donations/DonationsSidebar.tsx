@@ -9,32 +9,32 @@ import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
 
 export type DonationFilterStatus = 'all' | 'active' | 'ended';
 
-interface DonationsSidebarProps {
-  selectedStatus: DonationFilterStatus;
-  onStatusChange: (status: DonationFilterStatus) => void;
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
-  onResetFilters: () => void;
-  statusCounts: { all: number; active: number; ended: number };
-  backLink?: { href: string; label: string };
-}
-
 const statusItems: { id: DonationFilterStatus; label: string }[] = [
   { id: 'all', label: 'All campaigns' },
   { id: 'active', label: 'Active' },
   { id: 'ended', label: 'Ended' },
 ];
 
-export function DonationsSidebar({
-  selectedStatus,
-  onStatusChange,
-  searchQuery,
-  onSearchChange,
-  onResetFilters,
-  statusCounts,
-  backLink = { href: '/hub', label: 'Back to Hub' },
-}: DonationsSidebarProps) {
+type DonationsSidebarListingProps = {
+  variant?: 'listing';
+  selectedStatus: DonationFilterStatus;
+  onStatusChange: (status: DonationFilterStatus) => void;
+  statusCounts: { all: number; active: number; ended: number };
+  backLink?: { href: string; label: string };
+};
+
+type DonationsSidebarMinimalProps = {
+  variant: 'minimal';
+  backLink?: { href: string; label: string };
+};
+
+export type DonationsSidebarProps = DonationsSidebarListingProps | DonationsSidebarMinimalProps;
+
+export function DonationsSidebar(props: DonationsSidebarProps) {
   const pathname = usePathname();
+  const isListing = props.variant !== 'minimal';
+  const backLink = props.backLink ?? { href: '/hub', label: 'Back to Hub' };
+
   const header = (onHide: () => void) => (
     <SidebarHeader backHref={backLink.href} backLabel={backLink.label} onHide={onHide} />
   );
@@ -42,7 +42,7 @@ export function DonationsSidebar({
   const categoryItems = statusItems.map((s) => ({
     id: s.id,
     label: s.label,
-    count: statusCounts[s.id] ?? 0,
+    count: isListing ? props.statusCounts[s.id] ?? 0 : 0,
     icon: (
       <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -67,42 +67,25 @@ export function DonationsSidebar({
           <span className="text-xs font-black uppercase tracking-widest">Create campaign</span>
         </Link>
 
-        <Link
-          href="/donations/modules"
-          className={`k-control-btn w-full justify-center gap-2 ${
-            pathname.startsWith('/donations/modules')
-              ? '!border-cyan-500/40 !bg-cyan-500/15 !text-[#017a84] dark:!text-[#8ff1f8]'
-              : '!border-cyan-500/30 !bg-cyan-500/10 !text-[#017a84] dark:!text-[#8ff1f8] hover:!bg-cyan-500/15'
-          }`}
-        >
+        <Link href="/donations/modules" className="k-control-btn w-full justify-center gap-2">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c1.657 0 3-1.343 3-3S13.657 2 12 2 9 3.343 9 5s1.343 3 3 3zm0 0c-3.866 0-7 3.134-7 7v3a2 2 0 002 2h10a2 2 0 002-2v-3c0-3.866-3.134-7-7-7z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
           </svg>
-          <span className="text-xs font-black uppercase tracking-widest">Vaults & unlocks</span>
+          <span className="text-xs font-black uppercase tracking-widest">Modules</span>
         </Link>
       </div>
-      <SidebarSection title="Filter by status">
-        <SidebarCategories
-          title=""
-          items={categoryItems}
-          selectedIds={[selectedStatus]}
-          onSelect={(id) => onStatusChange(id as DonationFilterStatus)}
-          multi={false}
-        />
-      </SidebarSection>
-      <SidebarSection title="Search">
-        <input
-          type="search"
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search campaigns..."
-          className="w-full px-3 py-2 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-zinc-900 dark:text-zinc-100"
-          aria-label="Search campaigns"
-        />
-      </SidebarSection>
-      <button type="button" onClick={onResetFilters} className="w-full mt-4 k-control-btn">
-        Reset filters
-      </button>
+
+      {isListing && (
+        <SidebarSection title="Filter by status">
+          <SidebarCategories
+            title=""
+            items={categoryItems}
+            selectedIds={[props.selectedStatus]}
+            onSelect={(id) => props.onStatusChange(id as DonationFilterStatus)}
+            multi={false}
+          />
+        </SidebarSection>
+      )}
     </UnifiedSidebar>
   );
 }

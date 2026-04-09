@@ -85,8 +85,6 @@ export default function DonationCampaignPage() {
   const deadlineDate = new Date(Number(campaign.deadline) * 1000);
   const title = metadata?.title ?? `Campaign ${campaign.creatorAddress.slice(0, 6)}...${campaign.creatorAddress.slice(-4)}`;
 
-  const sidebarStatusCounts = { all: 1, active: campaign.active ? 1 : 0, ended: campaign.active ? 0 : 1 };
-
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950">
       <Header />
@@ -95,26 +93,10 @@ export default function DonationCampaignPage() {
         <div className="flex-1 flex flex-col lg:flex-row">
           {/* Left sidebar - same as donations listing */}
           <div className="hidden lg:block flex-shrink-0">
-            <DonationsSidebar
-              selectedStatus="all"
-              onStatusChange={() => {}}
-              searchQuery=""
-              onSearchChange={() => {}}
-              onResetFilters={() => {}}
-              statusCounts={sidebarStatusCounts}
-              backLink={{ href: '/donations', label: 'All campaigns' }}
-            />
+            <DonationsSidebar variant="minimal" backLink={{ href: '/donations', label: 'All campaigns' }} />
           </div>
           <div className="lg:hidden flex-shrink-0">
-            <DonationsSidebar
-              selectedStatus="all"
-              onStatusChange={() => {}}
-              searchQuery=""
-              onSearchChange={() => {}}
-              onResetFilters={() => {}}
-              statusCounts={sidebarStatusCounts}
-              backLink={{ href: '/donations', label: 'All campaigns' }}
-            />
+            <DonationsSidebar variant="minimal" backLink={{ href: '/donations', label: 'All campaigns' }} />
           </div>
 
           {/* Two columns: campaign (left) | info + leaderboard + Revenue Tree (right) */}
