@@ -11,12 +11,16 @@ import { DonationSortFilters, sortCampaigns, type DonationSortOption } from '@/c
 import { FilterBar } from '@/components/FilterBar';
 import { DEFAULT_DONATION_IMAGE } from '@/lib/donations/constants';
 import { formatEther } from 'viem';
+import type { DonationCampaignMetadata } from '@/lib/donations/types';
+import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
+import { getGatewayUrl } from '@/lib/ipfs/gateway';
 
 export default function DonationsListingPage() {
   const { campaigns, isLoading, error } = useDonationCampaigns();
   const [selectedStatus, setSelectedStatus] = useState<DonationFilterStatus>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<DonationSortOption>('newest');
+  const [metaByCreator, setMetaByCreator] = useState<Record<string, DonationCampaignMetadata | null>>({});
 
   const statusCounts = useMemo(() => {
     const now = Math.floor(Date.now() / 1000);
@@ -53,6 +57,38 @@ export default function DonationsListingPage() {
     setSearchQuery('');
     setSortBy('newest');
   };
+
+  useEffect(() => {
+    let cancelled = false;
+    const creatorAddresses = campaigns.map((c) => c.creatorAddress);
+    const missing = creatorAddresses.filter((a) => metaByCreator[a] === undefined);
+    if (missing.length === 0) return;
+
+    (async () => {
+      const entries = await Promise.all(
+        missing.map(async (addr) => {
+          const c = campaigns.find((x) => x.creatorAddress === addr);
+          if (!c?.ipfsHash) return [addr, null] as const;
+          try {
+            const m = await fetchCampaignMetadata(c.ipfsHash);
+            return [addr, m ?? null] as const;
+          } catch {
+            return [addr, null] as const;
+          }
+        })
+      );
+      if (cancelled) return;
+      setMetaByCreator((prev) => {
+        const next = { ...prev };
+        for (const [addr, meta] of entries) next[addr] = meta;
+        return next;
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [campaigns, metaByCreator]);
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950">
@@ -132,7 +168,7 @@ export default function DonationsListingPage() {
           {!isLoading && filteredCampaigns.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredCampaigns.map((c) => (
-                <DonationCampaignCard key={c.creatorAddress} campaign={c} />
+                <DonationCampaignCard key={c.creatorAddress} campaign={c} metadata={metaByCreator[c.creatorAddress] ?? null} />
               ))}
             </div>
           )}
@@ -143,9 +179,13 @@ export default function DonationsListingPage() {
   );
 }
 
-function DonationCampaignCard({ campaign }: { campaign: DonationCampaignListItem }) {
+function DonationCampaignCard({ campaign, metadata }: { campaign: DonationCampaignListItem; metadata: DonationCampaignMetadata | null }) {
   const progress = campaign.targetWei > 0n ? Number((campaign.raisedWei * 10000n) / campaign.targetWei) / 100 : 0;
   const deadline = new Date(Number(campaign.deadline) * 1000);
+  const imageSrc =
+    metadata?.imageUrl ||
+    (metadata?.imageHash ? getGatewayUrl(metadata.imageHash) : DEFAULT_DONATION_IMAGE);
+  const title = metadata?.title?.trim() || `${campaign.creatorAddress.slice(0, 6)}...${campaign.creatorAddress.slice(-4)}`;
   return (
     <Link
       href={`/donations/${campaign.creatorAddress}`}
@@ -153,7 +193,7 @@ function DonationCampaignCard({ campaign }: { campaign: DonationCampaignListItem
     >
       <div className="aspect-[16/9] bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden">
         <img
-          src={DEFAULT_DONATION_IMAGE}
+          src={imageSrc}
           alt=""
           className="w-full h-full object-cover"
         />
@@ -169,6 +209,9 @@ function DonationCampaignCard({ campaign }: { campaign: DonationCampaignListItem
             </span>
           )}
         </div>
+        <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2">
+          {title}
+        </p>
         <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
           {formatEther(campaign.raisedWei)} / {formatEther(campaign.targetWei)} iKAS
         </div>

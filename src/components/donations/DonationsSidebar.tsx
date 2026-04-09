@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
-import { SidebarQuickActions } from '@/components/sidebar/SidebarQuickActions';
 import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
 
 export type DonationFilterStatus = 'all' | 'active' | 'ended';
@@ -25,29 +25,6 @@ const statusItems: { id: DonationFilterStatus; label: string }[] = [
   { id: 'ended', label: 'Ended' },
 ];
 
-const quickActions = [
-  {
-    id: 'studio',
-    label: 'Create campaign',
-    href: '/donations/studio',
-    icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-      </svg>
-    ),
-  },
-  {
-    id: 'vaults',
-    label: 'Vaults & unlocks',
-    href: '/vblog/vault',
-    icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c1.657 0 3-1.343 3-3S13.657 2 12 2 9 3.343 9 5s1.343 3 3 3zm0 0c-3.866 0-7 3.134-7 7v3a2 2 0 002 2h10a2 2 0 002-2v-3c0-3.866-3.134-7-7-7z" />
-      </svg>
-    ),
-  },
-];
-
 export function DonationsSidebar({
   selectedStatus,
   onStatusChange,
@@ -57,6 +34,7 @@ export function DonationsSidebar({
   statusCounts,
   backLink = { href: '/hub', label: 'Back to Hub' },
 }: DonationsSidebarProps) {
+  const pathname = usePathname();
   const header = (onHide: () => void) => (
     <SidebarHeader backHref={backLink.href} backLabel={backLink.label} onHide={onHide} />
   );
@@ -74,7 +52,35 @@ export function DonationsSidebar({
 
   return (
     <UnifiedSidebar storageKeyPrefix="donations" header={header}>
-      <SidebarQuickActions title="Quick links" items={quickActions} />
+      <div className="px-3 pt-3 pb-4 space-y-2 border-b border-zinc-200/70 dark:border-zinc-800/70 mb-4">
+        <Link
+          href="/donations/studio"
+          className={`k-control-btn w-full justify-center gap-2 ${
+            pathname.startsWith('/donations/studio')
+              ? '!border-emerald-500/40 !bg-emerald-500/15 !text-emerald-800 dark:!text-emerald-300'
+              : '!border-emerald-500/30 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300 hover:!bg-emerald-500/15'
+          }`}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          <span className="text-xs font-black uppercase tracking-widest">Create campaign</span>
+        </Link>
+
+        <Link
+          href="/donations/modules"
+          className={`k-control-btn w-full justify-center gap-2 ${
+            pathname.startsWith('/donations/modules')
+              ? '!border-cyan-500/40 !bg-cyan-500/15 !text-[#017a84] dark:!text-[#8ff1f8]'
+              : '!border-cyan-500/30 !bg-cyan-500/10 !text-[#017a84] dark:!text-[#8ff1f8] hover:!bg-cyan-500/15'
+          }`}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c1.657 0 3-1.343 3-3S13.657 2 12 2 9 3.343 9 5s1.343 3 3 3zm0 0c-3.866 0-7 3.134-7 7v3a2 2 0 002 2h10a2 2 0 002-2v-3c0-3.866-3.134-7-7-7z" />
+          </svg>
+          <span className="text-xs font-black uppercase tracking-widest">Vaults & unlocks</span>
+        </Link>
+      </div>
       <SidebarSection title="Filter by status">
         <SidebarCategories
           title=""

@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { AdSlider } from '@/components/ads/AdSlider';
 
 export function DonationsHeader() {
   return (
@@ -29,26 +29,9 @@ export function DonationsHeader() {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/40 backdrop-blur p-5">
-          <p className="text-xs font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-400 mb-2">Ad module</p>
-          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-1">Promote your project</p>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Featured placements for creators, builders, and partners.
-          </p>
-          <div className="mt-4 flex gap-2">
-            <Link
-              href="/stats/contracts"
-              className="px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-            >
-              View contracts
-            </Link>
-            <Link
-              href="/hub"
-              className="px-3 py-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-sm font-semibold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-500/15 transition-colors"
-            >
-              Explore dApps
-            </Link>
-          </div>
+        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/40 backdrop-blur p-4 sm:p-5">
+          <p className="text-xs font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-400 mb-3">Ad slots</p>
+          <AdSlider slotId="HALO_DONATIONS_RIGHT" />
         </div>
       </div>
     </div>
