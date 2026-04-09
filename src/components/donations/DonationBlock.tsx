@@ -43,7 +43,7 @@ function getCrowdKASDApp(chainId: number | undefined) {
     process: '',
     benefits: '',
     developer: '',
-    status: (isTestnet ? 'Testnet' : 'Mainnet') as const,
+    status: isTestnet ? 'Testnet' : 'Mainnet',
     provider: '',
   };
 }
