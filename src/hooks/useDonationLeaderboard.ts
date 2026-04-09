@@ -15,6 +15,14 @@ export interface DonorEntry {
 
 const CHAIN_ID = 38833;
 
+/** Narrow shape for L1 logs (viem types Donated vs L1DonationRecorded as incompatible arrays). */
+type L1DonationRecordedLog = {
+  args: {
+    donorL2?: Address;
+    amountWei?: bigint;
+  };
+};
+
 /** Refetch only when donorCount or raisedWei change (from campaign), not on every render. */
 export function useDonationLeaderboard(
   creatorAddress: string | null,
@@ -41,15 +49,15 @@ export function useDonationLeaderboard(
         args: { creator },
         fromBlock: 'earliest',
       });
-      let l1Logs: typeof l2Logs = [];
+      let l1Logs: L1DonationRecordedLog[] = [];
       try {
-        l1Logs = await publicClient.getContractEvents({
+        l1Logs = (await publicClient.getContractEvents({
           address: escrowAddress as Address,
           abi: DONATION_ESCROW_ABI,
           eventName: 'L1DonationRecorded',
           args: { creator },
           fromBlock: 'earliest',
-        });
+        })) as L1DonationRecordedLog[];
       } catch {
         // Older escrow deployments or mismatched event ABI: leaderboard still shows L2 only.
       }
