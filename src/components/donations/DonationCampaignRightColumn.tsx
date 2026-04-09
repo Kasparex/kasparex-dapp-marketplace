@@ -6,6 +6,7 @@ import { DonationLeaderboard } from './DonationLeaderboard';
 import { RevenueTree } from '@/components/revenue-tree/RevenueTree';
 import { generateDonationRevenueTree } from '@/lib/revenue-tree/mockData';
 import type { DonationCampaign } from '@/lib/donations/types';
+import { progressPercent, totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
 
 interface DonationCampaignRightColumnProps {
   campaign: DonationCampaign;
@@ -18,7 +19,9 @@ export function DonationCampaignRightColumn({ campaign, creatorAddress, previewD
   const chainId = useChainId();
   const { address: userWalletAddress } = useAccount();
   const deadlineDate = new Date(Number(campaign.deadline) * 1000);
-  const progress = campaign.targetWei > 0n ? Number((campaign.raisedWei * 10000n) / campaign.targetWei) / 100 : 0;
+  const progress = progressPercent(campaign, campaign.targetWei);
+  const raisedTotal = totalRaisedWei(campaign);
+  const donorsTotal = totalDonorCount(campaign);
 
   const revenueTreeData = generateDonationRevenueTree(
     creatorAddress,
@@ -35,7 +38,7 @@ export function DonationCampaignRightColumn({ campaign, creatorAddress, previewD
         <dl className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-zinc-500 dark:text-zinc-400">Raised</span>
-            <span className="font-medium text-zinc-900 dark:text-zinc-100">{formatEther(campaign.raisedWei)} iKAS</span>
+            <span className="font-medium text-zinc-900 dark:text-zinc-100">{formatEther(raisedTotal)} iKAS</span>
           </div>
           <div className="flex justify-between">
             <span className="text-zinc-500 dark:text-zinc-400">Target</span>
@@ -43,7 +46,7 @@ export function DonationCampaignRightColumn({ campaign, creatorAddress, previewD
           </div>
           <div className="flex justify-between">
             <span className="text-zinc-500 dark:text-zinc-400">Donors</span>
-            <span className="font-medium text-zinc-900 dark:text-zinc-100">{campaign.donorCount.toString()}</span>
+            <span className="font-medium text-zinc-900 dark:text-zinc-100">{donorsTotal.toString()}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-zinc-500 dark:text-zinc-400">Ends</span>
@@ -58,7 +61,7 @@ export function DonationCampaignRightColumn({ campaign, creatorAddress, previewD
         </div>
       </div>
 
-      <DonationLeaderboard creatorAddress={creatorAddress} limit={20} donorCount={campaign.donorCount} raisedWei={campaign.raisedWei} />
+      <DonationLeaderboard creatorAddress={creatorAddress} limit={20} donorCount={donorsTotal} raisedWei={raisedTotal} />
 
       <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden p-4">
         <RevenueTree

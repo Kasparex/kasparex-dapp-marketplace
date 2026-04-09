@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import type { DonationCampaignListItem } from '@/hooks/useDonationCampaigns';
+import { totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
 
 export type DonationSortOption = 'newest' | 'oldest' | 'most-raised' | 'least-raised' | 'ending-soon' | 'most-donors';
 
@@ -16,13 +17,25 @@ export function sortCampaigns(
     case 'oldest':
       return arr.sort((a, b) => Number(a.deadline - b.deadline));
     case 'most-raised':
-      return arr.sort((a, b) => (b.raisedWei > a.raisedWei ? 1 : b.raisedWei < a.raisedWei ? -1 : 0));
+      return arr.sort((a, b) => {
+        const rb = totalRaisedWei(b);
+        const ra = totalRaisedWei(a);
+        return rb > ra ? 1 : rb < ra ? -1 : 0;
+      });
     case 'least-raised':
-      return arr.sort((a, b) => (a.raisedWei > b.raisedWei ? 1 : a.raisedWei < b.raisedWei ? -1 : 0));
+      return arr.sort((a, b) => {
+        const ra = totalRaisedWei(a);
+        const rb = totalRaisedWei(b);
+        return ra > rb ? 1 : ra < rb ? -1 : 0;
+      });
     case 'ending-soon':
       return arr.sort((a, b) => Number(a.deadline - b.deadline));
     case 'most-donors':
-      return arr.sort((a, b) => (b.donorCount > a.donorCount ? 1 : b.donorCount < a.donorCount ? -1 : 0));
+      return arr.sort((a, b) => {
+        const db = totalDonorCount(b);
+        const da = totalDonorCount(a);
+        return db > da ? 1 : db < da ? -1 : 0;
+      });
     default:
       return arr;
   }

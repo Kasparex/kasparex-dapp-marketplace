@@ -3,6 +3,7 @@
 import { useDonationLeaderboard } from '@/hooks/useDonationLeaderboard';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { useChainId } from 'wagmi';
+import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
 
 interface DonationLeaderboardProps {
   creatorAddress: string;
@@ -14,6 +15,7 @@ interface DonationLeaderboardProps {
 
 export function DonationLeaderboard({ creatorAddress, limit = 20, donorCount, raisedWei }: DonationLeaderboardProps) {
   const chainId = useChainId();
+  const explorerChainId = chainId || CROWDKAS_CHAIN_ID;
   const { leaderboard, isLoading, error } = useDonationLeaderboard(creatorAddress, limit, { donorCount, raisedWei });
 
   return (
@@ -37,7 +39,7 @@ export function DonationLeaderboard({ creatorAddress, limit = 20, donorCount, ra
               <li key={entry.donor} className="flex items-center justify-between text-sm">
                 <span className="text-zinc-500 dark:text-zinc-400 w-6">{i + 1}.</span>
                 <a
-                  href={chainId ? getExplorerUrl(entry.donor, chainId) : '#'}
+                  href={getExplorerUrl(entry.donor, explorerChainId)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-mono text-zinc-700 dark:text-zinc-300 hover:text-emerald-600 dark:hover:text-emerald-400 truncate flex-1 mx-2 min-w-0"

@@ -16,6 +16,8 @@ import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { DEFAULT_DONATION_IMAGE } from '@/lib/donations/constants';
 import { getGatewayUrl } from '@/lib/ipfs/gateway';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
+import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
+import { progressPercent, totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
 
 export default function DonationCampaignPage() {
   const params = useParams();
@@ -81,7 +83,10 @@ export default function DonationCampaignPage() {
     );
   }
 
-  const progress = campaign.targetWei > 0n ? Number((campaign.raisedWei * 10000n) / campaign.targetWei) / 100 : 0;
+  const progress = progressPercent(campaign, campaign.targetWei);
+  const raisedTotal = totalRaisedWei(campaign);
+  const donorsTotal = totalDonorCount(campaign);
+  const explorerChainId = chainId || CROWDKAS_CHAIN_ID;
   const deadlineDate = new Date(Number(campaign.deadline) * 1000);
   const title = metadata?.title ?? `Campaign ${campaign.creatorAddress.slice(0, 6)}...${campaign.creatorAddress.slice(-4)}`;
 
@@ -133,7 +138,7 @@ export default function DonationCampaignPage() {
                     <p className="text-sm font-mono text-zinc-500 dark:text-zinc-400 mb-6">
                       Creator:{' '}
                       <a
-                        href={chainId ? getExplorerUrl(campaign.creatorAddress, chainId) : '#'}
+                        href={getExplorerUrl(campaign.creatorAddress, explorerChainId)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="hover:text-emerald-600 dark:hover:text-emerald-400 underline"
@@ -146,7 +151,7 @@ export default function DonationCampaignPage() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                       <div>
                         <p className="text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Raised</p>
-                        <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{formatEther(campaign.raisedWei)} iKAS</p>
+                        <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{formatEther(raisedTotal)} iKAS</p>
                       </div>
                       <div>
                         <p className="text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Target</p>
@@ -154,7 +159,7 @@ export default function DonationCampaignPage() {
                       </div>
                       <div>
                         <p className="text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Donors</p>
-                        <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{campaign.donorCount.toString()}</p>
+                        <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{donorsTotal.toString()}</p>
                       </div>
                       <div>
                         <p className="text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Ends</p>

@@ -36,6 +36,11 @@ contract DonationEscrow is Ownable, ReentrancyGuard {
 
     mapping(bytes32 => bool) public l1TxRecorded;
 
+    /// @notice Sum of L1 amounts recorded via recordL1Donation (funds stay on L1; for display & progress vs target).
+    mapping(address => uint256) public l1RecordedTotalWei;
+    /// @notice Count of recorded L1 donation txs per campaign (each verified L1 tx increments by 1).
+    mapping(address => uint256) public l1RecordedDonationCount;
+
     IFeeRouter public feeRouter;
     ILoyaltyPoints public loyaltyPoints;
     uint256 public feeBps; // e.g. 100 = 1%
@@ -46,7 +51,8 @@ contract DonationEscrow is Ownable, ReentrancyGuard {
     event Donated(address indexed creator, address indexed donor, uint256 amountWei, uint256 feeWei);
     event Claimed(address indexed creator, uint256 amountWei);
     event Refunded(address indexed creator, address indexed donor, uint256 amountWei);
-    event L1DonationRecorded(bytes32 indexed txHash, address indexed donorL2, uint256 amountWei);
+    /// @notice Emitted when an L1 KAS donation is recorded (creator indexed for leaderboards / UI).
+    event L1DonationRecorded(address indexed creator, bytes32 indexed txHash, address indexed donorL2, uint256 amountWei);
     event RecorderSet(address indexed oldRecorder, address indexed newRecorder);
     event FeeRouterSet(address indexed oldRouter, address indexed newRouter);
     event LoyaltyPointsSet(address indexed oldLp, address indexed newLp);
@@ -218,8 +224,10 @@ contract DonationEscrow is Ownable, ReentrancyGuard {
         if (c.creator == address(0)) revert NoCampaign();
 
         l1TxRecorded[_txHash] = true;
+        l1RecordedTotalWei[_creator] += _amountWei;
+        l1RecordedDonationCount[_creator] += 1;
         loyaltyPoints.awardPointsForPayment(_donorL2, "vdonation-l1", _amountWei);
-        emit L1DonationRecorded(_txHash, _donorL2, _amountWei);
+        emit L1DonationRecorded(_creator, _txHash, _donorL2, _amountWei);
     }
 
     function getCreatorCount() external view returns (uint256) {

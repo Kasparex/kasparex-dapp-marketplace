@@ -34,17 +34,35 @@ export function useDonationLeaderboard(
       } catch {
         return [];
       }
-      const logs = await publicClient.getContractEvents({
+      const l2Logs = await publicClient.getContractEvents({
         address: escrowAddress as Address,
         abi: DONATION_ESCROW_ABI,
         eventName: 'Donated',
         args: { creator },
         fromBlock: 'earliest',
       });
+      let l1Logs: typeof l2Logs = [];
+      try {
+        l1Logs = await publicClient.getContractEvents({
+          address: escrowAddress as Address,
+          abi: DONATION_ESCROW_ABI,
+          eventName: 'L1DonationRecorded',
+          args: { creator },
+          fromBlock: 'earliest',
+        });
+      } catch {
+        // Older escrow deployments or mismatched event ABI: leaderboard still shows L2 only.
+      }
       const byDonor = new Map<string, bigint>();
-      for (const log of logs) {
+      for (const log of l2Logs) {
         if (log.args.donor != null && log.args.amountWei != null) {
           const d = getAddress(log.args.donor as Address);
+          byDonor.set(d, (byDonor.get(d) ?? 0n) + (log.args.amountWei as bigint));
+        }
+      }
+      for (const log of l1Logs) {
+        if (log.args.donorL2 != null && log.args.amountWei != null) {
+          const d = getAddress(log.args.donorL2 as Address);
           byDonor.set(d, (byDonor.get(d) ?? 0n) + (log.args.amountWei as bigint));
         }
       }

@@ -4002,6 +4002,20 @@ export const DONATION_ESCROW_ABI = [
     type: "function"
   },
   {
+    inputs: [{ internalType: "address", name: "", type: "address" }],
+    name: "l1RecordedTotalWei",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "address", name: "", type: "address" }],
+    name: "l1RecordedDonationCount",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
     type: "event",
     name: "Donated",
     inputs: [
@@ -4009,6 +4023,16 @@ export const DONATION_ESCROW_ABI = [
       { name: "donor", type: "address", indexed: true },
       { name: "amountWei", type: "uint256", indexed: false },
       { name: "feeWei", type: "uint256", indexed: false }
+    ]
+  },
+  {
+    type: "event",
+    name: "L1DonationRecorded",
+    inputs: [
+      { name: "creator", type: "address", indexed: true },
+      { name: "txHash", type: "bytes32", indexed: true },
+      { name: "donorL2", type: "address", indexed: true },
+      { name: "amountWei", type: "uint256", indexed: false }
     ]
   }
 ] as const;

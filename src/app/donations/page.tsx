@@ -14,6 +14,7 @@ import { formatEther } from 'viem';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
 import { getGatewayUrl } from '@/lib/ipfs/gateway';
+import { progressPercent, totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
 
 export default function DonationsListingPage() {
   const { campaigns, isLoading, error } = useDonationCampaigns();
@@ -181,7 +182,9 @@ export default function DonationsListingPage() {
 }
 
 function DonationCampaignCard({ campaign, metadata }: { campaign: DonationCampaignListItem; metadata: DonationCampaignMetadata | null }) {
-  const progress = campaign.targetWei > 0n ? Number((campaign.raisedWei * 10000n) / campaign.targetWei) / 100 : 0;
+  const progress = progressPercent(campaign, campaign.targetWei);
+  const raisedDisplay = totalRaisedWei(campaign);
+  const donorsDisplay = totalDonorCount(campaign);
   const deadline = new Date(Number(campaign.deadline) * 1000);
   const imageSrc =
     metadata?.imageUrl ||
@@ -214,7 +217,7 @@ function DonationCampaignCard({ campaign, metadata }: { campaign: DonationCampai
           {title}
         </p>
         <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-          {formatEther(campaign.raisedWei)} / {formatEther(campaign.targetWei)} iKAS
+          {formatEther(raisedDisplay)} / {formatEther(campaign.targetWei)} iKAS
         </div>
         <div className="w-full h-2 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden mb-2">
           <div
@@ -223,7 +226,7 @@ function DonationCampaignCard({ campaign, metadata }: { campaign: DonationCampai
           />
         </div>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          {campaign.donorCount.toString()} donors · Ends {deadline.toLocaleDateString()}
+          {donorsDisplay.toString()} donors · Ends {deadline.toLocaleDateString()}
         </p>
       </div>
     </Link>

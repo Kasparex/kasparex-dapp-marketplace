@@ -39,6 +39,9 @@ export interface DonationCampaign {
   deadline: bigint;
   raisedWei: bigint;
   donorCount: bigint;
+  /** L1 KAS donations recorded via recordL1Donation (not in L2 escrow). */
+  l1RecordedTotalWei?: bigint;
+  l1RecordedDonationCount?: bigint;
   ipfsHash: string;
   l1Address: string;
   active: boolean;

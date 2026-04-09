@@ -16,6 +16,7 @@ import { getErrorMessage } from '@/lib/utils';
 import { getChainById } from '@/lib/wagmi';
 import { CHAIN_IDS } from '@/lib/wagmi';
 import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
+import { totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
 import type { Address } from 'viem';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { ImageUpload } from '@/components/ui/ImageUpload';
@@ -37,27 +38,51 @@ export default function DonationsStudioPage() {
   const chainId = useChainId();
   const { address, isConnected } = useAccount();
   const { switchChain, isPending: isSwitchPending } = useSwitchChain();
-  const escrowAddress = getContractAddress(chainId, 'DonationEscrow');
+  /** CrowdKAS escrow on Igra Mainnet — used for all reads so studio state works even when the wallet is on another chain. */
+  const igraEscrowAddress = getContractAddress(VDONATIONS_CHAIN_ID, 'DonationEscrow');
+  const writeEscrowAddress = getContractAddress(chainId, 'DonationEscrow');
   const currentChain = chainId ? getChainById(chainId) : null;
   const { state: kaspaState } = useKaspaWallet();
 
   const onRequiredChain = chainId === VDONATIONS_CHAIN_ID;
-  const hasEscrowConfigured = Boolean(escrowAddress);
+  const hasEscrowConfigured = Boolean(igraEscrowAddress);
   const showWrongChainNudge = isConnected && !onRequiredChain;
-  const showMissingConfigNudge = isConnected && onRequiredChain && !hasEscrowConfigured;
+  const showMissingConfigNudge = isConnected && onRequiredChain && !writeEscrowAddress;
 
   const { data: isVerified } = useReadContract({
-    address: (escrowAddress || undefined) as Address | undefined,
+    chainId: VDONATIONS_CHAIN_ID,
+    address: (igraEscrowAddress || undefined) as Address | undefined,
     abi: DONATION_ESCROW_ABI,
     functionName: 'verified',
     args: address ? [address] : undefined,
+    query: { enabled: Boolean(address && igraEscrowAddress) },
   });
 
   const { data: campaignOnChain, refetch: refetchCampaign } = useReadContract({
-    address: (escrowAddress || undefined) as Address | undefined,
+    chainId: VDONATIONS_CHAIN_ID,
+    address: (igraEscrowAddress || undefined) as Address | undefined,
     abi: DONATION_ESCROW_ABI,
     functionName: 'campaigns',
     args: address ? [address] : undefined,
+    query: { enabled: Boolean(address && igraEscrowAddress) },
+  });
+
+  const { data: l1RecordedTotalWeiData, refetch: refetchL1Total } = useReadContract({
+    chainId: VDONATIONS_CHAIN_ID,
+    address: (igraEscrowAddress || undefined) as Address | undefined,
+    abi: DONATION_ESCROW_ABI,
+    functionName: 'l1RecordedTotalWei',
+    args: address ? [address] : undefined,
+    query: { enabled: Boolean(address && igraEscrowAddress) },
+  });
+
+  const { data: l1RecordedDonationCountData, refetch: refetchL1Count } = useReadContract({
+    chainId: VDONATIONS_CHAIN_ID,
+    address: (igraEscrowAddress || undefined) as Address | undefined,
+    abi: DONATION_ESCROW_ABI,
+    functionName: 'l1RecordedDonationCount',
+    args: address ? [address] : undefined,
+    query: { enabled: Boolean(address && igraEscrowAddress) },
   });
 
   const campaign = parseCampaignTuple(campaignOnChain);
@@ -67,9 +92,11 @@ export default function DonationsStudioPage() {
   const { isLoading: isTxConfirming, isSuccess: isTxSuccess } = useWaitForTransactionReceipt({ hash: txHash });
   useEffect(() => {
     if (isTxSuccess && txHash) {
-      refetchCampaign();
+      void refetchCampaign();
+      void refetchL1Total();
+      void refetchL1Count();
     }
-  }, [isTxSuccess, txHash, refetchCampaign]);
+  }, [isTxSuccess, txHash, refetchCampaign, refetchL1Total, refetchL1Count]);
   const isVerifyPending = isTxPending || isTxConfirming;
   const isCreatePending = isTxPending || isTxConfirming;
   const isClaimPending = isTxPending || isTxConfirming;
@@ -119,9 +146,9 @@ export default function DonationsStudioPage() {
   const [editSubmitting, setEditSubmitting] = useState(false);
 
   const handleVerify = () => {
-    if (!escrowAddress) return;
+    if (!writeEscrowAddress) return;
     writeContract({
-      address: escrowAddress as Address,
+      address: writeEscrowAddress as Address,
       abi: DONATION_ESCROW_ABI,
       functionName: 'verify',
       value: VDONATIONS_MIN_VERIFY_WEI,
@@ -139,7 +166,7 @@ export default function DonationsStudioPage() {
   };
 
   const handleCreateCampaign = async () => {
-    if (!address || !escrowAddress || !createForm.title.trim() || !createForm.l1KaspaAddress?.trim()) {
+    if (!address || !writeEscrowAddress || !createForm.title.trim() || !createForm.l1KaspaAddress?.trim()) {
       setCreateErrorMsg('Please fill title and L1 Kaspa address.');
       return;
     }
@@ -174,7 +201,7 @@ export default function DonationsStudioPage() {
       const deadline = BigInt(Math.floor(endDate.getTime() / 1000));
       const l1Address = createForm.l1KaspaAddress.trim();
       writeContract({
-        address: escrowAddress as Address,
+        address: writeEscrowAddress as Address,
         abi: DONATION_ESCROW_ABI,
         functionName: 'createCampaign',
         args: [ipfsHash, targetWei, deadline, l1Address],
@@ -187,9 +214,9 @@ export default function DonationsStudioPage() {
   };
 
   const handleClaim = () => {
-    if (!escrowAddress) return;
+    if (!writeEscrowAddress) return;
     writeContract({
-      address: escrowAddress as Address,
+      address: writeEscrowAddress as Address,
       abi: DONATION_ESCROW_ABI,
       functionName: 'claim',
     });
@@ -234,7 +261,7 @@ export default function DonationsStudioPage() {
   };
 
   const handleUpdateCampaign = async () => {
-    if (!address || !escrowAddress || !campaign) return;
+    if (!address || !writeEscrowAddress || !campaign) return;
     if (!editForm.title.trim() || !editForm.l1KaspaAddress?.trim()) {
       setEditErrorMsg('Please fill title and L1 Kaspa address.');
       return;
@@ -269,7 +296,7 @@ export default function DonationsStudioPage() {
       const deadline = BigInt(Math.floor(endDate.getTime() / 1000));
       const l1Address = editForm.l1KaspaAddress.trim();
       writeContract({
-        address: escrowAddress as Address,
+        address: writeEscrowAddress as Address,
         abi: DONATION_ESCROW_ABI,
         functionName: 'updateCampaign',
         args: [ipfsHash, targetWei, deadline, l1Address],
@@ -282,7 +309,19 @@ export default function DonationsStudioPage() {
     }
   };
 
-  const targetReached = campaign && campaign.raisedWei >= campaign.targetWei;
+  const l1RecordedTotalWei = typeof l1RecordedTotalWeiData === 'bigint' ? l1RecordedTotalWeiData : 0n;
+  const l1RecordedDonationCount = typeof l1RecordedDonationCountData === 'bigint' ? l1RecordedDonationCountData : 0n;
+  const studioTotals =
+    campaign != null
+      ? {
+          raisedWei: campaign.raisedWei,
+          donorCount: campaign.donorCount,
+          l1RecordedTotalWei,
+          l1RecordedDonationCount,
+        }
+      : null;
+  const targetReached =
+    studioTotals != null && campaign != null && totalRaisedWei(studioTotals) >= campaign.targetWei;
   const deadlinePassed = campaign && BigInt(Math.floor(Date.now() / 1000)) >= campaign.deadline;
   const canClaim = campaign && targetReached && deadlinePassed;
 
@@ -352,7 +391,7 @@ export default function DonationsStudioPage() {
                     </div>
                   )}
 
-                  {isConnected && escrowAddress && onRequiredChain && (
+                  {isConnected && writeEscrowAddress && onRequiredChain && (
                     <div className="space-y-8">
             {/* Verify */}
             <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 bg-white dark:bg-zinc-900">
@@ -529,7 +568,9 @@ export default function DonationsStudioPage() {
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 uppercase">Raised</p>
-                    <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{formatEther(campaign.raisedWei)} iKAS</p>
+                    <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                      {formatEther(studioTotals ? totalRaisedWei(studioTotals) : campaign.raisedWei)} iKAS
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 uppercase">Target</p>
@@ -537,7 +578,9 @@ export default function DonationsStudioPage() {
                   </div>
                   <div>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 uppercase">Donors</p>
-                    <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{campaign.donorCount.toString()}</p>
+                    <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                      {(studioTotals ? totalDonorCount(studioTotals) : campaign.donorCount).toString()}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 uppercase">Ends</p>
