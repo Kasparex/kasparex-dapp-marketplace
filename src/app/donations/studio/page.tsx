@@ -121,27 +121,6 @@ export default function DonationsStudioPage() {
 
   const { writeContract, data: txHash, isPending: isTxPending, error: txError } = useWriteContract();
   const { isLoading: isTxConfirming, isSuccess: isTxSuccess } = useWaitForTransactionReceipt({ hash: txHash });
-  useEffect(() => {
-    if (isTxSuccess && txHash) {
-      void refetchCampaign();
-      void refetchL1Total();
-      void refetchL1Count();
-      void refetchVerified();
-      void refetchVerifiedV2();
-      void refetchMyCampaignsV2();
-      void refetchFeaturedUnlockedV2();
-    }
-  }, [
-    isTxSuccess,
-    txHash,
-    refetchCampaign,
-    refetchL1Total,
-    refetchL1Count,
-    refetchVerified,
-    refetchVerifiedV2,
-    refetchMyCampaignsV2,
-    refetchFeaturedUnlockedV2,
-  ]);
   const isVerifyPending = isTxPending || isTxConfirming;
   const isCreatePending = isTxPending || isTxConfirming;
   const isClaimPending = isTxPending || isTxConfirming;
@@ -210,6 +189,28 @@ export default function DonationsStudioPage() {
     args: editingV2CampaignId != null ? [editingV2CampaignId, featuredModuleIdBytes32] : undefined,
     query: { enabled: Boolean(igraEscrowV2Address && editingV2CampaignId != null) },
   });
+
+  useEffect(() => {
+    if (isTxSuccess && txHash) {
+      void refetchCampaign();
+      void refetchL1Total();
+      void refetchL1Count();
+      void refetchVerified();
+      void refetchVerifiedV2();
+      void refetchMyCampaignsV2();
+      void refetchFeaturedUnlockedV2();
+    }
+  }, [
+    isTxSuccess,
+    txHash,
+    refetchCampaign,
+    refetchL1Total,
+    refetchL1Count,
+    refetchVerified,
+    refetchVerifiedV2,
+    refetchMyCampaignsV2,
+    refetchFeaturedUnlockedV2,
+  ]);
 
   const handleVerify = () => {
     if (!writeEscrowAddress) return;
