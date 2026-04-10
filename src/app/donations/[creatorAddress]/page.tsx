@@ -103,6 +103,9 @@ export default function DonationCampaignPage() {
             <Link href="/donations/how-it-works" className="text-sm text-emerald-700 dark:text-emerald-400 hover:underline mb-4 ml-4 inline-block">
               What happens after it ends?
             </Link>
+            <Link href="/donations/donors" className="text-sm text-zinc-600 dark:text-zinc-400 hover:underline mb-4 ml-4 inline-block">
+              Donors · Claims &amp; refunds
+            </Link>
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-10">
               {/* Left column: campaign content - 3/5 */}
               <div className="lg:col-span-3 space-y-6">

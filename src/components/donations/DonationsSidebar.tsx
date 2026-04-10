@@ -53,12 +53,13 @@ export function DonationsSidebar(props: DonationsSidebarProps) {
   return (
     <UnifiedSidebar storageKeyPrefix="donations" header={header}>
       <div className="px-3 pt-3 pb-4 space-y-2 border-b border-zinc-200/70 dark:border-zinc-800/70 mb-4">
+        {/* Primary CTA: Create stays visually prominent when not active (top slot). */}
         <Link
           href="/donations/studio#create"
           className={`k-control-btn w-full justify-center gap-2 ${
             pathname.startsWith('/donations/studio')
               ? '!border-emerald-500/40 !bg-emerald-500/15 !text-emerald-800 dark:!text-emerald-300'
-              : '!border-emerald-500/20 !bg-white dark:!bg-zinc-900 !text-zinc-700 dark:!text-zinc-200 hover:!bg-zinc-100 dark:hover:!bg-zinc-800'
+              : '!border-emerald-500/30 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300 hover:!bg-emerald-500/15'
           }`}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -67,12 +68,13 @@ export function DonationsSidebar(props: DonationsSidebarProps) {
           <span className="text-xs font-black uppercase tracking-widest">Create campaign</span>
         </Link>
 
+        {/* Secondary nav: neutral when inactive so it does not steal the primary CTA look. */}
         <Link
           href="/donations/dashboard"
           className={`k-control-btn w-full justify-center gap-2 ${
             pathname.startsWith('/donations/dashboard')
               ? '!border-emerald-500/40 !bg-emerald-500/15 !text-emerald-800 dark:!text-emerald-300'
-              : '!border-emerald-500/30 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300 hover:!bg-emerald-500/15'
+              : '!border-zinc-200 dark:!border-zinc-700 !bg-white dark:!bg-zinc-900 !text-zinc-700 dark:!text-zinc-200 hover:!bg-zinc-100 dark:hover:!bg-zinc-800'
           }`}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -81,7 +83,28 @@ export function DonationsSidebar(props: DonationsSidebarProps) {
           <span className="text-xs font-black uppercase tracking-widest">My campaigns</span>
         </Link>
 
-        <Link href="/donations/modules" className="k-control-btn w-full justify-center gap-2">
+        <Link
+          href="/donations/donors"
+          className={`k-control-btn w-full justify-center gap-2 ${
+            pathname.startsWith('/donations/donors')
+              ? '!border-emerald-500/40 !bg-emerald-500/15 !text-emerald-800 dark:!text-emerald-300'
+              : '!border-zinc-200 dark:!border-zinc-700 !bg-white dark:!bg-zinc-900 !text-zinc-700 dark:!text-zinc-200 hover:!bg-zinc-100 dark:hover:!bg-zinc-800'
+          }`}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
+          <span className="text-xs font-black uppercase tracking-widest">For donors</span>
+        </Link>
+
+        <Link
+          href="/donations/modules"
+          className={`k-control-btn w-full justify-center gap-2 ${
+            pathname.startsWith('/donations/modules')
+              ? '!border-emerald-500/40 !bg-emerald-500/15 !text-emerald-800 dark:!text-emerald-300'
+              : '!border-zinc-200 dark:!border-zinc-700 !bg-white dark:!bg-zinc-900 !text-zinc-700 dark:!text-zinc-200 hover:!bg-zinc-100 dark:hover:!bg-zinc-800'
+          }`}
+        >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
           </svg>
