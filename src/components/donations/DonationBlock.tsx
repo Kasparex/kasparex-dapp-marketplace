@@ -93,11 +93,6 @@ export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChang
     });
   }, [l2Amount, krexBalance, tier, nftStatus]);
 
-  const l1AmountNum = l1AmountKas ? parseFloat(l1AmountKas) : 0;
-  const l1FeeKas = l1AmountNum >= VDONATIONS_MIN_DONATION_KAS ? computeL1FeeKAS(l1AmountNum) : 0;
-  const platformL1 = getPlatformL1Address();
-  const l1Address = (campaign.l1Address || '').trim();
-
   const l2AmountWei = useMemo(() => {
     if (!l2Amount || parseFloat(l2Amount) <= 0) return 0n;
     try {
