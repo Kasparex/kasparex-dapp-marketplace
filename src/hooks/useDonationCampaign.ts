@@ -13,6 +13,8 @@ import type { DonationCampaign, DonationCampaignMetadata } from '@/lib/donations
 import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
+const metaCache = new Map<string, DonationCampaignMetadata | null>();
+const META_LS_PREFIX = 'crowdkas:meta:';
 
 // readContract returns tuple: [creator, targetWei, deadline, raisedWei, donorCount, ipfsHash, l1Address, active]
 type CampaignTuple = readonly [Address, bigint, bigint, bigint, bigint, string, string, boolean];
@@ -105,5 +107,32 @@ export function useDonationCampaign(creatorAddress: string | null): {
 /** Fetch campaign metadata from IPFS by hash */
 export async function fetchCampaignMetadata(ipfsHash: string): Promise<DonationCampaignMetadata | null> {
   if (!ipfsHash?.trim()) return null;
-  return fetchJSON<DonationCampaignMetadata>(ipfsHash.replace(/^ipfs:\/\//, '').replace(/^\/ipfs\//, ''));
+  const clean = ipfsHash.replace(/^ipfs:\/\//, '').replace(/^\/ipfs\//, '');
+  const cached = metaCache.get(clean);
+  if (cached !== undefined) return cached;
+
+  // Fast path: localStorage cache (browser only)
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = window.localStorage.getItem(META_LS_PREFIX + clean);
+      if (raw) {
+        const parsed = JSON.parse(raw) as DonationCampaignMetadata;
+        metaCache.set(clean, parsed);
+        return parsed;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  const meta = await fetchJSON<DonationCampaignMetadata>(clean);
+  metaCache.set(clean, meta ?? null);
+  if (typeof window !== 'undefined' && meta) {
+    try {
+      window.localStorage.setItem(META_LS_PREFIX + clean, JSON.stringify(meta));
+    } catch {
+      // ignore quota errors
+    }
+  }
+  return meta ?? null;
 }

@@ -80,7 +80,7 @@ export default function DonationsStudioPage() {
     refetch: refetchMyCampaignsV2,
   } = useMyDonationCampaignsV2(address as Address | undefined);
 
-  const { data: isVerified } = useReadContract({
+  const { data: isVerified, refetch: refetchVerified } = useReadContract({
     chainId: VDONATIONS_CHAIN_ID,
     address: (igraEscrowAddress || undefined) as Address | undefined,
     abi: DONATION_ESCROW_ABI,
@@ -126,8 +126,22 @@ export default function DonationsStudioPage() {
       void refetchCampaign();
       void refetchL1Total();
       void refetchL1Count();
+      void refetchVerified();
+      void refetchVerifiedV2();
+      void refetchMyCampaignsV2();
+      void refetchFeaturedUnlockedV2();
     }
-  }, [isTxSuccess, txHash, refetchCampaign, refetchL1Total, refetchL1Count]);
+  }, [
+    isTxSuccess,
+    txHash,
+    refetchCampaign,
+    refetchL1Total,
+    refetchL1Count,
+    refetchVerified,
+    refetchVerifiedV2,
+    refetchMyCampaignsV2,
+    refetchFeaturedUnlockedV2,
+  ]);
   const isVerifyPending = isTxPending || isTxConfirming;
   const isCreatePending = isTxPending || isTxConfirming;
   const isClaimPending = isTxPending || isTxConfirming;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useChainId } from 'wagmi';
 import { Header } from '@/components/Header';
@@ -18,34 +18,25 @@ import { getGatewayUrl } from '@/lib/ipfs/gateway';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
 import { progressPercent, totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
+import { useQuery } from '@tanstack/react-query';
 
 export default function DonationCampaignPage() {
   const params = useParams();
   const chainId = useChainId();
   const creatorAddress = (params?.creatorAddress as string) ?? null;
   const { campaign, isLoading, error, refetch: refetchCampaign } = useDonationCampaign(creatorAddress);
-  const [metadata, setMetadata] = useState<DonationCampaignMetadata | null>(null);
-  const [metadataLoading, setMetadataLoading] = useState(false);
   const [previewDonationAmount, setPreviewDonationAmount] = useState(10);
 
-  useEffect(() => {
-    if (!campaign?.ipfsHash) {
-      setMetadata(null);
-      return;
-    }
-    let cancelled = false;
-    setMetadataLoading(true);
-    fetchCampaignMetadata(campaign.ipfsHash)
-      .then((m) => {
-        if (!cancelled) setMetadata(m ?? null);
-      })
-      .finally(() => {
-        if (!cancelled) setMetadataLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [campaign?.ipfsHash]);
+  const { data: metadata, isLoading: metadataLoading } = useQuery({
+    queryKey: ['donation-meta', campaign?.ipfsHash ?? ''],
+    queryFn: async (): Promise<DonationCampaignMetadata | null> => {
+      if (!campaign?.ipfsHash) return null;
+      return await fetchCampaignMetadata(campaign.ipfsHash);
+    },
+    enabled: Boolean(campaign?.ipfsHash),
+    staleTime: 60 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
 
   if (isLoading || !creatorAddress) {
     return (
