@@ -18,6 +18,10 @@ type CampaignTuple = readonly [Address, bigint, bigint, bigint, bigint, string, 
 
 export interface DonationCampaignListItem {
   creatorAddress: `0x${string}`;
+  /** Set for DonationEscrowV2 rows (card links with ?campaignId=). */
+  campaignId?: bigint;
+  /** V2 only: on-chain donation method. */
+  donationMethod?: 'L2_ESCROW' | 'L1_DIRECT';
   targetWei: bigint;
   deadline: bigint;
   raisedWei: bigint;

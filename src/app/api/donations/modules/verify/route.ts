@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     if (!moduleId || !campaignId || !payerAddress || !escrowV2Address || !creatorAddress || !Number.isFinite(basePriceKas) || basePriceKas <= 0) {
       return NextResponse.json({ ok: false, error: 'Missing module, campaign, payer, escrow, creator, or price' }, { status: 400 });
     }
-    if (moduleId !== 'featured') {
+    if (moduleId !== 'featured' && moduleId !== 'l1Tips') {
       return NextResponse.json({ ok: false, error: 'Unknown module' }, { status: 400 });
     }
     if (!ethers.isAddress(escrowV2Address) || !ethers.isAddress(creatorAddress)) {

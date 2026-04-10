@@ -18,22 +18,25 @@ export function sortCampaigns(
       return arr.sort((a, b) => Number(a.deadline - b.deadline));
     case 'most-raised':
       return arr.sort((a, b) => {
-        const rb = totalRaisedWei(b);
-        const ra = totalRaisedWei(a);
+        const sortRaised = (c: DonationCampaignListItem) => (c.campaignId != null ? c.raisedWei : totalRaisedWei(c));
+        const rb = sortRaised(b);
+        const ra = sortRaised(a);
         return rb > ra ? 1 : rb < ra ? -1 : 0;
       });
     case 'least-raised':
       return arr.sort((a, b) => {
-        const ra = totalRaisedWei(a);
-        const rb = totalRaisedWei(b);
+        const sortRaised = (c: DonationCampaignListItem) => (c.campaignId != null ? c.raisedWei : totalRaisedWei(c));
+        const ra = sortRaised(a);
+        const rb = sortRaised(b);
         return ra > rb ? 1 : ra < rb ? -1 : 0;
       });
     case 'ending-soon':
       return arr.sort((a, b) => Number(a.deadline - b.deadline));
     case 'most-donors':
       return arr.sort((a, b) => {
-        const db = totalDonorCount(b);
-        const da = totalDonorCount(a);
+        const sortDonors = (c: DonationCampaignListItem) => (c.campaignId != null ? c.donorCount : totalDonorCount(c));
+        const db = sortDonors(b);
+        const da = sortDonors(a);
         return db > da ? 1 : db < da ? -1 : 0;
       });
     default:

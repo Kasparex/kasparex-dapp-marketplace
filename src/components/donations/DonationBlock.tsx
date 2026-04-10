@@ -6,7 +6,7 @@ import { parseEther, formatEther } from 'viem';
 import { FeeDisplay } from '@/components/ui/FeeDisplay';
 import { calculateCost, type CostBreakdown } from '@/lib/payments/calculator';
 import { getContractAddress } from '@/lib/contracts/addresses';
-import { DONATION_ESCROW_ABI } from '@/lib/contracts/abis';
+import { DONATION_ESCROW_ABI, DONATION_ESCROW_V2_ABI } from '@/lib/contracts/abis';
 import { getChainById, getNativeCurrencySymbol } from '@/lib/wagmi';
 import type { DApp, DAppStatus } from '@/lib/dapps';
 import {
@@ -54,6 +54,8 @@ export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChang
   const chainId = useChainId();
   const { isConnected: isL2Connected } = useAccount();
   const escrowAddress = getContractAddress(chainId, 'DonationEscrow');
+  const escrowV2Address = getContractAddress(chainId, 'DonationEscrowV2');
+  const useV2Donate = Boolean(campaign.campaignIdV2 != null && escrowV2Address);
   const nativeSymbol = getNativeCurrencySymbol(chainId);
 
   const [l2Amount, setL2Amount] = useState('');
@@ -103,12 +105,23 @@ export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChang
     }
   }, [l2Amount]);
 
-  const canDonateL2 = campaign.active && escrowAddress && l2AmountWei >= VDONATIONS_MIN_DONATION_WEI && isL2Connected;
+  const activeEscrow = useV2Donate ? escrowV2Address : escrowAddress;
+  const canDonateL2 = campaign.active && activeEscrow && l2AmountWei >= VDONATIONS_MIN_DONATION_WEI && isL2Connected;
 
   const handleDonateL2 = () => {
-    if (!canDonateL2 || !escrowAddress) return;
+    if (!canDonateL2 || !activeEscrow) return;
+    if (useV2Donate && campaign.campaignIdV2 != null) {
+      writeContract({
+        address: activeEscrow as Address,
+        abi: DONATION_ESCROW_V2_ABI,
+        functionName: 'donate',
+        args: [campaign.campaignIdV2],
+        value: l2AmountWei,
+      });
+      return;
+    }
     writeContract({
-      address: escrowAddress as Address,
+      address: activeEscrow as Address,
       abi: DONATION_ESCROW_ABI,
       functionName: 'donate',
       args: [campaign.creatorAddress],

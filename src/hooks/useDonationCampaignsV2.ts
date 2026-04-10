@@ -18,6 +18,8 @@ export interface DonationCampaignV2ListItem {
   campaignId: bigint;
   creatorAddress: `0x${string}`;
   method: DonationMethodV2;
+  /** Same as `method`; present for listing rows typed as `DonationCampaignListItem`. */
+  donationMethod?: DonationMethodV2;
   targetWei: bigint;
   deadline: bigint;
   raisedWei: bigint;
@@ -128,6 +130,8 @@ export function useDonationCampaignsV2(): {
         campaignId: campaignIds[i],
         creatorAddress: creator as `0x${string}`,
         method: parseMethod(t[2]),
+        // alias for listing/filter compatibility with V1 list shape
+        donationMethod: parseMethod(t[2]),
         targetWei: t[3],
         deadline: t[4],
         raisedWei: t[5],

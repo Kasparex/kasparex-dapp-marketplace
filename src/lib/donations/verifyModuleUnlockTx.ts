@@ -106,7 +106,7 @@ export function parseDonationsModulePayloadBinding(payload: string | null | unde
   const campaignId = parts[1];
   const payer = parts.slice(2).join(':'); // keep kaspa: prefix intact
   if (!moduleId || !campaignId || !payer.startsWith('kaspa:')) return null;
-  if (moduleId !== 'featured') return null;
+  if (moduleId !== 'featured' && moduleId !== 'l1Tips') return null;
   return { moduleId, campaignId, payer };
 }
 

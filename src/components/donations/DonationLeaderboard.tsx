@@ -11,12 +11,14 @@ interface DonationLeaderboardProps {
   /** When these change (e.g. after campaign refetch), leaderboard refetches. */
   donorCount?: bigint;
   raisedWei?: bigint;
+  /** CrowdKAS V2: scope events to this campaign id. */
+  campaignId?: bigint;
 }
 
-export function DonationLeaderboard({ creatorAddress, limit = 20, donorCount, raisedWei }: DonationLeaderboardProps) {
+export function DonationLeaderboard({ creatorAddress, limit = 20, donorCount, raisedWei, campaignId }: DonationLeaderboardProps) {
   const chainId = useChainId();
   const explorerChainId = chainId || CROWDKAS_CHAIN_ID;
-  const { leaderboard, isLoading, error } = useDonationLeaderboard(creatorAddress, limit, { donorCount, raisedWei });
+  const { leaderboard, isLoading, error } = useDonationLeaderboard(creatorAddress, limit, { donorCount, raisedWei, campaignId });
 
   return (
     <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">

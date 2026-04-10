@@ -19,9 +19,10 @@ export function DonationCampaignCard({
   href?: string;
   badges?: { label: string; variant?: 'neutral' | 'emerald' | 'amber' }[];
 }) {
-  const progress = progressPercent(campaign, campaign.targetWei);
-  const raisedDisplay = totalRaisedWei(campaign);
-  const donorsDisplay = totalDonorCount(campaign);
+  const v2Row = campaign.campaignId != null;
+  const progress = progressPercent(campaign, campaign.targetWei, { escrowOnly: v2Row });
+  const raisedDisplay = v2Row ? campaign.raisedWei : totalRaisedWei(campaign);
+  const donorsDisplay = v2Row ? campaign.donorCount : totalDonorCount(campaign);
   const deadline = new Date(Number(campaign.deadline) * 1000);
   const imageSrc =
     metadata?.imageUrl || (metadata?.imageHash ? getGatewayUrl(metadata.imageHash) : DEFAULT_DONATION_IMAGE);

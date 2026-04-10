@@ -17,8 +17,12 @@ export function totalDonorCount(c: DonationAmountFields): bigint {
   return c.donorCount + (c.l1RecordedDonationCount ?? 0n);
 }
 
-export function progressPercent(c: DonationAmountFields, targetWei: bigint): number {
+export function progressPercent(
+  c: DonationAmountFields,
+  targetWei: bigint,
+  opts?: { escrowOnly?: boolean }
+): number {
   if (targetWei <= 0n) return 0;
-  const raised = totalRaisedWei(c);
+  const raised = opts?.escrowOnly ? c.raisedWei : totalRaisedWei(c);
   return Math.min(100, Number((raised * 10000n) / targetWei) / 100);
 }

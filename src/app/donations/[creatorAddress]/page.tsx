@@ -1,13 +1,14 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
 import { useChainId } from 'wagmi';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ReferralTracker } from '@/components/revenue-tree/ReferralTracker';
-import { useDonationCampaign, fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
+import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
+import { useDonationCampaignPage } from '@/hooks/useDonationCampaignPage';
 import { DonationBlock } from '@/components/donations/DonationBlock';
 import { DonationsSidebar } from '@/components/donations/DonationsSidebar';
 import { DonationCampaignRightColumn } from '@/components/donations/DonationCampaignRightColumn';
@@ -22,9 +23,14 @@ import { useQuery } from '@tanstack/react-query';
 
 export default function DonationCampaignPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const chainId = useChainId();
   const creatorAddress = (params?.creatorAddress as string) ?? null;
-  const { campaign, isLoading, error, refetch: refetchCampaign } = useDonationCampaign(creatorAddress);
+  const campaignIdParam = searchParams?.get('campaignId') ?? null;
+  const { campaign, isLoading, error, refetch: refetchCampaign, isV2Detail } = useDonationCampaignPage(
+    creatorAddress,
+    campaignIdParam
+  );
   const [previewDonationAmount, setPreviewDonationAmount] = useState(10);
 
   const { data: metadata, isLoading: metadataLoading } = useQuery({
@@ -62,7 +68,9 @@ export default function DonationCampaignPage() {
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-12 text-center">
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Campaign not found</h2>
             <p className="text-zinc-500 dark:text-zinc-400 mt-2">
-              This address has no active donation campaign or the campaign does not exist.
+              {isV2Detail && campaignIdParam
+                ? 'This campaign id does not exist, or it belongs to another creator.'
+                : 'This address has no active donation campaign or the campaign does not exist.'}
             </p>
             <Link href="/donations" className="inline-block mt-4 text-emerald-600 dark:text-emerald-400 hover:underline">
               ← Back to donations
@@ -74,9 +82,11 @@ export default function DonationCampaignPage() {
     );
   }
 
-  const progress = progressPercent(campaign, campaign.targetWei);
-  const raisedTotal = totalRaisedWei(campaign);
-  const donorsTotal = totalDonorCount(campaign);
+  const v2Campaign = campaign.campaignIdV2 != null;
+  const progress = progressPercent(campaign, campaign.targetWei, { escrowOnly: v2Campaign });
+  const raisedTotal = v2Campaign ? campaign.raisedWei : totalRaisedWei(campaign);
+  const donorsTotal = v2Campaign ? campaign.donorCount : totalDonorCount(campaign);
+  const l1TipsWei = v2Campaign ? (campaign.l1RecordedTotalWei ?? 0n) : 0n;
   const explorerChainId = chainId || CROWDKAS_CHAIN_ID;
   const deadlineDate = new Date(Number(campaign.deadline) * 1000);
   const title = metadata?.title ?? `Campaign ${campaign.creatorAddress.slice(0, 6)}...${campaign.creatorAddress.slice(-4)}`;
@@ -147,8 +157,15 @@ export default function DonationCampaignPage() {
                     {/* Stats - compact on campaign page (summary in right column) */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                       <div>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Raised</p>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                          Raised {v2Campaign ? '(L2 goal)' : ''}
+                        </p>
                         <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{formatEther(raisedTotal)} iKAS</p>
+                        {v2Campaign && l1TipsWei > 0n && (
+                          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                            + {formatEther(l1TipsWei)} iKAS L1 tips (not in goal)
+                          </p>
+                        )}
                       </div>
                       <div>
                         <p className="text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Target</p>
@@ -213,7 +230,12 @@ export default function DonationCampaignPage() {
 
               {/* Right column: summary + leaderboard + Revenue Tree - 2/5 */}
               <div className="lg:col-span-2">
-                <DonationCampaignRightColumn campaign={campaign} creatorAddress={creatorAddress} previewDonationAmount={previewDonationAmount} />
+                <DonationCampaignRightColumn
+                  campaign={campaign}
+                  creatorAddress={creatorAddress}
+                  previewDonationAmount={previewDonationAmount}
+                  metadata={metadata}
+                />
               </div>
             </div>
           </div>

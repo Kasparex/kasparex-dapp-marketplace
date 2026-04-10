@@ -12,7 +12,7 @@ import { getAddress, formatEther } from 'viem';
 import type { Address } from 'viem';
 import { useQuery } from '@tanstack/react-query';
 import { getContractAddress } from '@/lib/contracts/addresses';
-import { DONATION_ESCROW_ABI } from '@/lib/contracts/abis';
+import { DONATION_ESCROW_ABI, DONATION_ESCROW_V2_ABI } from '@/lib/contracts/abis';
 
 const CHAIN_ID = 38833;
 
@@ -22,9 +22,15 @@ type L1DonationRecordedLog = {
   };
 };
 
-export function useDonationPoints(creatorAddress: string | null, donorAddress: string | null) {
+export function useDonationPoints(
+  creatorAddress: string | null,
+  donorAddress: string | null,
+  options?: { campaignId?: bigint }
+) {
   const publicClient = usePublicClient({ chainId: CHAIN_ID });
   const escrowAddress = getContractAddress(CHAIN_ID, 'DonationEscrow');
+  const escrowV2Address = getContractAddress(CHAIN_ID, 'DonationEscrowV2');
+  const campaignId = options?.campaignId;
 
   const creator = useMemo(() => {
     try {
@@ -42,20 +48,47 @@ export function useDonationPoints(creatorAddress: string | null, donorAddress: s
     }
   }, [donorAddress]);
 
-  const { data: l2Wei } = useReadContract({
+  const { data: l2WeiV1 } = useReadContract({
     chainId: CHAIN_ID,
     address: (escrowAddress || undefined) as Address | undefined,
     abi: DONATION_ESCROW_ABI,
     functionName: 'contributions',
-    args: creator && donor ? [creator, donor] : undefined,
-    query: { enabled: Boolean(escrowAddress && creator && donor) },
+    args: creator && donor && campaignId == null ? [creator, donor] : undefined,
+    query: { enabled: Boolean(escrowAddress && creator && donor && campaignId == null) },
   });
 
+  const { data: l2WeiV2 } = useReadContract({
+    chainId: CHAIN_ID,
+    address: (escrowV2Address || undefined) as Address | undefined,
+    abi: DONATION_ESCROW_V2_ABI,
+    functionName: 'contributions',
+    args: creator && donor && campaignId != null ? [campaignId, donor] : undefined,
+    query: { enabled: Boolean(escrowV2Address && creator && donor && campaignId != null) },
+  });
+
+  const l2Wei = campaignId != null ? l2WeiV2 : l2WeiV1;
+
   const { data: l1Wei, isLoading: l1Loading } = useQuery({
-    queryKey: ['donation-points-l1', creator?.toLowerCase(), donor?.toLowerCase()],
+    queryKey: ['donation-points-l1', creator?.toLowerCase(), donor?.toLowerCase(), campaignId?.toString() ?? 'v1'],
     queryFn: async (): Promise<bigint> => {
-      if (!publicClient || !escrowAddress || !creator || !donor) return 0n;
-      // donorL2 is indexed in the event so viem can filter by args.
+      if (!publicClient || !creator || !donor) return 0n;
+      if (campaignId != null && escrowV2Address) {
+        const logs = (await publicClient.getContractEvents({
+          address: escrowV2Address as Address,
+          abi: DONATION_ESCROW_V2_ABI,
+          eventName: 'L1DonationRecorded',
+          args: { campaignId, creator },
+          fromBlock: 'earliest',
+        })) as unknown as { args: { donorL2?: Address; amountWei?: bigint } }[];
+        let sum = 0n;
+        for (const log of logs) {
+          if (log.args.donorL2 && getAddress(log.args.donorL2) === donor) {
+            sum += log.args.amountWei ?? 0n;
+          }
+        }
+        return sum;
+      }
+      if (!escrowAddress) return 0n;
       const logs = (await publicClient.getContractEvents({
         address: escrowAddress as Address,
         abi: DONATION_ESCROW_ABI,
@@ -67,7 +100,12 @@ export function useDonationPoints(creatorAddress: string | null, donorAddress: s
       for (const log of logs) sum += log.args.amountWei ?? 0n;
       return sum;
     },
-    enabled: Boolean(publicClient && escrowAddress && creator && donor),
+    enabled: Boolean(
+      publicClient &&
+        creator &&
+        donor &&
+        ((campaignId != null && escrowV2Address) || (campaignId == null && escrowAddress))
+    ),
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });

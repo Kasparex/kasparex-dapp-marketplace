@@ -4,7 +4,10 @@ import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { useDonationCampaigns } from '@/hooks/useDonationCampaigns';
+import { useDonationCampaigns, type DonationCampaignListItem } from '@/hooks/useDonationCampaigns';
+import { useDonationCampaignsV2, type DonationCampaignV2ListItem } from '@/hooks/useDonationCampaignsV2';
+import { getContractAddress } from '@/lib/contracts/addresses';
+import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
 import { DonationsSidebar, type DonationFilterStatus } from '@/components/donations/DonationsSidebar';
 import { DonationsHeader } from '@/components/donations/DonationsHeader';
 import { DonationSortFilters, sortCampaigns, type DonationSortOption } from '@/components/donations/DonationSortFilters';
@@ -14,8 +17,34 @@ import { FilterBar } from '@/components/FilterBar';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
 
+function mapV2Row(c: DonationCampaignV2ListItem): DonationCampaignListItem {
+  return {
+    creatorAddress: c.creatorAddress,
+    campaignId: c.campaignId,
+    donationMethod: c.method,
+    targetWei: c.targetWei,
+    deadline: c.deadline,
+    raisedWei: c.raisedWei,
+    donorCount: c.donorCount,
+    l1RecordedTotalWei: c.l1RecordedTotalWei,
+    l1RecordedDonationCount: c.l1RecordedDonationCount,
+    ipfsHash: c.ipfsHash,
+    l1Address: c.l1Address,
+    active: c.active,
+  };
+}
+
+function donationListMetaKey(c: DonationCampaignListItem): string {
+  return c.campaignId != null ? `${c.creatorAddress}-${c.campaignId.toString()}` : c.creatorAddress;
+}
+
 export default function DonationsListingPage() {
-  const { campaigns, isLoading, error } = useDonationCampaigns();
+  const v2Configured = Boolean(getContractAddress(CROWDKAS_CHAIN_ID, 'DonationEscrowV2'));
+  const v1 = useDonationCampaigns();
+  const v2 = useDonationCampaignsV2();
+  const campaigns = useMemo(() => (v2Configured ? v2.campaigns.map(mapV2Row) : v1.campaigns), [v2Configured, v1.campaigns, v2.campaigns]);
+  const isLoading = v2Configured ? v2.isLoading : v1.isLoading;
+  const error = v2Configured ? v2.error : v1.error;
   const [selectedStatus, setSelectedStatus] = useState<DonationFilterStatus>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<DonationSortOption>('newest');
@@ -52,7 +81,7 @@ export default function DonationsListingPage() {
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter((c) => {
-        const meta = metaByCreator[c.creatorAddress];
+        const meta = metaByCreator[donationListMetaKey(c)];
         const title = meta?.title?.toLowerCase() ?? '';
         return (
           c.creatorAddress.toLowerCase().includes(q) ||
@@ -62,17 +91,18 @@ export default function DonationsListingPage() {
       });
     }
     if (selectedCategory) {
-      list = list.filter((c) => (metaByCreator[c.creatorAddress]?.category ?? null) === selectedCategory);
+      list = list.filter((c) => (metaByCreator[donationListMetaKey(c)]?.category ?? null) === selectedCategory);
     }
     if (selectedTags.length > 0) {
       list = list.filter((c) => {
-        const tags = metaByCreator[c.creatorAddress]?.tags ?? [];
+        const tags = metaByCreator[donationListMetaKey(c)]?.tags ?? [];
         return selectedTags.every((t) => tags.includes(t));
       });
     }
-    if (selectedNetwork !== 'all') {
-      // V1 campaigns are L2 escrow (Igra) today. V2 will populate L1/L2 explicitly.
-      list = list.filter(() => selectedNetwork === 'l2');
+    if (selectedNetwork === 'l2') {
+      list = list.filter((c) => !c.donationMethod || c.donationMethod === 'L2_ESCROW');
+    } else if (selectedNetwork === 'l1') {
+      list = list.filter((c) => c.donationMethod === 'L1_DIRECT');
     }
     return sortCampaigns(list, sortBy);
   }, [campaigns, selectedStatus, searchQuery, sortBy, selectedCategory, selectedTags, selectedNetwork, metaByCreator]);
@@ -198,10 +228,20 @@ export default function DonationsListingPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredCampaigns.map((c) => (
                   <DonationCampaignCard
-                    key={c.creatorAddress}
+                    key={donationListMetaKey(c)}
                     campaign={c}
-                    metadata={metaByCreator[c.creatorAddress] ?? null}
-                    badges={[{ label: 'L2 • Igra', variant: 'neutral' }]}
+                    metadata={metaByCreator[donationListMetaKey(c)] ?? null}
+                    href={
+                      c.campaignId != null
+                        ? `/donations/${c.creatorAddress}?campaignId=${c.campaignId.toString()}`
+                        : undefined
+                    }
+                    badges={[
+                      {
+                        label: c.donationMethod === 'L1_DIRECT' ? 'L1 • Direct' : 'L2 • Igra',
+                        variant: 'neutral',
+                      },
+                    ]}
                   />
                 ))}
               </div>

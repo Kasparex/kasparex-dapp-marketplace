@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useAccount, useChainId, useSwitchChain, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
@@ -28,7 +28,9 @@ import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { kasToSompi } from '@/lib/ads/config';
 import { getDonationsModulesTreasuryL1Address } from '@/lib/donations/modulesConfig';
-import { DONATION_MODULE_IDS, DONATION_MODULE_OFFERS } from '@/lib/donations/modules';
+import { DONATION_MODULE_IDS, DONATION_MODULE_OFFERS, getDonationModulePriceKas, type DonationPaidModuleId } from '@/lib/donations/modules';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { buildDonationsModuleUnlockPayloadHex, buildDonationsModuleUnlockPlainNote } from '@/lib/donations/modulePayload';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
@@ -135,6 +137,10 @@ export default function DonationsStudioPage() {
     endDate: string;
     featuredImageMode: FeaturedImageMode;
     featuredImageValue: string;
+    l1TipGiftEnabled: boolean;
+    l1TipGiftType: 'text' | 'url' | 'ipfs';
+    l1TipGiftLabel: string;
+    l1TipGiftValue: string;
   };
 
   const [createForm, setCreateForm] = useState<StudioCampaignForm>({
@@ -149,8 +155,11 @@ export default function DonationsStudioPage() {
     endDate: '',
     featuredImageMode: 'ipfs',
     featuredImageValue: '',
+    l1TipGiftEnabled: false,
+    l1TipGiftType: 'text',
+    l1TipGiftLabel: '',
+    l1TipGiftValue: '',
   });
-  const [createMethod, setCreateMethod] = useState<'L2_ESCROW' | 'L1_DIRECT'>('L2_ESCROW');
   const [goalInput, setGoalInput] = useState('');
   const [tagInput, setTagInput] = useState('');
   const [createSubmitting, setCreateSubmitting] = useState(false);
@@ -168,6 +177,10 @@ export default function DonationsStudioPage() {
     endDate: '',
     featuredImageMode: 'ipfs',
     featuredImageValue: '',
+    l1TipGiftEnabled: false,
+    l1TipGiftType: 'text',
+    l1TipGiftLabel: '',
+    l1TipGiftValue: '',
   });
   const [editGoalInput, setEditGoalInput] = useState('');
   const [editTagInput, setEditTagInput] = useState('');
@@ -181,6 +194,7 @@ export default function DonationsStudioPage() {
   const [moduleNote, setModuleNote] = useState<string | null>(null);
 
   const featuredModuleIdBytes32 = DONATION_MODULE_IDS.featured;
+  const l1TipsModuleIdBytes32 = DONATION_MODULE_IDS.l1Tips;
   const { data: featuredUnlockedV2, refetch: refetchFeaturedUnlockedV2 } = useReadContract({
     chainId: VDONATIONS_CHAIN_ID,
     address: (igraEscrowV2Address || undefined) as Address | undefined,
@@ -189,6 +203,36 @@ export default function DonationsStudioPage() {
     args: editingV2CampaignId != null ? [editingV2CampaignId, featuredModuleIdBytes32] : undefined,
     query: { enabled: Boolean(igraEscrowV2Address && editingV2CampaignId != null) },
   });
+  const { data: l1TipsUnlockedV2, refetch: refetchL1TipsUnlockedV2 } = useReadContract({
+    chainId: VDONATIONS_CHAIN_ID,
+    address: (igraEscrowV2Address || undefined) as Address | undefined,
+    abi: DONATION_ESCROW_V2_ABI,
+    functionName: 'moduleUnlocked',
+    args: editingV2CampaignId != null ? [editingV2CampaignId, l1TipsModuleIdBytes32] : undefined,
+    query: { enabled: Boolean(igraEscrowV2Address && editingV2CampaignId != null) },
+  });
+
+  const { balance: krexBalance, tier } = useKREXBalance();
+  const { nftStatus } = useNFTStatus();
+
+  const moduleNftFlags = useMemo(
+    () => ({
+      hasAny: !!(nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX ||
+        (nftStatus?.partnerCollections && Object.values(nftStatus.partnerCollections || {}).some(Boolean))),
+      hasDiamond: !!(nftStatus?.hasDiamondKREXPRIME || nftStatus?.hasDiamondPIXELKREX ||
+        (nftStatus?.partnerDiamonds && Object.values(nftStatus.partnerDiamonds || {}).some(Boolean))),
+      hasRarest: !!nftStatus?.hasRarestNFT,
+    }),
+    [nftStatus]
+  );
+  const featuredPriceKas = useMemo(
+    () => getDonationModulePriceKas(DONATION_MODULE_OFFERS.featured.basePriceKas, krexBalance ?? 0, tier, moduleNftFlags),
+    [krexBalance, tier, moduleNftFlags]
+  );
+  const l1TipsPriceKas = useMemo(
+    () => getDonationModulePriceKas(DONATION_MODULE_OFFERS.l1Tips.basePriceKas, krexBalance ?? 0, tier, moduleNftFlags),
+    [krexBalance, tier, moduleNftFlags]
+  );
 
   useEffect(() => {
     if (isTxSuccess && txHash) {
@@ -199,6 +243,7 @@ export default function DonationsStudioPage() {
       void refetchVerifiedV2();
       void refetchMyCampaignsV2();
       void refetchFeaturedUnlockedV2();
+      void refetchL1TipsUnlockedV2();
     }
   }, [
     isTxSuccess,
@@ -210,6 +255,7 @@ export default function DonationsStudioPage() {
     refetchVerifiedV2,
     refetchMyCampaignsV2,
     refetchFeaturedUnlockedV2,
+    refetchL1TipsUnlockedV2,
   ]);
 
   const handleVerify = () => {
@@ -258,10 +304,6 @@ export default function DonationsStudioPage() {
       setCreateErrorMsg('Please fill title.');
       return;
     }
-    if (createMethod === 'L1_DIRECT' && !createForm.l1KaspaAddress?.trim()) {
-      setCreateErrorMsg('Please fill L1 Kaspa address for L1 direct campaigns.');
-      return;
-    }
     const targetNum = parseFloat(createForm.targetKAS);
     if (isNaN(targetNum) || targetNum < 100) {
       setCreateErrorMsg('Target must be at least 100 iKAS.');
@@ -287,7 +329,6 @@ export default function DonationsStudioPage() {
         tags: tags.length ? tags : undefined,
         goals: createForm.goals?.length ? createForm.goals : undefined,
         socialLinks: Object.keys(createForm.socialLinks || {}).length ? createForm.socialLinks : undefined,
-        l1KaspaAddress: createForm.l1KaspaAddress?.trim() || undefined,
         imageUrl: featuredImageMode === 'url' && featuredImageValue ? featuredImageValue : undefined,
         imageHash: featuredImageMode === 'ipfs' && featuredImageValue ? featuredImageValue : undefined,
       };
@@ -295,8 +336,8 @@ export default function DonationsStudioPage() {
       const ipfsHash = await client.uploadJSON(metadata as unknown as Record<string, unknown>);
       const targetWei = parseEther(createForm.targetKAS);
       const deadline = BigInt(Math.floor(endDate.getTime() / 1000));
-      const l1Address = createForm.l1KaspaAddress?.trim() || '';
-      const method = createMethod === 'L1_DIRECT' ? 1 : 0;
+      const method = 0 as const;
+      const l1Address = '';
 
       writeContract({
         address: writeEscrowV2Address as Address,
@@ -392,6 +433,7 @@ export default function DonationsStudioPage() {
       const endDate = deadline ? new Date(Number(deadline) * 1000).toISOString().slice(0, 16) : '';
       const featuredImageMode: FeaturedImageMode = meta?.imageUrl ? 'url' : 'ipfs';
       const featuredImageValue = (meta?.imageUrl || meta?.imageHash || '').trim();
+      const g = meta?.l1TipGift;
       setEditForm({
         title: meta?.title ?? '',
         description: meta?.description ?? '',
@@ -404,6 +446,10 @@ export default function DonationsStudioPage() {
         endDate,
         featuredImageMode,
         featuredImageValue,
+        l1TipGiftEnabled: Boolean(g?.enabled && g?.value?.trim()),
+        l1TipGiftType: g?.type ?? 'text',
+        l1TipGiftLabel: g?.label ?? '',
+        l1TipGiftValue: g?.value ?? '',
       });
       setShowEditForm(true);
     } catch (e) {
@@ -422,6 +468,7 @@ export default function DonationsStudioPage() {
       const endDate = campaign.deadline ? new Date(Number(campaign.deadline) * 1000).toISOString().slice(0, 16) : '';
       const featuredImageMode: FeaturedImageMode = meta?.imageUrl ? 'url' : 'ipfs';
       const featuredImageValue = (meta?.imageUrl || meta?.imageHash || '').trim();
+      const g1 = meta?.l1TipGift;
       setEditForm({
         title: meta?.title ?? '',
         description: meta?.description ?? '',
@@ -434,6 +481,10 @@ export default function DonationsStudioPage() {
         endDate,
         featuredImageMode,
         featuredImageValue,
+        l1TipGiftEnabled: Boolean(g1?.enabled && g1?.value?.trim()),
+        l1TipGiftType: g1?.type ?? 'text',
+        l1TipGiftLabel: g1?.label ?? '',
+        l1TipGiftValue: g1?.value ?? '',
       });
       setShowEditForm(true);
     } catch (e) {
@@ -487,6 +538,17 @@ export default function DonationsStudioPage() {
       const featuredImageValue = editForm.featuredImageValue.trim();
       const category = editForm.category && isDonationCategory(editForm.category) ? editForm.category : undefined;
       const tags = normalizeTags(editForm.tags ?? []);
+      const l1TipsOn = Boolean(l1TipsUnlockedV2);
+      const l1OnChain = l1TipsOn && editForm.l1KaspaAddress?.trim() ? editForm.l1KaspaAddress.trim() : '';
+      const l1Gift =
+        l1TipsOn && editForm.l1TipGiftEnabled && editForm.l1TipGiftValue.trim()
+          ? {
+              enabled: true as const,
+              type: editForm.l1TipGiftType,
+              label: editForm.l1TipGiftLabel.trim() || undefined,
+              value: editForm.l1TipGiftValue.trim(),
+            }
+          : { enabled: false as const };
       const metadata: DonationCampaignMetadata = {
         title: editForm.title,
         description: editForm.description || '',
@@ -494,15 +556,16 @@ export default function DonationsStudioPage() {
         tags: tags.length ? tags : undefined,
         goals: editForm.goals?.length ? editForm.goals : undefined,
         socialLinks: Object.keys(editForm.socialLinks || {}).length ? editForm.socialLinks : undefined,
-        l1KaspaAddress: editForm.l1KaspaAddress?.trim() || undefined,
+        l1KaspaAddress: l1OnChain || undefined,
         imageUrl: featuredImageMode === 'url' && featuredImageValue ? featuredImageValue : undefined,
         imageHash: featuredImageMode === 'ipfs' && featuredImageValue ? featuredImageValue : undefined,
+        l1TipGift: l1Gift,
       };
       const client = getIPFSClient();
       const ipfsHash = await client.uploadJSON(metadata as unknown as Record<string, unknown>);
       const targetWei = parseEther(editForm.targetKAS);
       const deadline = BigInt(Math.floor(endDate.getTime() / 1000));
-      const l1Address = editForm.l1KaspaAddress?.trim() || '';
+      const l1Address = l1OnChain;
 
       writeContract({
         address: writeEscrowV2Address as Address,
@@ -519,7 +582,7 @@ export default function DonationsStudioPage() {
     }
   };
 
-  const handleUnlockFeaturedV2 = async () => {
+  const handleUnlockModuleV2 = async (offer: (typeof DONATION_MODULE_OFFERS)[DonationPaidModuleId]) => {
     setModuleError(null);
     setModuleNote(null);
     if (!address || !writeEscrowV2Address || !igraEscrowV2Address || editingV2CampaignId == null) {
@@ -530,7 +593,6 @@ export default function DonationsStudioPage() {
       setModuleError('Connect your Kaspa L1 wallet to pay for the module.');
       return;
     }
-    const offer = DONATION_MODULE_OFFERS.featured;
     const treasury = getDonationsModulesTreasuryL1Address();
     if (!treasury) {
       setModuleError('Treasury is not configured.');
@@ -540,7 +602,8 @@ export default function DonationsStudioPage() {
     setModuleBusy(true);
     try {
       const payer = kaspaState.address;
-      const sompi = kasToSompi(offer.basePriceKas);
+      const priceKas = getDonationModulePriceKas(offer.basePriceKas, krexBalance ?? 0, tier, moduleNftFlags);
+      const sompi = kasToSompi(priceKas);
       const payloadHex = buildDonationsModuleUnlockPayloadHex(offer.id, editingV2CampaignId.toString(), payer);
       const note = buildDonationsModuleUnlockPlainNote(offer.id, editingV2CampaignId.toString(), payer);
 
@@ -569,7 +632,7 @@ export default function DonationsStudioPage() {
               moduleId: offer.id,
               campaignId: editingV2CampaignId.toString(),
               payerAddress: payer,
-              basePriceKas: offer.basePriceKas,
+              basePriceKas: priceKas,
               escrowV2Address: igraEscrowV2Address,
               creatorAddress: address,
             }),
@@ -621,6 +684,7 @@ export default function DonationsStudioPage() {
       });
       setModuleNote('Module unlock submitted on-chain. Confirm in your wallet.');
       void refetchFeaturedUnlockedV2();
+      void refetchL1TipsUnlockedV2();
     } catch (e) {
       setModuleError(e instanceof Error ? e.message : 'Module unlock failed');
     } finally {
@@ -805,29 +869,19 @@ export default function DonationsStudioPage() {
                           {isVerifiedV2 && (
                             <section id="create" className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 bg-white dark:bg-zinc-900 scroll-mt-24">
                               <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Create campaign (V2)</h2>
+                              <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                                New campaigns use <strong>L2 escrow</strong> on Igra for the funding goal. Optional Kaspa L1 tips (separate from the goal) can be added later in edit after you unlock the L1 tip jar module.
+                              </p>
                               <div className="space-y-4">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                  <div>
-                                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Donation method</label>
-                                    <select
-                                      value={createMethod}
-                                      onChange={(e) => setCreateMethod(e.target.value as 'L2_ESCROW' | 'L1_DIRECT')}
-                                      className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
-                                    >
-                                      <option value="L2_ESCROW">L2 escrow (goal-based, claim/refund)</option>
-                                      <option value="L1_DIRECT">Kaspa L1 direct donations</option>
-                                    </select>
-                                  </div>
-                                  <div>
-                                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Title</label>
-                                    <input
-                                      type="text"
-                                      value={createForm.title}
-                                      onChange={(e) => setCreateForm((f) => ({ ...f, title: e.target.value }))}
-                                      className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
-                                      placeholder="Campaign title"
-                                    />
-                                  </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Title</label>
+                                  <input
+                                    type="text"
+                                    value={createForm.title}
+                                    onChange={(e) => setCreateForm((f) => ({ ...f, title: e.target.value }))}
+                                    className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                                    placeholder="Campaign title"
+                                  />
                                 </div>
                                 <div>
                                   <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Description</label>
@@ -838,6 +892,43 @@ export default function DonationsStudioPage() {
                                     className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
                                     placeholder="What is this campaign for?"
                                   />
+                                </div>
+                                <div>
+                                  <div className="flex items-center justify-between gap-3 mb-2">
+                                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Cover image</label>
+                                    <div className="inline-flex rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+                                      <button
+                                        type="button"
+                                        onClick={() => setCreateForm((f) => ({ ...f, featuredImageMode: 'url' }))}
+                                        className={`px-3 py-1.5 text-xs font-bold ${createForm.featuredImageMode === 'url' ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300'}`}
+                                      >
+                                        URL
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => setCreateForm((f) => ({ ...f, featuredImageMode: 'ipfs' }))}
+                                        className={`px-3 py-1.5 text-xs font-bold ${createForm.featuredImageMode === 'ipfs' ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300'}`}
+                                      >
+                                        IPFS
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <ImageUpload
+                                    label=""
+                                    value={createForm.featuredImageValue}
+                                    onChange={(v) => setCreateForm((f) => ({ ...f, featuredImageValue: v }))}
+                                    onFileSelect={async (file) => {
+                                      const client = getIPFSClient();
+                                      return await client.uploadFile(file, { filename: (file as File).name });
+                                    }}
+                                    placeholder={createForm.featuredImageMode === 'url' ? 'https://…' : 'CID (or upload a file)'}
+                                    aspectRatio="video"
+                                    showUrlInput={true}
+                                    showFileUpload={createForm.featuredImageMode === 'ipfs'}
+                                  />
+                                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                                    URL is fastest. IPFS keeps your campaign image permanent (recommended).
+                                  </p>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                   <div>
@@ -890,32 +981,6 @@ export default function DonationsStudioPage() {
                                       </div>
                                     )}
                                   </div>
-                                </div>
-                                <div>
-                                  <div className="flex items-center justify-between gap-3 mb-1">
-                                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">L1 Kaspa address</label>
-                                    {kaspaState.isConnected && kaspaState.address && (
-                                      <button
-                                        type="button"
-                                        onClick={() => setCreateForm((f) => ({ ...f, l1KaspaAddress: kaspaState.address || '' }))}
-                                        className="text-xs font-semibold text-[#02abb8] hover:underline"
-                                      >
-                                        Use connected wallet
-                                      </button>
-                                    )}
-                                  </div>
-                                  <input
-                                    type="text"
-                                    value={createForm.l1KaspaAddress}
-                                    onChange={(e) => setCreateForm((f) => ({ ...f, l1KaspaAddress: e.target.value }))}
-                                    className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-mono"
-                                    placeholder="kaspa:..."
-                                  />
-                                  {createMethod === 'L1_DIRECT' && (
-                                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-                                      Required for L1 direct campaigns (donations go straight to this address).
-                                    </p>
-                                  )}
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                   <div>
@@ -998,7 +1063,7 @@ export default function DonationsStudioPage() {
                                           </div>
                                         </div>
                                         <div className="flex flex-wrap gap-2">
-                                          <Link href={`/donations/${address}`} className="k-control-btn">
+                                          <Link href={`/donations/${address}?campaignId=${c.campaignId.toString()}`} className="k-control-btn">
                                             View public
                                           </Link>
                                           <button
@@ -1457,26 +1522,98 @@ export default function DonationsStudioPage() {
                           />
                         </div>
                       </div>
-                      <div>
-                        <div className="flex items-center justify-between gap-3 mb-1">
-                          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">L1 Kaspa address</label>
-                          {kaspaState.isConnected && kaspaState.address && (
-                            <button
-                              type="button"
-                              onClick={() => setEditForm((f) => ({ ...f, l1KaspaAddress: kaspaState.address || '' }))}
-                              className="text-[11px] font-semibold text-[#02abb8] hover:underline"
-                            >
-                              Use connected wallet
-                            </button>
-                          )}
+                      {editingV2CampaignId != null && !l1TipsUnlockedV2 ? (
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          <strong>L1 tip jar:</strong> unlock the premium module below to set a Kaspa address for optional L1 tips (they do not count toward the L2 goal).
+                        </p>
+                      ) : null}
+                      {editingV2CampaignId != null && l1TipsUnlockedV2 ? (
+                        <>
+                          <div>
+                            <div className="flex items-center justify-between gap-3 mb-1">
+                              <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">L1 Kaspa tip address</label>
+                              {kaspaState.isConnected && kaspaState.address && (
+                                <button
+                                  type="button"
+                                  onClick={() => setEditForm((f) => ({ ...f, l1KaspaAddress: kaspaState.address || '' }))}
+                                  className="text-[11px] font-semibold text-[#02abb8] hover:underline"
+                                >
+                                  Use connected wallet
+                                </button>
+                              )}
+                            </div>
+                            <input
+                              type="text"
+                              value={editForm.l1KaspaAddress}
+                              onChange={(e) => setEditForm((f) => ({ ...f, l1KaspaAddress: e.target.value }))}
+                              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm font-mono"
+                              placeholder="kaspa:..."
+                            />
+                          </div>
+                          <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 p-3 space-y-2">
+                            <label className="flex items-center gap-2 text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                              <input
+                                type="checkbox"
+                                checked={editForm.l1TipGiftEnabled}
+                                onChange={(e) => setEditForm((f) => ({ ...f, l1TipGiftEnabled: e.target.checked }))}
+                                className="rounded border-zinc-300"
+                              />
+                              Offer a thank-you gift for L1 tippers (text, URL, or IPFS)
+                            </label>
+                            {editForm.l1TipGiftEnabled && (
+                              <div className="space-y-2 pt-1">
+                                <select
+                                  value={editForm.l1TipGiftType}
+                                  onChange={(e) =>
+                                    setEditForm((f) => ({ ...f, l1TipGiftType: e.target.value as 'text' | 'url' | 'ipfs' }))
+                                  }
+                                  className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-sm"
+                                >
+                                  <option value="text">Text</option>
+                                  <option value="url">URL</option>
+                                  <option value="ipfs">IPFS CID</option>
+                                </select>
+                                <input
+                                  type="text"
+                                  value={editForm.l1TipGiftLabel}
+                                  onChange={(e) => setEditForm((f) => ({ ...f, l1TipGiftLabel: e.target.value }))}
+                                  className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-sm"
+                                  placeholder="Short label (e.g. Wallpaper pack)"
+                                />
+                                <textarea
+                                  value={editForm.l1TipGiftValue}
+                                  onChange={(e) => setEditForm((f) => ({ ...f, l1TipGiftValue: e.target.value }))}
+                                  rows={2}
+                                  className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-sm"
+                                  placeholder={editForm.l1TipGiftType === 'text' ? 'Message…' : editForm.l1TipGiftType === 'url' ? 'https://…' : 'bafy…'}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      ) : null}
+                      {editingV2CampaignId == null ? (
+                        <div>
+                          <div className="flex items-center justify-between gap-3 mb-1">
+                            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">L1 Kaspa address</label>
+                            {kaspaState.isConnected && kaspaState.address && (
+                              <button
+                                type="button"
+                                onClick={() => setEditForm((f) => ({ ...f, l1KaspaAddress: kaspaState.address || '' }))}
+                                className="text-[11px] font-semibold text-[#02abb8] hover:underline"
+                              >
+                                Use connected wallet
+                              </button>
+                            )}
+                          </div>
+                          <input
+                            type="text"
+                            value={editForm.l1KaspaAddress}
+                            onChange={(e) => setEditForm((f) => ({ ...f, l1KaspaAddress: e.target.value }))}
+                            className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm font-mono"
+                          />
                         </div>
-                        <input
-                          type="text"
-                          value={editForm.l1KaspaAddress}
-                          onChange={(e) => setEditForm((f) => ({ ...f, l1KaspaAddress: e.target.value }))}
-                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm font-mono"
-                        />
-                      </div>
+                      ) : null}
                       <div className="grid grid-cols-2 gap-2">
                         <div>
                           <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Target (iKAS)</label>
@@ -1499,33 +1636,69 @@ export default function DonationsStudioPage() {
                         </div>
                       </div>
                       {editingV2CampaignId != null && (
-                        <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-3">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
-                                Module: {DONATION_MODULE_OFFERS.featured.title}
-                              </p>
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                                {DONATION_MODULE_OFFERS.featured.description} Price: {DONATION_MODULE_OFFERS.featured.basePriceKas} KAS.
-                              </p>
+                        <div className="space-y-3">
+                          <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-3">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                                  Module: {DONATION_MODULE_OFFERS.featured.title}
+                                </p>
+                                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                                  {DONATION_MODULE_OFFERS.featured.description} List: {DONATION_MODULE_OFFERS.featured.basePriceKas} KAS
+                                  {featuredPriceKas < DONATION_MODULE_OFFERS.featured.basePriceKas
+                                    ? ` · Your price: ${featuredPriceKas} KAS`
+                                    : ''}
+                                  .
+                                </p>
+                              </div>
+                              {Boolean(featuredUnlockedV2) ? (
+                                <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
+                                  Unlocked
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => void handleUnlockModuleV2(DONATION_MODULE_OFFERS.featured)}
+                                  disabled={moduleBusy}
+                                  className="k-control-btn !border-emerald-500/30 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300"
+                                >
+                                  {moduleBusy ? 'Processing…' : `Pay ${featuredPriceKas} KAS`}
+                                </button>
+                              )}
                             </div>
-                            {Boolean(featuredUnlockedV2) ? (
-                              <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
-                                Unlocked
-                              </span>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => void handleUnlockFeaturedV2()}
-                                disabled={moduleBusy}
-                                className="k-control-btn !border-emerald-500/30 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300"
-                              >
-                                {moduleBusy ? 'Processing…' : `Pay ${DONATION_MODULE_OFFERS.featured.basePriceKas} KAS`}
-                              </button>
-                            )}
                           </div>
-                          {moduleError ? <p className="text-xs text-red-600 dark:text-red-400 mt-2">{moduleError}</p> : null}
-                          {moduleNote ? <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">{moduleNote}</p> : null}
+                          <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-3">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                                  Module: {DONATION_MODULE_OFFERS.l1Tips.title}
+                                </p>
+                                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                                  {DONATION_MODULE_OFFERS.l1Tips.description} List: {DONATION_MODULE_OFFERS.l1Tips.basePriceKas} KAS
+                                  {l1TipsPriceKas < DONATION_MODULE_OFFERS.l1Tips.basePriceKas
+                                    ? ` · Your price: ${l1TipsPriceKas} KAS`
+                                    : ''}
+                                  . One unlock per campaign.
+                                </p>
+                              </div>
+                              {Boolean(l1TipsUnlockedV2) ? (
+                                <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
+                                  Unlocked
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => void handleUnlockModuleV2(DONATION_MODULE_OFFERS.l1Tips)}
+                                  disabled={moduleBusy}
+                                  className="k-control-btn !border-amber-500/30 !bg-amber-500/10 !text-amber-900 dark:!text-amber-200"
+                                >
+                                  {moduleBusy ? 'Processing…' : `Pay ${l1TipsPriceKas} KAS`}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          {moduleError ? <p className="text-xs text-red-600 dark:text-red-400">{moduleError}</p> : null}
+                          {moduleNote ? <p className="text-xs text-amber-700 dark:text-amber-400">{moduleNote}</p> : null}
                         </div>
                       )}
                       {editErrorMsg && <p className="text-sm text-red-600 dark:text-red-400">{editErrorMsg}</p>}

@@ -22,6 +22,18 @@ export interface DonationCampaignMetadata {
   imageHash?: string;
   /** Direct image URL (http/https). */
   imageUrl?: string;
+  /**
+   * Optional perk for donors who use the paid L1 tip module (does not count toward L2 goal).
+   * Shown after the donor chooses to reveal (honor system; not cryptographic DRM).
+   */
+  l1TipGift?: {
+    enabled: boolean;
+    type?: 'text' | 'url' | 'ipfs';
+    /** Display title, e.g. "Wallpaper pack" */
+    label?: string;
+    /** Plain text, https URL, or IPFS CID */
+    value?: string;
+  };
 }
 
 /** On-chain campaign (from contract campaigns(creator)) */
@@ -39,6 +51,8 @@ export interface DonationCampaignOnChain {
 /** Combined campaign for UI: on-chain + IPFS metadata */
 export interface DonationCampaign {
   creatorAddress: `0x${string}`;
+  /** When set, L2 donations use DonationEscrowV2.donate(campaignId). */
+  campaignIdV2?: bigint;
   targetWei: bigint;
   deadline: bigint;
   raisedWei: bigint;

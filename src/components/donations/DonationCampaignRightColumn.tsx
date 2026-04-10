@@ -8,22 +8,34 @@ import { generateDonationRevenueTree } from '@/lib/revenue-tree/mockData';
 import type { DonationCampaign } from '@/lib/donations/types';
 import { progressPercent, totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
 import { useDonationPoints } from '@/hooks/useDonationPoints';
+import { DonationL1TipJar } from '@/components/donations/DonationL1TipJar';
+import type { DonationCampaignMetadata } from '@/lib/donations/types';
 
 interface DonationCampaignRightColumnProps {
   campaign: DonationCampaign;
   creatorAddress: string;
   /** Current L2 donation amount for Revenue Tree share preview (default 10). */
   previewDonationAmount?: number;
+  metadata?: DonationCampaignMetadata | null;
 }
 
-export function DonationCampaignRightColumn({ campaign, creatorAddress, previewDonationAmount = 10 }: DonationCampaignRightColumnProps) {
+export function DonationCampaignRightColumn({
+  campaign,
+  creatorAddress,
+  previewDonationAmount = 10,
+  metadata = null,
+}: DonationCampaignRightColumnProps) {
   const chainId = useChainId();
   const { address: userWalletAddress } = useAccount();
   const deadlineDate = new Date(Number(campaign.deadline) * 1000);
-  const progress = progressPercent(campaign, campaign.targetWei);
-  const raisedTotal = totalRaisedWei(campaign);
-  const donorsTotal = totalDonorCount(campaign);
-  const { points, isLoading: pointsLoading } = useDonationPoints(creatorAddress, userWalletAddress ?? null);
+  const v2Campaign = campaign.campaignIdV2 != null;
+  const progress = progressPercent(campaign, campaign.targetWei, { escrowOnly: v2Campaign });
+  const raisedTotal = v2Campaign ? campaign.raisedWei : totalRaisedWei(campaign);
+  const donorsTotal = v2Campaign ? campaign.donorCount : totalDonorCount(campaign);
+  const l1TipsWei = v2Campaign ? (campaign.l1RecordedTotalWei ?? 0n) : 0n;
+  const { points, isLoading: pointsLoading } = useDonationPoints(creatorAddress, userWalletAddress ?? null, {
+    campaignId: campaign.campaignIdV2,
+  });
 
   const revenueTreeData = generateDonationRevenueTree(
     creatorAddress,
@@ -39,9 +51,15 @@ export function DonationCampaignRightColumn({ campaign, creatorAddress, previewD
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Campaign summary</h3>
         <dl className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-zinc-500 dark:text-zinc-400">Raised</span>
+            <span className="text-zinc-500 dark:text-zinc-400">{v2Campaign ? 'Raised (L2 goal)' : 'Raised'}</span>
             <span className="font-medium text-zinc-900 dark:text-zinc-100">{formatEther(raisedTotal)} iKAS</span>
           </div>
+          {v2Campaign && l1TipsWei > 0n && (
+            <div className="flex justify-between text-xs">
+              <span className="text-zinc-500 dark:text-zinc-400">L1 tips (extra)</span>
+              <span className="font-medium text-zinc-700 dark:text-zinc-300">{formatEther(l1TipsWei)} iKAS</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-zinc-500 dark:text-zinc-400">Target</span>
             <span className="font-medium text-zinc-900 dark:text-zinc-100">{formatEther(campaign.targetWei)} iKAS</span>
@@ -75,7 +93,15 @@ export function DonationCampaignRightColumn({ campaign, creatorAddress, previewD
         </div>
       )}
 
-      <DonationLeaderboard creatorAddress={creatorAddress} limit={20} donorCount={donorsTotal} raisedWei={raisedTotal} />
+      <DonationL1TipJar campaign={campaign} metadata={metadata} />
+
+      <DonationLeaderboard
+        creatorAddress={creatorAddress}
+        limit={20}
+        donorCount={donorsTotal}
+        raisedWei={raisedTotal}
+        campaignId={campaign.campaignIdV2}
+      />
 
       <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden p-4">
         <RevenueTree
