@@ -42,9 +42,14 @@ export default function DonationsListingPage() {
   const v2Configured = Boolean(getContractAddress(CROWDKAS_CHAIN_ID, 'DonationEscrowV2'));
   const v1 = useDonationCampaigns();
   const v2 = useDonationCampaignsV2();
-  const campaigns = useMemo(() => (v2Configured ? v2.campaigns.map(mapV2Row) : v1.campaigns), [v2Configured, v1.campaigns, v2.campaigns]);
-  const isLoading = v2Configured ? v2.isLoading : v1.isLoading;
-  const error = v2Configured ? v2.error : v1.error;
+  const v2Rows = useMemo(() => v2.campaigns.map(mapV2Row), [v2.campaigns]);
+  /** When V2 is deployed, show legacy V1 escrow rows and all V2 campaigns (creators often have both). */
+  const campaigns = useMemo(
+    () => (v2Configured ? [...v1.campaigns, ...v2Rows] : v1.campaigns),
+    [v2Configured, v1.campaigns, v2Rows]
+  );
+  const isLoading = v2Configured ? v1.isLoading || v2.isLoading : v1.isLoading;
+  const error = v1.error ?? (v2Configured ? v2.error : null);
   const [selectedStatus, setSelectedStatus] = useState<DonationFilterStatus>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<DonationSortOption>('newest');
@@ -118,22 +123,22 @@ export default function DonationsListingPage() {
 
   useEffect(() => {
     let cancelled = false;
-    const creatorAddresses = campaigns.map((c) => c.creatorAddress);
-    const missing = creatorAddresses.filter((a) => metaByCreator[a] === undefined);
+    const keys = campaigns.map(donationListMetaKey);
+    const missing = keys.filter((k) => metaByCreator[k] === undefined);
     if (missing.length === 0) return;
 
-    missing.forEach((addr) => {
+    missing.forEach((key) => {
       (async () => {
-        const c = campaigns.find((x) => x.creatorAddress === addr);
+        const c = campaigns.find((x) => donationListMetaKey(x) === key);
         if (!c?.ipfsHash) {
-          if (!cancelled) setMetaByCreator((prev) => ({ ...prev, [addr]: null }));
+          if (!cancelled) setMetaByCreator((prev) => ({ ...prev, [key]: null }));
           return;
         }
         try {
           const m = await fetchCampaignMetadata(c.ipfsHash);
-          if (!cancelled) setMetaByCreator((prev) => ({ ...prev, [addr]: m ?? null }));
+          if (!cancelled) setMetaByCreator((prev) => ({ ...prev, [key]: m ?? null }));
         } catch {
-          if (!cancelled) setMetaByCreator((prev) => ({ ...prev, [addr]: null }));
+          if (!cancelled) setMetaByCreator((prev) => ({ ...prev, [key]: null }));
         }
       })();
     });

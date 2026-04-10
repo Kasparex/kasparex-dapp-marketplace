@@ -82,6 +82,7 @@ contract DonationEscrowV2 is Ownable, ReentrancyGuard {
     event FeeBpsSet(uint256 oldBps, uint256 newBps);
     event ModuleSignerSet(address indexed oldSigner, address indexed newSigner);
     event ModuleUnlocked(uint256 indexed campaignId, bytes32 indexed moduleId, bytes32 indexed l1TxId, address creator);
+    event CampaignCancelled(uint256 indexed campaignId, address indexed creator);
 
     error NotVerified();
     error NoCampaign();
@@ -97,6 +98,7 @@ contract DonationEscrowV2 is Ownable, ReentrancyGuard {
     error WrongMethod();
     error InvalidSignature();
     error AlreadyUsed();
+    error CampaignNotEmpty();
 
     modifier onlyRecorder() {
         if (msg.sender != recorder && msg.sender != owner()) revert UnauthorizedRecorder();
@@ -182,6 +184,18 @@ contract DonationEscrowV2 is Ownable, ReentrancyGuard {
         c.deadline = _deadline;
         c.l1Address = _l1Address;
         emit CampaignUpdated(campaignId, _ipfsHash, _targetWei, _deadline, _l1Address);
+    }
+
+    /// @notice Creator may cancel a campaign only if it never received L2 escrow funds or recorded L1 donations.
+    function cancelCampaign(uint256 campaignId) external nonReentrant {
+        Campaign storage c = campaignsById[campaignId];
+        if (c.creator == address(0)) revert NoCampaign();
+        if (c.creator != msg.sender) revert NotCreator();
+        if (c.raisedWei != 0 || c.donorCount != 0) revert CampaignNotEmpty();
+        if (l1RecordedTotalWei[campaignId] != 0 || l1RecordedDonationCount[campaignId] != 0) revert CampaignNotEmpty();
+        if (!c.active) return;
+        c.active = false;
+        emit CampaignCancelled(campaignId, msg.sender);
     }
 
     function donate(uint256 campaignId) external payable nonReentrant {

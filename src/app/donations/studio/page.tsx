@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { useAccount, useChainId, useSwitchChain, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useChainId, useSwitchChain, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
-import { keccak256, toHex } from 'viem';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { DonationsSidebar } from '@/components/donations/DonationsSidebar';
@@ -23,15 +22,8 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { ImageUpload } from '@/components/ui/ImageUpload';
 import { DONATION_CATEGORIES, isDonationCategory, normalizeTags } from '@/lib/donations/categories';
 import { useMyDonationCampaignsV2 } from '@/hooks/useMyDonationCampaigns';
-import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
-import type { KaspaWalletProvider } from '@/lib/kaspa/types';
-import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
-import { kasToSompi } from '@/lib/ads/config';
-import { getDonationsModulesTreasuryL1Address } from '@/lib/donations/modulesConfig';
-import { DONATION_MODULE_IDS, DONATION_MODULE_OFFERS, getDonationModulePriceKas, type DonationPaidModuleId } from '@/lib/donations/modules';
-import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { useNFTStatus } from '@/hooks/useNFTStatus';
-import { buildDonationsModuleUnlockPayloadHex, buildDonationsModuleUnlockPlainNote } from '@/lib/donations/modulePayload';
+import { DONATION_MODULE_IDS, DONATION_MODULE_OFFERS } from '@/lib/donations/modules';
+import { DonationEscrowModuleUnlockCard } from '@/components/donations/DonationEscrowModuleUnlockCard';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
 
@@ -81,6 +73,49 @@ export default function DonationsStudioPage() {
     error: myCampaignsV2Error,
     refetch: refetchMyCampaignsV2,
   } = useMyDonationCampaignsV2(address as Address | undefined);
+
+  const moduleUnlockReads = useMemo(() => {
+    if (!igraEscrowV2Address || myCampaignsV2.length === 0) return [];
+    const addr = igraEscrowV2Address as Address;
+    const fe = DONATION_MODULE_IDS.featured;
+    const l1 = DONATION_MODULE_IDS.l1Tips;
+    return myCampaignsV2.flatMap((c) => [
+      {
+        chainId: VDONATIONS_CHAIN_ID,
+        address: addr,
+        abi: DONATION_ESCROW_V2_ABI,
+        functionName: 'moduleUnlocked' as const,
+        args: [c.campaignId, fe] as const,
+      },
+      {
+        chainId: VDONATIONS_CHAIN_ID,
+        address: addr,
+        abi: DONATION_ESCROW_V2_ABI,
+        functionName: 'moduleUnlocked' as const,
+        args: [c.campaignId, l1] as const,
+      },
+    ]);
+  }, [myCampaignsV2, igraEscrowV2Address]);
+
+  const { data: moduleUnlockResults, refetch: refetchModuleUnlocks } = useReadContracts({
+    contracts: moduleUnlockReads,
+    allowFailure: true,
+    query: { enabled: moduleUnlockReads.length > 0 },
+  });
+
+  const unlockByCampaignId = useMemo(() => {
+    const m = new Map<string, { featured: boolean; l1Tips: boolean }>();
+    if (!moduleUnlockResults?.length || !myCampaignsV2.length) return m;
+    myCampaignsV2.forEach((c, i) => {
+      const fr = moduleUnlockResults[i * 2];
+      const l1r = moduleUnlockResults[i * 2 + 1];
+      m.set(c.campaignId.toString(), {
+        featured: fr?.status === 'success' && Boolean(fr.result),
+        l1Tips: l1r?.status === 'success' && Boolean(l1r.result),
+      });
+    });
+    return m;
+  }, [moduleUnlockResults, myCampaignsV2]);
 
   const { data: isVerified, refetch: refetchVerified } = useReadContract({
     chainId: VDONATIONS_CHAIN_ID,
@@ -189,50 +224,12 @@ export default function DonationsStudioPage() {
   const [editErrorMsg, setEditErrorMsg] = useState<string | null>(null);
   const [showEditForm, setShowEditForm] = useState(false);
   const [editSubmitting, setEditSubmitting] = useState(false);
-  const [moduleBusy, setModuleBusy] = useState(false);
-  const [moduleError, setModuleError] = useState<string | null>(null);
-  const [moduleNote, setModuleNote] = useState<string | null>(null);
+  const [deleteCampaignId, setDeleteCampaignId] = useState<bigint | null>(null);
 
-  const featuredModuleIdBytes32 = DONATION_MODULE_IDS.featured;
-  const l1TipsModuleIdBytes32 = DONATION_MODULE_IDS.l1Tips;
-  const { data: featuredUnlockedV2, refetch: refetchFeaturedUnlockedV2 } = useReadContract({
-    chainId: VDONATIONS_CHAIN_ID,
-    address: (igraEscrowV2Address || undefined) as Address | undefined,
-    abi: DONATION_ESCROW_V2_ABI,
-    functionName: 'moduleUnlocked',
-    args: editingV2CampaignId != null ? [editingV2CampaignId, featuredModuleIdBytes32] : undefined,
-    query: { enabled: Boolean(igraEscrowV2Address && editingV2CampaignId != null) },
-  });
-  const { data: l1TipsUnlockedV2, refetch: refetchL1TipsUnlockedV2 } = useReadContract({
-    chainId: VDONATIONS_CHAIN_ID,
-    address: (igraEscrowV2Address || undefined) as Address | undefined,
-    abi: DONATION_ESCROW_V2_ABI,
-    functionName: 'moduleUnlocked',
-    args: editingV2CampaignId != null ? [editingV2CampaignId, l1TipsModuleIdBytes32] : undefined,
-    query: { enabled: Boolean(igraEscrowV2Address && editingV2CampaignId != null) },
-  });
-
-  const { balance: krexBalance, tier } = useKREXBalance();
-  const { nftStatus } = useNFTStatus();
-
-  const moduleNftFlags = useMemo(
-    () => ({
-      hasAny: !!(nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX ||
-        (nftStatus?.partnerCollections && Object.values(nftStatus.partnerCollections || {}).some(Boolean))),
-      hasDiamond: !!(nftStatus?.hasDiamondKREXPRIME || nftStatus?.hasDiamondPIXELKREX ||
-        (nftStatus?.partnerDiamonds && Object.values(nftStatus.partnerDiamonds || {}).some(Boolean))),
-      hasRarest: !!nftStatus?.hasRarestNFT,
-    }),
-    [nftStatus]
-  );
-  const featuredPriceKas = useMemo(
-    () => getDonationModulePriceKas(DONATION_MODULE_OFFERS.featured.basePriceKas, krexBalance ?? 0, tier, moduleNftFlags),
-    [krexBalance, tier, moduleNftFlags]
-  );
-  const l1TipsPriceKas = useMemo(
-    () => getDonationModulePriceKas(DONATION_MODULE_OFFERS.l1Tips.basePriceKas, krexBalance ?? 0, tier, moduleNftFlags),
-    [krexBalance, tier, moduleNftFlags]
-  );
+  const featuredUnlockedV2 =
+    editingV2CampaignId != null ? (unlockByCampaignId.get(editingV2CampaignId.toString())?.featured ?? false) : false;
+  const l1TipsUnlockedV2 =
+    editingV2CampaignId != null ? (unlockByCampaignId.get(editingV2CampaignId.toString())?.l1Tips ?? false) : false;
 
   useEffect(() => {
     if (isTxSuccess && txHash) {
@@ -242,8 +239,7 @@ export default function DonationsStudioPage() {
       void refetchVerified();
       void refetchVerifiedV2();
       void refetchMyCampaignsV2();
-      void refetchFeaturedUnlockedV2();
-      void refetchL1TipsUnlockedV2();
+      void refetchModuleUnlocks();
     }
   }, [
     isTxSuccess,
@@ -254,8 +250,7 @@ export default function DonationsStudioPage() {
     refetchVerified,
     refetchVerifiedV2,
     refetchMyCampaignsV2,
-    refetchFeaturedUnlockedV2,
-    refetchL1TipsUnlockedV2,
+    refetchModuleUnlocks,
   ]);
 
   const handleVerify = () => {
@@ -423,6 +418,17 @@ export default function DonationsStudioPage() {
     });
   };
 
+  const confirmDeleteCampaign = () => {
+    if (!writeEscrowV2Address || deleteCampaignId == null) return;
+    writeContract({
+      address: writeEscrowV2Address as Address,
+      abi: DONATION_ESCROW_V2_ABI,
+      functionName: 'cancelCampaign',
+      args: [deleteCampaignId],
+    });
+    setDeleteCampaignId(null);
+  };
+
   const loadEditFormV2 = async (campaignId: bigint, ipfsHash: string, l1Address: string, targetWei: bigint, deadline: bigint) => {
     if (!ipfsHash) return;
     setEditingV2CampaignId(campaignId);
@@ -582,116 +588,6 @@ export default function DonationsStudioPage() {
     }
   };
 
-  const handleUnlockModuleV2 = async (offer: (typeof DONATION_MODULE_OFFERS)[DonationPaidModuleId]) => {
-    setModuleError(null);
-    setModuleNote(null);
-    if (!address || !writeEscrowV2Address || !igraEscrowV2Address || editingV2CampaignId == null) {
-      setModuleError('Missing campaign or contract configuration.');
-      return;
-    }
-    if (!kaspaState.isConnected || !kaspaState.provider || !kaspaState.address) {
-      setModuleError('Connect your Kaspa L1 wallet to pay for the module.');
-      return;
-    }
-    const treasury = getDonationsModulesTreasuryL1Address();
-    if (!treasury) {
-      setModuleError('Treasury is not configured.');
-      return;
-    }
-
-    setModuleBusy(true);
-    try {
-      const payer = kaspaState.address;
-      const priceKas = getDonationModulePriceKas(offer.basePriceKas, krexBalance ?? 0, tier, moduleNftFlags);
-      const sompi = kasToSompi(priceKas);
-      const payloadHex = buildDonationsModuleUnlockPayloadHex(offer.id, editingV2CampaignId.toString(), payer);
-      const note = buildDonationsModuleUnlockPlainNote(offer.id, editingV2CampaignId.toString(), payer);
-
-      const txRes = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
-        to: treasury,
-        amount: String(sompi),
-        note,
-        payload: payloadHex,
-      });
-      if (txRes.status === 'failed' || !txRes.txHash) {
-        throw new Error(txRes.error ?? 'Payment was rejected or failed');
-      }
-      const hash = extractKaspaTransactionId(txRes.txHash) ?? txRes.txHash;
-
-      let verifiedPayload:
-        | { signature: `0x${string}`; l1TxId: `0x${string}`; paidAmountWei: string; moduleIdBytes32: `0x${string}` }
-        | null = null;
-      let lastMsg: string | null = null;
-      for (let attempt = 0; attempt < 10; attempt++) {
-        try {
-          const vr = await fetch('/api/donations/modules/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              txHash: hash,
-              moduleId: offer.id,
-              campaignId: editingV2CampaignId.toString(),
-              payerAddress: payer,
-              basePriceKas: priceKas,
-              escrowV2Address: igraEscrowV2Address,
-              creatorAddress: address,
-            }),
-          });
-          const vj = (await vr.json()) as
-            | { ok?: true; signature: `0x${string}`; l1TxId: `0x${string}`; paidAmountWei: string; moduleIdBytes32: `0x${string}` }
-            | { ok?: false; error?: string };
-          if ('ok' in vj && vj.ok) {
-            verifiedPayload = {
-              signature: vj.signature,
-              l1TxId: vj.l1TxId,
-              paidAmountWei: vj.paidAmountWei,
-              moduleIdBytes32: vj.moduleIdBytes32,
-            };
-            lastMsg = null;
-            break;
-          }
-          const msg = ((vj as { error?: string }).error ?? '').toLowerCase();
-          const indexing = msg.includes('not found');
-          if (!indexing) {
-            lastMsg = (vj as { error?: string }).error ?? 'Verification failed.';
-            break;
-          }
-          lastMsg = attempt < 9 ? 'Waiting for the network indexer…' : (vj as { error?: string }).error ?? 'Still not indexed; retry shortly.';
-        } catch {
-          lastMsg = attempt < 9 ? 'Waiting for verification…' : 'Could not reach the server.';
-        }
-        if (attempt < 9) {
-          await new Promise((r) => setTimeout(r, 1400 + attempt * 400));
-        }
-      }
-
-      setModuleNote(lastMsg);
-      if (!verifiedPayload) {
-        throw new Error(lastMsg || 'Payment sent but not verified yet.');
-      }
-
-      writeContract({
-        address: writeEscrowV2Address as Address,
-        abi: DONATION_ESCROW_V2_ABI,
-        functionName: 'unlockModule',
-        args: [
-          editingV2CampaignId,
-          verifiedPayload.moduleIdBytes32,
-          verifiedPayload.l1TxId,
-          BigInt(verifiedPayload.paidAmountWei),
-          verifiedPayload.signature,
-        ],
-      });
-      setModuleNote('Module unlock submitted on-chain. Confirm in your wallet.');
-      void refetchFeaturedUnlockedV2();
-      void refetchL1TipsUnlockedV2();
-    } catch (e) {
-      setModuleError(e instanceof Error ? e.message : 'Module unlock failed');
-    } finally {
-      setModuleBusy(false);
-    }
-  };
-
   const handleUpdateCampaign = async () => {
     if (!address || !writeEscrowAddress || !campaign) return;
     if (!editForm.title.trim() || !editForm.l1KaspaAddress?.trim()) {
@@ -764,6 +660,48 @@ export default function DonationsStudioPage() {
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950">
       <Header />
+      {deleteCampaignId != null && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-campaign-title"
+        >
+          <button
+            type="button"
+            className="absolute inset-0 cursor-default"
+            aria-label="Close dialog"
+            onClick={() => setDeleteCampaignId(null)}
+          />
+          <div className="relative z-[1] max-w-md w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-6 shadow-xl">
+            <h3 id="delete-campaign-title" className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+              Delete this campaign?
+            </h3>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-3">
+              This action is <strong className="text-red-700 dark:text-red-400">irreversible</strong>. On-chain campaign #
+              {deleteCampaignId.toString()} will be cancelled and will no longer appear in your studio list. You can only delete
+              campaigns that have received no donations and have no recorded L1 activity.
+            </p>
+            <div className="flex flex-wrap justify-end gap-2 mt-6">
+              <button
+                type="button"
+                className="px-4 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 text-sm font-medium"
+                onClick={() => setDeleteCampaignId(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700"
+                onClick={confirmDeleteCampaign}
+                disabled={!writeEscrowV2Address}
+              >
+                Delete permanently
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <main className="flex-1 flex flex-col">
         <div className="flex-1 flex flex-col lg:flex-row">
           <div className="hidden lg:block flex-shrink-0">
@@ -1044,8 +982,15 @@ export default function DonationsStudioPage() {
                                   const deadlinePassed = BigInt(Math.floor(Date.now() / 1000)) >= c.deadline;
                                   const targetReachedEscrowOnly = c.method === 'L2_ESCROW' && c.raisedWei >= c.targetWei;
                                   const canClaimV2 = c.method === 'L2_ESCROW' && targetReachedEscrowOnly && deadlinePassed;
+                                  const u = unlockByCampaignId.get(c.campaignId.toString());
+                                  const canDeleteCampaign =
+                                    c.active &&
+                                    c.raisedWei === 0n &&
+                                    c.donorCount === 0n &&
+                                    (c.l1RecordedTotalWei ?? 0n) === 0n &&
+                                    (c.l1RecordedDonationCount ?? 0n) === 0n;
                                   return (
-                                    <div key={c.campaignId.toString()} className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4">
+                                    <div key={c.campaignId.toString()} className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 space-y-4">
                                       <div className="flex flex-wrap items-center justify-between gap-3">
                                         <div className="min-w-0">
                                           <div className="flex items-center gap-2 mb-1">
@@ -1055,6 +1000,11 @@ export default function DonationsStudioPage() {
                                             {c.active && (
                                               <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
                                                 Active
+                                              </span>
+                                            )}
+                                            {!c.active && (
+                                              <span className="text-xs px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">
+                                                Inactive
                                               </span>
                                             )}
                                           </div>
@@ -1081,8 +1031,56 @@ export default function DonationsStudioPage() {
                                               Claim
                                             </button>
                                           )}
+                                          <button
+                                            type="button"
+                                            className="k-control-btn !border-red-300 dark:!border-red-800 !text-red-700 dark:!text-red-300"
+                                            disabled={!canDeleteCampaign}
+                                            title={
+                                              canDeleteCampaign
+                                                ? 'Delete this empty campaign on-chain'
+                                                : 'Only campaigns with no donations or recorded L1 activity can be deleted.'
+                                            }
+                                            onClick={() => setDeleteCampaignId(c.campaignId)}
+                                          >
+                                            Delete
+                                          </button>
                                         </div>
                                       </div>
+                                      {igraEscrowV2Address && address ? (
+                                        <div>
+                                          <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
+                                            Premium modules — pay with Kaspa (L1), then confirm on Igra (EVM)
+                                          </p>
+                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <DonationEscrowModuleUnlockCard
+                                              offer={DONATION_MODULE_OFFERS.featured}
+                                              campaignId={c.campaignId}
+                                              igraEscrowV2Address={igraEscrowV2Address}
+                                              writeEscrowV2Address={writeEscrowV2Address as Address | undefined}
+                                              creatorEvmAddress={address as Address}
+                                              isUnlocked={Boolean(u?.featured)}
+                                              accent="emerald"
+                                              onUnlockedOnChain={() => {
+                                                void refetchModuleUnlocks();
+                                                void refetchMyCampaignsV2();
+                                              }}
+                                            />
+                                            <DonationEscrowModuleUnlockCard
+                                              offer={DONATION_MODULE_OFFERS.l1Tips}
+                                              campaignId={c.campaignId}
+                                              igraEscrowV2Address={igraEscrowV2Address}
+                                              writeEscrowV2Address={writeEscrowV2Address as Address | undefined}
+                                              creatorEvmAddress={address as Address}
+                                              isUnlocked={Boolean(u?.l1Tips)}
+                                              accent="amber"
+                                              onUnlockedOnChain={() => {
+                                                void refetchModuleUnlocks();
+                                                void refetchMyCampaignsV2();
+                                              }}
+                                            />
+                                          </div>
+                                        </div>
+                                      ) : null}
                                     </div>
                                   );
                                 })}
@@ -1635,72 +1633,41 @@ export default function DonationsStudioPage() {
                           />
                         </div>
                       </div>
-                      {editingV2CampaignId != null && (
-                        <div className="space-y-3">
-                          <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-3">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
-                                  Module: {DONATION_MODULE_OFFERS.featured.title}
-                                </p>
-                                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                                  {DONATION_MODULE_OFFERS.featured.description} List: {DONATION_MODULE_OFFERS.featured.basePriceKas} KAS
-                                  {featuredPriceKas < DONATION_MODULE_OFFERS.featured.basePriceKas
-                                    ? ` · Your price: ${featuredPriceKas} KAS`
-                                    : ''}
-                                  .
-                                </p>
-                              </div>
-                              {Boolean(featuredUnlockedV2) ? (
-                                <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
-                                  Unlocked
-                                </span>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => void handleUnlockModuleV2(DONATION_MODULE_OFFERS.featured)}
-                                  disabled={moduleBusy}
-                                  className="k-control-btn !border-emerald-500/30 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300"
-                                >
-                                  {moduleBusy ? 'Processing…' : `Pay ${featuredPriceKas} KAS`}
-                                </button>
-                              )}
-                            </div>
+                      {editingV2CampaignId != null && igraEscrowV2Address && address ? (
+                        <div>
+                          <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
+                            Premium modules — pay with Kaspa (L1), then confirm on Igra (EVM)
+                          </p>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <DonationEscrowModuleUnlockCard
+                              offer={DONATION_MODULE_OFFERS.featured}
+                              campaignId={editingV2CampaignId}
+                              igraEscrowV2Address={igraEscrowV2Address}
+                              writeEscrowV2Address={writeEscrowV2Address as Address | undefined}
+                              creatorEvmAddress={address as Address}
+                              isUnlocked={Boolean(featuredUnlockedV2)}
+                              accent="emerald"
+                              onUnlockedOnChain={() => {
+                                void refetchModuleUnlocks();
+                                void refetchMyCampaignsV2();
+                              }}
+                            />
+                            <DonationEscrowModuleUnlockCard
+                              offer={DONATION_MODULE_OFFERS.l1Tips}
+                              campaignId={editingV2CampaignId}
+                              igraEscrowV2Address={igraEscrowV2Address}
+                              writeEscrowV2Address={writeEscrowV2Address as Address | undefined}
+                              creatorEvmAddress={address as Address}
+                              isUnlocked={Boolean(l1TipsUnlockedV2)}
+                              accent="amber"
+                              onUnlockedOnChain={() => {
+                                void refetchModuleUnlocks();
+                                void refetchMyCampaignsV2();
+                              }}
+                            />
                           </div>
-                          <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-3">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
-                                  Module: {DONATION_MODULE_OFFERS.l1Tips.title}
-                                </p>
-                                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                                  {DONATION_MODULE_OFFERS.l1Tips.description} List: {DONATION_MODULE_OFFERS.l1Tips.basePriceKas} KAS
-                                  {l1TipsPriceKas < DONATION_MODULE_OFFERS.l1Tips.basePriceKas
-                                    ? ` · Your price: ${l1TipsPriceKas} KAS`
-                                    : ''}
-                                  . One unlock per campaign.
-                                </p>
-                              </div>
-                              {Boolean(l1TipsUnlockedV2) ? (
-                                <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
-                                  Unlocked
-                                </span>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => void handleUnlockModuleV2(DONATION_MODULE_OFFERS.l1Tips)}
-                                  disabled={moduleBusy}
-                                  className="k-control-btn !border-amber-500/30 !bg-amber-500/10 !text-amber-900 dark:!text-amber-200"
-                                >
-                                  {moduleBusy ? 'Processing…' : `Pay ${l1TipsPriceKas} KAS`}
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                          {moduleError ? <p className="text-xs text-red-600 dark:text-red-400">{moduleError}</p> : null}
-                          {moduleNote ? <p className="text-xs text-amber-700 dark:text-amber-400">{moduleNote}</p> : null}
                         </div>
-                      )}
+                      ) : null}
                       {editErrorMsg && <p className="text-sm text-red-600 dark:text-red-400">{editErrorMsg}</p>}
                       {updateError && <p className="text-sm text-red-600 dark:text-red-400">{getErrorMessage(updateError, 'Update failed')}</p>}
                       <div className="flex gap-2">

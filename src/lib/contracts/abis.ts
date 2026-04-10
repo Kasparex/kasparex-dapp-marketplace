@@ -4068,6 +4068,13 @@ export const DONATION_ESCROW_V2_ABI = [
   },
   {
     inputs: [{ internalType: "uint256", name: "campaignId", type: "uint256" }],
+    name: "cancelCampaign",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "uint256", name: "campaignId", type: "uint256" }],
     name: "donate",
     outputs: [],
     stateMutability: "payable",
@@ -4222,6 +4229,14 @@ export const DONATION_ESCROW_V2_ABI = [
       { name: "txHash", type: "bytes32", indexed: true },
       { name: "donorL2", type: "address", indexed: false },
       { name: "amountWei", type: "uint256", indexed: false }
+    ]
+  },
+  {
+    type: "event",
+    name: "CampaignCancelled",
+    inputs: [
+      { name: "campaignId", type: "uint256", indexed: true },
+      { name: "creator", type: "address", indexed: true }
     ]
   }
 ] as const;
