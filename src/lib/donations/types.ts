@@ -6,6 +6,10 @@
 export interface DonationCampaignMetadata {
   title: string;
   description: string;
+  /** Curated category label (optional). */
+  category?: string;
+  /** Freeform tags (optional). Stored normalized (lowercase/trimmed) by the editor. */
+  tags?: string[];
   goals?: string[];
   socialLinks?: {
     twitter?: string;

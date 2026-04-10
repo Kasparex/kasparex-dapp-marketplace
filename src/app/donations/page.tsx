@@ -4,24 +4,31 @@ import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { useDonationCampaigns, type DonationCampaignListItem } from '@/hooks/useDonationCampaigns';
+import { useDonationCampaigns } from '@/hooks/useDonationCampaigns';
 import { DonationsSidebar, type DonationFilterStatus } from '@/components/donations/DonationsSidebar';
 import { DonationsHeader } from '@/components/donations/DonationsHeader';
 import { DonationSortFilters, sortCampaigns, type DonationSortOption } from '@/components/donations/DonationSortFilters';
+import { DonationCampaignCard } from '@/components/donations/DonationCampaignCard';
+import { DonationCategoryFilter, DonationNetworkFilter, DonationTagMultiFilter, type DonationNetworkFilterValue } from '@/components/donations/DonationTaxonomyFilters';
 import { FilterBar } from '@/components/FilterBar';
-import { DEFAULT_DONATION_IMAGE } from '@/lib/donations/constants';
-import { formatEther } from 'viem';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
-import { getGatewayUrl } from '@/lib/ipfs/gateway';
-import { progressPercent, totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
 
 export default function DonationsListingPage() {
   const { campaigns, isLoading, error } = useDonationCampaigns();
   const [selectedStatus, setSelectedStatus] = useState<DonationFilterStatus>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<DonationSortOption>('newest');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedNetwork, setSelectedNetwork] = useState<DonationNetworkFilterValue>('all');
   const [metaByCreator, setMetaByCreator] = useState<Record<string, DonationCampaignMetadata | null>>({});
+
+  const allTags = useMemo(() => {
+    const set = new Set<string>();
+    Object.values(metaByCreator).forEach((m) => (m?.tags ?? []).forEach((t) => set.add(t)));
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [metaByCreator]);
 
   const statusCounts = useMemo(() => {
     const now = Math.floor(Date.now() / 1000);
@@ -54,13 +61,29 @@ export default function DonationsListingPage() {
         );
       });
     }
+    if (selectedCategory) {
+      list = list.filter((c) => (metaByCreator[c.creatorAddress]?.category ?? null) === selectedCategory);
+    }
+    if (selectedTags.length > 0) {
+      list = list.filter((c) => {
+        const tags = metaByCreator[c.creatorAddress]?.tags ?? [];
+        return selectedTags.every((t) => tags.includes(t));
+      });
+    }
+    if (selectedNetwork !== 'all') {
+      // V1 campaigns are L2 escrow (Igra) today. V2 will populate L1/L2 explicitly.
+      list = list.filter(() => selectedNetwork === 'l2');
+    }
     return sortCampaigns(list, sortBy);
-  }, [campaigns, selectedStatus, searchQuery, sortBy, metaByCreator]);
+  }, [campaigns, selectedStatus, searchQuery, sortBy, selectedCategory, selectedTags, selectedNetwork, metaByCreator]);
 
   const handleResetFilters = () => {
     setSelectedStatus('all');
     setSearchQuery('');
     setSortBy('newest');
+    setSelectedCategory(null);
+    setSelectedTags([]);
+    setSelectedNetwork('all');
   };
 
   useEffect(() => {
@@ -127,7 +150,17 @@ export default function DonationsListingPage() {
               <FilterBar
                 search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search campaigns...' }}
                 onReset={handleResetFilters}
+                flexWrap={true}
               >
+                <DonationNetworkFilter value={selectedNetwork} onChange={setSelectedNetwork} />
+                <DonationCategoryFilter value={selectedCategory} onChange={setSelectedCategory} />
+                <DonationTagMultiFilter
+                  allTags={allTags}
+                  selectedTags={selectedTags}
+                  onToggleTag={(tag) =>
+                    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]))
+                  }
+                />
                 <DonationSortFilters sortBy={sortBy} onSortChange={setSortBy} />
               </FilterBar>
             </div>
@@ -169,7 +202,12 @@ export default function DonationsListingPage() {
             {!isLoading && filteredCampaigns.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredCampaigns.map((c) => (
-                  <DonationCampaignCard key={c.creatorAddress} campaign={c} metadata={metaByCreator[c.creatorAddress] ?? null} />
+                  <DonationCampaignCard
+                    key={c.creatorAddress}
+                    campaign={c}
+                    metadata={metaByCreator[c.creatorAddress] ?? null}
+                    badges={[{ label: 'L2 • Igra', variant: 'neutral' }]}
+                  />
                 ))}
               </div>
             )}
@@ -178,57 +216,5 @@ export default function DonationsListingPage() {
       </div>
       <Footer />
     </div>
-  );
-}
-
-function DonationCampaignCard({ campaign, metadata }: { campaign: DonationCampaignListItem; metadata: DonationCampaignMetadata | null }) {
-  const progress = progressPercent(campaign, campaign.targetWei);
-  const raisedDisplay = totalRaisedWei(campaign);
-  const donorsDisplay = totalDonorCount(campaign);
-  const deadline = new Date(Number(campaign.deadline) * 1000);
-  const imageSrc =
-    metadata?.imageUrl ||
-    (metadata?.imageHash ? getGatewayUrl(metadata.imageHash) : DEFAULT_DONATION_IMAGE);
-  const title = metadata?.title?.trim() || `${campaign.creatorAddress.slice(0, 6)}...${campaign.creatorAddress.slice(-4)}`;
-  return (
-    <Link
-      href={`/donations/${campaign.creatorAddress}`}
-      className="block rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors"
-    >
-      <div className="aspect-[16/9] bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden">
-        <img
-          src={imageSrc}
-          alt=""
-          className="w-full h-full object-cover"
-        />
-      </div>
-      <div className="p-4">
-        <div className="flex justify-between items-start mb-2">
-          <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 truncate max-w-[180px]">
-            {campaign.creatorAddress.slice(0, 6)}...{campaign.creatorAddress.slice(-4)}
-          </span>
-          {campaign.active && (
-            <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
-              Active
-            </span>
-          )}
-        </div>
-        <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2">
-          {title}
-        </p>
-        <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-          {formatEther(raisedDisplay)} / {formatEther(campaign.targetWei)} iKAS
-        </div>
-        <div className="w-full h-2 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden mb-2">
-          <div
-            className="h-full bg-emerald-500 rounded-full transition-all"
-            style={{ width: `${Math.min(progress, 100)}%` }}
-          />
-        </div>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          {donorsDisplay.toString()} donors · Ends {deadline.toLocaleDateString()}
-        </p>
-      </div>
-    </Link>
   );
 }

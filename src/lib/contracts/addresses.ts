@@ -43,6 +43,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     RevenueTreeManager: "",
     FeeRouter: "",
     GenesisBadge: "",
+    DonationEscrowV2: "",
   },
   kasplexL2Testnet: {
     Treasury: "0x305B4ee627aD8b12bFCF6427453964771aA30622",
@@ -70,6 +71,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     FeeRouter: "0x1E18a05c14F3962a209e4371A5734766FA0365eB",
     GenesisBadge: "",
     DonationEscrow: "",
+    DonationEscrowV2: "",
   },
   igraGalleonTestnet: {
     Treasury: "0xe32a9445F5771DaE70b5148515cFc012621BA101",
@@ -99,6 +101,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     FeeRouter: "0x933D2BbCDf80872688005391c4d9E4473BB02BeB",
     GenesisBadge: "0xAD3Aa97F7AE16D180A3d35163Bd800b0e039059E",
     DonationEscrow: "0x8E4eeEB4516fb63329f0DB7f78065b611C4e8119",
+    DonationEscrowV2: "",
   },
   igraMainnet: {
     Treasury: "",
@@ -128,6 +131,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     FeeRouter: "0x0530c962A17fB4602418087689e762e5989f1D43",
     GenesisBadge: "",
     DonationEscrow: "0xD3D759E7d7d0F68C704D973247e254157FEDD825",
+    DonationEscrowV2: "",
   },
 };
 
@@ -160,6 +164,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     FeeRouter: "",
     GenesisBadge: "",
     DonationEscrow: "",
+    DonationEscrowV2: "",
   },
   kasplexL2Testnet: {
     Treasury: "",
@@ -189,6 +194,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     FeeRouter: "0x1E18a05c14F3962a209e4371A5734766FA0365eB",
     GenesisBadge: "",
     DonationEscrow: "",
+    DonationEscrowV2: "",
   },
   igraGalleonTestnet: {
     Treasury: "0xe32a9445F5771DaE70b5148515cFc012621BA101",
@@ -218,6 +224,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     FeeRouter: "0x933D2BbCDf80872688005391c4d9E4473BB02BeB",
     GenesisBadge: "0xAD3Aa97F7AE16D180A3d35163Bd800b0e039059E",
     DonationEscrow: "0x8E4eeEB4516fb63329f0DB7f78065b611C4e8119",
+    DonationEscrowV2: "",
   },
   igraMainnet: {
     Treasury: "",
@@ -247,6 +254,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     FeeRouter: "",
     GenesisBadge: "",
     DonationEscrow: "",
+    DonationEscrowV2: "",
   },
 };
 
@@ -280,6 +288,10 @@ export const CONTRACT_ADDRESSES = {
     FeeRouter: getEnvVar('NEXT_PUBLIC_FEE_ROUTER_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.FeeRouter,
     GenesisBadge: getEnvVar('NEXT_PUBLIC_GENESIS_BADGE_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.GenesisBadge,
     DonationEscrow: getEnvVar('NEXT_PUBLIC_DONATION_ESCROW_ADDRESS') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.DonationEscrow,
+    DonationEscrowV2:
+      getEnvVar('NEXT_PUBLIC_DONATION_ESCROW_V2_ADDRESS') ||
+      getEnvVar('NEXT_PUBLIC_DONATION_ESCROW_V2_ADDRESS_202555') ||
+      DEFAULT_CONTRACT_ADDRESSES.kasplexL2Mainnet.DonationEscrowV2,
   },
   // Kasplex L2 Testnet (Chain ID: 167012)
   kasplexL2Testnet: {
@@ -310,6 +322,10 @@ export const CONTRACT_ADDRESSES = {
     FeeRouter: getEnvVar('NEXT_PUBLIC_FEE_ROUTER_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.FeeRouter,
     GenesisBadge: getEnvVar('NEXT_PUBLIC_GENESIS_BADGE_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.GenesisBadge,
     DonationEscrow: getEnvVar('NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.DonationEscrow,
+    DonationEscrowV2:
+      getEnvVar('NEXT_PUBLIC_DONATION_ESCROW_V2_ADDRESS_TESTNET') ||
+      getEnvVar('NEXT_PUBLIC_DONATION_ESCROW_V2_ADDRESS_167012') ||
+      DEFAULT_CONTRACT_ADDRESSES.kasplexL2Testnet.DonationEscrowV2,
   },
   // IGRA Galleon Testnet (Chain ID: 38836)
   igraGalleonTestnet: {
@@ -340,6 +356,10 @@ export const CONTRACT_ADDRESSES = {
     FeeRouter: getEnvVar('NEXT_PUBLIC_FEE_ROUTER_ADDRESS_IGRA_GALLEON_TESTNET') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.FeeRouter,
     GenesisBadge: getEnvVar('NEXT_PUBLIC_GENESIS_BADGE_ADDRESS_IGRA_GALLEON_TESTNET') || getEnvVar('NEXT_PUBLIC_GENESIS_BADGE_ADDRESS_38836') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.GenesisBadge,
     DonationEscrow: getEnvVar('NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_IGRA_GALLEON_TESTNET') || getEnvVar('NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_38836') || DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.DonationEscrow,
+    DonationEscrowV2:
+      getEnvVar('NEXT_PUBLIC_DONATION_ESCROW_V2_ADDRESS_IGRA_GALLEON_TESTNET') ||
+      getEnvVar('NEXT_PUBLIC_DONATION_ESCROW_V2_ADDRESS_38836') ||
+      DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet.DonationEscrowV2,
   },
   // Igra Mainnet (Chain ID: 38833)
   igraMainnet: {
@@ -374,6 +394,11 @@ export const CONTRACT_ADDRESSES = {
       getEnvVar('NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_38833') ||
       HARDCODED_FALLBACK_ADDRESSES.igraMainnet.DonationEscrow ||
       DEFAULT_CONTRACT_ADDRESSES.igraMainnet.DonationEscrow,
+    DonationEscrowV2:
+      getEnvVar('NEXT_PUBLIC_DONATION_ESCROW_V2_ADDRESS_IGRA_MAINNET') ||
+      getEnvVar('NEXT_PUBLIC_DONATION_ESCROW_V2_ADDRESS_38833') ||
+      HARDCODED_FALLBACK_ADDRESSES.igraMainnet.DonationEscrowV2 ||
+      DEFAULT_CONTRACT_ADDRESSES.igraMainnet.DonationEscrowV2,
   },
 };
 

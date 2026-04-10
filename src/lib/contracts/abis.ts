@@ -4037,3 +4037,160 @@ export const DONATION_ESCROW_ABI = [
   }
 ] as const;
 
+/** DonationEscrowV2 (CrowdKAS V2): multi-campaign, explicit method, module unlocks */
+export const DONATION_ESCROW_V2_ABI = [
+  { inputs: [], name: "verify", outputs: [], stateMutability: "payable", type: "function" },
+  {
+    inputs: [
+      { internalType: "uint8", name: "_method", type: "uint8" },
+      { internalType: "string", name: "_ipfsHash", type: "string" },
+      { internalType: "uint256", name: "_targetWei", type: "uint256" },
+      { internalType: "uint256", name: "_deadline", type: "uint256" },
+      { internalType: "string", name: "_l1Address", type: "string" }
+    ],
+    name: "createCampaign",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "uint256", name: "campaignId", type: "uint256" },
+      { internalType: "string", name: "_ipfsHash", type: "string" },
+      { internalType: "uint256", name: "_targetWei", type: "uint256" },
+      { internalType: "uint256", name: "_deadline", type: "uint256" },
+      { internalType: "string", name: "_l1Address", type: "string" }
+    ],
+    name: "updateCampaign",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "uint256", name: "campaignId", type: "uint256" }],
+    name: "donate",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "uint256", name: "campaignId", type: "uint256" }],
+    name: "claim",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "uint256", name: "campaignId", type: "uint256" }],
+    name: "claimRefund",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "uint256", name: "campaignId", type: "uint256" },
+      { internalType: "bytes32", name: "_txHash", type: "bytes32" },
+      { internalType: "address", name: "_donorL2", type: "address" },
+      { internalType: "uint256", name: "_amountWei", type: "uint256" }
+    ],
+    name: "recordL1Donation",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    name: "campaignsById",
+    outputs: [
+      { internalType: "uint256", name: "id", type: "uint256" },
+      { internalType: "address", name: "creator", type: "address" },
+      { internalType: "uint8", name: "method", type: "uint8" },
+      { internalType: "uint256", name: "targetWei", type: "uint256" },
+      { internalType: "uint256", name: "deadline", type: "uint256" },
+      { internalType: "uint256", name: "raisedWei", type: "uint256" },
+      { internalType: "uint256", name: "donorCount", type: "uint256" },
+      { internalType: "string", name: "ipfsHash", type: "string" },
+      { internalType: "string", name: "l1Address", type: "string" },
+      { internalType: "bool", name: "active", type: "bool" }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "address", name: "", type: "address" }],
+    name: "verified",
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "getCampaignCount",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "uint256", name: "index", type: "uint256" }],
+    name: "campaignIdAt",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "address", name: "creator", type: "address" }],
+    name: "getCreatorCampaignCount",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "creator", type: "address" },
+      { internalType: "uint256", name: "index", type: "uint256" }
+    ],
+    name: "creatorCampaignIdAt",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    name: "l1RecordedTotalWei",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    name: "l1RecordedDonationCount",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "uint256", name: "", type: "uint256" },
+      { internalType: "bytes32", name: "", type: "bytes32" }
+    ],
+    name: "moduleUnlocked",
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "uint256", name: "campaignId", type: "uint256" },
+      { internalType: "bytes32", name: "moduleId", type: "bytes32" },
+      { internalType: "bytes32", name: "l1TxId", type: "bytes32" },
+      { internalType: "uint256", name: "paidAmountWei", type: "uint256" },
+      { internalType: "bytes", name: "signature", type: "bytes" }
+    ],
+    name: "unlockModule",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  }
+] as const;
+

@@ -7,6 +7,7 @@ import { RevenueTree } from '@/components/revenue-tree/RevenueTree';
 import { generateDonationRevenueTree } from '@/lib/revenue-tree/mockData';
 import type { DonationCampaign } from '@/lib/donations/types';
 import { progressPercent, totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
+import { useDonationPoints } from '@/hooks/useDonationPoints';
 
 interface DonationCampaignRightColumnProps {
   campaign: DonationCampaign;
@@ -22,6 +23,7 @@ export function DonationCampaignRightColumn({ campaign, creatorAddress, previewD
   const progress = progressPercent(campaign, campaign.targetWei);
   const raisedTotal = totalRaisedWei(campaign);
   const donorsTotal = totalDonorCount(campaign);
+  const { points, isLoading: pointsLoading } = useDonationPoints(creatorAddress, userWalletAddress ?? null);
 
   const revenueTreeData = generateDonationRevenueTree(
     creatorAddress,
@@ -60,6 +62,18 @@ export function DonationCampaignRightColumn({ campaign, creatorAddress, previewD
           />
         </div>
       </div>
+
+      {userWalletAddress && (
+        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Your points</h3>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            {pointsLoading ? 'Calculating…' : `${points} points`}
+          </p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+            Points are based on your on-chain donations (L2 escrow + recorded L1 donations).
+          </p>
+        </div>
+      )}
 
       <DonationLeaderboard creatorAddress={creatorAddress} limit={20} donorCount={donorsTotal} raisedWei={raisedTotal} />
 
