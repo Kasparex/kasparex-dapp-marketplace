@@ -4,7 +4,7 @@
  */
 
 import { useMemo } from 'react';
-import { useReadContract } from 'wagmi';
+import { useReadContracts } from 'wagmi';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { DONATION_ESCROW_ABI } from '@/lib/contracts/abis';
 import type { Address } from 'viem';
@@ -33,44 +33,51 @@ export function useDonationCampaign(creatorAddress: string | null): {
 } {
   const escrowAddress = getContractAddress(CROWDKAS_CHAIN_ID, 'DonationEscrow');
 
-  const { data: campaignOnChain, isLoading: loadingChain, error: chainError, refetch: refetchChain } = useReadContract({
-    chainId: CROWDKAS_CHAIN_ID,
-    address: (escrowAddress || undefined) as Address | undefined,
-    abi: DONATION_ESCROW_ABI,
-    functionName: 'campaigns',
-    args: creatorAddress ? [creatorAddress as Address] : undefined,
-    query: { enabled: Boolean(creatorAddress && escrowAddress) },
-  });
-
-  const { data: isVerified, refetch: refetchVerified } = useReadContract({
-    chainId: CROWDKAS_CHAIN_ID,
-    address: (escrowAddress || undefined) as Address | undefined,
-    abi: DONATION_ESCROW_ABI,
-    functionName: 'verified',
-    args: creatorAddress ? [creatorAddress as Address] : undefined,
-    query: { enabled: Boolean(creatorAddress && escrowAddress) },
-  });
-
-  const { data: l1TotalWei, isLoading: loadingL1Total, refetch: refetchL1Total } = useReadContract({
-    chainId: CROWDKAS_CHAIN_ID,
-    address: (escrowAddress || undefined) as Address | undefined,
-    abi: DONATION_ESCROW_ABI,
-    functionName: 'l1RecordedTotalWei',
-    args: creatorAddress ? [creatorAddress as Address] : undefined,
-    query: { enabled: Boolean(creatorAddress && escrowAddress) },
-  });
-
-  const { data: l1DonorCount, isLoading: loadingL1Count, refetch: refetchL1Count } = useReadContract({
-    chainId: CROWDKAS_CHAIN_ID,
-    address: (escrowAddress || undefined) as Address | undefined,
-    abi: DONATION_ESCROW_ABI,
-    functionName: 'l1RecordedDonationCount',
-    args: creatorAddress ? [creatorAddress as Address] : undefined,
-    query: { enabled: Boolean(creatorAddress && escrowAddress) },
+  const enabled = Boolean(creatorAddress && escrowAddress);
+  const { data: results, isLoading, error, refetch } = useReadContracts({
+    allowFailure: true,
+    contracts: enabled
+      ? ([
+          {
+            chainId: CROWDKAS_CHAIN_ID,
+            address: escrowAddress as Address,
+            abi: DONATION_ESCROW_ABI,
+            functionName: 'campaigns',
+            args: [creatorAddress as Address],
+          },
+          {
+            chainId: CROWDKAS_CHAIN_ID,
+            address: escrowAddress as Address,
+            abi: DONATION_ESCROW_ABI,
+            functionName: 'verified',
+            args: [creatorAddress as Address],
+          },
+          {
+            chainId: CROWDKAS_CHAIN_ID,
+            address: escrowAddress as Address,
+            abi: DONATION_ESCROW_ABI,
+            functionName: 'l1RecordedTotalWei',
+            args: [creatorAddress as Address],
+          },
+          {
+            chainId: CROWDKAS_CHAIN_ID,
+            address: escrowAddress as Address,
+            abi: DONATION_ESCROW_ABI,
+            functionName: 'l1RecordedDonationCount',
+            args: [creatorAddress as Address],
+          },
+        ] as const)
+      : [],
+    query: { enabled },
   });
 
   const campaign: DonationCampaign | null = useMemo(() => {
     if (!creatorAddress || !escrowAddress) return null;
+    const campaignOnChain = results?.[0]?.status === 'success' ? results[0].result : null;
+    const isVerified = results?.[1]?.status === 'success' ? results[1].result : null;
+    const l1TotalWei = results?.[2]?.status === 'success' ? results[2].result : null;
+    const l1DonorCount = results?.[3]?.status === 'success' ? results[3].result : null;
+
     const t = parseCampaign(campaignOnChain);
     if (!t) return null;
     return {
@@ -87,20 +94,13 @@ export function useDonationCampaign(creatorAddress: string | null): {
       verified: Boolean(isVerified),
       metadata: null,
     };
-  }, [creatorAddress, escrowAddress, campaignOnChain, isVerified, l1TotalWei, l1DonorCount]);
-
-  const refetch = () => {
-    void refetchChain();
-    void refetchVerified();
-    void refetchL1Total();
-    void refetchL1Count();
-  };
+  }, [creatorAddress, escrowAddress, results]);
 
   return {
     campaign,
-    isLoading: loadingChain || loadingL1Total || loadingL1Count,
-    error: chainError ? (chainError as Error) : null,
-    refetch,
+    isLoading,
+    error: (error as Error) ?? null,
+    refetch: () => void refetch(),
   };
 }
 

@@ -1,0 +1,11 @@
+{
+  "network": "igraMainnet",
+  "chainId": 38833,
+  "DonationEscrowV2": "0x1b4d969AD0a56e87d1eF87869bAf786e3715040C",
+  "FeeRouter": "0x0530c962A17fB4602418087689e762e5989f1D43",
+  "LoyaltyPoints": "0x5A60E418f6B04bD1eb0AEF8088a6D5DB81FAd0cA",
+  "Recorder": "0x658420Fd88dbd610249a88384f9B1aD387F797c7",
+  "ModuleSigner": "0xb9ffC933C681b45F86A50BF5b5f6D067Ff238B19",
+  "deployer": "0x658420Fd88dbd610249a88384f9B1aD387F797c7",
+  "deployedAt": "2026-04-10T17:05:01.469Z"
+}

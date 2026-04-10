@@ -131,7 +131,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     FeeRouter: "0x0530c962A17fB4602418087689e762e5989f1D43",
     GenesisBadge: "",
     DonationEscrow: "0xD3D759E7d7d0F68C704D973247e254157FEDD825",
-    DonationEscrowV2: "",
+    DonationEscrowV2: "0x1b4d969AD0a56e87d1eF87869bAf786e3715040C",
   },
 };
 
