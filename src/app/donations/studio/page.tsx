@@ -803,7 +803,7 @@ export default function DonationsStudioPage() {
                           </section>
 
                           {isVerifiedV2 && (
-                            <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 bg-white dark:bg-zinc-900">
+                            <section id="create" className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 bg-white dark:bg-zinc-900 scroll-mt-24">
                               <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Create campaign (V2)</h2>
                               <div className="space-y-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1054,10 +1054,16 @@ export default function DonationsStudioPage() {
               )}
             </section>
 
-            {/* Create campaign (only if verified and no campaign) */}
-            {isVerified && !hasCampaign && (
-              <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 bg-white dark:bg-zinc-900">
-                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Create campaign</h2>
+            {/* Create / update campaign (V1 supports only 1 campaign per creator) */}
+            {isVerified && (
+              <section id="create" className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 bg-white dark:bg-zinc-900 scroll-mt-24">
+                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Create campaign</h2>
+                {hasCampaign && (
+                  <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20 p-3 text-sm text-amber-900 dark:text-amber-100 mb-4">
+                    You already have a V1 campaign. V1 only supports <strong>one campaign per creator</strong>. To create multiple campaigns you need CrowdKAS V2
+                    (set <code className="font-mono">NEXT_PUBLIC_DONATION_ESCROW_V2_ADDRESS_IGRA_MAINNET</code> in Vercel).
+                  </div>
+                )}
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Title</label>
@@ -1239,11 +1245,17 @@ export default function DonationsStudioPage() {
                   {createError && <p className="text-sm text-red-600 dark:text-red-400">{getErrorMessage(createError, 'Create failed')}</p>}
                   <button
                     type="button"
-                    onClick={handleCreateCampaign}
+                    onClick={() => {
+                      if (hasCampaign) {
+                        void loadEditForm();
+                        return;
+                      }
+                      handleCreateCampaign();
+                    }}
                     disabled={createSubmitting || isCreatePending}
                     className="w-full px-4 py-3 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 disabled:opacity-50"
                   >
-                    {createSubmitting || isCreatePending ? 'Creating…' : 'Create campaign'}
+                    {hasCampaign ? (editLoadingMeta ? 'Loading…' : 'Edit existing campaign') : createSubmitting || isCreatePending ? 'Creating…' : 'Create campaign'}
                   </button>
                 </div>
               </section>

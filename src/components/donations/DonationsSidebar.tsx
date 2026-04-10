@@ -54,31 +54,31 @@ export function DonationsSidebar(props: DonationsSidebarProps) {
     <UnifiedSidebar storageKeyPrefix="donations" header={header}>
       <div className="px-3 pt-3 pb-4 space-y-2 border-b border-zinc-200/70 dark:border-zinc-800/70 mb-4">
         <Link
-          href="/donations/dashboard"
-          className={`k-control-btn w-full justify-center gap-2 ${
-            pathname.startsWith('/donations/dashboard')
-              ? '!border-emerald-500/40 !bg-emerald-500/15 !text-emerald-800 dark:!text-emerald-300'
-              : '!border-emerald-500/20 !bg-white dark:!bg-zinc-900 !text-zinc-700 dark:!text-zinc-200 hover:!bg-zinc-100 dark:hover:!bg-zinc-800'
-          }`}
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l9-9 9 9M4 10v10a1 1 0 001 1h5V15h4v6h5a1 1 0 001-1V10" />
-          </svg>
-          <span className="text-xs font-black uppercase tracking-widest">My campaigns</span>
-        </Link>
-
-        <Link
-          href="/donations/studio"
+          href="/donations/studio#create"
           className={`k-control-btn w-full justify-center gap-2 ${
             pathname.startsWith('/donations/studio')
               ? '!border-emerald-500/40 !bg-emerald-500/15 !text-emerald-800 dark:!text-emerald-300'
-              : '!border-emerald-500/30 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300 hover:!bg-emerald-500/15'
+              : '!border-emerald-500/20 !bg-white dark:!bg-zinc-900 !text-zinc-700 dark:!text-zinc-200 hover:!bg-zinc-100 dark:hover:!bg-zinc-800'
           }`}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
           <span className="text-xs font-black uppercase tracking-widest">Create campaign</span>
+        </Link>
+
+        <Link
+          href="/donations/dashboard"
+          className={`k-control-btn w-full justify-center gap-2 ${
+            pathname.startsWith('/donations/dashboard')
+              ? '!border-emerald-500/40 !bg-emerald-500/15 !text-emerald-800 dark:!text-emerald-300'
+              : '!border-emerald-500/30 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300 hover:!bg-emerald-500/15'
+          }`}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l9-9 9 9M4 10v10a1 1 0 001 1h5V15h4v6h5a1 1 0 001-1V10" />
+          </svg>
+          <span className="text-xs font-black uppercase tracking-widest">My campaigns</span>
         </Link>
 
         <Link href="/donations/modules" className="k-control-btn w-full justify-center gap-2">

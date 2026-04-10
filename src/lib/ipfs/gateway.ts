@@ -36,16 +36,18 @@ export async function fetchFromGateway(
   hash: string,
   config: GatewayConfig = {}
 ): Promise<Response | null> {
+  const timeout = config.timeout || 2500;
   // In browser, use proxy API route to avoid CORS
   if (typeof window !== 'undefined') {
     try {
       // Clean hash - remove ipfs:// prefix and /ipfs/ prefix if present
       const cleanHash = hash.replace(/^\/?ipfs\//, '').replace(/^ipfs:\/\//, '');
       const proxyUrl = `/api/ipfs?path=${encodeURIComponent(cleanHash)}`;
-      
-      const response = await fetch(proxyUrl, {
-        method: 'GET',
-      });
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      const response = await fetch(proxyUrl, { method: 'GET', signal: controller.signal });
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         return response;
@@ -62,8 +64,6 @@ export async function fetchFromGateway(
     ...(config.fallbacks || []),
     ...DEFAULT_GATEWAYS,
   ].filter(Boolean) as string[];
-
-  const timeout = config.timeout || 5000;
 
   for (const gateway of gateways) {
     try {

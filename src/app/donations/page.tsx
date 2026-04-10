@@ -92,26 +92,21 @@ export default function DonationsListingPage() {
     const missing = creatorAddresses.filter((a) => metaByCreator[a] === undefined);
     if (missing.length === 0) return;
 
-    (async () => {
-      const entries = await Promise.all(
-        missing.map(async (addr) => {
-          const c = campaigns.find((x) => x.creatorAddress === addr);
-          if (!c?.ipfsHash) return [addr, null] as const;
-          try {
-            const m = await fetchCampaignMetadata(c.ipfsHash);
-            return [addr, m ?? null] as const;
-          } catch {
-            return [addr, null] as const;
-          }
-        })
-      );
-      if (cancelled) return;
-      setMetaByCreator((prev) => {
-        const next = { ...prev };
-        for (const [addr, meta] of entries) next[addr] = meta;
-        return next;
-      });
-    })();
+    missing.forEach((addr) => {
+      (async () => {
+        const c = campaigns.find((x) => x.creatorAddress === addr);
+        if (!c?.ipfsHash) {
+          if (!cancelled) setMetaByCreator((prev) => ({ ...prev, [addr]: null }));
+          return;
+        }
+        try {
+          const m = await fetchCampaignMetadata(c.ipfsHash);
+          if (!cancelled) setMetaByCreator((prev) => ({ ...prev, [addr]: m ?? null }));
+        } catch {
+          if (!cancelled) setMetaByCreator((prev) => ({ ...prev, [addr]: null }));
+        }
+      })();
+    });
 
     return () => {
       cancelled = true;
