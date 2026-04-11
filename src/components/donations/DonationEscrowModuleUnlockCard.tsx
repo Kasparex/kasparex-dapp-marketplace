@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useChainId, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
@@ -18,7 +19,6 @@ import {
 import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
 import { buildDonationsModuleUnlockPayloadHex, buildDonationsModuleUnlockPlainNote } from '@/lib/donations/modulePayload';
 import { DONATION_ESCROW_V2_ABI } from '@/lib/contracts/abis';
-import { KaspaL1WalletButton } from '@/components/KaspaL1WalletButton';
 import { getErrorMessage } from '@/lib/utils';
 import type { Address } from 'viem';
 
@@ -33,7 +33,6 @@ interface DonationEscrowModuleUnlockCardProps {
   isUnlocked: boolean;
   onUnlockedOnChain: () => void;
   accent?: 'emerald' | 'amber';
-  /** Merged onto the root wrapper (e.g. listing-style hover border from parent grid). */
   className?: string;
 }
 
@@ -48,6 +47,8 @@ export function DonationEscrowModuleUnlockCard({
   accent = 'emerald',
   className = '',
 }: DonationEscrowModuleUnlockCardProps) {
+  const chainId = useChainId();
+  const onCrowdkasChain = chainId === CROWDKAS_CHAIN_ID;
   const { state: kaspaState } = useKaspaWallet();
   const { balance: krexBalance, tier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
@@ -60,7 +61,7 @@ export function DonationEscrowModuleUnlockCard({
       hasAny: !!(nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX ||
         (nftStatus?.partnerCollections && Object.values(nftStatus.partnerCollections || {}).some(Boolean))),
       hasDiamond: !!(nftStatus?.hasDiamondKREXPRIME || nftStatus?.hasDiamondPIXELKREX ||
-        (nftStatus?.partnerDiamonds && Object.values(nftStatus.partnerDiamonds || {}).some(Boolean))),
+        (nftStatus.partnerDiamonds && Object.values(nftStatus.partnerDiamonds || {}).some(Boolean))),
       hasRarest: !!nftStatus?.hasRarestNFT,
     }),
     [nftStatus]
@@ -74,8 +75,25 @@ export function DonationEscrowModuleUnlockCard({
   const savingsKas = Math.max(0, Math.round((offer.basePriceKas - priceKas) * 1000) / 1000);
   const tierLabel = KREX_TIERS[tier as KREXTier]?.label ?? tier;
 
+  const krexDiscountChip =
+    (krexBalance ?? 0) > 0 ? (
+      <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-xs font-bold uppercase tracking-wider">
+        KREX · {tierLabel}
+      </span>
+    ) : null;
+
+  const nftDiscountChip =
+    moduleNftFlags.hasRarest || moduleNftFlags.hasDiamond || moduleNftFlags.hasAny ? (
+      <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/25 text-cyan-700 dark:text-cyan-300 text-xs font-bold uppercase tracking-wider">
+        {moduleNftFlags.hasRarest ? 'NFT · Rarest' : moduleNftFlags.hasDiamond ? 'NFT · Diamond' : 'NFT · Holder'}
+      </span>
+    ) : null;
+
   const { writeContract, data: hash, error: writeErr, isPending: isWritePending } = useWriteContract();
-  const { isSuccess: isConfirmed, isLoading: isConfirming } = useWaitForTransactionReceipt({ hash });
+  const { isSuccess: isConfirmed, isLoading: isConfirming } = useWaitForTransactionReceipt({
+    hash,
+    chainId: hash ? CROWDKAS_CHAIN_ID : undefined,
+  });
 
   useEffect(() => {
     if (isConfirmed) {
@@ -88,10 +106,10 @@ export function DonationEscrowModuleUnlockCard({
     accent === 'amber'
       ? 'border-amber-300/50 dark:border-amber-600/35'
       : 'border-emerald-300/50 dark:border-emerald-600/35';
-  const headerClass =
+  const heroGradient =
     accent === 'amber'
-      ? 'from-zinc-100 via-zinc-50 to-amber-500/10 dark:from-zinc-900 dark:via-zinc-950 dark:to-amber-950/35'
-      : 'from-zinc-100 via-zinc-50 to-emerald-500/10 dark:from-zinc-900 dark:via-zinc-950 dark:to-emerald-950/35';
+      ? 'from-amber-500/30 via-zinc-100 to-zinc-50 dark:from-amber-500/18 dark:via-zinc-900 dark:to-zinc-950'
+      : 'from-emerald-500/30 via-zinc-100 to-zinc-50 dark:from-emerald-500/18 dark:via-zinc-900 dark:to-zinc-950';
   const btnClass =
     accent === 'amber'
       ? '!bg-amber-600 hover:!bg-amber-700 !text-white !border-amber-500/30'
@@ -103,13 +121,14 @@ export function DonationEscrowModuleUnlockCard({
     !kaspaState.isConnected ||
     !kaspaState.address ||
     !kaspaState.provider ||
-    !writeEscrowV2Address;
+    !writeEscrowV2Address ||
+    !onCrowdkasChain;
 
   const handlePay = async () => {
     setErr(null);
     setNote(null);
     if (!writeEscrowV2Address || !kaspaState.provider || !kaspaState.address) {
-      setErr('Connect your Kaspa L1 wallet and use an EVM wallet on Igra for the final unlock step.');
+      setErr('Connect your Kaspa L1 wallet (header) and use an EVM wallet on Igra for the final unlock step.');
       return;
     }
     const treasury = getDonationsModulesTreasuryL1Address();
@@ -214,62 +233,42 @@ export function DonationEscrowModuleUnlockCard({
       } ${className}`.trim()}
     >
       <div
-        className={`h-16 bg-gradient-to-br ${headerClass} border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-center px-3`}
+        className={`relative aspect-[16/9] bg-gradient-to-br ${heroGradient} border-b border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-center px-4 text-center`}
       >
-        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-          {isUnlocked ? 'Unlocked on-chain' : 'Kaspa L1 payment'}
-        </span>
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 mb-2">
+          {isUnlocked ? 'Unlocked' : 'CrowdKAS module'}
+        </p>
+        <h3 className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-zinc-100 leading-tight">{offer.title}</h3>
       </div>
-      <div className="p-3 space-y-2">
-        <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{offer.title}</p>
-        <p className="text-xs text-zinc-600 dark:text-zinc-400">{offer.description}</p>
+      <div className="p-4 sm:p-5 space-y-3 flex flex-col flex-1 min-h-0">
+        <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">{offer.description}</p>
         {!isUnlocked && (
           <>
-            <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50/80 dark:bg-zinc-950/40 p-2.5 space-y-1.5 text-[11px] text-zinc-600 dark:text-zinc-400">
-              <p className="font-semibold text-zinc-800 dark:text-zinc-200 text-xs">Price breakdown</p>
-              <div className="flex justify-between gap-2">
-                <span>List price</span>
-                <span className="font-mono text-zinc-900 dark:text-zinc-100">{offer.basePriceKas} KAS</span>
+            <div className="mt-1 space-y-2">
+              <div className="flex items-baseline gap-3 flex-wrap">
+                <span className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums">{priceKas} KAS</span>
+                {savingsKas > 0 ? (
+                  <span className="text-sm font-mono text-zinc-400 line-through tabular-nums">{offer.basePriceKas} KAS</span>
+                ) : (
+                  <span className="text-sm font-mono text-zinc-500">Kaspa L1 → treasury</span>
+                )}
               </div>
-              <div className="flex justify-between gap-2">
-                <span>KREX tier</span>
-                <span>{tierLabel}</span>
-              </div>
-              <div className="flex justify-between gap-2">
-                <span>NFT / holder discounts</span>
-                <span>
-                  {moduleNftFlags.hasRarest
-                    ? 'Rarest tier'
-                    : moduleNftFlags.hasDiamond
-                      ? 'Diamond'
-                      : moduleNftFlags.hasAny
-                        ? 'Collection'
-                        : '—'}
-                </span>
-              </div>
-              {savingsKas > 0 ? (
-                <div className="flex justify-between gap-2 text-emerald-700 dark:text-emerald-400">
-                  <span>Estimated savings</span>
-                  <span className="font-mono">−{savingsKas} KAS</span>
+              {(krexDiscountChip || nftDiscountChip) && (
+                <div className="flex flex-wrap gap-2">
+                  {krexDiscountChip}
+                  {nftDiscountChip}
                 </div>
-              ) : null}
-              <div className="flex justify-between gap-2 pt-1 border-t border-zinc-200 dark:border-zinc-700 font-semibold text-zinc-900 dark:text-zinc-100">
-                <span>You pay (Kaspa L1)</span>
-                <span className="font-mono">{priceKas} KAS</span>
-              </div>
-            </div>
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-              Pay from Kaspa (same flow as vBlog vault modules). Then confirm one transaction on Igra with your EVM wallet.
-            </p>
-            <div className="flex flex-wrap items-center gap-2 py-1">
-              <span className="text-xs text-zinc-600 dark:text-zinc-400">Kaspa wallet</span>
-              <KaspaL1WalletButton />
+              )}
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Pay on Kaspa (L1) to the configured treasury; the server verifies amount and discounts match this total, then you confirm{' '}
+                <code className="font-mono text-[11px]">unlockModule</code> on Igra.
+              </p>
             </div>
             <button
               type="button"
               disabled={payDisabled}
               onClick={() => void handlePay()}
-              className={`w-full k-control-btn justify-center ${btnClass} disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`w-full k-control-btn justify-center mt-auto ${btnClass} disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {isUnlocked
                 ? 'Unlocked'
@@ -281,10 +280,10 @@ export function DonationEscrowModuleUnlockCard({
             </button>
           </>
         )}
-        {isUnlocked && <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">Active for this campaign.</p>}
-        {err ? <p className="text-xs text-red-600 dark:text-red-400">{err}</p> : null}
-        {writeErr ? <p className="text-xs text-red-600 dark:text-red-400">{getErrorMessage(writeErr, 'EVM tx failed')}</p> : null}
-        {note ? <p className="text-xs text-amber-800 dark:text-amber-300">{note}</p> : null}
+        {isUnlocked && <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Active for this campaign.</p>}
+        {err ? <p className="text-sm text-red-600 dark:text-red-400">{err}</p> : null}
+        {writeErr ? <p className="text-sm text-red-600 dark:text-red-400">{getErrorMessage(writeErr, 'EVM tx failed')}</p> : null}
+        {note ? <p className="text-sm text-amber-800 dark:text-amber-300">{note}</p> : null}
       </div>
     </div>
   );

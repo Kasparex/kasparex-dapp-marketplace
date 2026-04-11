@@ -13,6 +13,14 @@ import { DonationCategoryFilter, DonationTagMultiFilter } from '@/components/don
 import { useDonationCampaign } from '@/hooks/useDonationCampaign';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
+import { totalRaisedWei } from '@/lib/donations/totals';
+import type { DonationCampaign } from '@/lib/donations/types';
+
+function dashboardGoalReached(c: DonationCampaign): boolean {
+  const v2 = c.campaignIdV2 != null;
+  const raised = v2 ? c.raisedWei : totalRaisedWei(c);
+  return raised >= c.targetWei;
+}
 
 export default function DonationsDashboardPage() {
   const { address, isConnected } = useAccount();
@@ -55,6 +63,8 @@ export default function DonationsDashboardPage() {
       list = list.filter((c) => c.active && Number(c.deadline) > now);
     } else if (selectedStatus === 'ended') {
       list = list.filter((c) => !c.active || Number(c.deadline) <= now);
+    } else if (selectedStatus === 'goal_reached') {
+      list = list.filter((c) => dashboardGoalReached(c));
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -76,11 +86,13 @@ export default function DonationsDashboardPage() {
     const now = Math.floor(Date.now() / 1000);
     let active = 0;
     let ended = 0;
+    let goal_reached = 0;
     myCampaigns.forEach((c) => {
       if (c.active && Number(c.deadline) > now) active++;
       else ended++;
+      if (dashboardGoalReached(c)) goal_reached++;
     });
-    return { all: myCampaigns.length, active, ended };
+    return { all: myCampaigns.length, active, ended, goal_reached };
   }, [myCampaigns]);
 
   const handleResetFilters = () => {

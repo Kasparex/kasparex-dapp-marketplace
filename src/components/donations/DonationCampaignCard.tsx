@@ -34,6 +34,7 @@ export function DonationCampaignCard({
   const deadline = new Date(Number(campaign.deadline) * 1000);
   const deadlineSec = Number(campaign.deadline);
   const isLive = campaign.active && deadlineSec > nowSec;
+  const goalReached = raisedDisplay >= campaign.targetWei;
 
   const imageSrc =
     metadata?.imageUrl || (metadata?.imageHash ? getGatewayUrl(metadata.imageHash) : DEFAULT_DONATION_IMAGE);
@@ -69,6 +70,11 @@ export function DonationCampaignCard({
                 {b.label}
               </span>
             ))}
+            {goalReached ? (
+              <span className="text-xs px-2 py-0.5 rounded bg-sky-100 dark:bg-sky-900/40 text-sky-800 dark:text-sky-200 font-medium">
+                Goal reached
+              </span>
+            ) : null}
             {isLive ? (
               <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-medium">
                 Active

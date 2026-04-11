@@ -33,7 +33,6 @@ export function DonationCampaignRightColumn({
 }: DonationCampaignRightColumnProps) {
   const chainId = useChainId();
   const { address: userWalletAddress } = useAccount();
-  const deadlineDate = new Date(Number(campaign.deadline) * 1000);
   const v2Campaign = campaign.campaignIdV2 != null;
   const progress = progressPercent(campaign, campaign.targetWei, { escrowOnly: v2Campaign });
   const raisedTotal = v2Campaign ? campaign.raisedWei : totalRaisedWei(campaign);
@@ -81,10 +80,6 @@ export function DonationCampaignRightColumn({
             <span className="text-zinc-500 dark:text-zinc-400">Donors</span>
             <span className="font-medium text-zinc-900 dark:text-zinc-100">{donorsTotal.toString()}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-zinc-500 dark:text-zinc-400">Ends</span>
-            <span className="font-medium text-zinc-900 dark:text-zinc-100">{deadlineDate.toLocaleDateString()}</span>
-          </div>
         </dl>
         <div className="mt-3 w-full h-2 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden">
           <div
@@ -97,7 +92,7 @@ export function DonationCampaignRightColumn({
             deadlineSec={campaign.deadline}
             compact
             showTimeProgressBar
-            timeProgressFillClassName="bg-violet-500 dark:bg-violet-400"
+            timeProgressFillClassName="bg-sky-500 dark:bg-sky-400"
           />
         </div>
       </div>

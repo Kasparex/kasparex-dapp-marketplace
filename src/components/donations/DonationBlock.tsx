@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { useAccount, useChainId, useSwitchChain, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useChainId, useSwitchChain, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
 import { FeeDisplay } from '@/components/ui/FeeDisplay';
 import { calculateCost, type CostBreakdown } from '@/lib/payments/calculator';
@@ -162,13 +162,45 @@ export function DonationBlock({
     onCrowdkasChain &&
     Boolean(activeEscrow);
 
+  const shouldReadContribution =
+    Boolean(activeEscrow) &&
+    deadlinePassed &&
+    isEscrowClaimsPath &&
+    !targetMet &&
+    Boolean(walletAddress) &&
+    !isCreator;
+
+  const { data: escrowContributionWei } = useReadContract({
+    address: (activeEscrow as Address) ?? undefined,
+    abi: useV2Donate ? DONATION_ESCROW_V2_ABI : DONATION_ESCROW_ABI,
+    functionName: 'contributions',
+    args:
+      shouldReadContribution && walletAddress
+        ? useV2Donate && campaign.campaignIdV2 != null
+          ? [campaign.campaignIdV2, walletAddress]
+          : [campaign.creatorAddress, walletAddress]
+        : undefined,
+    chainId: CROWDKAS_CHAIN_ID,
+    query: {
+      enabled:
+        shouldReadContribution &&
+        Boolean(activeEscrow) &&
+        Boolean(walletAddress) &&
+        (useV2Donate ? campaign.campaignIdV2 != null : true),
+    },
+  });
+
+  const donorL2EscrowBalance =
+    typeof escrowContributionWei === 'bigint' ? escrowContributionWei : 0n;
+
   const showDonorRefund =
     deadlinePassed &&
     isEscrowClaimsPath &&
     !targetMet &&
     isL2Connected &&
     onCrowdkasChain &&
-    Boolean(activeEscrow);
+    Boolean(activeEscrow) &&
+    donorL2EscrowBalance > 0n;
 
   const handleDonateL2 = () => {
     if (!canDonateL2 || !activeEscrow) return;
@@ -328,7 +360,7 @@ export function DonationBlock({
           {showDonorRefund && (
             <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 p-3 space-y-2">
               <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                The goal was not reached. If you donated from this wallet, you can claim your refund from escrow (the contract rejects if you have nothing to refund).
+                The goal was not reached. This wallet has L2 escrow funds you can withdraw.
               </p>
               <button
                 type="button"
@@ -340,9 +372,16 @@ export function DonationBlock({
               </button>
             </div>
           )}
-          {deadlinePassed && targetMet && !isCreator && (
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">Goal reached: the creator can claim escrowed funds after the deadline.</p>
-          )}
+          {deadlinePassed &&
+            targetMet &&
+            !isCreator &&
+            isL2Connected &&
+            onCrowdkasChain &&
+            !showCreatorClaim && (
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Goal reached: only the campaign creator can claim pooled escrow funds after the deadline.
+              </p>
+            )}
           {writeError && (
             <p className="text-sm text-red-600 dark:text-red-400">{getErrorMessage(writeError, 'Transaction failed')}</p>
           )}

@@ -16,6 +16,13 @@ import { DonationCategoryFilter, DonationNetworkFilter, DonationTagMultiFilter, 
 import { FilterBar } from '@/components/FilterBar';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
+import { totalRaisedWei } from '@/lib/donations/totals';
+
+function campaignGoalReached(c: DonationCampaignListItem): boolean {
+  const v2 = c.campaignId != null;
+  const raised = v2 ? c.raisedWei : totalRaisedWei(c);
+  return raised >= c.targetWei;
+}
 
 function mapV2Row(c: DonationCampaignV2ListItem): DonationCampaignListItem {
   return {
@@ -71,11 +78,13 @@ export default function DonationsListingPage() {
     const now = Math.floor(Date.now() / 1000);
     let active = 0;
     let ended = 0;
+    let goal_reached = 0;
     campaigns.forEach((c) => {
       if (c.active && Number(c.deadline) > now) active++;
       else ended++;
+      if (campaignGoalReached(c)) goal_reached++;
     });
-    return { all: campaigns.length, active, ended };
+    return { all: campaigns.length, active, ended, goal_reached };
   }, [campaigns]);
 
   const filteredCampaigns = useMemo(() => {
@@ -85,6 +94,8 @@ export default function DonationsListingPage() {
       list = list.filter((c) => c.active && Number(c.deadline) > now);
     } else if (selectedStatus === 'ended') {
       list = list.filter((c) => !c.active || Number(c.deadline) <= now);
+    } else if (selectedStatus === 'goal_reached') {
+      list = list.filter((c) => campaignGoalReached(c));
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();

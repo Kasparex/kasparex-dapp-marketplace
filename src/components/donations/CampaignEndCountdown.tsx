@@ -75,8 +75,8 @@ export function CampaignEndCountdown({
         <p
           className={
             compact
-              ? 'text-xs font-mono font-semibold text-emerald-800 dark:text-emerald-300 tabular-nums'
-              : 'text-base font-mono font-bold text-emerald-800 dark:text-emerald-300 tabular-nums'
+              ? 'text-sm sm:text-base font-mono font-bold text-emerald-800 dark:text-emerald-300 tabular-nums'
+              : 'text-lg font-mono font-bold text-emerald-800 dark:text-emerald-300 tabular-nums'
           }
         >
           {label}

@@ -9,7 +9,7 @@ import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 
-export type DonationFilterStatus = 'all' | 'active' | 'ended';
+export type DonationFilterStatus = 'all' | 'active' | 'ended' | 'goal_reached';
 
 const statusItems: { id: DonationFilterStatus; label: string; icon: ReactNode }[] = [
   {
@@ -39,13 +39,22 @@ const statusItems: { id: DonationFilterStatus; label: string; icon: ReactNode }[
       </svg>
     ),
   },
+  {
+    id: 'goal_reached',
+    label: 'Goal reached',
+    icon: (
+      <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+  },
 ];
 
 type DonationsSidebarListingProps = {
   variant?: 'listing';
   selectedStatus: DonationFilterStatus;
   onStatusChange: (status: DonationFilterStatus) => void;
-  statusCounts: { all: number; active: number; ended: number };
+  statusCounts: { all: number; active: number; ended: number; goal_reached: number };
   backLink?: { href: string; label: string };
 };
 

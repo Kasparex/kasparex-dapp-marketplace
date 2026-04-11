@@ -16,9 +16,6 @@ import { useMyDonationCampaignsV2 } from '@/hooks/useMyDonationCampaigns';
 import { DonationEscrowModuleUnlockCard } from '@/components/donations/DonationEscrowModuleUnlockCard';
 import { getChainById } from '@/lib/wagmi';
 
-const MODULE_CARD_FRAME =
-  'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors';
-
 const ROADMAP_ITEMS = [
   { title: 'Campaign updates feed', detail: 'Milestones and optional IPFS attachments — planned.' },
   { title: 'Custom CTA buttons', detail: 'Extra links on campaign pages — planned.' },
@@ -33,7 +30,8 @@ export default function CrowdKasModulesPage() {
   const chainId = useChainId();
   const { switchChain, isPending: isSwitchPending } = useSwitchChain();
   const igraEscrowV2Address = getContractAddress(CROWDKAS_CHAIN_ID, 'DonationEscrowV2') ?? '';
-  const writeEscrowV2Address = getContractAddress(chainId, 'DonationEscrowV2') as Address | undefined;
+  /** L2 unlock must target CrowdKAS chain escrow, not whatever chain the wallet happens to be on. */
+  const writeEscrowV2Address = (igraEscrowV2Address || undefined) as Address | undefined;
   const crowdkasName = getChainById(CROWDKAS_CHAIN_ID)?.name ?? 'Igra Mainnet';
   const onCrowdkasChain = chainId === CROWDKAS_CHAIN_ID;
 
@@ -211,38 +209,28 @@ export default function CrowdKasModulesPage() {
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
-                  <div className={MODULE_CARD_FRAME}>
-                    <div className="aspect-[16/9] bg-gradient-to-br from-emerald-500/25 via-zinc-50 to-zinc-100 dark:from-emerald-500/15 dark:via-zinc-900 dark:to-zinc-800 flex items-center justify-center border-b border-zinc-200 dark:border-zinc-800">
-                      <span className="text-xs font-black uppercase tracking-[0.2em] text-emerald-800 dark:text-emerald-300">Featured placement</span>
-                    </div>
-                    <DonationEscrowModuleUnlockCard
-                      offer={DONATION_MODULE_OFFERS.featured}
-                      campaignId={effectiveCampaign.campaignId}
-                      igraEscrowV2Address={igraEscrowV2Address}
-                      writeEscrowV2Address={writeEscrowV2Address}
-                      creatorEvmAddress={address as Address}
-                      isUnlocked={Boolean(unlockForEffective?.featured)}
-                      onUnlockedOnChain={refetchUnlocks}
-                      accent="emerald"
-                      className="!rounded-none !border-0 shadow-none ring-0"
-                    />
-                  </div>
-                  <div className={MODULE_CARD_FRAME}>
-                    <div className="aspect-[16/9] bg-gradient-to-br from-amber-500/20 via-zinc-50 to-zinc-100 dark:from-amber-500/12 dark:via-zinc-900 dark:to-zinc-800 flex items-center justify-center border-b border-zinc-200 dark:border-zinc-800">
-                      <span className="text-xs font-black uppercase tracking-[0.2em] text-amber-800 dark:text-amber-300">L1 Tip Jar</span>
-                    </div>
-                    <DonationEscrowModuleUnlockCard
-                      offer={DONATION_MODULE_OFFERS.l1Tips}
-                      campaignId={effectiveCampaign.campaignId}
-                      igraEscrowV2Address={igraEscrowV2Address}
-                      writeEscrowV2Address={writeEscrowV2Address}
-                      creatorEvmAddress={address as Address}
-                      isUnlocked={Boolean(unlockForEffective?.l1Tips)}
-                      onUnlockedOnChain={refetchUnlocks}
-                      accent="amber"
-                      className="!rounded-none !border-0 shadow-none ring-0"
-                    />
-                  </div>
+                  <DonationEscrowModuleUnlockCard
+                    offer={DONATION_MODULE_OFFERS.featured}
+                    campaignId={effectiveCampaign.campaignId}
+                    igraEscrowV2Address={igraEscrowV2Address}
+                    writeEscrowV2Address={writeEscrowV2Address}
+                    creatorEvmAddress={address as Address}
+                    isUnlocked={Boolean(unlockForEffective?.featured)}
+                    onUnlockedOnChain={refetchUnlocks}
+                    accent="emerald"
+                    className="hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors"
+                  />
+                  <DonationEscrowModuleUnlockCard
+                    offer={DONATION_MODULE_OFFERS.l1Tips}
+                    campaignId={effectiveCampaign.campaignId}
+                    igraEscrowV2Address={igraEscrowV2Address}
+                    writeEscrowV2Address={writeEscrowV2Address}
+                    creatorEvmAddress={address as Address}
+                    isUnlocked={Boolean(unlockForEffective?.l1Tips)}
+                    onUnlockedOnChain={refetchUnlocks}
+                    accent="amber"
+                    className="hover:border-amber-500 dark:hover:border-amber-500 transition-colors"
+                  />
                 </div>
               </div>
             )}

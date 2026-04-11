@@ -992,7 +992,11 @@ export default function DonationsStudioPage() {
                                 {myCampaignsV2.map((c) => {
                                   const deadlinePassed = BigInt(Math.floor(Date.now() / 1000)) >= c.deadline;
                                   const targetReachedEscrowOnly = c.method === 'L2_ESCROW' && c.raisedWei >= c.targetWei;
-                                  const canClaimV2 = c.method === 'L2_ESCROW' && targetReachedEscrowOnly && deadlinePassed;
+                                  const isRowCreator =
+                                    Boolean(address) &&
+                                    c.creatorAddress.toLowerCase() === (address as string).toLowerCase();
+                                  const canClaimV2 =
+                                    isRowCreator && c.method === 'L2_ESCROW' && targetReachedEscrowOnly && deadlinePassed;
                                   const canDeleteCampaign =
                                     c.active &&
                                     c.raisedWei === 0n &&
