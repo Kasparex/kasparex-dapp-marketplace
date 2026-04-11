@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { useAccount, useChainId, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useChainId, useSwitchChain, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
 import { FeeDisplay } from '@/components/ui/FeeDisplay';
 import { calculateCost, type CostBreakdown } from '@/lib/payments/calculator';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { DONATION_ESCROW_ABI, DONATION_ESCROW_V2_ABI } from '@/lib/contracts/abis';
 import { getChainById, getNativeCurrencySymbol } from '@/lib/wagmi';
+import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
 import type { DApp, DAppStatus } from '@/lib/dapps';
 import {
   VDONATIONS_MIN_DONATION_WEI,
@@ -53,16 +54,23 @@ interface DonationBlockProps {
 export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChange }: DonationBlockProps) {
   const chainId = useChainId();
   const { isConnected: isL2Connected } = useAccount();
-  const escrowAddress = getContractAddress(chainId, 'DonationEscrow');
-  const escrowV2Address = getContractAddress(chainId, 'DonationEscrowV2');
+  const { switchChain, isPending: isSwitchPending } = useSwitchChain();
+  const escrowAddress = getContractAddress(CROWDKAS_CHAIN_ID, 'DonationEscrow');
+  const escrowV2Address = getContractAddress(CROWDKAS_CHAIN_ID, 'DonationEscrowV2');
   const useV2Donate = Boolean(campaign.campaignIdV2 != null && escrowV2Address);
-  const nativeSymbol = getNativeCurrencySymbol(chainId);
+  const nativeSymbol = getNativeCurrencySymbol(CROWDKAS_CHAIN_ID);
+  const crowdkasChain = getChainById(CROWDKAS_CHAIN_ID);
+  const crowdkasChainName = crowdkasChain?.name ?? 'Igra Mainnet';
+  const onCrowdkasChain = chainId === CROWDKAS_CHAIN_ID;
 
   const [l2Amount, setL2Amount] = useState('');
   const [successModalDismissed, setSuccessModalDismissed] = useState(false);
 
   const { writeContract, data: hash, isPending: isPendingWrite, error: writeError } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash,
+    chainId: hash ? CROWDKAS_CHAIN_ID : undefined,
+  });
 
   // When a new tx is submitted, allow success modal to show again
   useEffect(() => {
@@ -80,7 +88,7 @@ export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChang
     const amountNum = parseFloat(l2Amount);
     if (amountNum < 10) return null;
     return calculateCost({
-      dapp: getCrowdKASDApp(chainId),
+      dapp: getCrowdKASDApp(CROWDKAS_CHAIN_ID),
       actionId: 'donation',
       krexBalance: krexBalance ?? 0,
       krexTier: tier,
@@ -95,6 +103,12 @@ export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChang
     });
   }, [l2Amount, krexBalance, tier, nftStatus]);
 
+  useEffect(() => {
+    if (!onL2AmountChange) return;
+    const n = parseFloat(l2Amount);
+    if (Number.isFinite(n)) onL2AmountChange(n);
+  }, [l2Amount, onL2AmountChange]);
+
   const l2AmountWei = useMemo(() => {
     if (!l2Amount || parseFloat(l2Amount) <= 0) return 0n;
     try {
@@ -106,7 +120,12 @@ export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChang
   }, [l2Amount]);
 
   const activeEscrow = useV2Donate ? escrowV2Address : escrowAddress;
-  const canDonateL2 = campaign.active && activeEscrow && l2AmountWei >= VDONATIONS_MIN_DONATION_WEI && isL2Connected;
+  const canDonateL2 =
+    campaign.active &&
+    activeEscrow &&
+    l2AmountWei >= VDONATIONS_MIN_DONATION_WEI &&
+    isL2Connected &&
+    onCrowdkasChain;
 
   const handleDonateL2 = () => {
     if (!canDonateL2 || !activeEscrow) return;
@@ -146,6 +165,21 @@ export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChang
           {!isL2Connected && (
             <p className="text-amber-600 dark:text-amber-400 text-sm">Connect your L2 (EVM) wallet to donate.</p>
           )}
+          {isL2Connected && !onCrowdkasChain && (
+            <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-3 text-sm text-amber-900 dark:text-amber-200 space-y-2">
+              <p>
+                CrowdKAS donations use <strong>{crowdkasChainName}</strong>. Switch your wallet to this network before donating.
+              </p>
+              <button
+                type="button"
+                disabled={isSwitchPending}
+                onClick={() => switchChain?.({ chainId: CROWDKAS_CHAIN_ID })}
+                className="w-full sm:w-auto px-4 py-2 rounded-lg bg-amber-600 text-white font-medium hover:bg-amber-700 disabled:opacity-50"
+              >
+                {isSwitchPending ? 'Switching…' : `Switch to ${crowdkasChainName}`}
+              </button>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Amount (iKAS)</label>
             <input
@@ -178,15 +212,25 @@ export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChang
         isOpen={Boolean(hash && !isConfirmed)}
         onClose={() => {}}
         txHash={hash ?? ''}
-        chainId={chainId ?? 38833}
+        chainId={CROWDKAS_CHAIN_ID}
         title="Donation submitted"
       />
       <TransactionSuccessModal
         isOpen={isConfirmed && Boolean(hash) && !successModalDismissed}
         onClose={() => setSuccessModalDismissed(true)}
         txHash={hash ?? ''}
-        chainId={chainId ?? 38833}
-        addresses={isConfirmed && campaign?.creatorAddress ? [{ label: 'Campaign creator (receives funds)', address: campaign.creatorAddress, explorerUrl: chainId ? getExplorerUrl(campaign.creatorAddress, chainId) : undefined }] : undefined}
+        chainId={CROWDKAS_CHAIN_ID}
+        addresses={
+          isConfirmed && campaign?.creatorAddress
+            ? [
+                {
+                  label: 'Campaign creator (receives funds)',
+                  address: campaign.creatorAddress,
+                  explorerUrl: getExplorerUrl(campaign.creatorAddress, CROWDKAS_CHAIN_ID),
+                },
+              ]
+            : undefined
+        }
         autoCloseMs={0}
       />
     </div>

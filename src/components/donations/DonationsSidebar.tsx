@@ -84,17 +84,19 @@ export function DonationsSidebar(props: DonationsSidebarProps) {
         </Link>
 
         <Link
-          href="/donations/donors"
+          href="/donations/help"
           className={`k-control-btn w-full justify-center gap-2 ${
+            pathname.startsWith('/donations/help') ||
+            pathname.startsWith('/donations/how-it-works') ||
             pathname.startsWith('/donations/donors')
               ? '!border-emerald-500/40 !bg-emerald-500/15 !text-emerald-800 dark:!text-emerald-300'
               : '!border-zinc-200 dark:!border-zinc-700 !bg-white dark:!bg-zinc-900 !text-zinc-700 dark:!text-zinc-200 hover:!bg-zinc-100 dark:hover:!bg-zinc-800'
           }`}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span className="text-xs font-black uppercase tracking-widest">For donors</span>
+          <span className="text-xs font-black uppercase tracking-widest">Help</span>
         </Link>
 
         <Link

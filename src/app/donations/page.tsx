@@ -39,17 +39,19 @@ function donationListMetaKey(c: DonationCampaignListItem): string {
 }
 
 export default function DonationsListingPage() {
+  const hideV1Listing = process.env.NEXT_PUBLIC_CROWDKAS_HIDE_V1 === '1';
   const v2Configured = Boolean(getContractAddress(CROWDKAS_CHAIN_ID, 'DonationEscrowV2'));
   const v1 = useDonationCampaigns();
   const v2 = useDonationCampaignsV2();
   const v2Rows = useMemo(() => v2.campaigns.map(mapV2Row), [v2.campaigns]);
-  /** When V2 is deployed, show legacy V1 escrow rows and all V2 campaigns (creators often have both). */
-  const campaigns = useMemo(
-    () => (v2Configured ? [...v1.campaigns, ...v2Rows] : v1.campaigns),
-    [v2Configured, v1.campaigns, v2Rows]
-  );
-  const isLoading = v2Configured ? v1.isLoading || v2.isLoading : v1.isLoading;
-  const error = v1.error ?? (v2Configured ? v2.error : null);
+  /** When V2 is deployed, show legacy V1 escrow rows and all V2 campaigns unless NEXT_PUBLIC_CROWDKAS_HIDE_V1=1. */
+  const campaigns = useMemo(() => {
+    if (!v2Configured) return v1.campaigns;
+    if (hideV1Listing) return v2Rows;
+    return [...v1.campaigns, ...v2Rows];
+  }, [v2Configured, hideV1Listing, v1.campaigns, v2Rows]);
+  const isLoading = v2Configured && !hideV1Listing ? v1.isLoading || v2.isLoading : v2Configured ? v2.isLoading : v1.isLoading;
+  const error = !v2Configured ? v1.error : hideV1Listing ? v2.error : (v1.error ?? v2.error);
   const [selectedStatus, setSelectedStatus] = useState<DonationFilterStatus>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<DonationSortOption>('newest');

@@ -36,14 +36,11 @@ export function DonationsHeader() {
             <Link href="/donations/dashboard" className="k-control-btn">
               My campaigns
             </Link>
-            <Link href="/donations/donors" className="k-control-btn">
-              For donors · Claims
-            </Link>
             <Link
-              href="/donations/how-it-works"
+              href="/donations/help"
               className="k-control-btn !border-emerald-500/30 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300"
             >
-              What happens after it ends?
+              Help · Donors &amp; walkthrough
             </Link>
             <Link href="/donations/studio" className="k-control-btn">
               Open Studio
