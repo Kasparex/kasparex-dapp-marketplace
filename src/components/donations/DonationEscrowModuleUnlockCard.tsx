@@ -10,7 +10,12 @@ import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { kasToSompi } from '@/lib/ads/config';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { getDonationsModulesTreasuryL1Address } from '@/lib/donations/modulesConfig';
-import { DONATION_MODULE_OFFERS, getDonationModulePriceKas, type DonationPaidModuleId } from '@/lib/donations/modules';
+import {
+  DONATION_MODULE_OFFERS,
+  getDonationModulePriceKas,
+  type DonationPaidModuleId,
+} from '@/lib/donations/modules';
+import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
 import { buildDonationsModuleUnlockPayloadHex, buildDonationsModuleUnlockPlainNote } from '@/lib/donations/modulePayload';
 import { DONATION_ESCROW_V2_ABI } from '@/lib/contracts/abis';
 import { KaspaL1WalletButton } from '@/components/KaspaL1WalletButton';
@@ -65,6 +70,9 @@ export function DonationEscrowModuleUnlockCard({
     () => getDonationModulePriceKas(offer.basePriceKas, krexBalance ?? 0, tier, moduleNftFlags),
     [offer.basePriceKas, krexBalance, tier, moduleNftFlags]
   );
+
+  const savingsKas = Math.max(0, Math.round((offer.basePriceKas - priceKas) * 1000) / 1000);
+  const tierLabel = KREX_TIERS[tier as KREXTier]?.label ?? tier;
 
   const { writeContract, data: hash, error: writeErr, isPending: isWritePending } = useWriteContract();
   const { isSuccess: isConfirmed, isLoading: isConfirming } = useWaitForTransactionReceipt({ hash });
@@ -217,14 +225,39 @@ export function DonationEscrowModuleUnlockCard({
         <p className="text-xs text-zinc-600 dark:text-zinc-400">{offer.description}</p>
         {!isUnlocked && (
           <>
-            <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-              {priceKas} KAS
-              {priceKas < offer.basePriceKas ? (
-                <span className="text-xs font-normal text-zinc-500 dark:text-zinc-400 ml-1">
-                  (list {offer.basePriceKas} KAS)
+            <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50/80 dark:bg-zinc-950/40 p-2.5 space-y-1.5 text-[11px] text-zinc-600 dark:text-zinc-400">
+              <p className="font-semibold text-zinc-800 dark:text-zinc-200 text-xs">Price breakdown</p>
+              <div className="flex justify-between gap-2">
+                <span>List price</span>
+                <span className="font-mono text-zinc-900 dark:text-zinc-100">{offer.basePriceKas} KAS</span>
+              </div>
+              <div className="flex justify-between gap-2">
+                <span>KREX tier</span>
+                <span>{tierLabel}</span>
+              </div>
+              <div className="flex justify-between gap-2">
+                <span>NFT / holder discounts</span>
+                <span>
+                  {moduleNftFlags.hasRarest
+                    ? 'Rarest tier'
+                    : moduleNftFlags.hasDiamond
+                      ? 'Diamond'
+                      : moduleNftFlags.hasAny
+                        ? 'Collection'
+                        : '—'}
                 </span>
+              </div>
+              {savingsKas > 0 ? (
+                <div className="flex justify-between gap-2 text-emerald-700 dark:text-emerald-400">
+                  <span>Estimated savings</span>
+                  <span className="font-mono">−{savingsKas} KAS</span>
+                </div>
               ) : null}
-            </p>
+              <div className="flex justify-between gap-2 pt-1 border-t border-zinc-200 dark:border-zinc-700 font-semibold text-zinc-900 dark:text-zinc-100">
+                <span>You pay (Kaspa L1)</span>
+                <span className="font-mono">{priceKas} KAS</span>
+              </div>
+            </div>
             <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
               Pay from Kaspa (same flow as vBlog vault modules). Then confirm one transaction on Igra with your EVM wallet.
             </p>

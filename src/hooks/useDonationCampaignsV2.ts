@@ -9,6 +9,7 @@ import type { Address } from 'viem';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { DONATION_ESCROW_V2_ABI } from '@/lib/contracts/abis';
 import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
+import { DONATION_MODULE_IDS } from '@/lib/donations/modules';
 
 const MAX_CAMPAIGNS_V2 = 200;
 
@@ -29,6 +30,7 @@ export interface DonationCampaignV2ListItem {
   active: boolean;
   l1RecordedTotalWei?: bigint;
   l1RecordedDonationCount?: bigint;
+  featuredModuleUnlocked?: boolean;
 }
 
 type CampaignV2Tuple = readonly [
@@ -173,28 +175,66 @@ export function useDonationCampaignsV2(): {
     query: { enabled: l1TotalsConfigs.length > 0 },
   });
 
+  const moduleFeaturedConfigs = useMemo(
+    () =>
+      baseCampaigns.length > 0 && escrowV2Address
+        ? baseCampaigns.map((c) => ({
+            chainId: CROWDKAS_CHAIN_ID,
+            address: escrowV2Address,
+            abi: DONATION_ESCROW_V2_ABI,
+            functionName: 'moduleUnlocked' as const,
+            args: [c.campaignId, DONATION_MODULE_IDS.featured] as const,
+          }))
+        : [],
+    [baseCampaigns, escrowV2Address]
+  );
+
+  const { data: moduleFeaturedResults, isLoading: loadingModuleFeatured, refetch: refetchModuleFeatured } =
+    useReadContracts({
+      contracts: moduleFeaturedConfigs,
+      allowFailure: true,
+      query: { enabled: moduleFeaturedConfigs.length > 0 },
+    });
+
   const campaigns: DonationCampaignV2ListItem[] = useMemo(() => {
     if (baseCampaigns.length === 0) return [];
     if (!l1Results || l1Results.length !== baseCampaigns.length * 2) {
-      return baseCampaigns.map((c) => ({ ...c, l1RecordedTotalWei: 0n, l1RecordedDonationCount: 0n }));
+      return baseCampaigns.map((c, i) => {
+        const modR = moduleFeaturedResults?.[i];
+        const featuredOn =
+          modR?.status === 'success' && modR.result != null ? Boolean(modR.result) : false;
+        return { ...c, l1RecordedTotalWei: 0n, l1RecordedDonationCount: 0n, featuredModuleUnlocked: featuredOn };
+      });
     }
-    return baseCampaigns.map((c, i) => ({
-      ...c,
-      l1RecordedTotalWei: parseBigintResult(l1Results[i * 2]),
-      l1RecordedDonationCount: parseBigintResult(l1Results[i * 2 + 1]),
-    }));
-  }, [baseCampaigns, l1Results]);
+    return baseCampaigns.map((c, i) => {
+      const modR = moduleFeaturedResults?.[i];
+      const featuredOn =
+        modR?.status === 'success' && modR.result != null ? Boolean(modR.result) : false;
+      return {
+        ...c,
+        l1RecordedTotalWei: parseBigintResult(l1Results[i * 2]),
+        l1RecordedDonationCount: parseBigintResult(l1Results[i * 2 + 1]),
+        featuredModuleUnlocked: featuredOn,
+      };
+    });
+  }, [baseCampaigns, l1Results, moduleFeaturedResults]);
 
   const refetch = () => {
     void refetchCount();
     void refetchIds();
     void refetchCampaigns();
     void refetchL1();
+    void refetchModuleFeatured();
   };
 
   return {
     campaigns,
-    isLoading: loadingCount || loadingIds || loadingCampaigns || (baseCampaigns.length > 0 && loadingL1),
+    isLoading:
+      loadingCount ||
+      loadingIds ||
+      loadingCampaigns ||
+      (baseCampaigns.length > 0 && loadingL1) ||
+      (baseCampaigns.length > 0 && loadingModuleFeatured),
     error: (countError as Error) ?? null,
     refetch,
   };

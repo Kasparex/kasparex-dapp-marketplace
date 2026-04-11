@@ -31,6 +31,8 @@ export interface DonationCampaignListItem {
   ipfsHash: string;
   l1Address: string;
   active: boolean;
+  /** V2: Featured placement module unlocked (listing badge). */
+  featuredModuleUnlocked?: boolean;
 }
 
 function parseL1Bigint(r: { status: string; result?: unknown } | undefined): bigint {

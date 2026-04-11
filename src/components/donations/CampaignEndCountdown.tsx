@@ -10,11 +10,17 @@ export function CampaignEndCountdown({
   deadlineSec,
   compact = false,
   className = '',
+  /** When `compact`, still show the “last 7 days” time bar (e.g. summary panel). */
+  showTimeProgressBar = false,
+  /** Tailwind classes for the time bar fill (funding bar uses emerald elsewhere). */
+  timeProgressFillClassName = 'bg-emerald-500',
 }: {
   /** Unix seconds */
   deadlineSec: bigint | number;
   compact?: boolean;
   className?: string;
+  showTimeProgressBar?: boolean;
+  timeProgressFillClassName?: string;
 }) {
   const deadlineMs = useMemo(() => Number(deadlineSec) * 1000, [deadlineSec]);
   const [now, setNow] = useState(() => Date.now());
@@ -47,7 +53,7 @@ export function CampaignEndCountdown({
         <p className={compact ? 'text-xs font-semibold text-zinc-600 dark:text-zinc-400' : 'text-sm font-semibold text-zinc-700 dark:text-zinc-300'}>
           Campaign ended
         </p>
-        {!compact && (
+        {(!compact || showTimeProgressBar) && (
           <div className="mt-2 h-1.5 w-full rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden">
             <div className="h-full w-full rounded-full bg-zinc-400 dark:bg-zinc-500" />
           </div>
@@ -76,15 +82,15 @@ export function CampaignEndCountdown({
           {label}
         </p>
       </div>
-      {!compact && (
+      {(!compact || showTimeProgressBar) && (
         <div className="mt-2 h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden">
           <div
-            className="h-full rounded-full bg-emerald-500 transition-[width] duration-1000 ease-linear"
+            className={`h-full rounded-full transition-[width] duration-1000 ease-linear ${timeProgressFillClassName}`}
             style={{ width: `${timeBarPct}%` }}
           />
         </div>
       )}
-      {!compact && (
+      {(!compact || showTimeProgressBar) && (
         <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
           Bar shows the last week before the deadline (full when more than 7 days remain).
         </p>

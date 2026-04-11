@@ -10,10 +10,7 @@ import { DONATION_ESCROW_ABI, DONATION_ESCROW_V2_ABI } from '@/lib/contracts/abi
 import { getChainById, getNativeCurrencySymbol } from '@/lib/wagmi';
 import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
 import type { DApp, DAppStatus } from '@/lib/dapps';
-import {
-  VDONATIONS_MIN_DONATION_WEI,
-  VDONATIONS_L2_FEE_PERCENT,
-} from '@/lib/donations/config';
+import { VDONATIONS_MIN_DONATION_WEI } from '@/lib/donations/config';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import type { DonationCampaign } from '@/lib/donations/types';
@@ -21,6 +18,7 @@ import { getErrorMessage } from '@/lib/utils';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { TransactionSuccessModal } from '@/components/modals/TransactionSuccessModal';
 import { TransactionPendingModal } from '@/components/donations/TransactionPendingModal';
+import { DonationL2FeeInfoModal } from '@/components/donations/DonationL2FeeInfoModal';
 import { totalRaisedWei } from '@/lib/donations/totals';
 import type { Address } from 'viem';
 
@@ -237,20 +235,16 @@ export function DonationBlock({
 
   return (
     <div id="crowdkas-donate" className={shellClass}>
-      <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Donate</h3>
+      <div className="flex items-start justify-between gap-2 mb-4">
+        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Donate</h3>
+        {!deadlinePassed ? <DonationL2FeeInfoModal /> : null}
+      </div>
 
       {!deadlinePassed && (
         <div className="space-y-4">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             Donate iKAS to the escrow. Min {formatEther(VDONATIONS_MIN_DONATION_WEI)} iKAS (10 iKAS). Rewards (if enabled) are handled automatically on-chain.
           </p>
-          <div className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 p-3 text-sm text-zinc-700 dark:text-zinc-300">
-            <p className="font-medium text-zinc-900 dark:text-zinc-100 mb-1">Where does the fee go?</p>
-            <p>
-              {VDONATIONS_L2_FEE_PERCENT}% of your donation goes to the <strong>Kasparex Revenue Tree</strong> to support community rewards and the referral program. The rest is
-              escrowed for this campaign and goes to the creator when the goal is reached.
-            </p>
-          </div>
           {!isL2Connected && (
             <p className="text-amber-600 dark:text-amber-400 text-sm">Connect your L2 (EVM) wallet to donate.</p>
           )}

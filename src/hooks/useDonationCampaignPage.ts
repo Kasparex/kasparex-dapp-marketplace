@@ -10,6 +10,7 @@ import { DONATION_ESCROW_V2_ABI } from '@/lib/contracts/abis';
 import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
 import type { DonationCampaign } from '@/lib/donations/types';
 import { useDonationCampaign } from '@/hooks/useDonationCampaign';
+import { DONATION_MODULE_IDS } from '@/lib/donations/modules';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
 
@@ -110,6 +111,20 @@ export function useDonationCampaignPage(creatorAddress: string | null, campaignI
               functionName: 'l1RecordedDonationCount',
               args: [idBig],
             },
+            {
+              chainId: CROWDKAS_CHAIN_ID,
+              address: v2Addr as Address,
+              abi: DONATION_ESCROW_V2_ABI,
+              functionName: 'moduleUnlocked',
+              args: [idBig, DONATION_MODULE_IDS.featured],
+            },
+            {
+              chainId: CROWDKAS_CHAIN_ID,
+              address: v2Addr as Address,
+              abi: DONATION_ESCROW_V2_ABI,
+              functionName: 'moduleUnlocked',
+              args: [idBig, DONATION_MODULE_IDS.l1Tips],
+            },
           ] as const)
         : [],
     query: { enabled: Boolean(useV2Path && v2Match && v2Parsed && idBig != null) },
@@ -121,6 +136,8 @@ export function useDonationCampaignPage(creatorAddress: string | null, campaignI
       const isVerified = extras?.[0]?.status === 'success' ? Boolean(extras[0].result) : false;
       const l1w = extras?.[1]?.status === 'success' && typeof extras[1].result === 'bigint' ? extras[1].result : 0n;
       const l1c = extras?.[2]?.status === 'success' && typeof extras[2].result === 'bigint' ? extras[2].result : 0n;
+      const modFe = extras?.[3]?.status === 'success' ? Boolean(extras[3].result) : false;
+      const modL1 = extras?.[4]?.status === 'success' ? Boolean(extras[4].result) : false;
       return {
         creatorAddress: creatorAddress as `0x${string}`,
         campaignIdV2: idBig,
@@ -136,6 +153,7 @@ export function useDonationCampaignPage(creatorAddress: string | null, campaignI
         active: v2Parsed.active,
         verified: isVerified,
         metadata: null,
+        modulesUnlocked: { featured: modFe, l1Tips: modL1 },
       };
     }
     return v1.campaign;

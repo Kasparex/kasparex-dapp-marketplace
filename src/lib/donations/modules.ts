@@ -20,7 +20,7 @@ export const DONATION_MODULE_OFFERS: Record<
   },
   l1Tips: {
     id: 'l1Tips',
-    title: 'L1 tip jar (premium)',
+    title: 'L1 Tip Jar',
     description:
       'Unlock an optional Kaspa L1 tip box on your campaign page. L1 tips do not count toward the L2 escrow goal; they are extra support + points.',
     basePriceKas: 25,

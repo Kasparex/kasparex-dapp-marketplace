@@ -67,4 +67,6 @@ export interface DonationCampaign {
   active: boolean;
   verified: boolean;
   metadata: DonationCampaignMetadata | null;
+  /** V2: paid modules unlocked on DonationEscrowV2 (read from chain). */
+  modulesUnlocked?: { featured: boolean; l1Tips: boolean };
 }

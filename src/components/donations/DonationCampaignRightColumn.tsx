@@ -93,7 +93,12 @@ export function DonationCampaignRightColumn({
           />
         </div>
         <div className="mt-4 pt-3 border-t border-zinc-200 dark:border-zinc-700">
-          <CampaignEndCountdown deadlineSec={campaign.deadline} compact />
+          <CampaignEndCountdown
+            deadlineSec={campaign.deadline}
+            compact
+            showTimeProgressBar
+            timeProgressFillClassName="bg-violet-500 dark:bg-violet-400"
+          />
         </div>
       </div>
 
@@ -109,7 +114,12 @@ export function DonationCampaignRightColumn({
         </div>
       )}
 
-      <DonationL1TipJar campaign={campaign} metadata={metadata} />
+      <DonationL1TipJar
+        campaign={campaign}
+        metadata={metadata}
+        l1TipsModuleUnlocked={Boolean(campaign.modulesUnlocked?.l1Tips)}
+        onTipRecorded={onL2DonationConfirmed}
+      />
 
       <div id="crowdkas-supporters">
         <DonationLeaderboard

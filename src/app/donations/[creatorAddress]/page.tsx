@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useChainId } from 'wagmi';
 import { Header } from '@/components/Header';
@@ -11,7 +11,6 @@ import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
 import { useDonationCampaignPage } from '@/hooks/useDonationCampaignPage';
 import { DonationsSidebar } from '@/components/donations/DonationsSidebar';
 import { DonationCampaignRightColumn } from '@/components/donations/DonationCampaignRightColumn';
-import { CampaignEndCountdown } from '@/components/donations/CampaignEndCountdown';
 import { formatEther } from 'viem';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { DEFAULT_DONATION_IMAGE } from '@/lib/donations/constants';
@@ -115,6 +114,11 @@ export default function DonationCampaignPage() {
     campaignIdParam
   );
   const [previewDonationAmount, setPreviewDonationAmount] = useState(10);
+  const [nowSec, setNowSec] = useState(() => Math.floor(Date.now() / 1000));
+  useEffect(() => {
+    const t = setInterval(() => setNowSec(Math.floor(Date.now() / 1000)), 30_000);
+    return () => clearInterval(t);
+  }, []);
 
   const { data: metadata, isLoading: metadataLoading } = useQuery({
     queryKey: ['donation-meta', campaign?.ipfsHash ?? ''],
@@ -227,11 +231,23 @@ export default function DonationCampaignPage() {
                             Verified
                           </span>
                         )}
-                        {campaign.active && (
-                          <span className="text-xs px-2 py-1 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300">
-                            Active
+                        {campaign.modulesUnlocked?.featured && (
+                          <span className="text-xs px-2 py-1 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 font-medium">
+                            Featured
                           </span>
                         )}
+                        {(() => {
+                          const live = campaign.active && Number(campaign.deadline) > nowSec;
+                          return live ? (
+                            <span className="text-xs px-2 py-1 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-medium">
+                              Active
+                            </span>
+                          ) : (
+                            <span className="text-xs px-2 py-1 rounded bg-zinc-300 dark:bg-zinc-600 text-zinc-800 dark:text-zinc-100 font-medium">
+                              Ended
+                            </span>
+                          );
+                        })()}
                       </div>
 
                       <p className="text-sm font-mono text-zinc-500 dark:text-zinc-400">
@@ -275,14 +291,12 @@ export default function DonationCampaignPage() {
                       </div>
                     </div>
 
-                    <div className="w-full h-3 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden mb-4">
+                    <div className="w-full h-3 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden">
                       <div
                         className="h-full bg-emerald-500 rounded-full transition-all"
                         style={{ width: `${Math.min(progress, 100)}%` }}
                       />
                     </div>
-
-                    <CampaignEndCountdown deadlineSec={campaign.deadline} />
                   </div>
 
                   <div id="crowdkas-story" className="scroll-mt-28 px-6 md:px-8 pb-6 border-t border-zinc-100 dark:border-zinc-800 pt-6">

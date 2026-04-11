@@ -31,6 +31,7 @@ function mapV2Row(c: DonationCampaignV2ListItem): DonationCampaignListItem {
     ipfsHash: c.ipfsHash,
     l1Address: c.l1Address,
     active: c.active,
+    featuredModuleUnlocked: c.featuredModuleUnlocked,
   };
 }
 
@@ -248,6 +249,9 @@ export default function DonationsListingPage() {
                         label: c.donationMethod === 'L1_DIRECT' ? 'L1 • Direct' : 'L2 • Igra',
                         variant: 'neutral',
                       },
+                      ...(c.featuredModuleUnlocked
+                        ? [{ label: 'Featured', variant: 'amber' as const }]
+                        : []),
                     ]}
                   />
                 ))}

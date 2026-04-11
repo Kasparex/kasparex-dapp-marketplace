@@ -1612,7 +1612,10 @@ export default function DonationsStudioPage() {
                         <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 p-3">
                           <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-2">
                             Need <strong>featured</strong> placement or the <strong>L1 tip jar</strong>? Unlock paid modules on the{' '}
-                            <Link href="/donations/modules" className="text-emerald-700 dark:text-emerald-400 font-semibold hover:underline">
+                            <Link
+                              href={`/donations/modules?campaignId=${editingV2CampaignId!.toString()}`}
+                              className="text-emerald-700 dark:text-emerald-400 font-semibold hover:underline"
+                            >
                               Modules
                             </Link>{' '}
                             page after you save your edits here.

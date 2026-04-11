@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { formatEther } from 'viem';
 import type { DonationCampaignListItem } from '@/hooks/useDonationCampaigns';
@@ -19,11 +20,21 @@ export function DonationCampaignCard({
   href?: string;
   badges?: { label: string; variant?: 'neutral' | 'emerald' | 'amber' }[];
 }) {
+  const [nowSec, setNowSec] = useState(() => Math.floor(Date.now() / 1000));
+
+  useEffect(() => {
+    const t = setInterval(() => setNowSec(Math.floor(Date.now() / 1000)), 30_000);
+    return () => clearInterval(t);
+  }, []);
+
   const v2Row = campaign.campaignId != null;
   const progress = progressPercent(campaign, campaign.targetWei, { escrowOnly: v2Row });
   const raisedDisplay = v2Row ? campaign.raisedWei : totalRaisedWei(campaign);
   const donorsDisplay = v2Row ? campaign.donorCount : totalDonorCount(campaign);
   const deadline = new Date(Number(campaign.deadline) * 1000);
+  const deadlineSec = Number(campaign.deadline);
+  const isLive = campaign.active && deadlineSec > nowSec;
+
   const imageSrc =
     metadata?.imageUrl || (metadata?.imageHash ? getGatewayUrl(metadata.imageHash) : DEFAULT_DONATION_IMAGE);
   const title = metadata?.title?.trim() || `${campaign.creatorAddress.slice(0, 6)}...${campaign.creatorAddress.slice(-4)}`;
@@ -39,11 +50,11 @@ export function DonationCampaignCard({
         <img src={imageSrc} alt="" className="w-full h-full object-cover" />
       </div>
       <div className="p-4">
-        <div className="flex justify-between items-start mb-2">
+        <div className="flex justify-between items-start mb-2 gap-2">
           <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 truncate max-w-[180px]">
             {campaign.creatorAddress.slice(0, 6)}...{campaign.creatorAddress.slice(-4)}
           </span>
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center justify-end gap-1.5 shrink-0">
             {(badges ?? []).map((b) => (
               <span
                 key={b.label}
@@ -58,9 +69,13 @@ export function DonationCampaignCard({
                 {b.label}
               </span>
             ))}
-            {campaign.active && (
-              <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
+            {isLive ? (
+              <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-medium">
                 Active
+              </span>
+            ) : (
+              <span className="text-xs px-2 py-0.5 rounded bg-zinc-400 dark:bg-zinc-500 text-white dark:text-zinc-950 font-medium">
+                Ended
               </span>
             )}
           </div>
@@ -96,4 +111,3 @@ export function DonationCampaignCard({
     </Link>
   );
 }
-

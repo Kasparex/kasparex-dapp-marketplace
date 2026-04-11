@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useAccount, useChainId, useSwitchChain, useReadContracts } from 'wagmi';
 import type { Address } from 'viem';
 import { Header } from '@/components/Header';
@@ -15,7 +16,6 @@ import { useMyDonationCampaignsV2 } from '@/hooks/useMyDonationCampaigns';
 import { DonationEscrowModuleUnlockCard } from '@/components/donations/DonationEscrowModuleUnlockCard';
 import { getChainById } from '@/lib/wagmi';
 
-/** Same shell as `DonationCampaignCard` (listing) for visual consistency. */
 const MODULE_CARD_FRAME =
   'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors';
 
@@ -26,6 +26,9 @@ const ROADMAP_ITEMS = [
 ] as const;
 
 export default function CrowdKasModulesPage() {
+  const searchParams = useSearchParams();
+  const qCampaignId = searchParams.get('campaignId')?.trim() ?? '';
+
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const { switchChain, isPending: isSwitchPending } = useSwitchChain();
@@ -40,7 +43,16 @@ export default function CrowdKasModulesPage() {
     refetch: refetchMyCampaignsV2,
   } = useMyDonationCampaignsV2(address as Address | undefined);
 
-  const [selectedCampaignId, setSelectedCampaignId] = useState<string>('');
+  const effectiveCampaign = useMemo(() => {
+    if (myCampaignsV2.length === 0) return null;
+    if (qCampaignId && /^\d+$/.test(qCampaignId)) {
+      const hit = myCampaignsV2.find((c) => c.campaignId.toString() === qCampaignId);
+      if (hit) return hit;
+    }
+    return myCampaignsV2[0];
+  }, [myCampaignsV2, qCampaignId]);
+
+  const effectiveCampaignId = effectiveCampaign?.campaignId.toString() ?? '';
 
   const moduleUnlockReads = useMemo(() => {
     if (!igraEscrowV2Address || myCampaignsV2.length === 0) return [];
@@ -85,10 +97,6 @@ export default function CrowdKasModulesPage() {
     return m;
   }, [moduleUnlockResults, myCampaignsV2]);
 
-  const effectiveCampaignId =
-    selectedCampaignId ||
-    (myCampaignsV2.length > 0 ? myCampaignsV2[0].campaignId.toString() : '');
-  const effectiveCampaign = myCampaignsV2.find((c) => c.campaignId.toString() === effectiveCampaignId) ?? null;
   const unlockForEffective = effectiveCampaignId ? unlockByCampaignId.get(effectiveCampaignId) : undefined;
 
   const refetchUnlocks = () => {
@@ -151,32 +159,9 @@ export default function CrowdKasModulesPage() {
               </div>
             )}
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className={MODULE_CARD_FRAME}>
-                <div className="aspect-[16/9] bg-gradient-to-br from-emerald-500/25 via-zinc-50 to-zinc-100 dark:from-emerald-500/15 dark:via-zinc-900 dark:to-zinc-800 flex items-center justify-center">
-                  <span className="text-xs font-black uppercase tracking-[0.2em] text-emerald-800 dark:text-emerald-300">Featured</span>
-                </div>
-                <div className="p-4 space-y-2">
-                  <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{DONATION_MODULE_OFFERS.featured.title}</h2>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">{DONATION_MODULE_OFFERS.featured.description}</p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">From {DONATION_MODULE_OFFERS.featured.basePriceKas} KAS (discounts may apply).</p>
-                </div>
-              </div>
-              <div className={MODULE_CARD_FRAME}>
-                <div className="aspect-[16/9] bg-gradient-to-br from-amber-500/20 via-zinc-50 to-zinc-100 dark:from-amber-500/12 dark:via-zinc-900 dark:to-zinc-800 flex items-center justify-center">
-                  <span className="text-xs font-black uppercase tracking-[0.2em] text-amber-800 dark:text-amber-300">L1 tips</span>
-                </div>
-                <div className="p-4 space-y-2">
-                  <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{DONATION_MODULE_OFFERS.l1Tips.title}</h2>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">{DONATION_MODULE_OFFERS.l1Tips.description}</p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">From {DONATION_MODULE_OFFERS.l1Tips.basePriceKas} KAS (discounts may apply).</p>
-                </div>
-              </div>
-            </div>
-
             {!isConnected && (
               <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Connect your EVM wallet to select a campaign and unlock modules. New here?{' '}
+                Connect your EVM wallet to unlock modules for your campaigns. New here?{' '}
                 <Link href="/donations/studio" className="text-emerald-600 dark:text-emerald-400 font-medium hover:underline">
                   Create a V2 campaign in Studio
                 </Link>
@@ -197,23 +182,39 @@ export default function CrowdKasModulesPage() {
 
             {isConnected && myCampaignsV2.length > 0 && effectiveCampaign && (
               <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 shrink-0">Campaign</label>
-                  <select
-                    value={effectiveCampaignId}
-                    onChange={(e) => setSelectedCampaignId(e.target.value)}
-                    className="w-full sm:max-w-md px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
-                  >
-                    {myCampaignsV2.map((c) => (
-                      <option key={c.campaignId.toString()} value={c.campaignId.toString()}>
-                        #{c.campaignId.toString()} · {c.method === 'L2_ESCROW' ? 'L2 escrow' : 'L1 direct'}
-                      </option>
-                    ))}
-                  </select>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                    Modules for <span className="font-mono font-semibold">#{effectiveCampaign.campaignId.toString()}</span>
+                    {effectiveCampaign.method === 'L2_ESCROW' ? ' · L2 escrow' : ' · L1 direct'}
+                  </p>
+                  {myCampaignsV2.length > 1 && (
+                    <div className="flex flex-wrap gap-2">
+                      {myCampaignsV2.map((c) => {
+                        const id = c.campaignId.toString();
+                        const active = id === effectiveCampaignId;
+                        return (
+                          <Link
+                            key={id}
+                            href={`/donations/modules?campaignId=${id}`}
+                            className={
+                              active
+                                ? 'px-3 py-1 rounded-full text-xs font-semibold bg-emerald-600 text-white'
+                                : 'px-3 py-1 rounded-full text-xs font-medium border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:border-emerald-500'
+                            }
+                          >
+                            #{id}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className={MODULE_CARD_FRAME}>
+                    <div className="aspect-[16/9] bg-gradient-to-br from-emerald-500/25 via-zinc-50 to-zinc-100 dark:from-emerald-500/15 dark:via-zinc-900 dark:to-zinc-800 flex items-center justify-center border-b border-zinc-200 dark:border-zinc-800">
+                      <span className="text-xs font-black uppercase tracking-[0.2em] text-emerald-800 dark:text-emerald-300">Featured placement</span>
+                    </div>
                     <DonationEscrowModuleUnlockCard
                       offer={DONATION_MODULE_OFFERS.featured}
                       campaignId={effectiveCampaign.campaignId}
@@ -227,6 +228,9 @@ export default function CrowdKasModulesPage() {
                     />
                   </div>
                   <div className={MODULE_CARD_FRAME}>
+                    <div className="aspect-[16/9] bg-gradient-to-br from-amber-500/20 via-zinc-50 to-zinc-100 dark:from-amber-500/12 dark:via-zinc-900 dark:to-zinc-800 flex items-center justify-center border-b border-zinc-200 dark:border-zinc-800">
+                      <span className="text-xs font-black uppercase tracking-[0.2em] text-amber-800 dark:text-amber-300">L1 Tip Jar</span>
+                    </div>
                     <DonationEscrowModuleUnlockCard
                       offer={DONATION_MODULE_OFFERS.l1Tips}
                       campaignId={effectiveCampaign.campaignId}
