@@ -53,6 +53,8 @@ export interface DonationCampaign {
   creatorAddress: `0x${string}`;
   /** When set, L2 donations use DonationEscrowV2.donate(campaignId). */
   campaignIdV2?: bigint;
+  /** V2 only: escrow vs L1-direct (from on-chain campaign method). */
+  methodV2?: 'L2_ESCROW' | 'L1_DIRECT';
   targetWei: bigint;
   deadline: bigint;
   raisedWei: bigint;

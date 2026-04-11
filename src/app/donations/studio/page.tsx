@@ -22,8 +22,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { ImageUpload } from '@/components/ui/ImageUpload';
 import { DONATION_CATEGORIES, isDonationCategory, normalizeTags } from '@/lib/donations/categories';
 import { useMyDonationCampaignsV2 } from '@/hooks/useMyDonationCampaigns';
-import { DONATION_MODULE_IDS, DONATION_MODULE_OFFERS } from '@/lib/donations/modules';
-import { DonationEscrowModuleUnlockCard } from '@/components/donations/DonationEscrowModuleUnlockCard';
+import { DONATION_MODULE_IDS } from '@/lib/donations/modules';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
 
@@ -226,8 +225,6 @@ export default function DonationsStudioPage() {
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [deleteCampaignId, setDeleteCampaignId] = useState<bigint | null>(null);
 
-  const featuredUnlockedV2 =
-    editingV2CampaignId != null ? (unlockByCampaignId.get(editingV2CampaignId.toString())?.featured ?? false) : false;
   const l1TipsUnlockedV2 =
     editingV2CampaignId != null ? (unlockByCampaignId.get(editingV2CampaignId.toString())?.l1Tips ?? false) : false;
 
@@ -964,6 +961,20 @@ export default function DonationsStudioPage() {
                               </button>
                             </div>
 
+                            <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/[0.07] dark:bg-emerald-950/25 p-4 mb-4">
+                              <p className="text-xs font-bold uppercase tracking-widest text-emerald-800 dark:text-emerald-300 mb-2">Premium modules</p>
+                              <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-3">
+                                Unlock featured placement on the campaign listing, the Kaspa L1 tip jar, and other upgrades—pay with Kaspa (L1), then confirm one transaction on Igra.
+                                All unlocks are managed from the Modules page.
+                              </p>
+                              <Link
+                                href="/donations/modules"
+                                className="k-control-btn inline-flex !border-emerald-500/35 !bg-emerald-500/15 !text-emerald-900 dark:!text-emerald-200"
+                              >
+                                Open modules
+                              </Link>
+                            </div>
+
                             {myCampaignsV2Error && (
                               <div className="rounded-lg bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 p-4 mb-4">
                                 {myCampaignsV2Error.message}
@@ -982,7 +993,6 @@ export default function DonationsStudioPage() {
                                   const deadlinePassed = BigInt(Math.floor(Date.now() / 1000)) >= c.deadline;
                                   const targetReachedEscrowOnly = c.method === 'L2_ESCROW' && c.raisedWei >= c.targetWei;
                                   const canClaimV2 = c.method === 'L2_ESCROW' && targetReachedEscrowOnly && deadlinePassed;
-                                  const u = unlockByCampaignId.get(c.campaignId.toString());
                                   const canDeleteCampaign =
                                     c.active &&
                                     c.raisedWei === 0n &&
@@ -1046,41 +1056,6 @@ export default function DonationsStudioPage() {
                                           </button>
                                         </div>
                                       </div>
-                                      {igraEscrowV2Address && address ? (
-                                        <div>
-                                          <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
-                                            Premium modules — pay with Kaspa (L1), then confirm on Igra (EVM)
-                                          </p>
-                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            <DonationEscrowModuleUnlockCard
-                                              offer={DONATION_MODULE_OFFERS.featured}
-                                              campaignId={c.campaignId}
-                                              igraEscrowV2Address={igraEscrowV2Address}
-                                              writeEscrowV2Address={writeEscrowV2Address as Address | undefined}
-                                              creatorEvmAddress={address as Address}
-                                              isUnlocked={Boolean(u?.featured)}
-                                              accent="emerald"
-                                              onUnlockedOnChain={() => {
-                                                void refetchModuleUnlocks();
-                                                void refetchMyCampaignsV2();
-                                              }}
-                                            />
-                                            <DonationEscrowModuleUnlockCard
-                                              offer={DONATION_MODULE_OFFERS.l1Tips}
-                                              campaignId={c.campaignId}
-                                              igraEscrowV2Address={igraEscrowV2Address}
-                                              writeEscrowV2Address={writeEscrowV2Address as Address | undefined}
-                                              creatorEvmAddress={address as Address}
-                                              isUnlocked={Boolean(u?.l1Tips)}
-                                              accent="amber"
-                                              onUnlockedOnChain={() => {
-                                                void refetchModuleUnlocks();
-                                                void refetchMyCampaignsV2();
-                                              }}
-                                            />
-                                          </div>
-                                        </div>
-                                      ) : null}
                                     </div>
                                   );
                                 })}
@@ -1633,39 +1608,15 @@ export default function DonationsStudioPage() {
                           />
                         </div>
                       </div>
-                      {editingV2CampaignId != null && igraEscrowV2Address && address ? (
-                        <div>
-                          <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
-                            Premium modules — pay with Kaspa (L1), then confirm on Igra (EVM)
+                      {editingV2CampaignId != null ? (
+                        <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 p-3">
+                          <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-2">
+                            Need <strong>featured</strong> placement or the <strong>L1 tip jar</strong>? Unlock paid modules on the{' '}
+                            <Link href="/donations/modules" className="text-emerald-700 dark:text-emerald-400 font-semibold hover:underline">
+                              Modules
+                            </Link>{' '}
+                            page after you save your edits here.
                           </p>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <DonationEscrowModuleUnlockCard
-                              offer={DONATION_MODULE_OFFERS.featured}
-                              campaignId={editingV2CampaignId}
-                              igraEscrowV2Address={igraEscrowV2Address}
-                              writeEscrowV2Address={writeEscrowV2Address as Address | undefined}
-                              creatorEvmAddress={address as Address}
-                              isUnlocked={Boolean(featuredUnlockedV2)}
-                              accent="emerald"
-                              onUnlockedOnChain={() => {
-                                void refetchModuleUnlocks();
-                                void refetchMyCampaignsV2();
-                              }}
-                            />
-                            <DonationEscrowModuleUnlockCard
-                              offer={DONATION_MODULE_OFFERS.l1Tips}
-                              campaignId={editingV2CampaignId}
-                              igraEscrowV2Address={igraEscrowV2Address}
-                              writeEscrowV2Address={writeEscrowV2Address as Address | undefined}
-                              creatorEvmAddress={address as Address}
-                              isUnlocked={Boolean(l1TipsUnlockedV2)}
-                              accent="amber"
-                              onUnlockedOnChain={() => {
-                                void refetchModuleUnlocks();
-                                void refetchMyCampaignsV2();
-                              }}
-                            />
-                          </div>
                         </div>
                       ) : null}
                       {editErrorMsg && <p className="text-sm text-red-600 dark:text-red-400">{editErrorMsg}</p>}

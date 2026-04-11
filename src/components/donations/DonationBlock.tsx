@@ -21,6 +21,7 @@ import { getErrorMessage } from '@/lib/utils';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { TransactionSuccessModal } from '@/components/modals/TransactionSuccessModal';
 import { TransactionPendingModal } from '@/components/donations/TransactionPendingModal';
+import { totalRaisedWei } from '@/lib/donations/totals';
 import type { Address } from 'viem';
 
 function getCrowdKASDApp(chainId: number | undefined): DApp {
@@ -49,11 +50,18 @@ interface DonationBlockProps {
   onL2DonationConfirmed?: () => void;
   /** Optional: parent can track L2 amount for Revenue Tree preview. */
   onL2AmountChange?: (amount: number) => void;
+  /** `panel`: top-of-column card (no top border). `footer`: legacy inset under story. */
+  layoutVariant?: 'panel' | 'footer';
 }
 
-export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChange }: DonationBlockProps) {
+export function DonationBlock({
+  campaign,
+  onL2DonationConfirmed,
+  onL2AmountChange,
+  layoutVariant = 'footer',
+}: DonationBlockProps) {
   const chainId = useChainId();
-  const { isConnected: isL2Connected } = useAccount();
+  const { isConnected: isL2Connected, address: walletAddress } = useAccount();
   const { switchChain, isPending: isSwitchPending } = useSwitchChain();
   const escrowAddress = getContractAddress(CROWDKAS_CHAIN_ID, 'DonationEscrow');
   const escrowV2Address = getContractAddress(CROWDKAS_CHAIN_ID, 'DonationEscrowV2');
@@ -62,6 +70,26 @@ export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChang
   const crowdkasChain = getChainById(CROWDKAS_CHAIN_ID);
   const crowdkasChainName = crowdkasChain?.name ?? 'Igra Mainnet';
   const onCrowdkasChain = chainId === CROWDKAS_CHAIN_ID;
+
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((n) => n + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const nowSec = BigInt(Math.floor(Date.now() / 1000));
+  const deadlinePassed = nowSec >= campaign.deadline;
+
+  const isEscrowClaimsPath =
+    !useV2Donate ||
+    campaign.methodV2 === 'L2_ESCROW' ||
+    (useV2Donate && campaign.methodV2 === undefined);
+
+  const raisedForTarget = useV2Donate ? campaign.raisedWei : totalRaisedWei(campaign);
+  const targetMet = raisedForTarget >= campaign.targetWei;
+
+  const isCreator =
+    Boolean(walletAddress) && walletAddress!.toLowerCase() === campaign.creatorAddress.toLowerCase();
 
   const [l2Amount, setL2Amount] = useState('');
   const [successModalDismissed, setSuccessModalDismissed] = useState(false);
@@ -72,7 +100,6 @@ export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChang
     chainId: hash ? CROWDKAS_CHAIN_ID : undefined,
   });
 
-  // When a new tx is submitted, allow success modal to show again
   useEffect(() => {
     if (hash) setSuccessModalDismissed(false);
   }, [hash]);
@@ -122,10 +149,28 @@ export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChang
   const activeEscrow = useV2Donate ? escrowV2Address : escrowAddress;
   const canDonateL2 =
     campaign.active &&
+    !deadlinePassed &&
     activeEscrow &&
     l2AmountWei >= VDONATIONS_MIN_DONATION_WEI &&
     isL2Connected &&
     onCrowdkasChain;
+
+  const showCreatorClaim =
+    deadlinePassed &&
+    isEscrowClaimsPath &&
+    targetMet &&
+    isCreator &&
+    isL2Connected &&
+    onCrowdkasChain &&
+    Boolean(activeEscrow);
+
+  const showDonorRefund =
+    deadlinePassed &&
+    isEscrowClaimsPath &&
+    !targetMet &&
+    isL2Connected &&
+    onCrowdkasChain &&
+    Boolean(activeEscrow);
 
   const handleDonateL2 = () => {
     if (!canDonateL2 || !activeEscrow) return;
@@ -148,18 +193,62 @@ export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChang
     });
   };
 
+  const handleCreatorClaim = () => {
+    if (!activeEscrow || !showCreatorClaim) return;
+    if (useV2Donate && campaign.campaignIdV2 != null) {
+      writeContract({
+        address: activeEscrow as Address,
+        abi: DONATION_ESCROW_V2_ABI,
+        functionName: 'claim',
+        args: [campaign.campaignIdV2],
+      });
+      return;
+    }
+    writeContract({
+      address: activeEscrow as Address,
+      abi: DONATION_ESCROW_ABI,
+      functionName: 'claim',
+    });
+  };
+
+  const handleDonorRefund = () => {
+    if (!activeEscrow || !showDonorRefund) return;
+    if (useV2Donate && campaign.campaignIdV2 != null) {
+      writeContract({
+        address: activeEscrow as Address,
+        abi: DONATION_ESCROW_V2_ABI,
+        functionName: 'claimRefund',
+        args: [campaign.campaignIdV2],
+      });
+      return;
+    }
+    writeContract({
+      address: activeEscrow as Address,
+      abi: DONATION_ESCROW_ABI,
+      functionName: 'claimRefund',
+      args: [campaign.creatorAddress],
+    });
+  };
+
+  const shellClass =
+    layoutVariant === 'panel'
+      ? 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4'
+      : 'border-t border-zinc-200 dark:border-zinc-700 pt-6 mt-6';
+
   return (
-    <div className="border-t border-zinc-200 dark:border-zinc-700 pt-6 mt-6">
+    <div id="crowdkas-donate" className={shellClass}>
       <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Donate</h3>
 
-      <div className="space-y-4">
+      {!deadlinePassed && (
+        <div className="space-y-4">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             Donate iKAS to the escrow. Min {formatEther(VDONATIONS_MIN_DONATION_WEI)} iKAS (10 iKAS). Rewards (if enabled) are handled automatically on-chain.
           </p>
           <div className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 p-3 text-sm text-zinc-700 dark:text-zinc-300">
             <p className="font-medium text-zinc-900 dark:text-zinc-100 mb-1">Where does the fee go?</p>
             <p>
-              {VDONATIONS_L2_FEE_PERCENT}% of your donation goes to the <strong>Kasparex Revenue Tree</strong> to support community rewards and the referral program. The rest is escrowed for this campaign and goes to the creator when the goal is reached.
+              {VDONATIONS_L2_FEE_PERCENT}% of your donation goes to the <strong>Kasparex Revenue Tree</strong> to support community rewards and the referral program. The rest is
+              escrowed for this campaign and goes to the creator when the goal is reached.
             </p>
           </div>
           {!isL2Connected && (
@@ -206,14 +295,76 @@ export function DonationBlock({ campaign, onL2DonationConfirmed, onL2AmountChang
           >
             {isPendingWrite || isConfirming ? 'Confirming…' : 'Donate (L2)'}
           </button>
-      </div>
+        </div>
+      )}
+
+      {deadlinePassed && isEscrowClaimsPath && (
+        <div className="space-y-4">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            This campaign has ended. L2 escrow actions below use <strong>{crowdkasChainName}</strong>.
+          </p>
+          {!isL2Connected && (
+            <p className="text-amber-600 dark:text-amber-400 text-sm">Connect the wallet you use for CrowdKAS (creator or donor).</p>
+          )}
+          {isL2Connected && !onCrowdkasChain && (
+            <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-3 text-sm text-amber-900 dark:text-amber-200 space-y-2">
+              <button
+                type="button"
+                disabled={isSwitchPending}
+                onClick={() => switchChain?.({ chainId: CROWDKAS_CHAIN_ID })}
+                className="w-full sm:w-auto px-4 py-2 rounded-lg bg-amber-600 text-white font-medium hover:bg-amber-700 disabled:opacity-50"
+              >
+                {isSwitchPending ? 'Switching…' : `Switch to ${crowdkasChainName}`}
+              </button>
+            </div>
+          )}
+          {showCreatorClaim && (
+            <div className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-3 space-y-2">
+              <p className="text-sm text-zinc-800 dark:text-zinc-200">Goal was reached. As the creator, you can claim pooled escrow funds.</p>
+              <button
+                type="button"
+                onClick={handleCreatorClaim}
+                disabled={isPendingWrite || isConfirming}
+                className="w-full px-4 py-3 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {isPendingWrite || isConfirming ? 'Confirming…' : 'Claim funds (creator)'}
+              </button>
+            </div>
+          )}
+          {showDonorRefund && (
+            <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 p-3 space-y-2">
+              <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                The goal was not reached. If you donated from this wallet, you can claim your refund from escrow (the contract rejects if you have nothing to refund).
+              </p>
+              <button
+                type="button"
+                onClick={handleDonorRefund}
+                disabled={isPendingWrite || isConfirming}
+                className="w-full px-4 py-3 rounded-lg bg-zinc-800 dark:bg-zinc-200 text-white dark:text-zinc-900 font-medium hover:opacity-90 disabled:opacity-50"
+              >
+                {isPendingWrite || isConfirming ? 'Confirming…' : 'Claim refund (donor)'}
+              </button>
+            </div>
+          )}
+          {deadlinePassed && targetMet && !isCreator && (
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Goal reached: the creator can claim escrowed funds after the deadline.</p>
+          )}
+          {writeError && (
+            <p className="text-sm text-red-600 dark:text-red-400">{getErrorMessage(writeError, 'Transaction failed')}</p>
+          )}
+        </div>
+      )}
+
+      {deadlinePassed && !isEscrowClaimsPath && (
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">This campaign has ended. L1-direct flows do not use L2 escrow claim/refund here.</p>
+      )}
 
       <TransactionPendingModal
         isOpen={Boolean(hash && !isConfirmed)}
         onClose={() => {}}
         txHash={hash ?? ''}
         chainId={CROWDKAS_CHAIN_ID}
-        title="Donation submitted"
+        title="Transaction submitted"
       />
       <TransactionSuccessModal
         isOpen={isConfirmed && Boolean(hash) && !successModalDismissed}

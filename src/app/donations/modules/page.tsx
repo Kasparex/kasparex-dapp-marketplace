@@ -15,6 +15,10 @@ import { useMyDonationCampaignsV2 } from '@/hooks/useMyDonationCampaigns';
 import { DonationEscrowModuleUnlockCard } from '@/components/donations/DonationEscrowModuleUnlockCard';
 import { getChainById } from '@/lib/wagmi';
 
+/** Same shell as `DonationCampaignCard` (listing) for visual consistency. */
+const MODULE_CARD_FRAME =
+  'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors';
+
 const ROADMAP_ITEMS = [
   { title: 'Campaign updates feed', detail: 'Milestones and optional IPFS attachments — planned.' },
   { title: 'Custom CTA buttons', detail: 'Extra links on campaign pages — planned.' },
@@ -148,15 +152,25 @@ export default function CrowdKasModulesPage() {
             )}
 
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-6 space-y-3">
-                <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{DONATION_MODULE_OFFERS.featured.title}</h2>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">{DONATION_MODULE_OFFERS.featured.description}</p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">From {DONATION_MODULE_OFFERS.featured.basePriceKas} KAS (discounts may apply).</p>
+              <div className={MODULE_CARD_FRAME}>
+                <div className="aspect-[16/9] bg-gradient-to-br from-emerald-500/25 via-zinc-50 to-zinc-100 dark:from-emerald-500/15 dark:via-zinc-900 dark:to-zinc-800 flex items-center justify-center">
+                  <span className="text-xs font-black uppercase tracking-[0.2em] text-emerald-800 dark:text-emerald-300">Featured</span>
+                </div>
+                <div className="p-4 space-y-2">
+                  <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{DONATION_MODULE_OFFERS.featured.title}</h2>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">{DONATION_MODULE_OFFERS.featured.description}</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">From {DONATION_MODULE_OFFERS.featured.basePriceKas} KAS (discounts may apply).</p>
+                </div>
               </div>
-              <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-6 space-y-3">
-                <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{DONATION_MODULE_OFFERS.l1Tips.title}</h2>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">{DONATION_MODULE_OFFERS.l1Tips.description}</p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">From {DONATION_MODULE_OFFERS.l1Tips.basePriceKas} KAS (discounts may apply).</p>
+              <div className={MODULE_CARD_FRAME}>
+                <div className="aspect-[16/9] bg-gradient-to-br from-amber-500/20 via-zinc-50 to-zinc-100 dark:from-amber-500/12 dark:via-zinc-900 dark:to-zinc-800 flex items-center justify-center">
+                  <span className="text-xs font-black uppercase tracking-[0.2em] text-amber-800 dark:text-amber-300">L1 tips</span>
+                </div>
+                <div className="p-4 space-y-2">
+                  <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{DONATION_MODULE_OFFERS.l1Tips.title}</h2>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">{DONATION_MODULE_OFFERS.l1Tips.description}</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">From {DONATION_MODULE_OFFERS.l1Tips.basePriceKas} KAS (discounts may apply).</p>
+                </div>
               </div>
             </div>
 
@@ -199,26 +213,32 @@ export default function CrowdKasModulesPage() {
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
-                  <DonationEscrowModuleUnlockCard
-                    offer={DONATION_MODULE_OFFERS.featured}
-                    campaignId={effectiveCampaign.campaignId}
-                    igraEscrowV2Address={igraEscrowV2Address}
-                    writeEscrowV2Address={writeEscrowV2Address}
-                    creatorEvmAddress={address as Address}
-                    isUnlocked={Boolean(unlockForEffective?.featured)}
-                    onUnlockedOnChain={refetchUnlocks}
-                    accent="emerald"
-                  />
-                  <DonationEscrowModuleUnlockCard
-                    offer={DONATION_MODULE_OFFERS.l1Tips}
-                    campaignId={effectiveCampaign.campaignId}
-                    igraEscrowV2Address={igraEscrowV2Address}
-                    writeEscrowV2Address={writeEscrowV2Address}
-                    creatorEvmAddress={address as Address}
-                    isUnlocked={Boolean(unlockForEffective?.l1Tips)}
-                    onUnlockedOnChain={refetchUnlocks}
-                    accent="amber"
-                  />
+                  <div className={MODULE_CARD_FRAME}>
+                    <DonationEscrowModuleUnlockCard
+                      offer={DONATION_MODULE_OFFERS.featured}
+                      campaignId={effectiveCampaign.campaignId}
+                      igraEscrowV2Address={igraEscrowV2Address}
+                      writeEscrowV2Address={writeEscrowV2Address}
+                      creatorEvmAddress={address as Address}
+                      isUnlocked={Boolean(unlockForEffective?.featured)}
+                      onUnlockedOnChain={refetchUnlocks}
+                      accent="emerald"
+                      className="!rounded-none !border-0 shadow-none ring-0"
+                    />
+                  </div>
+                  <div className={MODULE_CARD_FRAME}>
+                    <DonationEscrowModuleUnlockCard
+                      offer={DONATION_MODULE_OFFERS.l1Tips}
+                      campaignId={effectiveCampaign.campaignId}
+                      igraEscrowV2Address={igraEscrowV2Address}
+                      writeEscrowV2Address={writeEscrowV2Address}
+                      creatorEvmAddress={address as Address}
+                      isUnlocked={Boolean(unlockForEffective?.l1Tips)}
+                      onUnlockedOnChain={refetchUnlocks}
+                      accent="amber"
+                      className="!rounded-none !border-0 shadow-none ring-0"
+                    />
+                  </div>
                 </div>
               </div>
             )}

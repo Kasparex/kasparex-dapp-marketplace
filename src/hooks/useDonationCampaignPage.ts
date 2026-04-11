@@ -15,12 +15,27 @@ const ZERO = '0x0000000000000000000000000000000000000000';
 
 type V2Tuple = readonly [bigint, Address, bigint, bigint, bigint, bigint, bigint, string, string, boolean];
 
-function parseV2Campaign(data: unknown, expectedId: bigint): { creator: Address; targetWei: bigint; deadline: bigint; raisedWei: bigint; donorCount: bigint; ipfsHash: string; l1Address: string; active: boolean } | null {
+function parseMethodV2(m: bigint): 'L1_DIRECT' | 'L2_ESCROW' {
+  return m === 1n ? 'L1_DIRECT' : 'L2_ESCROW';
+}
+
+function parseV2Campaign(data: unknown, expectedId: bigint): {
+  creator: Address;
+  method: 'L1_DIRECT' | 'L2_ESCROW';
+  targetWei: bigint;
+  deadline: bigint;
+  raisedWei: bigint;
+  donorCount: bigint;
+  ipfsHash: string;
+  l1Address: string;
+  active: boolean;
+} | null {
   const t = data as unknown as V2Tuple | undefined;
   if (!t || t[1] === ZERO) return null;
   if (t[0] !== expectedId) return null;
   return {
     creator: t[1],
+    method: parseMethodV2(t[2]),
     targetWei: t[3],
     deadline: t[4],
     raisedWei: t[5],
@@ -109,6 +124,7 @@ export function useDonationCampaignPage(creatorAddress: string | null, campaignI
       return {
         creatorAddress: creatorAddress as `0x${string}`,
         campaignIdV2: idBig,
+        methodV2: v2Parsed.method,
         targetWei: v2Parsed.targetWei,
         deadline: v2Parsed.deadline,
         raisedWei: v2Parsed.raisedWei,

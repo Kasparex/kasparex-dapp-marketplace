@@ -10,6 +10,8 @@ import { progressPercent, totalDonorCount, totalRaisedWei } from '@/lib/donation
 import { useDonationPoints } from '@/hooks/useDonationPoints';
 import { DonationL1TipJar } from '@/components/donations/DonationL1TipJar';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
+import { DonationBlock } from '@/components/donations/DonationBlock';
+import { CampaignEndCountdown } from '@/components/donations/CampaignEndCountdown';
 
 interface DonationCampaignRightColumnProps {
   campaign: DonationCampaign;
@@ -17,6 +19,8 @@ interface DonationCampaignRightColumnProps {
   /** Current L2 donation amount for Revenue Tree share preview (default 10). */
   previewDonationAmount?: number;
   metadata?: DonationCampaignMetadata | null;
+  onL2DonationConfirmed?: () => void;
+  onL2AmountChange?: (amount: number) => void;
 }
 
 export function DonationCampaignRightColumn({
@@ -24,6 +28,8 @@ export function DonationCampaignRightColumn({
   creatorAddress,
   previewDonationAmount = 10,
   metadata = null,
+  onL2DonationConfirmed,
+  onL2AmountChange,
 }: DonationCampaignRightColumnProps) {
   const chainId = useChainId();
   const { address: userWalletAddress } = useAccount();
@@ -46,6 +52,13 @@ export function DonationCampaignRightColumn({
 
   return (
     <div className="flex flex-col gap-6">
+      <DonationBlock
+        campaign={campaign}
+        layoutVariant="panel"
+        onL2DonationConfirmed={onL2DonationConfirmed}
+        onL2AmountChange={onL2AmountChange}
+      />
+
       {/* Campaign summary */}
       <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Campaign summary</h3>
@@ -79,6 +92,9 @@ export function DonationCampaignRightColumn({
             style={{ width: `${Math.min(progress, 100)}%` }}
           />
         </div>
+        <div className="mt-4 pt-3 border-t border-zinc-200 dark:border-zinc-700">
+          <CampaignEndCountdown deadlineSec={campaign.deadline} compact />
+        </div>
       </div>
 
       {userWalletAddress && (
@@ -95,13 +111,15 @@ export function DonationCampaignRightColumn({
 
       <DonationL1TipJar campaign={campaign} metadata={metadata} />
 
-      <DonationLeaderboard
-        creatorAddress={creatorAddress}
-        limit={20}
-        donorCount={donorsTotal}
-        raisedWei={raisedTotal}
-        campaignId={campaign.campaignIdV2}
-      />
+      <div id="crowdkas-supporters">
+        <DonationLeaderboard
+          creatorAddress={creatorAddress}
+          limit={20}
+          donorCount={donorsTotal}
+          raisedWei={raisedTotal}
+          campaignId={campaign.campaignIdV2}
+        />
+      </div>
 
       <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden p-4">
         <RevenueTree

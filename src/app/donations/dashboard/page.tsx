@@ -96,10 +96,20 @@ export default function DonationsDashboardPage() {
       <Header />
       <div className="flex flex-1">
         <div className="hidden lg:block flex-shrink-0">
-          <DonationsSidebar selectedStatus={selectedStatus} onStatusChange={setSelectedStatus} statusCounts={statusCounts} />
+          <DonationsSidebar
+            backLink={{ href: '/donations', label: 'All campaigns' }}
+            selectedStatus={selectedStatus}
+            onStatusChange={setSelectedStatus}
+            statusCounts={statusCounts}
+          />
         </div>
         <div className="lg:hidden flex-shrink-0">
-          <DonationsSidebar selectedStatus={selectedStatus} onStatusChange={setSelectedStatus} statusCounts={statusCounts} />
+          <DonationsSidebar
+            backLink={{ href: '/donations', label: 'All campaigns' }}
+            selectedStatus={selectedStatus}
+            onStatusChange={setSelectedStatus}
+            statusCounts={statusCounts}
+          />
         </div>
 
         <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto">

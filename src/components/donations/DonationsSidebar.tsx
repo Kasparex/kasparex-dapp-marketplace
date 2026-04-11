@@ -1,18 +1,44 @@
 'use client';
 
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
+import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 
 export type DonationFilterStatus = 'all' | 'active' | 'ended';
 
-const statusItems: { id: DonationFilterStatus; label: string }[] = [
-  { id: 'all', label: 'All campaigns' },
-  { id: 'active', label: 'Active' },
-  { id: 'ended', label: 'Ended' },
+const statusItems: { id: DonationFilterStatus; label: string; icon: ReactNode }[] = [
+  {
+    id: 'all',
+    label: 'All campaigns',
+    icon: (
+      <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'active',
+    label: 'Active',
+    icon: (
+      <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'ended',
+    label: 'Ended',
+    icon: (
+      <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+  },
 ];
 
 type DonationsSidebarListingProps = {
@@ -26,6 +52,8 @@ type DonationsSidebarListingProps = {
 type DonationsSidebarMinimalProps = {
   variant: 'minimal';
   backLink?: { href: string; label: string };
+  /** In-page anchors (same pattern as vBlog article sidebar). */
+  sectionNavItems?: Array<{ id: string; label: string; icon?: ReactNode }>;
 };
 
 export type DonationsSidebarProps = DonationsSidebarListingProps | DonationsSidebarMinimalProps;
@@ -34,6 +62,7 @@ export function DonationsSidebar(props: DonationsSidebarProps) {
   const pathname = usePathname();
   const isListing = props.variant !== 'minimal';
   const backLink = props.backLink ?? { href: '/hub', label: 'Back to Hub' };
+  const sectionNavItems = props.variant === 'minimal' ? props.sectionNavItems ?? [] : [];
 
   const header = (onHide: () => void) => (
     <SidebarHeader backHref={backLink.href} backLabel={backLink.label} onHide={onHide} />
@@ -43,11 +72,7 @@ export function DonationsSidebar(props: DonationsSidebarProps) {
     id: s.id,
     label: s.label,
     count: isListing ? props.statusCounts[s.id] ?? 0 : 0,
-    icon: (
-      <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-      </svg>
-    ),
+    icon: s.icon,
   }));
 
   return (
@@ -113,6 +138,27 @@ export function DonationsSidebar(props: DonationsSidebarProps) {
           <span className="text-xs font-black uppercase tracking-widest">Modules</span>
         </Link>
       </div>
+
+      {sectionNavItems.length > 0 && (
+        <SidebarSection title="On this page">
+          <nav className="space-y-0.5">
+            {sectionNavItems.map((item) => (
+              <SidebarNavItem
+                key={item.id}
+                href={`#${item.id}`}
+                label={item.label}
+                icon={
+                  item.icon ?? (
+                    <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-6 4h10" />
+                    </svg>
+                  )
+                }
+              />
+            ))}
+          </nav>
+        </SidebarSection>
+      )}
 
       {isListing && (
         <SidebarSection title="Filter by status">

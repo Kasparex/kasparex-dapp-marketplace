@@ -28,6 +28,8 @@ interface DonationEscrowModuleUnlockCardProps {
   isUnlocked: boolean;
   onUnlockedOnChain: () => void;
   accent?: 'emerald' | 'amber';
+  /** Merged onto the root wrapper (e.g. listing-style hover border from parent grid). */
+  className?: string;
 }
 
 export function DonationEscrowModuleUnlockCard({
@@ -200,7 +202,7 @@ export function DonationEscrowModuleUnlockCard({
     <div
       className={`rounded-2xl border bg-white/95 dark:bg-zinc-900/80 overflow-hidden flex flex-col ${borderClass} ${
         isUnlocked ? 'ring-1 ring-emerald-500/25' : ''
-      }`}
+      } ${className}`.trim()}
     >
       <div
         className={`h-16 bg-gradient-to-br ${headerClass} border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-center px-3`}
