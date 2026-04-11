@@ -41,6 +41,7 @@ export function DonationEscrowModuleUnlockCard({
   isUnlocked,
   onUnlockedOnChain,
   accent = 'emerald',
+  className = '',
 }: DonationEscrowModuleUnlockCardProps) {
   const { state: kaspaState } = useKaspaWallet();
   const { balance: krexBalance, tier } = useKREXBalance();
