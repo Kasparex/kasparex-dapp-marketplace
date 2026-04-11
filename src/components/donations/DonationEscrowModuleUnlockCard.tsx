@@ -59,9 +59,9 @@ export function DonationEscrowModuleUnlockCard({
   const moduleNftFlags = useMemo(
     () => ({
       hasAny: !!(nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX ||
-        (nftStatus?.partnerCollections && Object.values(nftStatus.partnerCollections || {}).some(Boolean))),
+        Object.values(nftStatus?.partnerCollections ?? {}).some(Boolean)),
       hasDiamond: !!(nftStatus?.hasDiamondKREXPRIME || nftStatus?.hasDiamondPIXELKREX ||
-        (nftStatus.partnerDiamonds && Object.values(nftStatus.partnerDiamonds || {}).some(Boolean))),
+        Object.values(nftStatus?.partnerDiamonds ?? {}).some(Boolean)),
       hasRarest: !!nftStatus?.hasRarestNFT,
     }),
     [nftStatus]
