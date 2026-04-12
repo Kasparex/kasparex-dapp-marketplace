@@ -114,9 +114,9 @@ Vercel should auto-detect Next.js, but if needed:
 **vercel.json** (optional):
 ```json
 {
-  "buildCommand": "pnpm build",
-  "devCommand": "pnpm dev",
-  "installCommand": "pnpm install",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
   "framework": "nextjs"
 }
 ```
