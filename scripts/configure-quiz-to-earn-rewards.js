@@ -29,18 +29,18 @@ async function main() {
   console.log('Account balance:', hre.ethers.formatEther(await hre.ethers.provider.getBalance(deployer.address)), 'KAS\n');
 
   const network = hre.network.name;
-  const isIgra = network === 'igraMainnet';
-  
+  const isIgraChain = network === 'igraMainnet' || network === 'igraGalleonTestnet';
+  const net = await hre.ethers.provider.getNetwork();
+
   // Default addresses (Kasplex L2 Testnet)
   const defaultRewardManager = '0x2044FEb08a4Cb14Ff736b00f947E017044da50E6';
   const defaultQuizToEarn = '0x7EF3E5215c722D7A3D41C2426e57b1B4A5bC4a05';
-  
-  // Igra Caravel Testnet addresses (update when available)
+
   const igraRewardManager = process.env.REWARD_MANAGER_ADDRESS_IGRA || '';
   const igraQuizToEarn = process.env.QUIZ_TO_EARN_ADDRESS_IGRA || '';
-  
-  const rewardManagerAddress = process.env.REWARD_MANAGER_ADDRESS || (isIgra ? igraRewardManager : defaultRewardManager);
-  const quizToEarnAddress = process.env.QUIZ_TO_EARN_ADDRESS || (isIgra ? igraQuizToEarn : defaultQuizToEarn);
+
+  const rewardManagerAddress = process.env.REWARD_MANAGER_ADDRESS || (isIgraChain ? igraRewardManager : defaultRewardManager);
+  const quizToEarnAddress = process.env.QUIZ_TO_EARN_ADDRESS || (isIgraChain ? igraQuizToEarn : defaultQuizToEarn);
   
   // Configuration
   const rewardRate = process.env.REWARD_RATE ? parseInt(process.env.REWARD_RATE) : DEFAULT_REWARD_RATE;
@@ -57,7 +57,7 @@ async function main() {
   }
   
   console.log(`đź“‹ Network: ${network}`);
-  console.log(`   Chain ID: ${isIgra ? '38833' : '167012'}`);
+  console.log(`   Chain ID: ${net.chainId}`);
   console.log(`   RewardManager: ${rewardManagerAddress}`);
   console.log(`   QuizToEarn: ${quizToEarnAddress}`);
   console.log(`   Reward Rate: ${rewardRate} basis points (${rewardRate / 100}%)`);

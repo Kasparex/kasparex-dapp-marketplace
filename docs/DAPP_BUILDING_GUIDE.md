@@ -9,7 +9,7 @@ This guide walks you through the entire process of creating a new dApp, from sma
 **Key Features:**
 - **Automated Build Process**: Fill in the dApp description section, and the system handles planning and building
 - **Default Configurations**: Standard defaults included (1% fee, supported networks, etc.)
-- **Multi-Network Support**: Deploy to both Kasplex L2 Testnet (167012) and Igra Caravel Testnet (19416)
+- **Multi-Network Support**: Deploy to both Kasplex L2 Testnet (167012) and Igra Galleon Testnet (38836)
 - **Mobile-First**: Responsive design built-in
 - **vProgs Ready**: Prepared for future vProgs integration
 
@@ -153,8 +153,8 @@ This guide walks you through the entire process of creating a new dApp, from sma
      YourContract: "0x...", // Kasplex L2 Testnet (Chain ID: 167012)
      // ...
    },
-   igraCaravelTestnet: {
-     YourContract: "0x...", // Igra Caravel Testnet (Chain ID: 19416)
+   igraGalleonTestnet: {
+     YourContract: "0x...", // Igra Galleon Testnet (Chain ID: 38836)
      // ...
    },
    kasplexL2Mainnet: {
@@ -163,7 +163,7 @@ This guide walks you through the entire process of creating a new dApp, from sma
    },
    ```
 3. Add to `DEFAULT_CONTRACT_ADDRESSES` as well
-4. **Recommended**: Deploy to both Kasplex L2 Testnet and Igra Caravel Testnet for maximum compatibility
+4. **Recommended**: Deploy to both Kasplex L2 Testnet and Igra Galleon Testnet for maximum compatibility
 
 ### Step 8: Register dApp
 
@@ -209,11 +209,11 @@ This guide walks you through the entire process of creating a new dApp, from sma
    ```bash
    npx hardhat run scripts/deploy-your-dapp.js --network kasplexL2Testnet
    ```
-5. Run deployment to Igra Caravel Testnet (when ecosystem contracts are available):
+5. Run deployment to Igra Galleon Testnet (when ecosystem contracts are available):
    ```bash
-   npx hardhat run scripts/deploy-your-dapp.js --network igraCaravelTestnet
+   npx hardhat run scripts/deploy-your-dapp.js --network igraGalleonTestnet
    ```
-   **Note:** Igra Caravel Testnet deployment requires ecosystem contracts to be deployed first.
+   **Note:** Igra Galleon Testnet deployment requires ecosystem contracts to be deployed first.
 6. Save contract addresses for both networks
 7. Update `src/lib/contracts/addresses.ts` with deployed addresses for both networks
 

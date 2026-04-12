@@ -93,7 +93,7 @@ fetch('https://kasparex-api.kasparexcom.workers.dev/kasparex/rewards/l1/status/Y
 - [ ] Test with different KREX tiers
 - [ ] Test with NFT holders
 - [ ] Test on Kasplex L2 Testnet
-- [ ] Test on Igra Caravel Testnet
+- [ ] Test on Igra Galleon Testnet
 
 ### Cost Calculation Testing
 

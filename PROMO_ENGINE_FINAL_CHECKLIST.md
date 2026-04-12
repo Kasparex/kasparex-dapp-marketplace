@@ -39,7 +39,7 @@ npm install react-google-recaptcha @types/react-google-recaptcha
 ```bash
 npm run hardhat:deploy:promo-router
 ```
-Then set `NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_TESTNET` in Vercel.
+Then set `NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_GALLEON_TESTNET` in Vercel.
 
 ### 3. Initialize Database
 ```bash

@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS promo_tokens (
   ticker TEXT NOT NULL,
   name TEXT NOT NULL,
   contract_address TEXT NOT NULL,
-  network TEXT NOT NULL,               -- e.g. 'igraCaravelTestnet'
+  network TEXT NOT NULL,               -- e.g. 'igraGalleonTestnet'
   mint_price REAL NOT NULL,
   tokens_per_mint INTEGER NOT NULL,
   mintable_supply INTEGER NOT NULL,

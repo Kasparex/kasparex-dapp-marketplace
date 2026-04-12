@@ -19,7 +19,7 @@ Super simple and fast EVM-compatible dApp marketplace for Kaspa, supporting both
 
 - **Framework**: Remix 2.12 (Cloudflare Pages adapter)
 - **Wallet**: RainbowKit + Wagmi (EVM), Custom Kaspa wallets (Kasware, Kastle)
-- **Blockchain**: Kasplex L2 Mainnet/Testnet, Igra Caravel Testnet
+- **Blockchain**: Kasplex L2 Mainnet/Testnet, Igra Galleon Testnet
 - **Styling**: Tailwind CSS with dark mode support
 - **Language**: TypeScript
 - **Smart Contracts**: OpenZeppelin
@@ -155,7 +155,7 @@ The marketplace is configured with:
 
 - **Kasplex L2 Mainnet** (Chain ID: 202555)
 - **Kasplex L2 Testnet** (Chain ID: 167012)
-- **Igra Caravel Testnet** (Chain ID: 19416)
+- **Igra Galleon Testnet** (Chain ID: 38836)
 - **vProgs** (Placeholder for future)
 
 ## Resources

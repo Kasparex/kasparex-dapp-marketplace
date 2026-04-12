@@ -114,10 +114,10 @@ Example:
 ### Network & Status
 - **Status**: `{{STATUS}}` ('Testnet' or 'Mainnet') - **Default: 'Testnet'**
 - **Network**: `{{NETWORK_NAME}}` (e.g., 'Kasplex L2 Testnet') - **Default: 'Kasplex L2 Testnet'**
-- **Supported Chain IDs**: `{{CHAIN_IDS}}` - **Default: [167012, 19416]** (Kasplex L2 Testnet: 167012, Igra Caravel Testnet: 19416)
+- **Supported Chain IDs**: `{{CHAIN_IDS}}` - **Default: [167012, 38836]** (Kasplex L2 Testnet: 167012, Igra Galleon Testnet: 38836)
   - Kasplex L2 Testnet: `167012`
   - Kasplex L2 Mainnet: `202555` (if deploying to mainnet)
-  - Igra Caravel Testnet: `19416`
+  - Igra Galleon Testnet: `38836`
 - **Provider**: `{{PROVIDER_NAME}}` - **Default: 'Kasparex'**
 
 ## Smart Contract
@@ -262,20 +262,20 @@ kasplexL2Mainnet: {
   {{CONTRACT_NAME}}: "0x...", // Your contract address (if deploying to mainnet)
   // ...
 },
-igraCaravelTestnet: {
+igraGalleonTestnet: {
   {{CONTRACT_NAME}}: "0x...", // Your contract address (Igra Testnet)
   // ...
 },
 ```
 
-**Note**: You should deploy to both Kasplex L2 Testnet (167012) and Igra Caravel Testnet (19416) for maximum compatibility.
+**Note**: You should deploy to both Kasplex L2 Testnet (167012) and Igra Galleon Testnet (38836) for maximum compatibility.
 
 ## Deployment
 
 ### Deployment Script
 - **Script File**: `scripts/deploy-{{contract-name}}.js`
 - **Network**: `{{DEPLOYMENT_NETWORK}}` - **Default: 'kasplexL2Testnet'**
-  - Recommended: Deploy to both `kasplexL2Testnet` and `igraCaravelTestnet`
+  - Recommended: Deploy to both `kasplexL2Testnet` and `igraGalleonTestnet`
 - **Deployer Address**: `{{DEPLOYER_ADDRESS}}` (will be detected automatically)
 
 ### Deployment Steps

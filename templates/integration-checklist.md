@@ -8,7 +8,7 @@ Use this checklist to ensure your dApp is fully integrated into the system.
 - [ ] Smart contract deployed and verified
 - [ ] Contract address available for both networks:
   - [ ] Kasplex L2 Testnet (Chain ID: 167012)
-  - [ ] Igra Caravel Testnet (Chain ID: 19416)
+  - [ ] Igra Galleon Testnet (Chain ID: 38836)
 - [ ] Contract ABI available
 - [ ] Test networks configured
 
@@ -21,7 +21,7 @@ Use this checklist to ensure your dApp is fully integrated into the system.
 - [ ] Add contract address to `src/lib/contracts/addresses.ts`
   - Add to `HARDCODED_FALLBACK_ADDRESSES` for each network:
     - `kasplexL2Testnet` (Chain ID: 167012)
-    - `igraCaravelTestnet` (Chain ID: 19416)
+    - `igraGalleonTestnet` (Chain ID: 38836)
     - `kasplexL2Mainnet` (Chain ID: 202555) - if deploying to mainnet
   - Add to `DEFAULT_CONTRACT_ADDRESSES` for each network
   - Use the contract name as the key (e.g., `{{CONTRACT_NAME}}: "0x..."`)
@@ -66,7 +66,7 @@ Use this checklist to ensure your dApp is fully integrated into the system.
     - `security`: Security information
     - `roadmap`: Roadmap information
     - `createdAt`: ISO timestamp
-    - `supportedChainIds`: Array of supported chain IDs - **Default: [167012, 19416]** (Kasplex L2 Testnet and Igra Caravel Testnet)
+    - `supportedChainIds`: Array of supported chain IDs - **Default: [167012, 38836]** (Kasplex L2 Testnet and Igra Galleon Testnet)
     - `contractAddress`: Contract address (optional, can be fetched from addresses.ts)
 
 ## Step 5: Widget Integration

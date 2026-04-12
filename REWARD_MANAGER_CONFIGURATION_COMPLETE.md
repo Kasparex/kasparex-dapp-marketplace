@@ -73,12 +73,12 @@ RewardManager has been successfully configured for Quiz-to-Earn dApp with standa
 
 ---
 
-## Igra Caravel Testnet Status
+## Igra Galleon Testnet Status
 
 **Status**: ⏳ Pending Ecosystem Contracts
 
 ### Required Contracts
-The following ecosystem contracts need to be deployed to Igra Caravel Testnet before QuizToEarn can be deployed:
+The following ecosystem contracts need to be deployed to Igra Galleon Testnet before QuizToEarn can be deployed:
 
 - [ ] FeeCollector
 - [ ] DAppRegistry
@@ -93,14 +93,14 @@ The following ecosystem contracts need to be deployed to Igra Caravel Testnet be
 - ⏳ Waiting for ecosystem contracts
 
 ### Once Available
-Deploy QuizToEarn to Igra Caravel Testnet:
+Deploy QuizToEarn to Igra Galleon Testnet:
 ```bash
-npx hardhat run scripts/deploy-quiz-to-earn.js --network igraCaravelTestnet
+npx hardhat run scripts/deploy-quiz-to-earn.js --network igraGalleonTestnet
 ```
 
 Then configure RewardManager:
 ```bash
-npx hardhat run scripts/configure-quiz-to-earn-rewards.js --network igraCaravelTestnet
+npx hardhat run scripts/configure-quiz-to-earn-rewards.js --network igraGalleonTestnet
 ```
 
 ---
@@ -123,7 +123,7 @@ npx hardhat run scripts/configure-quiz-to-earn-rewards.js --network igraCaravelT
 
 1. **Monitor Rewards**: Ensure RewardManager has sufficient GRID tokens
 2. **Test Rewards**: Verify rewards are distributed correctly when users answer questions
-3. **Igra Deployment**: Deploy to Igra Caravel Testnet once ecosystem contracts are available
+3. **Igra Deployment**: Deploy to Igra Galleon Testnet once ecosystem contracts are available
 4. **Apply to Other dApps**: Use the same standard defaults for other dApps
 
 ---

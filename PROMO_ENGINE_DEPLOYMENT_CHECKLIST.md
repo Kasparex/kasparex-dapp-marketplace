@@ -7,14 +7,14 @@ All code has been implemented and is ready for deployment. The following items n
 ## 🔧 Pre-Deployment Steps
 
 ### 1. Smart Contract Deployment
-- [ ] Deploy `PromoMintRouter.sol` to Igra Caravel Testnet
+- [ ] Deploy `PromoMintRouter.sol` to Igra Galleon Testnet
   ```bash
   npm run hardhat:deploy:promo-router
   # OR
-  npx hardhat run scripts/deploy-promo-router.js --network igraCaravelTestnet
+  npx hardhat run scripts/deploy-promo-router.js --network igraGalleonTestnet
   ```
 - [ ] Copy the deployed address from the output
-- [ ] Update `NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_TESTNET` environment variable in Vercel
+- [ ] Set `NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_GALLEON_TESTNET` in Vercel
 - [ ] (Optional) Update `src/lib/contracts/addresses.ts` HARDCODED_FALLBACK_ADDRESSES with deployed address
 
 ### 2. Database Setup (Cloudflare D1)
@@ -54,7 +54,7 @@ All code has been implemented and is ready for deployment. The following items n
 
 ### 4. Environment Variables (Vercel)
 Set the following in Vercel dashboard:
-- [ ] `NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_TESTNET` - Contract address
+- [ ] `NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_GALLEON_TESTNET` - Contract address
 - [ ] `NEXT_PUBLIC_KASPAREX_API_URL` - API base URL (defaults to workers.dev URL)
 - [ ] `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` - reCAPTCHA site key (for frontend)
 

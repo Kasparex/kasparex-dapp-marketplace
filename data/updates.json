@@ -4287,7 +4287,7 @@
     {
       "id": "deploy-1762997407-07319ad",
       "title": "Deployment to main",
-      "description": "Website deployed successfully. Commit: Fix TypeScript error: add QuizToEarn to DEFAULT_CONTRACT_ADDRESSES.igraCaravelTestnet (by Kasparex)",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: add QuizToEarn to DEFAULT_CONTRACT_ADDRESSES.igraGalleonTestnet (by Kasparex)",
       "date": "2025-11-13T02:29:44+01:00",
       "type": "deployment"
     },
@@ -4567,7 +4567,7 @@
     {
       "id": "deploy-1762883281-3cfb349",
       "title": "Deployment to main",
-      "description": "Website deployed successfully. Commit: Fix TypeScript error: Add missing contract properties to igraCaravelTestnet (by Kasparex)",
+      "description": "Website deployed successfully. Commit: Fix TypeScript error: Add missing contract properties to igraGalleonTestnet (by Kasparex)",
       "date": "2025-11-11T18:47:42+01:00",
       "type": "deployment"
     },

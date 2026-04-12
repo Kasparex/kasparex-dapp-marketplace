@@ -192,7 +192,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
     // ... all contracts
     QuizToEarn: "",
   },
-  igraCaravelTestnet: {
+  igraGalleonTestnet: {
     // ... all contracts
     QuizToEarn: "", // ✅ Must match other networks
   },
@@ -200,7 +200,7 @@ const DEFAULT_CONTRACT_ADDRESSES = {
 ```
 
 ### Files Fixed
-- `src/lib/contracts/addresses.ts` - Added missing `QuizToEarn` to `igraCaravelTestnet`
+- `src/lib/contracts/addresses.ts` - Added missing `QuizToEarn` to `igraGalleonTestnet`
 
 ### Prevention
 - When adding a new contract, add it to ALL network configurations

@@ -14,7 +14,7 @@ The frontend code has been successfully deployed to Vercel. Now complete these s
 
 ```env
 PRIVATE_KEY=your_private_key_here
-IGRA_CARAVEL_TESTNET_RPC=https://caravel.igralabs.com:8545
+IGRA_GALLEON_TESTNET_RPC=https://galleon-testnet.igralabs.com:8545
 ```
 
 **⚠️ Security Note:** Never commit `.env` to git. It should already be in `.gitignore`.
@@ -40,7 +40,7 @@ PromoMintRouter deployed to: 0x...
 
 2. Add this variable:
 
-   - **Name:** `NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_TESTNET`
+   - **Name:** `NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_GALLEON_TESTNET`
    - **Value:** The contract address from Step 1
    - **Environments:** Production, Preview, Development
 
@@ -134,7 +134,7 @@ ADMIN_AUTH_TOKEN=your-token-from-step-4
 
 # Network (already set)
 PRIVATE_KEY=your_private_key_here
-IGRA_CARAVEL_TESTNET_RPC=https://caravel.igralabs.com:8545
+IGRA_GALLEON_TESTNET_RPC=https://galleon-testnet.igralabs.com:8545
 ```
 
 ### Run Setup Script:
@@ -155,7 +155,7 @@ This script will:
 1. Visit: `https://your-site.vercel.app/tokens/{TOKEN_ID}`
 2. Check for "Promotion Engine" section
 3. Click "Mint and Promote" or visit: `/tokens/{TOKEN_ID}/promo/{genesis_page_id}`
-4. Connect wallet (Igra Caravel Testnet)
+4. Connect wallet (Igra Galleon Testnet)
 5. Test minting flow
 
 ---
@@ -184,7 +184,7 @@ This script will:
 - **Solution:** Run `wrangler secret put ADMIN_AUTH_TOKEN` in the `workers` directory
 
 ### Contract deployment fails
-- **Solution:** Ensure you have KAS in your deployer wallet on Igra Caravel Testnet
+- **Solution:** Ensure you have iKAS in your deployer wallet on Igra Galleon Testnet
 
 ---
 

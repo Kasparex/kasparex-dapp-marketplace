@@ -31,7 +31,7 @@ Open `.env` in a text editor and add:
 PRIVATE_KEY=your_private_key_here_without_0x_prefix
 
 # Network RPC URL (already configured, but you can override)
-IGRA_CARAVEL_TESTNET_RPC=https://caravel.igralabs.com:8545
+IGRA_GALLEON_TESTNET_RPC=https://galleon-testnet.igralabs.com:8545
 ```
 
 **Important Notes:**
@@ -125,7 +125,7 @@ PRIVATE_KEY=abc123def456...your_private_key_here
 # ============================================
 # NETWORK RPC URLs (optional - defaults work)
 # ============================================
-IGRA_CARAVEL_TESTNET_RPC=https://caravel.igralabs.com:8545
+IGRA_GALLEON_TESTNET_RPC=https://galleon-testnet.igralabs.com:8545
 
 # ============================================
 # TOKEN REGISTRATION (for Step 6)

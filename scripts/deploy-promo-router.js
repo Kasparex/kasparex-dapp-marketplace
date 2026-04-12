@@ -56,7 +56,7 @@ async function main() {
   console.log("\n✅ Deployment info saved to:", deploymentFile);
 
   console.log("\n📝 Next Steps:");
-  console.log("1. Update NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_TESTNET in Vercel");
+  console.log("1. Set NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_GALLEON_TESTNET (or IGRA_MAINNET) in Vercel");
   console.log("2. Update src/lib/contracts/addresses.ts with the deployed address");
   console.log("3. Register your first token using scripts/register-promo-token.js");
   console.log("\n✅ Deployment complete!\n");

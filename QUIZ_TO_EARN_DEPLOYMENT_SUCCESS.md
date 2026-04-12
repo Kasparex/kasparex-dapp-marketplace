@@ -112,10 +112,10 @@ await quizToEarn.addQuestion(
 5. Verify answer result
 6. Check GRID token balance (rewards distributed automatically)
 
-### Igra Caravel Testnet Deployment
+### Igra Galleon Testnet Deployment
 **Status**: ⏳ Pending ecosystem contracts
 
-The QuizToEarn contract is ready to deploy to Igra Caravel Testnet once the following ecosystem contracts are available:
+The QuizToEarn contract is ready to deploy to Igra Galleon Testnet once the following ecosystem contracts are available:
 - FeeCollector
 - DAppRegistry
 - ProofOfUtility
@@ -123,7 +123,7 @@ The QuizToEarn contract is ready to deploy to Igra Caravel Testnet once the foll
 
 Once available, deploy using:
 ```bash
-npx hardhat run scripts/deploy-quiz-to-earn.js --network igraCaravelTestnet
+npx hardhat run scripts/deploy-quiz-to-earn.js --network igraGalleonTestnet
 ```
 
 ---

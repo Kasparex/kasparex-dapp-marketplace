@@ -5,7 +5,7 @@ This document lists all environment variables required for the Promo Engine to f
 ## Frontend (Vercel)
 
 ### Required
-- `NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_TESTNET` - Deployed PromoMintRouter contract address on Igra Caravel Testnet
+- `NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_GALLEON_TESTNET` - Deployed PromoMintRouter on Igra Galleon Testnet (chain 38836)
 - `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` - Google reCAPTCHA v2/v3 Site Key
 
 ### Optional
@@ -18,7 +18,7 @@ This document lists all environment variables required for the Promo Engine to f
 - `ADMIN_AUTH_TOKEN` - Secure token for admin endpoints (generate with `openssl rand -hex 32`)
 
 ### Optional
-- `IGRA_RPC_URL` - Igra testnet RPC URL for event indexing (defaults to `https://caravel.igralabs.com:8545`)
+- `IGRA_RPC_URL` - Igra Galleon testnet RPC for event indexing (defaults to `https://galleon-testnet.igralabs.com:8545`)
 
 ## Deployment Scripts (.env file)
 
@@ -45,7 +45,7 @@ This document lists all environment variables required for the Promo Engine to f
 
 ### Required for Hardhat
 - `PRIVATE_KEY` - Private key for contract deployment (must have testnet KAS)
-- `IGRA_CARAVEL_TESTNET_RPC` - RPC URL (defaults to `https://caravel.igralabs.com:8545`)
+- `IGRA_GALLEON_TESTNET_RPC` - RPC URL (defaults to `https://galleon-testnet.igralabs.com:8545`; same as Hardhat `igraGalleonTestnet`)
 
 ## Setup Instructions
 
@@ -66,7 +66,7 @@ Use this value for:
 
 ### 3. Set Vercel Environment Variables
 Go to Vercel Dashboard → Project Settings → Environment Variables:
-- `NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_TESTNET`
+- `NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_GALLEON_TESTNET`
 - `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`
 
 ### 4. Set Cloudflare Workers Secrets

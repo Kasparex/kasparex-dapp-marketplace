@@ -139,7 +139,7 @@
 
 ---
 
-### 5. Deploy to Igra Caravel Testnet (Priority: Low - Pending)
+### 5. Deploy to Igra Galleon Testnet (Priority: Low - Pending)
 
 **When ecosystem contracts are available:**
 
@@ -151,18 +151,18 @@
 
 2. **Deploy QuizToEarn:**
    ```bash
-   npx hardhat run scripts/deploy-quiz-to-earn.js --network igraCaravelTestnet
+   npx hardhat run scripts/deploy-quiz-to-earn.js --network igraGalleonTestnet
    ```
 
 3. **Configure RewardManager:**
    ```bash
-   npx hardhat run scripts/configure-quiz-to-earn-rewards.js --network igraCaravelTestnet
+   npx hardhat run scripts/configure-quiz-to-earn-rewards.js --network igraGalleonTestnet
    ```
 
 4. **Add Questions:**
    ```bash
    # Update script with Igra contract address
-   npx hardhat run scripts/add-quiz-questions.js --network igraCaravelTestnet
+   npx hardhat run scripts/add-quiz-questions.js --network igraGalleonTestnet
    ```
 
 5. **Update Addresses:**
@@ -273,7 +273,7 @@ npm run build
    - Improve UI/UX
 
 3. **🟢 Low Priority:**
-   - Deploy to Igra Caravel Testnet (when ready)
+   - Deploy to Igra Galleon Testnet (when ready)
    - Add advanced features
    - Optimize gas costs
 

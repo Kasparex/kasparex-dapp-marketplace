@@ -203,7 +203,7 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
     }
 
     if (!isIgraL2) {
-      setError('Please switch to Igra Caravel Testnet');
+      setError('Please switch to Igra Testnet (Galleon) or Igra Mainnet');
       return;
     }
 
@@ -450,7 +450,7 @@ export function PromoPage({ token, pageId, apiBaseUrl = 'https://kasparex-api.ka
         )}
         {!isIgraL2 && isConnected && (
           <p className="mt-2 text-sm text-yellow-600 dark:text-yellow-400 text-center">
-            Please switch to Igra Caravel Testnet
+            Please switch to Igra Testnet (Galleon) or Igra Mainnet
           </p>
         )}
       </div>

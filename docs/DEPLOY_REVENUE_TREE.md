@@ -31,7 +31,6 @@
 | `kasplexL2Mainnet` | 202555 | Production |
 | `igraGalleonTestnet` | 38836 | Deploys **tKREX** then RevenueTreeManager; no FeeCollector by default |
 | `igraGalleonTestMainnet` | 38837 | Set FeeCollector/SimplePayment if you have them |
-| `igraCaravelTestnet` | 19416 | Sunset; prefer Galleon |
 
 ## Commands
 

@@ -1,8 +1,0 @@
-{
-  "network": "igraCaravelTestnet",
-  "contractName": "PromoMintRouter",
-  "address": "0xc76515904e948698F67fCBc64f7d3b4C57602470",
-  "deployer": "0x658420Fd88dbd610249a88384f9B1aD387F797c7",
-  "deployedAt": "2026-01-20T23:03:45.873Z",
-  "transactionHash": "0x4e5387038264301c9f3f334f411cae031db13707ee9f8734a67a50d7539a163f"
-}

@@ -44,7 +44,7 @@ After pushing to Vercel, you'll need to complete these steps for full functional
    ```
 
 2. **Set Vercel Environment Variable**
-   - `NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_TESTNET` = deployed address
+   - `NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_GALLEON_TESTNET` = deployed address
 
 3. **Initialize Database** (2 minutes)
    ```bash

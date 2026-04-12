@@ -7,8 +7,8 @@
  *   # Deploy to Kasplex L2 Testnet (default)
  *   npx hardhat run scripts/deploy-dapp-template.js --network kasplexL2Testnet
  *   
- *   # Deploy to Igra Caravel Testnet
- *   npx hardhat run scripts/deploy-dapp-template.js --network igraMainnet
+ *   # Deploy to Igra Galleon Testnet
+ *   npx hardhat run scripts/deploy-dapp-template.js --network igraGalleonTestnet
  * 
  * Prerequisites:
  *   1. Set up .env file with required environment variables
@@ -17,7 +17,7 @@
  * 
  * Default Configuration:
  *   - Fee Percentage: 1% (100 basis points)
- *   - Networks: Kasplex L2 Testnet (167012) and Igra Mainnet (38833)
+ *   - Networks: Kasplex L2 Testnet (167012), Igra Galleon Testnet (38836), Igra Mainnet (38833)
  */
 
 const hre = require('hardhat');
@@ -34,24 +34,24 @@ async function main() {
   // Get ecosystem contract addresses from environment variables
   // Default addresses for Kasplex L2 Testnet (update for other networks)
   const network = hre.network.name;
-  const isIgra = network === 'igraMainnet';
-  
+  const isIgraChain = network === 'igraMainnet' || network === 'igraGalleonTestnet';
+  const net = await hre.ethers.provider.getNetwork();
+
   // Default addresses (Kasplex L2 Testnet)
   const defaultFeeCollector = '0x002C7eeC68975d41f3f0F7bC8D900Aa45A131aE2';
   const defaultDAppRegistry = '0x1c2c21fFe7AE1fCb031eCabE69BCdeb9a10c04Dd';
   const defaultProofOfUtility = '0x1aB97D324Ea68FF7c51A91689564377e433A77f6';
-  
-  // Igra Caravel Testnet addresses (update when available)
+
   const igraFeeCollector = process.env.FEE_COLLECTOR_ADDRESS_IGRA || '';
   const igraDAppRegistry = process.env.DAPP_REGISTRY_ADDRESS_IGRA || '';
   const igraProofOfUtility = process.env.PROOF_OF_UTILITY_ADDRESS_IGRA || '';
-  
+
   // Required addresses (always needed)
-  const dAppRegistryAddress = process.env.DAPP_REGISTRY_ADDRESS || (isIgra ? igraDAppRegistry : defaultDAppRegistry);
-  
+  const dAppRegistryAddress = process.env.DAPP_REGISTRY_ADDRESS || (isIgraChain ? igraDAppRegistry : defaultDAppRegistry);
+
   // Default integration addresses (connected by default)
-  const feeCollectorAddress = process.env.FEE_COLLECTOR_ADDRESS || (isIgra ? igraFeeCollector : defaultFeeCollector);
-  const proofOfUtilityAddress = process.env.PROOF_OF_UTILITY_ADDRESS || (isIgra ? igraProofOfUtility : defaultProofOfUtility);
+  const feeCollectorAddress = process.env.FEE_COLLECTOR_ADDRESS || (isIgraChain ? igraFeeCollector : defaultFeeCollector);
+  const proofOfUtilityAddress = process.env.PROOF_OF_UTILITY_ADDRESS || (isIgraChain ? igraProofOfUtility : defaultProofOfUtility);
   
   // Optional addresses (only if selected/enabled)
   const feeHandlerAddress = process.env.FEE_HANDLER_ADDRESS || '';
@@ -74,7 +74,7 @@ async function main() {
   }
   
   console.log(`\nđź“‹ Network: ${network}`);
-  console.log(`   Chain ID: ${isIgra ? '38833' : '167012'}`);
+  console.log(`   Chain ID: ${net.chainId}`);
   console.log(`\n- Ecosystem Contracts:`);
   console.log(`   DApp Registry: ${dAppRegistryAddress} (Required)`);
   console.log(`   Fee Collector: ${feeCollectorAddress} (Default)`);

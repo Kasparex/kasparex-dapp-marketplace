@@ -80,7 +80,7 @@ After pushing, follow `PROMO_ENGINE_DEPLOYMENT_CHECKLIST.md`:
    ```
 
 2. **Set Vercel Environment Variables**
-   - `NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_TESTNET` = deployed address
+   - `NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_GALLEON_TESTNET` = deployed address
    - `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` = from Google reCAPTCHA
    - `NEXT_PUBLIC_KASPAREX_API_URL` = API URL (optional, has default)
 

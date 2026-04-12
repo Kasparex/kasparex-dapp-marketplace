@@ -1,7 +1,7 @@
 /**
  * Deploy Test DAppToken for Promo Engine
  * 
- * Deploys a DAppToken contract for testing on Igra Caravel Testnet
+ * Deploys a DAppToken contract for testing on Igra Galleon Testnet (or pass --network)
  * and sets the PromoMintRouter as the minter
  */
 

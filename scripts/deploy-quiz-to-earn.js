@@ -7,8 +7,8 @@
  *   # Deploy to Kasplex L2 Testnet (default)
  *   npx hardhat run scripts/deploy-quiz-to-earn.js --network kasplexL2Testnet
  *   
- *   # Deploy to Igra Caravel Testnet
- *   npx hardhat run scripts/deploy-quiz-to-earn.js --network igraMainnet
+ *   # Deploy to Igra Galleon Testnet
+ *   npx hardhat run scripts/deploy-quiz-to-earn.js --network igraGalleonTestnet
  * 
  * Prerequisites:
  *   1. Set up .env file with required environment variables
@@ -18,7 +18,7 @@
  * Default Configuration:
  *   - Fee Percentage: 1% (100 basis points)
  *   - Default Reward: 0.01 KAS (10000000000000000 wei) per correct answer
- *   - Networks: Kasplex L2 Testnet (167012) and Igra Mainnet (38833)
+ *   - Networks: Kasplex L2 Testnet (167012), Igra Galleon Testnet (38836), Igra Mainnet (38833)
  */
 
 const hre = require('hardhat');
@@ -32,21 +32,22 @@ async function main() {
   console.log('Account balance:', hre.ethers.formatEther(await hre.ethers.provider.getBalance(deployer.address)), 'KAS\n');
 
   const network = hre.network.name;
-  const isIgra = network === 'igraMainnet';
-  
+  const isIgraChain = network === 'igraMainnet' || network === 'igraGalleonTestnet';
+  const net = await hre.ethers.provider.getNetwork();
+
   // Default addresses (Kasplex L2 Testnet)
   const defaultFeeCollector = '0x002C7eeC68975d41f3f0F7bC8D900Aa45A131aE2';
   const defaultDAppRegistry = '0x1c2c21fFe7AE1fCb031eCabE69BCdeb9a10c04Dd';
   const defaultProofOfUtility = '0x1aB97D324Ea68FF7c51A91689564377e433A77f6';
-  
-  // Igra Caravel Testnet addresses (update when available)
+
+  // Igra (Galleon testnet / mainnet) — override with env when deploying
   const igraFeeCollector = process.env.FEE_COLLECTOR_ADDRESS_IGRA || '';
   const igraDAppRegistry = process.env.DAPP_REGISTRY_ADDRESS_IGRA || '';
   const igraProofOfUtility = process.env.PROOF_OF_UTILITY_ADDRESS_IGRA || '';
-  
-  const feeCollectorAddress = process.env.FEE_COLLECTOR_ADDRESS || (isIgra ? igraFeeCollector : defaultFeeCollector);
-  const dAppRegistryAddress = process.env.DAPP_REGISTRY_ADDRESS || (isIgra ? igraDAppRegistry : defaultDAppRegistry);
-  const proofOfUtilityAddress = process.env.PROOF_OF_UTILITY_ADDRESS || (isIgra ? igraProofOfUtility : defaultProofOfUtility);
+
+  const feeCollectorAddress = process.env.FEE_COLLECTOR_ADDRESS || (isIgraChain ? igraFeeCollector : defaultFeeCollector);
+  const dAppRegistryAddress = process.env.DAPP_REGISTRY_ADDRESS || (isIgraChain ? igraDAppRegistry : defaultDAppRegistry);
+  const proofOfUtilityAddress = process.env.PROOF_OF_UTILITY_ADDRESS || (isIgraChain ? igraProofOfUtility : defaultProofOfUtility);
   
   // Default fee percentage: 1% (100 basis points)
   const defaultFeePercentage = process.env.FEE_PERCENTAGE ? parseInt(process.env.FEE_PERCENTAGE) : 100;
@@ -68,7 +69,7 @@ async function main() {
   }
   
   console.log(`đź“‹ Network: ${network}`);
-  console.log(`   Chain ID: ${isIgra ? '38833' : '167012'}`);
+  console.log(`   Chain ID: ${net.chainId}`);
   console.log(`   Fee Collector: ${feeCollectorAddress}`);
   console.log(`   DApp Registry: ${dAppRegistryAddress}`);
   console.log(`   Proof of Utility: ${proofOfUtilityAddress}`);

@@ -37,7 +37,7 @@ Go to: Vercel Dashboard → Your Project → Settings → Environment Variables
 
 **Add these (minimum required):**
 
-1. `NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_TESTNET`
+1. `NEXT_PUBLIC_PROMO_MINT_ROUTER_ADDRESS_IGRA_GALLEON_TESTNET`
    - Value: Contract address from step 2.1
    - Environments: Production, Preview, Development
 

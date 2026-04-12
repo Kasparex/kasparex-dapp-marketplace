@@ -61,7 +61,7 @@
 ## Testing
 
 1. Visit: `/tokens/{TOKEN_ID}/promo/{genesis_page_id}`
-2. Connect wallet (Igra Caravel Testnet)
+2. Connect wallet (Igra Galleon Testnet)
 3. Complete reCAPTCHA
 4. Mint tokens
 
