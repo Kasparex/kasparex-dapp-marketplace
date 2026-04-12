@@ -222,5 +222,3 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
     </UnifiedSidebar>
   );
 }
-  );
-}
