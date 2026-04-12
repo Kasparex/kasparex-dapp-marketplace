@@ -6,6 +6,8 @@ const config: Config = {
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    /* Listing-card hover utilities live in lib — must be scanned or JIT drops them */
+    "./src/lib/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
