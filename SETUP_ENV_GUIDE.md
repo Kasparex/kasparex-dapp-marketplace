@@ -138,15 +138,34 @@ IGRA_GALLEON_TESTNET_RPC=https://galleon-testnet.igralabs.com:8545
 
 ---
 
-## Custom domain: `games.kasparex.com` (Vercel + Wix DNS)
+## Production subdomains (Vercel + Wix DNS)
 
-The app is one Next.js deployment; **Games** lives at `/games`. For `games.kasparex.com`:
+One Next.js app on Vercel; each **subdomain** is a **custom domain** on the same project. Middleware rewrites **`/`** on that host to the section path below (same as opening `https://<project>.vercel.app<path>`).
 
-1. **Vercel** → your project → **Domains** → add `games.kasparex.com` (Production). Copy the **CNAME** target Vercel shows.
-2. **Wix** → DNS → **CNAME** → host `games`, value = Vercel’s target (often `cname.vercel-dns.com` or a project-specific hostname).
-3. **Vercel** → **Environment Variables** (Production): set `NEXT_PUBLIC_GAMES_DOMAIN` = `games.kasparex.com` (optional if you keep the default).
+**Per domain:** Vercel → **Domains** → add `subdomain.kasparex.com` → Wix **CNAME** host = subdomain label, value = Vercel’s target (**omit the trailing dot** in Wix if the UI rejects it). Vercel issues **SSL per domain** when DNS validates; add domains whenever you like—certs generate independently.
 
-Middleware rewrites the **root** of that host to `/games`, so `https://games.kasparex.com/` shows the same UI as `https://<your-project>.vercel.app/games`. Paths like `/games/diamond-veins` still work on the games host.
+| Host (default) | Rewrites `/` to | Optional env override |
+|----------------|-----------------|----------------------|
+| `dapps.kasparex.com` | `/` (home) | `NEXT_PUBLIC_DAPPS_DOMAIN` |
+| `hub.kasparex.com` | `/hub` | `NEXT_PUBLIC_HUB_DOMAIN` |
+| `games.kasparex.com` | `/games` | `NEXT_PUBLIC_GAMES_DOMAIN` |
+| `vblog.kasparex.com` | `/vblog` | `NEXT_PUBLIC_VBLOG_DOMAIN` |
+| `store.kasparex.com` | `/store` | `NEXT_PUBLIC_STORE_DOMAIN` |
+| `nodes.kasparex.com` | `/nodes` | `NEXT_PUBLIC_NODES_DOMAIN` |
+| `magazines.kasparex.com` | `/magazines` | `NEXT_PUBLIC_MAGAZINES_DOMAIN` |
+| `nft.kasparex.com` | `/nft` | `NEXT_PUBLIC_NFT_DOMAIN` |
+| `crowdkas.kasparex.com` | `/donations` | `NEXT_PUBLIC_CROWDKAS_DOMAIN` |
+| `tokens.kasparex.com` | `/tokens` | `NEXT_PUBLIC_TOKENS_DOMAIN` |
+| `studio.kasparex.com` | `/studio` | `NEXT_PUBLIC_STUDIO_DOMAIN` |
+| `defi.kasparex.com` | `/defi/swaps` | `NEXT_PUBLIC_DEFI_DOMAIN` |
+| `tree.kasparex.com` | `/tree` | `NEXT_PUBLIC_TREE_DOMAIN` |
+| `ads.kasparex.com` | `/ads` | `NEXT_PUBLIC_ADS_DOMAIN` |
+| `chronicles.kasparex.com` | `/chronicles` | `NEXT_PUBLIC_CHRONICLES_DOMAIN` |
+| `dao.kasparex.com` | `/dapps/dao-voting` | `NEXT_PUBLIC_DAO_DOMAIN` |
+| `api.kasparex.com` | `/api` (API docs page) | `NEXT_PUBLIC_API_DOMAIN` |
+| `docs.kasparex.com` | `/knowledge-base` | `NEXT_PUBLIC_DOCS_DOMAIN` |
+
+`www.kasparex.com` / marketing stays on **Wix** (`NEXT_PUBLIC_LEGACY_DOMAIN`); do not point it at this Vercel app unless you intend to migrate the marketing site.
 
 ---
 
