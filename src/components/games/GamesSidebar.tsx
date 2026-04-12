@@ -97,6 +97,12 @@ export function GamesSidebar({
     onStatusChange(next);
   };
 
+  const host = useRequestHost();
+  const resolvedBackHref = useMemo(
+    () => canonicalAppHref(backLink.href, host ?? undefined),
+    [backLink.href, host],
+  );
+
   const header = (onHide: () => void) => (
     <div className="flex-shrink-0 bg-transparent border-b border-zinc-200 dark:border-zinc-800 p-4">
       <div className="flex items-center justify-between">
