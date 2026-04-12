@@ -3,7 +3,7 @@
  *
  * Centralized hostnames for Kasparex subsections. Override with NEXT_PUBLIC_* in Vercel
  * when using staging hosts. Middleware rewrites `/` on each host to the matching app path
- * (see subdomainRootRewrites.ts).
+ * (see sectionHosts.ts).
  */
 
 export const DOMAINS = {

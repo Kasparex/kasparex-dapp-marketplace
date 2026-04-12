@@ -2,12 +2,17 @@
 
 import Link from 'next/link';
 import { HubProject } from '@/lib/hubProjects';
+import { useRequestHost } from '@/components/CanonicalNavContext';
+import { canonicalAppHref } from '@/lib/config/sectionHosts';
 
 interface ProjectCardProps {
   project: HubProject;
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
+  const requestHost = useRequestHost();
+  const cardHref = canonicalAppHref(project.route, requestHost ?? undefined);
+
   const getStatusBadge = () => {
     switch (project.status) {
       case 'demo':
@@ -35,7 +40,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
   return (
     <Link
-      href={project.route}
+      href={cardHref}
       className="block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-[#02abb8]/10 hover:border-[#02abb8]/30 hover:-translate-y-2 transition-all duration-500 relative flex flex-col min-h-[320px] group"
     >
       {/* Premium Gradient Header Visuals */}

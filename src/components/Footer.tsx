@@ -1,7 +1,14 @@
+'use client';
+
 import Link from 'next/link';
 import { FooterAds } from '@/components/ads/FooterAds';
+import { useRequestHost } from '@/components/CanonicalNavContext';
+import { canonicalAppHref } from '@/lib/config/sectionHosts';
 
 export function Footer() {
+  const host = useRequestHost();
+  const h = (path: string) => canonicalAppHref(path, host ?? undefined);
+
   return (
     <footer className="bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 mt-auto">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -98,7 +105,7 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="/tree/dashboard"
+                  href={h('/tree/dashboard')}
                   className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -109,7 +116,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/rewards-calculator"
+                  href={h('/rewards-calculator')}
                   className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -120,7 +127,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/rewards-and-points"
+                  href={h('/rewards-and-points')}
                   className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -142,7 +149,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/knowledge-base"
+                  href={h('/knowledge-base')}
                   className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -153,7 +160,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/ads"
+                  href={h('/ads')}
                   className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -173,7 +180,7 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="/api/krex-node"
+                  href={h('/api/krex-node')}
                   className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -184,7 +191,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/api"
+                  href={h('/api')}
                   className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -195,7 +202,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/style-guide"
+                  href={h('/style-guide')}
                   className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -206,7 +213,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/rewards-calculator"
+                  href={h('/rewards-calculator')}
                   className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

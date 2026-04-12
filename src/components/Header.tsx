@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense, useRef, useEffect } from 'react';
+import { useState, Suspense, useRef, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -27,6 +27,8 @@ import { useBalanceVisibility } from '@/hooks/useBalanceVisibility';
 import Link from 'next/link';
 import { hubProjects, type HubProject } from '@/lib/hubProjects';
 import { HeaderLeaderboardLink } from '@/components/HeaderLeaderboardLink';
+import { useRequestHost } from '@/components/CanonicalNavContext';
+import { canonicalAppHref, segmentPathForHost } from '@/lib/config/sectionHosts';
 
 function AdminLink() {
   const { isAdmin } = useAdmin();
@@ -66,6 +68,9 @@ function AdminLink() {
 function getCurrentSectionTitle(pathname: string): string {
   if (pathname.startsWith('/defi')) {
     return 'DeFi';
+  }
+  if (pathname.startsWith('/dapps/dao-voting')) {
+    return 'DAO';
   }
   if (pathname === '/' || pathname.startsWith('/dapps')) {
     return 'dApps';
@@ -125,6 +130,12 @@ function getCurrentSectionTitle(pathname: string): string {
   }
   if (pathname.startsWith('/studio')) {
     return 'Studio';
+  }
+  if (pathname.startsWith('/knowledge-base')) {
+    return 'Docs';
+  }
+  if (pathname === '/api' || pathname.startsWith('/api/')) {
+    return 'API';
   }
   // Default to dApps
   return 'dApps';
@@ -299,6 +310,12 @@ function getStatusBadge(status: HubProject['status'], isActive: boolean = false)
 
 export function Header() {
   const pathname = usePathname();
+  const requestHost = useRequestHost();
+  const navPath = segmentPathForHost(pathname, requestHost ?? undefined);
+  const hrefFor = useMemo(
+    () => (p: string) => canonicalAppHref(p, requestHost ?? undefined),
+    [requestHost]
+  );
   const { theme, toggleTheme } = useTheme();
   const { isConnected } = useAccount();
   const { isVisible: isBalanceVisible, toggleVisibility: toggleBalanceVisibility } = useBalanceVisibility();
@@ -308,8 +325,8 @@ export function Header() {
   const [updateCount, setUpdateCount] = useState(0);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const currentSectionTitle = getCurrentSectionTitle(pathname);
-  const currentProject = getCurrentProject(pathname);
+  const currentSectionTitle = getCurrentSectionTitle(navPath);
+  const currentProject = getCurrentProject(navPath);
   const currentProjectStatus = currentProject?.status || null;
 
   useEffect(() => {
@@ -353,7 +370,7 @@ export function Header() {
         {/* Left side: Logo and Title - no padding, flush to left */}
         <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 lg:pl-6">
           <Link
-            href="/"
+            href={hrefFor('/')}
             className="flex items-center gap-2 sm:gap-3 relative group"
             title="Back to main page"
           >
@@ -443,8 +460,8 @@ export function Header() {
                         // Check if this is the current page
                         const isCurrentPage = currentProject?.id === project.id;
 
-                        // Normalize pathname for matching
-                        const normalizedPath = pathname === '/' ? '/' : pathname;
+                        // Normalize pathname for matching (subdomain root rewrites use `/` in the URL bar)
+                        const normalizedPath = navPath === '/' ? '/' : navPath;
                         const matchesRoute = project.route === normalizedPath ||
                           (normalizedPath.startsWith(project.route) && project.route !== '/');
 
@@ -480,7 +497,7 @@ export function Header() {
                         return (
                           <Link
                             key={project.id}
-                            href={project.route}
+                            href={hrefFor(project.route)}
                             className={linkClassName}
                           >
                             {linkContent}

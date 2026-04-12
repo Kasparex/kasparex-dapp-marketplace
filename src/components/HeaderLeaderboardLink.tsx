@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useRequestHost } from '@/components/CanonicalNavContext';
+import { canonicalAppHref, segmentPathForHost } from '@/lib/config/sectionHosts';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { currentSeasonWindowUtc } from '@/lib/leaderboard/seasons';
@@ -23,6 +25,9 @@ function ackKey(seasonId: string, addr: string): string {
 
 export function HeaderLeaderboardLink() {
   const pathname = usePathname();
+  const requestHost = useRequestHost();
+  const navPath = segmentPathForHost(pathname, requestHost ?? undefined);
+  const leaderboardHref = canonicalAppHref('/leaderboard', requestHost ?? undefined);
   const { state } = useKaspaWallet();
   const addr = state.address ? normAddr(state.address) : '';
   const season = useMemo(() => currentSeasonWindowUtc(), []);
@@ -53,11 +58,11 @@ export function HeaderLeaderboardLink() {
   }, [addr, season.id, currentPoints]);
 
   useEffect(() => {
-    if (pathname.startsWith('/leaderboard') && addr) {
+    if (navPath.startsWith('/leaderboard') && addr) {
       const k = ackKey(season.id, addr);
       localStorage.setItem(k, String(currentPoints));
     }
-  }, [pathname, addr, season.id, currentPoints]);
+  }, [navPath, addr, season.id, currentPoints]);
 
   const hasNewPoints = useMemo(() => {
     if (!addr || typeof window === 'undefined') return false;
@@ -85,7 +90,7 @@ export function HeaderLeaderboardLink() {
         {displayPoints.toLocaleString()}
       </span>
       <Link
-        href="/leaderboard"
+        href={leaderboardHref}
         onClick={acknowledge}
         className="relative p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
         aria-label="Leaderboard"
