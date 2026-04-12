@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import Link from 'next/link';
 import { useChainId } from 'wagmi';
 import { DApp, generateSimulatedTicker, generateSimulatedAddress, getDAppNetworkType } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
@@ -17,10 +16,9 @@ import { mergeDAppData, useDAppFromContract } from '@/lib/dapps/contractData';
 import { DAppIcon } from './dapps/DAppIcon';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { getContractAddress } from '@/lib/contracts/addresses';
-import { DAppFeesModal } from './dapps/DAppFeesModal';
-import { StatusIndicator } from './dapps/StatusIndicator';
-import { getStatusTypeFromString } from './dapps/StatusIndicatorDot';
 import { getChainById } from '@/lib/wagmi';
+import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { KxListingCardPlaceholder } from '@/components/kx/KxListingCardPlaceholder';
 
 interface DAppCardProps {
   dapp: DApp;
@@ -101,12 +99,6 @@ export function DAppCard({ dapp }: DAppCardProps) {
     action();
   };
 
-  // Get network type for badge (networkType already declared above)
-  const networkBadgeColor =
-    networkType === 'L1'
-      ? 'bg-[#02abb8]/20 dark:bg-[#02abb8]/30 text-[#02abb8] border-[#02abb8]/30 dark:border-[#02abb8]/50'
-      : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700';
-
   // Get network name for display
   const networkName = mergedDApp.network || (networkType === 'L1' ? 'L1 Kaspa' : 'L2 Igra');
   
@@ -123,12 +115,13 @@ export function DAppCard({ dapp }: DAppCardProps) {
   };
 
   return (
-    <Link
+    <>
+    <KxListingCard
       href={`/dapps/${slug}`}
-      className="group block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-[#02abb8]/10 hover:border-[#02abb8]/30 hover:-translate-y-2 transition-all duration-500 relative flex flex-col min-h-[360px]"
+      accent="hub"
+      className="w-full text-left relative flex flex-col min-h-[360px]"
     >
-      {/* Featured Image Banner - Icon Placeholder (like /hub cards) */}
-      <div className="relative w-full h-40 overflow-hidden border-b border-zinc-200/50 dark:border-zinc-800/50 bg-zinc-100/80 dark:bg-zinc-900/95 flex items-center justify-center transition-all duration-700 group-hover:scale-[1.05]">
+      <KxListingCardMedia aspectClass="h-40 aspect-auto">
         {(mergedDApp.featuredImage || mergedDApp.image) ? (
           <>
             <img
@@ -136,16 +129,14 @@ export function DAppCard({ dapp }: DAppCardProps) {
               alt={mergedDApp.name}
               className="absolute inset-0 w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-700" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
           </>
         ) : (
-          <svg className="w-12 h-12 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
+          <KxListingCardPlaceholder />
         )}
-      </div>
+      </KxListingCardMedia>
 
-      <div className="p-6 relative z-10 flex flex-col flex-1 min-h-0">
+      <KxListingCardBody comfortable className="relative z-10 flex-1 min-h-0">
         {/* Top Section: Profile Picture on Left, Title and Network on Right */}
         <div className="flex items-start gap-4 mb-4">
           {/* Profile Picture - Left Side */}
@@ -289,7 +280,8 @@ export function DAppCard({ dapp }: DAppCardProps) {
             </div>
           </div>
         </div>
-      </div>
+      </KxListingCardBody>
+    </KxListingCard>
 
       {/* Modals */}
       {showInfoModal && (
@@ -299,7 +291,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
           onClose={() => setShowInfoModal(false)}
         />
       )}
-    </Link>
+    </>
   );
 }
 

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { AdEntry, AdFormat } from '@/lib/ads/types';
 import { getSlotConfig } from '@/lib/ads/slots';
+import { kxJoinClasses, kxListingAccentHoverClasses } from '@/lib/ui/kxListingAccent';
 
 interface AdCardProps {
   ad: AdEntry;
@@ -63,23 +64,27 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
 
   return (
     <div
-      className={`group overflow-hidden transition-all duration-300 ${
+      className={kxJoinClasses(
+        'group overflow-hidden transition-colors duration-200',
         embedded
           ? 'rounded-xl bg-transparent'
-          : 'rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 hover:shadow-xl hover:shadow-zinc-200/50 dark:hover:shadow-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-700'
-      }`}
+          : kxJoinClasses(
+              'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-kx-card',
+              kxListingAccentHoverClasses('hub'),
+            ),
+      )}
     >
       <Link
         href={ad.link}
         target="_blank"
         rel="noopener noreferrer sponsored"
-        className={`block relative w-full ${aspectClass} bg-zinc-100/80 dark:bg-zinc-900/95 overflow-hidden`}
+        className={`block relative w-full ${aspectClass} bg-zinc-100 dark:bg-zinc-800 overflow-hidden border-b border-zinc-200/60 dark:border-zinc-800/80`}
       >
         <Image
           src={ad.imageUrl}
           alt={ad.title}
           fill
-          className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          className="object-cover"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 340px"
           unoptimized
         />

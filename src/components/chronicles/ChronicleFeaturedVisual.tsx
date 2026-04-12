@@ -1,23 +1,5 @@
 import Image from 'next/image';
-
-function PlaceholderIcon({ className = 'w-14 h-14' }: { className?: string }) {
-  return (
-    <svg
-      className={`text-zinc-400/80 ${className}`}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      aria-hidden
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={1.5}
-        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-      />
-    </svg>
-  );
-}
+import { KxListingCardPlaceholderIcon } from '@/components/kx/KxListingCardPlaceholder';
 
 export function ChronicleFeaturedVisual({
   imageUrl,
@@ -44,7 +26,7 @@ export function ChronicleFeaturedVisual({
         />
       ) : (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-8 text-center">
-          <PlaceholderIcon />
+          <KxListingCardPlaceholderIcon className="w-14 h-14 text-zinc-400/80" />
           <div>
             <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Featured visual</p>
             <p className="text-sm text-zinc-400 mt-1 max-w-sm">
@@ -81,7 +63,7 @@ export function ChronicleThumb({
         <Image src={imageUrl} alt={alt} fill className="object-cover" sizes="200px" />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center text-zinc-400">
-          <PlaceholderIcon className="w-8 h-8 opacity-60" />
+          <KxListingCardPlaceholderIcon className="w-8 h-8 opacity-60 text-zinc-400/80" />
         </div>
       )}
     </div>

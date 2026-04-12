@@ -30,7 +30,7 @@ export function ChroniclesLockCard({
 
   if (overlay === 'none') {
     return (
-      <div className="relative rounded-2xl border border-cyan-500/30 chronicles-vault-card">
+      <div className="relative rounded-xl border border-cyan-500/30 shadow-kx-card chronicles-vault-card">
         <div className="absolute top-3 right-3 z-10 rounded-lg bg-cyan-500/15 border border-cyan-500/35 px-2.5 py-1 text-xs font-black uppercase tracking-wider text-[#02abb8]">
           Locked
         </div>
@@ -40,7 +40,7 @@ export function ChroniclesLockCard({
   }
 
   return (
-    <div className="relative rounded-2xl border border-cyan-500/25 overflow-hidden min-h-[260px] chronicles-vault-card">
+    <div className="relative rounded-xl border border-cyan-500/25 overflow-hidden min-h-[260px] shadow-kx-card chronicles-vault-card">
       {children != null ? (
         <div className="blur-sm opacity-35 pointer-events-none select-none max-h-[260px] overflow-hidden">{children}</div>
       ) : null}

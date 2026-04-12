@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { formatEther } from 'viem';
 import type { DonationCampaignListItem } from '@/hooks/useDonationCampaigns';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
-import { DEFAULT_DONATION_IMAGE } from '@/lib/donations/constants';
 import { getGatewayUrl } from '@/lib/ipfs/gateway';
 import { progressPercent, totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
+import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { KxListingCardPlaceholder } from '@/components/kx/KxListingCardPlaceholder';
 
 export function DonationCampaignCard({
   campaign,
@@ -37,20 +37,21 @@ export function DonationCampaignCard({
   const goalReached = raisedDisplay >= campaign.targetWei;
 
   const imageSrc =
-    metadata?.imageUrl || (metadata?.imageHash ? getGatewayUrl(metadata.imageHash) : DEFAULT_DONATION_IMAGE);
+    metadata?.imageUrl?.trim() || (metadata?.imageHash ? getGatewayUrl(metadata.imageHash) : null);
   const title = metadata?.title?.trim() || `${campaign.creatorAddress.slice(0, 6)}...${campaign.creatorAddress.slice(-4)}`;
   const category = metadata?.category?.trim() || null;
   const tags = (metadata?.tags ?? []).slice(0, 3);
 
   return (
-    <Link
-      href={href ?? `/donations/${campaign.creatorAddress}`}
-      className="block rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors"
-    >
-      <div className="aspect-[16/9] bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden">
-        <img src={imageSrc} alt="" className="w-full h-full object-cover" />
-      </div>
-      <div className="p-4">
+    <KxListingCard href={href ?? `/donations/${campaign.creatorAddress}`} accent="crowdkas">
+      <KxListingCardMedia>
+        {imageSrc ? (
+          <img src={imageSrc} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        ) : (
+          <KxListingCardPlaceholder />
+        )}
+      </KxListingCardMedia>
+      <KxListingCardBody>
         <div className="flex justify-between items-start mb-2 gap-2">
           <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 truncate max-w-[180px]">
             {campaign.creatorAddress.slice(0, 6)}...{campaign.creatorAddress.slice(-4)}
@@ -113,7 +114,7 @@ export function DonationCampaignCard({
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
           {donorsDisplay.toString()} donors · Ends {deadline.toLocaleDateString()}
         </p>
-      </div>
-    </Link>
+      </KxListingCardBody>
+    </KxListingCard>
   );
 }

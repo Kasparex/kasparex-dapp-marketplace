@@ -21,6 +21,8 @@ import { buildDonationsModuleUnlockPayloadHex, buildDonationsModuleUnlockPlainNo
 import { DONATION_ESCROW_V2_ABI } from '@/lib/contracts/abis';
 import { getErrorMessage } from '@/lib/utils';
 import type { Address } from 'viem';
+import { kxJoinClasses } from '@/lib/ui/kxListingAccent';
+import { KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 
 export type DonationModuleOffer = (typeof DONATION_MODULE_OFFERS)[DonationPaidModuleId];
 
@@ -228,19 +230,24 @@ export function DonationEscrowModuleUnlockCard({
 
   return (
     <div
-      className={`rounded-2xl border bg-white/95 dark:bg-zinc-900/80 overflow-hidden flex flex-col ${borderClass} ${
-        isUnlocked ? 'ring-1 ring-emerald-500/25' : ''
-      } ${className}`.trim()}
+      className={kxJoinClasses(
+        'overflow-hidden rounded-xl border bg-white/95 dark:bg-zinc-900/80 shadow-kx-card flex flex-col',
+        borderClass,
+        isUnlocked ? 'ring-1 ring-emerald-500/25' : '',
+        className,
+      )}
     >
-      <div
-        className={`relative aspect-[16/9] bg-gradient-to-br ${heroGradient} border-b border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-center px-4 text-center`}
-      >
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 mb-2">
-          {isUnlocked ? 'Unlocked' : 'CrowdKAS module'}
-        </p>
-        <h3 className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-zinc-100 leading-tight">{offer.title}</h3>
-      </div>
-      <div className="p-4 sm:p-5 space-y-3 flex flex-col flex-1 min-h-0">
+      <KxListingCardMedia aspectClass="aspect-[16/9]">
+        <div
+          className={`absolute inset-0 bg-gradient-to-br ${heroGradient} flex flex-col items-center justify-center px-4 text-center`}
+        >
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 mb-2">
+            {isUnlocked ? 'Unlocked' : 'CrowdKAS module'}
+          </p>
+          <h3 className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-zinc-100 leading-tight">{offer.title}</h3>
+        </div>
+      </KxListingCardMedia>
+      <KxListingCardBody comfortable className="space-y-3 flex-1 min-h-0">
         <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">{offer.description}</p>
         {!isUnlocked && (
           <>
@@ -284,7 +291,7 @@ export function DonationEscrowModuleUnlockCard({
         {err ? <p className="text-sm text-red-600 dark:text-red-400">{err}</p> : null}
         {writeErr ? <p className="text-sm text-red-600 dark:text-red-400">{getErrorMessage(writeErr, 'EVM tx failed')}</p> : null}
         {note ? <p className="text-sm text-amber-800 dark:text-amber-300">{note}</p> : null}
-      </div>
+      </KxListingCardBody>
     </div>
   );
 }

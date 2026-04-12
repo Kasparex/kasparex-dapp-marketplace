@@ -22,6 +22,9 @@ import { utf8ToHex } from '@/lib/vblog/payloadHex';
 import type { VBlogModuleId } from '@/lib/vblog/types';
 import { FilterBar } from '@/components/FilterBar';
 import { ChroniclesFilterDropdown } from '@/components/chronicles/ChroniclesFilterDropdown';
+import { KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { KxListingCardPlaceholder } from '@/components/kx/KxListingCardPlaceholder';
+import { kxJoinClasses } from '@/lib/ui/kxListingAccent';
 
 interface VBlogModuleUnlockCardsProps {
   title?: string;
@@ -183,21 +186,18 @@ export function VBlogModuleUnlockCards({
           return (
             <div
               key={offer.id}
-              className="rounded-2xl border border-orange-300/35 dark:border-orange-500/25 bg-white/95 dark:bg-zinc-900/70 overflow-hidden flex flex-col"
+              className={kxJoinClasses(
+                'overflow-hidden rounded-xl border border-orange-300/35 dark:border-orange-500/25 bg-white/95 dark:bg-zinc-900/70 shadow-kx-card flex flex-col',
+              )}
             >
-              <div className="h-28 bg-gradient-to-br from-zinc-100 via-zinc-50 to-orange-500/10 dark:from-zinc-900 dark:via-zinc-950 dark:to-orange-950/35 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-zinc-500 dark:text-zinc-400">
+              <KxListingCardMedia aspectClass="h-28 aspect-auto">
                 {offer.featuredImage ? (
-                  <img src={offer.featuredImage} alt={offer.title} className="w-full h-full object-cover" />
+                  <img src={offer.featuredImage} alt={offer.title} className="absolute inset-0 w-full h-full object-cover" />
                 ) : (
-                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest">
-                    <svg className="w-5 h-5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span>Featured visual</span>
-                  </div>
+                  <KxListingCardPlaceholder />
                 )}
-              </div>
-              <div className="p-4 flex-1 flex flex-col">
+              </KxListingCardMedia>
+              <KxListingCardBody className="flex-1 flex flex-col">
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-base font-black text-zinc-900 dark:text-zinc-100">{offer.title}</p>
                   {isUnlocked ? <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Unlocked</span> : null}
@@ -226,7 +226,7 @@ export function VBlogModuleUnlockCards({
                 >
                   {isUnlocked ? 'Unlocked' : isUnlocking ? 'Unlocking...' : `Unlock for ${effectiveKas} KAS`}
                 </button>
-              </div>
+              </KxListingCardBody>
             </div>
           );
         })}
@@ -257,11 +257,18 @@ export function VBlogInlineModuleUnlockCard({
   const isUnlocked = kaspaState.address ? getAuthorUnlockedModules(kaspaState.address).includes(offer.id) : false;
 
   return (
-    <div className={`w-full max-w-[420px] rounded-2xl border bg-white/95 dark:bg-zinc-900/80 overflow-hidden ${isUnlocked ? 'border-emerald-400/40 dark:border-emerald-500/30' : 'border-orange-300/40 dark:border-orange-500/25'}`}>
-      <div className="h-20 bg-gradient-to-br from-zinc-100 via-zinc-50 to-orange-500/10 dark:from-zinc-900 dark:via-zinc-950 dark:to-orange-950/35 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-[11px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-        {isUnlocked ? 'Module active' : 'Locked module'}
-      </div>
-      <div className="p-4">
+    <div
+      className={kxJoinClasses(
+        'w-full max-w-[420px] overflow-hidden rounded-xl border bg-white/95 dark:bg-zinc-900/80 shadow-kx-card',
+        isUnlocked ? 'border-emerald-400/40 dark:border-emerald-500/30' : 'border-orange-300/40 dark:border-orange-500/25',
+      )}
+    >
+      <KxListingCardMedia aspectClass="h-20 aspect-auto">
+        <div className="absolute inset-0 bg-gradient-to-br from-zinc-100 via-zinc-50 to-orange-500/10 dark:from-zinc-900 dark:via-zinc-950 dark:to-orange-950/35 flex items-center justify-center text-[11px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+          {isUnlocked ? 'Module active' : 'Locked module'}
+        </div>
+      </KxListingCardMedia>
+      <KxListingCardBody>
         <p className="text-sm font-black text-zinc-900 dark:text-zinc-100">{offer.title}</p>
         <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">{offer.description}</p>
         {!isUnlocked ? <p className="mt-2 text-sm font-black text-zinc-900 dark:text-zinc-100">{payKas} KAS</p> : <p className="mt-2 text-xs font-bold text-emerald-600 dark:text-emerald-300">Unlocked for this wallet. You can now enable it in the editor.</p>}
@@ -292,7 +299,7 @@ export function VBlogInlineModuleUnlockCard({
         >
           {isUnlocked ? 'Module active' : busy ? 'Unlocking...' : `Unlock ${offer.title}`}
         </button>
-      </div>
+      </KxListingCardBody>
     </div>
   );
 }

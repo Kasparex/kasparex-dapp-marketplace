@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { Game, gameTypes } from '@/lib/games/games';
+import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { KxListingCardPlaceholder } from '@/components/kx/KxListingCardPlaceholder';
 import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
 import { GameDifficultyBadge } from './GameDifficultyBadge';
@@ -26,35 +27,30 @@ export function GameCard({ game }: GameCardProps) {
   };
 
   return (
-    <Link
+    <KxListingCard
       href={`/games/${game.slug}`}
-      className="block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all relative flex flex-col min-h-[320px]"
+      accent="games"
+      className="w-full text-left relative flex flex-col min-h-[320px]"
     >
-      {/* Game Banner */}
-      <div className="relative w-full h-32 bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900 flex items-center justify-center border-b border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden">
+      <KxListingCardMedia aspectClass="aspect-[16/9]">
         {game.featuredImage ? (
           <img src={game.featuredImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
         ) : (
-          <svg className="w-12 h-12 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+          <KxListingCardPlaceholder />
         )}
-        
-        {/* Beta Status Badge - Top Left */}
+
         {game.status === 'beta' && (
           <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold backdrop-blur-sm border bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-700 z-20 shadow-sm">
             Beta
           </span>
         )}
 
-        {/* Difficulty Badge - Top Right */}
         <div className="absolute top-3 right-3 z-20">
           <GameDifficultyBadge difficulty={game.difficulty} size="sm" />
         </div>
-      </div>
+      </KxListingCardMedia>
 
-      <div className="p-4 relative z-10 flex flex-col flex-1 min-h-0">
+      <KxListingCardBody className="relative z-10 flex-1 min-h-0">
         {/* Game Title and Type */}
         <div className="mb-3">
           <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-1">
@@ -196,7 +192,7 @@ export function GameCard({ game }: GameCardProps) {
             </div>
           </div>
         </div>
-      </div>
-    </Link>
+      </KxListingCardBody>
+    </KxListingCard>
   );
 }

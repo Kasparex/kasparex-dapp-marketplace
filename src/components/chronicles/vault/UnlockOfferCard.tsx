@@ -21,6 +21,7 @@ import {
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { recordVaultUnlock } from '@/lib/chronicles/vault/localUnlocks';
 import { ChronicleThumb } from '@/components/chronicles/ChronicleFeaturedVisual';
+import { kxListingCardStaticShellClass, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 
 export function UnlockOfferCard({
   offer,
@@ -128,9 +129,13 @@ export function UnlockOfferCard({
   }
 
   const inner = (
-    <div className="chronicles-vault-card rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/60 overflow-hidden h-full flex flex-col">
-      <ChronicleThumb imageUrl={offer.imageUrl} alt={offer.title} className="h-40 w-full shrink-0" />
-      <div className="p-6 flex flex-col flex-1 min-h-0">
+    <div className={`chronicles-vault-card ${kxListingCardStaticShellClass} h-full flex flex-col`}>
+      <KxListingCardMedia aspectClass="h-40 aspect-auto">
+        <div className="absolute inset-0">
+          <ChronicleThumb imageUrl={offer.imageUrl} alt={offer.title} className="h-full w-full rounded-none border-0 min-h-0" />
+        </div>
+      </KxListingCardMedia>
+      <KxListingCardBody comfortable className="flex-1 min-h-0">
         <p className="text-xs font-black uppercase tracking-widest text-[#02abb8] mb-2">{offer.kind}</p>
         <h3 className="font-black text-zinc-900 dark:text-zinc-100 text-lg mb-2 leading-snug">{offer.title}</h3>
         <p className="text-base text-zinc-600 dark:text-zinc-400 flex-1 leading-relaxed">{offer.shortDescription}</p>
@@ -188,7 +193,7 @@ export function UnlockOfferCard({
             <span aria-hidden>→</span>
           </Link>
         ) : null}
-      </div>
+      </KxListingCardBody>
     </div>
   );
 

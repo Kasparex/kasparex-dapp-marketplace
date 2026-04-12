@@ -1,10 +1,11 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import type { CollectionConfig } from '@/lib/nft/collections';
 import { fetchCollectionByTicker } from '@/lib/nft/kaspa-com-api';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { KxListingCardPlaceholderIcon } from '@/components/kx/KxListingCardPlaceholder';
 
 interface CollectionCardProps {
   collection: CollectionConfig;
@@ -59,35 +60,28 @@ export function CollectionCard({ collection }: CollectionCardProps) {
   }, [collection]);
 
   return (
-    <Link
-      href={`/nft/${collection.slug}`}
-      className="block bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden hover:shadow-lg transition-all hover:scale-[1.02] group"
-    >
-      {/* Image */}
-      <div className="aspect-square bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900 relative overflow-hidden">
+    <KxListingCard href={`/nft/${collection.slug}`} accent="hub" className="h-full flex flex-col">
+      <KxListingCardMedia aspectClass="aspect-square">
         {imageUrl ? (
           <img
             src={imageUrl}
             alt={collection.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="absolute inset-0 w-full h-full object-cover"
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900">
             {isLoading ? (
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-zinc-400 dark:border-zinc-600" />
             ) : (
-              <svg className="w-16 h-16 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
+              <KxListingCardPlaceholderIcon className="w-16 h-16" />
             )}
           </div>
         )}
-      </div>
+      </KxListingCardMedia>
 
-      {/* Info */}
-      <div className="p-6">
-        <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors">
+      <KxListingCardBody comfortable>
+        <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2 group-hover:text-[#02abb8] transition-colors">
           {collection.name}
         </h3>
         {collection.description && (
@@ -95,7 +89,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
             {collection.description}
           </p>
         )}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-auto">
           {totalSupply !== null ? (
             <div className="text-sm text-zinc-500 dark:text-zinc-500">
               <span className="font-medium">{totalSupply.toLocaleString()}</span> NFTs
@@ -105,12 +99,12 @@ export function CollectionCard({ collection }: CollectionCardProps) {
               Loading...
             </div>
           )}
-          <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors">
+          <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400 group-hover:text-[#02abb8] transition-colors">
             View Collection →
           </span>
         </div>
-      </div>
-    </Link>
+      </KxListingCardBody>
+    </KxListingCard>
   );
 }
 

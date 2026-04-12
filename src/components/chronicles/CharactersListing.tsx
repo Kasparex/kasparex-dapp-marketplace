@@ -9,6 +9,8 @@ import type { ChroniclesViewMode } from '@/lib/chronicles/types';
 import { filterCharactersByKind, searchCharacters } from '@/lib/chronicles/filtering';
 import { sortCharactersByName } from '@/lib/chronicles/sorting';
 import { ChronicleThumb } from './ChronicleFeaturedVisual';
+import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { kxJoinClasses, kxListingAccentHoverClasses } from '@/lib/ui/kxListingAccent';
 import { ChroniclesFilterDropdown } from './ChroniclesFilterDropdown';
 import { Tooltip } from '@/components/ui/Tooltip';
 
@@ -97,7 +99,10 @@ export function CharactersListing({ initial }: { initial: ChronicleCharacter[] }
             <li key={c.slug}>
               <Link
                 href={`/chronicles/characters/${c.slug}`}
-                className="flex items-center gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-cyan-500/30 transition-colors"
+                className={kxJoinClasses(
+                  'flex items-center gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-kx-card transition-colors duration-200',
+                  kxListingAccentHoverClasses('chronicles'),
+                )}
               >
                 <ChronicleThumb imageUrl={c.featuredImageUrl} alt="" className="w-14 h-14 shrink-0" />
                 <div className="min-w-0 flex-1 flex items-center justify-between gap-4">
@@ -115,13 +120,13 @@ export function CharactersListing({ initial }: { initial: ChronicleCharacter[] }
       {view === 'card' && (
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((c) => (
-            <Link
-              key={c.slug}
-              href={`/chronicles/characters/${c.slug}`}
-              className="group flex flex-col rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 overflow-hidden hover:border-cyan-500/35 transition-all"
-            >
-              <ChronicleThumb imageUrl={c.featuredImageUrl} alt="" className="h-40 w-full shrink-0" />
-              <div className="p-5 sm:p-6">
+            <KxListingCard key={c.slug} href={`/chronicles/characters/${c.slug}`} accent="chronicles" className="flex flex-col h-full">
+              <KxListingCardMedia aspectClass="h-40 aspect-auto">
+                <div className="absolute inset-0">
+                  <ChronicleThumb imageUrl={c.featuredImageUrl} alt="" className="h-full w-full rounded-none border-0 min-h-0" />
+                </div>
+              </KxListingCardMedia>
+              <KxListingCardBody comfortable>
                 <p className="text-[10px] font-black uppercase tracking-widest text-[#02abb8] mb-1">{c.kind}</p>
                 <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-2">
                   <Tooltip content={c.name} side="top" align="start">
@@ -129,8 +134,8 @@ export function CharactersListing({ initial }: { initial: ChronicleCharacter[] }
                   </Tooltip>
                 </h3>
                 <p className="text-base text-zinc-600 dark:text-zinc-400 line-clamp-3">{c.summary}</p>
-              </div>
-            </Link>
+              </KxListingCardBody>
+            </KxListingCard>
           ))}
         </div>
       )}
