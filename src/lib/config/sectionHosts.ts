@@ -109,15 +109,29 @@ export function rewriteRootPathForHost(hostname: string): string | null {
   return null;
 }
 
+/** Router "/" is dApps marketplace content; canonical URL for that "home" is hub.* */
+function ecosystemHomeUrl(pathnameWithSearch: string): string {
+  const q = pathnameWithSearch.indexOf('?');
+  const search = q >= 0 ? pathnameWithSearch.slice(q) : '';
+  return `https://${DOMAINS.hub}/${search}`;
+}
+
 export function buildAbsoluteSectionUrl(sectionKey: SectionDomainKey, pathname: string): string {
-  const domain = DOMAINS[sectionKey];
   const norm = pathname.startsWith('/') ? pathname : `/${pathname}`;
+  const normPathOnly = norm.split('?')[0] ?? '/';
+  const stripped = normPathOnly.replace(/\/$/, '') || '/';
+
+  if (sectionKey === 'dapps' && (stripped === '/' || stripped === '')) {
+    return ecosystemHomeUrl(pathname.includes('?') ? pathname : '/');
+  }
+
+  const domain = DOMAINS[sectionKey];
   const root = SUBDOMAIN_ROOT_PATH[sectionKey];
 
-  if (root === '/' && (norm === '/' || norm === '')) {
+  if (root === '/' && (normPathOnly === '/' || normPathOnly === '')) {
     return `https://${domain}/`;
   }
-  if (root && norm === root) {
+  if (root && normPathOnly === root) {
     return `https://${domain}/`;
   }
   return `https://${domain}${norm}`;
@@ -131,6 +145,19 @@ export function canonicalAppHref(pathname: string, currentHost: string | null | 
   const raw = currentHost?.split(':')[0];
   if (!raw || !isKasparexSectionHost(raw)) {
     return pathname;
+  }
+
+  const q = pathname.indexOf('?');
+  const pathOnly = (q >= 0 ? pathname.slice(0, q) : pathname) || '/';
+  const search = q >= 0 ? pathname.slice(q) : '';
+  const p = pathOnly.replace(/\/$/, '') || '/';
+
+  // "/" serves dApps marketplace on dapps.* but canonical ecosystem home is hub.*
+  if (p === '/' || p === '') {
+    if (hostnameToSectionKey(raw) === 'hub') {
+      return search ? `/${search}` : '/';
+    }
+    return ecosystemHomeUrl(pathname);
   }
 
   const targetKey = pathToSectionKey(pathname);
