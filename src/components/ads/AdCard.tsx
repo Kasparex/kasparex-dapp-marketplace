@@ -64,12 +64,13 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
 
   return (
     <div
+      data-kx-accent={embedded ? undefined : 'hub'}
       className={kxJoinClasses(
         'group overflow-hidden transition-colors duration-200',
         embedded
           ? 'rounded-xl bg-transparent'
           : kxJoinClasses(
-              'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-kx-card',
+              'kx-listing-card rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-kx-card transition-all duration-200',
               kxListingAccentHoverClasses('hub'),
             ),
       )}

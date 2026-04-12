@@ -22,6 +22,7 @@ import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { recordVaultUnlock } from '@/lib/chronicles/vault/localUnlocks';
 import { ChronicleThumb } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { kxListingCardStaticShellClass, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { kxJoinClasses, kxListingAccentHoverClasses } from '@/lib/ui/kxListingAccent';
 
 export function UnlockOfferCard({
   offer,
@@ -129,7 +130,15 @@ export function UnlockOfferCard({
   }
 
   const inner = (
-    <div className={`chronicles-vault-card ${kxListingCardStaticShellClass} h-full flex flex-col`}>
+    <div
+      data-kx-accent="chronicles"
+      className={kxJoinClasses(
+        'chronicles-vault-card',
+        kxListingCardStaticShellClass,
+        'transition-all duration-200 h-full flex flex-col',
+        kxListingAccentHoverClasses('chronicles'),
+      )}
+    >
       <KxListingCardMedia aspectClass="h-40 aspect-auto">
         <div className="absolute inset-0">
           <ChronicleThumb imageUrl={offer.imageUrl} alt={offer.title} className="h-full w-full rounded-none border-0 min-h-0" />

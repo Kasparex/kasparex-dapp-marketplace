@@ -6,11 +6,11 @@ import type { KxListingAccent } from '@/lib/ui/kxListingAccent';
 import { kxJoinClasses, kxListingAccentHoverClasses } from '@/lib/ui/kxListingAccent';
 
 const shellBase =
-  'group block overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-kx-card transition-colors duration-200';
+  'kx-listing-card group block overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-kx-card transition-all duration-200';
 
 /** Listing-style shell without link hover (vault tiles, static wrappers). */
 export const kxListingCardStaticShellClass =
-  'overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-kx-card';
+  'kx-listing-card overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-kx-card';
 
 export function KxListingCard({
   href,
@@ -26,12 +26,16 @@ export function KxListingCard({
   const cls = kxJoinClasses(shellBase, kxListingAccentHoverClasses(accent), className);
   if (href) {
     return (
-      <Link href={href} className={cls}>
+      <Link href={href} className={cls} data-kx-accent={accent}>
         {children}
       </Link>
     );
   }
-  return <div className={cls}>{children}</div>;
+  return (
+    <div className={cls} data-kx-accent={accent}>
+      {children}
+    </div>
+  );
 }
 
 export function KxListingCardMedia({

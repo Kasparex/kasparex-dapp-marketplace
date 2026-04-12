@@ -24,7 +24,7 @@ import { FilterBar } from '@/components/FilterBar';
 import { ChroniclesFilterDropdown } from '@/components/chronicles/ChroniclesFilterDropdown';
 import { KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 import { KxListingCardPlaceholder } from '@/components/kx/KxListingCardPlaceholder';
-import { kxJoinClasses } from '@/lib/ui/kxListingAccent';
+import { kxJoinClasses, kxListingAccentHoverClasses } from '@/lib/ui/kxListingAccent';
 
 interface VBlogModuleUnlockCardsProps {
   title?: string;
@@ -186,8 +186,10 @@ export function VBlogModuleUnlockCards({
           return (
             <div
               key={offer.id}
+              data-kx-accent="vblog"
               className={kxJoinClasses(
-                'overflow-hidden rounded-xl border border-orange-300/35 dark:border-orange-500/25 bg-white/95 dark:bg-zinc-900/70 shadow-kx-card flex flex-col',
+                'kx-listing-card overflow-hidden rounded-xl border border-orange-300/35 dark:border-orange-500/25 bg-white/95 dark:bg-zinc-900/70 shadow-kx-card flex flex-col transition-all duration-200',
+                kxListingAccentHoverClasses('vblog'),
               )}
             >
               <KxListingCardMedia aspectClass="h-28 aspect-auto">
@@ -258,8 +260,10 @@ export function VBlogInlineModuleUnlockCard({
 
   return (
     <div
+      data-kx-accent="vblog"
       className={kxJoinClasses(
-        'w-full max-w-[420px] overflow-hidden rounded-xl border bg-white/95 dark:bg-zinc-900/80 shadow-kx-card',
+        'kx-listing-card w-full max-w-[420px] overflow-hidden rounded-xl border bg-white/95 dark:bg-zinc-900/80 shadow-kx-card transition-all duration-200',
+        kxListingAccentHoverClasses('vblog'),
         isUnlocked ? 'border-emerald-400/40 dark:border-emerald-500/30' : 'border-orange-300/40 dark:border-orange-500/25',
       )}
     >

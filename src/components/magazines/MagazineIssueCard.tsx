@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { MagazineIssue } from '@/lib/magazines/types';
+import { kxJoinClasses, kxListingAccentHoverClasses } from '@/lib/ui/kxListingAccent';
 
 interface MagazineIssueCardProps {
     issue: MagazineIssue;
@@ -11,7 +12,13 @@ interface MagazineIssueCardProps {
 
 export function MagazineIssueCard({ issue, magazineSlug }: MagazineIssueCardProps) {
     return (
-        <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col h-full group">
+        <div
+            data-kx-accent="magazines"
+            className={kxJoinClasses(
+                'kx-listing-card bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col h-full group shadow-kx-card transition-all duration-200',
+                kxListingAccentHoverClasses('magazines'),
+            )}
+        >
             <div className="relative aspect-[3/4] overflow-hidden">
                 <Image
                     src={issue.coverImage || '/img/placeholder-issue.jpg'}

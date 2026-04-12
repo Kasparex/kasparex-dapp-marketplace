@@ -21,7 +21,7 @@ import { buildDonationsModuleUnlockPayloadHex, buildDonationsModuleUnlockPlainNo
 import { DONATION_ESCROW_V2_ABI } from '@/lib/contracts/abis';
 import { getErrorMessage } from '@/lib/utils';
 import type { Address } from 'viem';
-import { kxJoinClasses } from '@/lib/ui/kxListingAccent';
+import { kxCrowdkasModuleHoverClasses, kxJoinClasses } from '@/lib/ui/kxListingAccent';
 import { KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 
 export type DonationModuleOffer = (typeof DONATION_MODULE_OFFERS)[DonationPaidModuleId];
@@ -231,11 +231,13 @@ export function DonationEscrowModuleUnlockCard({
   return (
     <div
       className={kxJoinClasses(
-        'overflow-hidden rounded-xl border bg-white/95 dark:bg-zinc-900/80 shadow-kx-card flex flex-col',
+        'kx-listing-card overflow-hidden rounded-xl border bg-white/95 dark:bg-zinc-900/80 shadow-kx-card flex flex-col transition-all duration-200',
         borderClass,
+        kxCrowdkasModuleHoverClasses(accent),
         isUnlocked ? 'ring-1 ring-emerald-500/25' : '',
         className,
       )}
+      data-kx-accent={accent === 'amber' ? 'crowdkas-amber' : 'crowdkas'}
     >
       <KxListingCardMedia aspectClass="aspect-[16/9]">
         <div

@@ -122,6 +122,38 @@
   border-color: rgba(112, 199, 186, 0.25) !important;
 }
 
+/* Kx listing cards: base border uses !important above — restore per-area hover borders */
+.kaspa .kx-listing-card[data-kx-accent="hub"]:hover,
+.kaspa .kx-listing-card[data-kx-accent="hub"]:focus-visible {
+  border-color: rgba(112, 199, 186, 0.95) !important;
+}
+.kaspa .kx-listing-card[data-kx-accent="crowdkas"]:hover,
+.kaspa .kx-listing-card[data-kx-accent="crowdkas"]:focus-visible {
+  border-color: #4ade80 !important;
+}
+.kaspa .kx-listing-card[data-kx-accent="crowdkas-amber"]:hover,
+.kaspa .kx-listing-card[data-kx-accent="crowdkas-amber"]:focus-visible {
+  border-color: #fbbf24 !important;
+}
+.kaspa .kx-listing-card[data-kx-accent="vblog"]:hover,
+.kaspa .kx-listing-card[data-kx-accent="vblog"]:focus-visible {
+  border-color: #fb923c !important;
+}
+.kaspa .kx-listing-card[data-kx-accent="chronicles"]:hover,
+.kaspa .kx-listing-card[data-kx-accent="chronicles"]:focus-visible {
+  border-color: #22d3ee !important;
+}
+.kaspa .kx-listing-card[data-kx-accent="store"]:hover,
+.kaspa .kx-listing-card[data-kx-accent="store"]:focus-visible,
+.kaspa .kx-listing-card[data-kx-accent="magazines"]:hover,
+.kaspa .kx-listing-card[data-kx-accent="magazines"]:focus-visible {
+  border-color: #22d3ee !important;
+}
+.kaspa .kx-listing-card[data-kx-accent="games"]:hover,
+.kaspa .kx-listing-card[data-kx-accent="games"]:focus-visible {
+  border-color: #a78bfa !important;
+}
+
 .kaspa .hover\:bg-zinc-100:hover {
   background-color: rgba(15, 42, 38, 0.9) !important;
 }
