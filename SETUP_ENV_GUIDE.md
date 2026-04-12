@@ -138,6 +138,18 @@ IGRA_GALLEON_TESTNET_RPC=https://galleon-testnet.igralabs.com:8545
 
 ---
 
+## Custom domain: `games.kasparex.com` (Vercel + Wix DNS)
+
+The app is one Next.js deployment; **Games** lives at `/games`. For `games.kasparex.com`:
+
+1. **Vercel** → your project → **Domains** → add `games.kasparex.com` (Production). Copy the **CNAME** target Vercel shows.
+2. **Wix** → DNS → **CNAME** → host `games`, value = Vercel’s target (often `cname.vercel-dns.com` or a project-specific hostname).
+3. **Vercel** → **Environment Variables** (Production): set `NEXT_PUBLIC_GAMES_DOMAIN` = `games.kasparex.com` (optional if you keep the default).
+
+Middleware rewrites the **root** of that host to `/games`, so `https://games.kasparex.com/` shows the same UI as `https://<your-project>.vercel.app/games`. Paths like `/games/diamond-veins` still work on the games host.
+
+---
+
 ## Next Steps
 
 Once your `.env` file is set up with `PRIVATE_KEY`, use the Hardhat scripts in `package.json` for the contracts you deploy (e.g. Revenue Tree, donations, genesis badge).

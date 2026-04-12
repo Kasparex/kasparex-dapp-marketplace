@@ -11,6 +11,7 @@ export const DOMAINS = {
   
   // Sections
   dapps: process.env.NEXT_PUBLIC_DAPPS_DOMAIN || 'dapps.kasparex.com',
+  games: process.env.NEXT_PUBLIC_GAMES_DOMAIN || 'games.kasparex.com',
   tokens: process.env.NEXT_PUBLIC_TOKENS_DOMAIN || 'tokens.kasparex.com',
   nodes: process.env.NEXT_PUBLIC_NODES_DOMAIN || 'nodes.kasparex.com',
   docs: process.env.NEXT_PUBLIC_DOCS_DOMAIN || 'docs.kasparex.com',
