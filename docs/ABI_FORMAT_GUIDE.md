@@ -169,7 +169,7 @@ if (!validateABI(QUIZ_TO_EARN_ABI)) {
 ## Related Files
 
 - `src/lib/contracts/abis.ts` - All contract ABIs (use as reference)
-- `docs/TYPESCRIPT_ERROR_LOG.md` - Error documentation
+- `docs/archive/docs-moved/TYPESCRIPT_ERROR_LOG.md` - Historical error notes (archived)
 - `contracts/*.sol` - Source contracts (for reference)
 
 ## Status

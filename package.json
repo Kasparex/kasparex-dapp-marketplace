@@ -30,12 +30,6 @@
     "hardhat:verify:mainnet": "hardhat run scripts/verify-contracts.js --network kasplexL2Mainnet",
     "hardhat:deploy:tgrid": "hardhat run scripts/deploy-tgrid.js --network igraGalleonTestnet",
     "hardhat:deploy:genesis-badge": "hardhat run scripts/deploy-genesis-badge.js --network igraGalleonTestnet",
-    "gitbook:setup": "node scripts/gitbook-sync/cli.js setup",
-    "gitbook:sync": "node scripts/gitbook-sync/cli.js sync",
-    "gitbook:test": "node scripts/gitbook-sync/cli.js test",
-    "gitbook:listen": "node scripts/gitbook-sync/listener.js",
-    "gitbook:generate": "node scripts/gitbook-sync/generate-markdown.js",
-    "gitbook:sync:git": "node scripts/gitbook-sync/sync-to-git.js",
     "upload:assets": "tsx scripts/upload-assets-to-ipfs.ts",
     "upload:assets:dry": "tsx scripts/upload-assets-to-ipfs.ts --dry-run",
     "upload:registry": "tsx scripts/upload-registry-to-ipfs.ts",
@@ -91,10 +85,8 @@
     "typechain": "^8.3.2",
     "typescript": "^5"
   },
-  "pnpm": {
-    "overrides": {
-      "@types/react": "19.1.10",
-      "@types/react-dom": "19.1.7"
-    }
+  "overrides": {
+    "@types/react": "19.1.10",
+    "@types/react-dom": "19.1.7"
   }
 }
