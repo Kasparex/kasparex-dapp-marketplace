@@ -1,8 +1,14 @@
 'use client';
 
+import { useMemo } from 'react';
 import Link from 'next/link';
+import { useRequestHost } from '@/components/CanonicalNavContext';
+import { canonicalAppHref } from '@/lib/config/sectionHosts';
 
 export function TokensHero() {
+  const host = useRequestHost();
+  const hubHref = useMemo(() => canonicalAppHref('/hub', host ?? undefined), [host]);
+
   return (
     <div className="relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-teal-50/50 to-slate-100 dark:from-zinc-950 dark:via-teal-950/25 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50">
       <div className="absolute inset-0 overflow-hidden">
@@ -31,7 +37,7 @@ export function TokensHero() {
               View Tokens
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </a>
-            <Link href="/hub" className="k-cta-secondary">
+            <Link href={hubHref} className="k-cta-secondary">
               Go to Hub
             </Link>
           </div>

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { HubProject } from '@/lib/hubProjects';
 import { useRequestHost } from '@/components/CanonicalNavContext';
-import { canonicalAppHref } from '@/lib/config/sectionHosts';
+import { canonicalAppHref, canonicalDappsMarketplaceHref } from '@/lib/config/sectionHosts';
 
 interface ProjectCardProps {
   project: HubProject;
@@ -11,7 +11,9 @@ interface ProjectCardProps {
 
 export function ProjectCard({ project }: ProjectCardProps) {
   const requestHost = useRequestHost();
-  const cardHref = canonicalAppHref(project.route, requestHost ?? undefined);
+  const cardHref = project.linksToDappsMarketplace
+    ? canonicalDappsMarketplaceHref(requestHost ?? undefined)
+    : canonicalAppHref(project.route, requestHost ?? undefined);
 
   const getStatusBadge = () => {
     switch (project.status) {

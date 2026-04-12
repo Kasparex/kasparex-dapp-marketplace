@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useResolveSidebarNavHref } from '@/hooks/useResolveSidebarNavHref';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 
@@ -19,6 +20,7 @@ const QUICK_LINKS = [
 
 export function StatsSidebar() {
   const pathname = usePathname();
+  const toNav = useResolveSidebarNavHref();
 
   return (
     <UnifiedSidebar
@@ -60,7 +62,7 @@ export function StatsSidebar() {
               return (
               <Link
                 key={item.label}
-                href={item.href}
+                href={toNav(item.href)}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
                     ? 'bg-[#02abb8]/10 text-[#02abb8] border border-[#02abb8]/20'
                     : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
@@ -82,7 +84,7 @@ export function StatsSidebar() {
             {QUICK_LINKS.map((item) => (
               <Link
                 key={item.label}
-                href={item.href}
+                href={toNav(item.href)}
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
               >
                 <span className="text-[11px] font-bold uppercase tracking-wider min-w-0 break-words">

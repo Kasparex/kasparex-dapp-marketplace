@@ -28,7 +28,7 @@ import Link from 'next/link';
 import { hubProjects, type HubProject } from '@/lib/hubProjects';
 import { HeaderLeaderboardLink } from '@/components/HeaderLeaderboardLink';
 import { useRequestHost } from '@/components/CanonicalNavContext';
-import { canonicalAppHref, segmentPathForHost } from '@/lib/config/sectionHosts';
+import { canonicalAppHref, canonicalDappsMarketplaceHref, segmentPathForHost } from '@/lib/config/sectionHosts';
 
 function AdminLink() {
   const { isAdmin } = useAdmin();
@@ -494,10 +494,14 @@ export function Header() {
                           );
                         }
 
+                        const megaHref = project.linksToDappsMarketplace
+                          ? canonicalDappsMarketplaceHref(requestHost ?? undefined)
+                          : hrefFor(project.route);
+
                         return (
                           <Link
                             key={project.id}
-                            href={hrefFor(project.route)}
+                            href={megaHref}
                             className={linkClassName}
                           >
                             {linkContent}

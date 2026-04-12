@@ -123,13 +123,20 @@ export function Sidebar({
     };
   });
 
-  const backHref = pathname.startsWith('/dapps') ? '/' : '/hub';
-  const backLabel = pathname.startsWith('/dapps') ? 'Back to dApps' : 'Back to Hub';
+  const backToMarketplace = pathname.startsWith('/dapps');
+  const backLabel = backToMarketplace ? 'Back to dApps' : 'Back to Hub';
 
   return (
     <UnifiedSidebar
       storageKeyPrefix="dapps"
-      header={(onHide) => <SidebarHeader backHref={backHref} backLabel={backLabel} onHide={onHide} />}
+      header={(onHide) => (
+        <SidebarHeader
+          backToMarketplace={backToMarketplace}
+          backHref={backToMarketplace ? undefined : '/hub'}
+          backLabel={backLabel}
+          onHide={onHide}
+        />
+      )}
     >
       <SidebarCategories
         title="Categories"

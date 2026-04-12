@@ -141,6 +141,48 @@ export function buildAbsoluteSectionUrl(sectionKey: SectionDomainKey, pathname: 
  * Link href: on *.kasparex.com section hosts, use absolute URL to the correct subdomain
  * so navigation does not stay on the wrong host (e.g. api.kasparex.com/vblog).
  */
+/** dApps marketplace (router path /) on dapps.* — not the ecosystem hub at hub.* */
+export function canonicalDappsMarketplaceHref(currentHost: string | null | undefined): string {
+  const raw = currentHost?.split(':')[0];
+  if (!raw || !isKasparexSectionHost(raw)) return '/';
+  if (hostnameToSectionKey(raw) === 'dapps') return '/';
+  return `https://${DOMAINS.dapps}/`;
+}
+
+/**
+ * Sidebar / quick links: bare "/" means marketplace; "/hub" and other paths get section-aware hosts.
+ * Preserves ?query and #hash.
+ */
+export function resolveSidebarNavHref(href: string, currentHost: string | null | undefined): string {
+  if (!href || href.startsWith('http') || href.startsWith('mailto:')) return href;
+  if (href.startsWith('#')) return href;
+
+  const hashIdx = href.indexOf('#');
+  const beforeHash = hashIdx >= 0 ? href.slice(0, hashIdx) : href;
+  const hash = hashIdx >= 0 ? href.slice(hashIdx) : '';
+
+  const qIdx = beforeHash.indexOf('?');
+  const pathOnly = (qIdx >= 0 ? beforeHash.slice(0, qIdx) : beforeHash) || '/';
+  const search = qIdx >= 0 ? beforeHash.slice(qIdx) : '';
+  const stripped = pathOnly.replace(/\/$/, '') || '/';
+
+  let resolved: string;
+  if (stripped === '/' || stripped === '') {
+    resolved = canonicalDappsMarketplaceHref(currentHost);
+    if (search) {
+      const s = search.startsWith('?') ? search : `?${search}`;
+      if (resolved === '/' || resolved === '') {
+        resolved = `/${s}`;
+      } else {
+        resolved = `${resolved.replace(/\/?$/, '')}${s}`;
+      }
+    }
+  } else {
+    resolved = canonicalAppHref(beforeHash, currentHost);
+  }
+  return resolved + hash;
+}
+
 export function canonicalAppHref(pathname: string, currentHost: string | null | undefined): string {
   const raw = currentHost?.split(':')[0];
   if (!raw || !isKasparexSectionHost(raw)) {

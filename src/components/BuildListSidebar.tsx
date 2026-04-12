@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useRequestHost } from '@/components/CanonicalNavContext';
+import { canonicalAppHref } from '@/lib/config/sectionHosts';
 import { DescriptionIcon, UtilityIcon, ProcessIcon, BenefitsIcon, DeveloperIcon } from '@/components/icons/SectionIcons';
 
 interface BuildListSidebarProps {
@@ -9,6 +11,9 @@ interface BuildListSidebarProps {
 }
 
 export function BuildListSidebar({ title }: BuildListSidebarProps) {
+  const host = useRequestHost();
+  const hubHref = useMemo(() => canonicalAppHref('/hub', host ?? undefined), [host]);
+
   const [overviewExpanded, setOverviewExpanded] = useState(true);
   const [requirementsExpanded, setRequirementsExpanded] = useState(false);
   const [stepsExpanded, setStepsExpanded] = useState(false);
@@ -65,7 +70,7 @@ export function BuildListSidebar({ title }: BuildListSidebarProps) {
       {/* Mobile Back Button */}
       <div className="lg:hidden px-4 pt-4">
         <Link
-          href="/hub"
+          href={hubHref}
           className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
         >
           <svg
@@ -91,7 +96,7 @@ export function BuildListSidebar({ title }: BuildListSidebarProps) {
           <div className="p-4 lg:p-6">
             {/* Back to Hub Button */}
             <Link
-              href="/hub"
+              href={hubHref}
               className="flex items-center gap-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors mb-6 pb-4 border-b border-zinc-200 dark:border-zinc-800"
             >
               <svg

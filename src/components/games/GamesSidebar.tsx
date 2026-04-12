@@ -1,6 +1,9 @@
 'use client';
 
+import { useMemo } from 'react';
 import Link from 'next/link';
+import { useRequestHost } from '@/components/CanonicalNavContext';
+import { canonicalAppHref } from '@/lib/config/sectionHosts';
 import { GameType, GameDifficulty, GameStatus, gameTypes, difficultyLevels } from '@/lib/games/games';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
@@ -98,7 +101,7 @@ export function GamesSidebar({
     <div className="flex-shrink-0 bg-transparent border-b border-zinc-200 dark:border-zinc-800 p-4">
       <div className="flex items-center justify-between">
         <Link
-          href={backLink.href}
+          href={resolvedBackHref}
           className="text-zinc-500 dark:text-zinc-400 hover:text-[#02abb8] font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
         >
           <svg className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">

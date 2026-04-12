@@ -1,10 +1,17 @@
 'use client';
 
+import { useMemo } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { useRequestHost } from '@/components/CanonicalNavContext';
+import { canonicalAppHref, canonicalDappsMarketplaceHref } from '@/lib/config/sectionHosts';
 
 export default function ComingSoonPage() {
+  const host = useRequestHost();
+  const hubHref = useMemo(() => canonicalAppHref('/hub', host ?? undefined), [host]);
+  const marketplaceHref = useMemo(() => canonicalDappsMarketplaceHref(host ?? undefined), [host]);
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -35,13 +42,13 @@ export default function ComingSoonPage() {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/hub"
+              href={hubHref}
               className="px-6 py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
             >
               Back to Hub
             </Link>
             <Link
-              href="/"
+              href={marketplaceHref}
               className="px-6 py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
             >
               Browse dApps

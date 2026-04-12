@@ -7,6 +7,8 @@ export interface HubProject {
   description: string;
   route: string;
   status: ProjectStatus;
+  /** Mega menu / hub cards: link to dapps.* marketplace root, not ecosystem hub at hub.* */
+  linksToDappsMarketplace?: boolean;
 }
 
 export const hubProjects: HubProject[] = [
@@ -16,6 +18,7 @@ export const hubProjects: HubProject[] = [
     category: 'Utility',
     description: 'Explore modular dApps, dashboards and tools built on Kaspa. Discover a growing ecosystem of decentralized applications.',
     route: '/',
+    linksToDappsMarketplace: true,
     status: 'beta',
   },
   {

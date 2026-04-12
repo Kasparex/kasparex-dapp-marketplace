@@ -1,21 +1,44 @@
 'use client';
 
+import { useMemo } from 'react';
 import Link from 'next/link';
+import { useRequestHost } from '@/components/CanonicalNavContext';
+import { canonicalAppHref, canonicalDappsMarketplaceHref } from '@/lib/config/sectionHosts';
 
 export interface SidebarHeaderProps {
-  backHref: string;
   backLabel: string;
   onHide: () => void;
   className?: string;
+  /** When true, link to dapps.* marketplace root (path /). Ignores backHref. */
+  backToMarketplace?: boolean;
+  /** Relative path or https URL; not used when backToMarketplace is true */
+  backHref?: string;
 }
 
-export function SidebarHeader({ backHref, backLabel, onHide, className = '' }: SidebarHeaderProps) {
+export function SidebarHeader({
+  backHref,
+  backLabel,
+  backToMarketplace,
+  onHide,
+  className = '',
+}: SidebarHeaderProps) {
+  const host = useRequestHost();
+
+  const resolvedHref = useMemo(() => {
+    if (backToMarketplace) {
+      return canonicalDappsMarketplaceHref(host ?? undefined);
+    }
+    const target = backHref ?? '/hub';
+    if (target.startsWith('http')) return target;
+    return canonicalAppHref(target, host ?? undefined);
+  }, [backToMarketplace, backHref, host]);
+
   return (
     <div
       className={`p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-white dark:bg-zinc-950 ${className}`}
     >
       <Link
-        href={backHref}
+        href={resolvedHref}
         className="text-zinc-600 dark:text-zinc-300 hover:text-[#02abb8] text-sm font-medium tracking-normal flex items-center gap-2 transition-colors group"
       >
         <svg

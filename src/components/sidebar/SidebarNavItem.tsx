@@ -1,6 +1,10 @@
 'use client';
 
+import { useMemo } from 'react';
 import type { ReactNode } from 'react';
+import Link from 'next/link';
+import { useRequestHost } from '@/components/CanonicalNavContext';
+import { resolveSidebarNavHref } from '@/lib/config/sectionHosts';
 
 export interface SidebarNavItemProps {
   /** If true, show checkbox indicator (checked style). */
@@ -40,6 +44,13 @@ export function SidebarNavItem({
   labelClassName,
   children,
 }: SidebarNavItemProps) {
+  const host = useRequestHost();
+  const resolvedHref = useMemo(() => {
+    if (!href) return href;
+    if (!canonicalizeHref) return href;
+    return resolveSidebarNavHref(href, host ?? undefined);
+  }, [href, host, canonicalizeHref]);
+
   const activeClass = active ? 'k-sidebar-item-active' : '';
   const baseClass = `k-sidebar-item group ${activeClass} ${className}`.trim();
   const labelCn =
@@ -57,9 +68,9 @@ export function SidebarNavItem({
 
   if (href != null) {
     return (
-      <a href={href} className={baseClass}>
+      <Link href={resolvedHref!} className={baseClass}>
         {content}
-      </a>
+      </Link>
     );
   }
   if (onCheckedChange != null) {
