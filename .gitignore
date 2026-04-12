@@ -21,6 +21,3 @@ out/
 .env.local
 .env*.local
 .vercel
-
-# Local content/build caches
-kasparex-hub/.cache/

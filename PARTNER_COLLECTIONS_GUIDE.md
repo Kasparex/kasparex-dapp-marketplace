@@ -35,7 +35,7 @@ export const collections: Record<string, CollectionConfig> = {
 The current `NFTStatus` interface in `src/lib/rewards/types.ts` is hardcoded for KREXPRIME and PIXELKREX. To fully support partner collections, you would need to:
 
 1. Update `NFTStatus` interface to include partner collections dynamically
-2. Update `computeNFTStatus` functions in `src/lib/nft/status.ts` and `kasparex-hub/app/lib/nft/status.ts`
+2. Update `computeNFTStatus` in `src/lib/nft/status.ts`
 3. Update `useNFTStatus` hooks to query partner collections
 4. Update `NFTStatusBox` component to display partner collections
 5. Update reward calculator to include partner collections in calculations
