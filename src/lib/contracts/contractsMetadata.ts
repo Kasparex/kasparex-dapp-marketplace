@@ -150,11 +150,6 @@ const CONTRACT_METADATA: Partial<Record<ContractKey, ContractMetadataEntry>> = {
     category: 'other',
     linksTo: ['FeeHandler', 'Treasury'],
   },
-  PromoMintRouter: {
-    description: 'Promotional mint router for token campaigns.',
-    category: 'other',
-    linksTo: [],
-  },
   GenesisBadge: {
     description: 'Genesis or early-adopter badge NFT contract.',
     category: 'other',

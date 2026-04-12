@@ -17,7 +17,6 @@ import { PriceSection } from './PriceSection';
 import { TokenBalanceDisplay } from './TokenBalanceDisplay';
 import { TokenMintingProgress } from './TokenMintingProgress';
 import { TokenTradingSection } from './TokenTradingSection';
-import { TokenPromoSection } from './TokenPromoSection';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { useChainId } from 'wagmi';
 
@@ -61,9 +60,6 @@ export function TokenLandingPage({ token }: TokenLandingPageProps) {
 
           {/* Hero Section with Featured Image */}
           <TokenHeroSection token={token} />
-
-          {/* Promo Engine Section (for L2 tokens with promo enabled) */}
-          {token.network === 'L2' && <TokenPromoSection token={token} />}
 
           {/* Minting Progress or Trading Section */}
           {showMintingProgress && <TokenMintingProgress token={token} />}

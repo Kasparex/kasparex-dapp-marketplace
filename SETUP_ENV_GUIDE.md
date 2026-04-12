@@ -101,20 +101,15 @@ Then import this private key into MetaMask and fund it with testnet KAS.
 
 ## Verify Setup
 
-After creating `.env`, test that it's working:
+After creating `.env`, confirm Hardhat sees your key:
 
 ```bash
-# This should show your deployer address (if PRIVATE_KEY is set)
-npm run hardhat:deploy:promo-router
+npm run hardhat:compile
 ```
-
-If you see an address instead of an error, it's working! ✅
 
 ---
 
 ## Example `.env` File Structure
-
-Here's what your `.env` file should look like (with your actual values):
 
 ```env
 # ============================================
@@ -126,28 +121,6 @@ PRIVATE_KEY=abc123def456...your_private_key_here
 # NETWORK RPC URLs (optional - defaults work)
 # ============================================
 IGRA_GALLEON_TESTNET_RPC=https://galleon-testnet.igralabs.com:8545
-
-# ============================================
-# TOKEN REGISTRATION (for Step 6)
-# ============================================
-# Add these later when registering your first token:
-# PROMO_MINT_ROUTER_ADDRESS=0x... # From Step 1 deployment
-# TOKEN_ADDRESS=0x... # Your DAppToken contract
-# TOKEN_ID=your-token-slug
-# TOKEN_TICKER=TOKEN
-# TOKEN_NAME=Your Token Name
-# MINT_PRICE=0.1
-# TOKENS_PER_MINT=1000
-# MINTABLE_SUPPLY=10000000
-# CREATOR_WALLET=0x...
-# PLATFORM_WALLET=0x...
-# GENESIS_SLOT1=0x...
-# GENESIS_SLOT2=0x...
-# GENESIS_SLOT3=0x...
-# GENESIS_SLOT4=0x...
-# GENESIS_SLOT5=0x...
-# KASPAREX_API_URL=https://kasparex-api.kasparexcom.workers.dev
-# ADMIN_AUTH_TOKEN=your-admin-token-from-step-4
 ```
 
 ---
@@ -167,12 +140,7 @@ IGRA_GALLEON_TESTNET_RPC=https://galleon-testnet.igralabs.com:8545
 
 ## Next Steps
 
-Once your `.env` file is set up with `PRIVATE_KEY`:
-
-1. ✅ Verify it's working: `npm run hardhat:deploy:promo-router`
-2. ✅ Proceed to Step 1 in `POST_DEPLOYMENT_SETUP.md`
-3. ✅ Deploy the contract and get the address
-4. ✅ Continue with the remaining setup steps
+Once your `.env` file is set up with `PRIVATE_KEY`, use the Hardhat scripts in `package.json` for the contracts you deploy (e.g. Revenue Tree, donations, genesis badge).
 
 ---
 
