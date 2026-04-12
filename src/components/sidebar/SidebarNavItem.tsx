@@ -47,9 +47,8 @@ export function SidebarNavItem({
   const host = useRequestHost();
   const resolvedHref = useMemo(() => {
     if (!href) return href;
-    if (!canonicalizeHref) return href;
     return resolveSidebarNavHref(href, host ?? undefined);
-  }, [href, host, canonicalizeHref]);
+  }, [href, host]);
 
   const activeClass = active ? 'k-sidebar-item-active' : '';
   const baseClass = `k-sidebar-item group ${activeClass} ${className}`.trim();
