@@ -12,6 +12,11 @@ public/ipfs-asset-map.json
 api-backup/
 node_modules
 
+# Hardhat / TypeScript build artifacts
+artifacts/
+cache/
+tsconfig.tsbuildinfo
+
 # Next.js build output
 .next/
 out/
