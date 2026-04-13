@@ -21,7 +21,25 @@ export function getAllArticles(): VBlogArticle[] {
     if (!Array.isArray(parsed) || parsed.length === 0) {
       return getDefaultArticles();
     }
-    return parsed as VBlogArticle[];
+    const sanitized = (parsed as any[])
+      .filter((a) => a && typeof a === 'object')
+      .filter((a) => typeof a.title === 'string' && typeof a.content === 'string' && typeof a.slug === 'string')
+      .map((a) => ({
+        ...a,
+        tags: Array.isArray(a.tags) ? a.tags : [],
+        category: typeof a.category === 'string' ? a.category : 'Uncategorized',
+        description: typeof a.description === 'string' ? a.description : '',
+        publishDate: typeof a.publishDate === 'string' ? a.publishDate : new Date().toISOString(),
+      })) as VBlogArticle[];
+
+    if (sanitized.length === 0) return getDefaultArticles();
+
+    // Keep defaults visible if storage is partial (prevents "missing" articles after a bad write).
+    const defaults = getDefaultArticles();
+    const bySlug = new Map<string, VBlogArticle>();
+    for (const a of defaults) bySlug.set(a.slug, a);
+    for (const a of sanitized) bySlug.set(a.slug, a);
+    return Array.from(bySlug.values());
   } catch (error) {
     console.error('Error loading articles:', error);
     return getDefaultArticles();

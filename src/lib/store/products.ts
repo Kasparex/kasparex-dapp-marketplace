@@ -69,6 +69,25 @@ export async function getAllProducts(): Promise<Product[]> {
       const product = await fetchProduct(entry.productCid);
       if (product) {
         products.push(product);
+      } else {
+        // Do not drop registry-visible products just because the IPFS JSON fetch failed.
+        // Create a minimal placeholder so the listing stays complete.
+        products.push({
+          id: entry.id,
+          slug: entry.slug,
+          title: `[Unavailable] ${entry.slug}`,
+          description: 'Product metadata is temporarily unavailable. Please retry later.',
+          sellerAddress: entry.sellerAddress,
+          priceKAS: entry.priceKAS,
+          network: entry.network,
+          category: entry.category,
+          assetCids: [],
+          thumbnailCid: entry.thumbnailCid,
+          status: 'active',
+          listingFeePaid: true,
+          createdAt: entry.createdAt,
+          purchaseCount: entry.purchaseCount,
+        });
       }
     }
   }

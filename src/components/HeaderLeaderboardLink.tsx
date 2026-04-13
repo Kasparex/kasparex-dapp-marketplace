@@ -32,11 +32,37 @@ export function HeaderLeaderboardLink() {
   const addr = state.address ? normAddr(state.address) : '';
   const season = useMemo(() => currentSeasonWindowUtc(), []);
   const [tick, setTick] = useState(0);
+  const [remotePoints, setRemotePoints] = useState<number | null>(null);
 
   const currentPoints = useMemo(() => {
     if (!addr) return 0;
     const snap = getChroniclesLocalSeasonSnapshot(addr, season.id);
     return scoreChroniclesSeason(snap).totalPoints ?? 0;
+  }, [addr, season.id, tick]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function run() {
+      if (!addr) {
+        setRemotePoints(null);
+        return;
+      }
+      try {
+        const res = await fetch(
+          `/api/chronicles/leaderboard/score?season=${encodeURIComponent(season.id)}&address=${encodeURIComponent(addr)}`,
+          { cache: 'no-store' }
+        );
+        const j = (await res.json()) as { ok?: boolean; totalScore?: number };
+        if (cancelled) return;
+        setRemotePoints(j.ok && typeof j.totalScore === 'number' ? j.totalScore : 0);
+      } catch {
+        if (!cancelled) setRemotePoints(null);
+      }
+    }
+    void run();
+    return () => {
+      cancelled = true;
+    };
   }, [addr, season.id, tick]);
 
   useEffect(() => {
@@ -79,7 +105,7 @@ export function HeaderLeaderboardLink() {
     setTick((n) => n + 1);
   }
 
-  const displayPoints = addr ? currentPoints : 0;
+  const displayPoints = addr ? (remotePoints ?? currentPoints) : 0;
 
   return (
     <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
