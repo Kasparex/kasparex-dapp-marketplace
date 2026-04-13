@@ -87,7 +87,7 @@ export function DAppPageFooter({ dapp }: DAppPageFooterProps) {
           <div className="text-center pt-6 border-t border-zinc-200 dark:border-zinc-800">
             <div className="text-xs text-zinc-500 dark:text-zinc-500">
               <Link
-                href="/"
+                href="/dapps"
                 className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors"
                 title="The Largest dApp Marketplace on Kaspa. Explore, Build, and Earn Today."
               >

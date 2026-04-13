@@ -210,11 +210,11 @@ export function DAppWidgetFooter({
             {/* Footer Text - Aligned Left */}
             <div className="text-xs text-zinc-500 dark:text-zinc-500 text-left">
               <Link
-                href="/"
+                href="/dapps"
                 className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors"
                 title="The Largest dApp Marketplace on Kaspa. Explore, Build, and Earn Today."
               >
-                Kasparex Hub
+                Kasparex dApps
               </Link>
               {' '}| Built with love by{' '}
               <Link

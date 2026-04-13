@@ -43,7 +43,7 @@ export function StatsPageContent() {
           title="dApps"
           value="Explore"
           subtitle="Discover ecosystem dApps"
-          href="/"
+          href="/dapps"
         />
         <StatsCard
           title="KREX Nodes"

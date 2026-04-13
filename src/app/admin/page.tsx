@@ -27,7 +27,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (isConnected && !isAdmin) {
       // Redirect non-admins away
-      router.push('/');
+      router.push('/dapps');
     }
   }, [isAdmin, isConnected, router]);
 

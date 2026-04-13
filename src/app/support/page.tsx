@@ -12,7 +12,7 @@ export default function SupportPage() {
       <main className="flex-1 p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto py-12">
           <Link
-            href="/"
+            href="/hub"
             className="inline-flex items-center gap-2 mb-8 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
           >
             <svg

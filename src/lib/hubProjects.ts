@@ -15,7 +15,7 @@ export const hubProjects: HubProject[] = [
     name: 'Kasparex dApps',
     category: 'Utility',
     description: 'Explore modular dApps, dashboards and tools built on Kaspa. Discover a growing ecosystem of decentralized applications.',
-    route: '/',
+    route: '/dapps',
     status: 'beta',
   },
   {

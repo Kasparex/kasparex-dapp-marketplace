@@ -67,7 +67,7 @@ function getCurrentSectionTitle(pathname: string): string {
   if (pathname.startsWith('/defi')) {
     return 'DeFi';
   }
-  if (pathname === '/' || pathname.startsWith('/dapps')) {
+  if (pathname === '/dapps' || pathname.startsWith('/dapps/')) {
     return 'dApps';
   }
   if (pathname.startsWith('/tokens')) {
@@ -133,14 +133,12 @@ function getCurrentSectionTitle(pathname: string): string {
 // Function to get current project based on pathname
 function getCurrentProject(pathname: string): HubProject | null {
   // Normalize pathname for matching
-  const normalizedPath = pathname === '/' ? '/' : pathname;
+  const normalizedPath = pathname === '/' ? '/dapps' : pathname;
 
-  // Find matching project
-  return hubProjects.find(project => {
+  return hubProjects.find((project) => {
     if (project.route === normalizedPath) {
       return true;
     }
-    // Handle routes that start with the project route
     if (normalizedPath.startsWith(project.route) && project.route !== '/') {
       return true;
     }
@@ -353,9 +351,9 @@ export function Header() {
         {/* Left side: Logo and Title - no padding, flush to left */}
         <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 lg:pl-6">
           <Link
-            href="/"
+            href="/dapps"
             className="flex items-center gap-2 sm:gap-3 relative group"
-            title="Back to main page"
+            title="Kasparex dApps"
           >
             {!logoError ? (
               <div className="relative h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
@@ -385,7 +383,7 @@ export function Header() {
             </h1>
             {/* Tooltip */}
             <span className="absolute left-0 top-full mt-2 px-2 py-1 text-xs text-white bg-zinc-900 dark:bg-zinc-700 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-              Back to main page
+              dApps marketplace
             </span>
           </Link>
           <span className="relative">
@@ -444,7 +442,7 @@ export function Header() {
                         const isCurrentPage = currentProject?.id === project.id;
 
                         // Normalize pathname for matching
-                        const normalizedPath = pathname === '/' ? '/' : pathname;
+                        const normalizedPath = pathname === '/' ? '/dapps' : pathname;
                         const matchesRoute = project.route === normalizedPath ||
                           (normalizedPath.startsWith(project.route) && project.route !== '/');
 

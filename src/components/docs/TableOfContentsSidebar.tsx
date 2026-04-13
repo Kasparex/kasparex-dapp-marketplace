@@ -150,7 +150,7 @@ export function TableOfContentsSidebar({ items }: TableOfContentsSidebarProps) {
         <div className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 p-4">
           <div className="flex items-center justify-between mb-4">
             <Link
-              href="/"
+              href="/dapps"
               className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium transition-colors text-sm flex items-center gap-1"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -29,7 +29,7 @@ export function RefLandingContent({ referrerAddress }: RefLandingContentProps) {
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
-            href="/"
+            href="/dapps"
             className="px-6 py-3 bg-[#02abb8] hover:bg-[#0299a6] text-white font-bold rounded-lg transition-colors"
           >
             Browse dApps

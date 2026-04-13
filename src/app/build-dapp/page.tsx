@@ -38,7 +38,7 @@ export default function BuildDAppPage() {
 
   const handleCancel = () => {
     if (confirm('Are you sure you want to cancel? Your progress will be lost.')) {
-      router.push('/');
+      router.push('/dapps');
     }
   };
 

@@ -41,7 +41,7 @@ export default function ComingSoonPage() {
               Back to Hub
             </Link>
             <Link
-              href="/"
+              href="/dapps"
               className="px-6 py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
             >
               Browse dApps

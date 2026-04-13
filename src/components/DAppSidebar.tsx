@@ -172,7 +172,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
       {/* Mobile Back Button */}
       <div className="lg:hidden px-4 pt-4 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800">
         <Link
-          href="/"
+          href="/dapps"
           className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
         >
           <svg

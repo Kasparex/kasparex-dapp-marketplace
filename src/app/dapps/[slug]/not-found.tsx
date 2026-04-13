@@ -19,7 +19,7 @@ export default function NotFound() {
             The dApp you&apos;re looking for doesn&apos;t exist or may have been removed.
           </p>
           <Link
-            href="/"
+            href="/dapps"
             className="inline-flex items-center gap-2 px-6 py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
           >
             <svg

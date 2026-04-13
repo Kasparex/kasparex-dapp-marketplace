@@ -196,7 +196,7 @@ export function BuildListSidebar({ title }: BuildListSidebarProps) {
                         </a>
                       </li>
                       <li>
-                        <Link href="/" className="text-[#02abb8] hover:underline">
+                        <Link href="/dapps" className="text-[#02abb8] hover:underline">
                           Browse Marketplace →
                         </Link>
                       </li>
@@ -245,7 +245,7 @@ export function BuildListSidebar({ title }: BuildListSidebarProps) {
                     <Link href="/build-dapp" className="block text-[#02abb8] hover:underline">
                       ➕ Build New dApp
                     </Link>
-                    <Link href="/" className="block text-[#02abb8] hover:underline">
+                    <Link href="/dapps" className="block text-[#02abb8] hover:underline">
                       🔍 Browse Marketplace
                     </Link>
                   </div>
