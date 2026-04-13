@@ -21,6 +21,7 @@ import {
   scheduleDisconnectWagmiWalletBursts,
 } from '@/lib/evm/disconnectWagmi';
 import { isSIWKExpired } from './auth';
+import { deleteSharedCookie, getSharedCookie, setSharedCookie } from '@/lib/storage/sharedCookie';
 
 interface KaspaWalletContextType {
   state: KaspaWalletState & { siwkAuth?: SIWKAuthResult };
@@ -34,6 +35,39 @@ const KaspaWalletContext = createContext<KaspaWalletContextType | undefined>(und
 
 const STORAGE_KEY = 'kaspa_wallet_state';
 const SIWK_STORAGE_KEY = 'kaspa_siwk_auth';
+const COOKIE_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
+
+function getPersisted(key: string): string | null {
+  if (typeof window === 'undefined') return null;
+  // Prefer shared cookie (cross-subdomain), fall back to localStorage (legacy).
+  const cookieVal = getSharedCookie(key);
+  if (cookieVal != null) return cookieVal;
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function setPersisted(key: string, value: string): void {
+  if (typeof window === 'undefined') return;
+  setSharedCookie(key, value, { maxAgeSeconds: COOKIE_TTL_SECONDS });
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // ignore
+  }
+}
+
+function removePersisted(key: string): void {
+  if (typeof window === 'undefined') return;
+  deleteSharedCookie(key);
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    // ignore
+  }
+}
 
 /**
  * Kaspa Wallet Provider Component
@@ -58,8 +92,8 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
           }
         });
 
-        const stored = localStorage.getItem(STORAGE_KEY);
-        const siwkStored = localStorage.getItem(SIWK_STORAGE_KEY);
+        const stored = getPersisted(STORAGE_KEY);
+        const siwkStored = getPersisted(SIWK_STORAGE_KEY);
         
         if (stored) {
           const parsed = JSON.parse(stored);
@@ -75,8 +109,8 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
             if (!hasProvider) {
               // Wallet is not actually connected, clear stored state
               console.log('Stored wallet state found but provider is missing, clearing...');
-              localStorage.removeItem(STORAGE_KEY);
-              localStorage.removeItem(SIWK_STORAGE_KEY);
+              removePersisted(STORAGE_KEY);
+              removePersisted(SIWK_STORAGE_KEY);
               return {
                 isConnected: false,
                 address: null,
@@ -95,7 +129,7 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
                   siwkAuth = siwkParsed;
                 } else {
                   // Remove expired SIWK auth
-                  localStorage.removeItem(SIWK_STORAGE_KEY);
+                  removePersisted(SIWK_STORAGE_KEY);
                 }
               } catch (error) {
                 console.error('Error loading SIWK auth:', error);
@@ -128,22 +162,22 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
         if (state.isConnected) {
           // Save wallet state (without siwkAuth for backward compatibility)
           const { siwkAuth, ...walletState } = state;
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(walletState));
+          setPersisted(STORAGE_KEY, JSON.stringify(walletState));
           
           // Save SIWK auth separately if present
           if (siwkAuth) {
             // Check if expired before saving
             if (!isSIWKExpired(siwkAuth.expirationTime)) {
-              localStorage.setItem(SIWK_STORAGE_KEY, JSON.stringify(siwkAuth));
+              setPersisted(SIWK_STORAGE_KEY, JSON.stringify(siwkAuth));
             } else {
-              localStorage.removeItem(SIWK_STORAGE_KEY);
+              removePersisted(SIWK_STORAGE_KEY);
             }
           } else {
-            localStorage.removeItem(SIWK_STORAGE_KEY);
+            removePersisted(SIWK_STORAGE_KEY);
           }
         } else {
-          localStorage.removeItem(STORAGE_KEY);
-          localStorage.removeItem(SIWK_STORAGE_KEY);
+          removePersisted(STORAGE_KEY);
+          removePersisted(SIWK_STORAGE_KEY);
         }
       } catch (error) {
         console.error('Error saving wallet state:', error);
@@ -313,7 +347,7 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
     });
     // Clear SIWK auth from localStorage
     if (typeof window !== 'undefined') {
-      localStorage.removeItem(SIWK_STORAGE_KEY);
+      removePersisted(SIWK_STORAGE_KEY);
     }
   }, [state.provider]);
   

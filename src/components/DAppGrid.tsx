@@ -7,9 +7,10 @@ import { DAppCard } from './DAppCard';
 interface DAppGridProps {
   dapps: DApp[];
   // Favorites and likes are handled internally by DAppCard using hooks
+  isWalletConnected?: boolean;
 }
 
-export function DAppGrid({ dapps }: DAppGridProps) {
+export function DAppGrid({ dapps, isWalletConnected = true }: DAppGridProps) {
   const [isSidebarHidden, setIsSidebarHidden] = useState(false);
 
   // Check sidebar state from localStorage
@@ -52,6 +53,7 @@ export function DAppGrid({ dapps }: DAppGridProps) {
         <DAppCard 
           key={dapp.id} 
           dapp={dapp}
+          isLocked={!isWalletConnected}
         />
       ))}
     </div>

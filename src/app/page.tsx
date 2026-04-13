@@ -233,16 +233,30 @@ function HomeContent() {
               <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
                 Available dApps
               </h2>
-              {!kaspaState.isConnected && !isEVMConnected ? (
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Please connect a wallet to see available dApps
-                </p>
-              ) : (
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
-                </p>
-              )}
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
+              </p>
             </div>
+
+            {!kaspaState.isConnected && !isEVMConnected ? (
+              <div className="mb-6 rounded-2xl border border-amber-200/60 dark:border-amber-900/40 bg-amber-50/70 dark:bg-amber-950/20 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5">
+                    <svg className="w-5 h-5 text-amber-600 dark:text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">
+                      You can browse all dApps without a wallet.
+                    </p>
+                    <p className="text-xs text-amber-800/80 dark:text-amber-200/80 mt-1">
+                      Connect a Kaspa (L1) or EVM (L2) wallet to interact with dApps and earn rewards.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
 
             {/* Controls Area - single row via FilterBar */}
             <div className="flex flex-col gap-4 mb-6">
@@ -262,43 +276,26 @@ function HomeContent() {
             </div>
 
             {/* Content Display */}
-            {!kaspaState.isConnected && !isEVMConnected ? (
-              <div className="text-center py-12 px-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800">
-                <div className="max-w-md mx-auto">
-                  <div className="text-6xl mb-4">🔌</div>
-                  <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-                    Connect a Wallet
-                  </h3>
-                  <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-                    Connect a Kaspa L1 wallet or an EVM L2 wallet to see and interact with dApps.
-                  </p>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                    Use the wallet button in the header to connect
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <>
-                {viewMode === 'cards' ? (
-                  <DAppGrid dapps={displayedDApps} />
-                ) : viewMode === 'compact' ? (
-                  <DAppCompact dapps={displayedDApps} />
-                ) : (
-                  <DAppTable dapps={displayedDApps} />
-                )}
+            <>
+              {viewMode === 'cards' ? (
+                <DAppGrid dapps={displayedDApps} isWalletConnected={kaspaState.isConnected || isEVMConnected} />
+              ) : viewMode === 'compact' ? (
+                <DAppCompact dapps={displayedDApps} />
+              ) : (
+                <DAppTable dapps={displayedDApps} />
+              )}
 
-                {showLoadMore && hasMore && (
-                  <div className="mt-8 flex justify-center">
-                    <button
-                      onClick={handleLoadMore}
-                      className="px-6 py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
-                    >
-                      Load More
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
+              {showLoadMore && hasMore && (
+                <div className="mt-8 flex justify-center">
+                  <button
+                    onClick={handleLoadMore}
+                    className="px-6 py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+                  >
+                    Load More
+                  </button>
+                </div>
+              )}
+            </>
           </div>
         </div>
       </main>

@@ -1,9 +1,10 @@
 'use client';
 
 import { getDefaultWallets } from '@rainbow-me/rainbowkit';
-import { createConfig, http } from 'wagmi';
+import { createConfig, createStorage, http } from 'wagmi';
 import { defineChain, type Chain } from 'viem';
 import { createKastleMipdBlockConnectors } from '@/lib/evm/kastleMipdBlock';
+import { deleteSharedCookie, getSharedCookie, setSharedCookie } from '@/lib/storage/sharedCookie';
 
 /**
  * Kasplex L2 Mainnet Chain Configuration
@@ -262,6 +263,15 @@ export const config = createConfig({
     [igraGalleonTestnet.id]: http(),
     [igraMainnet.id]: http(),
   },
+  // Persist across kasparex.com subdomains (hub/store/vblog/ads/etc).
+  // Default wagmi storage is localStorage (host-only), which drops sessions on subdomain navigation.
+  storage: createStorage({
+    storage: {
+      getItem: (key) => getSharedCookie(key),
+      setItem: (key, value) => setSharedCookie(key, value, { maxAgeSeconds: 60 * 60 * 24 * 30 }), // 30 days
+      removeItem: (key) => deleteSharedCookie(key),
+    },
+  }),
   ssr: true,
 });
 
