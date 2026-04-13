@@ -266,7 +266,7 @@ function HomeContent() {
             {/* Content Display */}
             <>
               {viewMode === 'cards' ? (
-                <DAppGrid dapps={displayedDApps} isWalletConnected={kaspaState.isConnected || isEVMConnected} />
+                <DAppGrid dapps={displayedDApps} isKaspaConnected={kaspaState.isConnected} isEvmConnected={isEVMConnected} />
               ) : viewMode === 'compact' ? (
                 <DAppCompact dapps={displayedDApps} />
               ) : (

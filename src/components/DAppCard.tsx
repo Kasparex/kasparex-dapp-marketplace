@@ -22,11 +22,11 @@ import { KxListingCardPlaceholder } from '@/components/kx/KxListingCardPlacehold
 
 interface DAppCardProps {
   dapp: DApp;
-  /** When true, card is visible but indicates that interaction needs a wallet. */
-  isLocked?: boolean;
+  isKaspaConnected?: boolean;
+  isEvmConnected?: boolean;
 }
 
-export function DAppCard({ dapp, isLocked = false }: DAppCardProps) {
+export function DAppCard({ dapp, isKaspaConnected = false, isEvmConnected = false }: DAppCardProps) {
   const chainId = useChainId();
 
   // Merge localStorage metadata with frontend data
@@ -103,6 +103,38 @@ export function DAppCard({ dapp, isLocked = false }: DAppCardProps) {
 
   // Get network name for display
   const networkName = mergedDApp.network || (networkType === 'L1' ? 'L1 Kaspa' : 'L2 Igra');
+
+  const isTestnetDApp =
+    mergedDApp.status?.toLowerCase() === 'testnet' ||
+    mergedDApp.network?.toLowerCase().includes('testnet') ||
+    mergedDApp.network?.toLowerCase().includes('galleon') ||
+    mergedDApp.name?.toLowerCase().includes('testnet');
+
+  const needsKaspa = networkType === 'L1' && !isKaspaConnected;
+  const needsEvm = networkType === 'L2' && !isEvmConnected;
+  const isLocked = needsKaspa || needsEvm;
+
+  const lockBorderHoverClass = isTestnetDApp
+    ? 'group-hover:border-yellow-400/80 dark:group-hover:border-yellow-400/60'
+    : networkType === 'L2'
+      ? 'group-hover:border-violet-500/70 dark:group-hover:border-violet-400/60'
+      : 'group-hover:border-[#02abb8]/70 dark:group-hover:border-[#02abb8]/60';
+
+  const lockTitle = isTestnetDApp
+    ? 'Connect wallet (testnet)'
+    : needsKaspa
+      ? 'Connect Kaspa (L1) wallet'
+      : needsEvm
+        ? 'Connect EVM (L2) wallet'
+        : 'Connect wallet';
+
+  const lockBody = isTestnetDApp
+    ? 'This dApp runs on testnet. Connect the appropriate wallet to use it.'
+    : needsKaspa
+      ? 'Connect your Kaspa (L1) wallet to use this dApp.'
+      : needsEvm
+        ? 'Connect your EVM (L2) wallet to use this dApp.'
+        : 'Connect a wallet to use this dApp.';
   
   // Get status type for non-pulsating dot indicator
   const getStatusDotColor = () => {
@@ -123,6 +155,9 @@ export function DAppCard({ dapp, isLocked = false }: DAppCardProps) {
       accent="hub"
       className="w-full text-left relative flex flex-col min-h-[360px]"
     >
+      {isLocked ? (
+        <div className={`absolute inset-0 rounded-2xl border border-transparent transition-colors ${lockBorderHoverClass}`} />
+      ) : null}
       <div
         className={isLocked ? 'transition-all group-hover:opacity-70 group-hover:blur-[0.5px]' : ''}
         aria-hidden={isLocked ? true : undefined}
@@ -292,10 +327,8 @@ export function DAppCard({ dapp, isLocked = false }: DAppCardProps) {
       {isLocked ? (
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
           <div className="mx-6 rounded-2xl border border-zinc-200/80 dark:border-zinc-700/60 bg-white/90 dark:bg-zinc-950/80 backdrop-blur-md px-4 py-3 text-center shadow-lg">
-            <p className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-wide">Connect wallet</p>
-            <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-300">
-              Connect Kaspa (L1) or EVM (L2) to use this dApp.
-            </p>
+            <p className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-wide">{lockTitle}</p>
+            <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-300">{lockBody}</p>
           </div>
         </div>
       ) : null}

@@ -12,6 +12,7 @@ import { BalanceVisibilityProvider } from '@/hooks/useBalanceVisibility';
 import { getErrorMessage } from '@/lib/utils';
 import { ToasterProvider } from '@/components/ui/Toaster';
 import { TooltipProvider } from '@/components/ui/Tooltip';
+import { syncFromHubWalletBridge } from '@/lib/walletBridge/sync';
 
 // CRITICAL: Global error handler to intercept React Query's error serialization
 // We need to patch React Query's internal error handling to convert function-type errors
@@ -626,6 +627,46 @@ function RainbowKitProviderWithTheme({ children }: { children: React.ReactNode }
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  const [bridgeReady, setBridgeReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        // If we already reloaded after applying a sync, don't do it again.
+        const alreadyApplied = sessionStorage.getItem('kaspx_wallet_bridge_applied') === '1';
+        if (alreadyApplied) {
+          sessionStorage.removeItem('kaspx_wallet_bridge_applied');
+          if (!cancelled) setBridgeReady(true);
+          return;
+        }
+
+        const { applied } = await syncFromHubWalletBridge();
+        if (cancelled) return;
+        if (applied) {
+          // Hard reload so wagmi/walletconnect initializes with synced storage.
+          window.location.reload();
+          return;
+        }
+      } catch {
+        // ignore
+      }
+      if (!cancelled) setBridgeReady(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (!bridgeReady) {
+    // Avoid rendering app before storage sync (prevents wallet state flapping).
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-950">
+        <div className="text-sm text-zinc-500 dark:text-zinc-400">Loading…</div>
+      </div>
+    );
+  }
+
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
