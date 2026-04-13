@@ -31,16 +31,6 @@ export function DAppCard({ dapp }: DAppCardProps) {
   // Merge localStorage metadata with frontend data
   const mergedDApp = mergeDAppData(null, dapp);
 
-  // Get contract data for token information
-  let contractAddress = mergedDApp.contractAddress || '';
-  if (!contractAddress) {
-    contractAddress = getContractAddress(chainId, 'DAppRegistry') || '';
-  }
-  const { data: contractData } = useDAppFromContract(
-    contractAddress?.startsWith('0x') ? contractAddress : undefined,
-    chainId
-  );
-
   const category = getCategoryById(mergedDApp.category);
   const slug = mergedDApp.slug || generateDAppSlug(mergedDApp.name);
   const networkType = getDAppNetworkType(mergedDApp);
