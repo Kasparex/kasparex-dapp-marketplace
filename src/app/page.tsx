@@ -67,26 +67,14 @@ function HomeContent() {
     }
   }, [favoritesSet.size, sortBy]);
 
-  // Auto-filter based on connected wallets
-  const effectiveNetworkFilter = useMemo(() => {
-    if (networkFilter !== 'all') {
-      return networkFilter;
-    }
-    const isL1Connected = kaspaState.isConnected;
-    const isL2Connected = isEVMConnected;
-    if (isL1Connected && !isL2Connected) return 'L1' as const;
-    if (isL2Connected && !isL1Connected) return 'L2' as const;
-    return 'all' as const;
-  }, [networkFilter, kaspaState.isConnected, isEVMConnected]);
-
   // Get category counts
   const categoryCounts = useMemo(() => {
     let filteredForCounts = placeholderDApps;
-    if (effectiveNetworkFilter !== 'all') {
-      filteredForCounts = filteredForCounts.filter((dapp) => getDAppNetworkType(dapp) === effectiveNetworkFilter);
+    if (networkFilter !== 'all') {
+      filteredForCounts = filteredForCounts.filter((dapp) => getDAppNetworkType(dapp) === networkFilter);
     }
     return getCategoryCounts(filteredForCounts, filters, searchQuery);
-  }, [filters, searchQuery, effectiveNetworkFilter]);
+  }, [filters, searchQuery, networkFilter]);
 
   // Filter and sort dApps
   const filteredDApps = useMemo(() => {
@@ -95,19 +83,19 @@ function HomeContent() {
       ...filters,
     };
     let filtered = filterDApps(placeholderDApps, filterState, searchQuery);
-    if (effectiveNetworkFilter !== 'all') {
-      filtered = filtered.filter((dapp) => getDAppNetworkType(dapp) === effectiveNetworkFilter);
+    if (networkFilter !== 'all') {
+      filtered = filtered.filter((dapp) => getDAppNetworkType(dapp) === networkFilter);
     }
     if (sortBy === 'favorites') {
       filtered = filtered.filter((dapp) => favoritesSet.has(dapp.id));
     }
     return sortDApps(filtered, sortBy, favoritesSet, likes);
-  }, [selectedCategories, filters, effectiveNetworkFilter, searchQuery, sortBy, favoritesSet, likes]);
+  }, [selectedCategories, filters, networkFilter, searchQuery, sortBy, favoritesSet, likes]);
 
   // Reset displayed count
   useEffect(() => {
     setDisplayedCount(50);
-  }, [selectedCategories, filters, effectiveNetworkFilter, searchQuery, sortBy]);
+  }, [selectedCategories, filters, networkFilter, searchQuery, sortBy]);
 
   const displayedDApps = useMemo(() => {
     return filteredDApps.slice(0, displayedCount);

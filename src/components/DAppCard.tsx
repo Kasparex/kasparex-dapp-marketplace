@@ -123,7 +123,10 @@ export function DAppCard({ dapp, isLocked = false }: DAppCardProps) {
       accent="hub"
       className="w-full text-left relative flex flex-col min-h-[360px]"
     >
-      <div className={isLocked ? 'opacity-70 blur-[0.5px]' : ''} aria-hidden={isLocked ? true : undefined}>
+      <div
+        className={isLocked ? 'transition-all group-hover:opacity-70 group-hover:blur-[0.5px]' : ''}
+        aria-hidden={isLocked ? true : undefined}
+      >
         <KxListingCardMedia aspectClass="h-40 aspect-auto">
           {(mergedDApp.featuredImage || mergedDApp.image) ? (
             <>

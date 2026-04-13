@@ -107,10 +107,10 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
             const isActuallyConnected = walletProvider?.isConnected?.();
 
             if (!hasProvider) {
-              // Wallet is not actually connected, clear stored state
-              console.log('Stored wallet state found but provider is missing, clearing...');
-              removePersisted(STORAGE_KEY);
-              removePersisted(SIWK_STORAGE_KEY);
+              // Don't auto-clear here. Wallet providers can be unavailable during early page init
+              // (especially on cold loads or while extensions are initializing).
+              // Let the user reconnect explicitly rather than force-disconnecting on every navigation.
+              console.log('Stored wallet state found but provider is missing; keeping persisted state for later init.');
               return {
                 isConnected: false,
                 address: null,
