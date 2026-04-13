@@ -628,9 +628,9 @@ function RainbowKitProviderWithTheme({ children }: { children: React.ReactNode }
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <WagmiProvider config={config}>
-      <EvmSubdomainReconnectHint />
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <WagmiProvider config={config}>
+        <EvmSubdomainReconnectHint />
         <BalanceVisibilityProvider>
           <ToasterProvider>
             <TooltipProvider>
@@ -642,8 +642,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
             </TooltipProvider>
           </ToasterProvider>
         </BalanceVisibilityProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+      </WagmiProvider>
+    </QueryClientProvider>
   );
 }
 
