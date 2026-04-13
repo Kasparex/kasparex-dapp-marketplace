@@ -12,27 +12,33 @@ const shellBase =
 export const kxListingCardStaticShellClass =
   'kx-listing-card overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-kx-card';
 
+export type KxDappNetworkAttr = 'l1' | 'l2' | 'testnet';
+
 export function KxListingCard({
   href,
   accent,
   className,
+  dappNetwork,
   children,
 }: {
   href?: string;
   accent: KxListingAccent;
   className?: string;
+  /** Solid L1 / L2 / testnet borders (see globals.css `.kaspa .kx-listing-card[data-kx-dapp-network]`) */
+  dappNetwork?: KxDappNetworkAttr;
   children: ReactNode;
 }) {
   const cls = kxJoinClasses(shellBase, kxListingAccentHoverClasses(accent), className);
+  const dataAttrs = dappNetwork ? ({ 'data-kx-dapp-network': dappNetwork } as const) : {};
   if (href) {
     return (
-      <Link href={href} className={cls} data-kx-accent={accent}>
+      <Link href={href} className={cls} data-kx-accent={accent} {...dataAttrs}>
         {children}
       </Link>
     );
   }
   return (
-    <div className={cls} data-kx-accent={accent}>
+    <div className={cls} data-kx-accent={accent} {...dataAttrs}>
       {children}
     </div>
   );

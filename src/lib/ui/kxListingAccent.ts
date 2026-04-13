@@ -6,7 +6,9 @@ export type KxListingAccent =
   | 'chronicles'
   | 'store'
   | 'games'
-  | 'magazines';
+  | 'magazines'
+  /** dApp grid: border tint comes from `data-kx-dapp-network` in globals.css */
+  | 'dapp-neutral';
 
 /**
  * Hover/interaction classes for unified listing cards (border + subtle shadow).
@@ -26,6 +28,8 @@ export function kxListingAccentHoverClasses(accent: KxListingAccent): string {
       return 'hover:!border-cyan-500 dark:hover:!border-cyan-400 hover:!shadow-kx-card-hover';
     case 'games':
       return 'hover:!border-violet-500 dark:hover:!border-violet-400 hover:!shadow-kx-card-hover';
+    case 'dapp-neutral':
+      return 'hover:!shadow-kx-card-hover';
     case 'hub':
     default:
       return 'hover:!border-[#02abb8] dark:hover:!border-[#02abb8] hover:!shadow-kx-card-hover';

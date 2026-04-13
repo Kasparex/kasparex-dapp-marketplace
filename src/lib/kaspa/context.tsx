@@ -78,6 +78,8 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
    * and wagmi can re-attach. While this timestamp is in the future, we run disconnect bursts.
    */
   const suppressEvmReconnectUntilRef = useRef(0);
+  /** When persisted Kaspa session exists but `getWalletProvider` is null (new subdomain / early init). */
+  const pendingKaspaHydrateRef = useRef<{ provider: KaspaWalletProvider; address: string } | null>(null);
 
   const [state, setState] = useState<KaspaWalletState & { siwkAuth?: SIWKAuthResult }>(() => {
     // Load from localStorage on mount
@@ -109,8 +111,12 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
             if (!hasProvider) {
               // Don't auto-clear here. Wallet providers can be unavailable during early page init
               // (especially on cold loads or while extensions are initializing).
-              // Let the user reconnect explicitly rather than force-disconnecting on every navigation.
-              console.log('Stored wallet state found but provider is missing; keeping persisted state for later init.');
+              // Queue re-hydration when the extension becomes available (e.g. after navigating subdomains).
+              console.log('Stored wallet state found but provider is missing; will retry when provider is available.');
+              pendingKaspaHydrateRef.current = {
+                provider: parsed.provider,
+                address: parsed.address,
+              };
               return {
                 isConnected: false,
                 address: null,
@@ -184,6 +190,68 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [state]);
+
+  // Re-hydrate Kaspa session when the provider appears (cross-subdomain cookie + empty local init).
+  useEffect(() => {
+    const target = pendingKaspaHydrateRef.current;
+    if (!target || typeof window === 'undefined') return;
+
+    const loadSiwk = (): SIWKAuthResult | undefined => {
+      const siwkStored = getPersisted(SIWK_STORAGE_KEY);
+      if (!siwkStored) return undefined;
+      try {
+        const siwkParsed = JSON.parse(siwkStored) as SIWKAuthResult;
+        if (siwkParsed.expirationTime && !isSIWKExpired(siwkParsed.expirationTime)) {
+          return siwkParsed;
+        }
+        removePersisted(SIWK_STORAGE_KEY);
+      } catch {
+        // ignore
+      }
+      return undefined;
+    };
+
+    let alive = true;
+    let intervalId: ReturnType<typeof setInterval> | undefined;
+
+    const tick = async () => {
+      if (!alive || !pendingKaspaHydrateRef.current) return;
+      const wp = getWalletProvider(target.provider);
+      if (!wp) return;
+      try {
+        const addr = await getKaspaAddress(target.provider);
+        if (!addr || !alive) return;
+        if (intervalId) clearInterval(intervalId);
+        pendingKaspaHydrateRef.current = null;
+        const normalized = addr.startsWith('kaspa:') ? addr : `kaspa:${addr}`;
+        const siwkAuth = loadSiwk();
+        setState({
+          isConnected: true,
+          address: normalized,
+          provider: target.provider,
+          error: null,
+          ...(siwkAuth && { siwkAuth }),
+        });
+      } catch {
+        // keep polling
+      }
+    };
+
+    void tick();
+    intervalId = setInterval(() => void tick(), 600);
+    const maxTimer = window.setTimeout(() => {
+      if (intervalId) clearInterval(intervalId);
+    }, 15_000);
+
+    const onFocus = () => void tick();
+    window.addEventListener('focus', onFocus);
+    return () => {
+      alive = false;
+      if (intervalId) clearInterval(intervalId);
+      window.clearTimeout(maxTimer);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, []);
 
   // KasWare: `window.ethereum` can mirror Kaspa account changes; briefly suppress wagmi reinject.
   // Kastle: do not listen here — the same `ethereum` object can emit when switching L1 even when

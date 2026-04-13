@@ -154,6 +154,29 @@
   border-color: #a78bfa !important;
 }
 
+/* dApp listing cards: solid network borders (no gradient) */
+.kaspa .kx-listing-card[data-kx-dapp-network="l1"] {
+  border-color: #02abb8 !important;
+}
+.kaspa .kx-listing-card[data-kx-dapp-network="l1"]:hover,
+.kaspa .kx-listing-card[data-kx-dapp-network="l1"]:focus-visible {
+  border-color: #02abb8 !important;
+}
+.kaspa .kx-listing-card[data-kx-dapp-network="l2"] {
+  border-color: #7c3aed !important;
+}
+.kaspa .kx-listing-card[data-kx-dapp-network="l2"]:hover,
+.kaspa .kx-listing-card[data-kx-dapp-network="l2"]:focus-visible {
+  border-color: #7c3aed !important;
+}
+.kaspa .kx-listing-card[data-kx-dapp-network="testnet"] {
+  border-color: #ca8a04 !important;
+}
+.kaspa .kx-listing-card[data-kx-dapp-network="testnet"]:hover,
+.kaspa .kx-listing-card[data-kx-dapp-network="testnet"]:focus-visible {
+  border-color: #eab308 !important;
+}
+
 .kaspa .hover\:bg-zinc-100:hover {
   background-color: rgba(15, 42, 38, 0.9) !important;
 }

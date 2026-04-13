@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider, MutationCache, QueryCache } from '@ta
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { darkTheme, lightTheme } from '@rainbow-me/rainbowkit';
 import { config } from '@/lib/wagmi';
+import { EvmSubdomainReconnectHint } from '@/lib/evm/EvmSubdomainReconnectHint';
 import { KaspaWalletProvider } from '@/lib/kaspa/context';
 import { AdsRegistryProvider } from '@/components/ads/AdsRegistryProvider';
 import { BalanceVisibilityProvider } from '@/hooks/useBalanceVisibility';
@@ -628,6 +629,7 @@ function RainbowKitProviderWithTheme({ children }: { children: React.ReactNode }
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
+      <EvmSubdomainReconnectHint />
       <QueryClientProvider client={queryClient}>
         <BalanceVisibilityProvider>
           <ToasterProvider>

@@ -17,7 +17,12 @@ import { DAppIcon } from './dapps/DAppIcon';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { getChainById } from '@/lib/wagmi';
-import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import {
+  KxListingCard,
+  KxListingCardBody,
+  KxListingCardMedia,
+  type KxDappNetworkAttr,
+} from '@/components/kx/KxListingCard';
 import { KxListingCardPlaceholder } from '@/components/kx/KxListingCardPlaceholder';
 
 interface DAppCardProps {
@@ -114,11 +119,14 @@ export function DAppCard({ dapp, isKaspaConnected = false, isEvmConnected = fals
   const needsEvm = networkType === 'L2' && !isEvmConnected;
   const isLocked = needsKaspa || needsEvm;
 
-  const lockBorderHoverClass = isTestnetDApp
-    ? 'group-hover:border-yellow-400/80 dark:group-hover:border-yellow-400/60'
-    : networkType === 'L2'
-      ? 'group-hover:border-violet-500/70 dark:group-hover:border-violet-400/60'
-      : 'group-hover:border-[#02abb8]/70 dark:group-hover:border-[#02abb8]/60';
+  const dappNetwork: KxDappNetworkAttr = isTestnetDApp ? 'testnet' : networkType === 'L2' ? 'l2' : 'l1';
+
+  const lockOverlayShell =
+    dappNetwork === 'testnet'
+      ? 'border border-yellow-500/70 bg-yellow-950/92 text-yellow-50'
+      : dappNetwork === 'l2'
+        ? 'border border-violet-500/70 bg-violet-950/92 text-violet-50'
+        : 'border border-[#02abb8]/80 bg-teal-950/92 text-teal-50';
 
   const lockTitle = isTestnetDApp
     ? 'Connect wallet (testnet)'
@@ -152,16 +160,11 @@ export function DAppCard({ dapp, isKaspaConnected = false, isEvmConnected = fals
     <>
     <KxListingCard
       href={`/dapps/${slug}`}
-      accent="hub"
+      accent="dapp-neutral"
+      dappNetwork={dappNetwork}
       className="w-full text-left relative flex flex-col min-h-[360px]"
     >
-      {isLocked ? (
-        <div className={`absolute inset-0 rounded-2xl border border-transparent transition-colors ${lockBorderHoverClass}`} />
-      ) : null}
-      <div
-        className={isLocked ? 'transition-all group-hover:opacity-70 group-hover:blur-[0.5px]' : ''}
-        aria-hidden={isLocked ? true : undefined}
-      >
+      <div className="relative z-0 flex flex-col flex-1 min-h-0">
         <KxListingCardMedia aspectClass="h-40 aspect-auto">
           {(mergedDApp.featuredImage || mergedDApp.image) ? (
             <>
@@ -325,11 +328,19 @@ export function DAppCard({ dapp, isKaspaConnected = false, isEvmConnected = fals
       </div>
 
       {isLocked ? (
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="mx-6 rounded-2xl border border-zinc-200/80 dark:border-zinc-700/60 bg-white/90 dark:bg-zinc-950/80 backdrop-blur-md px-4 py-3 text-center shadow-lg">
-            <p className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-wide">{lockTitle}</p>
-            <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-300">{lockBody}</p>
-          </div>
+        <div
+          className={`pointer-events-none absolute inset-0 z-20 flex flex-col justify-center rounded-xl p-6 opacity-0 transition-opacity duration-200 group-hover:opacity-100 ${lockOverlayShell}`}
+          aria-hidden
+        >
+          <p className="text-center text-sm font-black uppercase tracking-wide">{lockTitle}</p>
+          <p className="mt-3 text-center text-sm leading-relaxed text-white/90">{lockBody}</p>
+          <p className="mt-4 text-center text-xs font-medium uppercase tracking-wider text-white/70">
+            {needsKaspa
+              ? `Kaspa L1${isTestnetDApp ? ' · testnet' : ''}`
+              : needsEvm
+                ? `EVM L2${isTestnetDApp ? ' · testnet' : ''}`
+                : 'Wallet'}
+          </p>
         </div>
       ) : null}
     </KxListingCard>
