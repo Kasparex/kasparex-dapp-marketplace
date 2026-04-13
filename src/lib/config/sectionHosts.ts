@@ -49,15 +49,15 @@ const PATH_TO_SECTION: { prefix: string; key: SectionDomainKey }[] = [
   { prefix: '/ads', key: 'ads' },
   { prefix: '/tree', key: 'tree' },
   { prefix: '/hub', key: 'hub' },
-  /** Shared “main app” routes (mega menu / footer): serve from dApps host in production */
-  { prefix: '/rewards-and-points', key: 'dapps' },
-  { prefix: '/rewards-calculator', key: 'dapps' },
-  { prefix: '/leaderboard', key: 'dapps' },
-  { prefix: '/stats', key: 'dapps' },
+  /** Canonical shared pages live on hub.* */
+  { prefix: '/rewards-and-points', key: 'hub' },
+  { prefix: '/rewards', key: 'hub' },
+  { prefix: '/points', key: 'hub' },
+  { prefix: '/tiers', key: 'hub' },
+  { prefix: '/leaderboard', key: 'hub' },
+  { prefix: '/stats', key: 'hub' },
+  { prefix: '/rewards-calculator', key: 'hub' },
   { prefix: '/style-guide', key: 'dapps' },
-  { prefix: '/tiers', key: 'dapps' },
-  { prefix: '/points', key: 'dapps' },
-  { prefix: '/rewards', key: 'dapps' },
 ];
 
 export function isKasparexSectionHost(host: string): boolean {

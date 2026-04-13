@@ -81,7 +81,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
       </KxListingCardMedia>
 
       <KxListingCardBody comfortable>
-        <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2 group-hover:text-[#02abb8] transition-colors">
+        <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2 transition-colors">
           {collection.name}
         </h3>
         {collection.description && (
@@ -99,7 +99,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
               Loading...
             </div>
           )}
-          <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400 group-hover:text-[#02abb8] transition-colors">
+          <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400 transition-colors">
             View Collection →
           </span>
         </div>

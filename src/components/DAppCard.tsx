@@ -151,7 +151,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-3 mb-2">
               <h3
-                className="text-lg font-black text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors duration-300 flex-1 truncate"
+                className="text-lg font-black text-zinc-900 dark:text-zinc-100 transition-colors duration-300 flex-1 truncate"
                 title={mergedDApp.name}
               >
                 {mergedDApp.name}

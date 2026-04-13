@@ -1,6 +1,7 @@
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { AdsSidebar } from '@/components/ads/AdsSidebar';
+import { AdsRegistryProvider } from '@/components/ads/AdsRegistryProvider';
 
 export default function AdsLayout({
   children,
@@ -14,7 +15,7 @@ export default function AdsLayout({
         <AdsSidebar />
         <main className="flex-1 w-full p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto bg-white dark:bg-zinc-950 border-l border-zinc-200 dark:border-zinc-800">
           <div className="max-w-7xl mx-auto">
-            {children}
+            <AdsRegistryProvider>{children}</AdsRegistryProvider>
           </div>
         </main>
       </div>

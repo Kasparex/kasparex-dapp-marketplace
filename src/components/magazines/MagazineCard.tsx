@@ -31,7 +31,7 @@ export function MagazineCard({ magazine }: MagazineCardProps) {
                             sizes="(max-width: 768px) 100vw, 33vw"
                         />
                         <div className="absolute bottom-3 left-3 right-3 z-20">
-                            <h3 className="text-xl font-bold text-white mb-1 group-hover:text-cyan-300 transition-colors">
+                            <h3 className="text-xl font-bold text-white mb-1 transition-colors">
                                 {magazine.name}
                             </h3>
                             <p className="text-zinc-300 text-sm line-clamp-2">
@@ -53,7 +53,7 @@ export function MagazineCard({ magazine }: MagazineCardProps) {
             <KxListingCardBody comfortable>
                 {!hasCover ? (
                     <>
-                        <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-1 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                        <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-1 transition-colors">
                             {magazine.name}
                         </h3>
                         <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-3">{magazine.author}</p>

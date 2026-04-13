@@ -107,7 +107,7 @@ export const hubProjects: HubProject[] = [
     name: 'Kasparex Rewards',
     category: 'Ecosystem',
     description: 'The global and local rewards system that powers incentives across all dApps and projects. Earn as you explore.',
-    route: '/rewards-and-points',
+    route: '/rewards',
     status: 'available',
   },
   {

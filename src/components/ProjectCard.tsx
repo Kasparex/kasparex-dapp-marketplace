@@ -108,7 +108,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
         )}
 
         <div className="mb-4 pr-24">
-          <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors duration-300">
+          <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 transition-colors duration-300">
             {project.name}
           </h3>
         </div>

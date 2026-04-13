@@ -64,7 +64,8 @@ export async function getAllProducts(): Promise<Product[]> {
   // Fetch full product data for each entry
   const products: Product[] = [];
   for (const entry of registry.products) {
-    if (entry.status === 'active') {
+    // Backward/forward-compatible: treat any non-archived entry as visible
+    if ((entry as { status?: string }).status !== 'archived') {
       const product = await fetchProduct(entry.productCid);
       if (product) {
         products.push(product);
@@ -92,7 +93,9 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   const registry = await fetchProductRegistry();
   
   if (registry && registry.products.length > 0) {
-    const entry = registry.products.find((p) => p.slug === slug && p.status === 'active');
+    const entry = registry.products.find(
+      (p) => p.slug === slug && ((p as { status?: string }).status !== 'archived')
+    );
     
     if (entry) {
       const product = await fetchProduct(entry.productCid);
@@ -118,7 +121,9 @@ export async function getProductById(id: string): Promise<Product | null> {
     return buildDemoProducts().find((p) => p.id === id) || null;
   }
 
-  const entry = registry.products.find((p) => p.id === id && p.status === 'active');
+  const entry = registry.products.find(
+    (p) => p.id === id && ((p as { status?: string }).status !== 'archived')
+  );
   if (!entry) {
     return buildDemoProducts().find((p) => p.id === id) || null;
   }

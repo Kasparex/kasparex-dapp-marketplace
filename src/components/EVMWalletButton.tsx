@@ -15,6 +15,8 @@ import { formatUnits } from 'viem';
 import { Avatar } from './Avatar';
 import { useBalanceVisibility, formatBalanceForDisplay, maskAddress } from '@/hooks/useBalanceVisibility';
 import { getChainById } from '@/lib/wagmi';
+import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
+import { formatLargeNumber } from '@/lib/rewards/calculator';
 
 export function EVMWalletButton() {
   const { address, isConnected } = useAccount();
@@ -23,6 +25,7 @@ export function EVMWalletButton() {
   const { openChainModal } = useChainModal();
   const router = useRouter();
   const { isVisible: isBalanceVisible } = useBalanceVisibility();
+  const { totalPoints } = useLoyaltyPoints();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -196,6 +199,17 @@ export function EVMWalletButton() {
                 <div className="flex items-baseline gap-1">
                   <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{displayBalance}</span>
                   <span className="text-xs text-zinc-600 dark:text-zinc-400">KAS</span>
+                </div>
+              </div>
+
+              {/* Points Display in Dropdown */}
+              <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-2.5 mb-3">
+                <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">XP Points</div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                    {formatLargeNumber(totalPoints ?? 0)}
+                  </span>
+                  <span className="text-xs text-zinc-600 dark:text-zinc-400">XP</span>
                 </div>
               </div>
               

@@ -17,7 +17,11 @@ export function getAllArticles(): VBlogArticle[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEYS.articles);
     if (!stored) return getDefaultArticles();
-    return JSON.parse(stored);
+    const parsed = JSON.parse(stored) as unknown;
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      return getDefaultArticles();
+    }
+    return parsed as VBlogArticle[];
   } catch (error) {
     console.error('Error loading articles:', error);
     return getDefaultArticles();
