@@ -164,7 +164,9 @@ export function DAppCard({ dapp }: DAppCardProps) {
     : networkType === 'L2'
       ? 'border-violet-500/60'
       : 'border-[#02abb8]/70';
-  
+
+  const dappNetworkAttr = isTestnetDApp ? 'testnet' : networkType === 'L2' ? 'l2' : 'l1';
+
   // Get status type for non-pulsating dot indicator
   const getStatusDotColor = () => {
     const statusType = mergedDApp.status?.toLowerCase();
@@ -180,7 +182,8 @@ export function DAppCard({ dapp }: DAppCardProps) {
   return (
     <Link
       href={`/dapps/${slug}`}
-      className={`group block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-[#02abb8]/10 ${hoverBorderClass} hover:-translate-y-2 transition-all duration-500 relative flex flex-col min-h-[360px]`}
+      data-kx-dapp-network={dappNetworkAttr}
+      className={`kx-listing-card kx-dapp-marketplace-card group block w-full text-left bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-[#02abb8]/10 ${hoverBorderClass} hover:-translate-y-2 transition-all duration-500 relative flex flex-col min-h-[360px]`}
     >
       {/* Featured Image Banner - Icon Placeholder (like /hub cards) */}
       <div className="relative w-full h-40 overflow-hidden border-b border-zinc-200/50 dark:border-zinc-800/50 bg-zinc-100/80 dark:bg-zinc-900/95 flex items-center justify-center transition-all duration-700 group-hover:scale-[1.05]">
@@ -348,16 +351,16 @@ export function DAppCard({ dapp }: DAppCardProps) {
 
       {/* Full-card hover: dark panel so copy never blends with the card; pointer-events-none keeps the link clickable. */}
       <div
-        className={`pointer-events-none absolute inset-0 z-20 flex flex-col justify-center rounded-2xl border-2 p-6 opacity-0 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.4)] transition-opacity duration-200 group-hover:opacity-100 ${overlayAccentBorder} bg-zinc-950/[0.96]`}
+        className={`pointer-events-none absolute inset-0 z-20 flex flex-col justify-center rounded-2xl border-2 px-7 py-8 opacity-0 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.35)] transition-opacity duration-200 group-hover:opacity-100 ${overlayAccentBorder} bg-zinc-950/[0.96]`}
         aria-hidden
       >
-        <p className="text-center text-sm font-black uppercase tracking-wide text-zinc-50">
+        <p className="text-center text-base sm:text-lg font-black uppercase tracking-[0.12em] text-zinc-50 drop-shadow-sm">
           {isLocked ? lockTitle : connectedTitle}
         </p>
-        <p className="mt-3 text-center text-sm leading-relaxed text-zinc-200">
+        <p className="mt-4 text-center text-base sm:text-[1.05rem] leading-relaxed text-zinc-100/95 max-w-md mx-auto font-medium">
           {isLocked ? lockBody : connectedBody}
         </p>
-        <p className="mt-4 text-center text-xs font-semibold uppercase tracking-wider text-zinc-400">
+        <p className="mt-5 text-center text-sm font-bold uppercase tracking-[0.18em] text-zinc-400">
           {needsKaspa
             ? `Kaspa L1${isTestnetDApp ? ' · testnet' : ''}`
             : needsEvm

@@ -25,8 +25,9 @@ export function HeaderLeaderboardLink() {
   const pathname = usePathname();
   const { state } = useKaspaWallet();
   const addr = state.address ? normAddr(state.address) : '';
-  const season = useMemo(() => currentSeasonWindowUtc(), []);
   const [tick, setTick] = useState(0);
+  /** Recompute season on tick so month boundaries match leaderboard / season card. */
+  const season = useMemo(() => currentSeasonWindowUtc(), [tick]);
 
   const currentPoints = useMemo(() => {
     if (!addr) return 0;
@@ -35,7 +36,7 @@ export function HeaderLeaderboardLink() {
   }, [addr, season.id, tick]);
 
   useEffect(() => {
-    const t = setInterval(() => setTick((n) => n + 1), 8000);
+    const t = setInterval(() => setTick((n) => n + 1), 4000);
     const onFocus = () => setTick((n) => n + 1);
     window.addEventListener('focus', onFocus);
     return () => {
@@ -79,8 +80,8 @@ export function HeaderLeaderboardLink() {
   return (
     <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
       <span
-        className="tabular-nums text-xs sm:text-sm font-bold text-zinc-600 dark:text-zinc-400 min-w-[1.25rem] text-right"
-        title="Season points (local wallet progress)"
+        className="tabular-nums text-lg sm:text-xl font-black text-zinc-900 dark:text-zinc-100 min-w-[2ch] text-right tracking-tight"
+        title="Season points (same local snapshot as Leaderboard → Your season progress)"
       >
         {displayPoints.toLocaleString()}
       </span>
