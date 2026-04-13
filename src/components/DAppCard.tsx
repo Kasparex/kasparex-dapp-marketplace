@@ -1,10 +1,9 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import Link from 'next/link';
 import { useAccount, useChainId } from 'wagmi';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { DApp, generateSimulatedTicker, generateSimulatedAddress, getDAppNetworkType } from '@/lib/dapps';
+import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
 import { getDAppPaymentConfig } from '@/lib/payments/config';
@@ -14,14 +13,10 @@ import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
 import { DAppInfoModal } from './dapps/DAppInfoModal';
 import { CategoryIcon } from './dapps/CategoryIcon';
-import { mergeDAppData, useDAppFromContract } from '@/lib/dapps/contractData';
+import { mergeDAppData } from '@/lib/dapps/contractData';
 import { DAppIcon } from './dapps/DAppIcon';
-import { getExplorerUrl } from '@/lib/dapps/deployer';
-import { getContractAddress } from '@/lib/contracts/addresses';
-import { DAppFeesModal } from './dapps/DAppFeesModal';
-import { StatusIndicator } from './dapps/StatusIndicator';
-import { getStatusTypeFromString } from './dapps/StatusIndicatorDot';
 import { getChainById } from '@/lib/wagmi';
+import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 
 interface DAppCardProps {
   dapp: DApp;
@@ -70,46 +65,11 @@ export function DAppCard({ dapp }: DAppCardProps) {
   // Modal states
   const [showInfoModal, setShowInfoModal] = useState(false);
 
-  // Get token information
-  // For L1 dApps, use special token mappings (Send KAS -> KAS, Send KREX -> KREX)
-  const isL1DApp = getDAppNetworkType(mergedDApp) === 'L1';
-  let rawTicker: string | null = null;
-  if (isL1DApp) {
-    // L1 dApps: map to actual tokens
-    if (mergedDApp.slug === 'send-kas' || mergedDApp.name.toLowerCase().includes('send kas')) {
-      rawTicker = 'KAS';
-    } else if (mergedDApp.slug === 'send-krex' || mergedDApp.name.toLowerCase().includes('send krex')) {
-      rawTicker = 'KREX';
-    }
-  } else {
-    // L2 dApps: use contract data or generate
-    rawTicker = contractData?.ticker || generateSimulatedTicker(mergedDApp.name);
-  }
-  const tokenTicker = rawTicker ? rawTicker.substring(0, 6) : null;
-  const tokenAddress = contractData?.tokenAddress || (tokenTicker ? generateSimulatedAddress(`${mergedDApp.id}-token`) : null);
-  const dAppContractAddress = contractData?.contractAddress || mergedDApp.contractAddress || generateSimulatedAddress(mergedDApp.id);
-
-  // Format addresses for display - shortened format
-  const formatAddress = (address: string | null) => {
-    if (!address || !address.startsWith('0x')) return null;
-    return `${address.slice(0, 2)}...${address.slice(-4)}`;
-  };
-
-  // Get explorer URLs
-  const dAppExplorerUrl = dAppContractAddress ? getExplorerUrl(dAppContractAddress, chainId) : null;
-  const tokenExplorerUrl = tokenAddress ? getExplorerUrl(tokenAddress, chainId) : null;
-
   const handleIconClick = (e: React.MouseEvent, action: () => void) => {
     e.preventDefault();
     e.stopPropagation();
     action();
   };
-
-  // Get network type for badge (networkType already declared above)
-  const networkBadgeColor =
-    networkType === 'L1'
-      ? 'bg-[#02abb8]/20 dark:bg-[#02abb8]/30 text-[#02abb8] border-[#02abb8]/30 dark:border-[#02abb8]/50'
-      : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700';
 
   // Get network name for display
   const networkName = mergedDApp.network || (networkType === 'L1' ? 'L1 Kaspa' : 'L2 Igra');
@@ -123,13 +83,6 @@ export function DAppCard({ dapp }: DAppCardProps) {
   const needsKaspa = networkType === 'L1' && !isKaspaConnected;
   const needsEvm = networkType === 'L2' && !isEvmConnected;
   const isLocked = needsKaspa || needsEvm;
-
-  /** Network-colored card border on hover — always, even when a wallet is already connected. */
-  const hoverBorderClass = isTestnetDApp
-    ? 'hover:!border-yellow-500 dark:hover:!border-yellow-400'
-    : networkType === 'L2'
-      ? 'hover:!border-violet-600 dark:hover:!border-violet-500'
-      : 'hover:!border-[#02abb8]';
 
   const lockTitle = isTestnetDApp
     ? 'Connect wallet (testnet)'
@@ -165,8 +118,6 @@ export function DAppCard({ dapp }: DAppCardProps) {
       ? 'border-violet-500/60'
       : 'border-[#02abb8]/70';
 
-  const dappNetworkAttr = isTestnetDApp ? 'testnet' : networkType === 'L2' ? 'l2' : 'l1';
-
   // Get status type for non-pulsating dot indicator
   const getStatusDotColor = () => {
     const statusType = mergedDApp.status?.toLowerCase();
@@ -180,30 +131,24 @@ export function DAppCard({ dapp }: DAppCardProps) {
   };
 
   return (
-    <Link
-      href={`/dapps/${slug}`}
-      data-kx-dapp-network={dappNetworkAttr}
-      className={`kx-listing-card kx-dapp-marketplace-card group block w-full text-left bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-[#02abb8]/10 ${hoverBorderClass} hover:-translate-y-2 transition-all duration-500 relative flex flex-col min-h-[360px]`}
-    >
-      {/* Featured Image Banner - Icon Placeholder (like /hub cards) */}
-      <div className="relative w-full h-40 overflow-hidden border-b border-zinc-200/50 dark:border-zinc-800/50 bg-zinc-100/80 dark:bg-zinc-900/95 flex items-center justify-center transition-all duration-700 group-hover:scale-[1.05]">
+    <KxListingCard href={`/dapps/${slug}`} accent="hub" className="relative flex flex-col min-h-0">
+      <KxListingCardMedia>
         {(mergedDApp.featuredImage || mergedDApp.image) ? (
-          <>
-            <img
-              src={mergedDApp.featuredImage || mergedDApp.image}
-              alt={mergedDApp.name}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-700" />
-          </>
+          <img
+            src={mergedDApp.featuredImage || mergedDApp.image}
+            alt={mergedDApp.name}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
         ) : (
-          <svg className="w-12 h-12 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
+          <div className="flex h-full w-full items-center justify-center">
+            <svg className="h-12 w-12 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
         )}
-      </div>
+      </KxListingCardMedia>
 
-      <div className="p-6 relative z-10 flex flex-col flex-1 min-h-0">
+      <KxListingCardBody className="relative z-10 flex flex-1 min-h-0 flex-col">
         {/* Top Section: Profile Picture on Left, Title and Network on Right */}
         <div className="flex items-start gap-4 mb-4">
           {/* Profile Picture - Left Side */}
@@ -218,7 +163,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-3 mb-2">
               <h3
-                className="text-lg font-black text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors duration-300 flex-1 truncate"
+                className="flex-1 truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100"
                 title={mergedDApp.name}
               >
                 {mergedDApp.name}
@@ -262,7 +207,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
         </div>
 
         {/* Description Section - Fixed Spacing */}
-        <div className="mb-6 flex-grow min-h-0">
+        <div className="mb-4 flex-grow min-h-0">
           <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3 leading-relaxed">
             {mergedDApp.utility || mergedDApp.description || mergedDApp.process || ''}
           </p>
@@ -347,11 +292,11 @@ export function DAppCard({ dapp }: DAppCardProps) {
             </div>
           </div>
         </div>
-      </div>
+      </KxListingCardBody>
 
       {/* Full-card hover: dark panel so copy never blends with the card; pointer-events-none keeps the link clickable. */}
       <div
-        className={`pointer-events-none absolute inset-0 z-20 flex flex-col justify-center rounded-2xl border-2 px-7 py-8 opacity-0 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.35)] transition-opacity duration-200 group-hover:opacity-100 ${overlayAccentBorder} bg-zinc-950/[0.96]`}
+        className={`pointer-events-none absolute inset-0 z-20 flex flex-col justify-center rounded-xl border px-6 py-7 opacity-0 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.35)] transition-opacity duration-200 group-hover:opacity-100 ${overlayAccentBorder} bg-zinc-950/[0.96]`}
         aria-hidden
       >
         <p className="text-center text-base sm:text-lg font-black uppercase tracking-[0.12em] text-zinc-50 drop-shadow-sm">
@@ -379,7 +324,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
           onClose={() => setShowInfoModal(false)}
         />
       )}
-    </Link>
+    </KxListingCard>
   );
 }
 

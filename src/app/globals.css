@@ -122,105 +122,17 @@
   border-color: rgba(112, 199, 186, 0.25) !important;
 }
 
-/* Hub listing cards — all themes (Kaspa theme repeats below with higher specificity where needed) */
-.kx-listing-card[data-kx-accent="hub"]:hover,
-.kx-listing-card[data-kx-accent="hub"]:focus-visible {
-  border-color: rgba(2, 171, 184, 0.85) !important;
+/*
+ * Unified listing cards (CrowdKAS /donations campaign grid).
+ * Kaspa theme rewrites border-zinc-*; force emerald hover like DonationCampaignCard.
+ */
+.kx-listing-card:hover,
+.kx-listing-card:focus-visible {
+  border-color: rgb(16, 185, 129) !important;
 }
-.kx-listing-card[data-kx-accent="crowdkas"]:hover,
-.kx-listing-card[data-kx-accent="crowdkas"]:focus-visible {
-  border-color: #4ade80 !important;
-}
-.kx-listing-card[data-kx-accent="vblog"]:hover,
-.kx-listing-card[data-kx-accent="vblog"]:focus-visible {
-  border-color: #fb923c !important;
-}
-.kx-listing-card[data-kx-accent="chronicles"]:hover,
-.kx-listing-card[data-kx-accent="chronicles"]:focus-visible {
-  border-color: #22d3ee !important;
-}
-.kx-listing-card[data-kx-accent="store"]:hover,
-.kx-listing-card[data-kx-accent="store"]:focus-visible,
-.kx-listing-card[data-kx-accent="magazines"]:hover,
-.kx-listing-card[data-kx-accent="magazines"]:focus-visible {
-  border-color: #22d3ee !important;
-}
-.kx-listing-card[data-kx-accent="games"]:hover,
-.kx-listing-card[data-kx-accent="games"]:focus-visible {
-  border-color: #a78bfa !important;
-}
-
-.kx-dapp-marketplace-card[data-kx-dapp-network="l1"] {
-  border-color: #02abb8 !important;
-}
-.kx-dapp-marketplace-card[data-kx-dapp-network="l1"]:hover,
-.kx-dapp-marketplace-card[data-kx-dapp-network="l1"]:focus-visible {
-  border-color: #02abb8 !important;
-}
-.kx-dapp-marketplace-card[data-kx-dapp-network="l2"] {
-  border-color: #7c3aed !important;
-}
-.kx-dapp-marketplace-card[data-kx-dapp-network="l2"]:hover,
-.kx-dapp-marketplace-card[data-kx-dapp-network="l2"]:focus-visible {
-  border-color: #7c3aed !important;
-}
-.kx-dapp-marketplace-card[data-kx-dapp-network="testnet"] {
-  border-color: #ca8a04 !important;
-}
-.kx-dapp-marketplace-card[data-kx-dapp-network="testnet"]:hover,
-.kx-dapp-marketplace-card[data-kx-dapp-network="testnet"]:focus-visible {
-  border-color: #eab308 !important;
-}
-
-/* Kaspa theme: hub listing cards (mega-menu / hub grid): accent hover borders */
-.kaspa .kx-listing-card[data-kx-accent="hub"]:hover,
-.kaspa .kx-listing-card[data-kx-accent="hub"]:focus-visible {
-  border-color: rgba(112, 199, 186, 0.95) !important;
-}
-.kaspa .kx-listing-card[data-kx-accent="crowdkas"]:hover,
-.kaspa .kx-listing-card[data-kx-accent="crowdkas"]:focus-visible {
-  border-color: #4ade80 !important;
-}
-.kaspa .kx-listing-card[data-kx-accent="vblog"]:hover,
-.kaspa .kx-listing-card[data-kx-accent="vblog"]:focus-visible {
-  border-color: #fb923c !important;
-}
-.kaspa .kx-listing-card[data-kx-accent="chronicles"]:hover,
-.kaspa .kx-listing-card[data-kx-accent="chronicles"]:focus-visible {
-  border-color: #22d3ee !important;
-}
-.kaspa .kx-listing-card[data-kx-accent="store"]:hover,
-.kaspa .kx-listing-card[data-kx-accent="store"]:focus-visible,
-.kaspa .kx-listing-card[data-kx-accent="magazines"]:hover,
-.kaspa .kx-listing-card[data-kx-accent="magazines"]:focus-visible {
-  border-color: #22d3ee !important;
-}
-.kaspa .kx-listing-card[data-kx-accent="games"]:hover,
-.kaspa .kx-listing-card[data-kx-accent="games"]:focus-visible {
-  border-color: #a78bfa !important;
-}
-
-/* dApp marketplace cards: solid L1 / L2 / testnet borders */
-.kaspa .kx-dapp-marketplace-card[data-kx-dapp-network="l1"] {
-  border-color: #02abb8 !important;
-}
-.kaspa .kx-dapp-marketplace-card[data-kx-dapp-network="l1"]:hover,
-.kaspa .kx-dapp-marketplace-card[data-kx-dapp-network="l1"]:focus-visible {
-  border-color: #02abb8 !important;
-}
-.kaspa .kx-dapp-marketplace-card[data-kx-dapp-network="l2"] {
-  border-color: #7c3aed !important;
-}
-.kaspa .kx-dapp-marketplace-card[data-kx-dapp-network="l2"]:hover,
-.kaspa .kx-dapp-marketplace-card[data-kx-dapp-network="l2"]:focus-visible {
-  border-color: #7c3aed !important;
-}
-.kaspa .kx-dapp-marketplace-card[data-kx-dapp-network="testnet"] {
-  border-color: #ca8a04 !important;
-}
-.kaspa .kx-dapp-marketplace-card[data-kx-dapp-network="testnet"]:hover,
-.kaspa .kx-dapp-marketplace-card[data-kx-dapp-network="testnet"]:focus-visible {
-  border-color: #eab308 !important;
+.kaspa .kx-listing-card:hover,
+.kaspa .kx-listing-card:focus-visible {
+  border-color: rgb(16, 185, 129) !important;
 }
 
 .kaspa .hover\:bg-zinc-100:hover {

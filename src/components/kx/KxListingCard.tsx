@@ -3,10 +3,11 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { KxListingAccent } from '@/lib/ui/kxListingAccent';
-import { kxJoinClasses, kxListingAccentHoverClasses } from '@/lib/ui/kxListingAccent';
+import { kxJoinClasses } from '@/lib/ui/kxListingAccent';
 
+/** Matches CrowdKAS `DonationCampaignCard`: rounded-xl, zinc border, emerald hover, no lift/shadow. */
 const shellBase =
-  'kx-listing-card group block overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-md shadow-black/[0.06] dark:shadow-black/25 transition-all duration-200';
+  'kx-listing-card group block w-full text-left overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:!border-emerald-500 dark:hover:!border-emerald-500 transition-colors';
 
 export function KxListingCard({
   href,
@@ -19,7 +20,7 @@ export function KxListingCard({
   className?: string;
   children: ReactNode;
 }) {
-  const cls = kxJoinClasses(shellBase, kxListingAccentHoverClasses(accent), className);
+  const cls = kxJoinClasses(shellBase, className);
   return (
     <Link href={href} className={cls} data-kx-accent={accent}>
       {children}
@@ -27,6 +28,7 @@ export function KxListingCard({
   );
 }
 
+/** CrowdKAS listing media: 16/9, zinc plate, no extra divider (campaign cards). */
 export function KxListingCardMedia({
   aspectClass = 'aspect-[16/9]',
   className,
@@ -37,13 +39,7 @@ export function KxListingCardMedia({
   children: ReactNode;
 }) {
   return (
-    <div
-      className={kxJoinClasses(
-        'relative w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 border-b border-zinc-200/60 dark:border-zinc-800/80',
-        aspectClass,
-        className,
-      )}
-    >
+    <div className={kxJoinClasses('relative w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800', aspectClass, className)}>
       {children}
     </div>
   );
@@ -54,6 +50,7 @@ export function KxListingCardBody({
   className,
   children,
 }: {
+  /** CrowdKAS cards use `p-4` (comfortable=false). */
   comfortable?: boolean;
   className?: string;
   children: ReactNode;
