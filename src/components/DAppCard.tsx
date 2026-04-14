@@ -110,7 +110,7 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
 
   const statusLabel = useMemo(() => {
     const status = (mergedDApp.status || '').toLowerCase();
-    const env = status === 'testnet' || isTestnetDApp ? 'Playground' : status === 'mainnet' ? 'Mainnet' : mergedDApp.status;
+    const env = status === 'testnet' || isTestnetDApp ? 'Testnet' : status === 'mainnet' ? 'Mainnet' : mergedDApp.status;
     if (env === 'Suspended') return 'Suspended';
 
     if (networkType === 'L2') {
@@ -145,39 +145,89 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
     return 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/20';
   }, [statusType, networkType]);
 
+  const primaryRequiredChainName = useMemo(() => {
+    const unique = Array.from(new Set(requiredChainNames));
+    if (unique.length === 0) return '';
+    const score = (name: string) => {
+      const n = name.toLowerCase();
+      if (n.includes('mainnet')) return 0;
+      if (n.includes('testnet')) return 2;
+      return 1;
+    };
+    return [...unique].sort((a, b) => score(a) - score(b) || a.localeCompare(b))[0] || unique[0];
+  }, [requiredChainNames]);
+
+  const activeChain = useMemo(() => (chainId ? getChainById(chainId) : null), [chainId]);
+
+  const badgeNetworkLabel = useMemo(() => {
+    if (networkType === 'L2') {
+      if (isEvmConnected && chainId !== undefined && isL2ChainCompatible) {
+        return activeChain?.name || `Chain ${chainId}`;
+      }
+      return primaryRequiredChainName || mergedDApp.network || 'L2';
+    }
+
+    const nice = statusLabel || (networkType === 'L1' ? 'Kaspa' : mergedDApp.network ? mergedDApp.network : 'L1');
+    return nice.replace(/^(L1|L2)\s+/i, '');
+  }, [
+    activeChain?.name,
+    chainId,
+    isEvmConnected,
+    isL2ChainCompatible,
+    mergedDApp.network,
+    networkType,
+    primaryRequiredChainName,
+    statusLabel,
+  ]);
+
+  const badgeKind = useMemo(() => {
+    if (networkType === 'L1') {
+      const lower = badgeNetworkLabel.toLowerCase();
+      if (lower.includes('kaspa') && lower.includes('mainnet')) return 'kaspa_mainnet';
+      if (lower.includes('kaspa') && (lower.includes('testnet') || lower.includes('vprogs') || lower.includes('simulator')))
+        return 'kaspa_testnet';
+      return statusType === 'testnet' ? 'kaspa_testnet' : statusType === 'mainnet' ? 'kaspa_mainnet' : 'neutral';
+    }
+
+    if (networkType === 'L2') {
+      if (isEvmConnected && chainId !== undefined && isL2ChainCompatible) {
+        return activeChain?.testnet ? 'l2_testnet' : 'l2_mainnet';
+      }
+      const lower = badgeNetworkLabel.toLowerCase();
+      if (lower.includes('testnet')) return 'l2_testnet';
+      if (lower.includes('mainnet')) return 'l2_mainnet';
+      return statusType === 'testnet' ? 'l2_testnet' : statusType === 'mainnet' ? 'l2_mainnet' : 'neutral';
+    }
+
+    return 'neutral';
+  }, [
+    activeChain?.testnet,
+    badgeNetworkLabel,
+    chainId,
+    isEvmConnected,
+    isL2ChainCompatible,
+    networkType,
+    statusType,
+  ]);
+
   const topBadgeClassName = useMemo(() => {
-    if (networkType === 'L1' && statusType === 'mainnet') {
+    if (badgeKind === 'kaspa_mainnet') {
       return 'bg-cyan-500/10 text-[#028f9a] dark:text-[#70C7BA] border border-cyan-500/25';
     }
-    if (networkType === 'L1' && statusType === 'testnet') {
+    if (badgeKind === 'kaspa_testnet') {
       return 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border border-zinc-300/40 dark:border-zinc-700/60';
     }
-    if (statusType === 'testnet') {
+    if (badgeKind === 'l2_testnet') {
       return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border border-yellow-300/50 dark:border-yellow-600/40';
     }
-    if (statusType === 'mainnet') {
+    if (badgeKind === 'l2_mainnet') {
       return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 border border-emerald-300/50 dark:border-emerald-600/40';
     }
     if (statusType === 'suspended') {
       return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border border-red-300/50 dark:border-red-600/40';
     }
     return 'bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-300/50 dark:border-zinc-700/60';
-  }, [networkType, statusType]);
-
-  const topBadgeNetworkLabel = useMemo(() => {
-    const nice =
-      statusLabel ||
-      (networkType === 'L1' ? 'Kaspa' : mergedDApp.network ? mergedDApp.network : 'L2');
-    return networkType === 'L1' ? nice.replace(/^L1\s+/i, '') : nice.replace(/^L2\s+/i, '');
-  }, [mergedDApp.network, networkType, statusLabel]);
-
-  const overlayAdditionalNetworks = useMemo(() => {
-    if (networkType === 'L2') {
-      const unique = Array.from(new Set(requiredChainNames));
-      return unique.filter((n) => n !== topBadgeNetworkLabel);
-    }
-    return [];
-  }, [networkType, requiredChainNames, topBadgeNetworkLabel]);
+  }, [badgeKind, statusType]);
 
   const badges: { label: string; className: string; dot?: React.ReactNode }[] = [
     {
@@ -221,7 +271,7 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
               <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
               </svg>
-              {topBadgeNetworkLabel}
+              {badgeNetworkLabel}
             </span>
           </div>
         ) : null}
@@ -364,28 +414,13 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
         aria-hidden
       >
         <div className="flex items-start">
-          <div className="relative group">
-            <span className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm ${topBadgeClassName}`}>
-              {networkType === 'L1' ? 'L1' : 'L2'}
-              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
-              </svg>
-              {topBadgeNetworkLabel}
-            </span>
-
-            {overlayAdditionalNetworks.length > 0 ? (
-              <div className="pointer-events-none absolute left-0 top-full mt-2 hidden w-max max-w-[260px] rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-700 shadow-lg group-hover:block dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200">
-                <div className="font-semibold text-zinc-900 dark:text-zinc-100">Also on</div>
-                <ul className="mt-1 space-y-0.5">
-                  {overlayAdditionalNetworks.map((n) => (
-                    <li key={n} className="whitespace-nowrap">
-                      {n}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-          </div>
+          <span className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm ${topBadgeClassName}`}>
+            {networkType === 'L1' ? 'L1' : 'L2'}
+            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
+            </svg>
+            {badgeNetworkLabel}
+          </span>
         </div>
 
         <div className="flex flex-col items-center justify-center flex-1 text-center">
