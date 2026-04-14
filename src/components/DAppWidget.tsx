@@ -12,7 +12,7 @@ import { GenesisDappWidget } from './dapps/GenesisDappWidget';
 import { GenesisBadgeWidget } from './dapps/GenesisBadgeWidget';
 import { DAppWidgetHeader } from './dapps/DAppWidgetHeader';
 import { DAppWidgetFooter } from './dapps/DAppWidgetFooter';
-import { getDAppContractAddress, getDAppDeployedChainIds } from '@/lib/dapps/contractResolver';
+import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { getChainById } from '@/lib/wagmi';
 import { NetworkCompatibilityModal } from './NetworkCompatibilityModal';
 
@@ -60,15 +60,6 @@ export function DAppWidget({
     () => requiredChainIds.map((id) => getChainById(id)?.name || `Chain ${id}`),
     [requiredChainIds]
   );
-  const deployedChainNames = useMemo(
-    () => getDAppDeployedChainIds(dapp).map((id) => getChainById(id)?.name || `Chain ${id}`),
-    [dapp]
-  );
-  const l2SwitchNetworkHint = useMemo(() => {
-    if (deployedChainNames.length > 0) return deployedChainNames.join(' or ');
-    return '';
-  }, [deployedChainNames]);
-
   const isTestnetDApp = useMemo(() => {
     return (
       dapp.status?.toLowerCase() === 'testnet' ||
@@ -129,9 +120,7 @@ export function DAppWidget({
       : !isEvmConnected
         ? 'Connect L2 Wallet'
         : chainId === undefined || !isL2ChainCompatible
-          ? l2SwitchNetworkHint
-            ? `Switch to ${l2SwitchNetworkHint}`
-            : 'No L2 contract deployed yet'
+          ? `Switch to ${requiredChainNames.join(' or ')}`
           : '';
 
   const primaryRequiredChainName = useMemo(() => {

@@ -14,7 +14,6 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { DAppInfoModal } from './dapps/DAppInfoModal';
 import { CategoryIcon } from './dapps/CategoryIcon';
 import { mergeDAppData } from '@/lib/dapps/contractData';
-import { getDAppDeployedChainIds } from '@/lib/dapps/contractResolver';
 import { DAppIcon } from './dapps/DAppIcon';
 import { getChainById } from '@/lib/wagmi';
 import { StatusIndicatorDot } from './dapps/StatusIndicatorDot';
@@ -83,15 +82,6 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
     () => requiredChainIds.map((id) => getChainById(id)?.name || `Chain ${id}`),
     [requiredChainIds]
   );
-  const deployedChainNames = useMemo(
-    () =>
-      getDAppDeployedChainIds(mergedDApp).map((id) => getChainById(id)?.name || `Chain ${id}`),
-    [mergedDApp]
-  );
-  const l2SwitchNetworkHint = useMemo(() => {
-    if (deployedChainNames.length > 0) return deployedChainNames.join(' or ');
-    return '';
-  }, [deployedChainNames]);
   const isL2ChainCompatible = useMemo(() => {
     if (networkType !== 'L2') return true;
     if (!isEvmConnected || chainId === undefined) return false;
@@ -115,9 +105,7 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
       : !isEvmConnected
         ? 'Connect L2 Wallet'
         : chainId === undefined || !isL2ChainCompatible
-          ? l2SwitchNetworkHint
-            ? `Switch to ${l2SwitchNetworkHint}`
-            : 'No L2 contract deployed yet'
+          ? `Switch to ${requiredChainNames.join(' or ')}`
           : '';
 
   const statusLabel = useMemo(() => {

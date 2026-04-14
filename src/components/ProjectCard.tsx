@@ -1,10 +1,8 @@
 'use client';
 
-import { useAccount } from 'wagmi';
 import { HubProject } from '@/lib/hubProjects';
 import { hubProjectListingAccent } from '@/lib/hub/hubProjectListingAccent';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
-import { useKaspaWallet } from '@/lib/kaspa/context';
 
 interface ProjectCardProps {
   project: HubProject;
@@ -12,34 +10,6 @@ interface ProjectCardProps {
 
 export function ProjectCard({ project }: ProjectCardProps) {
   const accent = hubProjectListingAccent(project.id);
-  const { state: kaspaState } = useKaspaWallet();
-  const { isConnected: isEvmConnected } = useAccount();
-
-  const l1 = kaspaState.isConnected;
-  const l2 = isEvmConnected;
-  const both = l1 && l2;
-  const any = l1 || l2;
-
-  // Best-effort required network per section (keeps behavior consistent site-wide).
-  // `either`: section is browseable but requires at least one wallet for meaningful actions.
-  const required: 'L1' | 'L2' | 'either' =
-    project.id === 'krex-chronicles' || project.id === 'kasparex-rewards' || project.id === 'kasparex-nft-tools'
-      ? 'L1'
-      : project.id === 'kasparex-dapps' || project.id === 'kasparex-donations'
-        ? 'either'
-        : 'L2';
-
-  const isOpenable =
-    both ||
-    (required === 'either' ? any : required === 'L1' ? l1 : l2);
-
-  const overlayTitle = required === 'L1' ? 'Requires Kaspa L1 wallet' : required === 'L2' ? 'Requires EVM L2 wallet' : 'Connect a wallet';
-  const overlaySubtitle =
-    required === 'L1'
-      ? 'Connect your Kaspa (L1) wallet to open this section.'
-      : required === 'L2'
-        ? 'Connect your EVM (L2) wallet to open this section.'
-        : 'Connect either an L1 or L2 wallet to open this section.';
 
   const getStatusBadge = () => {
     switch (project.status) {
@@ -68,8 +38,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
   return (
     <KxListingCard
-      href={isOpenable ? project.route : undefined}
-      disabled={!isOpenable}
+      href={project.route}
       accent={accent}
       className="relative flex flex-col min-h-0"
     >
@@ -128,7 +97,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
         {getStatusBadge() ? <div className="absolute top-4 right-4 z-10">{getStatusBadge()}</div> : null}
 
         <div className="mb-2 pr-24">
-          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{project.name}</h3>
+          <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{project.name}</h3>
         </div>
 
         <div className="mb-3 flex-grow min-h-0">
@@ -143,21 +112,6 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </div>
         </div>
       </KxListingCardBody>
-
-      {/* Network gate overlay (hover). */}
-      {!isOpenable ? (
-        <div
-          className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center rounded-xl border border-cyan-500/40 bg-white/75 dark:bg-zinc-950/70 px-6 py-6 opacity-0 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.14)] backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100"
-          aria-hidden
-        >
-          <p className="text-center text-base sm:text-lg font-black uppercase tracking-[0.12em] text-zinc-900 dark:text-zinc-50 drop-shadow-sm">
-            {overlayTitle}
-          </p>
-          <p className="mt-3 text-center text-sm sm:text-base leading-relaxed text-zinc-700 dark:text-zinc-200/95 max-w-md mx-auto font-semibold">
-            {overlaySubtitle}
-          </p>
-        </div>
-      ) : null}
     </KxListingCard>
   );
 }

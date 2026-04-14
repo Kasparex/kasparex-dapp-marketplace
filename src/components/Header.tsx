@@ -497,6 +497,34 @@ export function Header() {
         <div className="flex items-center gap-2 sm:gap-3 pr-2 sm:pr-4 lg:pr-6">
           <AdminLink />
           <HeaderLeaderboardLink />
+          <Link
+            href="/updates"
+            onClick={() => {
+              // Mark updates as viewed
+              localStorage.setItem('lastViewedUpdateCount', updateCount.toString());
+              setHasNewUpdates(false);
+            }}
+            className="relative p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
+            aria-label="View updates timeline"
+            title="Development Timeline"
+          >
+            <svg
+              className="h-5 w-5 text-zinc-600 dark:text-zinc-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            {hasNewUpdates && (
+              <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full border-2 border-white dark:border-zinc-950"></span>
+            )}
+          </Link>
           <button
             onClick={toggleBalanceVisibility}
             className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
@@ -539,34 +567,6 @@ export function Header() {
               </svg>
             )}
           </button>
-          <Link
-            href="/updates"
-            onClick={() => {
-              // Mark updates as viewed
-              localStorage.setItem('lastViewedUpdateCount', updateCount.toString());
-              setHasNewUpdates(false);
-            }}
-            className="relative p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
-            aria-label="View updates timeline"
-            title="Development Timeline"
-          >
-            <svg
-              className="h-5 w-5 text-zinc-600 dark:text-zinc-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            {hasNewUpdates && (
-              <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full border-2 border-white dark:border-zinc-950"></span>
-            )}
-          </Link>
           <button
             onClick={toggleTheme}
             className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 kaspa:hover:bg-[#231F20]/50 transition-colors flex-shrink-0"

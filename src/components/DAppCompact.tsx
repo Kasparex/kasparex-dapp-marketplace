@@ -4,14 +4,13 @@ import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useAccount, useChainId } from 'wagmi';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { DApp, generateSimulatedTicker, getDAppNetworkType, isDAppCompatibleWithChain } from '@/lib/dapps';
+import { DApp, generateSimulatedTicker, getDAppChainIds, getDAppNetworkType, isDAppCompatibleWithChain } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
 import { StatusIndicator } from './dapps/StatusIndicator';
 import { mergeDAppData, useDAppFromContract } from '@/lib/dapps/contractData';
 import { DAppIcon } from './dapps/DAppIcon';
 import { getContractAddress } from '@/lib/contracts/addresses';
-import { getDAppDeployedChainIds } from '@/lib/dapps/contractResolver';
 import { getChainById } from '@/lib/wagmi';
 
 interface DAppCompactProps {
@@ -63,15 +62,11 @@ function DAppCompactRow({ dapp, selectedNetwork = 'all' }: { dapp: DApp; selecte
         : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300';
 
     const isNetworkMismatch = selectedNetwork !== 'all' && networkType !== selectedNetwork;
-    const deployedChainNames = useMemo(
-        () =>
-            getDAppDeployedChainIds(mergedDApp).map((id) => getChainById(id)?.name || `Chain ${id}`),
-        [mergedDApp]
+    const requiredChainIds = useMemo(() => getDAppChainIds(mergedDApp), [mergedDApp]);
+    const requiredChainNames = useMemo(
+        () => requiredChainIds.map((id) => getChainById(id)?.name || `Chain ${id}`),
+        [requiredChainIds]
     );
-    const l2SwitchNetworkHint = useMemo(() => {
-        if (deployedChainNames.length > 0) return deployedChainNames.join(' or ');
-        return '';
-    }, [deployedChainNames]);
     const isL2ChainCompatible = useMemo(() => {
         if (networkType !== 'L2') return true;
         if (!isEvmConnected || chainId === undefined) return false;
@@ -91,9 +86,7 @@ function DAppCompactRow({ dapp, selectedNetwork = 'all' }: { dapp: DApp; selecte
             : !isEvmConnected
                 ? 'Connect L2 wallet'
                 : !isL2ChainCompatible
-                    ? l2SwitchNetworkHint
-                        ? `Switch to ${l2SwitchNetworkHint}`
-                        : 'No L2 contract deployed yet'
+                    ? `Switch to ${requiredChainNames.join(' or ')}`
                     : '';
 
     return (
