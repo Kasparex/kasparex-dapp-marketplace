@@ -1,14 +1,16 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+import { useMemo, useState } from 'react';
 import { Category, categories } from '@/lib/categories';
 import type { FilterState, DAppStatus } from '@/lib/dapps';
 import { CategoriesIcon, StatusIcon, NetworkIcon } from '@/components/icons/SectionIcons';
 import { StatusIndicatorDot, getStatusTypeFromString } from './dapps/StatusIndicatorDot';
 import { UnifiedSidebar } from './UnifiedSidebar';
 import { SidebarHeader } from './sidebar/SidebarHeader';
-import { SidebarNavItem } from './sidebar/SidebarNavItem';
 import { SidebarCategories } from './sidebar/SidebarCategories';
+import { SidebarSection } from './sidebar/SidebarSection';
 
 interface SidebarProps {
   categories: Category[];
@@ -74,6 +76,7 @@ export function Sidebar({
   onResetFilters,
 }: SidebarProps) {
   const pathname = usePathname();
+  const [showAllCategories, setShowAllCategories] = useState(false);
 
   const handleCategoryToggle = (id: string) => {
     const catId = id as Category;
@@ -108,6 +111,10 @@ export function Sidebar({
     icon: <CategoryIcon id={c.id} />,
   }));
 
+  const visibleCategoryItems = useMemo(() => {
+    return showAllCategories ? categoryItems : categoryItems.slice(0, 10);
+  }, [categoryItems, showAllCategories]);
+
   const statusItems = statusOptions.map((opt) => ({
     id: opt.value,
     label: opt.label,
@@ -131,13 +138,36 @@ export function Sidebar({
       storageKeyPrefix="dapps"
       header={(onHide) => <SidebarHeader backHref={backHref} backLabel={backLabel} onHide={onHide} />}
     >
+      <SidebarSection title="Quick actions" className="mb-8">
+        <div className="space-y-2">
+          <Link href="/build-dapp" className="k-control-btn w-full">
+            List Your dApp
+          </Link>
+          <Link href="/dashboard" className="k-control-btn w-full">
+            Revenue Tree
+          </Link>
+          <Link href="/modules" className="k-control-btn w-full">
+            Modules
+          </Link>
+        </div>
+      </SidebarSection>
+
       <SidebarCategories
         title="Categories"
-        items={categoryItems}
+        items={visibleCategoryItems}
         selectedIds={selectedCategories}
         onSelect={handleCategoryToggle}
         multi
       />
+      {categoryItems.length > 10 ? (
+        <button
+          type="button"
+          onClick={() => setShowAllCategories((v) => !v)}
+          className="w-full -mt-2 mb-6 k-control-btn"
+        >
+          {showAllCategories ? 'Show less' : `Load more (${categoryItems.length - 10})`}
+        </button>
+      ) : null}
 
       <SidebarCategories
         title="Status"

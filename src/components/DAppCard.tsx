@@ -16,6 +16,7 @@ import { CategoryIcon } from './dapps/CategoryIcon';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { DAppIcon } from './dapps/DAppIcon';
 import { getChainById } from '@/lib/wagmi';
+import { StatusIndicatorDot } from './dapps/StatusIndicatorDot';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 
 interface DAppCardProps {
@@ -141,15 +142,50 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
     return `${family} ${env}`;
   }, [mergedDApp.network, mergedDApp.status, isTestnetDApp, networkType]);
 
-  const badges: { label: string; className: string }[] = [
-    networkType === 'L1'
-      ? { label: 'L1', className: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/25' }
-      : { label: 'L2', className: 'bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/25' },
+  const statusType: 'mainnet' | 'testnet' | 'suspended' | 'none' = useMemo(() => {
+    const status = (mergedDApp.status || '').toLowerCase();
+    if (status === 'suspended') return 'suspended';
+    if (status === 'testnet' || isTestnetDApp) return 'testnet';
+    if (status === 'mainnet') return 'mainnet';
+    return 'none';
+  }, [mergedDApp.status, isTestnetDApp]);
+
+  const envBadgeClassName = useMemo(() => {
+    if (statusType === 'testnet') {
+      return 'bg-amber-500/15 text-amber-900 dark:text-amber-200 border-amber-500/25';
+    }
+    if (statusType === 'mainnet') {
+      return networkType === 'L1'
+        ? 'bg-blue-500/15 text-blue-900 dark:text-blue-200 border-blue-500/25'
+        : 'bg-purple-500/15 text-purple-900 dark:text-purple-200 border-purple-500/25';
+    }
+    if (statusType === 'suspended') {
+      return 'bg-red-500/15 text-red-900 dark:text-red-200 border-red-500/25';
+    }
+    return 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/20';
+  }, [statusType, networkType]);
+
+  const badges: { label: string; className: string; dot?: React.ReactNode }[] = [
+    {
+      label: networkType,
+      className:
+        networkType === 'L1'
+          ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/25'
+          : 'bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/25',
+    },
     ...(statusLabel
       ? [
           {
             label: statusLabel.toUpperCase(),
-            className: 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/20',
+            className: envBadgeClassName,
+            dot:
+              statusType === 'mainnet' || statusType === 'testnet' || statusType === 'suspended' ? (
+                <StatusIndicatorDot
+                  statusType={statusType === 'mainnet' ? 'mainnet' : statusType === 'testnet' ? 'testnet' : 'suspended'}
+                  size="sm"
+                  className="!animate-pulse"
+                />
+              ) : undefined,
           },
         ]
       : []),
@@ -318,6 +354,7 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
               key={b.label}
               className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${b.className}`}
             >
+              {b.dot ? <span className="mr-2">{b.dot}</span> : null}
               {b.label}
             </span>
           ))}
