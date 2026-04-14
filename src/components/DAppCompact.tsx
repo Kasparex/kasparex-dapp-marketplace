@@ -51,10 +51,15 @@ function DAppCompactRow({ dapp, selectedNetwork = 'all' }: { dapp: DApp; selecte
     const tokenTicker = rawTicker ? rawTicker.substring(0, 6) : null;
 
     const networkType = getDAppNetworkType(mergedDApp);
-    const networkBadgeColor =
-        networkType === 'L1'
-            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-            : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300';
+    const statusLower = (mergedDApp.status || '').toLowerCase();
+    const isTestnetDApp =
+        statusLower === 'testnet' ||
+        (mergedDApp.network || '').toLowerCase().includes('testnet') ||
+        (mergedDApp.network || '').toLowerCase().includes('galleon') ||
+        (mergedDApp.name || '').toLowerCase().includes('testnet');
+    const networkBadgeColor = isTestnetDApp
+        ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
+        : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300';
 
     const isNetworkMismatch = selectedNetwork !== 'all' && networkType !== selectedNetwork;
     const requiredChainIds = useMemo(() => getDAppChainIds(mergedDApp), [mergedDApp]);

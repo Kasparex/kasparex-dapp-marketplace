@@ -88,16 +88,17 @@ export function DAppWidgetFooter({
             {/* Footer Text - Aligned Left */}
             <div className="text-xs text-zinc-500 dark:text-zinc-500 text-left flex flex-wrap items-center gap-x-2 gap-y-1">
               <Link
-                href="/dapps"
+                href="https://hub.kasparex.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors"
-                title="The Largest dApp Marketplace on Kaspa. Explore, Build, and Earn Today."
+                title="Kasparex Hub"
               >
-                Kasparex dApps
+                Kasparex Hub
               </Link>
 
               {!hideMetaRow ? (
                 <>
-                  <span className="opacity-60">·</span>
                   {category ? (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-[10px] font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
                       <span className="text-[11px] leading-none">{category.emoji}</span>

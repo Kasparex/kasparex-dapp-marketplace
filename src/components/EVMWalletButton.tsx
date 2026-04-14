@@ -30,24 +30,17 @@ export function EVMWalletButton() {
   // Get current network info
   const chain = chainId ? getChainById(chainId) : null;
   const isTestnet = Boolean(chain?.testnet);
-  const isMainnet = !isTestnet;
 
   // Determine dynamic network label and styling
-  let networkLabel = 'L2';
-  let networkBadgeColorClass = 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-300/50 dark:border-blue-600/40';
+  let networkLabel = 'EVM';
+  let networkBadgeColorClass =
+    isTestnet
+      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border border-yellow-300/50 dark:border-yellow-600/40'
+      : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 border border-emerald-300/50 dark:border-emerald-600/40';
   
   if (chain) {
-    const chainName = chain.name.toLowerCase();
-    if (chainName.includes('kasplex')) {
-      networkLabel = 'L2 Kasplex';
-      // Kasplex is yellow on testnet, blue on mainnet
-      networkBadgeColorClass = isMainnet
-        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-300/50 dark:border-blue-600/40'
-        : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border border-yellow-300/50 dark:border-yellow-600/40';
-    } else if (chainName.includes('igra')) {
-      networkLabel = 'L2 Igra';
-      networkBadgeColorClass = 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border border-yellow-300/50 dark:border-yellow-600/40';
-    }
+    // Show full network name (e.g. "Igra Testnet", "Kasplex Mainnet")
+    networkLabel = chain.name;
   }
 
   const { data: balance } = useBalance({
@@ -154,11 +147,6 @@ export function EVMWalletButton() {
               <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
             </svg>
             {networkLabel}
-            {isTestnet && (
-              <span className="ml-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-200/80 dark:bg-amber-800/50 text-amber-900 dark:text-amber-100">
-                Testnet
-              </span>
-            )}
           </span>
           
           {/* Avatar */}
@@ -312,6 +300,9 @@ export function EVMWalletButton() {
     <ConnectButton.Custom>
       {({ openConnectModal, mounted }) => {
         const ready = mounted;
+        const connectButtonClassName = isTestnet
+          ? 'bg-yellow-500 hover:bg-yellow-600'
+          : 'bg-emerald-600 hover:bg-emerald-700';
 
         return (
           <div
@@ -327,7 +318,7 @@ export function EVMWalletButton() {
             <button
               onClick={openConnectModal}
               type="button"
-              className="px-3 py-2 rounded-lg bg-[#0097b2] text-white hover:bg-[#007a91] transition-colors text-sm font-medium flex items-center gap-2"
+              className={`px-3 py-2 rounded-lg ${connectButtonClassName} text-white transition-colors text-sm font-medium flex items-center gap-2`}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />

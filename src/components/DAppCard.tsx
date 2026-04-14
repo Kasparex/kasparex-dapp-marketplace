@@ -155,9 +155,7 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
       return 'bg-amber-500/15 text-amber-900 dark:text-amber-200 border-amber-500/25';
     }
     if (statusType === 'mainnet') {
-      return networkType === 'L1'
-        ? 'bg-emerald-500/15 text-emerald-900 dark:text-emerald-200 border-emerald-500/25'
-        : 'bg-cyan-500/15 text-cyan-900 dark:text-cyan-200 border-cyan-500/25';
+      return 'bg-emerald-500/15 text-emerald-900 dark:text-emerald-200 border-emerald-500/25';
     }
     if (statusType === 'suspended') {
       return 'bg-red-500/15 text-red-900 dark:text-red-200 border-red-500/25';
@@ -168,10 +166,11 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
   const badges: { label: string; className: string; dot?: React.ReactNode }[] = [
     {
       label: networkType,
-      className:
-        networkType === 'L1'
-          ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/25'
-          : 'bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/25',
+      className: statusType === 'testnet'
+        ? 'bg-amber-500/15 text-amber-900 dark:text-amber-200 border-amber-500/25'
+        : statusType === 'mainnet'
+          ? 'bg-emerald-500/15 text-emerald-900 dark:text-emerald-200 border-emerald-500/25'
+          : 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/20',
     },
     ...(statusLabel
       ? [
