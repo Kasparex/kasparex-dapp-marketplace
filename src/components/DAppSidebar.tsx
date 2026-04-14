@@ -14,7 +14,7 @@ import { NetworkAvailabilityBox } from './dapps/NetworkAvailabilityBox';
 import { UnifiedStatusBox } from './rewards/UnifiedStatusBox';
 import { QuickGuideWizard } from './rewards/QuickGuideWizard';
 import { getDAppNetworkType } from '@/lib/dapps';
-import { SidebarQuickActions } from './sidebar/SidebarQuickActions';
+import { SidebarSection } from './sidebar/SidebarSection';
 import { SidebarHeader } from './sidebar/SidebarHeader';
 import { usePathname } from 'next/navigation';
 
@@ -69,30 +69,6 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
   const pathname = usePathname();
   const [showQuickGuide, setShowQuickGuide] = useState(false);
   // Edit functionality removed
-
-  // Quick Menu items
-  const quickMenuItems = [
-    {
-      id: 'revenue-tree-dashboard',
-      label: 'My Revenue Tree',
-      href: '/tree/dashboard',
-      icon: (
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      ),
-    },
-    {
-      id: 'dashboard',
-      label: 'My Dashboard',
-      href: '/tree/dashboard',
-      icon: (
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-      ),
-    },
-  ];
 
   // Sidebar hide/show and resize state
   const [isHidden, setIsHidden] = useState(false);
@@ -262,12 +238,19 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
         />
 
         <div className={`p-5 space-y-6 ${isHidden ? 'lg:hidden' : ''}`}>
-            {/* Quick Menu */}
-            <SidebarQuickActions
-              title="Quick Menu"
-              items={quickMenuItems}
-              activeId={pathname}
-            />
+            <SidebarSection title="Quick actions" className="mb-8">
+              <div className="space-y-2">
+                <Link href="/list-dapp" className="k-control-btn w-full">
+                  List dApp
+                </Link>
+                <Link href="/tree/dashboard" className="k-control-btn w-full">
+                  Revenue Tree
+                </Link>
+                <Link href="/dapp-modules" className="k-control-btn w-full">
+                  Modules
+                </Link>
+              </div>
+            </SidebarSection>
 
             {/* Network Availability */}
             <div>

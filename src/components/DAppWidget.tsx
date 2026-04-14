@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useAccount, useChainId } from 'wagmi';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { DApp, getDAppChainIds, getDAppNetworkType, isDAppCompatibleWithChain } from '@/lib/dapps';
@@ -14,6 +14,7 @@ import { DAppWidgetHeader } from './dapps/DAppWidgetHeader';
 import { DAppWidgetFooter } from './dapps/DAppWidgetFooter';
 import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { getChainById } from '@/lib/wagmi';
+import { NetworkCompatibilityModal } from './NetworkCompatibilityModal';
 
 interface DAppWidgetProps {
   dapp: DApp;
@@ -46,6 +47,7 @@ export function DAppWidget({
   const isKaspaConnected = kaspaState.isConnected;
   const networkType = getDAppNetworkType(dapp);
   const chainId = useChainId();
+  const [showCompatibilityModal, setShowCompatibilityModal] = useState(false);
   const isL1DApp = networkType === 'L1';
 
   let contractAddress = '';
@@ -156,6 +158,11 @@ export function DAppWidget({
 
   const renderShell = (inner: React.ReactNode, resolvedContractAddress?: string) => (
     <div className="relative">
+      <NetworkCompatibilityModal
+        dapp={dapp}
+        isOpen={showCompatibilityModal}
+        onClose={() => setShowCompatibilityModal(false)}
+      />
       <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!isOpenable ? 'opacity-95' : ''}`}>
         {!hideHeader ? (
           <div className={!isOpenable ? 'pointer-events-none' : ''}>
@@ -191,36 +198,54 @@ export function DAppWidget({
 
       {/* Full-widget gating overlay (no hover) */}
       <div
-        className={`absolute inset-0 z-30 flex flex-col justify-between rounded-xl border border-cyan-500/40 bg-white/80 dark:bg-zinc-950/75 px-6 py-6 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.14)] backdrop-blur-md transition-opacity duration-200 ${
+        className={`absolute inset-0 z-30 flex items-center justify-center rounded-xl border border-cyan-500/40 bg-white/80 dark:bg-zinc-950/75 px-6 py-6 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.14)] backdrop-blur-md transition-opacity duration-200 ${
           isOpenable ? 'hidden' : 'opacity-100'
         }`}
         aria-hidden
       >
-        <div className="flex flex-wrap items-center gap-2">
-          {badges.slice(0, 3).map((b) => (
-            <span
-              key={b.label}
-              className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${b.className}`}
-            >
-              {b.label}
-            </span>
-          ))}
-        </div>
+        <div className="w-full max-w-[520px]">
+          <div className="mx-auto w-full max-w-[420px] rounded-2xl border border-zinc-200/70 dark:border-zinc-800/70 bg-white/70 dark:bg-zinc-950/55 backdrop-blur-md shadow-xl overflow-hidden min-h-[520px] flex flex-col">
+            <div className="p-6 sm:p-7">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+                {/* Network switcher / compatibility entrypoint lives here now. */}
+                <button
+                  type="button"
+                  onClick={() => setShowCompatibilityModal(true)}
+                  className="k-control-btn"
+                >
+                  Switch network
+                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  {badges.slice(0, 2).map((b) => (
+                    <span
+                      key={b.label}
+                      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${b.className}`}
+                    >
+                      {b.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
 
-        <div className="flex flex-col items-center justify-center flex-1 text-center">
-          <p className="text-base sm:text-lg font-black uppercase tracking-[0.12em] text-zinc-900 dark:text-zinc-50 drop-shadow-sm">
-            {overlayTitle}
-          </p>
-          {overlaySubtitle ? (
-            <p className="mt-3 text-sm sm:text-base leading-relaxed text-zinc-700 dark:text-zinc-200/95 max-w-md mx-auto font-semibold">
-              {overlaySubtitle}
-            </p>
-          ) : null}
-        </div>
+              <div className="text-center flex-1 flex flex-col items-center justify-center pt-4">
+                <p className="text-lg sm:text-xl font-black uppercase tracking-[0.12em] text-zinc-900 dark:text-zinc-50 drop-shadow-sm">
+                  {overlayTitle}
+                </p>
+                {overlaySubtitle ? (
+                  <p className="mt-3 text-sm sm:text-base leading-relaxed text-zinc-700 dark:text-zinc-200/95 max-w-md mx-auto font-semibold">
+                    {overlaySubtitle}
+                  </p>
+                ) : null}
+              </div>
+            </div>
 
-        <p className="text-center text-[11px] font-black uppercase tracking-[0.22em] text-zinc-600 dark:text-zinc-300">
-          {dapp.network}
-        </p>
+            <div className="px-6 sm:px-7 py-4 border-t border-zinc-200/70 dark:border-zinc-800/70 text-center">
+              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-zinc-600 dark:text-zinc-300">
+                {dapp.network}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
