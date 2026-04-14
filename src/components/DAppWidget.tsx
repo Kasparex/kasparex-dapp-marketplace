@@ -72,7 +72,7 @@ export function DAppWidget({
 
   const statusLabel = useMemo(() => {
     const status = (dapp.status || '').toLowerCase();
-    const env = status === 'testnet' || isTestnetDApp ? 'Testnet' : status === 'mainnet' ? 'Mainnet' : dapp.status;
+    const env = status === 'testnet' || isTestnetDApp ? 'Playground' : status === 'mainnet' ? 'Mainnet' : dapp.status;
     if (env === 'Suspended') return 'Suspended';
 
     if (networkType === 'L2') {
@@ -138,6 +138,12 @@ export function DAppWidget({
   }, [statusType, networkType]);
 
   const topBadgeClassName = useMemo(() => {
+    if (networkType === 'L1' && statusType === 'mainnet') {
+      return 'bg-cyan-500/10 text-[#028f9a] dark:text-[#70C7BA] border border-cyan-500/25';
+    }
+    if (networkType === 'L1' && statusType === 'testnet') {
+      return 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border border-zinc-300/40 dark:border-zinc-700/60';
+    }
     if (statusType === 'testnet') {
       return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border border-yellow-300/50 dark:border-yellow-600/40';
     }
@@ -148,27 +154,20 @@ export function DAppWidget({
       return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border border-red-300/50 dark:border-red-600/40';
     }
     return 'bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-300/50 dark:border-zinc-700/60';
-  }, [statusType]);
+  }, [networkType, statusType]);
 
   const topBadgeNetworkLabel = useMemo(() => {
     const nice = statusLabel || (networkType === 'L1' ? 'Kaspa' : dapp.network ? dapp.network : 'L2');
     return networkType === 'L1' ? nice.replace(/^L1\s+/i, '') : nice.replace(/^L2\s+/i, '');
   }, [dapp.network, networkType, statusLabel]);
 
-  const overlayNetworkLabels = useMemo(() => {
-    if (networkType === 'L2' && requiredChainNames.length > 0) {
-      return requiredChainNames;
+  const overlayAdditionalNetworks = useMemo(() => {
+    if (networkType === 'L2') {
+      const unique = Array.from(new Set(requiredChainNames));
+      return unique.filter((n) => n !== topBadgeNetworkLabel);
     }
-    if (topBadgeNetworkLabel) return [topBadgeNetworkLabel];
     return [];
   }, [networkType, requiredChainNames, topBadgeNetworkLabel]);
-
-  const overlayBadgeClassNameForLabel = (label: string) => {
-    const isTest = /testnet/i.test(label);
-    return isTest
-      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border border-yellow-300/50 dark:border-yellow-600/40'
-      : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 border border-emerald-300/50 dark:border-emerald-600/40';
-  };
 
   const badges: Array<{ label: string; className: string }> = [
     {
@@ -236,24 +235,34 @@ export function DAppWidget({
 
       {/* Full-widget gating overlay (no hover) */}
       <div
-        className={`pointer-events-none absolute inset-0 z-30 flex flex-col justify-between rounded-xl border border-zinc-900/10 bg-white dark:border-white/10 dark:bg-zinc-950 px-6 py-6 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.14)] ${
+        className={`absolute inset-0 z-30 flex flex-col justify-between rounded-xl border border-zinc-900/10 bg-white dark:border-white/10 dark:bg-zinc-950 px-6 py-6 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.14)] ${
           !isOpenable || isContractMissingOnThisNetwork ? 'opacity-100' : 'hidden'
         }`}
         aria-hidden
       >
-        <div className="flex flex-wrap items-start gap-2">
-          {overlayNetworkLabels.map((label) => (
-            <span
-              key={label}
-              className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm ${overlayBadgeClassNameForLabel(label)}`}
-            >
+        <div className="flex items-start">
+          <div className="relative group">
+            <span className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm ${topBadgeClassName}`}>
               {networkType === 'L1' ? 'L1' : 'L2'}
               <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
               </svg>
-              {label}
+              {topBadgeNetworkLabel}
             </span>
-          ))}
+
+            {overlayAdditionalNetworks.length > 0 ? (
+              <div className="pointer-events-none absolute left-0 top-full mt-2 hidden w-max max-w-[260px] rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-700 shadow-lg group-hover:block dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200">
+                <div className="font-semibold text-zinc-900 dark:text-zinc-100">Also on</div>
+                <ul className="mt-1 space-y-0.5">
+                  {overlayAdditionalNetworks.map((n) => (
+                    <li key={n} className="whitespace-nowrap">
+                      {n}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
         </div>
 
         <div className="flex flex-col items-center justify-center flex-1 text-center">
