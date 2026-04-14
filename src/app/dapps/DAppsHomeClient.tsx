@@ -74,11 +74,15 @@ export function DAppsHomeContent() {
       ...filters,
     };
     let filtered = filterDApps(placeholderDApps, filterState, searchQuery);
+    // ALL | L1 | L2 switcher should filter the listing, not just gate clickability.
+    if (networkFilter !== 'all') {
+      filtered = filtered.filter((dapp) => getDAppNetworkType(dapp) === networkFilter);
+    }
     if (sortBy === 'favorites') {
       filtered = filtered.filter((dapp) => favoritesSet.has(dapp.id));
     }
     return sortDApps(filtered, sortBy, favoritesSet, likes);
-  }, [selectedCategories, filters, searchQuery, sortBy, favoritesSet, likes]);
+  }, [selectedCategories, filters, searchQuery, sortBy, favoritesSet, likes, networkFilter]);
 
   useEffect(() => {
     setDisplayedCount(50);

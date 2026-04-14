@@ -104,19 +104,19 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
   const overlayTitle = isNetworkMismatch
     ? mismatchTitle
     : networkType === 'L1'
-      ? 'Kaspa L1 dApp'
+      ? 'Available on L1'
       : !isEvmConnected
-        ? 'EVM L2 dApp'
+        ? 'Available on L2'
         : !isL2ChainCompatible
           ? 'Wrong network'
-          : 'EVM L2 dApp';
+          : 'Available on L2';
 
   const overlaySubtitle = isNetworkMismatch
     ? mismatchBody
     : networkType === 'L1'
       ? isKaspaConnected
         ? ''
-        : 'Connect your Kaspa (L1) wallet to open.'
+        : 'Connect your (L1) wallet to open.'
       : !isEvmConnected
         ? 'Connect your EVM (L2) wallet to open.'
         : chainId === undefined
@@ -125,17 +125,30 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
             ? `Switch to ${requiredChainNames.join(' or ')}.`
             : '';
 
+  const statusLabel = useMemo(() => {
+    const status = (mergedDApp.status || '').toLowerCase();
+    const env = status === 'testnet' || isTestnetDApp ? 'Testnet' : status === 'mainnet' ? 'Mainnet' : mergedDApp.status;
+    if (env === 'Suspended') return 'Suspended';
+
+    if (networkType === 'L2') {
+      const lower = (mergedDApp.network || '').toLowerCase();
+      const family = lower.includes('igra') ? 'Igra' : lower.includes('kasplex') ? 'Kasplex' : 'L2';
+      return `${family} ${env}`;
+    }
+
+    const lower = (mergedDApp.network || '').toLowerCase();
+    const family = lower.includes('kaspa') ? 'Kaspa' : 'L1';
+    return `${family} ${env}`;
+  }, [mergedDApp.network, mergedDApp.status, isTestnetDApp, networkType]);
+
   const badges: { label: string; className: string }[] = [
     networkType === 'L1'
       ? { label: 'L1', className: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/25' }
       : { label: 'L2', className: 'bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/25' },
-    ...(isTestnetDApp
-      ? [{ label: 'TESTNET', className: 'bg-amber-500/15 text-amber-800 dark:text-amber-200 border-amber-500/25' }]
-      : []),
-    ...(mergedDApp.status
+    ...(statusLabel
       ? [
           {
-            label: mergedDApp.status.toUpperCase(),
+            label: statusLabel.toUpperCase(),
             className: 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/20',
           },
         ]
