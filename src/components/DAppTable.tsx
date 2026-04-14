@@ -2,28 +2,34 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { useChainId } from 'wagmi';
-import { DApp, generateSimulatedTicker, getDAppNetworkType } from '@/lib/dapps';
+import { useAccount, useChainId } from 'wagmi';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { DApp, generateSimulatedTicker, getDAppChainIds, getDAppNetworkType, isDAppCompatibleWithChain } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
 import { StatusIndicator } from './dapps/StatusIndicator';
 import { mergeDAppData, useDAppFromContract } from '@/lib/dapps/contractData';
 import { DAppIcon } from './dapps/DAppIcon';
 import { getContractAddress } from '@/lib/contracts/addresses';
+import { getChainById } from '@/lib/wagmi';
 
 interface DAppTableProps {
   dapps: DApp[];
+  selectedNetwork?: 'all' | 'L1' | 'L2';
 }
 
 interface DAppTableRowProps {
   dapp: DApp;
+  selectedNetwork?: 'all' | 'L1' | 'L2';
 }
 
 type SortField = 'name' | 'token' | 'category' | 'status' | 'network' | 'version' | 'id';
 type SortDirection = 'asc' | 'desc';
 
-function DAppTableRow({ dapp }: DAppTableRowProps) {
+function DAppTableRow({ dapp, selectedNetwork = 'all' }: DAppTableRowProps) {
   const chainId = useChainId();
+  const { isConnected: isEvmConnected } = useAccount();
+  const { state: kaspaState } = useKaspaWallet();
   const mergedDApp = mergeDAppData(null, dapp);
   const category = getCategoryById(mergedDApp.category);
   const slug = mergedDApp.slug || generateDAppSlug(mergedDApp.name);
@@ -61,75 +67,115 @@ function DAppTableRow({ dapp }: DAppTableRowProps) {
     networkType === 'L1'
       ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
       : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300';
+
+  const isNetworkMismatch = selectedNetwork !== 'all' && networkType !== selectedNetwork;
+  const requiredChainIds = useMemo(() => getDAppChainIds(mergedDApp), [mergedDApp]);
+  const requiredChainNames = useMemo(
+    () => requiredChainIds.map((id) => getChainById(id)?.name || `Chain ${id}`),
+    [requiredChainIds]
+  );
+  const isL2ChainCompatible = useMemo(() => {
+    if (networkType !== 'L2') return true;
+    if (!isEvmConnected || chainId === undefined) return false;
+    return isDAppCompatibleWithChain(mergedDApp, chainId);
+  }, [networkType, isEvmConnected, chainId, mergedDApp]);
+
+  const isOpenable =
+    !isNetworkMismatch &&
+    (networkType === 'L1'
+      ? kaspaState.isConnected
+      : isEvmConnected && chainId !== undefined && isL2ChainCompatible);
+
+  const gateHint = isNetworkMismatch
+    ? 'Not available for this filter'
+    : networkType === 'L1'
+      ? 'Connect L1 wallet'
+      : !isEvmConnected
+        ? 'Connect L2 wallet'
+        : !isL2ChainCompatible
+          ? `Switch to ${requiredChainNames.join(' or ')}`
+          : '';
   
   return (
-    <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+    <tr
+      className={`border-b border-zinc-100 dark:border-zinc-800 transition-colors ${
+        isOpenable ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50' : 'opacity-95'
+      }`}
+    >
       <td className="py-4 px-4">
-        <Link href={`/dapps/${slug}`} className="flex items-center">
-          <DAppIcon
-            dAppName={mergedDApp.name}
-            category={mergedDApp.category}
-            size={32}
-            className="flex-shrink-0"
-          />
-        </Link>
+        {isOpenable ? (
+          <Link href={`/dapps/${slug}`} className="flex items-center">
+            <DAppIcon
+              dAppName={mergedDApp.name}
+              category={mergedDApp.category}
+              size={32}
+              className="flex-shrink-0"
+            />
+          </Link>
+        ) : (
+          <div className="flex items-center cursor-not-allowed">
+            <DAppIcon
+              dAppName={mergedDApp.name}
+              category={mergedDApp.category}
+              size={32}
+              className="flex-shrink-0"
+            />
+          </div>
+        )}
       </td>
       <td className="py-4 px-4">
-        <Link href={`/dapps/${slug}`} className="block">
-          <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-            {mergedDApp.name}
-          </span>
-        </Link>
-      </td>
-      <td className="py-4 px-4">
-        <Link href={`/dapps/${slug}`} className="block">
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            GRID
-          </span>
-        </Link>
-      </td>
-      <td className="py-4 px-4">
-        <Link href={`/dapps/${slug}`} className="block">
-          {category && (
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">
-              {category.emoji} {category.name}
+        {isOpenable ? (
+          <Link href={`/dapps/${slug}`} className="block">
+            <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+              {mergedDApp.name}
             </span>
-          )}
-        </Link>
+          </Link>
+        ) : (
+          <div className="block cursor-not-allowed">
+            <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+              {mergedDApp.name}
+            </span>
+            {gateHint ? (
+              <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+                {gateHint}
+              </div>
+            ) : null}
+          </div>
+        )}
       </td>
       <td className="py-4 px-4">
-        <Link href={`/dapps/${slug}`} className="block">
-          <StatusIndicator dapp={mergedDApp} size="sm" clickable={false} />
-        </Link>
+        <span className="text-sm text-zinc-600 dark:text-zinc-400">GRID</span>
       </td>
       <td className="py-4 px-4">
-        <Link href={`/dapps/${slug}`} className="block">
-          <span
-            className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${networkBadgeColor}`}
-          >
-            {networkType}
-          </span>
-        </Link>
-      </td>
-      <td className="py-4 px-4">
-        <Link href={`/dapps/${slug}`} className="block">
+        {category && (
           <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            1.0.0
+            {category.emoji} {category.name}
           </span>
-        </Link>
+        )}
       </td>
       <td className="py-4 px-4">
-        <Link href={`/dapps/${slug}`} className="block">
-          <span className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">
-            {mergedDApp.id}
-          </span>
-        </Link>
+        <StatusIndicator dapp={mergedDApp} size="sm" clickable={false} />
+      </td>
+      <td className="py-4 px-4">
+        <span
+          className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${networkBadgeColor}`}
+        >
+          {networkType}
+        </span>
+      </td>
+      <td className="py-4 px-4">
+        <span className="text-sm text-zinc-600 dark:text-zinc-400">1.0.0</span>
+      </td>
+      <td className="py-4 px-4">
+        <span className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">
+          {mergedDApp.id}
+        </span>
       </td>
     </tr>
   );
 }
 
-export function DAppTable({ dapps }: DAppTableProps) {
+export function DAppTable({ dapps, selectedNetwork = 'all' }: DAppTableProps) {
   // Sorting
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -290,7 +336,7 @@ export function DAppTable({ dapps }: DAppTableProps) {
         </thead>
         <tbody>
           {sortedDApps.map((dapp) => (
-            <DAppTableRow key={dapp.id} dapp={dapp} />
+            <DAppTableRow key={dapp.id} dapp={dapp} selectedNetwork={selectedNetwork} />
           ))}
         </tbody>
       </table>

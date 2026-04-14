@@ -2,21 +2,26 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
-import { useChainId } from 'wagmi';
-import { DApp, generateSimulatedTicker, getDAppNetworkType } from '@/lib/dapps';
+import { useAccount, useChainId } from 'wagmi';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { DApp, generateSimulatedTicker, getDAppChainIds, getDAppNetworkType, isDAppCompatibleWithChain } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
 import { StatusIndicator } from './dapps/StatusIndicator';
 import { mergeDAppData, useDAppFromContract } from '@/lib/dapps/contractData';
 import { DAppIcon } from './dapps/DAppIcon';
 import { getContractAddress } from '@/lib/contracts/addresses';
+import { getChainById } from '@/lib/wagmi';
 
 interface DAppCompactProps {
     dapps: DApp[];
+    selectedNetwork?: 'all' | 'L1' | 'L2';
 }
 
-function DAppCompactRow({ dapp }: { dapp: DApp }) {
+function DAppCompactRow({ dapp, selectedNetwork = 'all' }: { dapp: DApp; selectedNetwork?: 'all' | 'L1' | 'L2' }) {
     const chainId = useChainId();
+    const { isConnected: isEvmConnected } = useAccount();
+    const { state: kaspaState } = useKaspaWallet();
     const mergedDApp = mergeDAppData(null, dapp);
     const category = getCategoryById(mergedDApp.category);
     const slug = mergedDApp.slug || generateDAppSlug(mergedDApp.name);
@@ -51,52 +56,123 @@ function DAppCompactRow({ dapp }: { dapp: DApp }) {
             ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
             : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300';
 
+    const isNetworkMismatch = selectedNetwork !== 'all' && networkType !== selectedNetwork;
+    const requiredChainIds = useMemo(() => getDAppChainIds(mergedDApp), [mergedDApp]);
+    const requiredChainNames = useMemo(
+        () => requiredChainIds.map((id) => getChainById(id)?.name || `Chain ${id}`),
+        [requiredChainIds]
+    );
+    const isL2ChainCompatible = useMemo(() => {
+        if (networkType !== 'L2') return true;
+        if (!isEvmConnected || chainId === undefined) return false;
+        return isDAppCompatibleWithChain(mergedDApp, chainId);
+    }, [networkType, isEvmConnected, chainId, mergedDApp]);
+
+    const isOpenable =
+        !isNetworkMismatch &&
+        (networkType === 'L1'
+            ? kaspaState.isConnected
+            : isEvmConnected && chainId !== undefined && isL2ChainCompatible);
+
+    const gateHint = isNetworkMismatch
+        ? 'Not available for this filter'
+        : networkType === 'L1'
+            ? 'Connect L1 wallet'
+            : !isEvmConnected
+                ? 'Connect L2 wallet'
+                : !isL2ChainCompatible
+                    ? `Switch to ${requiredChainNames.join(' or ')}`
+                    : '';
+
     return (
-        <Link
-            href={`/dapps/${slug}`}
-            className="flex items-center gap-4 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all group"
-        >
-            <div className="flex-shrink-0">
-                <DAppIcon
-                    dAppName={mergedDApp.name}
-                    category={mergedDApp.category}
-                    size={40}
-                    className="rounded-lg"
-                />
-            </div>
+        <div className="relative group">
+            {isOpenable ? (
+                <Link
+                    href={`/dapps/${slug}`}
+                    className="flex items-center gap-4 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all"
+                >
+                    <div className="flex-shrink-0">
+                        <DAppIcon
+                            dAppName={mergedDApp.name}
+                            category={mergedDApp.category}
+                            size={40}
+                            className="rounded-lg"
+                        />
+                    </div>
 
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
-                        {mergedDApp.name}
-                    </h3>
-                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${networkBadgeColor}`}>
-                        {networkType}
-                    </span>
-                </div>
-                <div className="flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400">
-                    <span className="truncate">{category?.emoji} {category?.name}</span>
-                    <span>•</span>
-                    <span className="font-medium text-zinc-700 dark:text-zinc-300">GRID</span>
-                </div>
-                {mergedDApp.description && (
-                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1 mt-0.5 opacity-80">
-                        {mergedDApp.description}
-                    </p>
-                )}
-            </div>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                                {mergedDApp.name}
+                            </h3>
+                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${networkBadgeColor}`}>
+                                {networkType}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400">
+                            <span className="truncate">{category?.emoji} {category?.name}</span>
+                            <span>•</span>
+                            <span className="font-medium text-zinc-700 dark:text-zinc-300">GRID</span>
+                        </div>
+                        {mergedDApp.description && (
+                            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1 mt-0.5 opacity-80">
+                                {mergedDApp.description}
+                            </p>
+                        )}
+                    </div>
 
-            <div className="flex flex-col items-end gap-2">
-                <StatusIndicator dapp={mergedDApp} size="sm" clickable={false} />
-                <div className="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono">
-                    ID: {mergedDApp.id}
+                    <div className="flex flex-col items-end gap-2">
+                        <StatusIndicator dapp={mergedDApp} size="sm" clickable={false} />
+                        <div className="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono">
+                            ID: {mergedDApp.id}
+                        </div>
+                    </div>
+                </Link>
+            ) : (
+                <div className="flex items-center gap-4 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 opacity-95 cursor-not-allowed">
+                    <div className="flex-shrink-0">
+                        <DAppIcon
+                            dAppName={mergedDApp.name}
+                            category={mergedDApp.category}
+                            size={40}
+                            className="rounded-lg"
+                        />
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                                {mergedDApp.name}
+                            </h3>
+                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${networkBadgeColor}`}>
+                                {networkType}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400">
+                            <span className="truncate">{category?.emoji} {category?.name}</span>
+                            <span>•</span>
+                            <span className="font-medium text-zinc-700 dark:text-zinc-300">GRID</span>
+                        </div>
+                        {gateHint ? (
+                            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1 mt-0.5 opacity-90">
+                                {gateHint}
+                            </p>
+                        ) : null}
+                    </div>
+
+                    <div className="flex flex-col items-end gap-2">
+                        <StatusIndicator dapp={mergedDApp} size="sm" clickable={false} />
+                        <div className="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono">
+                            ID: {mergedDApp.id}
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </Link>
+            )}
+        </div>
     );
 }
 
-export function DAppCompact({ dapps }: DAppCompactProps) {
+export function DAppCompact({ dapps, selectedNetwork = 'all' }: DAppCompactProps) {
     const [isSidebarHidden, setIsSidebarHidden] = useState(false);
 
     // Check sidebar state from localStorage
@@ -133,7 +209,7 @@ export function DAppCompact({ dapps }: DAppCompactProps) {
     return (
         <div className={`grid ${gridCols} gap-3`}>
             {dapps.map((dapp) => (
-                <DAppCompactRow key={dapp.id} dapp={dapp} />
+                <DAppCompactRow key={dapp.id} dapp={dapp} selectedNetwork={selectedNetwork} />
             ))}
         </div>
     );

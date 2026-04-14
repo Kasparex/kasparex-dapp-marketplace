@@ -122,7 +122,7 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
         : chainId === undefined
           ? 'Connect your EVM (L2) wallet to a supported network.'
           : !isL2ChainCompatible
-            ? `Switch your wallet network to ${requiredChainNames.join(' or ')}.`
+            ? `Switch to ${requiredChainNames.join(' or ')}.`
             : '';
 
   const badges: { label: string; className: string }[] = [
@@ -150,6 +150,17 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
       className="relative flex flex-col min-h-0"
     >
       <KxListingCardMedia>
+        <div className="pointer-events-none absolute left-4 top-4 z-20 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          <span
+            className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${
+              networkType === 'L1'
+                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/25'
+                : 'bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/25'
+            }`}
+          >
+            {networkType}
+          </span>
+        </div>
         {(mergedDApp.featuredImage || mergedDApp.image) ? (
           <img
             src={mergedDApp.featuredImage || mergedDApp.image}
