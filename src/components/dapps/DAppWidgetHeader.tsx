@@ -6,7 +6,6 @@ import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { useDAppFromContract, mergeDAppData } from '@/lib/dapps/contractData';
 import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { DAppInfoModal } from './DAppInfoModal';
-import { StatusIndicatorDot } from './StatusIndicatorDot';
 import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
 import { DAppEmbed } from './DAppEmbed';
@@ -89,45 +88,32 @@ export function DAppWidgetHeader({
     return `${family} ${env}`;
   })();
 
-  const badgeColor =
+  const badgeClassName =
     statusType === 'testnet'
-      ? 'bg-amber-500/15 text-amber-900 dark:text-amber-200 border-amber-500/25'
+      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border border-yellow-300/50 dark:border-yellow-600/40'
       : statusType === 'mainnet'
-        ? 'bg-emerald-500/15 text-emerald-900 dark:text-emerald-200 border-emerald-500/25'
+        ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 border border-emerald-300/50 dark:border-emerald-600/40'
         : statusType === 'suspended'
-          ? 'bg-red-500/15 text-red-900 dark:text-red-200 border-red-500/25'
-          : 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/20';
+          ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border border-red-300/50 dark:border-red-600/40'
+          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-300/50 dark:border-zinc-700/60';
+
+  const badgeNetworkLabel = (() => {
+    const nice = statusLabel || (networkType === 'L1' ? 'Kaspa' : mergedDApp.network ? mergedDApp.network : 'L2');
+    return networkType === 'L1' ? nice.replace(/^L1\s+/i, '') : nice.replace(/^L2\s+/i, '');
+  })();
 
   return (
     <>
       <div className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-3 sm:px-6">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0 flex flex-wrap items-center gap-2">
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold border ${badgeColor} shadow-sm`}>
-              {networkType === 'L1' ? (
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              ) : (
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
-                </svg>
-              )}
-              {networkType}
+            <span className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm ${badgeClassName}`}>
+              {networkType === 'L1' ? 'L1' : 'L2'}
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
+              </svg>
+              {badgeNetworkLabel}
             </span>
-
-            {statusLabel ? (
-              <span className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-xl text-xs font-semibold border ${badgeColor} shadow-sm`}>
-                {statusType === 'mainnet' || statusType === 'testnet' || statusType === 'suspended' ? (
-                  <StatusIndicatorDot
-                    statusType={statusType === 'mainnet' ? 'mainnet' : statusType === 'testnet' ? 'testnet' : 'suspended'}
-                    size="sm"
-                    className="!animate-pulse"
-                  />
-                ) : null}
-                {statusLabel}
-              </span>
-            ) : null}
           </div>
 
           <div className="flex items-center gap-1.5 flex-shrink-0">

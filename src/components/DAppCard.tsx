@@ -165,6 +165,14 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
     return networkType === 'L1' ? nice.replace(/^L1\s+/i, '') : nice.replace(/^L2\s+/i, '');
   }, [mergedDApp.network, networkType, statusLabel]);
 
+  const overlayNetworkLabels = useMemo(() => {
+    if (networkType === 'L2' && requiredChainNames.length > 0) {
+      return requiredChainNames;
+    }
+    if (topBadgeNetworkLabel) return [topBadgeNetworkLabel];
+    return [];
+  }, [networkType, requiredChainNames, topBadgeNetworkLabel]);
+
   const badges: { label: string; className: string; dot?: React.ReactNode }[] = [
     {
       label: networkType,
@@ -353,14 +361,19 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
         }`}
         aria-hidden
       >
-        <div className="flex items-center justify-center">
-          <span className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm ${topBadgeClassName}`}>
-            {networkType}
-            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
-            </svg>
-            {topBadgeNetworkLabel}
-          </span>
+        <div className="flex flex-col items-start gap-2">
+          {overlayNetworkLabels.map((label) => (
+            <span
+              key={label}
+              className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm ${topBadgeClassName}`}
+            >
+              {networkType === 'L1' ? 'L1' : 'L2'}
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
+              </svg>
+              {label}
+            </span>
+          ))}
         </div>
 
         <div className="flex flex-col items-center justify-center flex-1 text-center">

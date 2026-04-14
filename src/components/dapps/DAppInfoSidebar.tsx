@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useAccount, useChainId } from 'wagmi';
-import { useChainModal } from '@rainbow-me/rainbowkit';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { getChainById } from '@/lib/wagmi';
@@ -13,7 +12,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useDAppFromContract, mergeDAppData } from '@/lib/dapps/contractData';
 import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
-import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useLikes } from '@/hooks/useLikes';
 import { DAppInfoModal } from './DAppInfoModal';
@@ -45,7 +43,6 @@ export function DAppInfoSidebar({
 }: DAppInfoSidebarProps) {
   const { address: connectedAddress, isConnected } = useAccount();
   const chainId = useChainId();
-  const { openChainModal } = useChainModal();
   const isEmbeddedPage = isEmbedded();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
@@ -125,7 +122,6 @@ export function DAppInfoSidebar({
   // Merge contract data
   const mergedDApp = mergeDAppData(contractData, dapp);
   const category = getCategoryById(mergedDApp.category);
-  const compatibility = useNetworkCompatibility(mergedDApp);
 
   // Version
   const [pollingVersion, setPollingVersion] = useState(mergedDApp.version || 'N/A');

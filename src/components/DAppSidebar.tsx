@@ -10,7 +10,6 @@ import { useDAppFromContract } from '@/lib/dapps/contractData';
 // Edit functionality removed - dApps are now read-only
 import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { mergeDAppData } from '@/lib/dapps/contractData';
-import { NetworkAvailabilityBox } from './dapps/NetworkAvailabilityBox';
 import { UnifiedStatusBox } from './rewards/UnifiedStatusBox';
 import { QuickGuideWizard } from './rewards/QuickGuideWizard';
 import { getDAppNetworkType } from '@/lib/dapps';
@@ -250,12 +249,6 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
                   Modules
                 </Link>
               </div>
-            </div>
-
-            {/* Network Availability */}
-            <div>
-              <h3 className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] mb-3 px-1">Network</h3>
-              <NetworkAvailabilityBox dapp={mergedDApp} />
             </div>
 
             <div className="space-y-3">
