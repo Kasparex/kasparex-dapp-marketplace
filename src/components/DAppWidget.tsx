@@ -163,6 +163,13 @@ export function DAppWidget({
     return [];
   }, [networkType, requiredChainNames, topBadgeNetworkLabel]);
 
+  const overlayBadgeClassNameForLabel = (label: string) => {
+    const isTest = /testnet/i.test(label);
+    return isTest
+      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border border-yellow-300/50 dark:border-yellow-600/40'
+      : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 border border-emerald-300/50 dark:border-emerald-600/40';
+  };
+
   const badges: Array<{ label: string; className: string }> = [
     {
       label: networkType === 'L1' ? 'L1' : 'L2',
@@ -234,11 +241,11 @@ export function DAppWidget({
         }`}
         aria-hidden
       >
-        <div className="flex flex-col items-start gap-2">
+        <div className="flex flex-wrap items-start gap-2">
           {overlayNetworkLabels.map((label) => (
             <span
               key={label}
-              className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm ${topBadgeClassName}`}
+              className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm ${overlayBadgeClassNameForLabel(label)}`}
             >
               {networkType === 'L1' ? 'L1' : 'L2'}
               <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">

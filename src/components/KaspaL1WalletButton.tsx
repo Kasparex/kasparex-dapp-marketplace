@@ -168,7 +168,7 @@ export function KaspaL1WalletButton() {
     <div className="relative" ref={rootRef}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="px-4 py-2 bg-[#02abb8] text-white rounded-xl hover:bg-[#028f9a] disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium flex items-center gap-2"
+        className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium flex items-center gap-2 shadow-lg shadow-cyan-500/15"
         disabled={connecting !== null}
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
