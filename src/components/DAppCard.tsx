@@ -184,10 +184,10 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
           </p>
         </div>
 
-        {/* Bottom Section: Category, Version, ID, Star/Heart, Open Button */}
+        {/* Bottom Section: Category, Star/Heart */}
         <div className="mt-auto pt-4 border-t border-zinc-100 dark:border-zinc-800">
           <div className="flex items-center justify-between gap-3">
-            {/* Left: Category, Version, ID */}
+            {/* Left: Category */}
             <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
               {/* Category with Icon - Gray Styling */}
               {category && (
@@ -196,18 +196,6 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
                   <span>{category.name}</span>
                 </div>
               )}
-
-              {/* Version - Same rounded corners and border as category badges */}
-              {mergedDApp.version && mergedDApp.version !== 'N/A' && (
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
-                  v{mergedDApp.version.replace(/^v\s*/i, '')}
-                </div>
-              )}
-
-              {/* dApp ID - Same rounded corners and border as category badges */}
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-mono rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
-                {mergedDApp.id}
-              </div>
             </div>
 
             {/* Right: Star → Heart */}
@@ -268,7 +256,7 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
       {/* Full-card hover: dark panel so copy never blends with the card; pointer-events-none keeps the link clickable. */}
       <div
         className={`pointer-events-none absolute inset-0 z-20 flex flex-col justify-between rounded-xl border border-cyan-500/40 bg-white/75 dark:bg-zinc-950/70 px-6 py-6 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.14)] backdrop-blur-md transition-opacity duration-200 ${
-          bothWalletsConnected && !isNetworkMismatch ? 'hidden' : 'opacity-0 group-hover:opacity-100'
+          isOpenable ? 'hidden' : 'opacity-0 group-hover:opacity-100'
         }`}
         aria-hidden
       >
