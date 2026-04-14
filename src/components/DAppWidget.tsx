@@ -156,14 +156,20 @@ export function DAppWidget({
       : []),
   ];
 
-  const renderShell = (inner: React.ReactNode, resolvedContractAddress?: string) => (
-    <div className="relative">
+  const renderShell = (inner: React.ReactNode, resolvedContractAddress?: string) => {
+    const wrapperClass = isOpenable
+      ? 'relative'
+      : 'relative w-full aspect-square overflow-hidden rounded-xl';
+    const cardClass = `w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!isOpenable ? 'opacity-95' : ''}`;
+
+    return (
+    <div className={wrapperClass}>
       <NetworkCompatibilityModal
         dapp={dapp}
         isOpen={showCompatibilityModal}
         onClose={() => setShowCompatibilityModal(false)}
       />
-      <div className={`w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!isOpenable ? 'opacity-95' : ''}`}>
+      <div className={isOpenable ? cardClass : `${cardClass} absolute inset-0`}>
         {!hideHeader ? (
           <div className={!isOpenable ? 'pointer-events-none' : ''}>
             <DAppWidgetHeader
@@ -198,7 +204,7 @@ export function DAppWidget({
 
       {/* Full-widget gating overlay (no hover) */}
       <div
-        className={`absolute inset-0 z-30 flex items-center justify-center rounded-xl border border-cyan-500/40 bg-white/80 dark:bg-zinc-950/75 px-6 py-6 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.14)] backdrop-blur-md transition-opacity duration-200 ${
+        className={`absolute inset-0 z-30 flex items-center justify-center overflow-hidden rounded-xl border border-cyan-500/40 bg-white/80 dark:bg-zinc-950/75 px-6 py-6 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.14)] backdrop-blur-md transition-opacity duration-200 ${
           isOpenable ? 'hidden' : 'opacity-100'
         }`}
         aria-hidden
@@ -248,7 +254,7 @@ export function DAppWidget({
         </div>
       </div>
     </div>
-  );
+  );};
 
   // Render SimplePayment widget if it's the Simple Payment dApp
   if (dapp.slug === 'simple-payment' || dapp.id === '11') {
