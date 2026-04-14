@@ -28,6 +28,7 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
   const { state: kaspaState } = useKaspaWallet();
   const { isConnected: isEvmConnected } = useAccount();
   const isKaspaConnected = kaspaState.isConnected;
+  const bothWalletsConnected = isKaspaConnected && isEvmConnected;
 
   // Merge localStorage metadata with frontend data
   const mergedDApp = mergeDAppData(null, dapp);
@@ -73,25 +74,8 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
 
   const needsKaspa = networkType === 'L1' && !isKaspaConnected;
   const needsEvm = networkType === 'L2' && !isEvmConnected;
-  const isLocked = needsKaspa || needsEvm;
   const isNetworkMismatch = selectedNetwork !== 'all' && networkType !== selectedNetwork;
-  const isOpenable = !isNetworkMismatch && !isLocked;
-
-  const lockTitle = isTestnetDApp
-    ? 'Connect wallet (testnet)'
-    : needsKaspa
-      ? 'Connect Kaspa (L1) wallet'
-      : needsEvm
-        ? 'Connect EVM (L2) wallet'
-        : 'Wallet';
-
-  const lockBody = isTestnetDApp
-    ? 'This dApp runs on testnet. Connect the appropriate wallet to use it.'
-    : needsKaspa
-      ? 'Connect your Kaspa (L1) wallet to use this dApp.'
-      : needsEvm
-        ? 'Connect your EVM (L2) wallet to use this dApp.'
-        : '';
+  const isOpenable = bothWalletsConnected || (!isNetworkMismatch && (networkType === 'L1' ? isKaspaConnected : isEvmConnected));
 
   const mismatchTitle = selectedNetwork === 'L1' ? 'Not available on L1' : 'Not available on L2';
   const mismatchBody =
@@ -99,30 +83,19 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
       ? 'Switch the filter to L2, or pick an L1-compatible dApp.'
       : 'Switch the filter to L1, or pick an L2-compatible dApp.';
 
-  const connectedTitle = isTestnetDApp
-    ? 'Testnet dApp'
+  const overlayTitle = isNetworkMismatch
+    ? mismatchTitle
     : networkType === 'L1'
       ? 'Kaspa L1 dApp'
       : 'EVM L2 dApp';
 
-  const connectedBody = isTestnetDApp
-    ? 'Uses testnet. Open the dApp when your testnet wallet is on the right network.'
-    : networkType === 'L1'
-      ? 'Requires a Kaspa (L1) wallet. Yours is connected — you can open this dApp.'
-      : 'Requires an EVM (L2) wallet. Yours is connected — you can open this dApp.';
-
-  const overlayTitle = isNetworkMismatch ? mismatchTitle : isLocked ? lockTitle : connectedTitle;
   const overlaySubtitle = isNetworkMismatch
     ? mismatchBody
-    : isLocked
-      ? needsKaspa
+    : bothWalletsConnected
+      ? ''
+      : networkType === 'L1'
         ? 'Connect your Kaspa (L1) wallet to open.'
-        : needsEvm
-          ? 'Connect your EVM (L2) wallet to open.'
-          : 'Connect a wallet to open.'
-      : isTestnetDApp
-        ? 'Testnet environment — verify network before opening.'
-        : 'Ready to open.';
+        : 'Connect your EVM (L2) wallet to open.';
 
   const badges: { label: string; className: string }[] = [
     networkType === 'L1'
@@ -140,18 +113,6 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
         ]
       : []),
   ];
-
-  // Get status type for non-pulsating dot indicator
-  const getStatusDotColor = () => {
-    const statusType = mergedDApp.status?.toLowerCase();
-    if (statusType === 'suspended') return 'bg-red-500';
-    if (networkType === 'L1') return 'bg-green-500';
-    if (networkType === 'L2') {
-      if (mergedDApp.network?.toLowerCase().includes('testnet')) return 'bg-yellow-500';
-      return 'bg-green-500';
-    }
-    return 'bg-zinc-500';
-  };
 
   return (
     <KxListingCard
@@ -187,33 +148,15 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
             className="flex-shrink-0 rounded-xl"
           />
 
-          {/* Title and Network - Right Side */}
+          {/* Title - Right Side */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-3 mb-2">
               <h3
-                className="flex-1 truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100"
+                className="flex-1 truncate text-[15px] font-semibold text-zinc-900 dark:text-zinc-100"
                 title={mergedDApp.name}
               >
                 {mergedDApp.name}
               </h3>
-
-              {/* Network Indicator with Dot - Right Side */}
-              <div className="flex items-center gap-1.5 flex-shrink-0">
-                {networkType === 'L1' ? (
-                  <svg className="w-4 h-4 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                ) : (
-                  <svg className="w-4 h-4 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
-                  </svg>
-                )}
-                <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
-                  {networkName}
-                </span>
-                {/* Dot Indicator - Next to Network Title */}
-                <div className={`w-2 h-2 rounded-full ${getStatusDotColor()}`} />
-              </div>
             </div>
 
             {/* Per-dApp rewards: GRID/tGRID + XP for first action */}
@@ -325,7 +268,7 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
       {/* Full-card hover: dark panel so copy never blends with the card; pointer-events-none keeps the link clickable. */}
       <div
         className={`pointer-events-none absolute inset-0 z-20 flex flex-col justify-between rounded-xl border border-cyan-500/40 bg-white/75 dark:bg-zinc-950/70 px-6 py-6 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.14)] backdrop-blur-md transition-opacity duration-200 ${
-          isOpenable ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'
+          bothWalletsConnected && !isNetworkMismatch ? 'hidden' : 'opacity-0 group-hover:opacity-100'
         }`}
         aria-hidden
       >
@@ -344,9 +287,11 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
           <p className="text-base sm:text-lg font-black uppercase tracking-[0.12em] text-zinc-900 dark:text-zinc-50 drop-shadow-sm">
             {overlayTitle}
           </p>
-          <p className="mt-3 text-sm sm:text-base leading-relaxed text-zinc-700 dark:text-zinc-200/95 max-w-md mx-auto font-semibold">
-            {overlaySubtitle}
-          </p>
+          {overlaySubtitle ? (
+            <p className="mt-3 text-sm sm:text-base leading-relaxed text-zinc-700 dark:text-zinc-200/95 max-w-md mx-auto font-semibold">
+              {overlaySubtitle}
+            </p>
+          ) : null}
         </div>
 
         <p className="text-center text-[11px] font-black uppercase tracking-[0.22em] text-zinc-600 dark:text-zinc-300">

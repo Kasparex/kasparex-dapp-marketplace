@@ -79,12 +79,14 @@ export function HeaderLeaderboardLink() {
 
   return (
     <div className="flex items-center gap-3 flex-shrink-0">
-      <span
-        className="tabular-nums text-lg sm:text-xl font-medium text-zinc-900 dark:text-zinc-100 min-w-[4ch] sm:min-w-[6ch] text-right tracking-tight"
-        title="Season points (same local snapshot as Leaderboard → Your season progress)"
-      >
-        {displayPoints.toLocaleString()}
-      </span>
+      {addr ? (
+        <span
+          className="tabular-nums text-lg sm:text-xl font-medium text-zinc-900 dark:text-zinc-100 min-w-[4ch] sm:min-w-[6ch] text-right tracking-tight"
+          title="Season points (same local snapshot as Leaderboard → Your season progress)"
+        >
+          {displayPoints.toLocaleString()}
+        </span>
+      ) : null}
       <Link
         href="/leaderboard"
         onClick={acknowledge}
