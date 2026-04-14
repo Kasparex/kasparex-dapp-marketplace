@@ -11,7 +11,7 @@ interface MagazineIssueCardProps {
 
 export function MagazineIssueCard({ issue, magazineSlug }: MagazineIssueCardProps) {
     return (
-        <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col h-full group">
+        <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col h-full group hover:border-violet-500 transition-colors">
             <div className="relative aspect-[3/4] overflow-hidden">
                 <Image
                     src={issue.coverImage || '/img/placeholder-issue.jpg'}
@@ -23,7 +23,7 @@ export function MagazineIssueCard({ issue, magazineSlug }: MagazineIssueCardProp
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <Link
                             href={`/magazines/${magazineSlug}/${issue.issueNumber}`}
-                            className="px-6 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-full font-bold shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all"
+                            className="px-6 py-2 bg-violet-500 hover:bg-violet-600 text-white rounded-full font-bold shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all"
                         >
                             Learn More
                         </Link>
@@ -39,7 +39,7 @@ export function MagazineIssueCard({ issue, magazineSlug }: MagazineIssueCardProp
             </div>
 
             <div className="p-4 flex-1 flex flex-col">
-                <div className="text-xs font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-widest mb-1">
+                <div className="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-widest mb-1">
                     Issue #{issue.issueNumber}
                 </div>
                 <h4 className="font-bold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-1">
@@ -57,7 +57,7 @@ export function MagazineIssueCard({ issue, magazineSlug }: MagazineIssueCardProp
                         href={`/magazines/${magazineSlug}/${issue.issueNumber}`}
                         className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${issue.isPurchased
                                 ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-                                : 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500 hover:text-white'
+                                : 'bg-violet-500/10 text-violet-700 dark:text-violet-300 hover:bg-violet-500 hover:text-white'
                             }`}
                     >
                         {issue.isPurchased ? 'View' : 'Get Access'}

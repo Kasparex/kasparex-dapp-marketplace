@@ -78,9 +78,9 @@ export function HeaderLeaderboardLink() {
   const displayPoints = addr ? currentPoints : 0;
 
   return (
-    <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
+    <div className="flex items-center gap-2 flex-shrink-0">
       <span
-        className="tabular-nums text-lg sm:text-xl font-black text-zinc-900 dark:text-zinc-100 min-w-[2ch] text-right tracking-tight"
+        className="tabular-nums text-lg sm:text-xl font-black text-zinc-900 dark:text-zinc-100 min-w-[4ch] sm:min-w-[6ch] text-right tracking-tight"
         title="Season points (same local snapshot as Leaderboard → Your season progress)"
       >
         {displayPoints.toLocaleString()}

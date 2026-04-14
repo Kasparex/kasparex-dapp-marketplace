@@ -28,10 +28,10 @@ export function GameCard({ game }: GameCardProps) {
   return (
     <Link
       href={`/games/${game.slug}`}
-      className="block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all relative flex flex-col min-h-[320px]"
+      className="block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/10 transition-all relative flex flex-col min-h-[320px]"
     >
       {/* Game Banner */}
-      <div className="relative w-full h-32 bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900 flex items-center justify-center border-b border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden">
+      <div className="relative w-full aspect-[3/2] bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900 flex items-center justify-center border-b border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden">
         {game.featuredImage ? (
           <img src={game.featuredImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
         ) : (

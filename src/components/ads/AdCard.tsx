@@ -49,7 +49,7 @@ function getAspectClass(format: AdFormat): string {
       return 'aspect-[3/4]';
     case 'rectangle':
     default:
-      return 'aspect-video';
+      return 'aspect-[3/2]';
   }
 }
 
@@ -66,7 +66,7 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
       className={`group overflow-hidden transition-all duration-300 ${
         embedded
           ? 'rounded-xl bg-transparent'
-          : 'rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 hover:shadow-xl hover:shadow-zinc-200/50 dark:hover:shadow-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-700'
+          : 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 hover:border-pink-500 hover:shadow-xl hover:shadow-pink-500/10'
       }`}
     >
       <Link
@@ -123,7 +123,7 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
         <div className="space-y-1.5">
           <div className="h-1.5 w-full rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-[#02abb8] transition-all duration-500"
+              className="h-full rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-500 transition-all duration-500"
               style={{ width: `${progressPercent}%` }}
             />
           </div>

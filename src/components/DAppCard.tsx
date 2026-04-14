@@ -102,11 +102,33 @@ export function DAppCard({ dapp }: DAppCardProps) {
       ? 'Requires a Kaspa (L1) wallet. Yours is connected — you can open this dApp.'
       : 'Requires an EVM (L2) wallet. Yours is connected — you can open this dApp.';
 
-  const overlayAccentBorder = isTestnetDApp
-    ? 'border-yellow-500/60'
-    : networkType === 'L2'
-      ? 'border-violet-500/60'
-      : 'border-[#02abb8]/70';
+  const overlayTitle = isLocked ? lockTitle : connectedTitle;
+  const overlaySubtitle = isLocked
+    ? needsKaspa
+      ? 'Connect your Kaspa (L1) wallet to open.'
+      : needsEvm
+        ? 'Connect your EVM (L2) wallet to open.'
+        : 'Connect a wallet to open.'
+    : isTestnetDApp
+      ? 'Testnet environment — verify network before opening.'
+      : 'Ready to open.';
+
+  const badges: { label: string; className: string }[] = [
+    networkType === 'L1'
+      ? { label: 'L1', className: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/25' }
+      : { label: 'L2', className: 'bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/25' },
+    ...(isTestnetDApp
+      ? [{ label: 'TESTNET', className: 'bg-amber-500/15 text-amber-800 dark:text-amber-200 border-amber-500/25' }]
+      : []),
+    ...(mergedDApp.status
+      ? [
+          {
+            label: mergedDApp.status.toUpperCase(),
+            className: 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/20',
+          },
+        ]
+      : []),
+  ];
 
   // Get status type for non-pulsating dot indicator
   const getStatusDotColor = () => {
@@ -121,7 +143,7 @@ export function DAppCard({ dapp }: DAppCardProps) {
   };
 
   return (
-    <KxListingCard href={`/dapps/${slug}`} accent="hub" className="relative flex flex-col min-h-0">
+    <KxListingCard href={`/dapps/${slug}`} accent="dapps" className="relative flex flex-col min-h-0">
       <KxListingCardMedia>
         {(mergedDApp.featuredImage || mergedDApp.image) ? (
           <img
@@ -286,23 +308,31 @@ export function DAppCard({ dapp }: DAppCardProps) {
 
       {/* Full-card hover: dark panel so copy never blends with the card; pointer-events-none keeps the link clickable. */}
       <div
-        className={`pointer-events-none absolute inset-0 z-20 flex flex-col justify-center rounded-xl border px-6 py-7 opacity-0 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.35)] transition-opacity duration-200 group-hover:opacity-100 ${overlayAccentBorder} bg-zinc-950/[0.96]`}
+        className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-between rounded-xl border border-cyan-500/40 bg-white/75 dark:bg-zinc-950/70 px-6 py-6 opacity-0 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.14)] backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100"
         aria-hidden
       >
-        <p className="text-center text-base sm:text-lg font-black uppercase tracking-[0.12em] text-zinc-50 drop-shadow-sm">
-          {isLocked ? lockTitle : connectedTitle}
-        </p>
-        <p className="mt-4 text-center text-base sm:text-[1.05rem] leading-relaxed text-zinc-100/95 max-w-md mx-auto font-medium">
-          {isLocked ? lockBody : connectedBody}
-        </p>
-        <p className="mt-5 text-center text-sm font-bold uppercase tracking-[0.18em] text-zinc-400">
-          {needsKaspa
-            ? `Kaspa L1${isTestnetDApp ? ' · testnet' : ''}`
-            : needsEvm
-              ? `EVM L2${isTestnetDApp ? ' · testnet' : ''}`
-              : networkType === 'L1'
-                ? `Kaspa L1${isTestnetDApp ? ' · testnet' : ''}`
-                : `EVM L2${isTestnetDApp ? ' · testnet' : ''}`}
+        <div className="flex flex-wrap items-center gap-2">
+          {badges.slice(0, 3).map((b) => (
+            <span
+              key={b.label}
+              className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${b.className}`}
+            >
+              {b.label}
+            </span>
+          ))}
+        </div>
+
+        <div className="flex flex-col items-center justify-center flex-1 text-center">
+          <p className="text-base sm:text-lg font-black uppercase tracking-[0.12em] text-zinc-900 dark:text-zinc-50 drop-shadow-sm">
+            {overlayTitle}
+          </p>
+          <p className="mt-3 text-sm sm:text-base leading-relaxed text-zinc-700 dark:text-zinc-200/95 max-w-md mx-auto font-semibold">
+            {overlaySubtitle}
+          </p>
+        </div>
+
+        <p className="text-center text-[11px] font-black uppercase tracking-[0.22em] text-zinc-600 dark:text-zinc-300">
+          {networkName}
         </p>
       </div>
 

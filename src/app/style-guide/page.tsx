@@ -980,6 +980,141 @@ export default function StyleGuidePage() {
     return colorValues[color]?.[shade] || '#000000';
   };
 
+  const hubProjectAccents: {
+    projectId: string;
+    projectName: string;
+    accentId: string;
+    token: string;
+    description: string;
+  }[] = [
+    {
+      projectId: 'kasparex-dapps',
+      projectName: 'Kasparex dApps',
+      accentId: 'dapps',
+      token: 'cyan-500',
+      description: 'Primary Kasparex UI accent; marketplace + modules',
+    },
+    {
+      projectId: 'kasparex-records',
+      projectName: 'Kasparex Records',
+      accentId: 'records',
+      token: 'rose-500',
+      description: 'Media / music experiences',
+    },
+    {
+      projectId: 'kasparex-tokens',
+      projectName: 'Kasparex Tokens',
+      accentId: 'tokens',
+      token: 'blue-500',
+      description: 'Finance tooling + tokens',
+    },
+    {
+      projectId: 'kasparex-games',
+      projectName: 'Kasparex Games',
+      accentId: 'games',
+      token: 'emerald-500',
+      description: 'Games + interactive experiences',
+    },
+    {
+      projectId: 'kasparex-vblog',
+      projectName: 'Kasparex vBlog',
+      accentId: 'vblog',
+      token: 'orange-500',
+      description: 'Publishing / articles',
+    },
+    {
+      projectId: 'kasparex-magazines',
+      projectName: 'Kasparex Magazines',
+      accentId: 'magazines',
+      token: 'violet-500',
+      description: 'Publishing / magazines',
+    },
+    {
+      projectId: 'krex-chronicles',
+      projectName: "Krex's Chronicles",
+      accentId: 'chronicles',
+      token: 'amber-500',
+      description: 'Lore + vaults/unlocks + story hub',
+    },
+    {
+      projectId: 'kasparex-movies',
+      projectName: 'Kasparex Movies',
+      accentId: 'movies',
+      token: 'red-500',
+      description: 'Cinematic / animated content',
+    },
+    {
+      projectId: 'kasparex-defi',
+      projectName: 'Kasparex DeFi',
+      accentId: 'defi',
+      token: 'fuchsia-500',
+      description: 'Swaps + DeFi surfaces',
+    },
+    {
+      projectId: 'kasparex-studio',
+      projectName: 'Kasparex Studio',
+      accentId: 'studio',
+      token: 'indigo-500',
+      description: 'Creator tooling surfaces',
+    },
+    {
+      projectId: 'krex-nodes',
+      projectName: 'KREX Nodes',
+      accentId: 'nodes',
+      token: 'slate-500',
+      description: 'Infrastructure / nodes',
+    },
+    {
+      projectId: 'kasparex-rewards',
+      projectName: 'Kasparex Rewards',
+      accentId: 'rewards',
+      token: 'teal-500',
+      description: 'Rewards, XP, points',
+    },
+    {
+      projectId: 'kasparex-stats',
+      projectName: 'Kasparex Stats',
+      accentId: 'stats',
+      token: 'sky-500',
+      description: 'Ecosystem stats',
+    },
+    {
+      projectId: 'kasparex-nft-tools',
+      projectName: 'Kasparex NFT Tools',
+      accentId: 'nftTools',
+      token: 'lime-500',
+      description: 'NFT tooling + rarity',
+    },
+    {
+      projectId: 'kasparex-store',
+      projectName: 'Kasparex Store',
+      accentId: 'store',
+      token: 'yellow-500',
+      description: 'Marketplace / listings',
+    },
+    {
+      projectId: 'kasparex-donations',
+      projectName: 'Kasparex CrowdKAS',
+      accentId: 'crowdkas',
+      token: 'emerald-500',
+      description: 'Crowdfunding / campaigns',
+    },
+    {
+      projectId: 'kasparex-ads',
+      projectName: 'Kasparex Ads',
+      accentId: 'ads',
+      token: 'pink-500',
+      description: 'Ad slots / promos',
+    },
+    {
+      projectId: 'revenue-tree',
+      projectName: 'Revenue Tree',
+      accentId: 'revenueTree',
+      token: 'green-500',
+      description: 'Network flow / revenue system',
+    },
+  ];
+
   const currentCategory = selectedCategory ? categories.find(c => c.id === selectedCategory) : null;
   const currentElements = selectedCategory ? styleElements[selectedCategory] || [] : [];
 
@@ -1566,6 +1701,67 @@ export default function StyleGuidePage() {
                 {/* Colors Section */}
                 {selectedCategory === 'colors' && (
                   <div className="space-y-8">
+                    <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
+                      <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                        Hub Project Accents
+                      </h3>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                        Canonical accent mapping for Kasparex Hub projects. Used for card hover borders, header halos and accent UI.
+                      </p>
+
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-separate border-spacing-0">
+                          <thead>
+                            <tr className="text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                              <th className="py-2 pr-4">Project</th>
+                              <th className="py-2 pr-4">Accent id</th>
+                              <th className="py-2 pr-4">Token</th>
+                              <th className="py-2 pr-4">Swatch</th>
+                              <th className="py-2">Notes</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {hubProjectAccents.map((row) => {
+                              const hex = getColorValue(row.token);
+                              return (
+                                <tr
+                                  key={row.projectId}
+                                  className="border-t border-zinc-200 dark:border-zinc-800"
+                                >
+                                  <td className="py-3 pr-4">
+                                    <div className="font-semibold text-zinc-900 dark:text-zinc-100">{row.projectName}</div>
+                                    <div className="text-xs text-zinc-500 dark:text-zinc-500 font-mono">{row.projectId}</div>
+                                  </td>
+                                  <td className="py-3 pr-4">
+                                    <code className="text-xs text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-2 py-1 rounded">
+                                      {row.accentId}
+                                    </code>
+                                  </td>
+                                  <td className="py-3 pr-4">
+                                    <code className="text-xs text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-2 py-1 rounded">
+                                      {row.token}
+                                    </code>
+                                  </td>
+                                  <td className="py-3 pr-4">
+                                    <div className="flex items-center gap-3">
+                                      <div
+                                        className="h-8 w-12 rounded-lg border border-zinc-200 dark:border-zinc-800"
+                                        style={{ backgroundColor: hex }}
+                                      />
+                                      <span className="text-xs text-zinc-500 dark:text-zinc-500 font-mono">{hex}</span>
+                                    </div>
+                                  </td>
+                                  <td className="py-3">
+                                    <span className="text-sm text-zinc-600 dark:text-zinc-400">{row.description}</span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
                     {currentElements.map((colorGroup: any) => (
                       <div
                         key={colorGroup.id}

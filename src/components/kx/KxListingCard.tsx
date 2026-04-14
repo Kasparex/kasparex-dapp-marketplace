@@ -7,7 +7,7 @@ import { kxJoinClasses } from '@/lib/ui/kxListingAccent';
 
 /** Matches CrowdKAS `DonationCampaignCard`: rounded-xl, zinc border, emerald hover, no lift/shadow. */
 const shellBase =
-  'kx-listing-card group block w-full text-left overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:!border-emerald-500 dark:hover:!border-emerald-500 transition-colors';
+  'kx-listing-card group block w-full text-left overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 transition-colors';
 
 export function KxListingCard({
   href,
@@ -30,7 +30,7 @@ export function KxListingCard({
 
 /** CrowdKAS listing media: 16/9, zinc plate, no extra divider (campaign cards). */
 export function KxListingCardMedia({
-  aspectClass = 'aspect-[16/9]',
+  aspectClass = 'aspect-[3/2]',
   className,
   children,
 }: {

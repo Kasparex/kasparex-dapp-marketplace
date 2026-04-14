@@ -123,16 +123,85 @@
 }
 
 /*
- * Unified listing cards (CrowdKAS /donations campaign grid).
- * Kaspa theme rewrites border-zinc-*; force emerald hover like DonationCampaignCard.
+ * Unified listing cards (`KxListingCard`).
+ * Hover border is driven by `data-kx-accent`, so each Hub project can own an accent.
+ * Keep `!important` here because theme modes (incl. .kaspa) rewrite border colors.
  */
 .kx-listing-card:hover,
 .kx-listing-card:focus-visible {
-  border-color: rgb(16, 185, 129) !important;
+  border-color: rgb(2, 171, 184) !important; /* fallback (Kasparex cyan) */
 }
-.kaspa .kx-listing-card:hover,
-.kaspa .kx-listing-card:focus-visible {
-  border-color: rgb(16, 185, 129) !important;
+.kx-listing-card[data-kx-accent="hub"]:hover,
+.kx-listing-card[data-kx-accent="hub"]:focus-visible,
+.kx-listing-card[data-kx-accent="dapps"]:hover,
+.kx-listing-card[data-kx-accent="dapps"]:focus-visible {
+  border-color: rgb(6, 182, 212) !important; /* cyan-500 */
+}
+.kx-listing-card[data-kx-accent="records"]:hover,
+.kx-listing-card[data-kx-accent="records"]:focus-visible {
+  border-color: rgb(244, 63, 94) !important; /* rose-500 */
+}
+.kx-listing-card[data-kx-accent="tokens"]:hover,
+.kx-listing-card[data-kx-accent="tokens"]:focus-visible {
+  border-color: rgb(59, 130, 246) !important; /* blue-500 */
+}
+.kx-listing-card[data-kx-accent="games"]:hover,
+.kx-listing-card[data-kx-accent="games"]:focus-visible,
+.kx-listing-card[data-kx-accent="crowdkas"]:hover,
+.kx-listing-card[data-kx-accent="crowdkas"]:focus-visible {
+  border-color: rgb(16, 185, 129) !important; /* emerald-500 */
+}
+.kx-listing-card[data-kx-accent="vblog"]:hover,
+.kx-listing-card[data-kx-accent="vblog"]:focus-visible {
+  border-color: rgb(249, 115, 22) !important; /* orange-500 */
+}
+.kx-listing-card[data-kx-accent="magazines"]:hover,
+.kx-listing-card[data-kx-accent="magazines"]:focus-visible {
+  border-color: rgb(139, 92, 246) !important; /* violet-500 */
+}
+.kx-listing-card[data-kx-accent="chronicles"]:hover,
+.kx-listing-card[data-kx-accent="chronicles"]:focus-visible {
+  border-color: rgb(245, 158, 11) !important; /* amber-500 */
+}
+.kx-listing-card[data-kx-accent="movies"]:hover,
+.kx-listing-card[data-kx-accent="movies"]:focus-visible {
+  border-color: rgb(239, 68, 68) !important; /* red-500 */
+}
+.kx-listing-card[data-kx-accent="defi"]:hover,
+.kx-listing-card[data-kx-accent="defi"]:focus-visible {
+  border-color: rgb(217, 70, 239) !important; /* fuchsia-500 */
+}
+.kx-listing-card[data-kx-accent="studio"]:hover,
+.kx-listing-card[data-kx-accent="studio"]:focus-visible {
+  border-color: rgb(99, 102, 241) !important; /* indigo-500 */
+}
+.kx-listing-card[data-kx-accent="nodes"]:hover,
+.kx-listing-card[data-kx-accent="nodes"]:focus-visible {
+  border-color: rgb(100, 116, 139) !important; /* slate-500 */
+}
+.kx-listing-card[data-kx-accent="rewards"]:hover,
+.kx-listing-card[data-kx-accent="rewards"]:focus-visible {
+  border-color: rgb(20, 184, 166) !important; /* teal-500 */
+}
+.kx-listing-card[data-kx-accent="stats"]:hover,
+.kx-listing-card[data-kx-accent="stats"]:focus-visible {
+  border-color: rgb(14, 165, 233) !important; /* sky-500 */
+}
+.kx-listing-card[data-kx-accent="nftTools"]:hover,
+.kx-listing-card[data-kx-accent="nftTools"]:focus-visible {
+  border-color: rgb(132, 204, 22) !important; /* lime-500 */
+}
+.kx-listing-card[data-kx-accent="store"]:hover,
+.kx-listing-card[data-kx-accent="store"]:focus-visible {
+  border-color: rgb(234, 179, 8) !important; /* yellow-500 */
+}
+.kx-listing-card[data-kx-accent="ads"]:hover,
+.kx-listing-card[data-kx-accent="ads"]:focus-visible {
+  border-color: rgb(236, 72, 153) !important; /* pink-500 */
+}
+.kx-listing-card[data-kx-accent="revenueTree"]:hover,
+.kx-listing-card[data-kx-accent="revenueTree"]:focus-visible {
+  border-color: rgb(34, 197, 94) !important; /* green-500 */
 }
 
 .kaspa .hover\:bg-zinc-100:hover {

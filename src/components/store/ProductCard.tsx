@@ -27,7 +27,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link href={`/store/${product.slug}`} className="group h-full">
-      <div className="h-full flex flex-col bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-[#02abb8]/10 hover:-translate-y-1">
+      <div className="h-full flex flex-col bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden transition-all duration-300 hover:border-yellow-500 hover:shadow-xl hover:shadow-yellow-500/10">
         {/* Product Image */}
         <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900">
           {thumbnailUrl ? (
@@ -47,7 +47,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
           {/* Category Badge */}
           <div className="absolute top-2 left-2 z-10">
-            <span className="px-2 py-1 bg-[#02abb8]/20 backdrop-blur-sm text-[#02abb8] text-[10px] font-bold uppercase tracking-wider rounded-md">
+            <span className="px-2 py-1 bg-yellow-500/20 backdrop-blur-sm text-yellow-700 dark:text-yellow-300 text-[10px] font-bold uppercase tracking-wider rounded-md border border-yellow-500/20">
               {product.category}
             </span>
           </div>
@@ -65,7 +65,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
         {/* Product Info */}
         <div className="p-4 flex-1 flex flex-col">
-          <div className="text-xs font-bold text-[#02abb8] uppercase tracking-widest mb-1">
+          <div className="text-xs font-bold text-yellow-700 dark:text-yellow-300 uppercase tracking-widest mb-1">
             by {product.sellerAddress.slice(-5)}
           </div>
           <h4 className="font-bold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-1">
@@ -97,7 +97,7 @@ export function ProductCard({ product }: ProductCardProps) {
               </button>
               <button
                 onClick={handleBuy}
-                className="px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-[#02abb8] text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-600 dark:hover:text-zinc-400"
+                className="px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-yellow-500 text-zinc-950 hover:bg-yellow-400"
               >
                 Buy Now
               </button>

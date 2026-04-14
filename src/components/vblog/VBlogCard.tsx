@@ -18,8 +18,8 @@ export function VBlogCard({ article }: VBlogCardProps) {
       href={`/vblog/${article.slug}`}
       className="group"
     >
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-100 dark:border-zinc-800 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-orange-500/10 hover:-translate-y-1.5 flex flex-col h-full shadow-sm font-sans">
-        <div className="relative aspect-video overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden transition-all duration-300 hover:border-orange-500 hover:shadow-2xl hover:shadow-orange-500/10 flex flex-col h-full shadow-sm font-sans">
+        <div className="relative aspect-[3/2] overflow-hidden">
 
           {/* Badges Overlay */}
           <div className="absolute top-4 left-4 z-20 flex flex-wrap gap-2">
