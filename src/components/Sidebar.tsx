@@ -112,7 +112,7 @@ export function Sidebar({
   }));
 
   const visibleCategoryItems = useMemo(() => {
-    return showAllCategories ? categoryItems : categoryItems.slice(0, 10);
+    return showAllCategories ? categoryItems : categoryItems.slice(0, 5);
   }, [categoryItems, showAllCategories]);
 
   const statusItems = statusOptions.map((opt) => ({
@@ -148,7 +148,7 @@ export function Sidebar({
       storageKeyPrefix="dapps"
       header={(onHide) => <SidebarHeader backHref={backHref} backLabel={backLabel} onHide={onHide} />}
     >
-      <SidebarSection title="Quick actions" className="mb-8">
+      <div className="mb-8">
         <div className="space-y-2">
           <Link href="/list-dapp" className="k-control-btn w-full">
             List dApp
@@ -160,7 +160,7 @@ export function Sidebar({
             Modules
           </Link>
         </div>
-      </SidebarSection>
+      </div>
 
       <SidebarCategories
         title="Categories"
@@ -169,13 +169,13 @@ export function Sidebar({
         onSelect={handleCategoryToggle}
         multi
       />
-      {categoryItems.length > 10 ? (
+      {categoryItems.length > 5 ? (
         <button
           type="button"
           onClick={() => setShowAllCategories((v) => !v)}
           className="w-full -mt-2 mb-6 k-control-btn"
         >
-          {showAllCategories ? 'Show less' : `Load more (${categoryItems.length - 10})`}
+          {showAllCategories ? 'Show less' : `Load more (${categoryItems.length - 5})`}
         </button>
       ) : null}
 

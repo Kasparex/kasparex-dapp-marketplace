@@ -18,7 +18,7 @@ export default function ListDAppPage() {
             storageKeyPrefix="list-dapp"
             header={(onHide) => <SidebarHeader backHref="/dapps" backLabel="Back to dApps" onHide={onHide} />}
           >
-            <SidebarSection title="Quick actions" className="mb-8">
+            <div className="mb-8">
               <div className="space-y-2">
                 <Link href="/list-dapp" className="k-control-btn w-full">
                   List dApp
@@ -30,7 +30,7 @@ export default function ListDAppPage() {
                   Modules
                 </Link>
               </div>
-            </SidebarSection>
+            </div>
           </UnifiedSidebar>
         </div>
 
@@ -39,7 +39,7 @@ export default function ListDAppPage() {
             storageKeyPrefix="list-dapp"
             header={(onHide) => <SidebarHeader backHref="/dapps" backLabel="Back to dApps" onHide={onHide} />}
           >
-            <SidebarSection title="Quick actions" className="mb-8">
+            <div className="mb-8">
               <div className="space-y-2">
                 <Link href="/list-dapp" className="k-control-btn w-full">
                   List dApp
@@ -51,7 +51,7 @@ export default function ListDAppPage() {
                   Modules
                 </Link>
               </div>
-            </SidebarSection>
+            </div>
           </UnifiedSidebar>
         </div>
 

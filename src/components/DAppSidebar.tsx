@@ -238,7 +238,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
         />
 
         <div className={`p-5 space-y-6 ${isHidden ? 'lg:hidden' : ''}`}>
-            <SidebarSection title="Quick actions" className="mb-8">
+            <div className="mb-8">
               <div className="space-y-2">
                 <Link href="/list-dapp" className="k-control-btn w-full">
                   List dApp
@@ -250,7 +250,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
                   Modules
                 </Link>
               </div>
-            </SidebarSection>
+            </div>
 
             {/* Network Availability */}
             <div>
