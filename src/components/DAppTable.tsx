@@ -4,13 +4,14 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useAccount, useChainId } from 'wagmi';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { DApp, generateSimulatedTicker, getDAppChainIds, getDAppNetworkType, isDAppCompatibleWithChain } from '@/lib/dapps';
+import { DApp, generateSimulatedTicker, getDAppNetworkType, isDAppCompatibleWithChain } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
 import { StatusIndicator } from './dapps/StatusIndicator';
 import { mergeDAppData, useDAppFromContract } from '@/lib/dapps/contractData';
 import { DAppIcon } from './dapps/DAppIcon';
 import { getContractAddress } from '@/lib/contracts/addresses';
+import { getDAppDeployedChainIds } from '@/lib/dapps/contractResolver';
 import { getChainById } from '@/lib/wagmi';
 
 interface DAppTableProps {
@@ -74,11 +75,15 @@ function DAppTableRow({ dapp, selectedNetwork = 'all' }: DAppTableRowProps) {
     : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300';
 
   const isNetworkMismatch = selectedNetwork !== 'all' && networkType !== selectedNetwork;
-  const requiredChainIds = useMemo(() => getDAppChainIds(mergedDApp), [mergedDApp]);
-  const requiredChainNames = useMemo(
-    () => requiredChainIds.map((id) => getChainById(id)?.name || `Chain ${id}`),
-    [requiredChainIds]
+  const deployedChainNames = useMemo(
+    () =>
+      getDAppDeployedChainIds(mergedDApp).map((id) => getChainById(id)?.name || `Chain ${id}`),
+    [mergedDApp]
   );
+  const l2SwitchNetworkHint = useMemo(() => {
+    if (deployedChainNames.length > 0) return deployedChainNames.join(' or ');
+    return '';
+  }, [deployedChainNames]);
   const isL2ChainCompatible = useMemo(() => {
     if (networkType !== 'L2') return true;
     if (!isEvmConnected || chainId === undefined) return false;
@@ -98,7 +103,9 @@ function DAppTableRow({ dapp, selectedNetwork = 'all' }: DAppTableRowProps) {
       : !isEvmConnected
         ? 'Connect L2 wallet'
         : !isL2ChainCompatible
-          ? `Switch to ${requiredChainNames.join(' or ')}`
+          ? l2SwitchNetworkHint
+            ? `Switch to ${l2SwitchNetworkHint}`
+            : 'No L2 contract deployed yet'
           : '';
   
   return (

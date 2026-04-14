@@ -5,7 +5,8 @@ import { createPortal } from 'react-dom';
 import { useAccount, useChainId } from 'wagmi';
 import { useChainModal } from '@rainbow-me/rainbowkit';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { DApp, getDAppChainIds } from '@/lib/dapps';
+import { DApp, getDAppChainIds, getDAppNetworkType } from '@/lib/dapps';
+import { getDAppDeployedChainIds } from '@/lib/dapps/contractResolver';
 import { getChainById } from '@/lib/wagmi';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
 import { CHAIN_IDS } from '@/lib/wagmi';
@@ -26,8 +27,9 @@ export function NetworkAvailabilityBox({ dapp, accentColor = '#02abb8' }: Networ
 
   const [showModal, setShowModal] = useState(false);
   
-  // Get network information for modal
-  const supportedChainIds = getDAppChainIds(dapp);
+  // Get network information for modal (L2: only chains with a deployed contract)
+  const supportedChainIds =
+    getDAppNetworkType(dapp) === 'L2' ? getDAppDeployedChainIds(dapp) : getDAppChainIds(dapp);
   const supportedNetworks = supportedChainIds
     .map(id => getChainById(id))
     .filter(Boolean)

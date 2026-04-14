@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { DApp, getDAppChainIds } from '@/lib/dapps';
+import { DApp, getDAppChainIds, getDAppNetworkType } from '@/lib/dapps';
+import { getDAppDeployedChainIds } from '@/lib/dapps/contractResolver';
 import { getChainById } from '@/lib/wagmi';
 import { CHAIN_IDS } from '@/lib/wagmi';
 
@@ -59,8 +60,10 @@ function getStatusType(dapp: DApp): StatusType {
 export function StatusIndicator({ dapp, className = '', size = 'md', clickable = true }: StatusIndicatorProps) {
   const [showModal, setShowModal] = useState(false);
   const statusType = getStatusType(dapp);
-  const supportedChainIds = getDAppChainIds(dapp);
-  const supportedNetworks = supportedChainIds
+  const declaredChainIds = getDAppChainIds(dapp);
+  const modalListChainIds =
+    getDAppNetworkType(dapp) === 'L2' ? getDAppDeployedChainIds(dapp) : declaredChainIds;
+  const supportedNetworks = modalListChainIds
     .map(id => getChainById(id))
     .filter(Boolean)
     .map(chain => chain!.name);
@@ -74,8 +77,8 @@ export function StatusIndicator({ dapp, className = '', size = 'md', clickable =
   const unavailableNetworks = allNetworks.filter(network => !supportedNetworks.includes(network));
   
   // Check for vProgs networks
-  const hasVProgsTestnet = supportedChainIds.includes(CHAIN_IDS.VPROGS_TESTNET);
-  const hasVProgsMainnet = supportedChainIds.includes(CHAIN_IDS.VPROGS_MAINNET);
+  const hasVProgsTestnet = declaredChainIds.includes(CHAIN_IDS.VPROGS_TESTNET);
+  const hasVProgsMainnet = declaredChainIds.includes(CHAIN_IDS.VPROGS_MAINNET);
 
   // Size classes
   const sizeClasses = {

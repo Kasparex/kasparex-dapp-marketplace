@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { useAccount, useChainId } from 'wagmi';
 import { DApp, getDAppChainIds, getDAppNetworkType, isDAppCompatibleWithChain } from '@/lib/dapps';
 import { useDAppFromContract, mergeDAppData } from '@/lib/dapps/contractData';
-import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
+import { getDAppContractAddress, getDAppDeployedChainIds } from '@/lib/dapps/contractResolver';
 import { DAppInfoModal } from './DAppInfoModal';
 import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
@@ -194,11 +194,17 @@ export function DAppWidgetHeader({
     return 'bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-300/50 dark:border-zinc-700/60';
   }, [badgeKind, statusType]);
 
+  const deployedChainNames = useMemo(() => {
+    const ids = getDAppDeployedChainIds(mergedDApp);
+    return ids.map((id) => getChainById(id)?.name || `Chain ${id}`).filter(Boolean);
+  }, [mergedDApp]);
+
   const headerAdditionalNetworks = useMemo(() => {
     if (networkType !== 'L2') return [];
-    const unique = Array.from(new Set(requiredChainNames));
+    if (deployedChainNames.length === 0) return [];
+    const unique = Array.from(new Set(deployedChainNames));
     return unique.filter((n) => n && n !== badgeNetworkLabel);
-  }, [badgeNetworkLabel, networkType, requiredChainNames]);
+  }, [badgeNetworkLabel, deployedChainNames, networkType]);
 
   return (
     <>
