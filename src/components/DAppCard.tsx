@@ -87,12 +87,13 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
     return isDAppCompatibleWithChain(mergedDApp, chainId);
   }, [networkType, isEvmConnected, chainId, mergedDApp]);
 
+  // IMPORTANT: L2 chain gating must apply even if L1 is connected (and vice versa).
+  // Openability is determined by the dApp's required network + (for L2) the active EVM chain.
   const isOpenable =
-    bothWalletsConnected ||
-    (!isNetworkMismatch &&
-      (networkType === 'L1'
-        ? isKaspaConnected
-        : isEvmConnected && chainId !== undefined && isL2ChainCompatible));
+    !isNetworkMismatch &&
+    (networkType === 'L1'
+      ? isKaspaConnected
+      : isEvmConnected && chainId !== undefined && isL2ChainCompatible);
 
   const mismatchTitle = selectedNetwork === 'L1' ? 'Not available on L1' : 'Not available on L2';
   const mismatchBody =
