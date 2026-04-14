@@ -140,8 +140,8 @@ export function Sidebar({
     >
       <SidebarSection title="Quick actions" className="mb-8">
         <div className="space-y-2">
-          <Link href="/build-dapp" className="k-control-btn w-full">
-            List Your dApp
+          <Link href="/list-dapp" className="k-control-btn w-full">
+            List dApp
           </Link>
           <Link href="/dashboard" className="k-control-btn w-full">
             Revenue Tree
