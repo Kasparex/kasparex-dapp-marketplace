@@ -137,6 +137,24 @@ export function DAppWidget({
     return 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/20';
   }, [statusType, networkType]);
 
+  const topBadgeClassName = useMemo(() => {
+    if (statusType === 'testnet') {
+      return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border border-yellow-300/50 dark:border-yellow-600/40';
+    }
+    if (statusType === 'mainnet') {
+      return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 border border-emerald-300/50 dark:border-emerald-600/40';
+    }
+    if (statusType === 'suspended') {
+      return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border border-red-300/50 dark:border-red-600/40';
+    }
+    return 'bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-300/50 dark:border-zinc-700/60';
+  }, [statusType]);
+
+  const topBadgeNetworkLabel = useMemo(() => {
+    const nice = statusLabel || (networkType === 'L1' ? 'Kaspa' : dapp.network ? dapp.network : 'L2');
+    return networkType === 'L1' ? nice.replace(/^L1\s+/i, '') : nice.replace(/^L2\s+/i, '');
+  }, [dapp.network, networkType, statusLabel]);
+
   const badges: Array<{ label: string; className: string }> = [
     {
       label: networkType === 'L1' ? 'L1' : 'L2',
@@ -203,28 +221,19 @@ export function DAppWidget({
 
       {/* Full-widget gating overlay (no hover) */}
       <div
-        className={`pointer-events-none absolute inset-0 z-30 flex flex-col justify-between rounded-xl border border-zinc-900/10 bg-white/80 dark:border-white/10 dark:bg-zinc-950/75 px-6 py-6 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.14)] backdrop-blur-md ${
+        className={`pointer-events-none absolute inset-0 z-30 flex flex-col justify-between rounded-xl border border-zinc-900/10 bg-white dark:border-white/10 dark:bg-zinc-950 px-6 py-6 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.14)] ${
           !isOpenable || isContractMissingOnThisNetwork ? 'opacity-100' : 'hidden'
         }`}
         aria-hidden
       >
-        <div className="flex items-center justify-between gap-3">
-          <span
-            className={`inline-flex items-center rounded-xl border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${badges[0]?.className || ''}`}
-          >
-            {badges[0]?.label || (networkType === 'L1' ? 'L1' : 'L2')}
+        <div className="flex items-center justify-center">
+          <span className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm ${topBadgeClassName}`}>
+            {networkType === 'L1' ? 'L1' : 'L2'}
+            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
+            </svg>
+            {topBadgeNetworkLabel}
           </span>
-
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            {badges.slice(1, 3).map((b) => (
-              <span
-                key={b.label}
-                className={`inline-flex items-center rounded-xl border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${b.className}`}
-              >
-                {b.label}
-              </span>
-            ))}
-          </div>
         </div>
 
         <div className="flex flex-col items-center justify-center flex-1 text-center">
@@ -233,7 +242,7 @@ export function DAppWidget({
           </p>
         </div>
 
-        <p className="text-center text-[11px] font-black uppercase tracking-[0.22em] text-zinc-600 dark:text-zinc-300">
+        <p className="text-center text-[11px] font-semibold tracking-wide text-zinc-600 dark:text-zinc-300">
           {dapp.network}
         </p>
       </div>

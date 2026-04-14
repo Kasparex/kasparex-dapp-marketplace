@@ -140,7 +140,7 @@ export function EVMWalletButton() {
                 handleChangeNetwork();
               }
             }}
-            className={`flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-xl hover:opacity-90 transition-opacity cursor-pointer shadow-sm ${networkBadgeColorClass}`}
+            className={`flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg hover:opacity-90 transition-opacity cursor-pointer shadow-sm ${networkBadgeColorClass}`}
             title="Click to change network"
           >
             L2
