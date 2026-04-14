@@ -27,7 +27,7 @@ export function HeaderLeaderboardLink() {
   const addr = state.address ? normAddr(state.address) : '';
   const [tick, setTick] = useState(0);
   /** Recompute season on tick so month boundaries match leaderboard / season card. */
-  const season = useMemo(() => currentSeasonWindowUtc(), [tick]);
+  const season = useMemo(() => currentSeasonWindowUtc(Date.now()), [tick]);
 
   const currentPoints = useMemo(() => {
     if (!addr) return 0;
@@ -78,9 +78,9 @@ export function HeaderLeaderboardLink() {
   const displayPoints = addr ? currentPoints : 0;
 
   return (
-    <div className="flex items-center gap-2 flex-shrink-0">
+    <div className="flex items-center gap-3 flex-shrink-0">
       <span
-        className="tabular-nums text-lg sm:text-xl font-black text-zinc-900 dark:text-zinc-100 min-w-[4ch] sm:min-w-[6ch] text-right tracking-tight"
+        className="tabular-nums text-lg sm:text-xl font-medium text-zinc-900 dark:text-zinc-100 min-w-[4ch] sm:min-w-[6ch] text-right tracking-tight"
         title="Season points (same local snapshot as Leaderboard → Your season progress)"
       >
         {displayPoints.toLocaleString()}

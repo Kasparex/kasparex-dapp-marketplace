@@ -1,8 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { formatAddress, formatDate, getArticleExcerpt } from '@/lib/vblog/utils';
+import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 
 interface VBlogCardProps {
   article: VBlogArticle;
@@ -14,12 +14,8 @@ export function VBlogCard({ article }: VBlogCardProps) {
   const isLinked = article.linkedMagazineId && article.linkedIssueNumber;
 
   return (
-    <Link
-      href={`/vblog/${article.slug}`}
-      className="group"
-    >
-      <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden transition-all duration-300 hover:border-orange-500 hover:shadow-2xl hover:shadow-orange-500/10 flex flex-col h-full shadow-sm font-sans">
-        <div className="relative aspect-[3/2] overflow-hidden">
+    <KxListingCard href={`/vblog/${article.slug}`} accent="vblog" className="h-full flex flex-col font-sans">
+      <KxListingCardMedia className="relative">
 
           {/* Badges Overlay */}
           <div className="absolute top-4 left-4 z-20 flex flex-wrap gap-2">
@@ -59,9 +55,9 @@ export function VBlogCard({ article }: VBlogCardProps) {
             </div>
           )}
 
-        </div>
+      </KxListingCardMedia>
 
-        <div className="p-6 flex flex-col flex-1">
+      <KxListingCardBody comfortable className="flex flex-col flex-1">
           <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 leading-snug mb-2">
             {article.title}
           </h3>
@@ -79,9 +75,8 @@ export function VBlogCard({ article }: VBlogCardProps) {
               <span className="block text-sm font-semibold text-zinc-900 dark:text-zinc-200">{formatDate(article.publishDate)}</span>
             </div>
           </div>
-        </div>
-      </div>
-    </Link>
+      </KxListingCardBody>
+    </KxListingCard>
   );
 }
 

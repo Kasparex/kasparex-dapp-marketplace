@@ -6,6 +6,7 @@ import { Game, gameTypes } from '@/lib/games/games';
 import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
 import { GameDifficultyBadge } from './GameDifficultyBadge';
+import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 
 interface GameCardProps {
   game: Game;
@@ -26,12 +27,9 @@ export function GameCard({ game }: GameCardProps) {
   };
 
   return (
-    <Link
-      href={`/games/${game.slug}`}
-      className="block w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/10 transition-all relative flex flex-col min-h-[320px]"
-    >
+    <KxListingCard href={`/games/${game.slug}`} accent="games" className="relative flex flex-col min-h-[320px]">
       {/* Game Banner */}
-      <div className="relative w-full aspect-[3/2] bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900 flex items-center justify-center border-b border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden">
+      <KxListingCardMedia className="bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900 border-b border-zinc-200/50 dark:border-zinc-800/50">
         {game.featuredImage ? (
           <img src={game.featuredImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
         ) : (
@@ -52,9 +50,9 @@ export function GameCard({ game }: GameCardProps) {
         <div className="absolute top-3 right-3 z-20">
           <GameDifficultyBadge difficulty={game.difficulty} size="sm" />
         </div>
-      </div>
+      </KxListingCardMedia>
 
-      <div className="p-4 relative z-10 flex flex-col flex-1 min-h-0">
+      <KxListingCardBody className="relative z-10 flex flex-col flex-1 min-h-0">
         {/* Game Title and Type */}
         <div className="mb-3">
           <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-1">
@@ -196,7 +194,7 @@ export function GameCard({ game }: GameCardProps) {
             </div>
           </div>
         </div>
-      </div>
-    </Link>
+      </KxListingCardBody>
+    </KxListingCard>
   );
 }

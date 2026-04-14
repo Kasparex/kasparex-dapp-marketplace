@@ -1,8 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { Magazine } from '@/lib/magazines/types';
+import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 
 interface MagazineCardProps {
     magazine: Magazine;
@@ -10,9 +10,8 @@ interface MagazineCardProps {
 
 export function MagazineCard({ magazine }: MagazineCardProps) {
     return (
-        <Link href={`/magazines/${magazine.slug}`} className="group">
-            <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden transition-all duration-300 hover:border-violet-500 hover:shadow-xl hover:shadow-violet-500/10">
-                <div className="relative aspect-[3/4] overflow-hidden">
+        <KxListingCard href={`/magazines/${magazine.slug}`} accent="magazines" className="h-full flex flex-col">
+            <KxListingCardMedia aspectClass="aspect-[3/4]" className="relative">
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
                     <div className="absolute top-4 left-4 z-20">
                         <span className="px-3 py-1 bg-violet-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-lg">
@@ -33,8 +32,8 @@ export function MagazineCard({ magazine }: MagazineCardProps) {
                             {magazine.author}
                         </p>
                     </div>
-                </div>
-                <div className="p-5">
+            </KxListingCardMedia>
+            <KxListingCardBody comfortable className="flex-1">
                     <p className="text-zinc-600 dark:text-zinc-400 text-sm mb-4 line-clamp-3">
                         {magazine.description}
                     </p>
@@ -47,8 +46,7 @@ export function MagazineCard({ magazine }: MagazineCardProps) {
                             </svg>
                         </span>
                     </div>
-                </div>
-            </div>
-        </Link>
+            </KxListingCardBody>
+        </KxListingCard>
     );
 }

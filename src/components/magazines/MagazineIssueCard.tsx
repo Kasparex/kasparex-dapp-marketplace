@@ -1,8 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { MagazineIssue } from '@/lib/magazines/types';
+import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 
 interface MagazineIssueCardProps {
     issue: MagazineIssue;
@@ -11,24 +11,18 @@ interface MagazineIssueCardProps {
 
 export function MagazineIssueCard({ issue, magazineSlug }: MagazineIssueCardProps) {
     return (
-        <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col h-full group hover:border-violet-500 transition-colors">
-            <div className="relative aspect-[3/4] overflow-hidden">
+        <KxListingCard
+            href={`/magazines/${magazineSlug}/${issue.issueNumber}`}
+            accent="magazines"
+            className="flex flex-col h-full"
+        >
+            <KxListingCardMedia aspectClass="aspect-[3/4]" className="relative">
                 <Image
                     src={issue.coverImage || '/img/placeholder-issue.jpg'}
                     alt={issue.title}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                {!issue.isPurchased && (
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Link
-                            href={`/magazines/${magazineSlug}/${issue.issueNumber}`}
-                            className="px-6 py-2 bg-violet-500 hover:bg-violet-600 text-white rounded-full font-bold shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all"
-                        >
-                            Learn More
-                        </Link>
-                    </div>
-                )}
                 {issue.isPurchased && (
                     <div className="absolute top-2 right-2 z-10">
                         <span className="px-2 py-1 bg-green-500 text-white text-[10px] font-bold uppercase rounded-md shadow-md">
@@ -36,9 +30,9 @@ export function MagazineIssueCard({ issue, magazineSlug }: MagazineIssueCardProp
                         </span>
                     </div>
                 )}
-            </div>
+            </KxListingCardMedia>
 
-            <div className="p-4 flex-1 flex flex-col">
+            <KxListingCardBody className="flex-1 flex flex-col">
                 <div className="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-widest mb-1">
                     Issue #{issue.issueNumber}
                 </div>
@@ -53,17 +47,16 @@ export function MagazineIssueCard({ issue, magazineSlug }: MagazineIssueCardProp
                     <div className="text-sm font-black text-zinc-900 dark:text-zinc-100">
                         {issue.priceKAS} <span className="text-[10px] text-zinc-500 font-normal">KAS</span>
                     </div>
-                    <Link
-                        href={`/magazines/${magazineSlug}/${issue.issueNumber}`}
+                    <span
                         className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${issue.isPurchased
-                                ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-                                : 'bg-violet-500/10 text-violet-700 dark:text-violet-300 hover:bg-violet-500 hover:text-white'
+                                ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
+                                : 'bg-violet-500/10 text-violet-700 dark:text-violet-300'
                             }`}
                     >
                         {issue.isPurchased ? 'View' : 'Get Access'}
-                    </Link>
+                    </span>
                 </div>
-            </div>
-        </div>
+            </KxListingCardBody>
+        </KxListingCard>
     );
 }

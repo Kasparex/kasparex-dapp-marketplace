@@ -6,10 +6,11 @@ import { DAppCard } from './DAppCard';
 
 interface DAppGridProps {
   dapps: DApp[];
+  selectedNetwork: 'all' | 'L1' | 'L2';
   // Favorites and likes are handled internally by DAppCard using hooks
 }
 
-export function DAppGrid({ dapps }: DAppGridProps) {
+export function DAppGrid({ dapps, selectedNetwork }: DAppGridProps) {
   if (dapps.length === 0) {
     return (
       <div className="text-center py-12">
@@ -26,6 +27,7 @@ export function DAppGrid({ dapps }: DAppGridProps) {
         <DAppCard 
           key={dapp.id} 
           dapp={dapp}
+          selectedNetwork={selectedNetwork}
         />
       ))}
     </div>

@@ -63,24 +63,10 @@ export function DAppsHomeContent() {
     }
   }, [favoritesSet.size, sortBy]);
 
-  const effectiveNetworkFilter = useMemo(() => {
-    if (networkFilter !== 'all') {
-      return networkFilter;
-    }
-    const isL1Connected = kaspaState.isConnected;
-    const isL2Connected = isEVMConnected;
-    if (isL1Connected && !isL2Connected) return 'L1' as const;
-    if (isL2Connected && !isL1Connected) return 'L2' as const;
-    return 'all' as const;
-  }, [networkFilter, kaspaState.isConnected, isEVMConnected]);
-
   const categoryCounts = useMemo(() => {
     let filteredForCounts = placeholderDApps;
-    if (effectiveNetworkFilter !== 'all') {
-      filteredForCounts = filteredForCounts.filter((dapp) => getDAppNetworkType(dapp) === effectiveNetworkFilter);
-    }
     return getCategoryCounts(filteredForCounts, filters, searchQuery);
-  }, [filters, searchQuery, effectiveNetworkFilter]);
+  }, [filters, searchQuery]);
 
   const filteredDApps = useMemo(() => {
     const filterState: FilterState = {
@@ -88,18 +74,15 @@ export function DAppsHomeContent() {
       ...filters,
     };
     let filtered = filterDApps(placeholderDApps, filterState, searchQuery);
-    if (effectiveNetworkFilter !== 'all') {
-      filtered = filtered.filter((dapp) => getDAppNetworkType(dapp) === effectiveNetworkFilter);
-    }
     if (sortBy === 'favorites') {
       filtered = filtered.filter((dapp) => favoritesSet.has(dapp.id));
     }
     return sortDApps(filtered, sortBy, favoritesSet, likes);
-  }, [selectedCategories, filters, effectiveNetworkFilter, searchQuery, sortBy, favoritesSet, likes]);
+  }, [selectedCategories, filters, searchQuery, sortBy, favoritesSet, likes]);
 
   useEffect(() => {
     setDisplayedCount(50);
-  }, [selectedCategories, filters, effectiveNetworkFilter, searchQuery, sortBy]);
+  }, [selectedCategories, filters, searchQuery, sortBy]);
 
   const displayedDApps = useMemo(() => {
     return filteredDApps.slice(0, displayedCount);
@@ -214,15 +197,9 @@ export function DAppsHomeContent() {
               <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
                 Available dApps
               </h2>
-              {!kaspaState.isConnected && !isEVMConnected ? (
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Please connect a wallet to see available dApps
-                </p>
-              ) : (
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
-                </p>
-              )}
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
+              </p>
             </div>
 
             <div className="flex flex-col gap-4 mb-6">
@@ -241,44 +218,27 @@ export function DAppsHomeContent() {
               </FilterBar>
             </div>
 
-            {!kaspaState.isConnected && !isEVMConnected ? (
-              <div className="text-center py-12 px-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800">
-                <div className="max-w-md mx-auto">
-                  <div className="text-6xl mb-4">🔌</div>
-                  <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-                    Connect a Wallet
-                  </h3>
-                  <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-                    Connect a Kaspa L1 wallet or an EVM L2 wallet to see and interact with dApps.
-                  </p>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                    Use the wallet button in the header to connect
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <>
-                {viewMode === 'cards' ? (
-                  <DAppGrid dapps={displayedDApps} />
-                ) : viewMode === 'compact' ? (
-                  <DAppCompact dapps={displayedDApps} />
-                ) : (
-                  <DAppTable dapps={displayedDApps} />
-                )}
+            <>
+              {viewMode === 'cards' ? (
+                <DAppGrid dapps={displayedDApps} selectedNetwork={networkFilter} />
+              ) : viewMode === 'compact' ? (
+                <DAppCompact dapps={displayedDApps} />
+              ) : (
+                <DAppTable dapps={displayedDApps} />
+              )}
 
-                {showLoadMore && hasMore && (
-                  <div className="mt-8 flex justify-center">
-                    <button
-                      type="button"
-                      onClick={handleLoadMore}
-                      className="px-6 py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
-                    >
-                      Load More
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
+              {showLoadMore && hasMore && (
+                <div className="mt-8 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={handleLoadMore}
+                    className="px-6 py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+                  >
+                    Load More
+                  </button>
+                </div>
+              )}
+            </>
           </div>
         </div>
       </main>

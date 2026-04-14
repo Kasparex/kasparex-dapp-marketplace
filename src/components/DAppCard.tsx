@@ -20,9 +20,10 @@ import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/componen
 
 interface DAppCardProps {
   dapp: DApp;
+  selectedNetwork?: 'all' | 'L1' | 'L2';
 }
 
-export function DAppCard({ dapp }: DAppCardProps) {
+export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
   const chainId = useChainId();
   const { state: kaspaState } = useKaspaWallet();
   const { isConnected: isEvmConnected } = useAccount();
@@ -73,6 +74,8 @@ export function DAppCard({ dapp }: DAppCardProps) {
   const needsKaspa = networkType === 'L1' && !isKaspaConnected;
   const needsEvm = networkType === 'L2' && !isEvmConnected;
   const isLocked = needsKaspa || needsEvm;
+  const isNetworkMismatch = selectedNetwork !== 'all' && networkType !== selectedNetwork;
+  const isOpenable = !isNetworkMismatch && !isLocked;
 
   const lockTitle = isTestnetDApp
     ? 'Connect wallet (testnet)'
@@ -90,6 +93,12 @@ export function DAppCard({ dapp }: DAppCardProps) {
         ? 'Connect your EVM (L2) wallet to use this dApp.'
         : '';
 
+  const mismatchTitle = selectedNetwork === 'L1' ? 'Not available on L1' : 'Not available on L2';
+  const mismatchBody =
+    selectedNetwork === 'L1'
+      ? 'Switch the filter to L2, or pick an L1-compatible dApp.'
+      : 'Switch the filter to L1, or pick an L2-compatible dApp.';
+
   const connectedTitle = isTestnetDApp
     ? 'Testnet dApp'
     : networkType === 'L1'
@@ -102,16 +111,18 @@ export function DAppCard({ dapp }: DAppCardProps) {
       ? 'Requires a Kaspa (L1) wallet. Yours is connected — you can open this dApp.'
       : 'Requires an EVM (L2) wallet. Yours is connected — you can open this dApp.';
 
-  const overlayTitle = isLocked ? lockTitle : connectedTitle;
-  const overlaySubtitle = isLocked
-    ? needsKaspa
-      ? 'Connect your Kaspa (L1) wallet to open.'
-      : needsEvm
-        ? 'Connect your EVM (L2) wallet to open.'
-        : 'Connect a wallet to open.'
-    : isTestnetDApp
-      ? 'Testnet environment — verify network before opening.'
-      : 'Ready to open.';
+  const overlayTitle = isNetworkMismatch ? mismatchTitle : isLocked ? lockTitle : connectedTitle;
+  const overlaySubtitle = isNetworkMismatch
+    ? mismatchBody
+    : isLocked
+      ? needsKaspa
+        ? 'Connect your Kaspa (L1) wallet to open.'
+        : needsEvm
+          ? 'Connect your EVM (L2) wallet to open.'
+          : 'Connect a wallet to open.'
+      : isTestnetDApp
+        ? 'Testnet environment — verify network before opening.'
+        : 'Ready to open.';
 
   const badges: { label: string; className: string }[] = [
     networkType === 'L1'
@@ -143,7 +154,12 @@ export function DAppCard({ dapp }: DAppCardProps) {
   };
 
   return (
-    <KxListingCard href={`/dapps/${slug}`} accent="dapps" className="relative flex flex-col min-h-0">
+    <KxListingCard
+      href={isOpenable ? `/dapps/${slug}` : undefined}
+      disabled={!isOpenable}
+      accent="dapps"
+      className="relative flex flex-col min-h-0"
+    >
       <KxListingCardMedia>
         {(mergedDApp.featuredImage || mergedDApp.image) ? (
           <img
@@ -308,7 +324,9 @@ export function DAppCard({ dapp }: DAppCardProps) {
 
       {/* Full-card hover: dark panel so copy never blends with the card; pointer-events-none keeps the link clickable. */}
       <div
-        className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-between rounded-xl border border-cyan-500/40 bg-white/75 dark:bg-zinc-950/70 px-6 py-6 opacity-0 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.14)] backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100"
+        className={`pointer-events-none absolute inset-0 z-20 flex flex-col justify-between rounded-xl border border-cyan-500/40 bg-white/75 dark:bg-zinc-950/70 px-6 py-6 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.14)] backdrop-blur-md transition-opacity duration-200 ${
+          isOpenable ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'
+        }`}
         aria-hidden
       >
         <div className="flex flex-wrap items-center gap-2">

@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Product } from '@/lib/store/types';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { ProductPreviewModal } from './ProductPreviewModal';
+import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 
 interface ProductCardProps {
   product: Product;
@@ -26,10 +26,9 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <Link href={`/store/${product.slug}`} className="group h-full">
-      <div className="h-full flex flex-col bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden transition-all duration-300 hover:border-yellow-500 hover:shadow-xl hover:shadow-yellow-500/10">
+    <KxListingCard href={`/store/${product.slug}`} accent="store" className="h-full flex flex-col">
         {/* Product Image */}
-        <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900">
+        <KxListingCardMedia aspectClass="aspect-[4/3]" className="bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900">
           {thumbnailUrl ? (
             <img
               src={thumbnailUrl}
@@ -61,10 +60,10 @@ export function ProductCard({ product }: ProductCardProps) {
               {product.network}
             </span>
           </div>
-        </div>
+        </KxListingCardMedia>
 
         {/* Product Info */}
-        <div className="p-4 flex-1 flex flex-col">
+        <KxListingCardBody className="flex-1 flex flex-col">
           <div className="text-xs font-bold text-yellow-700 dark:text-yellow-300 uppercase tracking-widest mb-1">
             by {product.sellerAddress.slice(-5)}
           </div>
@@ -103,8 +102,7 @@ export function ProductCard({ product }: ProductCardProps) {
               </button>
             </div>
           </div>
-        </div>
-      </div>
+        </KxListingCardBody>
 
       <ProductPreviewModal
         product={product}
@@ -115,6 +113,6 @@ export function ProductCard({ product }: ProductCardProps) {
           router.push(`/store/${product.slug}`);
         }}
       />
-    </Link>
+    </KxListingCard>
   );
 }

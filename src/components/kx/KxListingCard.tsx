@@ -12,15 +12,28 @@ const shellBase =
 export function KxListingCard({
   href,
   accent,
+  disabled,
   className,
   children,
 }: {
-  href: string;
+  href?: string;
   accent: KxListingAccent;
+  disabled?: boolean;
   className?: string;
   children: ReactNode;
 }) {
   const cls = kxJoinClasses(shellBase, className);
+  if (!href || disabled) {
+    return (
+      <div
+        className={kxJoinClasses(cls, disabled ? 'cursor-not-allowed opacity-95' : undefined)}
+        data-kx-accent={accent}
+      >
+        {children}
+      </div>
+    );
+  }
+
   return (
     <Link href={href} className={cls} data-kx-accent={accent}>
       {children}
