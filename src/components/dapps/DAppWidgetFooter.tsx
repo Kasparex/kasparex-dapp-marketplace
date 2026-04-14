@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { useChainId } from 'wagmi';
 import { DApp } from '@/lib/dapps';
@@ -31,7 +30,6 @@ export function DAppWidgetFooter({
   hideMetaRow = false,
 }: DAppWidgetFooterProps) {
   const chainId = useChainId();
-  const [isFooterCollapsed, setIsFooterCollapsed] = useState(false);
 
   let resolvedContractAddress = contractAddress || dapp.contractAddress || '';
   if (!resolvedContractAddress) {
@@ -64,84 +62,56 @@ export function DAppWidgetFooter({
   }
   const tokenTicker = rawTicker ? rawTicker.substring(0, 6) : null;
 
-  if (isFooterCollapsed) {
-    return (
-      <button
-        onClick={() => setIsFooterCollapsed(false)}
-        className="w-full px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border-t border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
-        aria-label="Expand footer"
-      >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-        </svg>
-        Show footer
-      </button>
-    );
-  }
-
   return (
     <>
       <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-        <div className="flex flex-col gap-4">
-          {/* Footer Text and Collapse Button Row */}
-          <div className="flex items-center justify-between">
-            {/* Footer Text - Aligned Left */}
-            <div className="text-xs text-zinc-500 dark:text-zinc-500 text-left flex flex-wrap items-center gap-x-2 gap-y-1">
-              <Link
-                href="https://hub.kasparex.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors"
-                title="Kasparex Hub"
-              >
-                Kasparex Hub
-              </Link>
-
-              {!hideMetaRow ? (
-                <>
-                  {category ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-[10px] font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-                      <span className="text-[11px] leading-none">{category.emoji}</span>
-                      {category.name}
-                    </span>
-                  ) : null}
-                  {mergedDApp.version && mergedDApp.version !== 'N/A' ? (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-[10px] font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-                      v{mergedDApp.version.replace(/^v\s*/i, '')}
-                    </span>
-                  ) : null}
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-[10px] font-mono text-zinc-700 dark:text-zinc-300">
-                    {mergedDApp.id}
+        <div className="flex items-center justify-between gap-6">
+          {/* Left: meta chips */}
+          <div className="min-w-0 flex flex-wrap items-center gap-2">
+            {!hideMetaRow ? (
+              <>
+                {category ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-[10px] font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                    <span className="text-[11px] leading-none">{category.emoji}</span>
+                    {category.name}
                   </span>
-                </>
-              ) : null}
+                ) : null}
+                {mergedDApp.version && mergedDApp.version !== 'N/A' ? (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-[10px] font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                    v{mergedDApp.version.replace(/^v\s*/i, '')}
+                  </span>
+                ) : null}
+                <span className="inline-flex items-center px-2 py-0.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-[10px] font-mono text-zinc-700 dark:text-zinc-300">
+                  {mergedDApp.id}
+                </span>
+              </>
+            ) : null}
+          </div>
 
-              <span className="opacity-60">|</span>
-              <span>Built with love by</span>{' '}
-              <Link
-                href="https://bio.kasparex.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors"
-                title="Symbol of intelligence, resilience, and purpose. Fair-launched, community-owned KRC-20 and L2 token on the Kaspa network.
+          {/* Right: hub + built-by */}
+          <div className="flex flex-wrap items-center justify-end gap-x-2 gap-y-1 text-xs text-zinc-500 dark:text-zinc-500 text-right">
+            <Link
+              href="https://hub.kasparex.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors"
+              title="Kasparex Hub"
+            >
+              Kasparex Hub
+            </Link>
+            <span className="opacity-60">|</span>
+            <span>Built with love by</span>{' '}
+            <Link
+              href="https://bio.kasparex.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors"
+              title="Symbol of intelligence, resilience, and purpose. Fair-launched, community-owned KRC-20 and L2 token on the Kaspa network.
 
 Est. 2024 🔥"
-              >
-                Krex
-              </Link>
-            </div>
-            
-            {/* Collapse Button - Right (under star/heart icons) */}
-            <button
-              onClick={() => setIsFooterCollapsed(true)}
-              className="p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors"
-              aria-label="Collapse footer"
-              title="Collapse footer"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+              Krex
+            </Link>
           </div>
         </div>
       </div>

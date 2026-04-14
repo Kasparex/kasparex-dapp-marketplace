@@ -96,35 +96,17 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
       ? isKaspaConnected
       : isEvmConnected && chainId !== undefined && isL2ChainCompatible);
 
-  const mismatchTitle = selectedNetwork === 'L1' ? 'Not available on L1' : 'Not available on L2';
-  const mismatchBody =
-    selectedNetwork === 'L1'
-      ? 'Switch the filter to L2, or pick an L1-compatible dApp.'
-      : 'Switch the filter to L1, or pick an L2-compatible dApp.';
-
-  const overlayTitle = isNetworkMismatch
-    ? mismatchTitle
+  const overlayMessage = isNetworkMismatch
+    ? `Switch filter to ${networkType}`
     : networkType === 'L1'
-      ? 'Available on L1'
+      ? !isKaspaConnected
+        ? 'Connect L1 Wallet'
+        : ''
       : !isEvmConnected
-        ? 'Available on L2'
-        : !isL2ChainCompatible
-          ? 'Wrong network'
-          : 'Available on L2';
-
-  const overlaySubtitle = isNetworkMismatch
-    ? mismatchBody
-    : networkType === 'L1'
-      ? isKaspaConnected
-        ? ''
-        : 'Connect your (L1) wallet to open.'
-      : !isEvmConnected
-        ? 'Connect your EVM (L2) wallet to open.'
-        : chainId === undefined
-          ? 'Connect your EVM (L2) wallet to a supported network.'
-          : !isL2ChainCompatible
-            ? `Switch to ${requiredChainNames.join(' or ')}.`
-            : '';
+        ? 'Connect L2 Wallet'
+        : chainId === undefined || !isL2ChainCompatible
+          ? `Switch to ${requiredChainNames.join(' or ')}`
+          : '';
 
   const statusLabel = useMemo(() => {
     const status = (mergedDApp.status || '').toLowerCase();
@@ -200,11 +182,7 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
       <KxListingCardMedia>
         <div className="pointer-events-none absolute left-4 top-4 z-20 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
           <span
-            className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${
-              networkType === 'L1'
-                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/25'
-                : 'bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/25'
-            }`}
+            className="inline-flex items-center rounded-xl border border-white/20 bg-black/50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-white backdrop-blur-sm"
           >
             {networkType}
           </span>
@@ -342,32 +320,35 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
 
       {/* Full-card hover: dark panel so copy never blends with the card; pointer-events-none keeps the link clickable. */}
       <div
-        className={`pointer-events-none absolute inset-0 z-20 flex flex-col justify-between rounded-xl border border-cyan-500/40 bg-white/75 dark:bg-zinc-950/70 px-6 py-6 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.14)] backdrop-blur-md transition-opacity duration-200 ${
+        className={`pointer-events-none absolute inset-0 z-20 flex flex-col justify-between rounded-xl border border-zinc-900/10 bg-white/75 dark:border-white/10 dark:bg-zinc-950/70 px-6 py-6 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.14)] backdrop-blur-md transition-opacity duration-200 ${
           isOpenable ? 'hidden' : 'opacity-0 group-hover:opacity-100'
         }`}
         aria-hidden
       >
-        <div className="flex flex-wrap items-center gap-2">
-          {badges.slice(0, 3).map((b) => (
-            <span
-              key={b.label}
-              className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${b.className}`}
-            >
-              {b.dot ? <span className="mr-2">{b.dot}</span> : null}
-              {b.label}
-            </span>
-          ))}
+        <div className="flex items-center justify-between gap-3">
+          <span
+            className={`inline-flex items-center rounded-xl border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${badges[0]?.className || ''}`}
+          >
+            {badges[0]?.label || networkType}
+          </span>
+
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {badges.slice(1, 3).map((b) => (
+              <span
+                key={b.label}
+                className={`inline-flex items-center rounded-xl border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${b.className}`}
+              >
+                {b.dot ? <span className="mr-2">{b.dot}</span> : null}
+                {b.label}
+              </span>
+            ))}
+          </div>
         </div>
 
         <div className="flex flex-col items-center justify-center flex-1 text-center">
-          <p className="text-base sm:text-lg font-black uppercase tracking-[0.12em] text-zinc-900 dark:text-zinc-50 drop-shadow-sm">
-            {overlayTitle}
+          <p className="text-sm sm:text-base font-black uppercase tracking-[0.16em] text-zinc-900 dark:text-zinc-50 drop-shadow-sm">
+            {overlayMessage}
           </p>
-          {overlaySubtitle ? (
-            <p className="mt-3 text-sm sm:text-base leading-relaxed text-zinc-700 dark:text-zinc-200/95 max-w-md mx-auto font-semibold">
-              {overlaySubtitle}
-            </p>
-          ) : null}
         </div>
 
         <p className="text-center text-[11px] font-black uppercase tracking-[0.22em] text-zinc-600 dark:text-zinc-300">

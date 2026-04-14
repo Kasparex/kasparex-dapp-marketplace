@@ -105,27 +105,24 @@ export function DAppWidget({
       ? isKaspaConnected
       : isEvmConnected && chainId !== undefined && isL2ChainCompatible;
 
-  const overlayTitle =
-    networkType === 'L1'
-      ? 'Available on L1'
-      : !isEvmConnected
-        ? 'Available on L2'
-        : !isL2ChainCompatible
-          ? 'Wrong network'
-          : 'Available on L2';
+  const isContractMissingOnThisNetwork =
+    networkType === 'L2' &&
+    isEvmConnected &&
+    chainId !== undefined &&
+    isL2ChainCompatible &&
+    (!contractAddress || !contractAddress.startsWith('0x'));
 
-  const overlaySubtitle =
-    networkType === 'L1'
-      ? isKaspaConnected
-        ? ''
-        : 'Connect your (L1) wallet to open.'
+  const overlayMessage = isContractMissingOnThisNetwork
+    ? 'Contract not deployed on this network'
+    : networkType === 'L1'
+      ? !isKaspaConnected
+        ? 'Connect L1 Wallet'
+        : ''
       : !isEvmConnected
-        ? 'Connect your EVM (L2) wallet to open.'
-        : chainId === undefined
-          ? 'Connect your EVM (L2) wallet to a supported network.'
-          : !isL2ChainCompatible
-            ? `Switch to ${requiredChainNames.join(' or ')}.`
-            : '';
+        ? 'Connect L2 Wallet'
+        : chainId === undefined || !isL2ChainCompatible
+          ? `Switch to ${requiredChainNames.join(' or ')}`
+          : '';
 
   const envBadgeClassName = useMemo(() => {
     if (statusType === 'testnet') {
@@ -161,7 +158,8 @@ export function DAppWidget({
   ];
 
   const renderShell = (inner: React.ReactNode, resolvedContractAddress?: string) => {
-    const cardClass = `w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${!isOpenable ? 'opacity-95' : ''}`;
+    const isBlocked = !isOpenable || isContractMissingOnThisNetwork;
+    const cardClass = `w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden ${isBlocked ? 'opacity-95' : ''}`;
 
     return (
     <div className="relative">
@@ -172,7 +170,7 @@ export function DAppWidget({
       />
       <div className={cardClass}>
         {!hideHeader ? (
-          <div className={!isOpenable ? 'pointer-events-none' : ''}>
+          <div className={isBlocked ? 'pointer-events-none' : ''}>
             <DAppWidgetHeader
               dapp={dapp}
               contractAddress={resolvedContractAddress}
@@ -186,10 +184,10 @@ export function DAppWidget({
           </div>
         ) : null}
 
-        <div className={!isOpenable ? 'pointer-events-none' : ''}>{inner}</div>
+        <div className={isBlocked ? 'pointer-events-none' : ''}>{inner}</div>
 
         {!hideFooter ? (
-          <div className={!isOpenable ? 'pointer-events-none' : ''}>
+          <div className={isBlocked ? 'pointer-events-none' : ''}>
             <DAppWidgetFooter
               dapp={dapp}
               contractAddress={resolvedContractAddress}
@@ -205,31 +203,34 @@ export function DAppWidget({
 
       {/* Full-widget gating overlay (no hover) */}
       <div
-        className={`pointer-events-none absolute inset-0 z-30 flex flex-col justify-between rounded-xl border border-cyan-500/40 bg-white/80 dark:bg-zinc-950/75 px-6 py-6 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.14)] backdrop-blur-md ${
-          isOpenable ? 'hidden' : 'opacity-100'
+        className={`pointer-events-none absolute inset-0 z-30 flex flex-col justify-between rounded-xl border border-zinc-900/10 bg-white/80 dark:border-white/10 dark:bg-zinc-950/75 px-6 py-6 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.14)] backdrop-blur-md ${
+          !isOpenable || isContractMissingOnThisNetwork ? 'opacity-100' : 'hidden'
         }`}
         aria-hidden
       >
-        <div className="flex flex-wrap items-center gap-2">
-          {badges.slice(0, 3).map((b) => (
-            <span
-              key={b.label}
-              className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${b.className}`}
-            >
-              {b.label}
-            </span>
-          ))}
+        <div className="flex items-center justify-between gap-3">
+          <span
+            className={`inline-flex items-center rounded-xl border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${badges[0]?.className || ''}`}
+          >
+            {badges[0]?.label || (networkType === 'L1' ? 'L1' : 'L2')}
+          </span>
+
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {badges.slice(1, 3).map((b) => (
+              <span
+                key={b.label}
+                className={`inline-flex items-center rounded-xl border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${b.className}`}
+              >
+                {b.label}
+              </span>
+            ))}
+          </div>
         </div>
 
         <div className="flex flex-col items-center justify-center flex-1 text-center">
-          <p className="text-base sm:text-lg font-black uppercase tracking-[0.12em] text-zinc-900 dark:text-zinc-50 drop-shadow-sm">
-            {overlayTitle}
+          <p className="text-sm sm:text-base font-black uppercase tracking-[0.16em] text-zinc-900 dark:text-zinc-50 drop-shadow-sm">
+            {overlayMessage}
           </p>
-          {overlaySubtitle ? (
-            <p className="mt-3 text-sm sm:text-base leading-relaxed text-zinc-700 dark:text-zinc-200/95 max-w-md mx-auto font-semibold">
-              {overlaySubtitle}
-            </p>
-          ) : null}
         </div>
 
         <p className="text-center text-[11px] font-black uppercase tracking-[0.22em] text-zinc-600 dark:text-zinc-300">

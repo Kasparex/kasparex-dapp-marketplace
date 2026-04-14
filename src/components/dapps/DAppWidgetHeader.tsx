@@ -103,7 +103,7 @@ export function DAppWidgetHeader({
       <div className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-3 sm:px-6">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0 flex flex-wrap items-center gap-2">
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${badgeColor} shadow-sm`}>
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold border ${badgeColor} shadow-sm`}>
               {networkType === 'L1' ? (
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -117,7 +117,7 @@ export function DAppWidgetHeader({
             </span>
 
             {statusLabel ? (
-              <span className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-xs font-semibold border ${badgeColor} shadow-sm`}>
+              <span className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-xl text-xs font-semibold border ${badgeColor} shadow-sm`}>
                 {statusType === 'mainnet' || statusType === 'testnet' || statusType === 'suspended' ? (
                   <StatusIndicatorDot
                     statusType={statusType === 'mainnet' ? 'mainnet' : statusType === 'testnet' ? 'testnet' : 'suspended'}
