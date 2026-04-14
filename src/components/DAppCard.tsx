@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useAccount, useChainId } from 'wagmi';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { DApp, getDAppNetworkType } from '@/lib/dapps';
+import { DApp, getDAppChainIds, getDAppNetworkType, isDAppCompatibleWithChain } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
 import { getDAppPaymentConfig } from '@/lib/payments/config';
@@ -75,7 +75,24 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
   const needsKaspa = networkType === 'L1' && !isKaspaConnected;
   const needsEvm = networkType === 'L2' && !isEvmConnected;
   const isNetworkMismatch = selectedNetwork !== 'all' && networkType !== selectedNetwork;
-  const isOpenable = bothWalletsConnected || (!isNetworkMismatch && (networkType === 'L1' ? isKaspaConnected : isEvmConnected));
+
+  const requiredChainIds = useMemo(() => getDAppChainIds(mergedDApp), [mergedDApp]);
+  const requiredChainNames = useMemo(
+    () => requiredChainIds.map((id) => getChainById(id)?.name || `Chain ${id}`),
+    [requiredChainIds]
+  );
+  const isL2ChainCompatible = useMemo(() => {
+    if (networkType !== 'L2') return true;
+    if (!isEvmConnected || chainId === undefined) return false;
+    return isDAppCompatibleWithChain(mergedDApp, chainId);
+  }, [networkType, isEvmConnected, chainId, mergedDApp]);
+
+  const isOpenable =
+    bothWalletsConnected ||
+    (!isNetworkMismatch &&
+      (networkType === 'L1'
+        ? isKaspaConnected
+        : isEvmConnected && chainId !== undefined && isL2ChainCompatible));
 
   const mismatchTitle = selectedNetwork === 'L1' ? 'Not available on L1' : 'Not available on L2';
   const mismatchBody =
@@ -87,15 +104,25 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
     ? mismatchTitle
     : networkType === 'L1'
       ? 'Kaspa L1 dApp'
-      : 'EVM L2 dApp';
+      : !isEvmConnected
+        ? 'EVM L2 dApp'
+        : !isL2ChainCompatible
+          ? 'Wrong network'
+          : 'EVM L2 dApp';
 
   const overlaySubtitle = isNetworkMismatch
     ? mismatchBody
-    : bothWalletsConnected
-      ? ''
-      : networkType === 'L1'
-        ? 'Connect your Kaspa (L1) wallet to open.'
-        : 'Connect your EVM (L2) wallet to open.';
+    : networkType === 'L1'
+      ? isKaspaConnected
+        ? ''
+        : 'Connect your Kaspa (L1) wallet to open.'
+      : !isEvmConnected
+        ? 'Connect your EVM (L2) wallet to open.'
+        : chainId === undefined
+          ? 'Connect your EVM (L2) wallet to a supported network.'
+          : !isL2ChainCompatible
+            ? `Switch your wallet network to ${requiredChainNames.join(' or ')}.`
+            : '';
 
   const badges: { label: string; className: string }[] = [
     networkType === 'L1'
