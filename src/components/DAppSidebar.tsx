@@ -85,7 +85,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
     {
       id: 'dashboard',
       label: 'My Dashboard',
-      href: '/dashboard',
+      href: '/tree/dashboard',
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -255,7 +255,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
       >
         {/* Standard sidebar header with interactive back link and hide */}
         <SidebarHeader
-          backHref="/"
+          backHref="/dapps"
           backLabel="Back to dApps"
           onHide={() => setIsHidden(true)}
           className="bg-white dark:bg-zinc-950"

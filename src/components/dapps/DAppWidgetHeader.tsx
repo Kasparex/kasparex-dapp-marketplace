@@ -1,12 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useChainId } from 'wagmi';
-import Image from 'next/image';
 import { DApp, getDAppNetworkType } from '@/lib/dapps';
+import { getCategoryById } from '@/lib/categories';
 import { useDAppFromContract, mergeDAppData } from '@/lib/dapps/contractData';
 import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { DAppInfoModal } from './DAppInfoModal';
+import { StatusIndicatorDot } from './StatusIndicatorDot';
+import { useLikes } from '@/hooks/useLikes';
+import { useFavorites } from '@/hooks/useFavorites';
+import { CategoryIcon } from './CategoryIcon';
+import { DAppEmbed } from './DAppEmbed';
+import { DAppIcon } from './DAppIcon';
 
 interface DAppWidgetHeaderProps {
   dapp: DApp;
@@ -47,35 +53,85 @@ export function DAppWidgetHeader({
 
   // Modal state
   const [showInfoModal, setShowInfoModal] = useState(false);
-  /** Show/hide only the featured image section (toggle is the small button on the image). Hidden by default. */
-  const [showFeaturedImage, setShowFeaturedImage] = useState(false);
+  const [showEmbedModal, setShowEmbedModal] = useState(false);
+
+  const { toggleLike, getLikeCount, hasLiked, isWalletConnected: isWalletConnectedForLikes } = useLikes();
+  const { toggleFavorite, isFavorite, isWalletConnected: isWalletConnectedForFavorites } = useFavorites();
+  const likeCount = getLikeCount(mergedDApp.id);
+  const isLiked = hasLiked(mergedDApp.id);
+  const isFavoriteDapp = isFavorite(mergedDApp.id);
+
+  const handleIconClick = (e: React.MouseEvent, action: () => void) => {
+    e.preventDefault();
+    e.stopPropagation();
+    action();
+  };
+
+  const networkType = getDAppNetworkType(mergedDApp);
+  const category = getCategoryById(mergedDApp.category);
+  const statusLower = (mergedDApp.status || '').toLowerCase();
+  const isTestnet =
+    statusLower === 'testnet' ||
+    (mergedDApp.network || '').toLowerCase().includes('testnet') ||
+    (mergedDApp.network || '').toLowerCase().includes('galleon') ||
+    (mergedDApp.name || '').toLowerCase().includes('testnet');
+
+  const statusType: 'mainnet' | 'testnet' | 'suspended' | 'none' =
+    statusLower === 'suspended' ? 'suspended' : statusLower === 'mainnet' ? 'mainnet' : isTestnet ? 'testnet' : 'none';
+
+  const statusLabel = (() => {
+    const env = statusType === 'testnet' ? 'Testnet' : statusType === 'mainnet' ? 'Mainnet' : mergedDApp.status;
+    if (!env) return '';
+    if (env === 'Suspended') return 'Suspended';
+
+    const lower = (mergedDApp.network || '').toLowerCase();
+    if (networkType === 'L2') {
+      const family = lower.includes('igra') ? 'Igra' : lower.includes('kasplex') ? 'Kasplex' : 'L2';
+      return `${family} ${env}`;
+    }
+    const family = lower.includes('kaspa') ? 'Kaspa' : 'L1';
+    return `${family} ${env}`;
+  })();
+
+  const networkBadgeColor =
+    networkType === 'L1'
+      ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-200 border-emerald-500/25'
+      : 'bg-cyan-500/15 text-cyan-800 dark:text-cyan-200 border-cyan-500/25';
+
+  const statusBadgeColor =
+    statusType === 'testnet'
+      ? 'bg-amber-500/15 text-amber-900 dark:text-amber-200 border-amber-500/25'
+      : statusType === 'mainnet'
+        ? networkType === 'L1'
+          ? 'bg-emerald-500/15 text-emerald-900 dark:text-emerald-200 border-emerald-500/25'
+          : 'bg-cyan-500/15 text-cyan-900 dark:text-cyan-200 border-cyan-500/25'
+        : statusType === 'suspended'
+          ? 'bg-red-500/15 text-red-900 dark:text-red-200 border-red-500/25'
+          : 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/20';
+
+  const shortAddress = useMemo(() => {
+    const id = String(mergedDApp.id ?? '');
+    if (!id) return '';
+    return id.length > 16 ? `${id.slice(0, 8)}…${id.slice(-6)}` : id;
+  }, [mergedDApp.id]);
 
   return (
     <>
-      {/* Featured Image Banner - Show/hide only the image section */}
-      {mergedDApp.featuredImage || mergedDApp.image ? (
-        showFeaturedImage ? (
-          <div className="relative w-full h-32 overflow-hidden border-b border-zinc-200 dark:border-zinc-700">
-            <Image
-              src={mergedDApp.featuredImage || mergedDApp.image || ''}
-              alt={`${mergedDApp.name} - Featured image`}
-              fill
-              className="object-cover"
-              unoptimized
+      <div className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-4 sm:px-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-4 min-w-0">
+            <DAppIcon
+              dAppName={mergedDApp.name}
+              category={mergedDApp.category}
+              size={48}
+              className="flex-shrink-0 rounded-xl"
             />
-            {/* Network Badge - Top Left */}
-            {(() => {
-              const networkType = getDAppNetworkType(mergedDApp);
-              const networkBadgeColor =
-                networkType === 'L1'
-                  ? 'bg-[#02abb8]/20 dark:bg-[#02abb8]/30 text-[#02abb8] border-[#02abb8]/30 dark:border-[#02abb8]/50'
-                  : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700';
-              return (
-                <span
-                  className={`absolute top-2 left-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold backdrop-blur-sm border ${networkBadgeColor} z-20 shadow-sm`}
-                  title={`${mergedDApp.name} is deployed on ${networkType === 'L1' ? 'Kaspa Layer 1' : 'Kasplex/Igra Layer 2'} network`}
-                  aria-label={`Network type: ${networkType}`}
-                >
+            <div className="min-w-0">
+              <h2 className="text-lg sm:text-xl font-black text-zinc-900 dark:text-zinc-100 leading-tight truncate">
+                {mergedDApp.name}
+              </h2>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${networkBadgeColor} shadow-sm`}>
                   {networkType === 'L1' ? (
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -87,66 +143,122 @@ export function DAppWidgetHeader({
                   )}
                   {networkType}
                 </span>
-              );
-            })()}
-            {/* Hide image button - only for featured image */}
-            <button
-              onClick={() => setShowFeaturedImage(false)}
-              className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded text-white transition-colors z-10"
-              aria-label="Hide featured image"
-              title="Hide featured image"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-              </svg>
-            </button>
+
+                {statusLabel ? (
+                  <span className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-xs font-semibold border ${statusBadgeColor} shadow-sm`}>
+                    {statusType === 'mainnet' || statusType === 'testnet' || statusType === 'suspended' ? (
+                      <StatusIndicatorDot
+                        statusType={statusType === 'mainnet' ? 'mainnet' : statusType === 'testnet' ? 'testnet' : 'suspended'}
+                        size="sm"
+                        className="!animate-pulse"
+                      />
+                    ) : null}
+                    {statusLabel}
+                  </span>
+                ) : null}
+
+                {category ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
+                    <CategoryIcon id={category.id} />
+                    <span>{category.name}</span>
+                  </span>
+                ) : null}
+
+                {mergedDApp.version && mergedDApp.version !== 'N/A' ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
+                    v{mergedDApp.version.replace(/^v\s*/i, '')}
+                  </span>
+                ) : null}
+
+                {shortAddress ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-mono rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
+                    {shortAddress}
+                  </span>
+                ) : null}
+              </div>
+            </div>
           </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setShowFeaturedImage(true)}
-            className="w-full px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border-b border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
-            aria-label="Show featured image"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            Show featured image
-          </button>
-        )
-      ) : (
-        <div className="relative w-full h-32 bg-zinc-100/80 dark:bg-zinc-900/95 flex items-center justify-center border-b border-zinc-200/50 dark:border-zinc-800/50">
-          <svg className="w-12 h-12 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          {/* Network Badge - Top Left */}
-          {(() => {
-            const networkType = getDAppNetworkType(mergedDApp);
-            const networkBadgeColor =
-              networkType === 'L1'
-                ? 'bg-[#02abb8]/20 dark:bg-[#02abb8]/30 text-[#02abb8] border-[#02abb8]/30 dark:border-[#02abb8]/50'
-                : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700';
-            return (
-              <span
-                className={`absolute top-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${networkBadgeColor} z-20 shadow-sm`}
-                title={`${mergedDApp.name} is deployed on ${networkType === 'L1' ? 'Kaspa Layer 1' : 'Kasplex/Igra Layer 2'} network`}
-                aria-label={`Network type: ${networkType}`}
+
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {!hideInfo ? (
+              <button
+                type="button"
+                onClick={(e) => handleIconClick(e, () => setShowInfoModal(true))}
+                className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                title="Info"
+                aria-label="View dApp info"
               >
-                {networkType === 'L1' ? (
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                ) : (
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
-                  </svg>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+            ) : null}
+
+            {!hideEmbed ? (
+              <button
+                type="button"
+                onClick={(e) => handleIconClick(e, () => setShowEmbedModal(true))}
+                className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                title="Embed"
+                aria-label="Get embed code"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+            ) : null}
+
+            {!hideStar ? (
+              <button
+                onClick={(e) => handleIconClick(e, () => {
+                  if (isWalletConnectedForFavorites) toggleFavorite(mergedDApp.id);
+                })}
+                className={`p-1.5 rounded-lg transition-colors ${
+                  isFavoriteDapp
+                    ? 'text-yellow-500 hover:text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
+                    : isWalletConnectedForFavorites
+                      ? 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                      : 'text-zinc-300 dark:text-zinc-600 cursor-not-allowed'
+                }`}
+                title={isWalletConnectedForFavorites ? (isFavoriteDapp ? 'Remove from favorites' : 'Add to favorites') : 'Connect wallet to favorite'}
+                aria-label={isWalletConnectedForFavorites ? (isFavoriteDapp ? 'Remove from favorites' : 'Add to favorites') : 'Connect wallet to favorite'}
+                disabled={!isWalletConnectedForFavorites}
+              >
+                <svg className="w-4 h-4" fill={isFavoriteDapp ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+              </button>
+            ) : null}
+
+            {!hideHeart ? (
+              <button
+                onClick={(e) => handleIconClick(e, () => {
+                  if (isWalletConnectedForLikes) toggleLike(mergedDApp.id);
+                })}
+                className={`p-1.5 rounded-lg transition-colors relative ${
+                  isLiked
+                    ? 'text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-900/20'
+                    : isWalletConnectedForLikes
+                      ? 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                      : 'text-zinc-300 dark:text-zinc-600 cursor-not-allowed'
+                }`}
+                title={isWalletConnectedForLikes ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
+                aria-label={isWalletConnectedForLikes ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
+                disabled={!isWalletConnectedForLikes}
+              >
+                <svg className="w-4 h-4" fill={isLiked ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                {likeCount > 0 && (
+                  <span className="absolute -top-1 -right-1 text-[10px] font-bold text-zinc-600 dark:text-zinc-400 bg-white dark:bg-zinc-900 rounded-full px-1">
+                    {likeCount}
+                  </span>
                 )}
-                {networkType}
-              </span>
-            );
-          })()}
+              </button>
+            ) : null}
+          </div>
         </div>
-      )}
+      </div>
 
       {/* Info Modal */}
       {showInfoModal && (
@@ -155,6 +267,10 @@ export function DAppWidgetHeader({
           contractAddress={resolvedContractAddress}
           onClose={() => setShowInfoModal(false)}
         />
+      )}
+
+      {showEmbedModal && (
+        <DAppEmbed dapp={mergedDApp} onClose={() => setShowEmbedModal(false)} />
       )}
 
     </>

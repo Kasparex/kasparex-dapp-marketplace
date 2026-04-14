@@ -23,10 +23,10 @@ export default function ListDAppPage() {
                 <Link href="/list-dapp" className="k-control-btn w-full">
                   List dApp
                 </Link>
-                <Link href="/dashboard" className="k-control-btn w-full">
+                <Link href="/tree/dashboard" className="k-control-btn w-full">
                   Revenue Tree
                 </Link>
-                <Link href="/modules" className="k-control-btn w-full">
+                <Link href="/dapp-modules" className="k-control-btn w-full">
                   Modules
                 </Link>
               </div>
@@ -44,10 +44,10 @@ export default function ListDAppPage() {
                 <Link href="/list-dapp" className="k-control-btn w-full">
                   List dApp
                 </Link>
-                <Link href="/dashboard" className="k-control-btn w-full">
+                <Link href="/tree/dashboard" className="k-control-btn w-full">
                   Revenue Tree
                 </Link>
-                <Link href="/modules" className="k-control-btn w-full">
+                <Link href="/dapp-modules" className="k-control-btn w-full">
                   Modules
                 </Link>
               </div>

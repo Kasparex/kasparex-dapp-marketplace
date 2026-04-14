@@ -156,8 +156,8 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
     }
     if (statusType === 'mainnet') {
       return networkType === 'L1'
-        ? 'bg-blue-500/15 text-blue-900 dark:text-blue-200 border-blue-500/25'
-        : 'bg-purple-500/15 text-purple-900 dark:text-purple-200 border-purple-500/25';
+        ? 'bg-emerald-500/15 text-emerald-900 dark:text-emerald-200 border-emerald-500/25'
+        : 'bg-cyan-500/15 text-cyan-900 dark:text-cyan-200 border-cyan-500/25';
     }
     if (statusType === 'suspended') {
       return 'bg-red-500/15 text-red-900 dark:text-red-200 border-red-500/25';

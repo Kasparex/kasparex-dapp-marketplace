@@ -130,8 +130,18 @@ export function Sidebar({
     };
   });
 
-  const backHref = pathname.startsWith('/dapps') ? '/' : '/hub';
-  const backLabel = pathname.startsWith('/dapps') ? 'Back to dApps' : 'Back to Hub';
+  const backHref =
+    pathname === '/dapps'
+      ? 'https://hub.kasparex.com'
+      : pathname.startsWith('/dapps/')
+        ? '/dapps'
+        : '/hub';
+  const backLabel =
+    pathname === '/dapps'
+      ? 'Back to Hub'
+      : pathname.startsWith('/dapps/')
+        ? 'Back to dApps'
+        : 'Back to Hub';
 
   return (
     <UnifiedSidebar
@@ -143,10 +153,10 @@ export function Sidebar({
           <Link href="/list-dapp" className="k-control-btn w-full">
             List dApp
           </Link>
-          <Link href="/dashboard" className="k-control-btn w-full">
+          <Link href="/tree/dashboard" className="k-control-btn w-full">
             Revenue Tree
           </Link>
-          <Link href="/modules" className="k-control-btn w-full">
+          <Link href="/dapp-modules" className="k-control-btn w-full">
             Modules
           </Link>
         </div>
