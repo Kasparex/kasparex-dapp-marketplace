@@ -103,7 +103,7 @@ export function RevenueTreeSidebar({
         storageKeyPrefix="revenue-tree"
         header={(onHide) => (
           <SidebarHeader
-            backHref="/"
+            backHref="/dapps"
             backLabel="Back to dApps"
             onHide={onHide}
           />

@@ -100,29 +100,10 @@ export function DAppWidgetFooter({
     <>
       <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         <div className="flex flex-col gap-4">
-          {/* Category/Version/ID and Icons Row (hidden on dApp page; shown in right column) */}
+          {/* Icons row (meta moved into footer left text on dApp pages). */}
           {!hideMetaRow && (
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            {/* Left: Category/Version/ID */}
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Category Button (clickable on dApp page) */}
-              {category && (
-                <Link
-                  href={`/?category=${mergedDApp.category}`}
-                  className="px-3 py-1.5 text-sm font-medium rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
-                >
-                  <span className="mr-1.5">{category.emoji}</span>
-                  <span>{category.name}</span>
-                </Link>
-              )}
-              
-              {/* Version - Same rounded corners and border as category badges */}
-              {mergedDApp.version && mergedDApp.version !== 'N/A' && (
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
-                  v{mergedDApp.version.replace(/^v\s*/i, '')}
-                </div>
-              )}
-
               {/* Embed Icon (only on dApp pages, not cards) */}
               {!hideEmbed && (
                 <button
@@ -136,11 +117,6 @@ export function DAppWidgetFooter({
                   </svg>
                 </button>
               )}
-
-              {/* dApp ID - Same rounded corners and border as category badges */}
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-mono rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
-                {mergedDApp.id}
-              </div>
             </div>
 
             {/* Right: Star/Heart Icons */}
@@ -208,7 +184,7 @@ export function DAppWidgetFooter({
           {/* Footer Text and Collapse Button Row */}
           <div className="flex items-center justify-between">
             {/* Footer Text - Aligned Left */}
-            <div className="text-xs text-zinc-500 dark:text-zinc-500 text-left">
+            <div className="text-xs text-zinc-500 dark:text-zinc-500 text-left flex flex-wrap items-center gap-x-2 gap-y-1">
               <Link
                 href="/dapps"
                 className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors"
@@ -216,7 +192,29 @@ export function DAppWidgetFooter({
               >
                 Kasparex dApps
               </Link>
-              {' '}| Built with love by{' '}
+
+              {!hideMetaRow ? (
+                <>
+                  <span className="opacity-60">·</span>
+                  {category ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-[10px] font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                      <span className="text-[11px] leading-none">{category.emoji}</span>
+                      {category.name}
+                    </span>
+                  ) : null}
+                  {mergedDApp.version && mergedDApp.version !== 'N/A' ? (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-[10px] font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                      v{mergedDApp.version.replace(/^v\s*/i, '')}
+                    </span>
+                  ) : null}
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-[10px] font-mono text-zinc-700 dark:text-zinc-300">
+                    {mergedDApp.id}
+                  </span>
+                </>
+              ) : null}
+
+              <span className="opacity-60">|</span>
+              <span>Built with love by</span>{' '}
               <Link
                 href="https://bio.kasparex.com"
                 target="_blank"

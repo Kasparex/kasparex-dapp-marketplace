@@ -1,18 +1,15 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useChainId } from 'wagmi';
 import { DApp, getDAppNetworkType } from '@/lib/dapps';
-import { getCategoryById } from '@/lib/categories';
 import { useDAppFromContract, mergeDAppData } from '@/lib/dapps/contractData';
 import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { DAppInfoModal } from './DAppInfoModal';
 import { StatusIndicatorDot } from './StatusIndicatorDot';
 import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
-import { CategoryIcon } from './CategoryIcon';
 import { DAppEmbed } from './DAppEmbed';
-import { DAppIcon } from './DAppIcon';
 
 interface DAppWidgetHeaderProps {
   dapp: DApp;
@@ -68,7 +65,6 @@ export function DAppWidgetHeader({
   };
 
   const networkType = getDAppNetworkType(mergedDApp);
-  const category = getCategoryById(mergedDApp.category);
   const statusLower = (mergedDApp.status || '').toLowerCase();
   const isTestnet =
     statusLower === 'testnet' ||
@@ -109,74 +105,36 @@ export function DAppWidgetHeader({
           ? 'bg-red-500/15 text-red-900 dark:text-red-200 border-red-500/25'
           : 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/20';
 
-  const shortAddress = useMemo(() => {
-    const id = String(mergedDApp.id ?? '');
-    if (!id) return '';
-    return id.length > 16 ? `${id.slice(0, 8)}…${id.slice(-6)}` : id;
-  }, [mergedDApp.id]);
-
   return (
     <>
-      <div className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-4 sm:px-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-4 min-w-0">
-            <DAppIcon
-              dAppName={mergedDApp.name}
-              category={mergedDApp.category}
-              size={48}
-              className="flex-shrink-0 rounded-xl"
-            />
-            <div className="min-w-0">
-              <h2 className="text-lg sm:text-xl font-black text-zinc-900 dark:text-zinc-100 leading-tight truncate">
-                {mergedDApp.name}
-              </h2>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${networkBadgeColor} shadow-sm`}>
-                  {networkType === 'L1' ? (
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  ) : (
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
-                    </svg>
-                  )}
-                  {networkType}
-                </span>
+      <div className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-3 sm:px-6">
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0 flex flex-wrap items-center gap-2">
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${networkBadgeColor} shadow-sm`}>
+              {networkType === 'L1' ? (
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              ) : (
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+                </svg>
+              )}
+              {networkType}
+            </span>
 
-                {statusLabel ? (
-                  <span className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-xs font-semibold border ${statusBadgeColor} shadow-sm`}>
-                    {statusType === 'mainnet' || statusType === 'testnet' || statusType === 'suspended' ? (
-                      <StatusIndicatorDot
-                        statusType={statusType === 'mainnet' ? 'mainnet' : statusType === 'testnet' ? 'testnet' : 'suspended'}
-                        size="sm"
-                        className="!animate-pulse"
-                      />
-                    ) : null}
-                    {statusLabel}
-                  </span>
+            {statusLabel ? (
+              <span className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-xs font-semibold border ${statusBadgeColor} shadow-sm`}>
+                {statusType === 'mainnet' || statusType === 'testnet' || statusType === 'suspended' ? (
+                  <StatusIndicatorDot
+                    statusType={statusType === 'mainnet' ? 'mainnet' : statusType === 'testnet' ? 'testnet' : 'suspended'}
+                    size="sm"
+                    className="!animate-pulse"
+                  />
                 ) : null}
-
-                {category ? (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
-                    <CategoryIcon id={category.id} />
-                    <span>{category.name}</span>
-                  </span>
-                ) : null}
-
-                {mergedDApp.version && mergedDApp.version !== 'N/A' ? (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
-                    v{mergedDApp.version.replace(/^v\s*/i, '')}
-                  </span>
-                ) : null}
-
-                {shortAddress ? (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-mono rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
-                    {shortAddress}
-                  </span>
-                ) : null}
-              </div>
-            </div>
+                {statusLabel}
+              </span>
+            ) : null}
           </div>
 
           <div className="flex items-center gap-1.5 flex-shrink-0">

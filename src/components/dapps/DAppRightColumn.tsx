@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { useChainId } from 'wagmi';
 import { DApp, generateSimulatedTicker, getDAppNetworkType } from '@/lib/dapps';
@@ -13,6 +12,8 @@ import { getDAppPaymentConfig } from '@/lib/payments/config';
 import { getDefaultRewardsBreakdown } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { getChainById } from '@/lib/wagmi';
+import { DAppIcon } from './DAppIcon';
+import { DAppInfoModal } from './DAppInfoModal';
 
 interface DAppRightColumnProps {
   dapp: DApp;
@@ -65,6 +66,8 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress }: 
   const tokenTicker = rawTicker ? rawTicker.substring(0, 6) : null;
 
   const featured = mergedDApp.featuredImage || mergedDApp.image || '';
+  const description = mergedDApp.utility || mergedDApp.description || mergedDApp.process || '';
+  const [showInfoModal, setShowInfoModal] = useState(false);
 
   return (
     <div className="flex flex-col h-full space-y-6">
@@ -89,8 +92,63 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress }: 
         )}
       </div>
 
+      {/* Logo + Title */}
+      <div className="flex items-start gap-4">
+        <DAppIcon
+          dAppName={mergedDApp.name}
+          category={mergedDApp.category}
+          size={64}
+          className="flex-shrink-0 rounded-xl"
+        />
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl lg:text-3xl font-black text-zinc-900 dark:text-zinc-100 leading-tight">
+            {mergedDApp.name}
+          </h1>
+          {/* Per-dApp rewards: GRID/tGRID + XP for first action */}
+          <div className="flex items-center gap-4 text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+            <div className="flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="font-medium">{formatLargeNumber(dAppRewards.gridReward)} {dAppRewards.gridLabel}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span className="font-medium">{formatLargeNumber(dAppRewards.xpReward)} XP</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Clickable description (opens Info modal) */}
+      <div>
+        <p className="text-zinc-600 dark:text-zinc-400 text-sm lg:text-base leading-relaxed line-clamp-5">
+          {description || 'No description available.'}
+        </p>
+        <button
+          type="button"
+          onClick={() => setShowInfoModal(true)}
+          className="mt-2 text-sm font-medium text-[#02abb8] hover:text-[#0299a6] dark:hover:text-[#02abb8] transition-colors inline-flex items-center gap-1"
+        >
+          Read more
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+
       {/* Actions, Costs & Fees */}
       <DAppActionsColumn dapp={dapp} contractAddress={propContractAddress} />
+
+      {showInfoModal && (
+        <DAppInfoModal
+          dapp={mergedDApp}
+          contractAddress={resolvedContractAddress}
+          onClose={() => setShowInfoModal(false)}
+        />
+      )}
     </div>
   );
 }
