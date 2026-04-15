@@ -18,8 +18,6 @@ export function ReceiveAddressModal({
   displayAddress: string;
   onCopy: () => void | Promise<void>;
 }) {
-  if (!isOpen || typeof window === 'undefined') return null;
-
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [qrError, setQrError] = useState<string | null>(null);
 
@@ -36,11 +34,13 @@ export function ReceiveAddressModal({
         if (!cancelled) setQrError(e?.message || 'Failed to generate QR code.');
       }
     };
-    if (isOpen && address) run();
+    if (typeof window !== 'undefined' && isOpen && address) run();
     return () => {
       cancelled = true;
     };
   }, [isOpen, address]);
+
+  if (!isOpen || typeof window === 'undefined') return null;
 
   return createPortal(
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4" onClick={onClose}>
