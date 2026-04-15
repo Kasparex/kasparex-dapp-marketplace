@@ -19,7 +19,6 @@ import { getContractAddress } from '@/lib/contracts/addresses';
 import { useGRIDToken } from '@/hooks/useGRIDToken';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
-import { NFTStatusBox } from '@/components/rewards/NFTStatusBox';
 import { BridgeInfoModal } from '@/components/modals/BridgeInfoModal';
 import { ReceiveAddressModal } from '@/components/modals/ReceiveAddressModal';
 import { WalletDropdownShell } from '@/components/wallet-dropdown/WalletDropdownShell';
@@ -28,7 +27,7 @@ import { WalletBalanceCard } from '@/components/wallet-dropdown/WalletBalanceCar
 import { WalletMiniCard } from '@/components/wallet-dropdown/WalletMiniCard';
 import { WalletQuickActionsRow } from '@/components/wallet-dropdown/WalletQuickActionsRow';
 import { WalletFooterRow } from '@/components/wallet-dropdown/WalletFooterRow';
-import { getAddressExplorerUrl, getUiNativeSymbol, shortenAddress } from '@/lib/walletUi';
+import { BRIDGE_URLS, getAddressExplorerUrl, getNetworkBridgeUrl, getUiNativeSymbol, shortenAddress } from '@/lib/walletUi';
 
 export function EVMWalletButton() {
   const { address, isConnected } = useAccount();
@@ -144,10 +143,23 @@ export function EVMWalletButton() {
           className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium relative"
           aria-label="EVM Wallet"
         >
-          {/* Network badge */}
+          {/* Network badge (opens chain switcher) */}
           <span
-            className={`flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm ${networkBadgeColorClass}`}
-            title={networkLabel}
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              openChainModal?.();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.stopPropagation();
+                openChainModal?.();
+              }
+            }}
+            className={`flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm hover:opacity-90 transition-opacity cursor-pointer ${networkBadgeColorClass}`}
+            title="Switch network"
           >
             L2
             <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
@@ -180,6 +192,9 @@ export function EVMWalletButton() {
               <WalletAddressRow
                 address={address}
                 displayAddress={displayAddressLong}
+                onProfile={() => {
+                  handleViewProfile();
+                }}
                 onCopy={async () => {
                   await handleCopyAddress();
                   setIsDropdownOpen(false);
@@ -192,6 +207,49 @@ export function EVMWalletButton() {
                       }
                     : undefined
                 }
+              />
+
+              <WalletQuickActionsRow
+                actions={[
+                  {
+                    id: 'receive',
+                    label: 'Receive',
+                    icon: 'receive',
+                    onClick: () => setIsReceiveOpen(true),
+                    variant: 'secondary',
+                  },
+                  {
+                    id: 'bridge',
+                    label: 'Bridge',
+                    icon: 'bridge',
+                    onClick: () => {
+                      window.open(getNetworkBridgeUrl(chainId), '_blank', 'noopener,noreferrer');
+                      setIsDropdownOpen(false);
+                    },
+                    variant: 'secondary',
+                  },
+                  {
+                    id: 'bridge_krc20',
+                    label: 'Bridge KRC20',
+                    icon: 'bridge',
+                    onClick: () => {
+                      window.open(BRIDGE_URLS.katBridge, '_blank', 'noopener,noreferrer');
+                      setIsDropdownOpen(false);
+                    },
+                    variant: 'secondary',
+                  },
+                  {
+                    id: 'nfts',
+                    label: 'Buy/Bridge NFTs',
+                    icon: 'buy',
+                    onClick: () => {
+                      window.open(BRIDGE_URLS.nftBridge, '_blank', 'noopener,noreferrer');
+                      setIsDropdownOpen(false);
+                    },
+                    variant: 'primary',
+                    className: 'bg-fuchsia-600 hover:bg-fuchsia-700 text-white',
+                  },
+                ]}
               />
 
               <WalletBalanceCard value={displayBalance} symbol={uiNative} />
@@ -239,32 +297,19 @@ export function EVMWalletButton() {
                     <span className="font-semibold text-zinc-900 dark:text-zinc-100">{xpPoints.toLocaleString()}</span>
                   </div>
                   <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800">
-                    <NFTStatusBox layout="compact-cards" premiumCollectionsOnly />
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-zinc-500 dark:text-zinc-400">NFTs (L2 bridged)</span>
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">—</span>
+                    </div>
+                    <div className="text-[11px] text-zinc-500 dark:text-zinc-500 mt-1">
+                      L1 NFTs are not shown here.
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <WalletQuickActionsRow
-                actions={[
-                  { id: 'send', label: 'Send', icon: 'send', onClick: () => setIsBridgeInfoOpen(true), variant: 'secondary' },
-                  { id: 'receive', label: 'Receive', icon: 'receive', onClick: () => setIsReceiveOpen(true), variant: 'secondary' },
-                  { id: 'bridge', label: 'Bridge', icon: 'bridge', onClick: () => setIsBridgeInfoOpen(true), variant: 'secondary' },
-                  { id: 'buy', label: 'Buy', icon: 'buy', onClick: () => router.push('/store'), variant: 'primary' },
-                ]}
-              />
-
               <WalletFooterRow
-                left={
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleViewProfile();
-                    }}
-                    className="px-3 py-2 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 text-sm font-semibold transition-colors"
-                  >
-                    Profile
-                  </button>
-                }
+                left={null}
                 right={
                   <>
                     <button
@@ -294,11 +339,11 @@ export function EVMWalletButton() {
           networkName={networkLabel}
           nativeSymbol={uiNative}
           primaryAction={{
-            label: 'Open store',
+            label: 'Open bridge',
             onClick: () => {
               setIsBridgeInfoOpen(false);
               setIsDropdownOpen(false);
-              router.push('/store');
+              window.open(getNetworkBridgeUrl(chainId), '_blank', 'noopener,noreferrer');
             },
           }}
           secondaryAction={{

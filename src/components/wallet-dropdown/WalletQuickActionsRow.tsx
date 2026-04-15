@@ -6,6 +6,7 @@ export type WalletQuickAction = {
   onClick: () => void;
   icon: 'send' | 'receive' | 'bridge' | 'buy';
   variant?: 'primary' | 'secondary';
+  className?: string;
 };
 
 function ActionIcon({ icon }: { icon: WalletQuickAction['icon'] }) {
@@ -60,6 +61,7 @@ export function WalletQuickActionsRow({
                 isPrimary
                   ? 'bg-[#02abb8] hover:bg-[#028a94] text-white'
                   : 'bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100',
+                a.className || '',
               ].join(' ')}
             >
               <ActionIcon icon={a.icon} />

@@ -28,7 +28,7 @@ import { WalletBalanceCard } from '@/components/wallet-dropdown/WalletBalanceCar
 import { WalletMiniCard } from '@/components/wallet-dropdown/WalletMiniCard';
 import { WalletQuickActionsRow } from '@/components/wallet-dropdown/WalletQuickActionsRow';
 import { WalletFooterRow } from '@/components/wallet-dropdown/WalletFooterRow';
-import { getAddressExplorerUrl, shortenAddress } from '@/lib/walletUi';
+import { BRIDGE_URLS, getAddressExplorerUrl, shortenAddress } from '@/lib/walletUi';
 import { BridgeInfoModal } from '@/components/modals/BridgeInfoModal';
 import { ReceiveAddressModal } from '@/components/modals/ReceiveAddressModal';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -227,6 +227,49 @@ export function KasWareWalletButton() {
                 }
               />
 
+              <WalletQuickActionsRow
+                actions={[
+                  {
+                    id: 'send',
+                    label: 'Send',
+                    icon: 'send',
+                    onClick: () => {
+                      setIsSendModalOpen(true);
+                      setIsDropdownOpen(false);
+                    },
+                    variant: 'primary',
+                  },
+                  {
+                    id: 'receive',
+                    label: 'Receive',
+                    icon: 'receive',
+                    onClick: () => setIsReceiveOpen(true),
+                    variant: 'secondary',
+                  },
+                  {
+                    id: 'bridge',
+                    label: 'Bridge',
+                    icon: 'bridge',
+                    onClick: () => {
+                      window.open(BRIDGE_URLS.katBridge, '_blank', 'noopener,noreferrer');
+                      setIsDropdownOpen(false);
+                    },
+                    variant: 'secondary',
+                  },
+                  {
+                    id: 'buy',
+                    label: 'Buy',
+                    icon: 'buy',
+                    onClick: () => {
+                      setIsDropdownOpen(false);
+                      setKrc20ModalMode('buy');
+                      setIsKRC20ModalOpen(true);
+                    },
+                    variant: 'secondary',
+                  },
+                ]}
+              />
+
               <WalletBalanceCard value={displayBalance} symbol="KAS" />
 
               <div className="px-4 pb-3">
@@ -276,46 +319,6 @@ export function KasWareWalletButton() {
                   </div>
                 </div>
               </div>
-
-              <WalletQuickActionsRow
-                actions={[
-                  {
-                    id: 'send',
-                    label: 'Send',
-                    icon: 'send',
-                    onClick: () => {
-                      setIsSendModalOpen(true);
-                      setIsDropdownOpen(false);
-                    },
-                    variant: 'primary',
-                  },
-                  {
-                    id: 'receive',
-                    label: 'Receive',
-                    icon: 'receive',
-                    onClick: () => setIsReceiveOpen(true),
-                    variant: 'secondary',
-                  },
-                  {
-                    id: 'bridge',
-                    label: 'Bridge',
-                    icon: 'bridge',
-                    onClick: () => setIsBridgeInfoOpen(true),
-                    variant: 'secondary',
-                  },
-                  {
-                    id: 'buy',
-                    label: 'Buy',
-                    icon: 'buy',
-                    onClick: () => {
-                      setIsDropdownOpen(false);
-                      setKrc20ModalMode('buy');
-                      setIsKRC20ModalOpen(true);
-                    },
-                    variant: 'secondary',
-                  },
-                ]}
-              />
 
               <WalletFooterRow
                 left={

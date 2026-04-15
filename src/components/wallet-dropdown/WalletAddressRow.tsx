@@ -7,15 +7,19 @@ export function WalletAddressRow({
   displayAddress,
   onCopy,
   onOpenExplorer,
+  onProfile,
   explorerLabel = 'View on explorer',
   copyLabel = 'Copy address',
+  profileLabel = 'Profile',
 }: {
   address: string;
   displayAddress: string;
   onCopy: () => void | Promise<void>;
   onOpenExplorer?: () => void;
+  onProfile?: () => void;
   explorerLabel?: string;
   copyLabel?: string;
+  profileLabel?: string;
 }) {
   return (
     <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-3">
@@ -26,6 +30,19 @@ export function WalletAddressRow({
         </div>
       </div>
       <div className="flex items-center gap-1">
+        {onProfile ? (
+          <button
+            type="button"
+            onClick={onProfile}
+            className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            aria-label={profileLabel}
+            title={profileLabel}
+          >
+            <svg className="w-4 h-4 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={onCopy}

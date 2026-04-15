@@ -34,6 +34,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
   const [txHash, setTxHash] = useState<string | null>(null);
   const [txHashCopied, setTxHashCopied] = useState(false);
   const [sentToAddress, setSentToAddress] = useState<string | null>(null);
+  const [scanError, setScanError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) {
@@ -190,14 +191,57 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
                 <label className="k-label">
                   Recipient Address
                 </label>
-                <input
-                  type="text"
-                  value={toAddress}
-                  onChange={(e) => setToAddress(e.target.value)}
-                  placeholder="kaspa:..."
-                  className="k-input"
-                  disabled={isSending}
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={toAddress}
+                    onChange={(e) => setToAddress(e.target.value)}
+                    placeholder="kaspa:..."
+                    className="k-input flex-1"
+                    disabled={isSending}
+                  />
+                  <button
+                    type="button"
+                    disabled={isSending}
+                    onClick={async () => {
+                      setScanError(null);
+                      try {
+                        if (typeof window === 'undefined' || !(window as any).BarcodeDetector) {
+                          throw new Error('QR scanning is not supported in this browser.');
+                        }
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*';
+                        (input as any).capture = 'environment';
+                        input.onchange = async () => {
+                          try {
+                            const file = input.files?.[0];
+                            if (!file) return;
+                            const img = await createImageBitmap(file);
+                            const detector = new (window as any).BarcodeDetector({ formats: ['qr_code'] });
+                            const codes = await detector.detect(img);
+                            const raw = codes?.[0]?.rawValue || '';
+                            if (!raw) throw new Error('No QR code found.');
+                            const trimmed = String(raw).trim();
+                            const maybeAddress = trimmed.startsWith('kaspa:') ? trimmed : trimmed;
+                            setToAddress(maybeAddress);
+                          } catch (e: any) {
+                            setScanError(e?.message || 'Failed to scan QR code.');
+                          }
+                        };
+                        input.click();
+                      } catch (e: any) {
+                        setScanError(e?.message || 'Failed to start QR scan.');
+                      }
+                    }}
+                    className="px-3 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors whitespace-nowrap"
+                  >
+                    Scan QR
+                  </button>
+                </div>
+                {scanError ? (
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">{scanError}</p>
+                ) : null}
               </div>
 
               <div>

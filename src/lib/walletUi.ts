@@ -38,3 +38,18 @@ export function getUiNativeSymbol(chainId: number | null | undefined, fallback: 
   return fallback;
 }
 
+export const BRIDGE_URLS = {
+  kasplexKasBridge: 'https://kasbridge-evm.kaspafoundation.org/',
+  igraIkasBridge: 'https://ikas.katbridge.com/',
+  katBridge: 'https://katbridge.com/',
+  nftBridge: 'https://nft.katbridge.com/',
+} as const;
+
+export function getNetworkBridgeUrl(chainId: number | null | undefined): string {
+  // Kasplex
+  if (chainId === 202555 || chainId === 167012) return BRIDGE_URLS.kasplexKasBridge;
+  // IGRA
+  if (chainId === 38836 || chainId === 38833) return BRIDGE_URLS.igraIkasBridge;
+  return BRIDGE_URLS.katBridge;
+}
+

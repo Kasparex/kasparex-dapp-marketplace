@@ -163,6 +163,42 @@ export function KaspaL1WalletButton() {
                 }
               />
 
+              <WalletQuickActionsRow
+                actions={[
+                  {
+                    id: 'receive',
+                    label: 'Receive',
+                    icon: 'receive',
+                    onClick: () => setIsReceiveOpen(true),
+                    variant: 'secondary',
+                  },
+                  {
+                    id: 'bridge',
+                    label: 'Bridge',
+                    icon: 'bridge',
+                    onClick: () => setIsBridgeInfoOpen(true),
+                    variant: 'secondary',
+                  },
+                  {
+                    id: 'refresh',
+                    label: 'Refresh',
+                    icon: 'buy',
+                    onClick: async () => {
+                      await refreshBalance();
+                      setOpen(false);
+                    },
+                    variant: 'secondary',
+                  },
+                  {
+                    id: 'buy',
+                    label: 'Buy',
+                    icon: 'buy',
+                    onClick: () => setIsBridgeInfoOpen(true),
+                    variant: 'primary',
+                  },
+                ]}
+              />
+
               <WalletBalanceCard value={displayBalance} symbol="KAS" />
 
               <div className="px-4 pb-3">
@@ -208,42 +244,6 @@ export function KaspaL1WalletButton() {
                   </div>
                 </div>
               </div>
-
-              <WalletQuickActionsRow
-                actions={[
-                  {
-                    id: 'receive',
-                    label: 'Receive',
-                    icon: 'receive',
-                    onClick: () => setIsReceiveOpen(true),
-                    variant: 'secondary',
-                  },
-                  {
-                    id: 'bridge',
-                    label: 'Bridge',
-                    icon: 'bridge',
-                    onClick: () => setIsBridgeInfoOpen(true),
-                    variant: 'secondary',
-                  },
-                  {
-                    id: 'refresh',
-                    label: 'Refresh',
-                    icon: 'buy',
-                    onClick: async () => {
-                      await refreshBalance();
-                      setOpen(false);
-                    },
-                    variant: 'secondary',
-                  },
-                  {
-                    id: 'buy',
-                    label: 'Buy',
-                    icon: 'buy',
-                    onClick: () => setIsBridgeInfoOpen(true),
-                    variant: 'primary',
-                  },
-                ]}
-              />
 
               <WalletFooterRow
                 left={
