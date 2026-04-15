@@ -23,6 +23,8 @@ import { BridgeInfoModal } from '@/components/modals/BridgeInfoModal';
 import { ReceiveAddressModal } from '@/components/modals/ReceiveAddressModal';
 import { SendL2TransactionModal } from '@/components/modals/SendL2TransactionModal';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
+import { HelpModal } from '@/components/modals/HelpModal';
+import { TiersBenefitsModal } from '@/components/modals/TiersBenefitsModal';
 import { WalletDropdownShell } from '@/components/wallet-dropdown/WalletDropdownShell';
 import { WalletAddressRow } from '@/components/wallet-dropdown/WalletAddressRow';
 import { WalletBalanceCard } from '@/components/wallet-dropdown/WalletBalanceCard';
@@ -44,6 +46,8 @@ export function EVMWalletButton() {
   const [isReceiveOpen, setIsReceiveOpen] = useState(false);
   const [isSendOpen, setIsSendOpen] = useState(false);
   const [isKrexBuyWizardOpen, setIsKrexBuyWizardOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isTiersOpen, setIsTiersOpen] = useState(false);
 
   // Get current network info
   const chain = chainId ? getChainById(chainId) : null;
@@ -260,12 +264,19 @@ export function EVMWalletButton() {
                     title={chainId === 38836 ? 'tKREX' : 'KREX'}
                     value={isKrexLoading ? '…' : krexL2Balance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                     sub={`Tier: ${tierForChain}`}
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      setIsKrexBuyWizardOpen(true);
+                    }}
                   />
                   <WalletMiniCard
                     title={isTestnet ? 'tGRID' : 'GRID'}
                     value={gridTokenAddress ? (isGridLoading ? '…' : gridFormatted) : '—'}
                     sub={gridTokenAddress ? undefined : 'Not deployed'}
-                    onInfo={!gridTokenAddress ? () => setIsBridgeInfoOpen(true) : undefined}
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      router.push('/tokens/grid');
+                    }}
                   />
                 </div>
               </div>
@@ -278,10 +289,10 @@ export function EVMWalletButton() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setIsBridgeInfoOpen(true)}
+                      onClick={() => setIsTiersOpen(true)}
                       className="p-1 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
-                      aria-label="Network info"
-                      title="Network info"
+                      aria-label="Tier & benefits info"
+                      title="Tier & benefits"
                     >
                       <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -324,7 +335,7 @@ export function EVMWalletButton() {
                 left={
                   <button
                     type="button"
-                    onClick={() => setIsBridgeInfoOpen(true)}
+                    onClick={() => setIsHelpOpen(true)}
                     className="px-3 py-2 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 text-sm font-semibold transition-colors"
                   >
                     Help
@@ -383,6 +394,8 @@ export function EVMWalletButton() {
         />
         <SendL2TransactionModal isOpen={isSendOpen} onClose={() => setIsSendOpen(false)} />
         <KREXBuyWizard isOpen={isKrexBuyWizardOpen} onClose={() => setIsKrexBuyWizardOpen(false)} />
+        <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} title="Help (L2)" />
+        <TiersBenefitsModal isOpen={isTiersOpen} onClose={() => setIsTiersOpen(false)} title="Tiers & benefits (L2)" />
       </div>
     );
   }

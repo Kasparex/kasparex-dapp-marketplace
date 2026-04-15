@@ -71,7 +71,9 @@ export function UserProfileContent() {
   const handleCopyAddress = async () => {
     if (!walletAddress) return;
     try {
-      await navigator.clipboard.writeText(walletAddress);
+      const trimmed = walletAddress.trim();
+      const full = trimmed.toLowerCase().startsWith('kaspa:') ? trimmed : trimmed.startsWith('0x') ? trimmed : `kaspa:${trimmed}`;
+      await navigator.clipboard.writeText(full);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {

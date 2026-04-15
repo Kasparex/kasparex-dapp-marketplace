@@ -6,20 +6,43 @@ export function WalletMiniCard({
   sub,
   right,
   onInfo,
+  onClick,
 }: {
   title: string;
   value: string;
   sub?: string;
   right?: string;
   onInfo?: () => void;
+  onClick?: () => void;
 }) {
   const tierBadge =
     sub && sub.toLowerCase().startsWith('tier:')
       ? sub.slice(sub.indexOf(':') + 1).trim()
       : null;
 
+  const tierBadgeText = tierBadge
+    ? tierBadge.toLowerCase().startsWith('tier')
+      ? tierBadge.slice(4).trim()
+      : tierBadge
+    : null;
+
   return (
-    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/50 px-3 py-2">
+    <div
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') onClick();
+            }
+          : undefined
+      }
+      className={[
+        'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/50 px-3 py-2',
+        onClick ? 'cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors' : '',
+      ].join(' ')}
+    >
       <div className="flex items-center justify-between gap-2">
         <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 truncate">
           {title}
@@ -44,13 +67,13 @@ export function WalletMiniCard({
         </div>
       </div>
       <div className="mt-0.5 text-sm font-semibold text-zinc-900 dark:text-zinc-100">{value}</div>
-      {tierBadge ? (
+      {tierBadgeText ? (
         <div className="mt-1">
           <span
             className="inline-flex items-center text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] dark:text-[#66dfe8] font-black uppercase tracking-widest"
             title={sub || undefined}
           >
-            Tier {tierBadge}
+            Tier {tierBadgeText}
           </span>
         </div>
       ) : sub ? (

@@ -39,7 +39,9 @@ export function getExplorerTxUrl(txHash: string | unknown): string {
  * Build explorer URL for a Kaspa L1 address
  */
 export function getKaspaExplorerAddressUrl(address: string): string {
-  const addr = (address || '').replace(/^kaspa:/i, '').trim();
+  const addr = (address || '').trim();
   if (!addr) return '#';
-  return `https://explorer.kaspa.org/addresses/${addr}`;
+  // Kaspa explorer expects the "kaspa:" prefix.
+  const withPrefix = addr.toLowerCase().startsWith('kaspa:') ? addr : `kaspa:${addr}`;
+  return `https://explorer.kaspa.org/addresses/${withPrefix}`;
 }

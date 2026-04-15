@@ -17,7 +17,6 @@ import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import { kasToSompis } from '@/lib/kaspa/api';
 import { formatKaspaAddress } from '@/lib/kaspa/wallet';
 import { SendTransactionModal } from './modals/SendTransactionModal';
-import { KRC20OrderModal } from './modals/KRC20OrderModal';
 import { UtxoViewerModal } from './modals/UtxoViewerModal';
 import { getErrorMessage } from '@/lib/utils';
 import { getKRC20Balance, getUtxoEntries } from '@/lib/kaspa/kasware';
@@ -36,6 +35,8 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
 import { NFTStatusBox } from '@/components/rewards/NFTStatusBox';
 // Bridge is handled by BridgeInfoModal (shared with L2).
+import { HelpModal } from '@/components/modals/HelpModal';
+import { TiersBenefitsModal } from '@/components/modals/TiersBenefitsModal';
 
 export function KasWareWalletButton() {
   const { state, connect, disconnect } = useKaspaWallet();
@@ -56,11 +57,11 @@ export function KasWareWalletButton() {
   // Modal states
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
   const [isUtxoModalOpen, setIsUtxoModalOpen] = useState(false);
-  const [isKRC20ModalOpen, setIsKRC20ModalOpen] = useState(false);
-  const [krc20ModalMode, setKrc20ModalMode] = useState<'create' | 'buy' | 'cancel'>('create');
   const [isBridgeInfoOpen, setIsBridgeInfoOpen] = useState(false);
   const [isReceiveOpen, setIsReceiveOpen] = useState(false);
   const [isKrexBuyWizardOpen, setIsKrexBuyWizardOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isTiersOpen, setIsTiersOpen] = useState(false);
 
   // Check if KasWare is installed
   const isKasWareInstalled = detectKaspaWallets().some(w => w.id === 'kasware' && w.isInstalled);
@@ -161,7 +162,9 @@ export function KasWareWalletButton() {
       if (!isBalanceVisible) {
         throw new Error('Please enable balance visibility to copy address');
       }
-      await navigator.clipboard.writeText(state.address);
+      // Always copy full Kaspa address with "kaspa:" prefix.
+      const full = state.address.toLowerCase().startsWith('kaspa:') ? state.address : `kaspa:${state.address}`;
+      await navigator.clipboard.writeText(full);
       setIsDropdownOpen(false);
     } catch (error: any) {
       console.error('Failed to copy address:', error);
@@ -279,16 +282,15 @@ export function KasWareWalletButton() {
                     title="KREX"
                     value={isKrexLoading ? '…' : krexL1Balance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                     sub={`Tier: ${krexTier}`}
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      setIsKrexBuyWizardOpen(true);
+                    }}
                   />
                   <WalletMiniCard
                     title="KRC-20"
                     value={`${krc20Tokens.length}`}
                     sub="Tokens detected"
-                    onInfo={() => {
-                      setKrc20ModalMode('create');
-                      setIsKRC20ModalOpen(true);
-                      setIsDropdownOpen(false);
-                    }}
                   />
                 </div>
               </div>
@@ -301,10 +303,10 @@ export function KasWareWalletButton() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setIsBridgeInfoOpen(true)}
+                      onClick={() => setIsTiersOpen(true)}
                       className="p-1 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
-                      aria-label="Network info"
-                      title="Network info"
+                      aria-label="Tier & benefits info"
+                      title="Tier & benefits"
                     >
                       <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -335,13 +337,25 @@ export function KasWareWalletButton() {
                   </button>
                 }
                 right={
-                  <button
-                    type="button"
-                    onClick={handleDisconnect}
-                    className="px-3 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 text-sm font-semibold transition-colors"
-                  >
-                    Disconnect
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsHelpOpen(true);
+                        setIsDropdownOpen(false);
+                      }}
+                      className="px-3 py-2 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 text-sm font-semibold transition-colors"
+                    >
+                      Help
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDisconnect}
+                      className="px-3 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 text-sm font-semibold transition-colors"
+                    >
+                      Disconnect
+                    </button>
+                  </>
                 }
               />
             </WalletDropdownShell>
@@ -391,13 +405,8 @@ export function KasWareWalletButton() {
           onClose={() => setIsUtxoModalOpen(false)}
         />
         
-        <KRC20OrderModal
-          isOpen={isKRC20ModalOpen}
-          onClose={() => setIsKRC20ModalOpen(false)}
-          mode={krc20ModalMode}
-          krc20Tokens={krc20Tokens}
-          currentBalance={balance}
-        />
+        <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} title="Help (L1)" />
+        <TiersBenefitsModal isOpen={isTiersOpen} onClose={() => setIsTiersOpen(false)} title="Tiers & benefits (L1)" />
       </div>
     );
   }

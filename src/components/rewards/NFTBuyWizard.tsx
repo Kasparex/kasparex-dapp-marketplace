@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { collections } from '@/lib/nft/collections';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { BRIDGE_URLS } from '@/lib/walletUi';
 
 interface NFTBuyWizardProps {
   isOpen: boolean;
@@ -28,6 +29,13 @@ export function NFTBuyWizard({ isOpen, onClose }: NFTBuyWizardProps) {
   ];
 
   const currentStepIndex = steps.findIndex((s) => s.id === currentStep);
+  const canGoToStep = (step: WizardStep): boolean => {
+    if (step === 'select') return true;
+    if (step === 'buy') return Boolean(selectedCollection);
+    if (step === 'bridge') return Boolean(selectedCollection);
+    if (step === 'complete') return Boolean(selectedCollection);
+    return false;
+  };
 
   const handleNext = () => {
     if (currentStep === 'select' && selectedCollection) {
@@ -61,7 +69,7 @@ export function NFTBuyWizard({ isOpen, onClose }: NFTBuyWizardProps) {
     return 'https://www.kaspa.com/nft/collections/PIXELKREX';
   };
 
-  const bridgeUrl = 'https://nft.katbridge.com/';
+  const bridgeUrl = BRIDGE_URLS.nftBridge;
 
   // Load collection images from IPFS
   useEffect(() => {
@@ -101,18 +109,15 @@ export function NFTBuyWizard({ isOpen, onClose }: NFTBuyWizardProps) {
   if (!isOpen) return null;
 
   const modalContent = (
-    <div
-      className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
-      
-      {/* Modal Content */}
-      <div
-            className="relative bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-zinc-200 dark:border-zinc-800"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <>
+      <div className="fixed inset-0 z-[99999] bg-black/70 backdrop-blur-md" onClick={onClose} />
+
+      <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+        {/* Modal Content */}
+        <div
+          className="relative bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-zinc-200 dark:border-zinc-800"
+          onClick={(e) => e.stopPropagation()}
+        >
         {/* Header */}
         <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex items-center justify-between">
           <div>
@@ -120,7 +125,7 @@ export function NFTBuyWizard({ isOpen, onClose }: NFTBuyWizardProps) {
               Buy or Bridge NFTs
             </h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-              Follow these simple steps to buy NFTs on L1 and bridge them to L2
+              Buy on L1 (KaspaCom) and bridge to L2 (optional)
             </p>
           </div>
           <button
@@ -134,34 +139,47 @@ export function NFTBuyWizard({ isOpen, onClose }: NFTBuyWizardProps) {
           </button>
         </div>
 
-        {/* Progress Steps */}
+        {/* Progress Steps (clickable) */}
         <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center justify-between">
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-center flex-1">
                 <div className="flex flex-col items-center flex-1">
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
-                      index <= currentStepIndex
-                        ? 'bg-[#02abb8] text-white'
-                        : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
-                    }`}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!canGoToStep(step.id)) return;
+                      setCurrentStep(step.id);
+                    }}
+                    disabled={!canGoToStep(step.id)}
+                    className="flex flex-col items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={canGoToStep(step.id) ? `Open step: ${step.title}` : 'Complete previous steps first'}
                   >
-                    {index < currentStepIndex ? (
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    ) : (
-                      step.number
-                    )}
-                  </div>
-                  <span className={`text-xs mt-2 text-center ${
-                    index <= currentStepIndex
-                      ? 'text-zinc-900 dark:text-zinc-100 font-medium'
-                      : 'text-zinc-500 dark:text-zinc-400'
-                  }`}>
-                    {step.title}
-                  </span>
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
+                        index <= currentStepIndex
+                          ? 'bg-[#02abb8] text-white'
+                          : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
+                      }`}
+                    >
+                      {index < currentStepIndex ? (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        step.number
+                      )}
+                    </div>
+                    <span
+                      className={`text-xs mt-2 text-center ${
+                        index <= currentStepIndex
+                          ? 'text-zinc-900 dark:text-zinc-100 font-medium'
+                          : 'text-zinc-500 dark:text-zinc-400'
+                      }`}
+                    >
+                      {step.title}
+                    </span>
+                  </button>
                 </div>
                 {index < steps.length - 1 && (
                   <div
@@ -262,7 +280,7 @@ export function NFTBuyWizard({ isOpen, onClose }: NFTBuyWizardProps) {
               </h3>
               <div className="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
                 <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-                  Visit the Kaspa NFT marketplace to purchase {selectedCollection} NFTs on Layer 1.
+                  Visit KaspaCom to purchase {selectedCollection} NFTs on L1.
                 </p>
                 <a
                   href={getCollectionUrl()}
@@ -292,7 +310,7 @@ export function NFTBuyWizard({ isOpen, onClose }: NFTBuyWizardProps) {
               </h3>
               <div className="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
                 <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-                  Use KAT Bridge to transfer your {selectedCollection} NFT from Layer 1 to Layer 2. This enables you to use your NFT in dApps and earn rewards.
+                  Use the NFT bridge to transfer your {selectedCollection} NFT from L1 to L2.
                 </p>
                 <a
                   href={bridgeUrl}
@@ -300,7 +318,7 @@ export function NFTBuyWizard({ isOpen, onClose }: NFTBuyWizardProps) {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
                 >
-                  <span>Open KAT Bridge</span>
+                  <span>Open NFT Bridge</span>
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
@@ -358,8 +376,9 @@ export function NFTBuyWizard({ isOpen, onClose }: NFTBuyWizardProps) {
             </div>
           )}
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 
   if (typeof window === 'undefined') return null;

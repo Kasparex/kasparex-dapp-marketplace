@@ -26,6 +26,8 @@ import { BRIDGE_URLS, getAddressExplorerUrl, shortenAddress } from '@/lib/wallet
 import { BridgeInfoModal } from '@/components/modals/BridgeInfoModal';
 import { ReceiveAddressModal } from '@/components/modals/ReceiveAddressModal';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
+import { HelpModal } from '@/components/modals/HelpModal';
+import { TiersBenefitsModal } from '@/components/modals/TiersBenefitsModal';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
 import { NFTStatusBox } from '@/components/rewards/NFTStatusBox';
@@ -51,6 +53,8 @@ export function KaspaL1WalletButton() {
   const [isBridgeInfoOpen, setIsBridgeInfoOpen] = useState(false);
   const [isReceiveOpen, setIsReceiveOpen] = useState(false);
   const [isKrexBuyWizardOpen, setIsKrexBuyWizardOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isTiersOpen, setIsTiersOpen] = useState(false);
 
   const detected = detectKaspaWallets();
   const isKasWareInstalled = detected.some((w) => w.id === 'kasware' && w.isInstalled);
@@ -152,7 +156,8 @@ export function KaspaL1WalletButton() {
                     setError('Please enable balance visibility to copy address');
                     return;
                   }
-                  await navigator.clipboard.writeText(address);
+                  const full = address.toLowerCase().startsWith('kaspa:') ? address : `kaspa:${address}`;
+                  await navigator.clipboard.writeText(full);
                   setOpen(false);
                 }}
                 onOpenExplorer={
@@ -215,6 +220,10 @@ export function KaspaL1WalletButton() {
                     title="KREX"
                     value={isKrexLoading ? '…' : krexL1Balance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                     sub={`Tier: ${krexTier}`}
+                    onClick={() => {
+                      setIsKrexBuyWizardOpen(true);
+                      setOpen(false);
+                    }}
                   />
                   <WalletMiniCard
                     title="Balance"
@@ -233,10 +242,10 @@ export function KaspaL1WalletButton() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setIsBridgeInfoOpen(true)}
+                      onClick={() => setIsTiersOpen(true)}
                       className="p-1 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
-                      aria-label="Network info"
-                      title="Network info"
+                      aria-label="Tier & benefits info"
+                      title="Tier & benefits"
                     >
                       <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -257,7 +266,7 @@ export function KaspaL1WalletButton() {
                 left={
                   <button
                     type="button"
-                    onClick={() => setIsBridgeInfoOpen(true)}
+                    onClick={() => setIsHelpOpen(true)}
                     className="px-3 py-2 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 text-sm font-semibold transition-colors"
                   >
                     Help
@@ -301,12 +310,15 @@ export function KaspaL1WalletButton() {
               setError('Please enable balance visibility to copy address');
               return;
             }
-            await navigator.clipboard.writeText(address);
+            const full = address.toLowerCase().startsWith('kaspa:') ? address : `kaspa:${address}`;
+            await navigator.clipboard.writeText(full);
             setIsReceiveOpen(false);
           }}
         />
 
         <KREXBuyWizard isOpen={isKrexBuyWizardOpen} onClose={() => setIsKrexBuyWizardOpen(false)} />
+        <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} title="Help (L1)" />
+        <TiersBenefitsModal isOpen={isTiersOpen} onClose={() => setIsTiersOpen(false)} title="Tiers & benefits (L1)" />
       </div>
     );
   }
