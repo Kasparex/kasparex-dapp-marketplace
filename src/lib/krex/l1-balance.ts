@@ -57,7 +57,7 @@ async function tryKasWareBalance(address: string): Promise<number | null> {
       return null;
     }
     
-    // Verify address matches (if getAddress is available)
+    // Verify address matches (if getAddress is available). If it doesn't match, never use KasWare balances.
     let kaswareAddress: string | null = null;
     try {
       if (typeof win.kasware.getAddress === 'function') {
@@ -70,7 +70,8 @@ async function tryKasWareBalance(address: string): Promise<number | null> {
             kasware: normalizedKasware,
             query: normalizedQuery,
           });
-          // Still try to get balance, but log the mismatch
+          // Do not use KasWare balances when the active KasWare account differs (e.g. user connected via Kastle).
+          return null;
         } else if (normalizedKasware && normalizedQuery) {
           console.log('[KREX L1] ✓ Address matches KasWare wallet');
         }

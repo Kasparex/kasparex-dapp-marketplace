@@ -251,7 +251,7 @@ export function NFTStatusBox({
               ) : null}
 
               <div className="grid grid-cols-3 gap-1">
-                {miniCard('Any', compactAny, undefined, 'Standard NFT status (regular holder perks)', undefined, 'text-blue-600 dark:text-blue-400')}
+                {miniCard('🖼️', compactAny, undefined, 'Standard NFTs', undefined, 'text-blue-600 dark:text-blue-400')}
                 {miniCard('💎', compactDiamond, undefined, 'Diamond NFT status (diamond perks)', undefined, 'text-purple-600 dark:text-purple-400')}
                 {miniCard('⭐', hasRarestNFT, undefined, 'Rarest NFT status (top tier perks)', undefined, 'text-yellow-600 dark:text-yellow-400')}
               </div>

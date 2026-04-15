@@ -17,7 +17,7 @@ export function WalletBalanceCard({
   return (
     <div className="px-4 py-3">
       <div className="bg-zinc-50 dark:bg-zinc-800 rounded-xl p-3 border border-zinc-200/60 dark:border-zinc-700/60">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center justify-between gap-3">
           <div>
             {subtleLabel ? (
               <div className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 mb-1">
@@ -31,7 +31,7 @@ export function WalletBalanceCard({
           </div>
 
           {(onCopyAddress || onOpenExplorer) ? (
-            <div className="flex items-center gap-1 shrink-0 pt-0.5">
+            <div className="flex items-center gap-1 shrink-0">
               {onCopyAddress ? (
                 <button
                   type="button"

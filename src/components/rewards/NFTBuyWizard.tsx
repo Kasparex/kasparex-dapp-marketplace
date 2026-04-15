@@ -217,7 +217,7 @@ export function NFTBuyWizard({ isOpen, onClose }: NFTBuyWizardProps) {
                       <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800">
                         <img
                           src={collectionImages.KREXPRIME}
-                          alt="KREXPRIME"
+                          alt="KREXPRIME NFT collection preview"
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -249,7 +249,7 @@ export function NFTBuyWizard({ isOpen, onClose }: NFTBuyWizardProps) {
                       <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800">
                         <img
                           src={collectionImages.PIXELKREX}
-                          alt="PIXELKREX"
+                          alt="PIXELKREX NFT collection preview"
                           className="w-full h-full object-cover"
                         />
                       </div>
