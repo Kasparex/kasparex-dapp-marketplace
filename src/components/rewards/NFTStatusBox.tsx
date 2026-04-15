@@ -16,10 +16,13 @@ export function NFTStatusBox({
   premiumCollectionsOnly = false,
   /** When provided, the dropdown can open the buy wizard outside its own subtree. */
   onOpenBuyWizard,
+  /** When provided, NFT tiles can navigate to the NFT page. */
+  onOpenNftPage,
 }: {
   layout?: NFTStatusBoxLayout;
   premiumCollectionsOnly?: boolean;
   onOpenBuyWizard?: () => void;
+  onOpenNftPage?: () => void;
 }) {
   const { nftStatus, nftPoints, isLoading } = useNFTStatus();
   
@@ -251,9 +254,9 @@ export function NFTStatusBox({
               ) : null}
 
               <div className="grid grid-cols-3 gap-1">
-                {miniCard('🖼️', compactAny, undefined, 'Standard NFTs', undefined, 'text-blue-600 dark:text-blue-400')}
-                {miniCard('💎', compactDiamond, undefined, 'Diamond NFT status (diamond perks)', undefined, 'text-purple-600 dark:text-purple-400')}
-                {miniCard('⭐', hasRarestNFT, undefined, 'Rarest NFT status (top tier perks)', undefined, 'text-yellow-600 dark:text-yellow-400')}
+                {miniCard('🖼️', compactAny, undefined, 'Standard NFTs', onOpenNftPage, 'text-blue-600 dark:text-blue-400')}
+                {miniCard('💎', compactDiamond, undefined, 'Diamond NFTs', onOpenNftPage, 'text-purple-600 dark:text-purple-400')}
+                {miniCard('⭐', hasRarestNFT, undefined, 'Rarest NFTs', onOpenNftPage, 'text-yellow-600 dark:text-yellow-400')}
               </div>
 
               {compactAny ? (

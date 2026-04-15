@@ -34,6 +34,7 @@ export function useKREXBalance(): UseKREXBalanceReturn {
   const l1Address = kaspaState.address;
   const l2Address = evmAddress || null;
   const isWalletConnected = kaspaState.isConnected || isEVMConnected;
+  const l1Provider = kaspaState.provider;
 
   const [balanceData, setBalanceData] = useState<KREXBalanceResult>({
     l1: 0,
@@ -56,7 +57,9 @@ export function useKREXBalance(): UseKREXBalanceReturn {
     setError(null);
 
     try {
-      const result = await queryKREXBalance(l1Address, l2Address, chainId);
+      const result = await queryKREXBalance(l1Address, l2Address, chainId, {
+        allowKasWareFallback: l1Provider === 'kasware',
+      });
       setBalanceData(result);
     } catch (err) {
       console.error('Error fetching KREX balance:', err);
@@ -66,7 +69,7 @@ export function useKREXBalance(): UseKREXBalanceReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [l1Address, l2Address, isWalletConnected, chainId]);
+  }, [l1Address, l2Address, isWalletConnected, chainId, l1Provider]);
 
   useEffect(() => {
     fetchKREXBalance();

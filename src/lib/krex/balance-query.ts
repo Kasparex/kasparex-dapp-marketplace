@@ -23,7 +23,8 @@ export interface KREXBalanceResult {
 export async function queryKREXBalance(
   l1Address: string | null,
   l2Address: string | null,
-  chainId: number = 202555
+  chainId: number = 202555,
+  opts?: { allowKasWareFallback?: boolean }
 ): Promise<KREXBalanceResult> {
   // If no addresses provided, return zeros
   if (!l1Address && !l2Address) {
@@ -32,7 +33,7 @@ export async function queryKREXBalance(
 
   // Query both in parallel for better performance
   const [l1Balance, l2Balance] = await Promise.all([
-    l1Address ? queryL1KREXBalance(l1Address) : Promise.resolve(0),
+    l1Address ? queryL1KREXBalance(l1Address, { allowKasWareFallback: opts?.allowKasWareFallback }) : Promise.resolve(0),
     l2Address ? queryL2KREXBalance(l2Address, chainId) : Promise.resolve(0),
   ]);
 

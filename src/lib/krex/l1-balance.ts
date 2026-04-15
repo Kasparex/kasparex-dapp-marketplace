@@ -155,20 +155,27 @@ async function tryKasWareBalance(address: string): Promise<number | null> {
  * @param address - Kaspa address (with or without kaspa: prefix)
  * @returns KREX balance as number, or 0 if error/invalid address
  */
-export async function queryL1KREXBalance(address: string): Promise<number> {
+export async function queryL1KREXBalance(
+  address: string,
+  opts?: { allowKasWareFallback?: boolean }
+): Promise<number> {
   if (!address || typeof address !== 'string') {
     console.warn('[KREX L1] Invalid address provided');
     return 0;
   }
 
+  const allowKasWareFallback = opts?.allowKasWareFallback ?? true;
+
   // Try KasWare first (if available and address matches)
-  try {
-    const kaswareBalance = await tryKasWareBalance(address);
-    if (kaswareBalance !== null) {
-      return kaswareBalance;
+  if (allowKasWareFallback) {
+    try {
+      const kaswareBalance = await tryKasWareBalance(address);
+      if (kaswareBalance !== null) {
+        return kaswareBalance;
+      }
+    } catch (error) {
+      console.warn('[KREX L1] KasWare fallback failed, trying API:', error);
     }
-  } catch (error) {
-    console.warn('[KREX L1] KasWare fallback failed, trying API:', error);
   }
 
   try {

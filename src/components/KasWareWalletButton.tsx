@@ -225,6 +225,10 @@ export function KasWareWalletButton() {
               <WalletAddressRow
                 address={state.address}
                 displayAddress={displayAddress}
+                onRefresh={async () => {
+                  await refreshBalance();
+                  await refetchKrex();
+                }}
                 onCopy={async () => {
                   await handleCopyAddress();
                   setIsDropdownOpen(false);
@@ -310,35 +314,19 @@ export function KasWareWalletButton() {
                 <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/50 p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-                      Tier & benefits
+                      Tiers & Benefits (Total)
                     </div>
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          await refreshBalance();
-                          await refetchKrex();
-                        }}
-                        className="p-1 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
-                        aria-label="Refresh balances"
-                        title="Refresh"
-                      >
-                        <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v6h6M20 20v-6h-6M5 19a9 9 0 0114-7l1 1M19 5a9 9 0 00-14 7l-1-1" />
-                        </svg>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsRewardsOpen(true)}
-                        className="p-1 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
-                        aria-label="Tier & benefits info"
-                        title="Rewards"
-                      >
-                        <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsRewardsOpen(true)}
+                      className="p-1 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
+                      aria-label="Tier & benefits info"
+                      title="Rewards"
+                    >
+                      <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </button>
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-zinc-500 dark:text-zinc-400">Tier</span>
@@ -364,6 +352,10 @@ export function KasWareWalletButton() {
                       premiumCollectionsOnly
                       onOpenBuyWizard={() => {
                         setIsNftWizardOpen(true);
+                        setIsDropdownOpen(false);
+                      }}
+                      onOpenNftPage={() => {
+                        router.push('/nft');
                         setIsDropdownOpen(false);
                       }}
                     />
