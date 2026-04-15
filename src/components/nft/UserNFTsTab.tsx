@@ -7,7 +7,7 @@ import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { useAccount } from 'wagmi';
 import { queryUserNFTs, type UserNFT } from '@/lib/nft/nft-query';
 import { getNFTMetadata } from '@/lib/nft/metadata';
-import { fetchNFTRank } from '@/lib/nft/kaspa-com-api';
+import { fetchMultipleNFTRanks } from '@/lib/nft/kaspa-com-api';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { collections } from '@/lib/nft/collections';
 import { getCollectionMetadata } from '@/lib/nft/collection-loader';
@@ -51,6 +51,7 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
   }>>(new Map());
   const [showBuyWizard, setShowBuyWizard] = useState(false);
   const [chroniclesBump, setChroniclesBump] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(24);
 
   const isWalletConnected = kaspaState.isConnected || isEVMConnected;
   const l1Address = kaspaState.address;
@@ -109,6 +110,7 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
       const nfts = await queryUserNFTs(l1Address, l2Address, collectionId ? [collectionId] : undefined);
       console.log('[UserNFTsTab] ✓ Fetched NFTs:', nfts.length, nfts);
       setUserNFTs(nfts);
+      setVisibleCount(24);
       
       if (nfts.length === 0) {
         console.warn('[UserNFTsTab] No NFTs found. Check console for NFT query logs.');
@@ -126,6 +128,18 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
           console.warn(`Error loading collection metadata for ${collectionId}:`, err);
         }
       }
+
+      // Batch ranks per collection to avoid N requests per NFT.
+      const ranksByKey = new Map<string, number>();
+      await Promise.allSettled(
+        uniqueCollections.map(async (col) => {
+          const tokenIds = nfts.filter((n) => n.collection === col).map((n) => n.tokenId);
+          const rankMap = await fetchMultipleNFTRanks(col, tokenIds);
+          rankMap.forEach((rank, tokenId) => {
+            ranksByKey.set(`${col}-${tokenId}`, rank);
+          });
+        })
+      );
 
       // Load details for each NFT (use cached data when available)
       const detailsMap = new Map();
@@ -146,7 +160,7 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
               const rarity = allMetadata.length > 0
                 ? await getNFTRarityCached(nft.collection, nft.tokenId, allMetadata)
                 : null;
-              const rank = await fetchNFTRank(nft.collection, nft.tokenId);
+              const rank = ranksByKey.get(`${nft.collection}-${nft.tokenId}`) ?? null;
 
               let imageUrl: string | null = null;
               if (metadata.image) {
@@ -266,6 +280,8 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
 
     return sortOrder === 'asc' ? comparison : -comparison;
   });
+
+  const visibleNFTs = useMemo(() => filteredNFTs.slice(0, visibleCount), [filteredNFTs, visibleCount]);
 
   const groupedByCollection = userNFTs.reduce((acc, nft) => {
     if (!acc[nft.collection]) {
@@ -546,8 +562,9 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
 
       {/* NFT Grid */}
       {!isLoading && filteredNFTs.length > 0 && (
+        <>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredNFTs.map((nft) => {
+          {visibleNFTs.map((nft) => {
             const key = `${nft.collection}-${nft.tokenId}`;
             const details = nftDetails.get(key);
             const collection = collections[nft.collection];
@@ -659,6 +676,18 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
             );
           })}
         </div>
+        {visibleCount < filteredNFTs.length ? (
+          <div className="flex justify-center pt-6">
+            <button
+              type="button"
+              onClick={() => setVisibleCount((n) => Math.min(n + 24, filteredNFTs.length))}
+              className="k-control-btn text-sm"
+            >
+              Load more NFTs
+            </button>
+          </div>
+        ) : null}
+        </>
       )}
 
       {/* Buy Wizard */}

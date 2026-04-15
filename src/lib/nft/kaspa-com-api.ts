@@ -169,6 +169,73 @@ export async function fetchCollectionByTicker(
 }
 
 /**
+ * Fetch multiple collections in one request (browser) to avoid N requests per list.
+ */
+export async function fetchCollectionsByTickers(
+  tickers: string[],
+  refresh = false
+): Promise<Map<string, Krc721Collection | null>> {
+  const normalized = Array.from(
+    new Set(tickers.map((t) => t.trim().toUpperCase()).filter(Boolean))
+  ).slice(0, 50);
+
+  const out = new Map<string, Krc721Collection | null>();
+  if (normalized.length === 0) return out;
+
+  // Serve from cache first
+  const missing: string[] = [];
+  for (const t of normalized) {
+    if (!refresh && collectionCache.has(t)) out.set(t, collectionCache.get(t)!);
+    else missing.push(t);
+  }
+
+  if (missing.length === 0) return out;
+
+  try {
+    // In browser, use our batch proxy endpoint.
+    if (typeof window !== 'undefined') {
+      const url = `/api/kaspa-com/collections?tickers=${encodeURIComponent(missing.join(','))}`;
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`Batch collections failed: ${res.status}`);
+      const j = (await res.json()) as {
+        ok: boolean;
+        collections?: Record<string, Krc721Collection>;
+      };
+      const cols = j.collections ?? {};
+      for (const t of missing) {
+        const v = cols[t] ?? null;
+        collectionCache.set(t, v as any);
+        out.set(t, v);
+      }
+      return out;
+    }
+
+    // Server-side fallback: fetch individually (still cached in-memory for process lifetime).
+    const settled = await Promise.allSettled(missing.map((t) => fetchCollectionByTicker(t, refresh)));
+    for (let i = 0; i < missing.length; i++) {
+      const t = missing[i];
+      const r = settled[i];
+      const v = r.status === 'fulfilled' ? r.value : null;
+      if (v) collectionCache.set(t, v);
+      out.set(t, v);
+    }
+    return out;
+  } catch (e) {
+    console.error('[KaspaCom] Batch collection fetch failed:', e);
+    // Best-effort: fall back to individual calls
+    const settled = await Promise.allSettled(missing.map((t) => fetchCollectionByTicker(t, refresh)));
+    for (let i = 0; i < missing.length; i++) {
+      const t = missing[i];
+      const r = settled[i];
+      const v = r.status === 'fulfilled' ? r.value : null;
+      if (v) collectionCache.set(t, v);
+      out.set(t, v);
+    }
+    return out;
+  }
+}
+
+/**
  * Fetch rank for a specific NFT
  */
 export async function fetchNFTRank(

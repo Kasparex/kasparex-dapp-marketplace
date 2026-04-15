@@ -3,19 +3,32 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import type { CollectionConfig } from '@/lib/nft/collections';
-import { fetchCollectionByTicker } from '@/lib/nft/kaspa-com-api';
+import { fetchCollectionByTicker, type Krc721Collection } from '@/lib/nft/kaspa-com-api';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 
 interface CollectionCardProps {
   collection: CollectionConfig;
+  prefetched?: Krc721Collection | null;
 }
 
-export function CollectionCard({ collection }: CollectionCardProps) {
+export function CollectionCard({ collection, prefetched }: CollectionCardProps) {
   const [totalSupply, setTotalSupply] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
+    if (prefetched) {
+      setTotalSupply(prefetched.totalSupply || prefetched.totalMinted || 0);
+      if (prefetched.image && typeof prefetched.image === 'string') {
+        const imgUrl = prefetched.image.startsWith('ipfs://')
+          ? getBestGatewayUrl(prefetched.image.replace('ipfs://', ''))
+          : prefetched.image;
+        setImageUrl(imgUrl);
+      }
+      setIsLoading(false);
+      return;
+    }
+
     // Load collection stats
     const loadStats = async () => {
       try {
@@ -56,7 +69,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
     };
 
     loadStats();
-  }, [collection]);
+  }, [collection, prefetched]);
 
   return (
     <Link

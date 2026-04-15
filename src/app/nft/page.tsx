@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { CollectionCard } from '@/components/nft/CollectionCard';
@@ -13,6 +13,7 @@ import {
   getPartnerCollections,
   type CollectionConfig,
 } from '@/lib/nft/collections';
+import { fetchCollectionsByTickers, type Krc721Collection } from '@/lib/nft/kaspa-com-api';
 
 function collectionMatchesQuery(c: CollectionConfig, q: string): boolean {
   const s = q.trim().toLowerCase();
@@ -27,6 +28,7 @@ function collectionMatchesQuery(c: CollectionConfig, q: string): boolean {
 export default function NFTPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'collections' | 'my-nfts'>('collections');
+  const [collectionStats, setCollectionStats] = useState<Map<string, Krc721Collection | null>>(new Map());
 
   const premiumList = useMemo(() => getNftToolsPremiumCollections(), []);
   const partnerList = useMemo(() => getPartnerCollections(), []);
@@ -39,6 +41,24 @@ export default function NFTPage() {
     () => partnerList.filter((c) => collectionMatchesQuery(c, searchQuery)),
     [partnerList, searchQuery]
   );
+
+  useEffect(() => {
+    if (activeTab !== 'collections') return;
+    const tickers = [...filteredPremium, ...filteredPartner].map((c) => c.id);
+    if (tickers.length === 0) return;
+    let cancelled = false;
+    const t = setTimeout(() => {
+      fetchCollectionsByTickers(tickers)
+        .then((m) => {
+          if (!cancelled) setCollectionStats(m);
+        })
+        .catch(() => {});
+    }, 200);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [activeTab, filteredPremium, filteredPartner]);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -110,7 +130,7 @@ export default function NFTPage() {
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredPremium.map((collection) => (
-                          <CollectionCard key={collection.id} collection={collection} />
+                          <CollectionCard key={collection.id} collection={collection} prefetched={collectionStats.get(collection.id) ?? undefined} />
                         ))}
                       </div>
                     )}
@@ -144,7 +164,7 @@ export default function NFTPage() {
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredPartner.map((collection) => (
-                          <CollectionCard key={collection.id} collection={collection} />
+                          <CollectionCard key={collection.id} collection={collection} prefetched={collectionStats.get(collection.id) ?? undefined} />
                         ))}
                       </div>
                     )}
