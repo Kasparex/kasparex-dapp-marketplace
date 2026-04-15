@@ -18,7 +18,7 @@ function fmt(n: number): string {
   return n.toLocaleString(undefined, { maximumFractionDigits: 0 });
 }
 
-type HealthLevel = 'ok' | 'warning' | 'alert' | 'error';
+type HealthLevel = 'ok' | 'learning' | 'warning' | 'alert' | 'error';
 
 function levelMeta(level: HealthLevel): { label: string; dot: string; ring: string; text: string } {
   switch (level) {
@@ -28,6 +28,13 @@ function levelMeta(level: HealthLevel): { label: string; dot: string; ring: stri
         dot: 'bg-emerald-500',
         ring: 'ring-emerald-500/30',
         text: 'text-emerald-700 dark:text-emerald-300',
+      };
+    case 'learning':
+      return {
+        label: 'Learning',
+        dot: 'bg-sky-500',
+        ring: 'ring-sky-500/30',
+        text: 'text-sky-700 dark:text-sky-300',
       };
     case 'warning':
       return {
@@ -82,6 +89,12 @@ export function UsageMonitor() {
     };
   }, []);
 
+  const isWarmingUp = useMemo(() => {
+    if (!data) return true;
+    // If we don't yet have much history, ratios can be misleading.
+    return (data.minutes?.length ?? 0) < 30;
+  }, [data]);
+
   const spikes = useMemo(() => {
     if (!data) return [];
     const out: { id: string; label: string; ratio: number }[] = [];
@@ -89,24 +102,28 @@ export function UsageMonitor() {
       const last5 = data.last5m[d.id] ?? 0;
       const base = data.prev55mAvgPer5m[d.id] ?? 0;
       const ratio = base > 0 ? last5 / base : last5 > 0 ? Infinity : 0;
-      if (ratio >= 3 && last5 >= 50) out.push({ id: d.id, label: d.label, ratio });
+      // Guard against cold baseline false positives:
+      // - ignore when baseline is very small (common right after enabling the monitor)
+      // - require a meaningful absolute volume in addition to ratio
+      if (base >= 20 && ratio >= 3 && last5 >= 100) out.push({ id: d.id, label: d.label, ratio });
     }
     return out.sort((a, b) => b.ratio - a.ratio);
   }, [data]);
 
   const health = useMemo((): HealthLevel => {
     if (error) return 'error';
-    if (!data) return 'warning';
+    if (!data) return 'learning';
+    if (isWarmingUp) return 'learning';
     if (spikes.length > 0) return 'alert';
     // Mild warning if there is a recent jump (2x baseline) but not large enough to alert.
     const elevated = data.dimensions.some((d) => {
       const last5 = data.last5m[d.id] ?? 0;
       const base = data.prev55mAvgPer5m[d.id] ?? 0;
       const ratio = base > 0 ? last5 / base : last5 > 0 ? Infinity : 0;
-      return ratio >= 2 && last5 >= 25;
+      return base >= 10 && ratio >= 2 && last5 >= 50;
     });
     return elevated ? 'warning' : 'ok';
-  }, [data, error, spikes.length]);
+  }, [data, error, isWarmingUp, spikes.length]);
 
   useEffect(() => {
     if (!notifyEnabled) return;
@@ -166,6 +183,11 @@ export function UsageMonitor() {
               Cheap, sampled counters for early spike detection. Use this to catch sudden increases in API traffic before they
               become expensive.
             </p>
+            {isWarmingUp ? (
+              <div className="mt-3 text-sm text-sky-700 dark:text-sky-300">
+                Warming up: baseline is still building, so spike detection is conservative for the first ~30 minutes.
+              </div>
+            ) : null}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-end">
