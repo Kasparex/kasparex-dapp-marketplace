@@ -1,6 +1,4 @@
 import type { NextRequest } from 'next/server';
-import { kvIncr } from './kvRest';
-import { usageMinuteBucketKey } from './keys';
 import { toIsoMinuteUtc } from './time';
 
 function sampleRate(): number {
@@ -25,12 +23,21 @@ export async function recordEdgeHit(request: NextRequest): Promise<void> {
   if (r <= 0) return;
   if (r < 1 && Math.random() > r) return;
 
+  const baseUrl = process.env.NEXT_PUBLIC_CLOUDFLARE_WORKER_URL?.trim();
+  const secret = process.env.USAGE_WORKER_SECRET?.trim();
+  if (!baseUrl || !secret) return;
+
   const pathname = request.nextUrl.pathname;
   const minute = toIsoMinuteUtc();
   const dim = dimFromPath(pathname);
-  const ttlSeconds = 6 * 60 * 60; // keep 6h of buckets
-
-  // Store sampled counts; dashboard will scale by 1/r.
-  await kvIncr(usageMinuteBucketKey(minute, `${dim}:count:s${r}`), ttlSeconds);
+  await fetch(`${baseUrl.replace(/\/$/, '')}/kasparex/usage/hit`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Usage-Secret': secret,
+    },
+    body: JSON.stringify({ minute, dim, sampleRate: r }),
+    cache: 'no-store',
+  });
 }
 

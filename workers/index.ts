@@ -13,6 +13,7 @@ import { handleL1RewardRequest } from './kasparex-api/rewards-l1';
 import { handlePublicRequest } from './kasparex-api/public';
 import { handleProcessRewards, processPendingRewards } from './kasparex-api/reward-processor';
 import { handleArchiveRewards, handleManualArchive } from './kasparex-api/archive';
+import { handleUsageRequest } from './kasparex-api/usage';
 export interface Env {
   // KV Namespace for caching
   KASPAREX_CACHE: KVNamespace;
@@ -31,6 +32,7 @@ export interface Env {
   KASPAREX_API_URL?: string;
   ARCHIVE_AUTH_TOKEN?: string; // For manual archive endpoint
   IGRA_RPC_URL?: string; // Igra testnet RPC URL for event indexing
+  USAGE_WORKER_SECRET?: string; // Shared secret for internal usage/lock endpoints
 }
 
 export default {
@@ -88,6 +90,11 @@ export default {
 
       if (pathname.startsWith('/kasparex/stats') || pathname.startsWith('/kasparex/dapps/availability')) {
         return handlePublicRequest(request, env);
+      }
+
+      // Internal usage monitor + locks (KV-backed)
+      if (pathname.startsWith('/kasparex/usage/') || pathname.startsWith('/kasparex/internal/')) {
+        return handleUsageRequest(request, env);
       }
 
       // Manual archive endpoint (for testing)

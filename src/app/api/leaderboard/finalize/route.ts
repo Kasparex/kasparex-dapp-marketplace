@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { SeasonId } from '@/lib/leaderboard/seasons';
 import { finalizeSeasonSnapshot, seasonToFinalize } from '@/lib/leaderboard/finalize';
-import { kvIncr, kvGet, kvSet } from '@/lib/usage/kvRest';
-import { usageLockKey } from '@/lib/usage/keys';
 
 function isAuthorized(req: NextRequest): boolean {
   const secret = process.env.CHRONICLES_LEADERBOARD_CRON_SECRET?.trim();
@@ -19,34 +17,37 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Simple per-minute rate limit as a safety net (best-effort).
-  try {
-    const minuteKey = usageLockKey(`rl:leaderboard.finalize:${new Date().toISOString().slice(0, 16)}`);
-    const n = await kvIncr(minuteKey, 120);
-    if (typeof n === 'number' && n > 5) {
-      return NextResponse.json({ ok: false, error: 'Too many requests' }, { status: 429 });
-    }
-  } catch {}
+  const workerBase = process.env.NEXT_PUBLIC_CLOUDFLARE_WORKER_URL?.trim()?.replace(/\/$/, '');
+  const workerSecret = process.env.USAGE_WORKER_SECRET?.trim();
+  if (workerBase && workerSecret) {
+    // Simple per-minute rate limit as a safety net (best-effort).
+    try {
+      const rl = new URL(`${workerBase}/kasparex/internal/ratelimit`);
+      rl.searchParams.set('name', `leaderboard.finalize:${new Date().toISOString().slice(0, 16)}`);
+      rl.searchParams.set('ttl', '120');
+      rl.searchParams.set('limit', '5');
+      const res = await fetch(rl.toString(), { method: 'POST', headers: { 'X-Usage-Secret': workerSecret }, cache: 'no-store' });
+      const j = (await res.json().catch(() => null)) as any;
+      if (res.ok && j && j.allowed === false) {
+        return NextResponse.json({ ok: false, error: 'Too many requests' }, { status: 429 });
+      }
+    } catch {}
 
-  // Prevent concurrent expensive executions (best-effort).
-  const lockKey = usageLockKey('cron:leaderboard.finalize:running');
-  try {
-    const existing = await kvGet<{ startedAtMs: number }>(lockKey);
-    if (existing?.startedAtMs && Date.now() - existing.startedAtMs < 10 * 60 * 1000) {
-      return NextResponse.json({ ok: true, published: false, reason: 'Finalize already running.' });
-    }
-    await kvSet(lockKey, { startedAtMs: Date.now() }, 10 * 60);
-  } catch {}
+    // Prevent concurrent expensive executions (best-effort).
+    try {
+      const lock = new URL(`${workerBase}/kasparex/internal/lock`);
+      lock.searchParams.set('name', 'cron:leaderboard.finalize:running');
+      lock.searchParams.set('ttl', String(10 * 60));
+      const res = await fetch(lock.toString(), { method: 'POST', headers: { 'X-Usage-Secret': workerSecret }, cache: 'no-store' });
+      const j = (await res.json().catch(() => null)) as any;
+      if (res.ok && j && j.acquired === false) {
+        return NextResponse.json({ ok: true, published: false, reason: 'Finalize already running.' });
+      }
+    } catch {}
+  }
 
   const now = Date.now();
   const season = ((req.nextUrl.searchParams.get('season') ?? '').trim() as SeasonId) || seasonToFinalize(now);
-  try {
-    const result = await finalizeSeasonSnapshot(season, now);
-    return NextResponse.json({ season, ...result });
-  } finally {
-    // Release lock early (best-effort). TTL will also expire it.
-    try {
-      await kvSet(lockKey, null, 1);
-    } catch {}
-  }
+  const result = await finalizeSeasonSnapshot(season, now);
+  return NextResponse.json({ season, ...result });
 }
