@@ -13,6 +13,11 @@ export function WalletMiniCard({
   right?: string;
   onInfo?: () => void;
 }) {
+  const tierBadge =
+    sub && sub.toLowerCase().startsWith('tier:')
+      ? sub.slice(sub.indexOf(':') + 1).trim()
+      : null;
+
   return (
     <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/50 px-3 py-2">
       <div className="flex items-center justify-between gap-2">
@@ -39,7 +44,16 @@ export function WalletMiniCard({
         </div>
       </div>
       <div className="mt-0.5 text-sm font-semibold text-zinc-900 dark:text-zinc-100">{value}</div>
-      {sub ? (
+      {tierBadge ? (
+        <div className="mt-1">
+          <span
+            className="inline-flex items-center text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] dark:text-[#66dfe8] font-black uppercase tracking-widest"
+            title={sub || undefined}
+          >
+            Tier {tierBadge}
+          </span>
+        </div>
+      ) : sub ? (
         <div className="text-[11px] text-zinc-500 dark:text-zinc-500 truncate" title={sub}>
           {sub}
         </div>

@@ -290,7 +290,9 @@ export function EVMWalletButton() {
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-zinc-500 dark:text-zinc-400">Tier</span>
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">{krexTier}</span>
+                    <span className="inline-flex items-center text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] dark:text-[#66dfe8] font-black uppercase tracking-widest">
+                      {krexTier}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-zinc-500 dark:text-zinc-400">XP Points</span>
@@ -319,24 +321,23 @@ export function EVMWalletButton() {
               </div>
 
               <WalletFooterRow
-                left={null}
+                left={
+                  <button
+                    type="button"
+                    onClick={() => setIsBridgeInfoOpen(true)}
+                    className="px-3 py-2 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 text-sm font-semibold transition-colors"
+                  >
+                    Help
+                  </button>
+                }
                 right={
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => setIsBridgeInfoOpen(true)}
-                      className="px-3 py-2 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 text-sm font-semibold transition-colors"
-                    >
-                      Help
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleDisconnect}
-                      className="px-3 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 text-sm font-semibold transition-colors"
-                    >
-                      Disconnect
-                    </button>
-                  </>
+                  <button
+                    type="button"
+                    onClick={handleDisconnect}
+                    className="px-3 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 text-sm font-semibold transition-colors"
+                  >
+                    Disconnect
+                  </button>
                 }
               />
             </WalletDropdownShell>
