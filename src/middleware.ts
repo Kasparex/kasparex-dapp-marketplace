@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { rewriteRootPathForHost } from '@/lib/config/subdomainRootRewrites';
+import { recordEdgeHit } from '@/lib/usage/recordEdgeHit';
 
 export function middleware(request: NextRequest) {
   const host = request.headers.get('host')?.split(':')[0]?.toLowerCase();
@@ -9,6 +10,13 @@ export function middleware(request: NextRequest) {
   }
 
   const { pathname } = request.nextUrl;
+  if (pathname.startsWith('/api/')) {
+    // Best-effort: small sampled telemetry for detecting spikes.
+    // Must never block requests.
+    recordEdgeHit(request).catch(() => {});
+    return NextResponse.next();
+  }
+
   if (pathname !== '/' && pathname !== '') {
     return NextResponse.next();
   }
@@ -25,6 +33,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)',
+    '/',
+    '/api/:path*',
   ],
 };

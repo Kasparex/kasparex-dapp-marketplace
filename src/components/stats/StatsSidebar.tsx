@@ -8,6 +8,7 @@ import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 const STATS_LINKS = [
   { href: '/stats', label: 'Overview' },
   { href: '/stats/contracts', label: 'Smart contracts' },
+  { href: '/stats/usage', label: 'Usage monitor' },
 ] as const;
 
 const QUICK_LINKS = [
