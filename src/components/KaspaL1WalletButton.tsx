@@ -106,10 +106,11 @@ export function KaspaL1WalletButton() {
 
   // Kastle connected UI (basic)
   if (state.isConnected && state.address && state.provider === 'kastle') {
+    const address = state.address;
     const formatAddressForDisplay = (addr: string): string => formatKaspaAddress(addr).display;
-    const displayAddress = maskAddress(shortenAddress(formatAddressForDisplay(state.address), { head: 10, tail: 8 }), isBalanceVisible);
+    const displayAddress = maskAddress(shortenAddress(formatAddressForDisplay(address), { head: 10, tail: 8 }), isBalanceVisible);
     const displayBalance = formatBalanceForDisplay(balance, 'KAS', false, isBalanceVisible);
-    const explorerUrl = getAddressExplorerUrl({ kind: 'kaspa-l1', address: state.address });
+    const explorerUrl = getAddressExplorerUrl({ kind: 'kaspa-l1', address });
 
     return (
       <div className="relative" ref={rootRef}>
@@ -125,7 +126,7 @@ export function KaspaL1WalletButton() {
             </svg>
             Kastle
           </span>
-          <Avatar address={state.address} size={20} />
+          <Avatar address={address} size={20} />
           <span className="text-zinc-900 dark:text-zinc-100 hidden sm:inline">{displayAddress}</span>
           <span className="text-zinc-900 dark:text-zinc-100 sm:hidden">Kastle</span>
           <svg
@@ -142,14 +143,14 @@ export function KaspaL1WalletButton() {
           <div className="absolute right-0 mt-2 z-50">
             <WalletDropdownShell>
               <WalletAddressRow
-                address={state.address}
+                address={address}
                 displayAddress={displayAddress}
                 onCopy={async () => {
                   if (!isBalanceVisible) {
                     setError('Please enable balance visibility to copy address');
                     return;
                   }
-                  await navigator.clipboard.writeText(state.address);
+                  await navigator.clipboard.writeText(address);
                   setOpen(false);
                 }}
                 onOpenExplorer={
