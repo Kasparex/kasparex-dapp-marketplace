@@ -28,8 +28,10 @@ export async function loadFullCollectionMetadata(
       const cached = await getCachedCollectionMetadata<ParsedNFTMetadata[]>(collectionId);
       if (cached && cached.length > 0) {
         console.log(`Using cached metadata for ${collectionId} (${cached.length} NFTs)`);
-        // Return cached data immediately, refresh in background
-        loadFullCollectionMetadata(collectionId, false).catch(console.error);
+        // Return cached data immediately.
+        // NOTE: We intentionally do not trigger a background full refresh here.
+        // A "full collection refresh" can be very expensive (many IPFS/registry fetches) and can
+        // accidentally create large usage spikes just by visiting pages that touch this cache.
         return cached;
       }
     }

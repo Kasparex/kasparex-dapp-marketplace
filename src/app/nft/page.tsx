@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { CollectionCard } from '@/components/nft/CollectionCard';
@@ -13,7 +13,6 @@ import {
   getPartnerCollections,
   type CollectionConfig,
 } from '@/lib/nft/collections';
-import { getCollectionMetadata } from '@/lib/nft/collection-loader';
 
 function collectionMatchesQuery(c: CollectionConfig, q: string): boolean {
   const s = q.trim().toLowerCase();
@@ -27,7 +26,6 @@ function collectionMatchesQuery(c: CollectionConfig, q: string): boolean {
 
 export default function NFTPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isPreloading, setIsPreloading] = useState(false);
   const [activeTab, setActiveTab] = useState<'collections' | 'my-nfts'>('collections');
 
   const premiumList = useMemo(() => getNftToolsPremiumCollections(), []);
@@ -41,28 +39,6 @@ export default function NFTPage() {
     () => partnerList.filter((c) => collectionMatchesQuery(c, searchQuery)),
     [partnerList, searchQuery]
   );
-
-  useEffect(() => {
-    const preloadMetadata = async () => {
-      setIsPreloading(true);
-      try {
-        await Promise.allSettled(
-          Object.keys(collections).map((collectionId) =>
-            getCollectionMetadata(collectionId, true).catch((error) => {
-              console.warn(`Failed to preload ${collectionId}:`, error);
-            })
-          )
-        );
-      } catch (error) {
-        console.error('Error preloading metadata:', error);
-      } finally {
-        setIsPreloading(false);
-      }
-    };
-
-    const timeoutId = setTimeout(preloadMetadata, 500);
-    return () => clearTimeout(timeoutId);
-  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -94,12 +70,6 @@ export default function NFTPage() {
             {activeTab === 'collections' ? (
               <div className="py-8 sm:py-12">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                  {isPreloading && (
-                    <div className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
-                      Preloading collection data…
-                    </div>
-                  )}
-
                   <div className="mb-8 max-w-xl">
                     <label htmlFor="nft-collection-search" className="sr-only">
                       Search collections
