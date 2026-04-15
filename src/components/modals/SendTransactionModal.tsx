@@ -1,16 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import { kasToSompis } from '@/lib/kaspa/api';
 import { getErrorMessage } from '@/lib/utils';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useBalanceVisibility, formatBalanceForDisplay } from '@/hooks/useBalanceVisibility';
-import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
 import { getExplorerTxUrl, extractTxId } from '@/lib/store/utils';
 import { getKaspaExplorerAddressUrl } from '@/lib/store/utils';
 import { CopyableAddress } from '@/components/donations/CopyableAddress';
+import { SendKREXWidget } from '@/components/dapps/SendKREXWidget';
 
 interface SendTransactionModalProps {
   isOpen: boolean;
@@ -35,6 +35,16 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
   const [txHashCopied, setTxHashCopied] = useState(false);
   const [sentToAddress, setSentToAddress] = useState<string | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
+  const [tab, setTab] = useState<'kas' | 'krex'>('kas');
+
+  const feePresets = useMemo(
+    () => [
+      { id: 'low', label: 'Low', value: '0' },
+      { id: 'normal', label: 'Normal', value: '0.001' },
+      { id: 'high', label: 'High', value: '0.01' },
+    ],
+    []
+  );
 
   useEffect(() => {
     if (!isOpen) {
@@ -44,6 +54,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
       setPriorityFee('');
       setError(null);
       setTxHash(null);
+      setTab('kas');
     } else if (initialToAddress !== undefined || initialAmount !== undefined) {
       if (initialToAddress !== undefined) setToAddress(initialToAddress);
       if (initialAmount !== undefined) setAmount(initialAmount);
@@ -134,7 +145,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
         <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-              Send KAS
+              {tab === 'kas' ? 'Send KAS' : 'Send KREX'}
             </h2>
             <button
               onClick={onClose}
@@ -186,7 +197,40 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
               </button>
             </div>
           ) : (
-            <>
+            <div className="space-y-4">
+              <div className="inline-flex w-full rounded-xl bg-zinc-100 dark:bg-zinc-800 p-1">
+                <button
+                  type="button"
+                  onClick={() => setTab('kas')}
+                  className={[
+                    'flex-1 px-3 py-2 text-sm font-bold rounded-lg transition-colors',
+                    tab === 'kas'
+                      ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                      : 'text-zinc-700 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-700/60',
+                  ].join(' ')}
+                >
+                  Send KAS
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTab('krex')}
+                  className={[
+                    'flex-1 px-3 py-2 text-sm font-bold rounded-lg transition-colors',
+                    tab === 'krex'
+                      ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                      : 'text-zinc-700 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-700/60',
+                  ].join(' ')}
+                >
+                  Send KREX
+                </button>
+              </div>
+
+              {tab === 'krex' ? (
+                <div className="-mx-6 -mb-4">
+                  <SendKREXWidget />
+                </div>
+              ) : (
+                <>
               <div>
                 <label className="k-label">
                   Recipient Address
@@ -247,7 +291,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="k-label !mb-0 flex items-center gap-1.5 whitespace-nowrap">
-                    Amount (<TokenLogoImage tokenId="kas" size={14} /> KAS)
+                    Amount (KAS)
                   </label>
                   <div className="text-[10px] uppercase tracking-wider font-bold text-zinc-500 dark:text-zinc-500">
                     Balance: {formatBalanceForDisplay(currentBalance, 'KAS', false, isBalanceVisible)}
@@ -279,16 +323,28 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
                 <label className="k-label">
                   Priority Fee (Optional)
                 </label>
-                <input
-                  type="number"
-                  value={priorityFee}
-                  onChange={(e) => setPriorityFee(e.target.value)}
-                  placeholder="0"
-                  step="1"
-                  min="0"
-                  className="k-input"
-                  disabled={isSending}
-                />
+                <div className="grid grid-cols-3 gap-2">
+                  {feePresets.map((p) => {
+                    const active = (priorityFee || '0') === p.value;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => setPriorityFee(p.value)}
+                        disabled={isSending}
+                        className={[
+                          'px-3 py-2 rounded-xl text-sm font-bold transition-colors border',
+                          active
+                            ? 'bg-[#02abb8] border-[#02abb8] text-white'
+                            : 'bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700',
+                        ].join(' ')}
+                        title={`Set priority fee to ${p.value} KAS`}
+                      >
+                        {p.label}
+                      </button>
+                    );
+                  })}
+                </div>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                   Higher fees may result in faster confirmation
                 </p>
@@ -311,7 +367,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
                 <button
                   onClick={handleSend}
                   disabled={isSending || !toAddress.trim() || !amount}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                 >
                   {isSending ? (
                     <>
@@ -326,7 +382,9 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
                   )}
                 </button>
               </div>
-            </>
+                </>
+              )}
+            </div>
           )}
         </div>
       </div>

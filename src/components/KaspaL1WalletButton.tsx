@@ -25,6 +25,8 @@ import { WalletFooterRow } from '@/components/wallet-dropdown/WalletFooterRow';
 import { getAddressExplorerUrl, shortenAddress } from '@/lib/walletUi';
 import { BridgeInfoModal } from '@/components/modals/BridgeInfoModal';
 import { ReceiveAddressModal } from '@/components/modals/ReceiveAddressModal';
+import { BridgeOptionsModal } from '@/components/modals/BridgeOptionsModal';
+import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
 import { NFTStatusBox } from '@/components/rewards/NFTStatusBox';
@@ -49,6 +51,8 @@ export function KaspaL1WalletButton() {
   const rootRef = useRef<HTMLDivElement>(null);
   const [isBridgeInfoOpen, setIsBridgeInfoOpen] = useState(false);
   const [isReceiveOpen, setIsReceiveOpen] = useState(false);
+  const [isBridgeOptionsOpen, setIsBridgeOptionsOpen] = useState(false);
+  const [isKrexBuyWizardOpen, setIsKrexBuyWizardOpen] = useState(false);
 
   const detected = detectKaspaWallets();
   const isKasWareInstalled = detected.some((w) => w.id === 'kasware' && w.isInstalled);
@@ -176,7 +180,10 @@ export function KaspaL1WalletButton() {
                     id: 'bridge',
                     label: 'Bridge',
                     icon: 'bridge',
-                    onClick: () => setIsBridgeInfoOpen(true),
+                    onClick: () => {
+                      setIsBridgeOptionsOpen(true);
+                      setOpen(false);
+                    },
                     variant: 'secondary',
                   },
                   {
@@ -193,7 +200,10 @@ export function KaspaL1WalletButton() {
                     id: 'buy',
                     label: 'Buy',
                     icon: 'buy',
-                    onClick: () => setIsBridgeInfoOpen(true),
+                    onClick: () => {
+                      setIsKrexBuyWizardOpen(true);
+                      setOpen(false);
+                    },
                     variant: 'primary',
                   },
                 ]}
@@ -290,6 +300,9 @@ export function KaspaL1WalletButton() {
             setIsReceiveOpen(false);
           }}
         />
+
+        <BridgeOptionsModal isOpen={isBridgeOptionsOpen} onClose={() => setIsBridgeOptionsOpen(false)} />
+        <KREXBuyWizard isOpen={isKrexBuyWizardOpen} onClose={() => setIsKrexBuyWizardOpen(false)} />
       </div>
     );
   }

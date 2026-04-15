@@ -161,9 +161,27 @@ export function NFTStatusBox({
       label: string,
       ok: boolean,
       sub?: string,
+      tooltip?: string,
+      onClick?: () => void,
       okClass = 'text-green-600 dark:text-green-400'
     ) => (
-      <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50/90 dark:bg-zinc-900/70 px-2.5 py-2 min-h-[56px] flex flex-col justify-center">
+      <div
+        role={onClick ? 'button' : undefined}
+        tabIndex={onClick ? 0 : undefined}
+        onClick={onClick}
+        onKeyDown={
+          onClick
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') onClick();
+              }
+            : undefined
+        }
+        className={[
+          'rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50/90 dark:bg-zinc-900/70 px-2.5 py-2 min-h-[56px] flex flex-col justify-center',
+          onClick ? 'cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors' : '',
+        ].join(' ')}
+        title={tooltip || label}
+      >
         <div className="text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 truncate" title={label}>
           {label}
         </div>
@@ -203,8 +221,12 @@ export function NFTStatusBox({
           ) : (
             <>
               <div className="grid grid-cols-2 gap-1.5">
-                {miniCard('KREXPRIME', status.hasKREXPRIME)}
-                {miniCard('PIXELKREX', status.hasPIXELKREX)}
+                {miniCard('KREXPRIME', status.hasKREXPRIME, undefined, 'Open KREXPRIME on KaspaCom (buy NFTs)', () => {
+                  window.open('https://www.kaspa.com/nft/collections/KREXPRIME', '_blank', 'noopener,noreferrer');
+                })}
+                {miniCard('PIXELKREX', status.hasPIXELKREX, undefined, 'Open PIXELKREX on KaspaCom (buy NFTs)', () => {
+                  window.open('https://www.kaspa.com/nft/collections/PIXELKREX', '_blank', 'noopener,noreferrer');
+                })}
               </div>
 
               {!premiumCollectionsOnly && partnerCollections.length > 0 && status.partnerCollections ? (
@@ -226,9 +248,9 @@ export function NFTStatusBox({
               ) : null}
 
               <div className="grid grid-cols-3 gap-1">
-                {miniCard('Any', compactAny, undefined, 'text-blue-600 dark:text-blue-400')}
-                {miniCard('💎', compactDiamond, undefined, 'text-purple-600 dark:text-purple-400')}
-                {miniCard('⭐', hasRarestNFT, undefined, 'text-yellow-600 dark:text-yellow-400')}
+                {miniCard('Any', compactAny, undefined, 'Standard NFT status (regular holder perks)', undefined, 'text-blue-600 dark:text-blue-400')}
+                {miniCard('💎', compactDiamond, undefined, 'Diamond NFT status (diamond perks)', undefined, 'text-purple-600 dark:text-purple-400')}
+                {miniCard('⭐', hasRarestNFT, undefined, 'Rarest NFT status (top tier perks)', undefined, 'text-yellow-600 dark:text-yellow-400')}
               </div>
 
               {compactAny ? (
@@ -247,9 +269,10 @@ export function NFTStatusBox({
               <button
                 type="button"
                 onClick={() => setShowBuyWizard(true)}
-                className="w-full mt-1 px-2 py-1.5 text-[11px] font-bold text-center bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg transition-colors"
+                className="w-full mt-2 px-3 py-2 text-xs font-bold text-center bg-[#02abb8] hover:bg-[#028a94] text-white rounded-xl transition-colors"
+                title="Buy NFTs on L1 and bridge them to L2"
               >
-                Buy / Bridge
+                Buy/Bridge NFTs
               </button>
             </>
           )}
