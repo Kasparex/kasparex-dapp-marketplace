@@ -14,7 +14,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 import { detectKaspaWallets, formatKaspaAddress } from '@/lib/kaspa/wallet';
 import { getErrorMessage } from '@/lib/utils';
-import { useBalanceVisibility, maskAddress, formatBalanceForDisplay } from '@/hooks/useBalanceVisibility';
+import { useBalanceVisibility, maskAddress, formatBalanceForDisplay, formatBalanceValueForDisplay } from '@/hooks/useBalanceVisibility';
 import { Avatar } from './Avatar';
 import { WalletDropdownShell } from '@/components/wallet-dropdown/WalletDropdownShell';
 import { WalletAddressRow } from '@/components/wallet-dropdown/WalletAddressRow';
@@ -31,6 +31,7 @@ import { RewardsModal } from '@/components/modals/RewardsModal';
 import { KREX_TIERS } from '@/lib/rewards/types';
 import { useRouter } from 'next/navigation';
 import { NodeStatusModal } from '@/components/modals/NodeStatusModal';
+import { NFTBuyWizard } from '@/components/rewards/NFTBuyWizard';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
 import { NFTStatusBox } from '@/components/rewards/NFTStatusBox';
@@ -60,6 +61,7 @@ export function KaspaL1WalletButton() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isRewardsOpen, setIsRewardsOpen] = useState(false);
   const [isNodeOpen, setIsNodeOpen] = useState(false);
+  const [isNftWizardOpen, setIsNftWizardOpen] = useState(false);
 
   const detected = detectKaspaWallets();
   const isKasWareInstalled = detected.some((w) => w.id === 'kasware' && w.isInstalled);
@@ -120,7 +122,7 @@ export function KaspaL1WalletButton() {
     const address = state.address;
     const formatAddressForDisplay = (addr: string): string => formatKaspaAddress(addr).display;
     const displayAddress = maskAddress(shortenAddress(formatAddressForDisplay(address), { head: 10, tail: 8 }), isBalanceVisible);
-    const displayBalance = formatBalanceForDisplay(balance, 'KAS', false, isBalanceVisible);
+    const displayBalance = formatBalanceValueForDisplay(balance, false, isBalanceVisible);
     const explorerUrl = getAddressExplorerUrl({ kind: 'kaspa-l1', address });
 
     return (
@@ -223,7 +225,11 @@ export function KaspaL1WalletButton() {
                 <div className="grid grid-cols-2 gap-2">
                   <WalletMiniCard
                     title="KREX"
-                    value={isKrexLoading ? '…' : krexL1Balance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    value={
+                      isBalanceVisible
+                        ? (isKrexLoading ? '…' : krexL1Balance.toLocaleString(undefined, { maximumFractionDigits: 2 }))
+                        : '***'
+                    }
                     sub={`Tier: ${krexTier}`}
                     onClick={() => {
                       setOpen(false);
@@ -270,7 +276,14 @@ export function KaspaL1WalletButton() {
                     <span className="font-semibold text-zinc-900 dark:text-zinc-100">-{KREX_TIERS[krexTier].feeReduction}%</span>
                   </div>
                   <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800">
-                    <NFTStatusBox layout="compact-cards" premiumCollectionsOnly />
+                    <NFTStatusBox
+                      layout="compact-cards"
+                      premiumCollectionsOnly
+                      onOpenBuyWizard={() => {
+                        setIsNftWizardOpen(true);
+                        setOpen(false);
+                      }}
+                    />
                   </div>
                 </div>
               </div>
@@ -355,6 +368,7 @@ export function KaspaL1WalletButton() {
         <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} title="Help (L1)" />
         <RewardsModal isOpen={isRewardsOpen} onClose={() => setIsRewardsOpen(false)} currentTier={krexTier} krexBalance={krexL1Balance} title="Rewards (L1)" />
         <NodeStatusModal isOpen={isNodeOpen} onClose={() => setIsNodeOpen(false)} title="Node status (L1)" />
+        <NFTBuyWizard isOpen={isNftWizardOpen} onClose={() => setIsNftWizardOpen(false)} />
       </div>
     );
   }

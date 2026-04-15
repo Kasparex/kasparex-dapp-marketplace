@@ -11,7 +11,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Avatar } from './Avatar';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
-import { useBalanceVisibility, formatBalanceForDisplay, maskAddress } from '@/hooks/useBalanceVisibility';
+import { useBalanceVisibility, formatBalanceForDisplay, formatBalanceValueForDisplay, maskAddress } from '@/hooks/useBalanceVisibility';
 import { detectKaspaWallets } from '@/lib/kaspa/wallet';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import { kasToSompis } from '@/lib/kaspa/api';
@@ -40,6 +40,7 @@ import { RewardsModal } from '@/components/modals/RewardsModal';
 import { KREX_TIERS } from '@/lib/rewards/types';
 import { useRouter } from 'next/navigation';
 import { NodeStatusModal } from '@/components/modals/NodeStatusModal';
+import { NFTBuyWizard } from '@/components/rewards/NFTBuyWizard';
 
 export function KasWareWalletButton() {
   const router = useRouter();
@@ -67,6 +68,7 @@ export function KasWareWalletButton() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isRewardsOpen, setIsRewardsOpen] = useState(false);
   const [isNodeOpen, setIsNodeOpen] = useState(false);
+  const [isNftWizardOpen, setIsNftWizardOpen] = useState(false);
 
   // Check if KasWare is installed
   const isKasWareInstalled = detectKaspaWallets().some(w => w.id === 'kasware' && w.isInstalled);
@@ -180,7 +182,7 @@ export function KasWareWalletButton() {
   // If connected, show button with balance and address
   if (state.isConnected && state.address && state.provider === 'kasware') {
     const displayAddress = maskAddress(shortenAddress(formatAddressForDisplay(state.address), { head: 10, tail: 8 }), isBalanceVisible);
-    const displayBalance = formatBalanceForDisplay(balance, 'KAS', false, isBalanceVisible);
+    const displayBalance = formatBalanceValueForDisplay(balance, balanceLoading, isBalanceVisible);
     const explorerUrl = getAddressExplorerUrl({ kind: 'kaspa-l1', address: state.address });
 
     return (
@@ -285,7 +287,11 @@ export function KasWareWalletButton() {
                 <div className="grid grid-cols-2 gap-2">
                   <WalletMiniCard
                     title="KREX"
-                    value={isKrexLoading ? '…' : krexL1Balance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    value={
+                      isBalanceVisible
+                        ? (isKrexLoading ? '…' : krexL1Balance.toLocaleString(undefined, { maximumFractionDigits: 2 }))
+                        : '***'
+                    }
                     sub={`Tier: ${krexTier}`}
                     onClick={() => {
                       setIsDropdownOpen(false);
@@ -331,7 +337,14 @@ export function KasWareWalletButton() {
                     <span className="font-semibold text-zinc-900 dark:text-zinc-100">{xpPoints.toLocaleString()}</span>
                   </div>
                   <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800">
-                    <NFTStatusBox layout="compact-cards" premiumCollectionsOnly />
+                    <NFTStatusBox
+                      layout="compact-cards"
+                      premiumCollectionsOnly
+                      onOpenBuyWizard={() => {
+                        setIsNftWizardOpen(true);
+                        setIsDropdownOpen(false);
+                      }}
+                    />
                   </div>
                 </div>
               </div>
@@ -443,6 +456,7 @@ export function KasWareWalletButton() {
         <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} title="Help (L1)" />
         <RewardsModal isOpen={isRewardsOpen} onClose={() => setIsRewardsOpen(false)} currentTier={krexTier} krexBalance={krexL1Balance} title="Rewards (L1)" />
         <NodeStatusModal isOpen={isNodeOpen} onClose={() => setIsNodeOpen(false)} title="Node status (L1)" />
+        <NFTBuyWizard isOpen={isNftWizardOpen} onClose={() => setIsNftWizardOpen(false)} />
       </div>
     );
   }

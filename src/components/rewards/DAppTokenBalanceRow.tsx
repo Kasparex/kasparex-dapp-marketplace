@@ -2,6 +2,7 @@
 
 import { useAccount, useReadContract } from 'wagmi';
 import { DAPP_TOKEN_ABI } from '@/lib/contracts/abis';
+import { useBalanceVisibility, maskValue } from '@/hooks/useBalanceVisibility';
 
 interface DAppTokenBalanceRowProps {
   dappId: string;
@@ -15,6 +16,7 @@ export function DAppTokenBalanceRow({
   contractAddress,
 }: DAppTokenBalanceRowProps) {
   const { address, isConnected } = useAccount();
+  const { isVisible: isBalanceVisible } = useBalanceVisibility();
 
   const { data: balance, isLoading } = useReadContract({
     address: contractAddress as `0x${string}`,
@@ -50,7 +52,7 @@ export function DAppTokenBalanceRow({
           <span className="text-zinc-400">Loading...</span>
         ) : (
           <span className={Number(balance || 0) > 0 ? 'text-[#02abb8]' : 'text-zinc-400'}>
-            {formattedBalance}
+            {maskValue(formattedBalance, isBalanceVisible)}
           </span>
         )}
       </td>

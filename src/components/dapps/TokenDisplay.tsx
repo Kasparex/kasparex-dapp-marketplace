@@ -9,6 +9,7 @@ import { useMemo } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
 import { TokenIcon } from '@/components/tokens/TokenIcon';
 import { DAPP_TOKEN_ABI } from '@/lib/contracts/abis';
+import { useBalanceVisibility, maskValue } from '@/hooks/useBalanceVisibility';
 
 export interface TokenDisplayProps {
   tokenAddress: string;
@@ -26,6 +27,7 @@ export function TokenDisplay({
   className = '',
 }: TokenDisplayProps) {
   const { address, isConnected } = useAccount();
+  const { isVisible: isBalanceVisible } = useBalanceVisibility();
 
   // Get token balance
   const { data: balance } = useReadContract({
@@ -93,7 +95,7 @@ export function TokenDisplay({
         <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Your Balance</p>
           <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-            {formattedBalance} {ticker}
+            {maskValue(formattedBalance, isBalanceVisible)} {ticker}
           </p>
         </div>
       )}

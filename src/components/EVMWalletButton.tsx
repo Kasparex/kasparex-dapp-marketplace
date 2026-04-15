@@ -13,7 +13,7 @@ import { useAccount, useBalance, useDisconnect, useChainId } from 'wagmi';
 import { ConnectButton, useChainModal } from '@rainbow-me/rainbowkit';
 import { formatUnits } from 'viem';
 import { Avatar } from './Avatar';
-import { useBalanceVisibility, formatBalanceForDisplay, maskAddress } from '@/hooks/useBalanceVisibility';
+import { useBalanceVisibility, formatBalanceForDisplay, formatBalanceValueForDisplay, maskAddress } from '@/hooks/useBalanceVisibility';
 import { getChainById } from '@/lib/wagmi';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { useGRIDToken } from '@/hooks/useGRIDToken';
@@ -113,7 +113,7 @@ export function EVMWalletButton() {
       : 0;
     const chainNative = chain?.nativeCurrency?.symbol || balance?.symbol || 'KAS';
     const uiNative = getUiNativeSymbol(chainId, chainNative);
-    const displayBalance = formatBalanceForDisplay(balanceValue, uiNative, false, isBalanceVisible);
+    const displayBalanceValue = formatBalanceValueForDisplay(balanceValue, false, isBalanceVisible, { decimals: 4 });
 
     const displayAddress = maskAddress(shortenAddress(address, { head: 4, tail: 4 }), isBalanceVisible);
     const displayAddressLong = maskAddress(shortenAddress(address, { head: 6, tail: 4 }), isBalanceVisible);
@@ -260,19 +260,35 @@ export function EVMWalletButton() {
               />
 
               <WalletBalanceCard
-                value={displayBalance}
+                value={displayBalanceValue}
                 symbol={uiNative}
                 onCopyAddress={async () => {
-                  await handleCopyAddress();
+                  // Copy native token contract address (wKAS / iKAS) where applicable.
+                  const tokenAddress =
+                    chainId === 202555 || chainId === 167012
+                      ? '0x2c2Ae87Ba178F48637acAe54B87c3924F544a83e'
+                      : chainId === 38836 || chainId === 38833
+                        ? '0x17Ec7E1768c813E2a3a9b0f94A35605CA520C242'
+                        : null;
+                  const copy = tokenAddress || address;
+                  if (!isBalanceVisible) {
+                    alert('Please enable balance visibility to copy address');
+                    return;
+                  }
+                  await navigator.clipboard.writeText(copy);
                   setIsDropdownOpen(false);
                 }}
                 onOpenExplorer={
-                  explorerUrl
-                    ? () => {
-                        window.open(explorerUrl, '_blank', 'noopener,noreferrer');
+                  () => {
+                        const url =
+                          chainId === 202555 || chainId === 167012
+                            ? 'https://explorer.kasplex.org/token/0x2c2Ae87Ba178F48637acAe54B87c3924F544a83e'
+                            : chainId === 38836 || chainId === 38833
+                              ? 'https://explorer.igralabs.com/token/0x17Ec7E1768c813E2a3a9b0f94A35605CA520C242'
+                              : explorerUrl;
+                        if (url) window.open(url, '_blank', 'noopener,noreferrer');
                         setIsDropdownOpen(false);
                       }
-                    : undefined
                 }
               />
 
@@ -280,7 +296,11 @@ export function EVMWalletButton() {
                 <div className="grid grid-cols-2 gap-2">
                   <WalletMiniCard
                     title={chainId === 38836 ? 'tKREX' : 'KREX'}
-                    value={isKrexLoading ? '…' : krexL2Balance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    value={
+                      isBalanceVisible
+                        ? (isKrexLoading ? '…' : krexL2Balance.toLocaleString(undefined, { maximumFractionDigits: 2 }))
+                        : '***'
+                    }
                     sub={`Tier: ${tierForChain}`}
                     onClick={() => {
                       setIsDropdownOpen(false);
@@ -289,7 +309,11 @@ export function EVMWalletButton() {
                   />
                   <WalletMiniCard
                     title={isTestnet ? 'tGRID' : 'GRID'}
-                    value={gridTokenAddress ? (isGridLoading ? '…' : gridFormatted) : '—'}
+                    value={
+                      gridTokenAddress
+                        ? (isBalanceVisible ? (isGridLoading ? '…' : gridFormatted) : '***')
+                        : '—'
+                    }
                     sub={gridTokenAddress ? undefined : 'Not deployed'}
                     onClick={() => {
                       setIsDropdownOpen(false);

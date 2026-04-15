@@ -14,9 +14,12 @@ export function NFTStatusBox({
   layout = 'default',
   /** Sidebar compact: only KREXPRIME / PIXELKREX tiles (no partner mini-cards). */
   premiumCollectionsOnly = false,
+  /** When provided, the dropdown can open the buy wizard outside its own subtree. */
+  onOpenBuyWizard,
 }: {
   layout?: NFTStatusBoxLayout;
   premiumCollectionsOnly?: boolean;
+  onOpenBuyWizard?: () => void;
 }) {
   const { nftStatus, nftPoints, isLoading } = useNFTStatus();
   
@@ -149,7 +152,7 @@ export function NFTStatusBox({
         )
       : null;
 
-  const buyWizard = (
+  const buyWizard = onOpenBuyWizard ? null : (
     <NFTBuyWizard isOpen={showBuyWizard} onClose={() => setShowBuyWizard(false)} />
   );
 
@@ -268,7 +271,10 @@ export function NFTStatusBox({
 
               <button
                 type="button"
-                onClick={() => setShowBuyWizard(true)}
+                onClick={() => {
+                  if (onOpenBuyWizard) onOpenBuyWizard();
+                  else setShowBuyWizard(true);
+                }}
                 className="w-full mt-2 px-3 py-2 text-xs font-bold text-center bg-[#02abb8] hover:bg-[#028a94] text-white rounded-xl transition-colors"
                 title="Buy NFTs on L1 and bridge them to L2"
               >

@@ -113,6 +113,34 @@ export function formatBalanceForDisplay(
 }
 
 /**
+ * Format balance value only (no symbol) based on visibility.
+ * Useful when the UI already renders the ticker separately.
+ */
+export function formatBalanceValueForDisplay(
+  balance: string | number | null | undefined,
+  isLoading: boolean = false,
+  isVisible: boolean = true,
+  opts?: { decimals?: number }
+): string {
+  if (isLoading) return 'Loading...';
+  if (!isVisible) return '***';
+  if (balance === null || balance === undefined || balance === '') return '0.00';
+  if (typeof balance === 'number') {
+    const d = opts?.decimals ?? 2;
+    return balance.toFixed(d);
+  }
+  return String(balance);
+}
+
+/**
+ * Hide arbitrary numeric-ish strings with the global toggle.
+ */
+export function maskValue(value: string, isVisible: boolean): string {
+  if (isVisible) return value;
+  return '***';
+}
+
+/**
  * Format address for display based on visibility
  */
 export function maskAddress(address: string, isVisible: boolean): string {
