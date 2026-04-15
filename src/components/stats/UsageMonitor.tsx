@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useToast } from '@/components/ui/Toaster';
 
 type UsageSnapshot = {
   nowIsoMinuteUtc: string;
@@ -17,14 +18,54 @@ function fmt(n: number): string {
   return n.toLocaleString(undefined, { maximumFractionDigits: 0 });
 }
 
+type HealthLevel = 'ok' | 'warning' | 'alert' | 'error';
+
+function levelMeta(level: HealthLevel): { label: string; dot: string; ring: string; text: string } {
+  switch (level) {
+    case 'ok':
+      return {
+        label: 'Stable',
+        dot: 'bg-emerald-500',
+        ring: 'ring-emerald-500/30',
+        text: 'text-emerald-700 dark:text-emerald-300',
+      };
+    case 'warning':
+      return {
+        label: 'Elevated',
+        dot: 'bg-amber-500',
+        ring: 'ring-amber-500/30',
+        text: 'text-amber-800 dark:text-amber-300',
+      };
+    case 'alert':
+      return {
+        label: 'Spike',
+        dot: 'bg-red-500',
+        ring: 'ring-red-500/30',
+        text: 'text-red-800 dark:text-red-300',
+      };
+    case 'error':
+    default:
+      return {
+        label: 'Offline',
+        dot: 'bg-zinc-400',
+        ring: 'ring-zinc-400/30',
+        text: 'text-zinc-600 dark:text-zinc-400',
+      };
+  }
+}
+
 export function UsageMonitor() {
   const [data, setData] = useState<UsageSnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notifyEnabled, setNotifyEnabled] = useState(false);
+  const lastNotifiedAtRef = useRef<number>(0);
+  const toastApi = useToast();
 
   useEffect(() => {
     let cancelled = false;
     const run = async () => {
       try {
+        setError(null);
         const res = await fetch(`/api/stats/usage${window.location.search}`, { cache: 'no-store' });
         if (!res.ok) throw new Error(`Failed (${res.status})`);
         const j = (await res.json()) as UsageSnapshot;
@@ -53,88 +94,216 @@ export function UsageMonitor() {
     return out.sort((a, b) => b.ratio - a.ratio);
   }, [data]);
 
+  const health = useMemo((): HealthLevel => {
+    if (error) return 'error';
+    if (!data) return 'warning';
+    if (spikes.length > 0) return 'alert';
+    // Mild warning if there is a recent jump (2x baseline) but not large enough to alert.
+    const elevated = data.dimensions.some((d) => {
+      const last5 = data.last5m[d.id] ?? 0;
+      const base = data.prev55mAvgPer5m[d.id] ?? 0;
+      const ratio = base > 0 ? last5 / base : last5 > 0 ? Infinity : 0;
+      return ratio >= 2 && last5 >= 25;
+    });
+    return elevated ? 'warning' : 'ok';
+  }, [data, error, spikes.length]);
+
+  useEffect(() => {
+    if (!notifyEnabled) return;
+    if (!data) return;
+    if (spikes.length === 0) return;
+
+    const now = Date.now();
+    if (now - lastNotifiedAtRef.current < 5 * 60_000) return;
+    lastNotifiedAtRef.current = now;
+
+    const top = spikes[0];
+    const msg = `${top.label} is ~${Number.isFinite(top.ratio) ? top.ratio.toFixed(1) : '∞'}× baseline (last 5m).`;
+
+    toastApi.toast({
+      title: 'Usage spike detected',
+      description: msg,
+      variant: 'warning',
+      duration: 8000,
+    });
+
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      const show = () => {
+        try {
+          // eslint-disable-next-line no-new
+          new Notification('Kasparex usage spike', { body: msg });
+        } catch {}
+      };
+
+      if (Notification.permission === 'granted') {
+        show();
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then((p) => {
+          if (p === 'granted') show();
+        });
+      }
+    }
+  }, [data, notifyEnabled, spikes, toastApi]);
+
+  const meta = levelMeta(health);
+
   return (
     <section className="space-y-6">
-      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-zinc-900 dark:text-zinc-100">Usage Monitor</h1>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-              Lightweight sampled counters for early spike detection (no Vercel Premium logs).
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-black text-zinc-900 dark:text-zinc-100">Usage Monitor</h1>
+              <span
+                className={`inline-flex items-center gap-2 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/40 px-3 py-1 text-xs font-black uppercase tracking-wider ${meta.text}`}
+                title="Overall health based on last 5 minutes vs baseline"
+              >
+                <span className={`h-2.5 w-2.5 rounded-full ${meta.dot} ring-4 ${meta.ring}`} />
+                {meta.label}
+              </span>
+            </div>
+            <p className="text-base text-zinc-600 dark:text-zinc-400 mt-2 max-w-3xl">
+              Cheap, sampled counters for early spike detection. Use this to catch sudden increases in API traffic before they
+              become expensive.
             </p>
           </div>
-          {data ? (
-            <div className="text-xs text-zinc-500 dark:text-zinc-400">
-              UTC minute: <span className="font-mono">{data.nowIsoMinuteUtc}</span> · sample:{' '}
-              <span className="font-mono">{data.sampleRate}</span>
-            </div>
-          ) : null}
+
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-end">
+            <button
+              type="button"
+              onClick={() => setNotifyEnabled((v) => !v)}
+              className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2 text-sm font-black uppercase tracking-wider transition-colors ${
+                notifyEnabled
+                  ? 'border-[#02abb8]/40 bg-[#02abb8]/10 text-[#02abb8]'
+                  : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
+              }`}
+              title="Show a toast + optional browser notification when a spike is detected"
+            >
+              <span className="h-2 w-2 rounded-full bg-[#02abb8]" />
+              Alerts {notifyEnabled ? 'On' : 'Off'}
+            </button>
+
+            {data ? (
+              <div className="text-sm text-zinc-500 dark:text-zinc-400 rounded-xl border border-zinc-200 dark:border-zinc-800 px-4 py-2 bg-white/50 dark:bg-zinc-950/30">
+                <span className="font-black uppercase tracking-wider text-[10px] text-zinc-400">UTC</span>{' '}
+                <span className="font-mono font-semibold">{data.nowIsoMinuteUtc}</span>
+                <span className="mx-2 text-zinc-300 dark:text-zinc-700">•</span>
+                <span className="font-black uppercase tracking-wider text-[10px] text-zinc-400">sample</span>{' '}
+                <span className="font-mono font-semibold">{data.sampleRate}</span>
+              </div>
+            ) : null}
+          </div>
         </div>
 
         {error ? (
-          <div className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</div>
+          <div className="mt-4 rounded-xl border border-red-200 dark:border-red-900/40 bg-red-50/60 dark:bg-red-950/20 p-4 text-sm text-red-700 dark:text-red-300">
+            {error}
+          </div>
         ) : null}
       </div>
 
       {data ? (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
-              <div className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.2em] mb-3">
-                Totals (last 60m, scaled)
+            <div className="lg:col-span-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
+              <div className="flex items-end justify-between gap-3 mb-4">
+                <div>
+                  <div className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">Traffic</div>
+                  <div className="text-lg font-black text-zinc-900 dark:text-zinc-100">Last 60 minutes</div>
+                </div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Scaled by \(1 / sampleRate\)
+                </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {data.dimensions.map((d) => (
-                  <div key={d.id} className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4">
-                    <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400">{d.label}</div>
-                    <div className="mt-1 text-2xl font-black text-zinc-900 dark:text-zinc-100">
+                  <div key={d.id} className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-white/40 dark:bg-zinc-950/20">
+                    <div className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2">{d.label}</div>
+                    <div className="text-4xl font-black text-zinc-900 dark:text-zinc-100 leading-none">
                       {fmt(data.totals[d.id] ?? 0)}
                     </div>
-                    <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                      last 5m: {fmt(data.last5m[d.id] ?? 0)}
+                    <div className="mt-2 text-sm font-semibold text-zinc-600 dark:text-zinc-400">
+                      Last 5m: <span className="font-mono">{fmt(data.last5m[d.id] ?? 0)}</span>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
-              <div className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.2em] mb-3">
-                Spike alerts
-              </div>
+            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
+              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-2">Alerts</div>
+              <div className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-3">Spike detection</div>
               {spikes.length === 0 ? (
-                <div className="text-sm text-zinc-600 dark:text-zinc-400">No spikes detected.</div>
+                <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/60 dark:bg-emerald-950/20 p-4 text-sm text-emerald-700 dark:text-emerald-300">
+                  No spikes detected.
+                </div>
               ) : (
                 <ul className="space-y-3">
                   {spikes.slice(0, 8).map((s) => (
                     <li key={s.id} className="rounded-xl border border-red-200 dark:border-red-900/40 bg-red-50/60 dark:bg-red-950/20 p-3">
-                      <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{s.label}</div>
-                      <div className="text-xs text-red-700 dark:text-red-300 mt-0.5">
-                        last 5m is ~{Number.isFinite(s.ratio) ? s.ratio.toFixed(1) : '∞'}× baseline
+                      <div className="text-sm font-black text-zinc-900 dark:text-zinc-100">{s.label}</div>
+                      <div className="text-sm text-red-700 dark:text-red-300 mt-1">
+                        Last 5m is ~<span className="font-mono font-semibold">{Number.isFinite(s.ratio) ? s.ratio.toFixed(1) : '∞'}×</span> baseline
                       </div>
                     </li>
                   ))}
                 </ul>
               )}
-              <div className="mt-4 text-[11px] text-zinc-500 dark:text-zinc-400">
-                Baseline = average per-5m over the previous 55 minutes.
+              <div className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">
+                Baseline = average per-5m over the previous ~55 minutes.
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
-            <div className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.2em] mb-3">
-              Notes
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-sm">
+              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-2">How it works</div>
+              <div className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-3">Interpretation</div>
+              <ul className="space-y-2 text-base text-zinc-600 dark:text-zinc-400">
+                <li>
+                  - <span className="font-black text-zinc-800 dark:text-zinc-200">Sampled & scaled</span>: edge requests are counted at a
+                  sample rate and scaled by \(1 / sampleRate\). Use for trends, not billing-grade accuracy.
+                </li>
+                <li>
+                  - <span className="font-black text-zinc-800 dark:text-zinc-200">Buckets</span>: API calls are grouped (leaderboard, kaspa,
+                  updates, other) to keep storage cheap.
+                </li>
+                <li>
+                  - <span className="font-black text-zinc-800 dark:text-zinc-200">Spikes</span>: last 5 minutes compared to baseline (previous
+                  ~55 minutes).
+                </li>
+              </ul>
             </div>
-            <ul className="list-disc pl-5 text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
-              <li>Counts are sampled at the edge and scaled by \(1 / sampleRate\).</li>
-              <li>Use this for trend detection, not billing-grade accuracy.</li>
-              <li>If you see a spike on <span className="font-mono">api.leaderboard.finalize</span>, check cron secret/config immediately.</li>
-            </ul>
+
+            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-sm">
+              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-2">Runbook</div>
+              <div className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-3">What to do during a spike</div>
+              <ol className="space-y-2 text-base text-zinc-600 dark:text-zinc-400">
+                <li>
+                  <span className="font-black text-zinc-800 dark:text-zinc-200">1.</span> Identify which bucket spiked. If it’s{' '}
+                  <span className="font-mono">api.leaderboard.finalize</span>, treat it as urgent.
+                </li>
+                <li>
+                  <span className="font-black text-zinc-800 dark:text-zinc-200">2.</span> Confirm{' '}
+                  <span className="font-mono">CHRONICLES_LEADERBOARD_CRON_SECRET</span> is set in Vercel and that the endpoint is not public.
+                </li>
+                <li>
+                  <span className="font-black text-zinc-800 dark:text-zinc-200">3.</span> If traffic looks abusive, add Cloudflare rate limits /
+                  WAF rules for the affected paths and monitor again.
+                </li>
+                <li>
+                  <span className="font-black text-zinc-800 dark:text-zinc-200">4.</span> If it started after a deploy, suspect polling/retry
+                  loops or caching changes; roll back or hotfix quickly.
+                </li>
+              </ol>
+              <div className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">
+                Tip: toggle <span className="font-black">Alerts On</span> to get a toast + optional browser notification.
+              </div>
+            </div>
           </div>
         </>
       ) : (
-        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 text-sm text-zinc-600 dark:text-zinc-400">
+        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-sm text-base text-zinc-600 dark:text-zinc-400">
           Loading counters…
         </div>
       )}
