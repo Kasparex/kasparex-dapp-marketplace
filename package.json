@@ -70,6 +70,7 @@
     "@typechain/ethers-v6": "^0.4.3",
     "@typechain/hardhat": "^8.0.3",
     "@types/node": "^20",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "19.1.10",
     "@types/react-dom": "19.1.7",
     "autoprefixer": "^10.0.1",
