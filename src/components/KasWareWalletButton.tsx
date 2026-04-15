@@ -31,11 +31,11 @@ import { WalletFooterRow } from '@/components/wallet-dropdown/WalletFooterRow';
 import { BRIDGE_URLS, getAddressExplorerUrl, shortenAddress } from '@/lib/walletUi';
 import { BridgeInfoModal } from '@/components/modals/BridgeInfoModal';
 import { ReceiveAddressModal } from '@/components/modals/ReceiveAddressModal';
-import { BridgeOptionsModal } from '@/components/modals/BridgeOptionsModal';
+import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
 import { NFTStatusBox } from '@/components/rewards/NFTStatusBox';
-import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
+// Bridge is handled by BridgeInfoModal (shared with L2).
 
 export function KasWareWalletButton() {
   const { state, connect, disconnect } = useKaspaWallet();
@@ -60,7 +60,6 @@ export function KasWareWalletButton() {
   const [krc20ModalMode, setKrc20ModalMode] = useState<'create' | 'buy' | 'cancel'>('create');
   const [isBridgeInfoOpen, setIsBridgeInfoOpen] = useState(false);
   const [isReceiveOpen, setIsReceiveOpen] = useState(false);
-  const [isBridgeOptionsOpen, setIsBridgeOptionsOpen] = useState(false);
   const [isKrexBuyWizardOpen, setIsKrexBuyWizardOpen] = useState(false);
 
   // Check if KasWare is installed
@@ -254,7 +253,7 @@ export function KasWareWalletButton() {
                     label: 'Bridge',
                     icon: 'bridge',
                     onClick: () => {
-                      setIsBridgeOptionsOpen(true);
+                      setIsBridgeInfoOpen(true);
                       setIsDropdownOpen(false);
                     },
                     variant: 'secondary',
@@ -354,15 +353,13 @@ export function KasWareWalletButton() {
           onClose={() => setIsBridgeInfoOpen(false)}
           networkName="Kaspa L1"
           nativeSymbol="KAS"
-          primaryAction={{
-            label: 'Open bridge / buy',
-            onClick: () => {
-              setIsBridgeInfoOpen(false);
-              setIsDropdownOpen(false);
-              setKrc20ModalMode('buy');
-              setIsKRC20ModalOpen(true);
-            },
-          }}
+          body="Choose what you want to bridge from L1 to L2."
+          links={[
+            { label: 'Bridge KRC20 (KREX)', url: BRIDGE_URLS.katBridge, variant: 'primary' },
+            { label: 'Bridge KAS ↔ wKAS (Kasplex)', url: BRIDGE_URLS.kasplexKasBridge, variant: 'secondary' },
+            { label: 'Bridge KAS ↔ iKAS (IGRA)', url: BRIDGE_URLS.igraIkasBridge, variant: 'secondary' },
+            { label: 'NFT Bridge', url: BRIDGE_URLS.nftBridge, variant: 'secondary' },
+          ]}
         />
         <ReceiveAddressModal
           isOpen={isReceiveOpen}
@@ -376,7 +373,6 @@ export function KasWareWalletButton() {
           }}
         />
 
-        <BridgeOptionsModal isOpen={isBridgeOptionsOpen} onClose={() => setIsBridgeOptionsOpen(false)} />
         <KREXBuyWizard isOpen={isKrexBuyWizardOpen} onClose={() => setIsKrexBuyWizardOpen(false)} />
 
         {/* Modals */}

@@ -43,12 +43,13 @@ interface KREXBuyWizardProps {
 type WizardStep = 'select' | 'buy' | 'bridge' | 'complete';
 type BuyOption = 'l2' | 'l1' | null;
 
-const KREX_TOKEN_CA = '0x0FD8d408cE707f4E4f8E54193c4C55a3b969834B';
+const KASPLEX_KREX_TOKEN_CA = '0x0FD8d408cE707f4E4f8E54193c4C55a3b969834B';
+const IGRA_KREX_TOKEN_CA = '0x9C31bB7A012A99dA04AAD94a1CB9176DAF28270D';
 
-const L2_DEXS = [
+const KASPLEX_DEXS = [
   {
     name: 'Zealous Swap',
-    url: `https://app.zealousswap.com/swap?from=KAS&to=${KREX_TOKEN_CA}`,
+    url: `https://app.zealousswap.com/swap?from=KAS&to=${KASPLEX_KREX_TOKEN_CA}`,
     description: 'Swap KAS for KREX on Zealous Swap',
   },
   {
@@ -63,8 +64,21 @@ const L2_DEXS = [
   },
   {
     name: 'KaspaFinance',
-    url: `https://app.kaspafinance.io/swap?chain=kasplexMainnet&outputCurrency=${KREX_TOKEN_CA}`,
+    url: `https://app.kaspafinance.io/swap?chain=kasplexMainnet&outputCurrency=${KASPLEX_KREX_TOKEN_CA}`,
     description: 'Swap tokens on KaspaFinance',
+  },
+];
+
+const IGRA_DEXS = [
+  {
+    name: 'Zealous Swap',
+    url: 'https://app.zealousswap.com/liquidity',
+    description: 'IGRA pools (liquidity)',
+  },
+  {
+    name: 'KaspaCom',
+    url: `https://defi.kaspa.com/swap/create-liquidity?tokenA=${IGRA_KREX_TOKEN_CA}&tokenB=0x17Ec7E1768c813E2a3a9b0f94A35605CA520C242&step=0`,
+    description: 'IGRA pool (create liquidity)',
   },
 ];
 
@@ -234,21 +248,6 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <button
-                  onClick={() => setSelectedOption('l2')}
-                  className={`p-4 rounded-lg border-2 transition-all text-left ${
-                    selectedOption === 'l2'
-                      ? 'border-[#02abb8] bg-[#02abb8]/10 dark:bg-[#02abb8]/20'
-                      : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
-                  }`}
-                >
-                  <div className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
-                    Buy on L2 (DEXs)
-                  </div>
-                  <div className="text-xs text-zinc-600 dark:text-zinc-400">
-                    Direct purchase on Layer 2 - no bridging needed
-                  </div>
-                </button>
-                <button
                   onClick={() => setSelectedOption('l1')}
                   className={`p-4 rounded-lg border-2 transition-all text-left ${
                     selectedOption === 'l1'
@@ -257,10 +256,25 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
                   }`}
                 >
                   <div className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
-                    Buy on L1 (Exchanges)
+                    Buy on L1
                   </div>
                   <div className="text-xs text-zinc-600 dark:text-zinc-400">
                     Purchase on Layer 1, then bridge to L2
+                  </div>
+                </button>
+                <button
+                  onClick={() => setSelectedOption('l2')}
+                  className={`p-4 rounded-lg border-2 transition-all text-left ${
+                    selectedOption === 'l2'
+                      ? 'border-[#02abb8] bg-[#02abb8]/10 dark:bg-[#02abb8]/20'
+                      : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
+                  }`}
+                >
+                  <div className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
+                    Buy on L2
+                  </div>
+                  <div className="text-xs text-zinc-600 dark:text-zinc-400">
+                    Direct purchase on Layer 2 - no bridging needed
                   </div>
                 </button>
               </div>
@@ -271,48 +285,78 @@ export function KREXBuyWizard({ isOpen, onClose }: KREXBuyWizardProps) {
           {currentStep === 'buy' && selectedOption && (
             <div className="space-y-4">
               <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                {selectedOption === 'l2' ? 'Buy KREX on L2 DEXs' : 'Buy KREX on L1 Exchanges'}
+                {selectedOption === 'l2' ? 'Buy KREX on L2' : 'Buy KREX on L1'}
               </h3>
               
               {selectedOption === 'l2' ? (
                 <div className="space-y-3">
                   <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-                    Choose a DEX to swap KAS for KREX directly on Layer 2:
+                    Choose a network and DEX to get KREX directly on L2:
                   </p>
-                  <div className="grid grid-cols-1 gap-3">
-                    {L2_DEXS.map((dex, index) => (
-                      <a
-                        key={index}
-                        href={dex.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
-                      >
-                        <div>
-                          <div className="font-medium text-zinc-900 dark:text-zinc-100 text-sm">
-                            {dex.name}
-                          </div>
-                          <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
-                            {dex.description}
-                          </div>
-                        </div>
-                        <svg className="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                      </a>
-                    ))}
-                  </div>
-                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <p className="text-xs text-blue-700 dark:text-blue-300 mb-2">
-                      💡 KREX Token Contract Address:
-                    </p>
-                    <CopyableAddress address={KREX_TOKEN_CA} />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+                      <div className="text-xs font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-2">
+                        Kasplex
+                      </div>
+                      <div className="space-y-2">
+                        {KASPLEX_DEXS.map((dex, index) => (
+                          <a
+                            key={`${dex.name}-${index}`}
+                            href={dex.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between p-3 bg-white/60 dark:bg-zinc-900/40 rounded-lg border border-zinc-200/70 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                          >
+                            <div>
+                              <div className="font-medium text-zinc-900 dark:text-zinc-100 text-sm">{dex.name}</div>
+                              <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">{dex.description}</div>
+                            </div>
+                            <svg className="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </a>
+                        ))}
+                      </div>
+                      <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <p className="text-xs text-blue-700 dark:text-blue-300 mb-2">💡 KREX contract (Kasplex):</p>
+                        <CopyableAddress address={KASPLEX_KREX_TOKEN_CA} />
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+                      <div className="text-xs font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-2">
+                        IGRA
+                      </div>
+                      <div className="space-y-2">
+                        {IGRA_DEXS.map((dex, index) => (
+                          <a
+                            key={`${dex.name}-${index}`}
+                            href={dex.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between p-3 bg-white/60 dark:bg-zinc-900/40 rounded-lg border border-zinc-200/70 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                          >
+                            <div>
+                              <div className="font-medium text-zinc-900 dark:text-zinc-100 text-sm">{dex.name}</div>
+                              <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">{dex.description}</div>
+                            </div>
+                            <svg className="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </a>
+                        ))}
+                      </div>
+                      <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <p className="text-xs text-blue-700 dark:text-blue-300 mb-2">💡 KREX contract (IGRA):</p>
+                        <CopyableAddress address={IGRA_KREX_TOKEN_CA} />
+                      </div>
+                    </div>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-3">
                   <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-                    Choose an exchange to buy KREX on Layer 1:
+                    Choose an exchange to buy KREX on L1:
                   </p>
                   <div className="grid grid-cols-1 gap-3">
                     {L1_EXCHANGES.map((exchange, index) => (

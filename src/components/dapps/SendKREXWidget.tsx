@@ -199,22 +199,6 @@ export function SendKREXWidget() {
 
   return (
     <div className="p-6 space-y-4">
-      {/* Wallet Info */}
-      <div className="bg-zinc-800 dark:bg-zinc-800/50 rounded-lg p-4 space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">Connected Address:</span>
-          <span className="text-sm font-mono text-zinc-900 dark:text-zinc-100">
-            {state.address ? `${state.address.slice(0, 8)}...${state.address.slice(-8)}` : 'N/A'}
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">KREX Balance:</span>
-          <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-            {isLoadingBalance ? 'Loading...' : krexBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 })}
-          </span>
-        </div>
-      </div>
-
       {/* Recipient Address */}
       <div>
         <label htmlFor="toAddress" className="k-label">
@@ -233,9 +217,17 @@ export function SendKREXWidget() {
 
       {/* Amount */}
       <div>
-        <label htmlFor="amount" className="k-label truncate">
-          Amount (KREX)
-        </label>
+        <div className="flex items-center justify-between mb-2">
+          <label htmlFor="amount" className="k-label !mb-0 truncate">
+            Amount (KREX)
+          </label>
+          <div className="text-[10px] uppercase tracking-wider font-bold text-zinc-500 dark:text-zinc-500">
+            Balance:{' '}
+            {isLoadingBalance
+              ? 'Loading…'
+              : krexBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 })}
+          </div>
+        </div>
         <div className="flex gap-2">
           <input
             id="amount"
@@ -245,7 +237,7 @@ export function SendKREXWidget() {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0.00"
-            className="k-input"
+            className="k-input flex-1"
             disabled={isSending}
           />
           <button

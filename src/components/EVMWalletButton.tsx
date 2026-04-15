@@ -21,6 +21,8 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
 import { BridgeInfoModal } from '@/components/modals/BridgeInfoModal';
 import { ReceiveAddressModal } from '@/components/modals/ReceiveAddressModal';
+import { SendL2TransactionModal } from '@/components/modals/SendL2TransactionModal';
+import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { WalletDropdownShell } from '@/components/wallet-dropdown/WalletDropdownShell';
 import { WalletAddressRow } from '@/components/wallet-dropdown/WalletAddressRow';
 import { WalletBalanceCard } from '@/components/wallet-dropdown/WalletBalanceCard';
@@ -40,6 +42,8 @@ export function EVMWalletButton() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isBridgeInfoOpen, setIsBridgeInfoOpen] = useState(false);
   const [isReceiveOpen, setIsReceiveOpen] = useState(false);
+  const [isSendOpen, setIsSendOpen] = useState(false);
+  const [isKrexBuyWizardOpen, setIsKrexBuyWizardOpen] = useState(false);
 
   // Get current network info
   const chain = chainId ? getChainById(chainId) : null;
@@ -212,6 +216,16 @@ export function EVMWalletButton() {
               <WalletQuickActionsRow
                 actions={[
                   {
+                    id: 'send',
+                    label: 'Send',
+                    icon: 'send',
+                    onClick: () => {
+                      setIsSendOpen(true);
+                      setIsDropdownOpen(false);
+                    },
+                    variant: 'primary',
+                  },
+                  {
                     id: 'receive',
                     label: 'Receive',
                     icon: 'receive',
@@ -220,19 +234,9 @@ export function EVMWalletButton() {
                   },
                   {
                     id: 'bridge_native',
-                    label: `Buy/Bridge ${uiNative}`,
+                    label: 'Bridge',
                     icon: 'bridge',
                     onClick: () => setIsBridgeInfoOpen(true),
-                    variant: 'secondary',
-                  },
-                  {
-                    id: 'bridge_krc20',
-                    label: 'Bridge KRC20',
-                    icon: 'bridge',
-                    onClick: () => {
-                      window.open(BRIDGE_URLS.katBridge, '_blank', 'noopener,noreferrer');
-                      setIsDropdownOpen(false);
-                    },
                     variant: 'secondary',
                   },
                   {
@@ -241,9 +245,9 @@ export function EVMWalletButton() {
                     icon: 'buy',
                     onClick: () => {
                       setIsDropdownOpen(false);
-                      router.push('/tokens/krex');
+                      setIsKrexBuyWizardOpen(true);
                     },
-                    variant: 'primary',
+                    variant: 'secondary',
                   },
                 ]}
               />
@@ -376,6 +380,8 @@ export function EVMWalletButton() {
             setIsReceiveOpen(false);
           }}
         />
+        <SendL2TransactionModal isOpen={isSendOpen} onClose={() => setIsSendOpen(false)} />
+        <KREXBuyWizard isOpen={isKrexBuyWizardOpen} onClose={() => setIsKrexBuyWizardOpen(false)} />
       </div>
     );
   }

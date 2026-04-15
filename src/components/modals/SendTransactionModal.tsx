@@ -145,7 +145,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
         <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-              {tab === 'kas' ? 'Send KAS' : 'Send KREX'}
+              Send KAS / KREX
             </h2>
             <button
               onClick={onClose}

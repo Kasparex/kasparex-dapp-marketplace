@@ -22,10 +22,9 @@ import { WalletBalanceCard } from '@/components/wallet-dropdown/WalletBalanceCar
 import { WalletMiniCard } from '@/components/wallet-dropdown/WalletMiniCard';
 import { WalletQuickActionsRow } from '@/components/wallet-dropdown/WalletQuickActionsRow';
 import { WalletFooterRow } from '@/components/wallet-dropdown/WalletFooterRow';
-import { getAddressExplorerUrl, shortenAddress } from '@/lib/walletUi';
+import { BRIDGE_URLS, getAddressExplorerUrl, shortenAddress } from '@/lib/walletUi';
 import { BridgeInfoModal } from '@/components/modals/BridgeInfoModal';
 import { ReceiveAddressModal } from '@/components/modals/ReceiveAddressModal';
-import { BridgeOptionsModal } from '@/components/modals/BridgeOptionsModal';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
@@ -51,7 +50,6 @@ export function KaspaL1WalletButton() {
   const rootRef = useRef<HTMLDivElement>(null);
   const [isBridgeInfoOpen, setIsBridgeInfoOpen] = useState(false);
   const [isReceiveOpen, setIsReceiveOpen] = useState(false);
-  const [isBridgeOptionsOpen, setIsBridgeOptionsOpen] = useState(false);
   const [isKrexBuyWizardOpen, setIsKrexBuyWizardOpen] = useState(false);
 
   const detected = detectKaspaWallets();
@@ -181,7 +179,7 @@ export function KaspaL1WalletButton() {
                     label: 'Bridge',
                     icon: 'bridge',
                     onClick: () => {
-                      setIsBridgeOptionsOpen(true);
+                      setIsBridgeInfoOpen(true);
                       setOpen(false);
                     },
                     variant: 'secondary',
@@ -284,6 +282,13 @@ export function KaspaL1WalletButton() {
           onClose={() => setIsBridgeInfoOpen(false)}
           networkName="Kaspa L1"
           nativeSymbol="KAS"
+          body="Choose what you want to bridge from L1 to L2."
+          links={[
+            { label: 'Bridge KRC20 (KREX)', url: BRIDGE_URLS.katBridge, variant: 'primary' },
+            { label: 'Bridge KAS ↔ wKAS (Kasplex)', url: BRIDGE_URLS.kasplexKasBridge, variant: 'secondary' },
+            { label: 'Bridge KAS ↔ iKAS (IGRA)', url: BRIDGE_URLS.igraIkasBridge, variant: 'secondary' },
+            { label: 'NFT Bridge', url: BRIDGE_URLS.nftBridge, variant: 'secondary' },
+          ]}
         />
         <ReceiveAddressModal
           isOpen={isReceiveOpen}
@@ -301,7 +306,6 @@ export function KaspaL1WalletButton() {
           }}
         />
 
-        <BridgeOptionsModal isOpen={isBridgeOptionsOpen} onClose={() => setIsBridgeOptionsOpen(false)} />
         <KREXBuyWizard isOpen={isKrexBuyWizardOpen} onClose={() => setIsKrexBuyWizardOpen(false)} />
       </div>
     );
