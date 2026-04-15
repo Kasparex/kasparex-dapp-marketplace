@@ -279,14 +279,14 @@ export function KaspaL1WalletButton() {
           isOpen={isReceiveOpen}
           onClose={() => setIsReceiveOpen(false)}
           title="Receive (L1)"
-          address={state.address}
-          displayAddress={maskAddress(state.address, isBalanceVisible)}
+          address={address}
+          displayAddress={maskAddress(address, isBalanceVisible)}
           onCopy={async () => {
             if (!isBalanceVisible) {
               setError('Please enable balance visibility to copy address');
               return;
             }
-            await navigator.clipboard.writeText(state.address);
+            await navigator.clipboard.writeText(address);
             setIsReceiveOpen(false);
           }}
         />
