@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -15,6 +14,7 @@ import { getCollectionById } from '@/lib/nft/collections';
 import { getBestGatewayUrl, fetchJSON } from '@/lib/ipfs/gateway';
 import { pointsForNftInSlot } from '@/lib/leaderboard/nftPoints';
 import { ChroniclesFilterDropdown } from '@/components/chronicles/ChroniclesFilterDropdown';
+import { LazyImg } from '@/components/ui/LazyImg';
 
 function getNFTImageUrl(metadata: ParsedNFTMetadata | null): string | null {
   if (!metadata?.image) return null;
@@ -221,13 +221,13 @@ export function ChroniclesNftSlotSelector({
     const obs = new IntersectionObserver(
       (entries) => {
         const hit = entries.some((e) => e.isIntersecting);
-        if (hit) setVisibleCount((x) => Math.min(x + 24, sorted.length));
+        if (hit) setVisibleCount((x) => Math.min(x + 24, filtered.length));
       },
       { rootMargin: '200px' }
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [canLoadMore, filtered.length]);
+  }, [canLoadMore, filtered.length, visibleCount]);
 
   if (!isOpen) return null;
 
@@ -382,7 +382,7 @@ export function ChroniclesNftSlotSelector({
                   >
                     <div className="aspect-square relative bg-zinc-200 dark:bg-zinc-800">
                       {imageUrl ? (
-                        <img src={imageUrl} alt={meta?.name ?? ref} className="w-full h-full object-cover" loading="lazy" />
+                        <LazyImg src={imageUrl} alt={meta?.name ?? ref} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-4xl">🧩</div>
                       )}

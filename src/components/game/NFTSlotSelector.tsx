@@ -8,6 +8,7 @@ import { fetchNFTMetadata } from '@/lib/nft/metadata';
 import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
 import type { UserNFT } from '@/lib/nft/nft-query';
 import type { MiningSlot } from '@/hooks/useDiamondMining';
+import { LazyImg } from '@/components/ui/LazyImg';
 
 const KREXPRIME_KASPACOM = 'https://www.kaspa.com/nft/collections/KREXPRIME';
 const PIXELKREX_KASPACOM = 'https://kaspa.com/nft/collections/PIXELKREX';
@@ -225,7 +226,7 @@ export function NFTSlotSelector({ slotIndex, slot, allSlots, isOpen, onClose, on
                   >
                     <div className="aspect-square relative bg-zinc-200 dark:bg-zinc-800">
                       {imageUrl ? (
-                        <img
+                        <LazyImg
                           src={imageUrl}
                           alt={`${nft.collection} #${nft.tokenId}`}
                           className="w-full h-full object-cover"

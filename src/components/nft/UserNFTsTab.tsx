@@ -18,6 +18,7 @@ import { NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_MULTIPLIER, DIAMOND_NFT_
 import { NFT_POINTS } from '@/lib/nft/points';
 import { getChroniclesNftUsageByRef, getChroniclesStoredRarityForNftRef } from '@/lib/chronicles/leaderboard/localState';
 import { pointsForNftInSlot, type NftRarity } from '@/lib/leaderboard/nftPoints';
+import { LazyImg } from '@/components/ui/LazyImg';
 
 function normKaspaAddr(a: string): string {
   try {
@@ -580,7 +581,7 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
                 {/* Image */}
                 <div className="aspect-square bg-zinc-100 dark:bg-zinc-800">
                   {details?.imageUrl ? (
-                    <img
+                    <LazyImg
                       src={details.imageUrl}
                       alt={`${collection?.name} #${nft.tokenId}`}
                       className="w-full h-full object-cover"
