@@ -24,7 +24,9 @@ import { ReceiveAddressModal } from '@/components/modals/ReceiveAddressModal';
 import { SendL2TransactionModal } from '@/components/modals/SendL2TransactionModal';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { HelpModal } from '@/components/modals/HelpModal';
-import { TiersBenefitsModal } from '@/components/modals/TiersBenefitsModal';
+import { RewardsModal } from '@/components/modals/RewardsModal';
+import { KREX_TIERS } from '@/lib/rewards/types';
+import { NodeStatusModal } from '@/components/modals/NodeStatusModal';
 import { WalletDropdownShell } from '@/components/wallet-dropdown/WalletDropdownShell';
 import { WalletAddressRow } from '@/components/wallet-dropdown/WalletAddressRow';
 import { WalletBalanceCard } from '@/components/wallet-dropdown/WalletBalanceCard';
@@ -47,7 +49,8 @@ export function EVMWalletButton() {
   const [isSendOpen, setIsSendOpen] = useState(false);
   const [isKrexBuyWizardOpen, setIsKrexBuyWizardOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
-  const [isTiersOpen, setIsTiersOpen] = useState(false);
+  const [isRewardsOpen, setIsRewardsOpen] = useState(false);
+  const [isNodeOpen, setIsNodeOpen] = useState(false);
 
   // Get current network info
   const chain = chainId ? getChainById(chainId) : null;
@@ -256,7 +259,22 @@ export function EVMWalletButton() {
                 ]}
               />
 
-              <WalletBalanceCard value={displayBalance} symbol={uiNative} />
+              <WalletBalanceCard
+                value={displayBalance}
+                symbol={uiNative}
+                onCopyAddress={async () => {
+                  await handleCopyAddress();
+                  setIsDropdownOpen(false);
+                }}
+                onOpenExplorer={
+                  explorerUrl
+                    ? () => {
+                        window.open(explorerUrl, '_blank', 'noopener,noreferrer');
+                        setIsDropdownOpen(false);
+                      }
+                    : undefined
+                }
+              />
 
               <div className="px-4 pb-3">
                 <div className="grid grid-cols-2 gap-2">
@@ -266,7 +284,7 @@ export function EVMWalletButton() {
                     sub={`Tier: ${tierForChain}`}
                     onClick={() => {
                       setIsDropdownOpen(false);
-                      setIsKrexBuyWizardOpen(true);
+                      router.push('/tokens/krex');
                     }}
                   />
                   <WalletMiniCard
@@ -289,7 +307,7 @@ export function EVMWalletButton() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setIsTiersOpen(true)}
+                      onClick={() => setIsRewardsOpen(true)}
                       className="p-1 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
                       aria-label="Tier & benefits info"
                       title="Tier & benefits"
@@ -304,6 +322,14 @@ export function EVMWalletButton() {
                     <span className="inline-flex items-center text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] dark:text-[#66dfe8] font-black uppercase tracking-widest">
                       {krexTier}
                     </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-500 dark:text-zinc-400">Multiplier</span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">{KREX_TIERS[krexTier].multiplier}x</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-500 dark:text-zinc-400">Fee reduction</span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">-{KREX_TIERS[krexTier].feeReduction}%</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-zinc-500 dark:text-zinc-400">XP Points</span>
@@ -329,6 +355,28 @@ export function EVMWalletButton() {
                     </button>
                   </div>
                 </div>
+              </div>
+
+              <div className="px-4 pb-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsNodeOpen(true);
+                    setIsDropdownOpen(false);
+                  }}
+                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/50 p-3 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors"
+                  title="Node status (coming soon)"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                      Node status
+                    </div>
+                    <div className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">—</div>
+                  </div>
+                  <div className="text-[11px] text-zinc-500 dark:text-zinc-500 mt-1">
+                    Coming soon for node operators.
+                  </div>
+                </button>
               </div>
 
               <WalletFooterRow
@@ -395,7 +443,8 @@ export function EVMWalletButton() {
         <SendL2TransactionModal isOpen={isSendOpen} onClose={() => setIsSendOpen(false)} />
         <KREXBuyWizard isOpen={isKrexBuyWizardOpen} onClose={() => setIsKrexBuyWizardOpen(false)} />
         <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} title="Help (L2)" />
-        <TiersBenefitsModal isOpen={isTiersOpen} onClose={() => setIsTiersOpen(false)} title="Tiers & benefits (L2)" />
+        <RewardsModal isOpen={isRewardsOpen} onClose={() => setIsRewardsOpen(false)} currentTier={krexTier} krexBalance={krexL2Balance} title="Rewards (L2)" />
+        <NodeStatusModal isOpen={isNodeOpen} onClose={() => setIsNodeOpen(false)} title="Node status (L2)" />
       </div>
     );
   }

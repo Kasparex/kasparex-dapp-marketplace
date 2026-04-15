@@ -34,6 +34,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
   const [txHash, setTxHash] = useState<string | null>(null);
   const [txHashCopied, setTxHashCopied] = useState(false);
   const [sentToAddress, setSentToAddress] = useState<string | null>(null);
+  const [sentAmount, setSentAmount] = useState<string | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
   const [tab, setTab] = useState<'kas' | 'krex'>('kas');
 
@@ -54,6 +55,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
       setPriorityFee('');
       setError(null);
       setTxHash(null);
+      setSentAmount(null);
       setTab('kas');
     } else if (initialToAddress !== undefined || initialAmount !== undefined) {
       if (initialToAddress !== undefined) setToAddress(initialToAddress);
@@ -105,6 +107,7 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
 
       setTxHash(result.txHash);
       setSentToAddress(toAddress.trim());
+      setSentAmount(amountNum.toString());
 
       // Reset form after successful send
       setTimeout(() => {
@@ -167,8 +170,16 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span className="font-semibold">Transaction Sent Successfully!</span>
+                  <span className="font-semibold">Transfer submitted</span>
                 </div>
+                {sentAmount ? (
+                  <div className="text-xs text-zinc-600 dark:text-zinc-400">
+                    Amount:{' '}
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                      {sentAmount} KAS
+                    </span>
+                  </div>
+                ) : null}
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-xs text-zinc-700 dark:text-zinc-300 break-all">{extractTxId(txHash)}</span>
                   <div className="flex items-center gap-1 shrink-0">
@@ -178,7 +189,15 @@ export function SendTransactionModal({ isOpen, onClose, currentBalance, address,
                       className="p-1.5 rounded border border-zinc-300 dark:border-zinc-600 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700"
                       title="Copy tx hash"
                     >
-                      {txHashCopied ? <span className="text-emerald-500 text-xs">Copied</span> : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>}
+                      {txHashCopied ? (
+                        <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                      )}
                     </button>
                     <a href={getExplorerTxUrl(txHash)} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded border border-zinc-300 dark:border-zinc-600 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700" title="View in Explorer">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>

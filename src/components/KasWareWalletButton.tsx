@@ -36,9 +36,13 @@ import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
 import { NFTStatusBox } from '@/components/rewards/NFTStatusBox';
 // Bridge is handled by BridgeInfoModal (shared with L2).
 import { HelpModal } from '@/components/modals/HelpModal';
-import { TiersBenefitsModal } from '@/components/modals/TiersBenefitsModal';
+import { RewardsModal } from '@/components/modals/RewardsModal';
+import { KREX_TIERS } from '@/lib/rewards/types';
+import { useRouter } from 'next/navigation';
+import { NodeStatusModal } from '@/components/modals/NodeStatusModal';
 
 export function KasWareWalletButton() {
+  const router = useRouter();
   const { state, connect, disconnect } = useKaspaWallet();
   const { balance, isLoading: balanceLoading, refresh: refreshBalance } = useKaspaBalance();
   const { isVisible: isBalanceVisible } = useBalanceVisibility();
@@ -61,7 +65,8 @@ export function KasWareWalletButton() {
   const [isReceiveOpen, setIsReceiveOpen] = useState(false);
   const [isKrexBuyWizardOpen, setIsKrexBuyWizardOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
-  const [isTiersOpen, setIsTiersOpen] = useState(false);
+  const [isRewardsOpen, setIsRewardsOpen] = useState(false);
+  const [isNodeOpen, setIsNodeOpen] = useState(false);
 
   // Check if KasWare is installed
   const isKasWareInstalled = detectKaspaWallets().some(w => w.id === 'kasware' && w.isInstalled);
@@ -284,7 +289,7 @@ export function KasWareWalletButton() {
                     sub={`Tier: ${krexTier}`}
                     onClick={() => {
                       setIsDropdownOpen(false);
-                      setIsKrexBuyWizardOpen(true);
+                      router.push('/tokens/krex');
                     }}
                   />
                   <WalletMiniCard
@@ -303,7 +308,7 @@ export function KasWareWalletButton() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setIsTiersOpen(true)}
+                      onClick={() => setIsRewardsOpen(true)}
                       className="p-1 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
                       aria-label="Tier & benefits info"
                       title="Tier & benefits"
@@ -314,6 +319,14 @@ export function KasWareWalletButton() {
                     </button>
                   </div>
                   <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-500 dark:text-zinc-400">Multiplier</span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">{KREX_TIERS[krexTier].multiplier}x</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-500 dark:text-zinc-400">Fee reduction</span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">-{KREX_TIERS[krexTier].feeReduction}%</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
                     <span className="text-zinc-500 dark:text-zinc-400">XP Points</span>
                     <span className="font-semibold text-zinc-900 dark:text-zinc-100">{xpPoints.toLocaleString()}</span>
                   </div>
@@ -321,6 +334,28 @@ export function KasWareWalletButton() {
                     <NFTStatusBox layout="compact-cards" premiumCollectionsOnly />
                   </div>
                 </div>
+              </div>
+
+              <div className="px-4 pb-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsNodeOpen(true);
+                    setIsDropdownOpen(false);
+                  }}
+                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/50 p-3 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors"
+                  title="Node status (coming soon)"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                      Node status
+                    </div>
+                    <div className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">—</div>
+                  </div>
+                  <div className="text-[11px] text-zinc-500 dark:text-zinc-500 mt-1">
+                    Coming soon for node operators.
+                  </div>
+                </button>
               </div>
 
               <WalletFooterRow
@@ -406,7 +441,8 @@ export function KasWareWalletButton() {
         />
         
         <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} title="Help (L1)" />
-        <TiersBenefitsModal isOpen={isTiersOpen} onClose={() => setIsTiersOpen(false)} title="Tiers & benefits (L1)" />
+        <RewardsModal isOpen={isRewardsOpen} onClose={() => setIsRewardsOpen(false)} currentTier={krexTier} krexBalance={krexL1Balance} title="Rewards (L1)" />
+        <NodeStatusModal isOpen={isNodeOpen} onClose={() => setIsNodeOpen(false)} title="Node status (L1)" />
       </div>
     );
   }

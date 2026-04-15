@@ -110,7 +110,7 @@ export function NFTBuyWizard({ isOpen, onClose }: NFTBuyWizardProps) {
 
   const modalContent = (
     <>
-      <div className="fixed inset-0 z-[99999] bg-black/70 backdrop-blur-md" onClick={onClose} />
+      <div className="fixed inset-0 z-[99998] bg-black/70 backdrop-blur-md" onClick={onClose} />
 
       <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
         {/* Modal Content */}
