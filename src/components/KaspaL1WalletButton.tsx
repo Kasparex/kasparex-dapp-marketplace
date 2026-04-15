@@ -16,6 +16,18 @@ import { detectKaspaWallets, formatKaspaAddress } from '@/lib/kaspa/wallet';
 import { getErrorMessage } from '@/lib/utils';
 import { useBalanceVisibility, maskAddress, formatBalanceForDisplay } from '@/hooks/useBalanceVisibility';
 import { Avatar } from './Avatar';
+import { WalletDropdownShell } from '@/components/wallet-dropdown/WalletDropdownShell';
+import { WalletAddressRow } from '@/components/wallet-dropdown/WalletAddressRow';
+import { WalletBalanceCard } from '@/components/wallet-dropdown/WalletBalanceCard';
+import { WalletMiniCard } from '@/components/wallet-dropdown/WalletMiniCard';
+import { WalletQuickActionsRow } from '@/components/wallet-dropdown/WalletQuickActionsRow';
+import { WalletFooterRow } from '@/components/wallet-dropdown/WalletFooterRow';
+import { getAddressExplorerUrl, shortenAddress } from '@/lib/walletUi';
+import { BridgeInfoModal } from '@/components/modals/BridgeInfoModal';
+import { ReceiveAddressModal } from '@/components/modals/ReceiveAddressModal';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
+import { NFTStatusBox } from '@/components/rewards/NFTStatusBox';
 
 const KasWareWalletButton = dynamic(
   () => import('./KasWareWalletButton').then((mod) => ({ default: mod.KasWareWalletButton })),
@@ -27,10 +39,16 @@ export function KaspaL1WalletButton() {
   const { balance, refresh: refreshBalance } = useKaspaBalance();
   const { isVisible: isBalanceVisible } = useBalanceVisibility();
 
+  // Rewards/holdings hooks (must be top-level)
+  const { l1Balance: krexL1Balance, tier: krexTier, isLoading: isKrexLoading } = useKREXBalance();
+  const { totalPoints: xpPoints } = useLoyaltyPoints();
+
   const [open, setOpen] = useState(false);
   const [connecting, setConnecting] = useState<'kasware' | 'kastle' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const [isBridgeInfoOpen, setIsBridgeInfoOpen] = useState(false);
+  const [isReceiveOpen, setIsReceiveOpen] = useState(false);
 
   const detected = detectKaspaWallets();
   const isKasWareInstalled = detected.some((w) => w.id === 'kasware' && w.isInstalled);
@@ -89,8 +107,9 @@ export function KaspaL1WalletButton() {
   // Kastle connected UI (basic)
   if (state.isConnected && state.address && state.provider === 'kastle') {
     const formatAddressForDisplay = (addr: string): string => formatKaspaAddress(addr).display;
-    const displayAddress = maskAddress(formatAddressForDisplay(state.address), isBalanceVisible);
+    const displayAddress = maskAddress(shortenAddress(formatAddressForDisplay(state.address), { head: 10, tail: 8 }), isBalanceVisible);
     const displayBalance = formatBalanceForDisplay(balance, 'KAS', false, isBalanceVisible);
+    const explorerUrl = getAddressExplorerUrl({ kind: 'kaspa-l1', address: state.address });
 
     return (
       <div className="relative" ref={rootRef}>
@@ -120,45 +139,156 @@ export function KaspaL1WalletButton() {
         </button>
 
         {open && (
-          <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-zinc-900 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800 z-50">
-            <div className="p-4 border-b border-zinc-200 dark:border-zinc-800">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Kastle Wallet</span>
-                <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded">
-                  Connected
-                </span>
-              </div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400 font-mono break-all mb-3">
-                {maskAddress(formatAddressForDisplay(state.address), isBalanceVisible)}
-              </div>
-              <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-3 mb-3">
-                <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">KAS Balance</div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{displayBalance}</span>
-                  <span className="text-xs text-zinc-600 dark:text-zinc-400">KAS</span>
-                </div>
-              </div>
-            </div>
-            <div className="p-2">
-              <button
-                onClick={async () => {
-                  await refreshBalance();
+          <div className="absolute right-0 mt-2 z-50">
+            <WalletDropdownShell>
+              <WalletAddressRow
+                address={state.address}
+                displayAddress={displayAddress}
+                onCopy={async () => {
+                  if (!isBalanceVisible) {
+                    setError('Please enable balance visibility to copy address');
+                    return;
+                  }
+                  await navigator.clipboard.writeText(state.address);
                   setOpen(false);
                 }}
-                className="w-full px-3 py-2 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-              >
-                Refresh balance
-              </button>
-              <div className="border-t border-zinc-200 dark:border-zinc-800 my-2" />
-              <button
-                onClick={handleDisconnect}
-                className="w-full px-3 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-              >
-                Disconnect
-              </button>
-            </div>
+                onOpenExplorer={
+                  explorerUrl
+                    ? () => {
+                        window.open(explorerUrl, '_blank', 'noopener,noreferrer');
+                        setOpen(false);
+                      }
+                    : undefined
+                }
+              />
+
+              <WalletBalanceCard value={displayBalance} symbol="KAS" />
+
+              <div className="px-4 pb-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <WalletMiniCard
+                    title="KREX"
+                    value={isKrexLoading ? '…' : krexL1Balance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    sub={`Tier: ${krexTier}`}
+                  />
+                  <WalletMiniCard
+                    title="Balance"
+                    value={displayBalance}
+                    sub="Visible in header"
+                    onInfo={() => setIsBridgeInfoOpen(true)}
+                  />
+                </div>
+              </div>
+
+              <div className="px-4 pb-3">
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/50 p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                      Benefits
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsBridgeInfoOpen(true)}
+                      className="p-1 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
+                      aria-label="Network info"
+                      title="Network info"
+                    >
+                      <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-500 dark:text-zinc-400">XP Points</span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">{xpPoints.toLocaleString()}</span>
+                  </div>
+                  <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800">
+                    <NFTStatusBox layout="compact-cards" premiumCollectionsOnly />
+                  </div>
+                </div>
+              </div>
+
+              <WalletQuickActionsRow
+                actions={[
+                  {
+                    id: 'receive',
+                    label: 'Receive',
+                    icon: 'receive',
+                    onClick: () => setIsReceiveOpen(true),
+                    variant: 'secondary',
+                  },
+                  {
+                    id: 'bridge',
+                    label: 'Bridge',
+                    icon: 'bridge',
+                    onClick: () => setIsBridgeInfoOpen(true),
+                    variant: 'secondary',
+                  },
+                  {
+                    id: 'refresh',
+                    label: 'Refresh',
+                    icon: 'buy',
+                    onClick: async () => {
+                      await refreshBalance();
+                      setOpen(false);
+                    },
+                    variant: 'secondary',
+                  },
+                  {
+                    id: 'buy',
+                    label: 'Buy',
+                    icon: 'buy',
+                    onClick: () => setIsBridgeInfoOpen(true),
+                    variant: 'primary',
+                  },
+                ]}
+              />
+
+              <WalletFooterRow
+                left={
+                  <button
+                    type="button"
+                    onClick={() => setIsBridgeInfoOpen(true)}
+                    className="px-3 py-2 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 text-sm font-semibold transition-colors"
+                  >
+                    Help
+                  </button>
+                }
+                right={
+                  <button
+                    type="button"
+                    onClick={handleDisconnect}
+                    className="px-3 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 text-sm font-semibold transition-colors"
+                  >
+                    Disconnect
+                  </button>
+                }
+              />
+            </WalletDropdownShell>
           </div>
         )}
+
+        <BridgeInfoModal
+          isOpen={isBridgeInfoOpen}
+          onClose={() => setIsBridgeInfoOpen(false)}
+          networkName="Kaspa L1"
+          nativeSymbol="KAS"
+        />
+        <ReceiveAddressModal
+          isOpen={isReceiveOpen}
+          onClose={() => setIsReceiveOpen(false)}
+          title="Receive (L1)"
+          address={state.address}
+          displayAddress={maskAddress(state.address, isBalanceVisible)}
+          onCopy={async () => {
+            if (!isBalanceVisible) {
+              setError('Please enable balance visibility to copy address');
+              return;
+            }
+            await navigator.clipboard.writeText(state.address);
+            setIsReceiveOpen(false);
+          }}
+        />
       </div>
     );
   }

@@ -22,16 +22,31 @@ import { UtxoViewerModal } from './modals/UtxoViewerModal';
 import { getErrorMessage } from '@/lib/utils';
 import { getKRC20Balance, getUtxoEntries } from '@/lib/kaspa/kasware';
 import type { KaspaTransactionRequest } from '@/lib/kaspa/types';
+import { WalletDropdownShell } from '@/components/wallet-dropdown/WalletDropdownShell';
+import { WalletAddressRow } from '@/components/wallet-dropdown/WalletAddressRow';
+import { WalletBalanceCard } from '@/components/wallet-dropdown/WalletBalanceCard';
+import { WalletMiniCard } from '@/components/wallet-dropdown/WalletMiniCard';
+import { WalletQuickActionsRow } from '@/components/wallet-dropdown/WalletQuickActionsRow';
+import { WalletFooterRow } from '@/components/wallet-dropdown/WalletFooterRow';
+import { getAddressExplorerUrl, shortenAddress } from '@/lib/walletUi';
+import { BridgeInfoModal } from '@/components/modals/BridgeInfoModal';
+import { ReceiveAddressModal } from '@/components/modals/ReceiveAddressModal';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
+import { NFTStatusBox } from '@/components/rewards/NFTStatusBox';
 
 export function KasWareWalletButton() {
   const { state, connect, disconnect } = useKaspaWallet();
   const { balance, isLoading: balanceLoading, refresh: refreshBalance } = useKaspaBalance();
   const { isVisible: isBalanceVisible } = useBalanceVisibility();
+
+  // Rewards/holdings hooks (must be top-level)
+  const { l1Balance: krexL1Balance, tier: krexTier, isLoading: isKrexLoading } = useKREXBalance();
+  const { totalPoints: xpPoints } = useLoyaltyPoints();
   
   const [isConnecting, setIsConnecting] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
   const [krc20Tokens, setKrc20Tokens] = useState<Array<{ tick: string; amount: string | number; [key: string]: any }>>([]);
   const [krc20TokensLoading, setKrc20TokensLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -41,6 +56,8 @@ export function KasWareWalletButton() {
   const [isUtxoModalOpen, setIsUtxoModalOpen] = useState(false);
   const [isKRC20ModalOpen, setIsKRC20ModalOpen] = useState(false);
   const [krc20ModalMode, setKrc20ModalMode] = useState<'create' | 'buy' | 'cancel'>('create');
+  const [isBridgeInfoOpen, setIsBridgeInfoOpen] = useState(false);
+  const [isReceiveOpen, setIsReceiveOpen] = useState(false);
 
   // Check if KasWare is installed
   const isKasWareInstalled = detectKaspaWallets().some(w => w.id === 'kasware' && w.isInstalled);
@@ -142,8 +159,6 @@ export function KasWareWalletButton() {
         throw new Error('Please enable balance visibility to copy address');
       }
       await navigator.clipboard.writeText(state.address);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
       setIsDropdownOpen(false);
     } catch (error: any) {
       console.error('Failed to copy address:', error);
@@ -154,8 +169,9 @@ export function KasWareWalletButton() {
   // If connected, show button with balance and address
   if (state.isConnected && state.address && state.provider === 'kasware') {
     const addressWithoutPrefix = state.address.replace(/^kaspa:/i, '');
-    const displayAddress = maskAddress(formatAddressForDisplay(state.address), isBalanceVisible);
+    const displayAddress = maskAddress(shortenAddress(formatAddressForDisplay(state.address), { head: 10, tail: 8 }), isBalanceVisible);
     const displayBalance = formatBalanceForDisplay(balance, 'KAS', false, isBalanceVisible);
+    const explorerUrl = getAddressExplorerUrl({ kind: 'kaspa-l1', address: state.address });
 
     return (
       <div className="relative" ref={dropdownRef}>
@@ -191,95 +207,169 @@ export function KasWareWalletButton() {
           </svg>
         </button>
 
-        {/* Dropdown menu */}
         {isDropdownOpen && (
-          <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-zinc-900 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800 z-50">
-            <div className="p-4 border-b border-zinc-200 dark:border-zinc-800">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">KasWare Wallet</span>
-                <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded">
-                  Connected
-                </span>
-              </div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400 font-mono break-all mb-3">
-                {maskAddress(state.address, isBalanceVisible)}
-              </div>
-              
-              {/* Balance Display in Dropdown */}
-              <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-3 mb-3">
-                <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">KAS Balance</div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{displayBalance}</span>
-                  <span className="text-xs text-zinc-600 dark:text-zinc-400">KAS</span>
+          <div className="absolute right-0 mt-2 z-50">
+            <WalletDropdownShell>
+              <WalletAddressRow
+                address={addressWithoutPrefix}
+                displayAddress={displayAddress}
+                onCopy={async () => {
+                  await handleCopyAddress();
+                  setIsDropdownOpen(false);
+                }}
+                onOpenExplorer={
+                  explorerUrl
+                    ? () => {
+                        window.open(explorerUrl, '_blank', 'noopener,noreferrer');
+                        setIsDropdownOpen(false);
+                      }
+                    : undefined
+                }
+              />
+
+              <WalletBalanceCard value={displayBalance} symbol="KAS" />
+
+              <div className="px-4 pb-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <WalletMiniCard
+                    title="KREX"
+                    value={isKrexLoading ? '…' : krexL1Balance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    sub={`Tier: ${krexTier}`}
+                  />
+                  <WalletMiniCard
+                    title="KRC-20"
+                    value={`${krc20Tokens.length}`}
+                    sub="Tokens detected"
+                    onInfo={() => {
+                      setKrc20ModalMode('create');
+                      setIsKRC20ModalOpen(true);
+                      setIsDropdownOpen(false);
+                    }}
+                  />
                 </div>
               </div>
-            </div>
 
-            <div className="p-2">
-              <button
-                onClick={handleCopyAddress}
-                className="w-full px-3 py-2 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors flex items-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-                {copied ? 'Copied!' : 'Copy Address'}
-              </button>
+              <div className="px-4 pb-3">
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/50 p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                      Benefits
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsBridgeInfoOpen(true)}
+                      className="p-1 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
+                      aria-label="Network info"
+                      title="Network info"
+                    >
+                      <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-500 dark:text-zinc-400">XP Points</span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">{xpPoints.toLocaleString()}</span>
+                  </div>
+                  <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800">
+                    <NFTStatusBox layout="compact-cards" premiumCollectionsOnly />
+                  </div>
+                </div>
+              </div>
 
-              <button
-                onClick={() => {
-                  setIsSendModalOpen(true);
-                  setIsDropdownOpen(false);
-                }}
-                className="w-full px-3 py-2 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors flex items-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
-                Send KAS
-              </button>
+              <WalletQuickActionsRow
+                actions={[
+                  {
+                    id: 'send',
+                    label: 'Send',
+                    icon: 'send',
+                    onClick: () => {
+                      setIsSendModalOpen(true);
+                      setIsDropdownOpen(false);
+                    },
+                    variant: 'primary',
+                  },
+                  {
+                    id: 'receive',
+                    label: 'Receive',
+                    icon: 'receive',
+                    onClick: () => setIsReceiveOpen(true),
+                    variant: 'secondary',
+                  },
+                  {
+                    id: 'bridge',
+                    label: 'Bridge',
+                    icon: 'bridge',
+                    onClick: () => setIsBridgeInfoOpen(true),
+                    variant: 'secondary',
+                  },
+                  {
+                    id: 'buy',
+                    label: 'Buy',
+                    icon: 'buy',
+                    onClick: () => {
+                      setIsDropdownOpen(false);
+                      setKrc20ModalMode('buy');
+                      setIsKRC20ModalOpen(true);
+                    },
+                    variant: 'secondary',
+                  },
+                ]}
+              />
 
-              <button
-                onClick={() => {
-                  setIsUtxoModalOpen(true);
-                  setIsDropdownOpen(false);
-                }}
-                className="w-full px-3 py-2 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors flex items-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                View UTXOs
-              </button>
-
-              <button
-                onClick={() => {
-                  setKrc20ModalMode('create');
-                  setIsKRC20ModalOpen(true);
-                  setIsDropdownOpen(false);
-                }}
-                className="w-full px-3 py-2 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors flex items-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                KRC-20 Tokens ({krc20Tokens.length})
-              </button>
-
-              <div className="border-t border-zinc-200 dark:border-zinc-800 my-2" />
-
-              <button
-                onClick={handleDisconnect}
-                className="w-full px-3 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors flex items-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Disconnect
-              </button>
-            </div>
+              <WalletFooterRow
+                left={
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsUtxoModalOpen(true);
+                      setIsDropdownOpen(false);
+                    }}
+                    className="px-3 py-2 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 text-sm font-semibold transition-colors"
+                  >
+                    UTXOs
+                  </button>
+                }
+                right={
+                  <button
+                    type="button"
+                    onClick={handleDisconnect}
+                    className="px-3 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 text-sm font-semibold transition-colors"
+                  >
+                    Disconnect
+                  </button>
+                }
+              />
+            </WalletDropdownShell>
           </div>
         )}
+
+        <BridgeInfoModal
+          isOpen={isBridgeInfoOpen}
+          onClose={() => setIsBridgeInfoOpen(false)}
+          networkName="Kaspa L1"
+          nativeSymbol="KAS"
+          primaryAction={{
+            label: 'Open bridge / buy',
+            onClick: () => {
+              setIsBridgeInfoOpen(false);
+              setIsDropdownOpen(false);
+              setKrc20ModalMode('buy');
+              setIsKRC20ModalOpen(true);
+            },
+          }}
+        />
+        <ReceiveAddressModal
+          isOpen={isReceiveOpen}
+          onClose={() => setIsReceiveOpen(false)}
+          title="Receive (L1)"
+          address={state.address}
+          displayAddress={maskAddress(state.address, isBalanceVisible)}
+          onCopy={async () => {
+            await handleCopyAddress();
+            setIsReceiveOpen(false);
+          }}
+        />
 
         {/* Modals */}
         <SendTransactionModal

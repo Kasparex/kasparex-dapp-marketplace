@@ -15,6 +15,20 @@ import { formatUnits } from 'viem';
 import { Avatar } from './Avatar';
 import { useBalanceVisibility, formatBalanceForDisplay, maskAddress } from '@/hooks/useBalanceVisibility';
 import { getChainById } from '@/lib/wagmi';
+import { getContractAddress } from '@/lib/contracts/addresses';
+import { useGRIDToken } from '@/hooks/useGRIDToken';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
+import { NFTStatusBox } from '@/components/rewards/NFTStatusBox';
+import { BridgeInfoModal } from '@/components/modals/BridgeInfoModal';
+import { ReceiveAddressModal } from '@/components/modals/ReceiveAddressModal';
+import { WalletDropdownShell } from '@/components/wallet-dropdown/WalletDropdownShell';
+import { WalletAddressRow } from '@/components/wallet-dropdown/WalletAddressRow';
+import { WalletBalanceCard } from '@/components/wallet-dropdown/WalletBalanceCard';
+import { WalletMiniCard } from '@/components/wallet-dropdown/WalletMiniCard';
+import { WalletQuickActionsRow } from '@/components/wallet-dropdown/WalletQuickActionsRow';
+import { WalletFooterRow } from '@/components/wallet-dropdown/WalletFooterRow';
+import { getAddressExplorerUrl, getUiNativeSymbol, shortenAddress } from '@/lib/walletUi';
 
 export function EVMWalletButton() {
   const { address, isConnected } = useAccount();
@@ -24,12 +38,27 @@ export function EVMWalletButton() {
   const router = useRouter();
   const { isVisible: isBalanceVisible } = useBalanceVisibility();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isBridgeInfoOpen, setIsBridgeInfoOpen] = useState(false);
+  const [isReceiveOpen, setIsReceiveOpen] = useState(false);
 
   // Get current network info
   const chain = chainId ? getChainById(chainId) : null;
   const isTestnet = Boolean(chain?.testnet);
+
+  // Rewards/holdings hooks (must be top-level)
+  const { tier: krexTier, tierForChain, l2Balance: krexL2Balance, isLoading: isKrexLoading } = useKREXBalance();
+  const { totalPoints: xpPoints } = useLoyaltyPoints();
+
+  const gridTokenAddress = (() => {
+    if (!chainId) return null;
+    if (isTestnet) {
+      const tgrid = getContractAddress(chainId, 'tGRID');
+      return tgrid || null;
+    }
+    return getContractAddress(chainId, 'GRIDToken') || null;
+  })();
+  const { formattedBalance: gridFormatted, isLoading: isGridLoading } = useGRIDToken(gridTokenAddress);
 
   // Determine dynamic network label and styling
   let networkLabel = 'EVM';
@@ -67,25 +96,23 @@ export function EVMWalletButton() {
     };
   }, [isDropdownOpen]);
 
-  // Format address for display: first 4 and last 4 chars
-  const formatAddress = (addr: string): string => {
-    if (addr.length <= 8) return addr;
-    return `${addr.slice(0, 4)}...${addr.slice(-4)}`;
-  };
-
   // If connected, show button with UserMenu dropdown
   if (isConnected && address) {
     const balanceValue = balance 
       ? parseFloat(formatUnits(balance.value, balance.decimals))
       : 0;
-    const displayBalance = formatBalanceForDisplay(
-      balanceValue,
-      balance?.symbol || 'KAS',
-      false,
-      isBalanceVisible
-    );
-    const displayAddress = maskAddress(formatAddress(address), isBalanceVisible);
-    const shortenedAddress = maskAddress(`${address.slice(0, 6)}...${address.slice(-4)}`, isBalanceVisible);
+    const chainNative = chain?.nativeCurrency?.symbol || balance?.symbol || 'KAS';
+    const uiNative = getUiNativeSymbol(chainId, chainNative);
+    const displayBalance = formatBalanceForDisplay(balanceValue, uiNative, false, isBalanceVisible);
+
+    const displayAddress = maskAddress(shortenAddress(address, { head: 4, tail: 4 }), isBalanceVisible);
+    const displayAddressLong = maskAddress(shortenAddress(address, { head: 6, tail: 4 }), isBalanceVisible);
+
+    const explorerUrl = getAddressExplorerUrl({
+      kind: 'evm',
+      address,
+      chainExplorerBaseUrl: chain?.blockExplorers?.default?.url,
+    });
 
     const handleViewProfile = () => {
       router.push(`/user/${address}`);
@@ -94,11 +121,6 @@ export function EVMWalletButton() {
 
     // Edit functionality removed - profiles are now read-only
 
-    const handleChangeNetwork = () => {
-      openChainModal?.();
-      setIsDropdownOpen(false);
-    };
-
     const handleCopyAddress = async () => {
       if (address) {
         if (!isBalanceVisible) {
@@ -106,9 +128,6 @@ export function EVMWalletButton() {
           return;
         }
         await navigator.clipboard.writeText(address);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-        setIsDropdownOpen(false);
       }
     };
 
@@ -125,23 +144,10 @@ export function EVMWalletButton() {
           className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium relative"
           aria-label="EVM Wallet"
         >
-          {/* Network badge - clickable to change network (span to avoid nested button) */}
+          {/* Network badge */}
           <span
-            role="button"
-            tabIndex={0}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleChangeNetwork();
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                e.stopPropagation();
-                handleChangeNetwork();
-              }
-            }}
-            className={`flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg hover:opacity-90 transition-opacity cursor-pointer shadow-sm ${networkBadgeColorClass}`}
-            title="Click to change network"
+            className={`flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm ${networkBadgeColorClass}`}
+            title={networkLabel}
           >
             L2
             <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
@@ -168,130 +174,152 @@ export function EVMWalletButton() {
           </svg>
         </button>
 
-        {/* UserMenu Dropdown */}
         {isDropdownOpen && (
-          <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-[9999] overflow-hidden">
-            <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
-              <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
-                Connected Wallet
-              </div>
-              <div className="text-sm font-mono text-zinc-900 dark:text-zinc-100 mb-3">
-                {shortenedAddress}
-              </div>
-              
-              {/* Balance Display in Dropdown */}
-              <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-2.5 mb-3">
-                <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">KAS Balance</div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{displayBalance}</span>
-                  <span className="text-xs text-zinc-600 dark:text-zinc-400">KAS</span>
+          <div className="absolute right-0 top-full mt-2 z-[9999]">
+            <WalletDropdownShell>
+              <WalletAddressRow
+                address={address}
+                displayAddress={displayAddressLong}
+                onCopy={async () => {
+                  await handleCopyAddress();
+                  setIsDropdownOpen(false);
+                }}
+                onOpenExplorer={
+                  explorerUrl
+                    ? () => {
+                        window.open(explorerUrl, '_blank', 'noopener,noreferrer');
+                        setIsDropdownOpen(false);
+                      }
+                    : undefined
+                }
+              />
+
+              <WalletBalanceCard value={displayBalance} symbol={uiNative} />
+
+              <div className="px-4 pb-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <WalletMiniCard
+                    title={chainId === 38836 ? 'tKREX' : 'KREX'}
+                    value={isKrexLoading ? '…' : krexL2Balance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    sub={`Tier: ${tierForChain}`}
+                  />
+                  <WalletMiniCard
+                    title={isTestnet ? 'tGRID' : 'GRID'}
+                    value={gridTokenAddress ? (isGridLoading ? '…' : gridFormatted) : '—'}
+                    sub={gridTokenAddress ? undefined : 'Not deployed'}
+                    onInfo={!gridTokenAddress ? () => setIsBridgeInfoOpen(true) : undefined}
+                  />
                 </div>
               </div>
-              
-              <button
-                onClick={handleCopyAddress}
-                className="w-full px-3 py-1.5 text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors flex items-center justify-center gap-1.5"
-              >
-                <svg
-                  className="w-3.5 h-3.5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-                {copied ? 'Copied!' : 'Copy Address'}
-              </button>
-            </div>
-            
-            <div className="py-1">
-              <button
-                onClick={handleViewProfile}
-                className="w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-2"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                View Profile
-              </button>
-              
-              <button
-                onClick={() => {
-                  router.push('/rewards-calculator');
-                  setIsDropdownOpen(false);
-                }}
-                className="w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-2"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-                Reward Calculator
-              </button>
-              
-              <button
-                onClick={() => {
-                  router.push('/points');
-                  setIsDropdownOpen(false);
-                }}
-                className="w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-2"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                All Perks
-              </button>
-              
-              {/* Edit functionality removed - profiles are now read-only */}
-              
-              <button
-                onClick={handleChangeNetwork}
-                className="w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-2"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                </svg>
-                Change Network
-              </button>
-              
-              <div className="border-t border-zinc-200 dark:border-zinc-800 my-1" />
-              
-              <button
-                onClick={handleDisconnect}
-                className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-2"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Disconnect Wallet
-              </button>
-            </div>
+
+              <div className="px-4 pb-3">
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/50 p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                      Tier & benefits
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsBridgeInfoOpen(true)}
+                      className="p-1 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
+                      aria-label="Network info"
+                      title="Network info"
+                    >
+                      <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-500 dark:text-zinc-400">Tier</span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">{krexTier}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-500 dark:text-zinc-400">XP Points</span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">{xpPoints.toLocaleString()}</span>
+                  </div>
+                  <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800">
+                    <NFTStatusBox layout="compact-cards" premiumCollectionsOnly />
+                  </div>
+                </div>
+              </div>
+
+              <WalletQuickActionsRow
+                actions={[
+                  { id: 'send', label: 'Send', icon: 'send', onClick: () => setIsBridgeInfoOpen(true), variant: 'secondary' },
+                  { id: 'receive', label: 'Receive', icon: 'receive', onClick: () => setIsReceiveOpen(true), variant: 'secondary' },
+                  { id: 'bridge', label: 'Bridge', icon: 'bridge', onClick: () => setIsBridgeInfoOpen(true), variant: 'secondary' },
+                  { id: 'buy', label: 'Buy', icon: 'buy', onClick: () => router.push('/store'), variant: 'primary' },
+                ]}
+              />
+
+              <WalletFooterRow
+                left={
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleViewProfile();
+                    }}
+                    className="px-3 py-2 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 text-sm font-semibold transition-colors"
+                  >
+                    Profile
+                  </button>
+                }
+                right={
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setIsBridgeInfoOpen(true)}
+                      className="px-3 py-2 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 text-sm font-semibold transition-colors"
+                    >
+                      Help
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDisconnect}
+                      className="px-3 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 text-sm font-semibold transition-colors"
+                    >
+                      Disconnect
+                    </button>
+                  </>
+                }
+              />
+            </WalletDropdownShell>
           </div>
         )}
+
+        <BridgeInfoModal
+          isOpen={isBridgeInfoOpen}
+          onClose={() => setIsBridgeInfoOpen(false)}
+          networkName={networkLabel}
+          nativeSymbol={uiNative}
+          primaryAction={{
+            label: 'Open store',
+            onClick: () => {
+              setIsBridgeInfoOpen(false);
+              setIsDropdownOpen(false);
+              router.push('/store');
+            },
+          }}
+          secondaryAction={{
+            label: 'Switch network',
+            onClick: () => {
+              setIsBridgeInfoOpen(false);
+              openChainModal?.();
+            },
+          }}
+        />
+        <ReceiveAddressModal
+          isOpen={isReceiveOpen}
+          onClose={() => setIsReceiveOpen(false)}
+          title="Receive (L2)"
+          address={address}
+          displayAddress={displayAddressLong}
+          onCopy={async () => {
+            await handleCopyAddress();
+            setIsReceiveOpen(false);
+          }}
+        />
       </div>
     );
   }
