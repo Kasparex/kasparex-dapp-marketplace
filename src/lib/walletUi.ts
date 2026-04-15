@@ -12,9 +12,11 @@ export type WalletExplorerTarget =
 
 export function getAddressExplorerUrl(target: WalletExplorerTarget): string | null {
   if (target.kind === 'kaspa-l1') {
-    const addressWithoutPrefix = target.address.replace(/^kaspa:/i, '');
-    if (!addressWithoutPrefix) return null;
-    return `https://explorer.kaspa.org/addresses/${addressWithoutPrefix}`;
+    const addr = target.address?.trim();
+    if (!addr) return null;
+    // Kaspa explorer expects the "kaspa:" prefix.
+    const withPrefix = addr.toLowerCase().startsWith('kaspa:') ? addr : `kaspa:${addr}`;
+    return `https://explorer.kaspa.org/addresses/${withPrefix}`;
   }
 
   const addr = target.address;

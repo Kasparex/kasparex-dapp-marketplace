@@ -8,6 +8,7 @@ export function BridgeInfoModal({
   networkName,
   nativeSymbol,
   body,
+  links,
   primaryAction,
   secondaryAction,
 }: {
@@ -16,6 +17,7 @@ export function BridgeInfoModal({
   networkName: string;
   nativeSymbol: string;
   body?: string;
+  links?: Array<{ label: string; url: string; variant?: 'primary' | 'secondary' }>;
   primaryAction?: { label: string; onClick: () => void };
   secondaryAction?: { label: string; onClick: () => void };
 }) {
@@ -52,6 +54,26 @@ export function BridgeInfoModal({
         </div>
         <div className="p-5 space-y-4">
           <div className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">{defaultBody}</div>
+          {links && links.length ? (
+            <div className="space-y-2">
+              {links.map((l) => (
+                <a
+                  key={l.url}
+                  href={l.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={[
+                    'block w-full text-center px-4 py-2.5 rounded-xl font-semibold transition-colors',
+                    l.variant === 'primary'
+                      ? 'bg-[#02abb8] hover:bg-[#028a94] text-white'
+                      : 'bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100',
+                  ].join(' ')}
+                >
+                  {l.label}
+                </a>
+              ))}
+            </div>
+          ) : null}
           <div className="grid grid-cols-2 gap-2">
             {secondaryAction ? (
               <button

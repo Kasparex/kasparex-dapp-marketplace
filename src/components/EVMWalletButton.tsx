@@ -219,13 +219,10 @@ export function EVMWalletButton() {
                     variant: 'secondary',
                   },
                   {
-                    id: 'bridge',
-                    label: 'Bridge',
+                    id: 'bridge_native',
+                    label: `Buy/Bridge ${uiNative}`,
                     icon: 'bridge',
-                    onClick: () => {
-                      window.open(getNetworkBridgeUrl(chainId), '_blank', 'noopener,noreferrer');
-                      setIsDropdownOpen(false);
-                    },
+                    onClick: () => setIsBridgeInfoOpen(true),
                     variant: 'secondary',
                   },
                   {
@@ -239,15 +236,14 @@ export function EVMWalletButton() {
                     variant: 'secondary',
                   },
                   {
-                    id: 'nfts',
-                    label: 'Buy/Bridge NFTs',
+                    id: 'buy_krex',
+                    label: 'Buy KREX',
                     icon: 'buy',
                     onClick: () => {
-                      window.open(BRIDGE_URLS.nftBridge, '_blank', 'noopener,noreferrer');
                       setIsDropdownOpen(false);
+                      router.push('/tokens/krex');
                     },
                     variant: 'primary',
-                    className: 'bg-fuchsia-600 hover:bg-fuchsia-700 text-white',
                   },
                 ]}
               />
@@ -304,6 +300,16 @@ export function EVMWalletButton() {
                     <div className="text-[11px] text-zinc-500 dark:text-zinc-500 mt-1">
                       L1 NFTs are not shown here.
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.open(BRIDGE_URLS.nftBridge, '_blank', 'noopener,noreferrer');
+                        setIsDropdownOpen(false);
+                      }}
+                      className="w-full mt-2 px-3 py-2 text-xs font-bold text-center bg-[#02abb8] hover:bg-[#028a94] text-white rounded-xl transition-colors"
+                    >
+                      Buy/Bridge NFTs
+                    </button>
                   </div>
                 </div>
               </div>
@@ -338,6 +344,11 @@ export function EVMWalletButton() {
           onClose={() => setIsBridgeInfoOpen(false)}
           networkName={networkLabel}
           nativeSymbol={uiNative}
+          links={[
+            { label: `Buy/Bridge ${uiNative}`, url: getNetworkBridgeUrl(chainId), variant: 'primary' },
+            { label: 'Bridge KRC20 (KREX)', url: BRIDGE_URLS.katBridge, variant: 'secondary' },
+            { label: 'NFT Bridge', url: BRIDGE_URLS.nftBridge, variant: 'secondary' },
+          ]}
           primaryAction={{
             label: 'Open bridge',
             onClick: () => {

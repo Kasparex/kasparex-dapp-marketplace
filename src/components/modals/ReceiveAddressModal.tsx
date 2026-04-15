@@ -1,6 +1,7 @@
 'use client';
 
 import { createPortal } from 'react-dom';
+import { useEffect, useState } from 'react';
 
 export function ReceiveAddressModal({
   isOpen,
@@ -18,6 +19,28 @@ export function ReceiveAddressModal({
   onCopy: () => void | Promise<void>;
 }) {
   if (!isOpen || typeof window === 'undefined') return null;
+
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [qrError, setQrError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      try {
+        setQrError(null);
+        setQrDataUrl(null);
+        const mod = await import('qrcode');
+        const url = await mod.toDataURL(address, { margin: 1, scale: 6 });
+        if (!cancelled) setQrDataUrl(url);
+      } catch (e: any) {
+        if (!cancelled) setQrError(e?.message || 'Failed to generate QR code.');
+      }
+    };
+    if (isOpen && address) run();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, address]);
 
   return createPortal(
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4" onClick={onClose}>
@@ -45,6 +68,21 @@ export function ReceiveAddressModal({
           </button>
         </div>
         <div className="p-5 space-y-3">
+          <div className="flex items-center justify-center">
+            {qrDataUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={qrDataUrl}
+                alt="Receive address QR code"
+                className="w-40 h-40 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white"
+              />
+            ) : (
+              <div className="w-40 h-40 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center text-xs text-zinc-500 dark:text-zinc-400">
+                {qrError ? 'QR unavailable' : 'Generating QR…'}
+              </div>
+            )}
+          </div>
+          {qrError ? <div className="text-xs text-red-600 dark:text-red-400 text-center">{qrError}</div> : null}
           <div className="text-xs text-zinc-500 dark:text-zinc-400">Address</div>
           <div className="font-mono text-sm text-zinc-900 dark:text-zinc-100 break-all">
             {displayAddress}

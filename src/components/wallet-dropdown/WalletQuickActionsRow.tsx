@@ -47,7 +47,7 @@ export function WalletQuickActionsRow({
   if (!actions.length) return null;
 
   return (
-    <div className="px-4 pb-3">
+    <div className="px-4 py-3">
       <div className="grid grid-cols-2 gap-2">
         {actions.slice(0, 4).map((a) => {
           const isPrimary = a.variant === 'primary';

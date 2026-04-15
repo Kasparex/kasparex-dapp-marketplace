@@ -168,7 +168,6 @@ export function KasWareWalletButton() {
 
   // If connected, show button with balance and address
   if (state.isConnected && state.address && state.provider === 'kasware') {
-    const addressWithoutPrefix = state.address.replace(/^kaspa:/i, '');
     const displayAddress = maskAddress(shortenAddress(formatAddressForDisplay(state.address), { head: 10, tail: 8 }), isBalanceVisible);
     const displayBalance = formatBalanceForDisplay(balance, 'KAS', false, isBalanceVisible);
     const explorerUrl = getAddressExplorerUrl({ kind: 'kaspa-l1', address: state.address });
@@ -190,7 +189,7 @@ export function KasWareWalletButton() {
           </span>
           
           {/* Avatar */}
-          <Avatar address={addressWithoutPrefix} size={20} />
+          <Avatar address={state.address} size={20} />
           
           {/* Address on right */}
           <span className="text-zinc-900 dark:text-zinc-100 hidden sm:inline">{displayAddress}</span>
@@ -211,7 +210,7 @@ export function KasWareWalletButton() {
           <div className="absolute right-0 mt-2 z-50">
             <WalletDropdownShell>
               <WalletAddressRow
-                address={addressWithoutPrefix}
+                address={state.address}
                 displayAddress={displayAddress}
                 onCopy={async () => {
                   await handleCopyAddress();
