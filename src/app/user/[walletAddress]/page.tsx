@@ -1,4 +1,4 @@
-import { UserProfileContent } from './UserProfileContent';
+import { redirect } from 'next/navigation';
 
 interface PageProps {
   params: Promise<{
@@ -18,7 +18,8 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function UserProfilePage({ params }: PageProps) {
-  await params;
-  return <UserProfileContent />;
+  const { walletAddress } = await params;
+  // Backward compatible route: redirect into the unified public profile page.
+  redirect(`/u/${encodeURIComponent(walletAddress)}`);
 }
 

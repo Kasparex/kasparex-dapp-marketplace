@@ -1,0 +1,680 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useAccount, useSignMessage } from 'wagmi';
+import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
+import { UnifiedSidebar } from '@/components/UnifiedSidebar';
+import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
+import { Avatar } from '@/components/Avatar';
+import { formatKaspaAddress, isValidKaspaAddress, normalizeKaspaAddress } from '@/lib/kaspa/sdk';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { createKnsClient, type KnsDomainProfileResponse, type KnsAsset } from '@/lib/kns/client';
+import { useUnifiedProfile } from '@/hooks/useUnifiedProfile';
+import { buildLinkEvmMessage, verifyLinkEvmSignature } from '@/lib/profile/linking';
+
+type TabId = 'overview' | 'content' | 'kns' | 'settings';
+
+export function ProfileHubContent({
+  initialHandle,
+  initialKaspaAddress,
+  initialKnsName,
+}: {
+  initialHandle: string;
+  initialKaspaAddress: string | null;
+  initialKnsName: string | null;
+}) {
+  const { address: connectedEvmAddress, isConnected: isEvmConnected } = useAccount();
+  const { signMessageAsync, isPending: isSigningEvm } = useSignMessage();
+  const { state: kaspaState } = useKaspaWallet();
+
+  const [activeTab, setActiveTab] = useState<TabId>('overview');
+  const [knsProfile, setKnsProfile] = useState<KnsDomainProfileResponse | null>(null);
+  const [knsAssets, setKnsAssets] = useState<KnsAsset[] | null>(null);
+  const [knsPrimaryName, setKnsPrimaryName] = useState<string | null>(initialKnsName);
+
+  const kaspaAddress = useMemo(() => {
+    if (initialKaspaAddress) return initialKaspaAddress;
+    // If user lands on /u/<something> but is connected with Kaspa wallet and it matches the handle, allow it.
+    if (initialHandle && isValidKaspaAddress(initialHandle)) {
+      try {
+        return normalizeKaspaAddress(initialHandle).toLowerCase();
+      } catch {
+        return initialHandle.toLowerCase();
+      }
+    }
+    return null;
+  }, [initialKaspaAddress, initialHandle]);
+
+  const { profile, source, updateLocalProfile } = useUnifiedProfile(kaspaAddress);
+
+  const isOwnProfile = useMemo(() => {
+    if (!kaspaAddress) return false;
+    const connected = (kaspaState.address || '').toLowerCase();
+    return Boolean(kaspaState.isConnected && connected && connected === kaspaAddress.toLowerCase());
+  }, [kaspaAddress, kaspaState.address, kaspaState.isConnected]);
+
+  const displayName = useMemo(() => {
+    return (
+      profile?.displayName?.trim() ||
+      knsPrimaryName ||
+      (kaspaAddress ? formatKaspaAddress(kaspaAddress).display : initialHandle)
+    );
+  }, [profile?.displayName, knsPrimaryName, kaspaAddress, initialHandle]);
+
+  const avatarSeed = useMemo(() => {
+    if (knsPrimaryName) return knsPrimaryName;
+    return kaspaAddress || initialHandle;
+  }, [knsPrimaryName, kaspaAddress, initialHandle]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadKns() {
+      if (!kaspaAddress) return;
+      const kns = createKnsClient();
+      const primary = await kns.getPrimaryNameByOwner(kaspaAddress);
+      if (!cancelled) {
+        const name = (primary?.primaryName || primary?.primary_name || primary?.domain || null) as string | null;
+        if (name) setKnsPrimaryName(String(name).toLowerCase());
+      }
+
+      // If primary has inscription/asset id, try profile endpoint; otherwise skip.
+      const assetId = (primary?.inscriptionId || primary?.inscription_id) as string | undefined;
+      if (assetId) {
+        const p = await kns.getDomainProfileByAssetId(assetId);
+        if (!cancelled) setKnsProfile(p);
+      }
+    }
+    loadKns();
+    return () => {
+      cancelled = true;
+    };
+  }, [kaspaAddress]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadAssets() {
+      if (!kaspaAddress || activeTab !== 'kns') return;
+      const kns = createKnsClient();
+      try {
+        const assets = await kns.getAssetsByOwner(kaspaAddress);
+        if (!cancelled) setKnsAssets(assets);
+      } catch {
+        if (!cancelled) setKnsAssets([]);
+      }
+    }
+    loadAssets();
+    return () => {
+      cancelled = true;
+    };
+  }, [kaspaAddress, activeTab]);
+
+  return (
+    <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      <Header />
+
+      <main className="flex-1 min-h-[calc(100vh-4rem)]">
+        <div className="flex flex-col lg:flex-row h-full">
+          <UnifiedSidebar
+            storageKeyPrefix="profile-hub"
+            header={(onHide) => (
+              <SidebarHeader backHref="/hub" backLabel="Back to Hub" onHide={onHide} />
+            )}
+            footer={
+              <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#02abb8] to-emerald-500 overflow-hidden" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-black text-zinc-900 dark:text-zinc-100 uppercase truncate">
+                      Kasparex Profile
+                    </p>
+                    <p className="text-[9px] font-bold text-zinc-500 uppercase">
+                      Public Hub
+                    </p>
+                  </div>
+                </div>
+              </div>
+            }
+          >
+            {/* Identity card */}
+            <div className="space-y-6">
+              <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+                <div className="flex items-center gap-3">
+                  <Avatar address={avatarSeed.replace(/^kaspa:/i, '')} size={44} />
+                  <div className="min-w-0">
+                    <div className="text-xs font-black uppercase tracking-widest text-zinc-500">Profile</div>
+                    <div className="text-sm font-black text-zinc-900 dark:text-zinc-100 truncate">
+                      {displayName}
+                    </div>
+                    {knsPrimaryName && (
+                      <div className="text-[11px] font-bold text-[#02abb8] truncate">
+                        {knsPrimaryName}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-4 space-y-2">
+                  {kaspaAddress ? (
+                    <div className="text-[11px] font-mono text-zinc-600 dark:text-zinc-400 break-all">
+                      {kaspaAddress}
+                    </div>
+                  ) : (
+                    <div className="text-[11px] text-zinc-600 dark:text-zinc-400">
+                      Enter a `.kas` name or Kaspa address.
+                    </div>
+                  )}
+
+                  {isOwnProfile ? (
+                    <div className="text-[10px] px-2 py-0.5 inline-flex rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-bold uppercase border border-green-500/10">
+                      Owner
+                    </div>
+                  ) : (
+                    <div className="text-[10px] px-2 py-0.5 inline-flex rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold uppercase border border-zinc-200 dark:border-zinc-700">
+                      Public
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Nav */}
+              <section>
+                <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4 px-2">
+                  Sections
+                </h3>
+                <nav className="space-y-1">
+                  <SidebarButton active={activeTab === 'overview'} onClick={() => setActiveTab('overview')}>
+                    Overview
+                  </SidebarButton>
+                  <SidebarButton active={activeTab === 'content'} onClick={() => setActiveTab('content')}>
+                    Content
+                  </SidebarButton>
+                  <SidebarButton active={activeTab === 'kns'} onClick={() => setActiveTab('kns')}>
+                    KNS
+                  </SidebarButton>
+                  {isOwnProfile && (
+                    <SidebarButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')}>
+                      Settings
+                    </SidebarButton>
+                  )}
+                </nav>
+              </section>
+
+              {/* Quick links */}
+              <section>
+                <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4 px-2">
+                  Quick links
+                </h3>
+                <div className="space-y-2">
+                  <Link
+                    href={kaspaAddress ? `/vblog/author/${encodeURIComponent(kaspaAddress)}` : '/vblog'}
+                    className="block w-full px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-center border border-zinc-200 dark:border-zinc-700 hover:border-[#02abb8]/40"
+                  >
+                    View articles
+                  </Link>
+                  {isOwnProfile && (
+                    <Link
+                      href="/studio/portfolio"
+                      className="block w-full px-4 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors text-center border border-zinc-900/10 dark:border-zinc-100/10"
+                    >
+                      Creator studio
+                    </Link>
+                  )}
+                </div>
+              </section>
+            </div>
+          </UnifiedSidebar>
+
+          {/* Main content */}
+          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
+            <div className="max-w-7xl mx-auto">
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className="mb-8 pb-6 border-b border-zinc-200 dark:border-zinc-800">
+                  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                    <div>
+                      <div className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-2">
+                        Kasparex Hub
+                      </div>
+                      <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
+                        {displayName}
+                      </h1>
+                      <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        {profile?.bio?.trim() || knsProfile?.bio || 'Unified profile for Kaspa L1 + linked L2 wallets.'}
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {source !== 'none' && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold uppercase border border-zinc-200 dark:border-zinc-700">
+                            Source: {source}
+                          </span>
+                        )}
+                        {knsPrimaryName && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] font-bold uppercase border border-[#02abb8]/20">
+                            KNS: {knsPrimaryName}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {isOwnProfile && (
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => setActiveTab('settings')}
+                          className="px-4 py-2 rounded-xl font-bold uppercase tracking-widest text-[10px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-[#02abb8]/40 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                        >
+                          Edit profile
+                        </button>
+                        <Link
+                          href="/studio/dashboard"
+                          className="px-4 py-2 rounded-xl font-bold uppercase tracking-widest text-[10px] bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+                        >
+                          Studio
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {activeTab === 'overview' && (
+                  <OverviewTab
+                    kaspaAddress={kaspaAddress}
+                    knsProfile={knsProfile}
+                    profileBio={profile?.bio || ''}
+                    profileWebsite={profile?.website}
+                    profileGithub={profile?.github}
+                    profileX={profile?.x}
+                  />
+                )}
+
+                {activeTab === 'content' && <ContentTab kaspaAddress={kaspaAddress} />}
+
+                {activeTab === 'kns' && (
+                  <KnsTab
+                    kaspaAddress={kaspaAddress}
+                    primaryName={knsPrimaryName}
+                    assets={knsAssets}
+                    isLoading={knsAssets === null}
+                  />
+                )}
+
+                {activeTab === 'settings' && isOwnProfile && (
+                  <SettingsTab
+                    displayName={profile?.displayName || ''}
+                    bio={profile?.bio || ''}
+                    kaspaAddress={kaspaAddress}
+                    connectedEvmAddress={isEvmConnected ? (connectedEvmAddress as `0x${string}`) : null}
+                    isLinking={isSigningEvm}
+                    onLinkEvm={async (evmAddress) => {
+                      if (!kaspaAddress) return;
+                      const nonce = crypto.randomUUID();
+                      const issuedAtIso = new Date().toISOString();
+                      const host = window.location.host;
+                      const message = buildLinkEvmMessage({
+                        kaspaAddress,
+                        evmAddress,
+                        nonce,
+                        issuedAtIso,
+                        host,
+                      });
+                      const signature = (await signMessageAsync({ message })) as `0x${string}`;
+                      const valid = await verifyLinkEvmSignature({ message, evmAddress, signature });
+                      if (!valid) {
+                        throw new Error('Signature verification failed');
+                      }
+                      updateLocalProfile({
+                        linkedEvmWallets: [
+                          ...((profile?.linkedEvmWallets || []) as any[]),
+                          { address: evmAddress, message, signature, linkedAt: Date.now() },
+                        ],
+                      });
+                    }}
+                    onSave={(updates) => updateLocalProfile(updates)}
+                  />
+                )}
+
+                {!kaspaAddress && (
+                  <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6">
+                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                      <div>
+                        This profile could not be resolved yet. Try opening a `.kas` name (example: <span className="font-mono">yourname.kas</span>) or a Kaspa address.
+                      </div>
+                      <div className="mt-2">
+                        If you opened an EVM address, link it to a Kaspa identity first.
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  );
+}
+
+function SidebarButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider transition-colors border ${
+        active
+          ? 'bg-[#02abb8]/10 text-[#02abb8] border-[#02abb8]/20'
+          : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 hover:border-[#02abb8]/20'
+      }`}
+    >
+      <span className="truncate">{children}</span>
+      <svg className="w-4 h-4 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
+  );
+}
+
+function OverviewTab({
+  kaspaAddress,
+  knsProfile,
+  profileBio,
+  profileWebsite,
+  profileGithub,
+  profileX,
+}: {
+  kaspaAddress: string | null;
+  knsProfile: KnsDomainProfileResponse | null;
+  profileBio: string;
+  profileWebsite?: string;
+  profileGithub?: string;
+  profileX?: string;
+}) {
+  const website = profileWebsite || knsProfile?.website;
+  const github = profileGithub || knsProfile?.github;
+  const x = profileX || knsProfile?.x || knsProfile?.twitter;
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 space-y-6">
+        <Card title="Bio">
+          <div className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
+            {(profileBio || knsProfile?.bio || 'No bio yet.').trim()}
+          </div>
+        </Card>
+
+        <Card title="Public links">
+          <div className="grid sm:grid-cols-2 gap-3">
+            <InfoPill label="Website" value={website || '—'} />
+            <InfoPill label="GitHub" value={github || '—'} />
+            <InfoPill label="X" value={x || '—'} />
+            <InfoPill label="Kaspa" value={kaspaAddress ? formatKaspaAddress(kaspaAddress).display : '—'} />
+          </div>
+        </Card>
+      </div>
+
+      <div className="space-y-6">
+        <Card title="Public profile">
+          <div className="space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
+            <div className="flex items-center justify-between">
+              <span className="font-bold uppercase tracking-widest text-[10px]">Visibility</span>
+              <span className="font-black text-zinc-900 dark:text-zinc-100">Public</span>
+            </div>
+            <div className="text-[11px] leading-relaxed">
+              This page is designed to be shareable. Over time, profile updates will be anchored on IPFS and verifiable via wallet signatures.
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function ContentTab({ kaspaAddress }: { kaspaAddress: string | null }) {
+  return (
+    <div className="space-y-6">
+      <Card title="Articles">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="text-sm text-zinc-600 dark:text-zinc-400">
+            View public content created by this profile.
+          </div>
+          <Link
+            href={kaspaAddress ? `/vblog/author/${encodeURIComponent(kaspaAddress)}` : '/vblog'}
+            className="inline-flex items-center justify-center px-4 py-2 rounded-xl font-bold uppercase tracking-widest text-[10px] bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+          >
+            Open vBlog author page
+          </Link>
+        </div>
+      </Card>
+
+      <Card title="Studio">
+        <div className="text-sm text-zinc-600 dark:text-zinc-400">
+          Creator tools live in Studio. Owners can manage portfolio, editors, and listings there.
+        </div>
+        <div className="mt-4">
+          <Link
+            href="/studio/portfolio"
+            className="inline-flex items-center justify-center px-4 py-2 rounded-xl font-bold uppercase tracking-widest text-[10px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-[#02abb8]/40 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+          >
+            Go to Studio Portfolio
+          </Link>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function KnsTab({
+  kaspaAddress,
+  primaryName,
+  assets,
+  isLoading,
+}: {
+  kaspaAddress: string | null;
+  primaryName: string | null;
+  assets: KnsAsset[] | null;
+  isLoading: boolean;
+}) {
+  return (
+    <div className="space-y-6">
+      <Card title="Primary name">
+        <div className="text-sm text-zinc-600 dark:text-zinc-400">
+          {primaryName ? (
+            <span className="font-black text-zinc-900 dark:text-zinc-100">{primaryName}</span>
+          ) : (
+            'No primary name detected yet.'
+          )}
+        </div>
+        <div className="mt-3 text-[11px] text-zinc-500 dark:text-zinc-400">
+          Data via the KNS Indexer API.
+        </div>
+      </Card>
+
+      <Card title="Owned KNS assets">
+        {!kaspaAddress ? (
+          <div className="text-sm text-zinc-600 dark:text-zinc-400">Resolve a Kaspa address to load assets.</div>
+        ) : isLoading ? (
+          <div className="text-sm text-zinc-600 dark:text-zinc-400">Loading…</div>
+        ) : (assets || []).length === 0 ? (
+          <div className="text-sm text-zinc-600 dark:text-zinc-400">No assets found.</div>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-3">
+            {(assets || []).slice(0, 12).map((a, idx) => (
+              <div
+                key={`${a.assetId || a.asset_id || a.inscriptionId || a.inscription_id || idx}`}
+                className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 p-4"
+              >
+                <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Domain</div>
+                <div className="text-sm font-black text-zinc-900 dark:text-zinc-100 truncate">
+                  {String(a.domain || a.assetId || a.asset_id || 'Unknown')}
+                </div>
+                {a.verified != null && (
+                  <div className="mt-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                    Verified: <span className="text-zinc-800 dark:text-zinc-200">{String(a.verified)}</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
+        API reference: <a className="underline hover:text-zinc-700 dark:hover:text-zinc-200" href="https://kns-2.gitbook.io/kns-docs-1/kns-indexer-api" target="_blank" rel="noreferrer">KNS Indexer API docs</a>
+      </div>
+    </div>
+  );
+}
+
+function SettingsTab({
+  displayName,
+  bio,
+  kaspaAddress,
+  connectedEvmAddress,
+  isLinking,
+  onLinkEvm,
+  onSave,
+}: {
+  displayName: string;
+  bio: string;
+  kaspaAddress: string | null;
+  connectedEvmAddress: `0x${string}` | null;
+  isLinking: boolean;
+  onLinkEvm: (evmAddress: `0x${string}`) => Promise<void>;
+  onSave: (updates: { displayName?: string; bio?: string }) => void;
+}) {
+  const [name, setName] = useState(displayName);
+  const [b, setB] = useState(bio);
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const [linkSuccess, setLinkSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    setName(displayName);
+  }, [displayName]);
+  useEffect(() => {
+    setB(bio);
+  }, [bio]);
+
+  return (
+    <div className="space-y-6">
+      <Card title="Profile settings (local draft)">
+        <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-4">
+          For this first iteration, edits are saved locally. Next step is publishing to IPFS + registry updates with KAS-paid actions.
+        </div>
+
+        <div className="grid gap-4">
+          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-4">
+            <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">
+              Link L2 wallet (proof)
+            </div>
+            <div className="text-[11px] text-zinc-600 dark:text-zinc-400">
+              Canonical identity: <span className="font-mono">{kaspaAddress || '—'}</span>
+            </div>
+            <div className="mt-2 text-[11px] text-zinc-600 dark:text-zinc-400">
+              Connected EVM: <span className="font-mono">{connectedEvmAddress || '—'}</span>
+            </div>
+
+            <div className="mt-4 flex flex-col sm:flex-row gap-3">
+              <button
+                type="button"
+                disabled={!connectedEvmAddress || !kaspaAddress || isLinking}
+                onClick={async () => {
+                  if (!connectedEvmAddress) return;
+                  setLinkError(null);
+                  setLinkSuccess(null);
+                  try {
+                    await onLinkEvm(connectedEvmAddress);
+                    setLinkSuccess('Linked successfully (signature stored in draft).');
+                  } catch (e: any) {
+                    setLinkError(e?.message || 'Failed to link wallet');
+                  }
+                }}
+                className={`flex-1 px-4 py-2 rounded-xl font-black uppercase tracking-widest text-[10px] transition-colors border ${
+                  !connectedEvmAddress || !kaspaAddress || isLinking
+                    ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 border-zinc-200 dark:border-zinc-700 cursor-not-allowed'
+                    : 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border-zinc-200 dark:border-zinc-800 hover:border-[#02abb8]/40 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                }`}
+              >
+                {isLinking ? 'Signing…' : 'Link EVM wallet'}
+              </button>
+            </div>
+
+            {linkError && (
+              <div className="mt-3 text-[11px] font-semibold text-red-600 dark:text-red-400">
+                {linkError}
+              </div>
+            )}
+            {linkSuccess && (
+              <div className="mt-3 text-[11px] font-semibold text-green-600 dark:text-green-400">
+                {linkSuccess}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">
+              Display name
+            </label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#02abb8]/40"
+              maxLength={50}
+            />
+          </div>
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">
+              Bio
+            </label>
+            <textarea
+              value={b}
+              onChange={(e) => setB(e.target.value)}
+              rows={5}
+              className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#02abb8]/40 resize-none"
+              maxLength={500}
+            />
+            <div className="mt-1 text-[10px] font-bold text-zinc-500 text-right uppercase tracking-widest">
+              {b.length}/500
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <button
+              onClick={() => onSave({ displayName: name.trim(), bio: b.trim() })}
+              className="flex-1 px-4 py-2 rounded-xl font-black uppercase tracking-widest text-[10px] bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+            >
+              Save draft
+            </button>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function Card({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6">
+      <div className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4">
+        {title}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function InfoPill({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 px-4 py-3">
+      <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{label}</div>
+      <div className="text-sm font-black text-zinc-900 dark:text-zinc-100 truncate">{value}</div>
+    </div>
+  );
+}
+
