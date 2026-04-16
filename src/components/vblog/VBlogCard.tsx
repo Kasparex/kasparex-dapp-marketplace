@@ -59,6 +59,7 @@ export function VBlogCard({ article }: VBlogCardProps) {
                   {article.title}
                 </div>
               </div>
+            </div>
           )}
 
       </KxListingCardMedia>
