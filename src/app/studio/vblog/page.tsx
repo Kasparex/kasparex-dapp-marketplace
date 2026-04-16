@@ -10,8 +10,7 @@ export default function StudioVBlogPage() {
     const handleSubmit = async (articleData: any) => {
         try {
             createArticle(articleData);
-            // Redirect to studio dashboard or activity after success
-            router.push('/studio');
+            router.push('/u?tab=workspace');
         } catch (error) {
             console.error('Submission failed:', error);
             throw error;
@@ -45,7 +44,7 @@ export default function StudioVBlogPage() {
 
             <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-1 shadow-sm overflow-hidden">
                 <div className="bg-zinc-50/50 dark:bg-white/5 p-8">
-                    <CreateArticleForm onSubmit={handleSubmit} onCancel={() => router.push('/studio/dashboard')} />
+                    <CreateArticleForm onSubmit={handleSubmit} onCancel={() => router.push('/u?tab=workspace')} />
                 </div>
             </div>
         </div>

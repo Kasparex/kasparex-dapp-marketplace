@@ -51,9 +51,9 @@ export const AD_SLOT_PLACEMENT_LINKS: {
   },
   {
     slotId: 'SIDEBAR_RANDOM',
-    title: 'Studio sidebar',
-    href: '/studio/portfolio#ad-slot-studio-sidebar',
-    placement: 'Creator Studio, left sidebar',
+    title: 'Profile Hub sidebar',
+    href: '/u?tab=workspace#ad-slot-studio-sidebar',
+    placement: 'Profile Hub, left sidebar',
   },
   {
     slotId: 'FOOTER_BLOCK',

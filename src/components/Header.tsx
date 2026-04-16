@@ -27,6 +27,8 @@ import { useBalanceVisibility } from '@/hooks/useBalanceVisibility';
 import Link from 'next/link';
 import { hubProjects, type HubProject } from '@/lib/hubProjects';
 import { HeaderLeaderboardLink } from '@/components/HeaderLeaderboardLink';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { useKnsPrimaryName } from '@/hooks/useKnsPrimaryName';
 
 function AdminLink() {
   const { isAdmin } = useAdmin();
@@ -123,8 +125,8 @@ function getCurrentSectionTitle(pathname: string): string {
   if (pathname.startsWith('/stats')) {
     return 'Stats';
   }
-  if (pathname.startsWith('/studio')) {
-    return 'Studio';
+  if (pathname.startsWith('/studio') || pathname.startsWith('/u')) {
+    return 'Profile Hub';
   }
   // Default to dApps
   return 'dApps';
@@ -305,6 +307,8 @@ export function Header() {
   const [hasNewUpdates, setHasNewUpdates] = useState(false);
   const [updateCount, setUpdateCount] = useState(0);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { state: kaspaState } = useKaspaWallet();
+  const { primaryName } = useKnsPrimaryName(kaspaState.address || null);
 
   const currentSectionTitle = getCurrentSectionTitle(pathname);
   const currentProject = getCurrentProject(pathname);
@@ -616,6 +620,11 @@ export function Header() {
               </svg>
             )}
           </button>
+          {kaspaState.isConnected && (kaspaState.address || primaryName) ? (
+            <div className="hidden lg:inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-[#02abb8]/25 bg-[#02abb8]/10 text-[#017a84] dark:text-[#8ff1f8] text-[10px] font-black uppercase tracking-widest">
+              <span>{primaryName || 'KNS pending'}</span>
+            </div>
+          ) : null}
           <div className="flex-shrink-0">
             <KaspaL1WalletButton />
           </div>

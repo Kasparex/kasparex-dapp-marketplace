@@ -85,10 +85,10 @@ export const hubProjects: HubProject[] = [
   },
   {
     id: 'kasparex-studio',
-    name: 'Kasparex Studio',
+    name: 'Profile Hub',
     category: 'Creator Tools',
-    description: 'A future suite for generating and managing assets like visuals, music and clips. Everything creators need in one place.',
-    route: '/studio',
+    description: 'Unified creator workspace for dashboards, editors, dApp listings, ads, and assets tied to your Kaspa + KNS identity.',
+    route: '/u',
     status: 'beta',
   },
   {

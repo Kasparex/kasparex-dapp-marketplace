@@ -17,7 +17,7 @@ const SUBDOMAIN_ROOT_PATH: Partial<Record<DomainKey, string>> = {
   nft: '/nft',
   crowdkas: '/donations',
   tokens: '/tokens',
-  studio: '/studio',
+  studio: '/u',
   defi: '/defi/swaps',
   hub: '/hub',
   tree: '/tree',

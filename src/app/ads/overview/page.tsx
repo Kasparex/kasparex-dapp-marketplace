@@ -72,10 +72,10 @@ export default function AdsOverviewPage() {
           View active campaigns
         </Link>
         <Link
-          href="/studio/ads"
+          href="/u?tab=ads"
           className="px-6 py-2.5 border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl font-bold text-sm transition-colors"
         >
-          My Ads (Studio)
+          My Ads (Profile Hub)
         </Link>
       </div>
     </div>

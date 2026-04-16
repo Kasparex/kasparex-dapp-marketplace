@@ -15,17 +15,36 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { createKnsClient, type KnsDomainProfileResponse, type KnsAsset } from '@/lib/kns/client';
 import { useUnifiedProfile } from '@/hooks/useUnifiedProfile';
 import { buildLinkEvmMessage, verifyLinkEvmSignature } from '@/lib/profile/linking';
-import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 
-type TabId = 'overview' | 'portfolio' | 'content' | 'kns' | 'settings';
+type TabId = 'overview' | 'workspace' | 'dapps' | 'editors' | 'ads' | 'assets' | 'content' | 'settings';
 
+const StudioDashboardPage = dynamic(() => import('@/app/studio/dashboard/page').then((m) => m.default), {
+  ssr: false,
+  loading: () => <LoadingCard label="Loading dashboard…" />,
+});
 const StudioPortfolioPage = dynamic(() => import('@/app/studio/portfolio/page').then((m) => m.default), {
   ssr: false,
-  loading: () => (
-    <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6">
-      <div className="text-sm text-zinc-600 dark:text-zinc-400">Loading portfolio…</div>
-    </div>
-  ),
+  loading: () => <LoadingCard label="Loading portfolio…" />,
+});
+const StudioActivityPage = dynamic(() => import('@/app/studio/activity/page').then((m) => m.default), {
+  ssr: false,
+  loading: () => <LoadingCard label="Loading activity…" />,
+});
+const StudioAdsPage = dynamic(() => import('@/app/studio/ads/page').then((m) => m.default), {
+  ssr: false,
+  loading: () => <LoadingCard label="Loading ads…" />,
+});
+const StudioVBlogPage = dynamic(() => import('@/app/studio/vblog/page').then((m) => m.default), {
+  ssr: false,
+  loading: () => <LoadingCard label="Loading article editor…" />,
+});
+const StudioMagazinePage = dynamic(() => import('@/app/studio/magazine/page').then((m) => m.default), {
+  ssr: false,
+  loading: () => <LoadingCard label="Loading magazine editor…" />,
+});
+const StudioStorePage = dynamic(() => import('@/app/studio/store/page').then((m) => m.default), {
+  ssr: false,
+  loading: () => <LoadingCard label="Loading store editor…" />,
 });
 
 export function ProfileHubContent({
@@ -43,6 +62,7 @@ export function ProfileHubContent({
   const { state: kaspaState } = useKaspaWallet();
 
   const [activeTab, setActiveTab] = useState<TabId>('overview');
+  const view = (searchParams?.get('view') || '').toLowerCase();
   const [knsProfile, setKnsProfile] = useState<KnsDomainProfileResponse | null>(null);
   const [knsAssets, setKnsAssets] = useState<KnsAsset[] | null>(null);
   const [knsPrimaryName, setKnsPrimaryName] = useState<string | null>(initialKnsName);
@@ -89,11 +109,6 @@ export function ProfileHubContent({
   const bannerUrl = profile?.bannerUrl?.trim() || knsProfile?.banner || null;
   const avatarUrl = profile?.avatarUrl?.trim() || knsProfile?.avatar || null;
 
-  const avatarSeed = useMemo(() => {
-    if (knsPrimaryName) return knsPrimaryName;
-    return kaspaAddress || initialHandle;
-  }, [knsPrimaryName, kaspaAddress, initialHandle]);
-
   useEffect(() => {
     let cancelled = false;
     async function loadKns() {
@@ -101,7 +116,6 @@ export function ProfileHubContent({
       const defaultNet = createKnsClient().network;
       const nets: Array<'mainnet' | 'tn10'> = [defaultNet, defaultNet === 'mainnet' ? 'tn10' : 'mainnet'];
 
-      let primaryAssetId: string | undefined;
       for (const net of nets) {
         const kns = createKnsClient({ network: net });
         const primary = await kns.getPrimaryNameByOwner(kaspaAddress);
@@ -115,7 +129,6 @@ export function ProfileHubContent({
         if (!cancelled && name) setKnsPrimaryName(String(name).toLowerCase());
         const assetId = (primary?.inscriptionId || primary?.inscription_id) as string | undefined;
         if (assetId) {
-          primaryAssetId = assetId;
           const p = await kns.getDomainProfileByAssetId(assetId);
           if (!cancelled) setKnsProfile(p);
           break;
@@ -163,7 +176,16 @@ export function ProfileHubContent({
 
   useEffect(() => {
     const tab = (searchParams?.get('tab') || '').toLowerCase();
-    if (tab === 'overview' || tab === 'portfolio' || tab === 'content' || tab === 'kns' || tab === 'settings') {
+    if (
+      tab === 'overview' ||
+      tab === 'workspace' ||
+      tab === 'dapps' ||
+      tab === 'editors' ||
+      tab === 'ads' ||
+      tab === 'assets' ||
+      tab === 'content' ||
+      tab === 'settings'
+    ) {
       setActiveTab(tab as TabId);
     }
   }, [searchParams]);
@@ -182,11 +204,11 @@ export function ProfileHubContent({
           >
             <div className="space-y-6">
               <div className="space-y-2">
-                <Link href="/studio/portfolio" className="k-control-btn w-full">
-                  Studio
+                <Link href={kaspaAddress ? `/u/${encodeURIComponent(kaspaAddress)}?tab=workspace` : '/u?tab=workspace'} className="k-control-btn w-full">
+                  Workspace
                 </Link>
-                <Link href="/studio/modules" className="k-control-btn w-full">
-                  Modules
+                <Link href={kaspaAddress ? `/u/${encodeURIComponent(kaspaAddress)}?tab=dapps` : '/u?tab=dapps'} className="k-control-btn w-full">
+                  dApps
                 </Link>
                 <Link
                   href={kaspaAddress ? `/vblog/author/${encodeURIComponent(kaspaAddress).replaceAll('%3A', ':')}` : '/vblog'}
@@ -199,20 +221,29 @@ export function ProfileHubContent({
               {/* Nav */}
               <section>
                 <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4 px-2">
-                  Sections
+                  Workspace
                 </h3>
                 <nav className="space-y-1">
                   <SidebarButton active={activeTab === 'overview'} onClick={() => setActiveTab('overview')}>
                     Overview
                   </SidebarButton>
-                  <SidebarButton active={activeTab === 'portfolio'} onClick={() => setActiveTab('portfolio')}>
-                    Portfolio
+                  <SidebarButton active={activeTab === 'workspace'} onClick={() => setActiveTab('workspace')}>
+                    Workspace
+                  </SidebarButton>
+                  <SidebarButton active={activeTab === 'dapps'} onClick={() => setActiveTab('dapps')}>
+                    dApps
+                  </SidebarButton>
+                  <SidebarButton active={activeTab === 'editors'} onClick={() => setActiveTab('editors')}>
+                    Editors
+                  </SidebarButton>
+                  <SidebarButton active={activeTab === 'ads'} onClick={() => setActiveTab('ads')}>
+                    Ads
+                  </SidebarButton>
+                  <SidebarButton active={activeTab === 'assets'} onClick={() => setActiveTab('assets')}>
+                    Assets
                   </SidebarButton>
                   <SidebarButton active={activeTab === 'content'} onClick={() => setActiveTab('content')}>
                     Content
-                  </SidebarButton>
-                  <SidebarButton active={activeTab === 'kns'} onClick={() => setActiveTab('kns')}>
-                    KNS
                   </SidebarButton>
                   {isOwnProfile && (
                     <SidebarButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')}>
@@ -255,25 +286,21 @@ export function ProfileHubContent({
                     profileWebsite={profile?.website}
                     profileGithub={profile?.github}
                     profileX={profile?.x}
+                    profileHref={kaspaAddress ? `/u/${encodeURIComponent(kaspaAddress)}` : '/u'}
                   />
                 )}
 
-                {activeTab === 'portfolio' && (
-                  <div className="space-y-6">
-                    <StudioPortfolioPage />
-                  </div>
-                )}
+                {activeTab === 'workspace' && <WorkspaceTab view={view} />}
+
+                {activeTab === 'dapps' && <DappsTab kaspaAddress={kaspaAddress} knsPrimaryName={knsPrimaryName} knsAssetsCount={knsAssets?.length || 0} />}
+
+                {activeTab === 'editors' && <EditorsTab view={view} />}
+
+                {activeTab === 'ads' && <StudioAdsPage />}
+
+                {activeTab === 'assets' && <AssetsTab />}
 
                 {activeTab === 'content' && <ContentTab kaspaAddress={kaspaAddress} />}
-
-                {activeTab === 'kns' && (
-                  <KnsTab
-                    kaspaAddress={kaspaAddress}
-                    primaryName={knsPrimaryName}
-                    assets={knsAssets}
-                    isLoading={knsAssets === null}
-                  />
-                )}
 
                 {activeTab === 'settings' && isOwnProfile && (
                   <SettingsTab
@@ -368,6 +395,7 @@ function OverviewTab({
   profileWebsite,
   profileGithub,
   profileX,
+  profileHref,
 }: {
   kaspaAddress: string | null;
   knsProfile: KnsDomainProfileResponse | null;
@@ -375,6 +403,7 @@ function OverviewTab({
   profileWebsite?: string;
   profileGithub?: string;
   profileX?: string;
+  profileHref: string;
 }) {
   const website = profileWebsite || knsProfile?.website;
   const github = profileGithub || knsProfile?.github;
@@ -395,6 +424,16 @@ function OverviewTab({
             <InfoPill label="GitHub" value={github || '—'} />
             <InfoPill label="X" value={x || '—'} />
             <InfoPill label="Kaspa" value={kaspaAddress ? formatKaspaAddress(kaspaAddress).display : '—'} />
+          </div>
+        </Card>
+        <Card title="Management launchpad">
+          <div className="grid sm:grid-cols-2 gap-3">
+            <ActionLink href={`${profileHref}?tab=workspace`} label="Workspace" />
+            <ActionLink href={`${profileHref}?tab=dapps`} label="dApps" />
+            <ActionLink href={`${profileHref}?tab=editors&view=vblog`} label="vBlog editor" />
+            <ActionLink href={`${profileHref}?tab=ads`} label="Ads manager" />
+            <ActionLink href={`${profileHref}?tab=assets`} label="Assets" />
+            <ActionLink href={`${profileHref}?tab=content`} label="All content" />
           </div>
         </Card>
       </div>
@@ -419,6 +458,7 @@ function OverviewTab({
 function ContentTab({ kaspaAddress }: { kaspaAddress: string | null }) {
   const searchParams = useSearchParams();
   const view = (searchParams?.get('view') || '').toLowerCase();
+  const encoded = kaspaAddress ? encodeURIComponent(kaspaAddress).replaceAll('%3A', ':') : null;
   return (
     <div className="space-y-6">
       <Card title="Articles">
@@ -435,116 +475,86 @@ function ContentTab({ kaspaAddress }: { kaspaAddress: string | null }) {
         </div>
       </Card>
 
-      <Card title="Studio">
-        <div className="text-sm text-zinc-600 dark:text-zinc-400">
-          Creator tools live in Studio. Owners can manage portfolio, editors, and listings there.
+      <Card title="Products and magazines">
+        <div className="grid sm:grid-cols-2 gap-3">
+          <ActionLink href="/store/dashboard?tab=products" label="My products" />
+          <ActionLink href="/store/dashboard?tab=sales" label="Product sales" />
+          <ActionLink href="/magazines" label="Magazines" />
+          <ActionLink href="/u?tab=editors&view=magazine" label="Magazine editor" />
         </div>
-        <div className="mt-4">
-          <Link
-            href="/studio/portfolio"
-            className="inline-flex items-center justify-center px-4 py-2 rounded-xl font-bold uppercase tracking-widest text-[10px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-[#02abb8]/40 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-          >
-            Go to Studio Portfolio
-          </Link>
+      </Card>
+
+      <Card title="dApps, buys, history">
+        <div className="grid sm:grid-cols-2 gap-3">
+          <ActionLink href="/list-dapp" label={view === 'dapps' ? 'Open listed dApps' : 'My listed dApps'} />
+          <ActionLink href="/u?tab=dapps&view=create" label="Create dApp listing" />
+          <ActionLink href="/store/dashboard?tab=purchased" label="My buys" />
+          <ActionLink href={encoded ? `/vblog/author/${encoded}` : '/vblog'} label="Publishing history" />
         </div>
       </Card>
     </div>
   );
 }
 
-function KnsTab({
+function WorkspaceTab({ view }: { view: string }) {
+  if (view === 'activity') return <StudioActivityPage />;
+  if (view === 'portfolio') return <StudioPortfolioPage />;
+  return <StudioDashboardPage />;
+}
+
+function EditorsTab({ view }: { view: string }) {
+  if (view === 'magazine') return <StudioMagazinePage />;
+  if (view === 'store') return <StudioStorePage />;
+  return <StudioVBlogPage />;
+}
+
+function AssetsTab() {
+  return (
+    <div className="space-y-6">
+      <Card title="Assets and history">
+        <div className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+          Asset library and generation history are being unified under Profile Hub. Use the links below while we complete final migration.
+        </div>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <ActionLink href="/dapps" label="Media and assets" />
+          <ActionLink href="/activity" label="Generation history" />
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function DappsTab({
   kaspaAddress,
-  primaryName,
-  assets,
-  isLoading,
+  knsPrimaryName,
+  knsAssetsCount,
 }: {
   kaspaAddress: string | null;
-  primaryName: string | null;
-  assets: KnsAsset[] | null;
-  isLoading: boolean;
+  knsPrimaryName: string | null;
+  knsAssetsCount: number;
 }) {
   return (
     <div className="space-y-6">
-      <Card title="Primary name">
+      <Card title="dApp identity">
+        <div className="grid sm:grid-cols-2 gap-3">
+          <InfoPill label="Kaspa wallet" value={kaspaAddress ? formatKaspaAddress(kaspaAddress).display : 'Not resolved'} />
+          <InfoPill label="Primary KNS" value={knsPrimaryName || 'Not set'} />
+          <InfoPill label="KNS assets" value={String(knsAssetsCount)} />
+        </div>
+      </Card>
+      <Card title="dApp creator actions">
+        <div className="grid sm:grid-cols-2 gap-3">
+          <ActionLink href="/build-dapp" label="Create dApp (editor)" />
+          <ActionLink href="/list-dapp" label="List dApp (same creator UI)" />
+          <ActionLink href="/dapps" label="Explore dApps" />
+          <ActionLink href="/u?tab=content&view=dapps" label="All authored dApps" />
+        </div>
+      </Card>
+      <Card title="KNS in dApps">
         <div className="text-sm text-zinc-600 dark:text-zinc-400">
-          {primaryName ? (
-            <span className="inline-flex items-center gap-1 text-zinc-900 dark:text-zinc-100">
-              <span className="font-mono normal-case">{primaryName.toLowerCase()}</span>
-              <CopyIconButton value={primaryName.toLowerCase()} label="Copy domain" />
-            </span>
-          ) : (
-            'No primary name detected yet.'
-          )}
-        </div>
-        <div className="mt-3 text-[11px] text-zinc-500 dark:text-zinc-400">
-          Data via the KNS Indexer API.
+          dApp listings inherit your connected Kaspa identity and display KNS domain badges in creator-facing views.
         </div>
       </Card>
-
-      <Card title="Owned KNS assets">
-        {!kaspaAddress ? (
-          <div className="text-sm text-zinc-600 dark:text-zinc-400">Resolve a Kaspa address to load assets.</div>
-        ) : isLoading ? (
-          <div className="text-sm text-zinc-600 dark:text-zinc-400">Loading…</div>
-        ) : (assets || []).length === 0 ? (
-          <div className="text-sm text-zinc-600 dark:text-zinc-400">No assets found.</div>
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {(assets || [])
-              .map((a, idx) => ({
-                key: `${(a as any).assetId || (a as any).asset_id || (a as any).inscriptionId || (a as any).inscription_id || idx}`,
-                name: String((a as any).asset || (a as any).domain || '').trim().toLowerCase(),
-                verified: (a as any).isVerifiedDomain ?? (a as any).is_verified_domain ?? (a as any).verified,
-              }))
-              .filter((x) => Boolean(x.name))
-              .slice(0, 24)
-              .map((x) => (
-                <KxListingCard
-                  key={x.key}
-                  accent="dapps"
-                  className="relative flex flex-col min-h-0"
-                >
-                  <KxListingCardMedia>
-                    <div className="absolute inset-0 bg-[#67d6cf]" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="px-6 text-center">
-                        <div className="text-[18px] font-black tracking-tight text-zinc-900">
-                          {x.name}
-                        </div>
-                      </div>
-                    </div>
-                  </KxListingCardMedia>
-
-                  <KxListingCardBody className="relative z-10 flex flex-1 min-h-0 flex-col">
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <div className="min-w-0">
-                        <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100 truncate">
-                          {x.name}
-                        </div>
-                        <div className="mt-1 text-[11px] text-zinc-600 dark:text-zinc-400">
-                          KNS domain
-                        </div>
-                      </div>
-                      <CopyIconButton value={x.name} label="Copy domain" />
-                    </div>
-
-                    {x.verified != null ? (
-                      <div className="mt-auto pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                        <div className="text-[11px] text-zinc-600 dark:text-zinc-400">
-                          Verified: <span className="font-semibold text-zinc-900 dark:text-zinc-100">{String(x.verified)}</span>
-                        </div>
-                      </div>
-                    ) : null}
-                  </KxListingCardBody>
-                </KxListingCard>
-              ))}
-          </div>
-        )}
-      </Card>
-
-      <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
-        API reference: <a className="underline hover:text-zinc-700 dark:hover:text-zinc-200" href="https://kns-2.gitbook.io/kns-docs-1/kns-indexer-api" target="_blank" rel="noreferrer">KNS Indexer API docs</a>
-      </div>
     </div>
   );
 }
@@ -839,10 +849,10 @@ function ProfileHaloHeader({
                   Edit
                 </button>
                 <Link
-                  href="/studio/portfolio"
+                  href={kaspaAddress ? `/u/${encodeURIComponent(kaspaAddress)}?tab=workspace` : '/u?tab=workspace'}
                   className="px-4 py-2 rounded-xl font-black uppercase tracking-widest text-[10px] bg-[#02abb8] hover:bg-[#028a94] text-white transition-colors"
                 >
-                  Studio
+                  Workspace
                 </Link>
               </div>
             ) : null}
@@ -894,9 +904,12 @@ function TabBar({
 }) {
   const tabs: Array<{ id: TabId; label: string; ownerOnly?: boolean }> = [
     { id: 'overview', label: 'Overview' },
-    { id: 'portfolio', label: 'Portfolio' },
+    { id: 'workspace', label: 'Workspace' },
+    { id: 'dapps', label: 'dApps' },
+    { id: 'editors', label: 'Editors' },
+    { id: 'ads', label: 'Ads' },
+    { id: 'assets', label: 'Assets' },
     { id: 'content', label: 'Content' },
-    { id: 'kns', label: 'KNS' },
     { id: 'settings', label: 'Settings', ownerOnly: true },
   ];
   return (
@@ -918,6 +931,25 @@ function TabBar({
             </button>
           ))}
       </div>
+    </div>
+  );
+}
+
+function ActionLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex items-center justify-center px-4 py-2 rounded-xl font-bold uppercase tracking-widest text-[10px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-[#02abb8]/40 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+    >
+      {label}
+    </Link>
+  );
+}
+
+function LoadingCard({ label }: { label: string }) {
+  return (
+    <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6">
+      <div className="text-sm text-zinc-600 dark:text-zinc-400">{label}</div>
     </div>
   );
 }

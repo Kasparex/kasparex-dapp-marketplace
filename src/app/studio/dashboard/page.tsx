@@ -41,7 +41,7 @@ export default function StudioDashboard() {
                     <QuickActionCard
                         title="Write Article"
                         description="Create a new post for vBlog"
-                        href="/studio/vblog"
+                        href="/u?tab=editors&view=vblog"
                         icon={<svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>}
                         gradient="from-orange-500/20 to-amber-500/10"
                         accentColor="orange"
@@ -49,7 +49,7 @@ export default function StudioDashboard() {
                     <QuickActionCard
                         title="Create Magazine"
                         description="Design your next digital issue"
-                        href="/studio/magazine"
+                        href="/u?tab=editors&view=magazine"
                         icon={<svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
                         gradient="from-blue-500/20 to-indigo-500/10"
                         accentColor="blue"
@@ -57,7 +57,7 @@ export default function StudioDashboard() {
                     <QuickActionCard
                         title="List Product"
                         description="Add a new item to Kasparex Store"
-                        href="/studio/store"
+                        href="/u?tab=editors&view=store"
                         icon={<svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 7l1 2m0 0l2 10a2 2 0 002 2h8a2 2 0 002-2l2-10m-14 0h14M9 21a1 1 0 100-2 1 1 0 000 2zm6 0a1 1 0 100-2 1 1 0 000 2z" /></svg>}
                         gradient="from-emerald-500/20 to-teal-500/10"
                         accentColor="emerald"
@@ -74,7 +74,7 @@ export default function StudioDashboard() {
                             Recent Activity
                         </h3>
                     </div>
-                    <Link href="/studio/activity" className="text-xs font-bold text-[#02abb8] hover:text-[#028a94] transition-colors uppercase tracking-widest">
+                    <Link href="/u?tab=workspace&view=activity" className="text-xs font-bold text-[#02abb8] hover:text-[#028a94] transition-colors uppercase tracking-widest">
                         View All Records
                     </Link>
                 </div>
