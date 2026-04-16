@@ -198,53 +198,36 @@ export function KasWareWalletButton() {
 
     return (
       <div className="relative" ref={dropdownRef}>
-        <div className="flex items-center gap-1 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium pr-1">
-          <button
-            type="button"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-l-xl"
-            aria-label="Open KasWare wallet menu"
-          >
-            <span className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 rounded-lg border border-cyan-300/50 dark:border-cyan-600/40 shadow-sm">
-              L1
-              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
-              </svg>
-              KasWare
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              router.push(`/u/${encodeURIComponent(address)}`);
-              setIsDropdownOpen(false);
-            }}
-            className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-zinc-300/40 dark:hover:bg-zinc-700/60 transition-colors"
-            aria-label="Open Profile Hub"
-          >
-            <Avatar address={state.address} size={20} />
-            <span className="text-zinc-900 dark:text-zinc-100 hidden sm:inline max-w-[200px] truncate">
-              {displayPrimary ? displayPrimary : displayAddress}
-            </span>
-            <span className="text-zinc-900 dark:text-zinc-100 sm:hidden">Profile</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="p-2 rounded-lg hover:bg-zinc-300/40 dark:hover:bg-zinc-700/60 transition-colors"
-            aria-expanded={isDropdownOpen}
-            aria-label="Toggle KasWare wallet menu"
-          >
-            <svg
-              className={`w-4 h-4 text-zinc-600 dark:text-zinc-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        <button
+          type="button"
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium"
+          aria-label="KasWare Wallet"
+        >
+          <span className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 rounded-lg border border-cyan-300/50 dark:border-cyan-600/40 shadow-sm">
+            L1
+            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
             </svg>
-          </button>
-        </div>
+            KasWare
+          </span>
+
+          <Avatar address={state.address} size={20} />
+
+          <span className="text-zinc-900 dark:text-zinc-100 hidden sm:inline max-w-[200px] truncate">
+            {displayPrimary ? displayPrimary : displayAddress}
+          </span>
+          <span className="text-zinc-900 dark:text-zinc-100 sm:hidden">KasWare</span>
+
+          <svg
+            className={`w-4 h-4 text-zinc-600 dark:text-zinc-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
 
         {isDropdownOpen && (
           <div className="absolute right-0 mt-2 z-50">
