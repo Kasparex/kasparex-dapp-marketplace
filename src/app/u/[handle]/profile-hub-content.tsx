@@ -65,17 +65,6 @@ export function ProfileHubContent({
 
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const view = (searchParams?.get('view') || '').toLowerCase();
-  const baseProfileHref = useMemo(() => {
-    return kaspaAddress ? `/u/${encodeURIComponent(kaspaAddress)}` : '/u';
-  }, [kaspaAddress]);
-  const hrefTab = useMemo(() => {
-    return (tab: string, nextView?: string) => {
-      const params = new URLSearchParams();
-      params.set('tab', tab);
-      if (nextView) params.set('view', nextView);
-      return `${baseProfileHref}?${params.toString()}`;
-    };
-  }, [baseProfileHref]);
   const [knsProfile, setKnsProfile] = useState<KnsDomainProfileResponse | null>(null);
   const [knsAssets, setKnsAssets] = useState<KnsAsset[] | null>(null);
   const [knsPrimaryName, setKnsPrimaryName] = useState<string | null>(initialKnsName);
@@ -100,6 +89,19 @@ export function ProfileHubContent({
     }
     return null;
   }, [initialKaspaAddress, initialHandle]);
+
+  const baseProfileHref = useMemo(() => {
+    return kaspaAddress ? `/u/${encodeURIComponent(kaspaAddress)}` : '/u';
+  }, [kaspaAddress]);
+
+  const hrefTab = useMemo(() => {
+    return (tab: string, nextView?: string) => {
+      const params = new URLSearchParams();
+      params.set('tab', tab);
+      if (nextView) params.set('view', nextView);
+      return `${baseProfileHref}?${params.toString()}`;
+    };
+  }, [baseProfileHref]);
 
   const { profile, source, updateLocalProfile } = useUnifiedProfile(kaspaAddress);
 
