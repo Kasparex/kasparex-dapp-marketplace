@@ -1,5 +1,7 @@
 'use client';
 
+import { Tooltip } from '@/components/ui/Tooltip';
+
 export function WalletMiniCard({
   title,
   value,
@@ -52,34 +54,34 @@ export function WalletMiniCard({
             <div className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">{right}</div>
           ) : null}
           {onInfo ? (
-            <button
-              type="button"
-              className="p-1 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
-              onClick={onInfo}
-              aria-label={`Info: ${title}`}
-              title={`Info: ${title}`}
-            >
-              <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </button>
+            <Tooltip content={`Info: ${title}`}>
+              <button
+                type="button"
+                className="p-1 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
+                onClick={onInfo}
+                aria-label={`Info: ${title}`}
+              >
+                <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+            </Tooltip>
           ) : null}
         </div>
       </div>
       <div className="mt-0.5 text-sm font-semibold text-zinc-900 dark:text-zinc-100">{value}</div>
       {tierBadgeText ? (
         <div className="mt-1">
-          <span
-            className="inline-flex items-center text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] dark:text-[#66dfe8] font-black uppercase tracking-widest"
-            title={sub || undefined}
-          >
-            Tier {tierBadgeText}
-          </span>
+          <Tooltip content={sub || `Tier ${tierBadgeText}`}>
+            <span className="inline-flex items-center text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] dark:text-[#66dfe8] font-black uppercase tracking-widest">
+              Tier {tierBadgeText}
+            </span>
+          </Tooltip>
         </div>
       ) : sub ? (
-        <div className="text-[11px] text-zinc-500 dark:text-zinc-500 truncate" title={sub}>
-          {sub}
-        </div>
+        <Tooltip content={sub}>
+          <div className="text-[11px] text-zinc-500 dark:text-zinc-500 truncate">{sub}</div>
+        </Tooltip>
       ) : null}
     </div>
   );

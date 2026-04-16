@@ -126,7 +126,7 @@ export function KaspaL1WalletButton() {
     const displayAddress = maskAddress(shortenAddress(formatAddressForDisplay(address), { head: 10, tail: 8 }), isBalanceVisible);
     const displayBalance = formatBalanceValueForDisplay(balance, false, isBalanceVisible);
     const explorerUrl = getAddressExplorerUrl({ kind: 'kaspa-l1', address });
-    const displayPrimary = knsPrimaryName ? knsPrimaryName : null;
+    const displayPrimary = knsPrimaryName ? knsPrimaryName.toLowerCase() : null;
 
     return (
       <div className="relative" ref={rootRef}>
@@ -144,7 +144,7 @@ export function KaspaL1WalletButton() {
           </span>
           <Avatar address={address} size={20} />
           <span className="text-zinc-900 dark:text-zinc-100 hidden sm:inline">
-            {displayPrimary ? <span className="font-black text-[#02abb8]">{displayPrimary}</span> : displayAddress}
+            {displayPrimary ? <span className="font-mono normal-case">{displayPrimary}</span> : displayAddress}
           </span>
           <span className="text-zinc-900 dark:text-zinc-100 sm:hidden">Kastle</span>
           <svg

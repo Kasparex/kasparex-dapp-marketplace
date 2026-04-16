@@ -1,5 +1,7 @@
 'use client';
 
+import { Tooltip } from '@/components/ui/Tooltip';
+
 export function WalletBalanceCard({
   value,
   symbol,
@@ -33,30 +35,32 @@ export function WalletBalanceCard({
           {(onCopyAddress || onOpenExplorer) ? (
             <div className="flex items-center gap-1 shrink-0">
               {onCopyAddress ? (
-                <button
-                  type="button"
-                  onClick={onCopyAddress}
-                  className="p-2 rounded-lg hover:bg-zinc-200/60 dark:hover:bg-zinc-700/60 transition-colors"
-                  aria-label="Copy address"
-                  title="Copy address"
-                >
-                  <svg className="w-4 h-4 text-zinc-500 dark:text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                </button>
+                <Tooltip content="Copy address">
+                  <button
+                    type="button"
+                    onClick={onCopyAddress}
+                    className="p-2 rounded-lg hover:bg-zinc-200/60 dark:hover:bg-zinc-700/60 transition-colors"
+                    aria-label="Copy address"
+                  >
+                    <svg className="w-4 h-4 text-zinc-500 dark:text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                </Tooltip>
               ) : null}
               {onOpenExplorer ? (
-                <button
-                  type="button"
-                  onClick={onOpenExplorer}
-                  className="p-2 rounded-lg hover:bg-zinc-200/60 dark:hover:bg-zinc-700/60 transition-colors"
-                  aria-label="Open in explorer"
-                  title="Open in explorer"
-                >
-                  <svg className="w-4 h-4 text-zinc-500 dark:text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </button>
+                <Tooltip content="Open in explorer">
+                  <button
+                    type="button"
+                    onClick={onOpenExplorer}
+                    className="p-2 rounded-lg hover:bg-zinc-200/60 dark:hover:bg-zinc-700/60 transition-colors"
+                    aria-label="Open in explorer"
+                  >
+                    <svg className="w-4 h-4 text-zinc-500 dark:text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </button>
+                </Tooltip>
               ) : null}
             </div>
           ) : null}

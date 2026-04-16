@@ -8,6 +8,16 @@ const STORAGE_KEYS = {
   comments: 'vblog_comments',
 } as const;
 
+function canonicalizeAuthorKey(input: string): string {
+  const raw = String(input || '').trim().toLowerCase();
+  if (!raw) return raw;
+  if (raw.endsWith('.kas')) return raw;
+  if (raw.startsWith('kaspa:')) return raw;
+  // Best-effort: many Kaspa addresses are shared without the prefix.
+  if (/^q[a-z0-9]{30,}$/i.test(raw)) return `kaspa:${raw}`;
+  return raw;
+}
+
 /**
  * Get all articles from storage
  */
@@ -41,7 +51,8 @@ export function getArticleBySlug(slug: string): VBlogArticle | null {
  */
 export function getArticlesByAuthor(authorAddress: string): VBlogArticle[] {
   const articles = getAllArticles();
-  return articles.filter(article => article.author.toLowerCase() === authorAddress.toLowerCase());
+  const key = canonicalizeAuthorKey(authorAddress);
+  return articles.filter((article) => canonicalizeAuthorKey(article.author) === key);
 }
 
 /**
@@ -55,6 +66,7 @@ export function createArticle(
   
   const newArticle: VBlogArticle = {
     ...articleData,
+    author: canonicalizeAuthorKey(articleData.author),
     id: `article-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
     slug: generateArticleSlug(articleData.title),
     publishDate: new Date().toISOString(),

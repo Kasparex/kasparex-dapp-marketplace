@@ -14,6 +14,8 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { createKnsClient, type KnsDomainProfileResponse, type KnsAsset } from '@/lib/kns/client';
 import { useUnifiedProfile } from '@/hooks/useUnifiedProfile';
 import { buildLinkEvmMessage, verifyLinkEvmSignature } from '@/lib/profile/linking';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 
 type TabId = 'overview' | 'portfolio' | 'content' | 'kns' | 'settings';
 
@@ -181,16 +183,27 @@ export function ProfileHubContent({
             {/* Identity card */}
             <div className="space-y-6">
               <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+                <div className="mb-4">
+                  <div className="space-y-2">
+                    <Link href="/studio/portfolio" className="k-control-btn w-full">
+                      Studio
+                    </Link>
+                    <Link href="/studio/modules" className="k-control-btn w-full">
+                      Modules
+                    </Link>
+                  </div>
+                </div>
                 <div className="flex items-center gap-3">
                   <Avatar address={avatarSeed.replace(/^kaspa:/i, '')} size={44} />
                   <div className="min-w-0">
                     <div className="text-xs font-black uppercase tracking-widest text-zinc-500">Profile</div>
                     <div className="text-sm font-black text-zinc-900 dark:text-zinc-100 truncate">
-                      {displayName}
+                      {displayNameLower}
                     </div>
                     {knsPrimaryName && (
-                      <div className="text-[11px] font-bold text-[#02abb8] truncate">
-                        {knsPrimaryName}
+                      <div className="mt-0.5 flex items-center gap-1 text-[11px] text-zinc-600 dark:text-zinc-400 truncate">
+                        <span className="font-mono normal-case">{knsPrimaryName.toLowerCase()}</span>
+                        <CopyIconButton value={knsPrimaryName.toLowerCase()} label="Copy domain" />
                       </div>
                     )}
                   </div>
@@ -232,9 +245,10 @@ export function ProfileHubContent({
                       {knsDomains.slice(0, 6).map((d) => (
                         <span
                           key={d}
-                          className="text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] font-black uppercase tracking-widest border border-[#02abb8]/20"
+                          className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700"
                         >
-                          {d}
+                          <span className="font-mono normal-case">{d.toLowerCase()}</span>
+                          <CopyIconButton value={d.toLowerCase()} label="Copy domain" />
                         </span>
                       ))}
                       {knsDomains.length > 6 && (
@@ -539,7 +553,10 @@ function KnsTab({
       <Card title="Primary name">
         <div className="text-sm text-zinc-600 dark:text-zinc-400">
           {primaryName ? (
-            <span className="font-black text-zinc-900 dark:text-zinc-100">{primaryName}</span>
+            <span className="inline-flex items-center gap-1 text-zinc-900 dark:text-zinc-100">
+              <span className="font-mono normal-case">{primaryName.toLowerCase()}</span>
+              <CopyIconButton value={primaryName.toLowerCase()} label="Copy domain" />
+            </span>
           ) : (
             'No primary name detected yet.'
           )}
@@ -567,27 +584,44 @@ function KnsTab({
               .filter((x) => Boolean(x.name))
               .slice(0, 24)
               .map((x) => (
-                <div
+                <KxListingCard
                   key={x.key}
-                  className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 hover:border-[#02abb8]/30 transition-colors"
+                  accent="dapps"
+                  className="relative flex flex-col min-h-0"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-[11px] font-black text-zinc-900 dark:text-zinc-100 truncate">
-                        {x.name}
-                      </div>
-                      <div className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
-                        kns domain
+                  <KxListingCardMedia>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-full h-full bg-gradient-to-br from-white via-[#02abb8]/5 to-transparent dark:from-zinc-900 dark:via-[#02abb8]/10 dark:to-zinc-950" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-zinc-500/10 border-zinc-500/20 text-zinc-700 dark:text-zinc-200">
+                          KNS
+                        </span>
                       </div>
                     </div>
-                    <CopyIconButton value={x.name} label="Copy domain" />
-                  </div>
-                  {x.verified != null && (
-                    <div className="mt-4 text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-                      Verified: <span className="text-zinc-800 dark:text-zinc-200">{String(x.verified)}</span>
+                  </KxListingCardMedia>
+
+                  <KxListingCardBody className="relative z-10 flex flex-1 min-h-0 flex-col">
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="min-w-0">
+                        <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                          {x.name}
+                        </div>
+                        <div className="mt-1 text-[11px] text-zinc-600 dark:text-zinc-400">
+                          KNS domain
+                        </div>
+                      </div>
+                      <CopyIconButton value={x.name} label="Copy domain" />
                     </div>
-                  )}
-                </div>
+
+                    {x.verified != null ? (
+                      <div className="mt-auto pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                        <div className="text-[11px] text-zinc-600 dark:text-zinc-400">
+                          Verified: <span className="font-semibold text-zinc-900 dark:text-zinc-100">{String(x.verified)}</span>
+                        </div>
+                      </div>
+                    ) : null}
+                  </KxListingCardBody>
+                </KxListingCard>
               ))}
           </div>
         )}
@@ -836,13 +870,14 @@ function ProfileHaloHeader({
                   </h1>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     {knsPrimaryName && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] font-black uppercase tracking-widest border border-[#02abb8]/20">
-                        {knsPrimaryName}
+                      <span className="inline-flex items-center gap-2 text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] font-black uppercase tracking-widest border border-[#02abb8]/20">
+                        <span className="font-mono normal-case">{knsPrimaryName.toLowerCase()}</span>
+                        <CopyIconButton value={knsPrimaryName.toLowerCase()} label="Copy domain" />
                       </span>
                     )}
                     {kaspaAddress && (
-                      <span className="inline-flex items-center gap-2 text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold uppercase border border-zinc-200 dark:border-zinc-700">
-                        <span className="font-mono normal-case">{formatKaspaAddress(kaspaAddress).full.toLowerCase()}</span>
+                      <span className="inline-flex items-center gap-2 text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 font-semibold border border-zinc-200 dark:border-zinc-700">
+                        <span className="font-mono normal-case">{formatKaspaAddress(kaspaAddress).display.toLowerCase()}</span>
                         <CopyIconButton value={formatKaspaAddress(kaspaAddress).full.toLowerCase()} label="Copy address" />
                       </span>
                     )}
@@ -885,23 +920,24 @@ function ProfileHaloHeader({
 
 function CopyIconButton({ value, label }: { value: string; label: string }) {
   return (
-    <button
-      type="button"
-      onClick={async () => {
-        try {
-          await navigator.clipboard.writeText(value);
-        } catch {
-          // ignore
-        }
-      }}
-      className="p-1 rounded-lg hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
-      aria-label={label}
-      title={label}
-    >
-      <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-      </svg>
-    </button>
+    <Tooltip content={label}>
+      <button
+        type="button"
+        onClick={async () => {
+          try {
+            await navigator.clipboard.writeText(value);
+          } catch {
+            // ignore
+          }
+        }}
+        className="p-1 rounded-lg hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
+        aria-label={label}
+      >
+        <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+      </button>
+    </Tooltip>
   );
 }
 

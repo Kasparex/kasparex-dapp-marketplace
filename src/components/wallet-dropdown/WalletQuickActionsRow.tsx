@@ -1,5 +1,7 @@
 'use client';
 
+import { Tooltip } from '@/components/ui/Tooltip';
+
 export type WalletQuickAction = {
   id: string;
   label: string;
@@ -52,21 +54,23 @@ export function WalletQuickActionsRow({
         {actions.slice(0, 4).map((a) => {
           const isPrimary = a.variant === 'primary';
           return (
-            <button
-              key={a.id}
-              type="button"
-              onClick={a.onClick}
-              className={[
-                'px-3 py-2 rounded-xl transition-colors text-sm font-semibold flex items-center justify-center gap-2',
-                isPrimary
-                  ? 'bg-[#02abb8] hover:bg-[#028a94] text-white'
-                  : 'bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100',
-                a.className || '',
-              ].join(' ')}
-            >
-              <ActionIcon icon={a.icon} />
-              {a.label}
-            </button>
+            <Tooltip key={a.id} content={a.label}>
+              <button
+                type="button"
+                onClick={a.onClick}
+                className={[
+                  'px-3 py-2 rounded-xl transition-colors text-sm font-semibold flex items-center justify-center gap-2',
+                  isPrimary
+                    ? 'bg-[#02abb8] hover:bg-[#028a94] text-white'
+                    : 'bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100',
+                  a.className || '',
+                ].join(' ')}
+                aria-label={a.label}
+              >
+                <ActionIcon icon={a.icon} />
+                {a.label}
+              </button>
+            </Tooltip>
           );
         })}
       </div>
