@@ -5,6 +5,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 export type WalletQuickAction = {
   id: string;
   label: string;
+  tooltip?: string;
   onClick: () => void;
   icon: 'send' | 'receive' | 'bridge' | 'buy';
   variant?: 'primary' | 'secondary';
@@ -54,7 +55,7 @@ export function WalletQuickActionsRow({
         {actions.slice(0, 4).map((a) => {
           const isPrimary = a.variant === 'primary';
           return (
-            <Tooltip key={a.id} content={a.label}>
+            <Tooltip key={a.id} content={a.tooltip || a.label}>
               <button
                 type="button"
                 onClick={a.onClick}

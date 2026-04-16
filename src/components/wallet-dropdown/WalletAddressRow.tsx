@@ -2,6 +2,7 @@
 
 import { Avatar } from '@/components/Avatar';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { useState } from 'react';
 
 export function WalletAddressRow({
   address,
@@ -26,6 +27,7 @@ export function WalletAddressRow({
   profileLabel?: string;
   refreshLabel?: string;
 }) {
+  const [copied, setCopied] = useState(false);
   return (
     <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-3">
       <Avatar address={address} size={24} />
@@ -64,16 +66,26 @@ export function WalletAddressRow({
             </button>
           </Tooltip>
         ) : null}
-        <Tooltip content={copyLabel}>
+        <Tooltip content={copied ? 'Copied' : copyLabel}>
           <button
             type="button"
-            onClick={onCopy}
+            onClick={async () => {
+              await onCopy();
+              setCopied(true);
+              window.setTimeout(() => setCopied(false), 900);
+            }}
             className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
             aria-label={copyLabel}
           >
-            <svg className="w-4 h-4 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
+            {copied ? (
+              <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4 text-[#02abb8] dark:text-[#66dfe8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            )}
           </button>
         </Tooltip>
         {onOpenExplorer ? (

@@ -27,6 +27,7 @@ import { WalletBalanceCard } from '@/components/wallet-dropdown/WalletBalanceCar
 import { WalletMiniCard } from '@/components/wallet-dropdown/WalletMiniCard';
 import { WalletQuickActionsRow } from '@/components/wallet-dropdown/WalletQuickActionsRow';
 import { WalletFooterRow } from '@/components/wallet-dropdown/WalletFooterRow';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { BRIDGE_URLS, getAddressExplorerUrl, shortenAddress } from '@/lib/walletUi';
 import { BridgeInfoModal } from '@/components/modals/BridgeInfoModal';
 import { ReceiveAddressModal } from '@/components/modals/ReceiveAddressModal';
@@ -210,7 +211,7 @@ export function KasWareWalletButton() {
           
           {/* Address on right */}
           <span className="text-zinc-900 dark:text-zinc-100 hidden sm:inline">
-            {displayPrimary ? <span className="font-mono normal-case">{displayPrimary}</span> : displayAddress}
+            {displayPrimary ? displayPrimary : displayAddress}
           </span>
           <span className="text-zinc-900 dark:text-zinc-100 sm:hidden">KasWare</span>
           
@@ -258,6 +259,7 @@ export function KasWareWalletButton() {
                   {
                     id: 'send',
                     label: 'Send',
+                    tooltip: 'Send KAS or KRC-20 tokens',
                     icon: 'send',
                     onClick: () => {
                       setIsSendModalOpen(true);
@@ -268,6 +270,7 @@ export function KasWareWalletButton() {
                   {
                     id: 'receive',
                     label: 'Receive',
+                    tooltip: 'Show your Kaspa address to receive funds',
                     icon: 'receive',
                     onClick: () => setIsReceiveOpen(true),
                     variant: 'secondary',
@@ -275,6 +278,7 @@ export function KasWareWalletButton() {
                   {
                     id: 'bridge',
                     label: 'Bridge',
+                    tooltip: 'Bridge assets between L1 and L2',
                     icon: 'bridge',
                     onClick: () => {
                       setIsBridgeInfoOpen(true);
@@ -285,6 +289,7 @@ export function KasWareWalletButton() {
                   {
                     id: 'buy',
                     label: 'Buy',
+                    tooltip: 'Buy KREX token',
                     icon: 'buy',
                     onClick: () => {
                       setIsDropdownOpen(false);
@@ -326,17 +331,18 @@ export function KasWareWalletButton() {
                     <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
                       Tiers & Benefits (Total)
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setIsRewardsOpen(true)}
-                      className="p-1 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
-                      aria-label="Tier & benefits info"
-                      title="Rewards"
-                    >
-                      <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </button>
+                    <Tooltip content="View tier rewards & benefits">
+                      <button
+                        type="button"
+                        onClick={() => setIsRewardsOpen(true)}
+                        className="p-1 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
+                        aria-label="View tier rewards & benefits"
+                      >
+                        <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </button>
+                    </Tooltip>
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-zinc-500 dark:text-zinc-400">Tier</span>
@@ -374,25 +380,27 @@ export function KasWareWalletButton() {
               </div>
 
               <div className="px-4 pb-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsNodeOpen(true);
-                    setIsDropdownOpen(false);
-                  }}
-                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/50 p-3 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors"
-                  title="Node status (coming soon)"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-                      Node status
+                <Tooltip content="Open node status (coming soon)">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsNodeOpen(true);
+                      setIsDropdownOpen(false);
+                    }}
+                    className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/50 p-3 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors"
+                    aria-label="Open node status (coming soon)"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                        Node status
+                      </div>
+                      <div className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">—</div>
                     </div>
-                    <div className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">—</div>
-                  </div>
-                  <div className="text-[11px] text-zinc-500 dark:text-zinc-500 mt-1">
-                    Coming soon for node operators.
-                  </div>
-                </button>
+                    <div className="text-[11px] text-zinc-500 dark:text-zinc-500 mt-1">
+                      Coming soon for node operators.
+                    </div>
+                  </button>
+                </Tooltip>
               </div>
 
               <WalletFooterRow

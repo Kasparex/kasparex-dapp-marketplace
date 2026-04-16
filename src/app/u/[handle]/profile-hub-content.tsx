@@ -14,7 +14,6 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { createKnsClient, type KnsDomainProfileResponse, type KnsAsset } from '@/lib/kns/client';
 import { useUnifiedProfile } from '@/hooks/useUnifiedProfile';
 import { buildLinkEvmMessage, verifyLinkEvmSignature } from '@/lib/profile/linking';
-import { Tooltip } from '@/components/ui/Tooltip';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 
 type TabId = 'overview' | 'portfolio' | 'content' | 'kns' | 'settings';
@@ -48,7 +47,14 @@ export function ProfileHubContent({
   const [knsDomains, setKnsDomains] = useState<string[] | null>(null);
 
   const kaspaAddress = useMemo(() => {
-    if (initialKaspaAddress) return initialKaspaAddress;
+    if (initialKaspaAddress) {
+      try {
+        return normalizeKaspaAddress(initialKaspaAddress).toLowerCase();
+      } catch {
+        const lower = initialKaspaAddress.toLowerCase();
+        return lower.startsWith('kaspa:') ? lower : `kaspa:${lower}`;
+      }
+    }
     // If user lands on /u/<something> but is connected with Kaspa wallet and it matches the handle, allow it.
     if (initialHandle && isValidKaspaAddress(initialHandle)) {
       try {
@@ -182,17 +188,16 @@ export function ProfileHubContent({
           >
             {/* Identity card */}
             <div className="space-y-6">
+              <div className="space-y-2">
+                <Link href="/studio/portfolio" className="k-control-btn w-full">
+                  Studio
+                </Link>
+                <Link href="/studio/modules" className="k-control-btn w-full">
+                  Modules
+                </Link>
+              </div>
+
               <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
-                <div className="mb-4">
-                  <div className="space-y-2">
-                    <Link href="/studio/portfolio" className="k-control-btn w-full">
-                      Studio
-                    </Link>
-                    <Link href="/studio/modules" className="k-control-btn w-full">
-                      Modules
-                    </Link>
-                  </div>
-                </div>
                 <div className="flex items-center gap-3">
                   <Avatar address={avatarSeed.replace(/^kaspa:/i, '')} size={44} />
                   <div className="min-w-0">
@@ -201,8 +206,8 @@ export function ProfileHubContent({
                       {displayNameLower}
                     </div>
                     {knsPrimaryName && (
-                      <div className="mt-0.5 flex items-center gap-1 text-[11px] text-zinc-600 dark:text-zinc-400 truncate">
-                        <span className="font-mono normal-case">{knsPrimaryName.toLowerCase()}</span>
+                      <div className="mt-0.5 flex items-center gap-1 text-[12px] font-bold text-[#02abb8] truncate">
+                        <span className="normal-case">{knsPrimaryName.toLowerCase()}</span>
                         <CopyIconButton value={knsPrimaryName.toLowerCase()} label="Copy domain" />
                       </div>
                     )}
@@ -245,9 +250,9 @@ export function ProfileHubContent({
                       {knsDomains.slice(0, 6).map((d) => (
                         <span
                           key={d}
-                          className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700"
+                          className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] font-black uppercase tracking-widest border border-[#02abb8]/20"
                         >
-                          <span className="font-mono normal-case">{d.toLowerCase()}</span>
+                          <span className="normal-case">{d.toLowerCase()}</span>
                           <CopyIconButton value={d.toLowerCase()} label="Copy domain" />
                         </span>
                       ))}
@@ -593,8 +598,10 @@ function KnsTab({
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="w-full h-full bg-gradient-to-br from-white via-[#02abb8]/5 to-transparent dark:from-zinc-900 dark:via-[#02abb8]/10 dark:to-zinc-950" />
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-zinc-500/10 border-zinc-500/20 text-zinc-700 dark:text-zinc-200">
-                          KNS
+                        <span className="px-4 py-2 rounded-2xl bg-white/70 dark:bg-zinc-950/50 border border-white/60 dark:border-white/10 shadow-sm">
+                          <span className="text-[15px] font-black tracking-tight text-zinc-900 dark:text-zinc-100">
+                            {x.name}
+                          </span>
                         </span>
                       </div>
                     </div>
@@ -919,25 +926,32 @@ function ProfileHaloHeader({
 }
 
 function CopyIconButton({ value, label }: { value: string; label: string }) {
+  const [copied, setCopied] = useState(false);
   return (
-    <Tooltip content={label}>
-      <button
-        type="button"
-        onClick={async () => {
-          try {
-            await navigator.clipboard.writeText(value);
-          } catch {
-            // ignore
-          }
-        }}
-        className="p-1 rounded-lg hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
-        aria-label={label}
-      >
-        <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <button
+      type="button"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(value);
+          setCopied(true);
+          window.setTimeout(() => setCopied(false), 900);
+        } catch {
+          // ignore
+        }
+      }}
+      className="p-1 rounded-lg hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
+      aria-label={label}
+    >
+      {copied ? (
+        <svg className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+      ) : (
+        <svg className="w-3.5 h-3.5 text-[#02abb8] dark:text-[#66dfe8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
         </svg>
-      </button>
-    </Tooltip>
+      )}
+    </button>
   );
 }
 

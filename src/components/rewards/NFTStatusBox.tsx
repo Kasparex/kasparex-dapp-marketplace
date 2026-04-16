@@ -7,6 +7,7 @@ import { NFTBuyWizard } from './NFTBuyWizard';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { NFT_POINTS } from '@/lib/nft/points';
 import { getPartnerCollections } from '@/lib/nft/collections';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 export type NFTStatusBoxLayout = 'default' | 'compact-cards';
 
@@ -171,31 +172,32 @@ export function NFTStatusBox({
       onClick?: () => void,
       okClass = 'text-green-600 dark:text-green-400'
     ) => (
-      <div
-        role={onClick ? 'button' : undefined}
-        tabIndex={onClick ? 0 : undefined}
-        onClick={onClick}
-        onKeyDown={
-          onClick
-            ? (e) => {
-                if (e.key === 'Enter' || e.key === ' ') onClick();
-              }
-            : undefined
-        }
-        className={[
-          'rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50/90 dark:bg-zinc-900/70 px-2.5 py-2 min-h-[56px] flex flex-col justify-center',
-          onClick ? 'cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors' : '',
-        ].join(' ')}
-        title={tooltip || label}
-      >
-        <div className="text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 truncate" title={label}>
-          {label}
+      <Tooltip content={tooltip || label}>
+        <div
+          role={onClick ? 'button' : undefined}
+          tabIndex={onClick ? 0 : undefined}
+          onClick={onClick}
+          onKeyDown={
+            onClick
+              ? (e) => {
+                  if (e.key === 'Enter' || e.key === ' ') onClick();
+                }
+              : undefined
+          }
+          className={[
+            'rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50/90 dark:bg-zinc-900/70 px-2.5 py-2 min-h-[56px] flex flex-col justify-center',
+            onClick ? 'cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors' : '',
+          ].join(' ')}
+        >
+          <div className="text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 truncate">
+            {label}
+          </div>
+          <div className={`text-[12px] font-semibold leading-tight ${ok ? okClass : 'text-zinc-500 dark:text-zinc-500'}`}>
+            {ok ? '✓ Held' : '—'}
+          </div>
+          {sub ? <div className="text-[10px] text-zinc-500 dark:text-zinc-500 truncate">{sub}</div> : null}
         </div>
-        <div className={`text-[12px] font-semibold leading-tight ${ok ? okClass : 'text-zinc-500 dark:text-zinc-500'}`}>
-          {ok ? '✓ Held' : '—'}
-        </div>
-        {sub ? <div className="text-[10px] text-zinc-500 dark:text-zinc-500 truncate">{sub}</div> : null}
-      </div>
+      </Tooltip>
     );
 
     return (
@@ -209,16 +211,18 @@ export function NFTStatusBox({
                   Active
                 </span>
               ) : null}
-              <button
-                type="button"
-                className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 rounded"
-                onClick={() => setShowModal(true)}
-                aria-label="View NFT rewards"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </button>
+              <Tooltip content="View NFT rewards">
+                <button
+                  type="button"
+                  className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 rounded"
+                  onClick={() => setShowModal(true)}
+                  aria-label="View NFT rewards"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </button>
+              </Tooltip>
             </div>
           </div>
 
@@ -279,7 +283,7 @@ export function NFTStatusBox({
                   else setShowBuyWizard(true);
                 }}
                 className="w-full mt-2 px-3 py-2 text-xs font-bold text-center bg-[#02abb8] hover:bg-[#028a94] text-white rounded-xl transition-colors"
-                title="Buy NFTs on L1 and bridge them to L2"
+                aria-label="Buy or bridge NFTs"
               >
                 Buy/Bridge NFTs
               </button>

@@ -34,6 +34,7 @@ import { WalletMiniCard } from '@/components/wallet-dropdown/WalletMiniCard';
 import { WalletQuickActionsRow } from '@/components/wallet-dropdown/WalletQuickActionsRow';
 import { WalletFooterRow } from '@/components/wallet-dropdown/WalletFooterRow';
 import { BRIDGE_URLS, getAddressExplorerUrl, getNetworkBridgeUrl, getUiNativeSymbol, shortenAddress } from '@/lib/walletUi';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 export function EVMWalletButton() {
   const { address, isConnected } = useAccount();
@@ -156,29 +157,31 @@ export function EVMWalletButton() {
           aria-label="EVM Wallet"
         >
           {/* Network badge (opens chain switcher) */}
-          <span
-            role="button"
-            tabIndex={0}
-            onClick={(e) => {
-              e.stopPropagation();
-              openChainModal?.();
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
+          <Tooltip content="Switch L2 network">
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
                 e.stopPropagation();
                 openChainModal?.();
-              }
-            }}
-            className={`flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm hover:opacity-90 transition-opacity cursor-pointer ${networkBadgeColorClass}`}
-            title="Switch network"
-          >
-            L2
-            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
-            </svg>
-            {networkLabel}
-          </span>
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openChainModal?.();
+                }
+              }}
+              className={`flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm hover:opacity-90 transition-opacity cursor-pointer ${networkBadgeColorClass}`}
+              aria-label="Switch L2 network"
+            >
+              L2
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
+              </svg>
+              {networkLabel}
+            </span>
+          </Tooltip>
           
           {/* Avatar */}
           <Avatar address={address} size={20} />
@@ -229,6 +232,7 @@ export function EVMWalletButton() {
                   {
                     id: 'send',
                     label: 'Send',
+                    tooltip: 'Send KAS or tokens',
                     icon: 'send',
                     onClick: () => {
                       setIsSendOpen(true);
@@ -239,6 +243,7 @@ export function EVMWalletButton() {
                   {
                     id: 'receive',
                     label: 'Receive',
+                    tooltip: 'Show your address to receive funds',
                     icon: 'receive',
                     onClick: () => setIsReceiveOpen(true),
                     variant: 'secondary',
@@ -246,6 +251,7 @@ export function EVMWalletButton() {
                   {
                     id: 'bridge_native',
                     label: 'Bridge',
+                    tooltip: 'Bridge KAS/KREX and NFTs',
                     icon: 'bridge',
                     onClick: () => setIsBridgeInfoOpen(true),
                     variant: 'secondary',
@@ -253,6 +259,7 @@ export function EVMWalletButton() {
                   {
                     id: 'buy_krex',
                     label: 'Buy KREX',
+                    tooltip: 'Buy KREX token',
                     icon: 'buy',
                     onClick: () => {
                       setIsDropdownOpen(false);
@@ -333,17 +340,18 @@ export function EVMWalletButton() {
                     <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
                       Tiers & Benefits (Total)
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setIsRewardsOpen(true)}
-                      className="p-1 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
-                      aria-label="Tier & benefits info"
-                      title="Rewards"
-                    >
-                      <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </button>
+                    <Tooltip content="View tier rewards & benefits">
+                      <button
+                        type="button"
+                        onClick={() => setIsRewardsOpen(true)}
+                        className="p-1 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
+                        aria-label="View tier rewards & benefits"
+                      >
+                        <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </button>
+                    </Tooltip>
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-zinc-500 dark:text-zinc-400">Tier</span>
@@ -386,25 +394,27 @@ export function EVMWalletButton() {
               </div>
 
               <div className="px-4 pb-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsNodeOpen(true);
-                    setIsDropdownOpen(false);
-                  }}
-                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/50 p-3 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors"
-                  title="Node status (coming soon)"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-                      Node status
+                <Tooltip content="Open node status (coming soon)">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsNodeOpen(true);
+                      setIsDropdownOpen(false);
+                    }}
+                    className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/50 p-3 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors"
+                    aria-label="Open node status (coming soon)"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                        Node status
+                      </div>
+                      <div className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">—</div>
                     </div>
-                    <div className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">—</div>
-                  </div>
-                  <div className="text-[11px] text-zinc-500 dark:text-zinc-500 mt-1">
-                    Coming soon for node operators.
-                  </div>
-                </button>
+                    <div className="text-[11px] text-zinc-500 dark:text-zinc-500 mt-1">
+                      Coming soon for node operators.
+                    </div>
+                  </button>
+                </Tooltip>
               </div>
 
               <WalletFooterRow

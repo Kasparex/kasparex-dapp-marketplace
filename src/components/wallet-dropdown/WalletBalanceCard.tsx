@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 export function WalletBalanceCard({
@@ -16,6 +17,7 @@ export function WalletBalanceCard({
   onCopyAddress?: () => void;
   onOpenExplorer?: () => void;
 }) {
+  const [copied, setCopied] = useState(false);
   return (
     <div className="px-4 py-3">
       <div className="bg-zinc-50 dark:bg-zinc-800 rounded-xl p-3 border border-zinc-200/60 dark:border-zinc-700/60">
@@ -35,16 +37,26 @@ export function WalletBalanceCard({
           {(onCopyAddress || onOpenExplorer) ? (
             <div className="flex items-center gap-1 shrink-0">
               {onCopyAddress ? (
-                <Tooltip content="Copy address">
+                <Tooltip content={copied ? 'Copied' : 'Copy'}>
                   <button
                     type="button"
-                    onClick={onCopyAddress}
+                    onClick={() => {
+                      onCopyAddress?.();
+                      setCopied(true);
+                      window.setTimeout(() => setCopied(false), 900);
+                    }}
                     className="p-2 rounded-lg hover:bg-zinc-200/60 dark:hover:bg-zinc-700/60 transition-colors"
                     aria-label="Copy address"
                   >
-                    <svg className="w-4 h-4 text-zinc-500 dark:text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
+                    {copied ? (
+                      <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4 text-[#02abb8] dark:text-[#66dfe8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    )}
                   </button>
                 </Tooltip>
               ) : null}
