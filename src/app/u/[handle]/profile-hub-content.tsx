@@ -227,58 +227,28 @@ export function ProfileHubContent({
               <SidebarHeader backHref="/hub" backLabel="Back to Hub" onHide={onHide} />
             )}
           >
-            <div className="px-3 pt-3 pb-4 space-y-2 border-b border-zinc-200/70 dark:border-zinc-800/70 mb-4">
-              <button
-                type="button"
-                onClick={() => goTab('workspace', 'dashboard')}
-                className={`k-control-btn w-full justify-center gap-2 ${
-                  activeTab === 'workspace' ? '!border-[#02abb8]/40 !bg-[#02abb8]/15 !text-[#017a84] dark:!text-[#8ff1f8]' : ''
-                }`}
-              >
-                <span className="text-xs font-black uppercase tracking-widest">Workspace</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => goTab('editors', 'vblog')}
-                className={`k-control-btn w-full justify-center gap-2 ${
-                  activeTab === 'editors' ? '!border-[#02abb8]/40 !bg-[#02abb8]/15 !text-[#017a84] dark:!text-[#8ff1f8]' : ''
-                }`}
-              >
-                <span className="text-xs font-black uppercase tracking-widest">Editors</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => goTab('dapps')}
-                className={`k-control-btn w-full justify-center gap-2 ${
-                  activeTab === 'dapps' ? '!border-[#02abb8]/40 !bg-[#02abb8]/15 !text-[#017a84] dark:!text-[#8ff1f8]' : ''
-                }`}
-              >
-                <span className="text-xs font-black uppercase tracking-widest">dApps</span>
-              </button>
-            </div>
-
-            <SidebarSection title="Workspace">
+            <SidebarSection title="workspace">
               <nav className="space-y-0.5">
                 <SidebarNavItem
-                  label="Overview"
+                  label="overview"
                   active={activeTab === 'overview'}
                   onClick={() => goTab('overview')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>}
                 />
                 <SidebarNavItem
-                  label="Dashboard"
+                  label="dashboard"
                   active={activeTab === 'workspace' && (view === '' || view === 'dashboard')}
                   onClick={() => goTab('workspace', 'dashboard')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
                 />
                 <SidebarNavItem
-                  label="Portfolio"
+                  label="portfolio"
                   active={activeTab === 'workspace' && view === 'portfolio'}
                   onClick={() => goTab('workspace', 'portfolio')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745V20a2 2 0 002 2h14a2 2 0 002-2v-6.745zM18 8a2 2 0 11-4 0 2 2 0 014 0zM10 8a2 2 0 11-4 0 2 2 0 014 0z" /><path d="M6 5c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v3H6V5z" /></svg>}
                 />
                 <SidebarNavItem
-                  label="Activity"
+                  label="activity"
                   active={activeTab === 'workspace' && view === 'activity'}
                   onClick={() => goTab('workspace', 'activity')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}
@@ -286,22 +256,22 @@ export function ProfileHubContent({
               </nav>
             </SidebarSection>
 
-            <SidebarSection title="Editors">
+            <SidebarSection title="editors">
               <nav className="space-y-0.5">
                 <SidebarNavItem
-                  label="vBlog"
+                  label="vblog"
                   active={activeTab === 'editors' && (view === '' || view === 'vblog')}
                   onClick={() => goTab('editors', 'vblog')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>}
                 />
                 <SidebarNavItem
-                  label="Magazines"
+                  label="magazines"
                   active={activeTab === 'editors' && view === 'magazine'}
                   onClick={() => goTab('editors', 'magazine')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
                 />
                 <SidebarNavItem
-                  label="Store"
+                  label="store"
                   active={activeTab === 'editors' && view === 'store'}
                   onClick={() => goTab('editors', 'store')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7l1 2m0 0l2 10a2 2 0 002 2h8a2 2 0 002-2l2-10m-14 0h14M9 21a1 1 0 100-2 1 1 0 000 2zm6 0a1 1 0 100-2 1 1 0 000 2z" /></svg>}
@@ -309,43 +279,43 @@ export function ProfileHubContent({
               </nav>
             </SidebarSection>
 
-            <SidebarSection title="dApps">
+            <SidebarSection title="dapps">
               <nav className="space-y-0.5">
                 <SidebarNavItem
-                  label="My dApps"
+                  label="my dapps"
                   active={activeTab === 'dapps'}
                   onClick={() => goTab('dapps')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
                 />
                 <SidebarNavItem
-                  label="Create"
+                  label="create"
                   href="/build-dapp"
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>}
                 />
                 <SidebarNavItem
-                  label="List"
+                  label="list"
                   href="/list-dapp"
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h10M7 16h10" /></svg>}
                 />
               </nav>
             </SidebarSection>
 
-            <SidebarSection title="Management">
+            <SidebarSection title="management">
               <nav className="space-y-0.5">
                 <SidebarNavItem
-                  label="Ads"
+                  label="ads"
                   active={activeTab === 'ads'}
                   onClick={() => goTab('ads')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" /></svg>}
                 />
                 <SidebarNavItem
-                  label="Assets"
+                  label="assets"
                   active={activeTab === 'assets'}
                   onClick={() => goTab('assets')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
                 />
                 <SidebarNavItem
-                  label="Content"
+                  label="content"
                   active={activeTab === 'content'}
                   onClick={() => goTab('content')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-6 4h10" /></svg>}
@@ -353,10 +323,10 @@ export function ProfileHubContent({
               </nav>
             </SidebarSection>
 
-            <SidebarSection title="Identity">
+            <SidebarSection title="identity">
               <nav className="space-y-0.5">
                 <SidebarNavItem
-                  label="KNS"
+                  label="kns"
                   active={activeTab === 'kns'}
                   onClick={() => goTab('kns')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
@@ -364,15 +334,15 @@ export function ProfileHubContent({
               </nav>
             </SidebarSection>
 
-            <SidebarSection title="Tools">
+            <SidebarSection title="tools">
               <nav className="space-y-0.5">
                 <SidebarNavItem
-                  label="Modules"
+                  label="modules"
                   href="/dapp-modules"
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>}
                 />
                 <SidebarNavItem
-                  label="Revenue Tree"
+                  label="revenue tree"
                   href="/tree/dashboard"
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}
                 />
@@ -380,10 +350,10 @@ export function ProfileHubContent({
             </SidebarSection>
 
             {isOwnProfile && (
-              <SidebarSection title="Owner">
+              <SidebarSection title="owner">
                 <nav className="space-y-0.5">
                   <SidebarNavItem
-                    label="Settings"
+                    label="settings"
                     active={activeTab === 'settings'}
                     onClick={() => goTab('settings')}
                     icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
@@ -409,6 +379,12 @@ export function ProfileHubContent({
                   isOwnProfile={isOwnProfile}
                   onEdit={() => setActiveTab('settings')}
                   onOpenKns={() => goTab('kns')}
+                />
+
+                <ProfileTabStrip
+                  activeTab={activeTab}
+                  isOwnProfile={isOwnProfile}
+                  onTab={(t) => goTab(t)}
                 />
 
                 {activeTab === 'overview' && (
@@ -486,7 +462,7 @@ export function ProfileHubContent({
                   <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6">
                     <div className="text-sm text-zinc-600 dark:text-zinc-400">
                       <div>
-                        This profile could not be resolved yet. Try opening a `.kas` name (example: <span className="font-mono">yourname.kas</span>) or a Kaspa address.
+                        This profile could not be resolved yet. Try opening a `.kas` name (example: <span className="font-semibold">yourname.kas</span>) or a Kaspa address.
                       </div>
                       <div className="mt-2">
                         If you opened an EVM address, link it to a Kaspa identity first.
@@ -549,7 +525,7 @@ function OverviewTab({
         <Card title="Public profile">
           <div className="space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
             <div className="flex items-center justify-between">
-              <span className="font-bold uppercase tracking-widest text-[10px]">Visibility</span>
+              <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">visibility</span>
               <span className="font-black text-zinc-900 dark:text-zinc-100">Public</span>
             </div>
             <div className="text-[11px] leading-relaxed">
@@ -575,9 +551,9 @@ function ContentTab({ kaspaAddress }: { kaspaAddress: string | null }) {
           </div>
           <Link
             href={kaspaAddress ? `/vblog/author/${encodeURIComponent(kaspaAddress).replaceAll('%3A', ':')}` : '/vblog'}
-            className="inline-flex items-center justify-center px-4 py-2 rounded-xl font-bold uppercase tracking-widest text-[10px] bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+            className="k-control-btn whitespace-nowrap"
           >
-            {view === 'articles' ? 'Open author articles' : 'Open vBlog author page'}
+            {view === 'articles' ? 'open author articles' : 'open vblog author page'}
           </Link>
         </div>
       </Card>
@@ -693,7 +669,7 @@ function KnsTab({
       <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="text-[11px] font-black text-zinc-400 uppercase tracking-[0.2em]">KNS</div>
+            <SectionTitle title="kns" />
             <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
               Primary: <span className="font-semibold text-zinc-900 dark:text-zinc-100">{primaryName ? primaryName.toLowerCase() : '—'}</span>
               {primaryName ? <span className="ml-2"><CopyIconButton value={primaryName.toLowerCase()} label="Copy primary domain" /></span> : null}
@@ -706,7 +682,7 @@ function KnsTab({
       </div>
 
       <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
-        <div className="text-[11px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4">Owned domains</div>
+        <SectionTitle title="owned domains" />
         {!kaspaAddress ? (
           <div className="text-sm text-zinc-600 dark:text-zinc-400">Resolve a Kaspa address to load domains.</div>
         ) : isLoading ? (
@@ -789,21 +765,19 @@ function SettingsTab({
 
   return (
     <div className="space-y-6">
-      <Card title="Profile settings (local draft)">
+      <Card title="profile settings (local draft)">
         <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-4">
           For this first iteration, edits are saved locally. Next step is publishing to IPFS + registry updates with KAS-paid actions.
         </div>
 
         <div className="grid gap-4">
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-4">
-            <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">
-              Link L2 wallet (proof)
-            </div>
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-4">
+            <SectionTitle title="link l2 wallet (proof)" />
             <div className="text-[11px] text-zinc-600 dark:text-zinc-400">
-              Canonical identity: <span className="font-mono">{kaspaAddress || '—'}</span>
+              Canonical identity: <span className="font-semibold text-zinc-900 dark:text-zinc-100">{kaspaAddress || '—'}</span>
             </div>
             <div className="mt-2 text-[11px] text-zinc-600 dark:text-zinc-400">
-              Connected EVM: <span className="font-mono">{connectedEvmAddress || '—'}</span>
+              Connected EVM: <span className="font-semibold text-zinc-900 dark:text-zinc-100">{connectedEvmAddress || '—'}</span>
             </div>
 
             <div className="mt-4 flex flex-col sm:flex-row gap-3">
@@ -821,13 +795,9 @@ function SettingsTab({
                     setLinkError(e?.message || 'Failed to link wallet');
                   }
                 }}
-                className={`flex-1 px-4 py-2 rounded-xl font-black uppercase tracking-widest text-[10px] transition-colors border ${
-                  !connectedEvmAddress || !kaspaAddress || isLinking
-                    ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 border-zinc-200 dark:border-zinc-700 cursor-not-allowed'
-                    : 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border-zinc-200 dark:border-zinc-800 hover:border-[#02abb8]/40 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-                }`}
+                className={`k-control-btn flex-1 ${!connectedEvmAddress || !kaspaAddress || isLinking ? 'opacity-60 cursor-not-allowed' : ''}`}
               >
-                {isLinking ? 'Signing…' : 'Link EVM wallet'}
+                {isLinking ? 'signing…' : 'link evm wallet'}
               </button>
             </div>
 
@@ -844,54 +814,46 @@ function SettingsTab({
           </div>
 
           <div>
-            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">
-              Avatar URL (or `ipfs://...`)
-            </label>
+            <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2">avatar url (or `ipfs://...`)</label>
             <input
               value={avatar}
               onChange={(e) => setAvatar(e.target.value)}
               placeholder="https://... or ipfs://CID"
-              className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#02abb8]/40"
+              className="k-input"
               maxLength={500}
             />
           </div>
 
           <div>
-            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">
-              Banner URL (or `ipfs://...`)
-            </label>
+            <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2">banner url (or `ipfs://...`)</label>
             <input
               value={banner}
               onChange={(e) => setBanner(e.target.value)}
               placeholder="https://... or ipfs://CID"
-              className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#02abb8]/40"
+              className="k-input"
               maxLength={500}
             />
           </div>
 
           <div>
-            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">
-              Display name
-            </label>
+            <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2">display name</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#02abb8]/40"
+              className="k-input"
               maxLength={50}
             />
           </div>
           <div>
-            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">
-              Bio
-            </label>
+            <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2">bio</label>
             <textarea
               value={b}
               onChange={(e) => setB(e.target.value)}
               rows={5}
-              className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#02abb8]/40 resize-none"
+              className="k-textarea resize-none"
               maxLength={500}
             />
-            <div className="mt-1 text-[10px] font-bold text-zinc-500 text-right uppercase tracking-widest">
+            <div className="mt-1 text-xs font-semibold text-zinc-500 text-right">
               {b.length}/500
             </div>
           </div>
@@ -906,9 +868,9 @@ function SettingsTab({
                   bannerUrl: banner.trim() || undefined,
                 })
               }
-              className="flex-1 px-4 py-2 rounded-xl font-black uppercase tracking-widest text-[10px] bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+              className="k-control-btn flex-1"
             >
-              Save draft
+              save draft
             </button>
           </div>
         </div>
@@ -959,13 +921,11 @@ function ProfileHaloHeader({
   }, [knsDomains, knsPrimaryName]);
   return (
     <section className="mb-6">
-      <div className="relative overflow-hidden rounded-3xl border border-zinc-200 dark:border-zinc-800/50 bg-gradient-to-br from-zinc-100 via-cyan-50/60 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/30 dark:to-zinc-950">
+      <div className="relative overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 right-0 w-[60%] h-[80%] bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.16),transparent_70%)] rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-[50%] h-[60%] bg-[radial-gradient(ellipse_at_bottom_left,_rgba(2,171,184,0.06),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_bottom_left,_rgba(2,171,184,0.09),transparent_70%)] rounded-full blur-3xl" />
           {bannerUrl ? (
             <div
-              className="absolute inset-0 opacity-25"
+              className="absolute inset-0 opacity-20"
               style={{
                 backgroundImage: `url(${bannerUrl})`,
                 backgroundSize: 'cover',
@@ -975,16 +935,12 @@ function ProfileHaloHeader({
           ) : null}
         </div>
 
-        <div className="relative z-10 p-6 sm:p-8">
+        <div className="relative z-10 p-5 sm:p-6">
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#02abb8]/10 border border-[#02abb8]/25 text-[#017a84] dark:text-[#8ff1f8] text-[10px] font-black uppercase tracking-[0.2em] mb-4 w-fit">
-                Profile Hub
-              </div>
-
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <div className="w-16 h-16 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 flex items-center justify-center overflow-hidden">
+                  <div className="w-16 h-16 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-center overflow-hidden">
                     {avatarUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
@@ -1000,18 +956,18 @@ function ProfileHaloHeader({
                   </h1>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     {isOwnProfile ? (
-                      <span className="text-[10px] px-2 py-0.5 inline-flex rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-bold uppercase border border-green-500/10">
-                        Owner
+                      <span className="text-[12px] px-2 py-0.5 inline-flex rounded-full bg-green-500/10 text-green-700 dark:text-green-400 font-semibold border border-green-500/10">
+                        owner
                       </span>
                     ) : (
-                      <span className="text-[10px] px-2 py-0.5 inline-flex rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold uppercase border border-zinc-200 dark:border-zinc-700">
-                        Public
+                      <span className="text-[12px] px-2 py-0.5 inline-flex rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 font-semibold border border-zinc-200 dark:border-zinc-700">
+                        public
                       </span>
                     )}
                     {visibleDomains.displayed.map((d) => (
                       <span
                         key={d}
-                        className="inline-flex items-center gap-2 text-[11px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] font-bold normal-case border border-[#02abb8]/20"
+                        className="inline-flex items-center gap-2 text-[12px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] font-semibold normal-case border border-[#02abb8]/20"
                       >
                         <span className="truncate max-w-[180px]">{d}</span>
                         <CopyIconButton value={d} label="Copy domain" />
@@ -1021,19 +977,19 @@ function ProfileHaloHeader({
                       <button
                         type="button"
                         onClick={onOpenKns}
-                        className="inline-flex items-center gap-2 text-[11px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 font-bold normal-case border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200/70 dark:hover:bg-zinc-700/70 transition-colors"
+                        className="inline-flex items-center gap-2 text-[12px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 font-semibold normal-case border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200/70 dark:hover:bg-zinc-700/70 transition-colors"
                       >
                         +{visibleDomains.remaining}
                       </button>
                     ) : null}
                     {kaspaAddress && (
-                      <span className="inline-flex items-center gap-2 text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 font-semibold border border-zinc-200 dark:border-zinc-700">
-                        <span className="font-mono normal-case">{formatKaspaAddress(kaspaAddress).display.toLowerCase()}</span>
+                      <span className="inline-flex items-center gap-2 text-[12px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 font-semibold border border-zinc-200 dark:border-zinc-700">
+                        <span className="normal-case">{formatKaspaAddress(kaspaAddress).display.toLowerCase()}</span>
                         <CopyIconButton value={formatKaspaAddress(kaspaAddress).full.toLowerCase()} label="Copy address" />
                       </span>
                     )}
                     {source !== 'none' && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/70 dark:bg-zinc-900/60 text-zinc-600 dark:text-zinc-300 font-bold uppercase border border-zinc-200 dark:border-zinc-700">
+                      <span className="text-[12px] px-2 py-0.5 rounded-full bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 font-semibold border border-zinc-200 dark:border-zinc-700">
                         {source}
                       </span>
                     )}
@@ -1050,15 +1006,15 @@ function ProfileHaloHeader({
               <div className="flex items-center gap-3">
                 <button
                   onClick={onEdit}
-                  className="px-4 py-2 rounded-xl font-black uppercase tracking-widest text-[10px] bg-white/80 dark:bg-zinc-900/70 border border-zinc-200 dark:border-zinc-800 hover:border-[#02abb8]/40 hover:bg-white dark:hover:bg-zinc-800 transition-colors"
+                  className="k-control-btn"
                 >
-                  Edit
+                  edit
                 </button>
                 <Link
                   href={kaspaAddress ? `/u/${encodeURIComponent(kaspaAddress)}?tab=workspace` : '/u?tab=workspace'}
-                  className="px-4 py-2 rounded-xl font-black uppercase tracking-widest text-[10px] bg-[#02abb8] hover:bg-[#028a94] text-white transition-colors"
+                  className="k-control-btn !bg-[#02abb8] hover:!bg-[#028a94] !text-white !border-[#02abb8]/30"
                 >
-                  Workspace
+                  workspace
                 </Link>
               </div>
             ) : null}
@@ -1066,6 +1022,50 @@ function ProfileHaloHeader({
         </div>
       </div>
     </section>
+  );
+}
+
+function ProfileTabStrip({
+  activeTab,
+  isOwnProfile,
+  onTab,
+}: {
+  activeTab: TabId;
+  isOwnProfile: boolean;
+  onTab: (t: TabId) => void;
+}) {
+  const tabs: Array<{ id: TabId; label: string; ownerOnly?: boolean }> = [
+    { id: 'overview', label: 'overview' },
+    { id: 'workspace', label: 'workspace' },
+    { id: 'editors', label: 'editors' },
+    { id: 'dapps', label: 'dapps' },
+    { id: 'ads', label: 'ads' },
+    { id: 'assets', label: 'assets' },
+    { id: 'content', label: 'content' },
+    { id: 'kns', label: 'kns' },
+    { id: 'settings', label: 'settings', ownerOnly: true },
+  ];
+  return (
+    <div className="mb-6">
+      <div className="k-control-group w-full overflow-x-auto">
+        {tabs
+          .filter((t) => !t.ownerOnly || isOwnProfile)
+          .map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => onTab(t.id)}
+              className={`h-10 px-4 text-sm font-medium whitespace-nowrap transition-colors ${
+                activeTab === t.id
+                  ? 'bg-[#02abb8]/10 text-[#017a84] dark:text-[#8ff1f8]'
+                  : 'text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+      </div>
+    </div>
   );
 }
 
@@ -1112,18 +1112,25 @@ function ActionLink({ href, label }: { href: string; label: string }) {
 
 function LoadingCard({ label }: { label: string }) {
   return (
-    <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6">
+    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
       <div className="text-sm text-zinc-600 dark:text-zinc-400">{label}</div>
+    </div>
+  );
+}
+
+function SectionTitle({ title }: { title: string }) {
+  return (
+    <div className="flex items-center gap-2 mb-4">
+      <span className="w-1 h-4 rounded-full bg-[#02abb8]" />
+      <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">{title}</span>
     </div>
   );
 }
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6">
-      <div className="text-[11px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4">
-        {title}
-      </div>
+    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
+      <SectionTitle title={title} />
       {children}
     </div>
   );
@@ -1132,7 +1139,7 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 function InfoPill({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 px-4 py-3">
-      <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{label}</div>
+      <div className="text-[12px] font-semibold text-zinc-600 dark:text-zinc-400">{label}</div>
       <div className="text-sm font-black text-zinc-900 dark:text-zinc-100 truncate">{value}</div>
     </div>
   );

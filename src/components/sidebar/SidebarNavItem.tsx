@@ -44,7 +44,7 @@ export function SidebarNavItem({
   const baseClass = `k-sidebar-item group ${activeClass} ${className}`.trim();
   const labelCn =
     labelClassName ??
-    'text-[11px] font-bold uppercase tracking-wider flex-1 min-w-0 truncate leading-tight';
+    'text-[13px] font-medium text-zinc-700 dark:text-zinc-200 flex-1 min-w-0 truncate leading-tight';
 
   const content = (
     <>
