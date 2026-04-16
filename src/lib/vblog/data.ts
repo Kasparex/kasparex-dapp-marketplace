@@ -28,10 +28,24 @@ export function getAllArticles(): VBlogArticle[] {
     const stored = localStorage.getItem(STORAGE_KEYS.articles);
     if (!stored) return getDefaultArticles();
     const parsed = JSON.parse(stored) as unknown;
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      return getDefaultArticles();
+    // Backward compatibility: accept multiple persisted shapes.
+    if (Array.isArray(parsed)) {
+      return parsed.length === 0 ? getDefaultArticles() : (parsed as VBlogArticle[]);
     }
-    return parsed as VBlogArticle[];
+    if (parsed && typeof parsed === 'object') {
+      const anyParsed = parsed as any;
+      if (Array.isArray(anyParsed.articles)) {
+        return anyParsed.articles.length === 0 ? getDefaultArticles() : (anyParsed.articles as VBlogArticle[]);
+      }
+      if (Array.isArray(anyParsed.items)) {
+        return anyParsed.items.length === 0 ? getDefaultArticles() : (anyParsed.items as VBlogArticle[]);
+      }
+      // Map/object keyed by id → array.
+      const values = Object.values(anyParsed);
+      const asArticles = values.filter((v) => v && typeof v === 'object' && 'title' in (v as any) && 'author' in (v as any)) as VBlogArticle[];
+      if (asArticles.length > 0) return asArticles;
+    }
+    return getDefaultArticles();
   } catch (error) {
     console.error('Error loading articles:', error);
     return getDefaultArticles();

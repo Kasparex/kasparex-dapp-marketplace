@@ -170,23 +170,7 @@ export function ProfileHubContent({
             header={(onHide) => (
               <SidebarHeader backHref="/hub" backLabel="Back to Hub" onHide={onHide} />
             )}
-            footer={
-              <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-white/5">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#02abb8] to-emerald-500 overflow-hidden" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-black text-zinc-900 dark:text-zinc-100 uppercase truncate">
-                      Kasparex Profile
-                    </p>
-                    <p className="text-[9px] font-bold text-zinc-500 uppercase">
-                      Public Hub
-                    </p>
-                  </div>
-                </div>
-              </div>
-            }
           >
-            {/* Identity card */}
             <div className="space-y-6">
               <div className="space-y-2">
                 <Link href="/studio/portfolio" className="k-control-btn w-full">
@@ -195,75 +179,12 @@ export function ProfileHubContent({
                 <Link href="/studio/modules" className="k-control-btn w-full">
                   Modules
                 </Link>
-              </div>
-
-              <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
-                <div className="flex items-center gap-3">
-                  <Avatar address={avatarSeed.replace(/^kaspa:/i, '')} size={44} />
-                  <div className="min-w-0">
-                    <div className="text-xs font-black uppercase tracking-widest text-zinc-500">Profile</div>
-                    <div className="text-sm font-black text-zinc-900 dark:text-zinc-100 truncate">
-                      {displayNameLower}
-                    </div>
-                    {knsPrimaryName && (
-                      <div className="mt-0.5 flex items-center gap-1 text-[12px] font-bold text-[#02abb8] truncate">
-                        <span className="normal-case">{knsPrimaryName.toLowerCase()}</span>
-                        <CopyIconButton value={knsPrimaryName.toLowerCase()} label="Copy domain" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mt-4 space-y-2">
-                  {kaspaAddress ? (
-                    <div className="text-[11px] font-mono text-zinc-600 dark:text-zinc-400 break-all">
-                      {kaspaAddress}
-                    </div>
-                  ) : (
-                    <div className="text-[11px] text-zinc-600 dark:text-zinc-400">
-                      Enter a `.kas` name or Kaspa address.
-                    </div>
-                  )}
-
-                  {isOwnProfile ? (
-                    <div className="text-[10px] px-2 py-0.5 inline-flex rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-bold uppercase border border-green-500/10">
-                      Owner
-                    </div>
-                  ) : (
-                    <div className="text-[10px] px-2 py-0.5 inline-flex rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold uppercase border border-zinc-200 dark:border-zinc-700">
-                      Public
-                    </div>
-                  )}
-                </div>
-
-                {/* KNS domains preview */}
-                <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
-                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-3">
-                    KNS domains
-                  </div>
-                  {knsDomains == null ? (
-                    <div className="text-[11px] text-zinc-600 dark:text-zinc-400">Open the KNS tab to load domains.</div>
-                  ) : knsDomains.length === 0 ? (
-                    <div className="text-[11px] text-zinc-600 dark:text-zinc-400">No domains detected.</div>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {knsDomains.slice(0, 6).map((d) => (
-                        <span
-                          key={d}
-                          className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] font-black uppercase tracking-widest border border-[#02abb8]/20"
-                        >
-                          <span className="normal-case">{d.toLowerCase()}</span>
-                          <CopyIconButton value={d.toLowerCase()} label="Copy domain" />
-                        </span>
-                      ))}
-                      {knsDomains.length > 6 && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold uppercase border border-zinc-200 dark:border-zinc-700">
-                          +{knsDomains.length - 6}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
+                <Link
+                  href={kaspaAddress ? `/vblog/author/${encodeURIComponent(kaspaAddress).replaceAll('%3A', ':')}` : '/vblog'}
+                  className="k-control-btn w-full"
+                >
+                  View articles
+                </Link>
               </div>
 
               {/* Nav */}
@@ -291,29 +212,6 @@ export function ProfileHubContent({
                   )}
                 </nav>
               </section>
-
-              {/* Quick links */}
-              <section>
-                <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4 px-2">
-                  Quick links
-                </h3>
-                <div className="space-y-2">
-                  <Link
-                    href={kaspaAddress ? `/vblog/author/${encodeURIComponent(kaspaAddress).replaceAll('%3A', ':')}` : '/vblog'}
-                    className="block w-full px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-center border border-zinc-200 dark:border-zinc-700 hover:border-[#02abb8]/40"
-                  >
-                    View articles
-                  </Link>
-                  {isOwnProfile && (
-                    <Link
-                      href="/studio/portfolio"
-                      className="block w-full px-4 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors text-center border border-zinc-900/10 dark:border-zinc-100/10"
-                    >
-                      Creator studio
-                    </Link>
-                  )}
-                </div>
-              </section>
             </div>
           </UnifiedSidebar>
 
@@ -325,6 +223,7 @@ export function ProfileHubContent({
                   displayName={displayNameLower}
                   kaspaAddress={kaspaAddress}
                   knsPrimaryName={knsPrimaryName}
+                  knsDomains={knsDomains}
                   bio={profile?.bio?.trim() || knsProfile?.bio || ''}
                   source={source}
                   bannerUrl={bannerUrl}
@@ -439,13 +338,13 @@ function SidebarButton({
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider transition-colors border ${
+      className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg transition-colors ${
         active
-          ? 'bg-[#02abb8]/10 text-[#02abb8] border-[#02abb8]/20'
-          : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 hover:border-[#02abb8]/20'
+          ? 'bg-[#02abb8]/10 text-[#02abb8] border border-[#02abb8]/20'
+          : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
       }`}
     >
-      <span className="truncate">{children}</span>
+      <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">{children}</span>
       <svg className="w-4 h-4 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
       </svg>
@@ -595,14 +494,12 @@ function KnsTab({
                   className="relative flex flex-col min-h-0"
                 >
                   <KxListingCardMedia>
+                    <div className="absolute inset-0 bg-[#67d6cf]" />
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-full h-full bg-gradient-to-br from-white via-[#02abb8]/5 to-transparent dark:from-zinc-900 dark:via-[#02abb8]/10 dark:to-zinc-950" />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="px-4 py-2 rounded-2xl bg-white/70 dark:bg-zinc-950/50 border border-white/60 dark:border-white/10 shadow-sm">
-                          <span className="text-[15px] font-black tracking-tight text-zinc-900 dark:text-zinc-100">
-                            {x.name}
-                          </span>
-                        </span>
+                      <div className="px-6 text-center">
+                        <div className="text-[18px] font-black tracking-tight text-zinc-900">
+                          {x.name}
+                        </div>
                       </div>
                     </div>
                   </KxListingCardMedia>
@@ -816,6 +713,7 @@ function ProfileHaloHeader({
   displayName,
   kaspaAddress,
   knsPrimaryName,
+  knsDomains,
   bio,
   source,
   bannerUrl,
@@ -826,6 +724,7 @@ function ProfileHaloHeader({
   displayName: string;
   kaspaAddress: string | null;
   knsPrimaryName: string | null;
+  knsDomains: string[] | null;
   bio: string;
   source: string;
   bannerUrl: string | null;
@@ -876,12 +775,30 @@ function ProfileHaloHeader({
                     {displayName}
                   </h1>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
+                    {isOwnProfile ? (
+                      <span className="text-[10px] px-2 py-0.5 inline-flex rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-bold uppercase border border-green-500/10">
+                        Owner
+                      </span>
+                    ) : (
+                      <span className="text-[10px] px-2 py-0.5 inline-flex rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold uppercase border border-zinc-200 dark:border-zinc-700">
+                        Public
+                      </span>
+                    )}
                     {knsPrimaryName && (
                       <span className="inline-flex items-center gap-2 text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] font-black uppercase tracking-widest border border-[#02abb8]/20">
                         <span className="font-mono normal-case">{knsPrimaryName.toLowerCase()}</span>
                         <CopyIconButton value={knsPrimaryName.toLowerCase()} label="Copy domain" />
                       </span>
                     )}
+                    {(knsDomains || []).slice(0, 6).filter(Boolean).map((d) => (
+                      <span
+                        key={d}
+                        className="inline-flex items-center gap-2 text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] font-black uppercase tracking-widest border border-[#02abb8]/20"
+                      >
+                        <span className="normal-case">{String(d).toLowerCase()}</span>
+                        <CopyIconButton value={String(d).toLowerCase()} label="Copy domain" />
+                      </span>
+                    ))}
                     {kaspaAddress && (
                       <span className="inline-flex items-center gap-2 text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 font-semibold border border-zinc-200 dark:border-zinc-700">
                         <span className="font-mono normal-case">{formatKaspaAddress(kaspaAddress).display.toLowerCase()}</span>
@@ -947,7 +864,7 @@ function CopyIconButton({ value, label }: { value: string; label: string }) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
       ) : (
-        <svg className="w-3.5 h-3.5 text-[#02abb8] dark:text-[#66dfe8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
         </svg>
       )}
