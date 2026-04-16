@@ -5,8 +5,10 @@ export type KnsClientOptions = {
   baseUrl?: string;
 };
 
-function stripKaspaPrefix(address: string): string {
-  return String(address || '').trim().replace(/^kaspa:/i, '');
+function ensureKaspaPrefix(address: string): string {
+  const v = String(address || '').trim();
+  if (!v) return v;
+  return v.toLowerCase().startsWith('kaspa:') ? v : `kaspa:${v.replace(/^kaspa:/i, '')}`;
 }
 
 function getDefaultBaseUrl(network: KnsNetwork): string {
@@ -92,25 +94,41 @@ export function createKnsClient(opts?: KnsClientOptions) {
 
     async getAssetsByOwner(ownerAddress: string): Promise<KnsAsset[]> {
       const url = new URL('/api/v1/assets', baseUrl);
-      // KNS expects raw owner address (no `kaspa:` prefix).
-      url.searchParams.set('owner', stripKaspaPrefix(ownerAddress));
-      const data = await fetchJson<{ assets?: KnsAsset[] } | KnsAsset[]>(url.toString());
-      if (Array.isArray(data)) return data;
-      return data.assets || [];
+      // KNS expects `kaspa:`-prefixed owner address (confirmed via live API).
+      url.searchParams.set('owner', ensureKaspaPrefix(ownerAddress));
+      const data = await fetchJson<any>(url.toString());
+      // Supported shapes:
+      // - { success: true, data: { assets: [...], pagination: {...} } }
+      // - { assets: [...] }
+      // - [ ... ]
+      if (Array.isArray(data)) return data as KnsAsset[];
+      if (data?.data?.assets && Array.isArray(data.data.assets)) return data.data.assets as KnsAsset[];
+      if (data?.assets && Array.isArray(data.assets)) return data.assets as KnsAsset[];
+      return [];
     },
 
     async getDomainOwner(domain: string): Promise<KnsDomainOwnerResponse> {
       // Domains must be URL-encoded (per KNS docs). The endpoint is /api/v1/{domain}/owner.
       const encoded = encodeURIComponent(domain);
       const url = new URL(`/api/v1/${encoded}/owner`, baseUrl);
-      return await fetchJson<KnsDomainOwnerResponse>(url.toString());
+      const data = await fetchJson<any>(url.toString());
+      // Supported shapes:
+      // - { success: true, data: { ownerAddress: 'kaspa:...' } }
+      // - { ownerAddress: '...' } / { owner: '...' }
+      if (data?.data && typeof data.data === 'object') return data.data as KnsDomainOwnerResponse;
+      return data as KnsDomainOwnerResponse;
     },
 
     async getPrimaryNameByOwner(ownerAddress: string): Promise<KnsPrimaryNameResponse | null> {
-      const encoded = encodeURIComponent(stripKaspaPrefix(ownerAddress));
+      const encoded = encodeURIComponent(ensureKaspaPrefix(ownerAddress));
       const url = new URL(`/api/v1/primary-name/${encoded}`, baseUrl);
       try {
-        return await fetchJson<KnsPrimaryNameResponse>(url.toString());
+        const data = await fetchJson<any>(url.toString());
+        // Supported shapes:
+        // - { success: true, data: { ownerAddress, inscriptionId, domain: { fullName } } }
+        // - legacy flat shapes
+        if (data?.data && typeof data.data === 'object') return data.data as KnsPrimaryNameResponse;
+        return data as KnsPrimaryNameResponse;
       } catch {
         return null;
       }

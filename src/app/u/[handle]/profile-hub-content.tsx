@@ -93,7 +93,13 @@ export function ProfileHubContent({
       for (const net of nets) {
         const kns = createKnsClient({ network: net });
         const primary = await kns.getPrimaryNameByOwner(kaspaAddress);
-        const name = (primary?.primaryName || primary?.primary_name || primary?.domain || null) as string | null;
+        const name =
+          ((primary as any)?.domain?.fullName as string | undefined) ||
+          ((primary as any)?.domain?.full_name as string | undefined) ||
+          ((primary as any)?.primaryName as string | undefined) ||
+          ((primary as any)?.primary_name as string | undefined) ||
+          ((primary as any)?.domain as string | undefined) ||
+          null;
         if (!cancelled && name) setKnsPrimaryName(String(name).toLowerCase());
         const assetId = (primary?.inscriptionId || primary?.inscription_id) as string | undefined;
         if (assetId) {
@@ -130,7 +136,7 @@ export function ProfileHubContent({
       if (!cancelled) {
         setKnsAssets(best);
         const domains = best
-          .map((a) => String((a as any).domain || '').trim())
+          .map((a) => String((a as any).asset || (a as any).domain || '').trim())
           .filter(Boolean)
           .map((d) => d.toLowerCase());
         const uniq = Array.from(new Set(domains)).sort();
