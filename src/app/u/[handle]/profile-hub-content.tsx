@@ -9,6 +9,8 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
+import { SidebarSection } from '@/components/sidebar/SidebarSection';
+import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 import { Avatar } from '@/components/Avatar';
 import { formatKaspaAddress, isValidKaspaAddress, normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -16,7 +18,7 @@ import { createKnsClient, type KnsDomainProfileResponse, type KnsAsset } from '@
 import { useUnifiedProfile } from '@/hooks/useUnifiedProfile';
 import { buildLinkEvmMessage, verifyLinkEvmSignature } from '@/lib/profile/linking';
 
-type TabId = 'overview' | 'workspace' | 'dapps' | 'editors' | 'ads' | 'assets' | 'content' | 'settings';
+type TabId = 'overview' | 'workspace' | 'dapps' | 'editors' | 'ads' | 'assets' | 'content' | 'kns' | 'settings';
 
 const StudioDashboardPage = dynamic(() => import('@/app/studio/dashboard/page').then((m) => m.default), {
   ssr: false,
@@ -63,6 +65,17 @@ export function ProfileHubContent({
 
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const view = (searchParams?.get('view') || '').toLowerCase();
+  const baseProfileHref = useMemo(() => {
+    return kaspaAddress ? `/u/${encodeURIComponent(kaspaAddress)}` : '/u';
+  }, [kaspaAddress]);
+  const hrefTab = useMemo(() => {
+    return (tab: string, nextView?: string) => {
+      const params = new URLSearchParams();
+      params.set('tab', tab);
+      if (nextView) params.set('view', nextView);
+      return `${baseProfileHref}?${params.toString()}`;
+    };
+  }, [baseProfileHref]);
   const [knsProfile, setKnsProfile] = useState<KnsDomainProfileResponse | null>(null);
   const [knsAssets, setKnsAssets] = useState<KnsAsset[] | null>(null);
   const [knsPrimaryName, setKnsPrimaryName] = useState<string | null>(initialKnsName);
@@ -184,6 +197,7 @@ export function ProfileHubContent({
       tab === 'ads' ||
       tab === 'assets' ||
       tab === 'content' ||
+      tab === 'kns' ||
       tab === 'settings'
     ) {
       setActiveTab(tab as TabId);
@@ -202,57 +216,167 @@ export function ProfileHubContent({
               <SidebarHeader backHref="/hub" backLabel="Back to Hub" onHide={onHide} />
             )}
           >
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Link href={kaspaAddress ? `/u/${encodeURIComponent(kaspaAddress)}?tab=workspace` : '/u?tab=workspace'} className="k-control-btn w-full">
-                  Workspace
-                </Link>
-                <Link href={kaspaAddress ? `/u/${encodeURIComponent(kaspaAddress)}?tab=dapps` : '/u?tab=dapps'} className="k-control-btn w-full">
-                  dApps
-                </Link>
-                <Link
-                  href={kaspaAddress ? `/vblog/author/${encodeURIComponent(kaspaAddress).replaceAll('%3A', ':')}` : '/vblog'}
-                  className="k-control-btn w-full"
-                >
-                  View articles
-                </Link>
-              </div>
-
-              {/* Nav */}
-              <section>
-                <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4 px-2">
-                  Workspace
-                </h3>
-                <nav className="space-y-1">
-                  <SidebarButton active={activeTab === 'overview'} onClick={() => setActiveTab('overview')}>
-                    Overview
-                  </SidebarButton>
-                  <SidebarButton active={activeTab === 'workspace'} onClick={() => setActiveTab('workspace')}>
-                    Workspace
-                  </SidebarButton>
-                  <SidebarButton active={activeTab === 'dapps'} onClick={() => setActiveTab('dapps')}>
-                    dApps
-                  </SidebarButton>
-                  <SidebarButton active={activeTab === 'editors'} onClick={() => setActiveTab('editors')}>
-                    Editors
-                  </SidebarButton>
-                  <SidebarButton active={activeTab === 'ads'} onClick={() => setActiveTab('ads')}>
-                    Ads
-                  </SidebarButton>
-                  <SidebarButton active={activeTab === 'assets'} onClick={() => setActiveTab('assets')}>
-                    Assets
-                  </SidebarButton>
-                  <SidebarButton active={activeTab === 'content'} onClick={() => setActiveTab('content')}>
-                    Content
-                  </SidebarButton>
-                  {isOwnProfile && (
-                    <SidebarButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')}>
-                      Settings
-                    </SidebarButton>
-                  )}
-                </nav>
-              </section>
+            <div className="px-3 pt-3 pb-4 space-y-2 border-b border-zinc-200/70 dark:border-zinc-800/70 mb-4">
+              <Link
+                href={hrefTab('workspace')}
+                className={`k-control-btn w-full justify-center gap-2 ${
+                  activeTab === 'workspace' ? '!border-[#02abb8]/40 !bg-[#02abb8]/15 !text-[#017a84] dark:!text-[#8ff1f8]' : ''
+                }`}
+              >
+                <span className="text-xs font-black uppercase tracking-widest">Workspace</span>
+              </Link>
+              <Link
+                href={hrefTab('editors', 'vblog')}
+                className={`k-control-btn w-full justify-center gap-2 ${
+                  activeTab === 'editors' ? '!border-[#02abb8]/40 !bg-[#02abb8]/15 !text-[#017a84] dark:!text-[#8ff1f8]' : ''
+                }`}
+              >
+                <span className="text-xs font-black uppercase tracking-widest">Editors</span>
+              </Link>
+              <Link
+                href={hrefTab('dapps')}
+                className={`k-control-btn w-full justify-center gap-2 ${
+                  activeTab === 'dapps' ? '!border-[#02abb8]/40 !bg-[#02abb8]/15 !text-[#017a84] dark:!text-[#8ff1f8]' : ''
+                }`}
+              >
+                <span className="text-xs font-black uppercase tracking-widest">dApps</span>
+              </Link>
             </div>
+
+            <SidebarSection title="Workspace">
+              <nav className="space-y-0.5">
+                <SidebarNavItem
+                  label="Overview"
+                  active={activeTab === 'overview'}
+                  href={hrefTab('overview')}
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>}
+                />
+                <SidebarNavItem
+                  label="Dashboard"
+                  active={activeTab === 'workspace' && (view === '' || view === 'dashboard')}
+                  href={hrefTab('workspace', 'dashboard')}
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
+                />
+                <SidebarNavItem
+                  label="Portfolio"
+                  active={activeTab === 'workspace' && view === 'portfolio'}
+                  href={hrefTab('workspace', 'portfolio')}
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745V20a2 2 0 002 2h14a2 2 0 002-2v-6.745zM18 8a2 2 0 11-4 0 2 2 0 014 0zM10 8a2 2 0 11-4 0 2 2 0 014 0z" /><path d="M6 5c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v3H6V5z" /></svg>}
+                />
+                <SidebarNavItem
+                  label="Activity"
+                  active={activeTab === 'workspace' && view === 'activity'}
+                  href={hrefTab('workspace', 'activity')}
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}
+                />
+              </nav>
+            </SidebarSection>
+
+            <SidebarSection title="Editors">
+              <nav className="space-y-0.5">
+                <SidebarNavItem
+                  label="vBlog"
+                  active={activeTab === 'editors' && (view === '' || view === 'vblog')}
+                  href={hrefTab('editors', 'vblog')}
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>}
+                />
+                <SidebarNavItem
+                  label="Magazines"
+                  active={activeTab === 'editors' && view === 'magazine'}
+                  href={hrefTab('editors', 'magazine')}
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
+                />
+                <SidebarNavItem
+                  label="Store"
+                  active={activeTab === 'editors' && view === 'store'}
+                  href={hrefTab('editors', 'store')}
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7l1 2m0 0l2 10a2 2 0 002 2h8a2 2 0 002-2l2-10m-14 0h14M9 21a1 1 0 100-2 1 1 0 000 2zm6 0a1 1 0 100-2 1 1 0 000 2z" /></svg>}
+                />
+              </nav>
+            </SidebarSection>
+
+            <SidebarSection title="dApps">
+              <nav className="space-y-0.5">
+                <SidebarNavItem
+                  label="My dApps"
+                  active={activeTab === 'dapps'}
+                  href={hrefTab('dapps')}
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
+                />
+                <SidebarNavItem
+                  label="Create"
+                  href="/build-dapp"
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>}
+                />
+                <SidebarNavItem
+                  label="List"
+                  href="/list-dapp"
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h10M7 16h10" /></svg>}
+                />
+              </nav>
+            </SidebarSection>
+
+            <SidebarSection title="Management">
+              <nav className="space-y-0.5">
+                <SidebarNavItem
+                  label="Ads"
+                  active={activeTab === 'ads'}
+                  href={hrefTab('ads')}
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" /></svg>}
+                />
+                <SidebarNavItem
+                  label="Assets"
+                  active={activeTab === 'assets'}
+                  href={hrefTab('assets')}
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
+                />
+                <SidebarNavItem
+                  label="Content"
+                  active={activeTab === 'content'}
+                  href={hrefTab('content')}
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-6 4h10" /></svg>}
+                />
+              </nav>
+            </SidebarSection>
+
+            <SidebarSection title="Identity">
+              <nav className="space-y-0.5">
+                <SidebarNavItem
+                  label="KNS"
+                  active={activeTab === 'kns'}
+                  href={hrefTab('kns')}
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
+                />
+              </nav>
+            </SidebarSection>
+
+            <SidebarSection title="Tools">
+              <nav className="space-y-0.5">
+                <SidebarNavItem
+                  label="Modules"
+                  href="/dapp-modules"
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>}
+                />
+                <SidebarNavItem
+                  label="Revenue Tree"
+                  href="/tree/dashboard"
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}
+                />
+              </nav>
+            </SidebarSection>
+
+            {isOwnProfile && (
+              <SidebarSection title="Owner">
+                <nav className="space-y-0.5">
+                  <SidebarNavItem
+                    label="Settings"
+                    active={activeTab === 'settings'}
+                    href={hrefTab('settings')}
+                    icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+                  />
+                </nav>
+              </SidebarSection>
+            )}
           </UnifiedSidebar>
 
           {/* Main content */}
@@ -301,6 +425,16 @@ export function ProfileHubContent({
                 {activeTab === 'assets' && <AssetsTab />}
 
                 {activeTab === 'content' && <ContentTab kaspaAddress={kaspaAddress} />}
+
+                {activeTab === 'kns' && (
+                  <KnsTab
+                    kaspaAddress={kaspaAddress}
+                    primaryName={knsPrimaryName}
+                    knsDomains={knsDomains}
+                    assets={knsAssets}
+                    isLoading={knsAssets === null}
+                  />
+                )}
 
                 {activeTab === 'settings' && isOwnProfile && (
                   <SettingsTab
@@ -362,32 +496,6 @@ export function ProfileHubContent({
   );
 }
 
-function SidebarButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg transition-colors ${
-        active
-          ? 'bg-[#02abb8]/10 text-[#02abb8] border border-[#02abb8]/20'
-          : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
-      }`}
-    >
-      <span className="text-[11px] font-bold uppercase tracking-wider transition-colors truncate">{children}</span>
-      <svg className="w-4 h-4 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-      </svg>
-    </button>
-  );
-}
-
 function OverviewTab({
   kaspaAddress,
   knsProfile,
@@ -424,16 +532,6 @@ function OverviewTab({
             <InfoPill label="GitHub" value={github || '—'} />
             <InfoPill label="X" value={x || '—'} />
             <InfoPill label="Kaspa" value={kaspaAddress ? formatKaspaAddress(kaspaAddress).display : '—'} />
-          </div>
-        </Card>
-        <Card title="Management launchpad">
-          <div className="grid sm:grid-cols-2 gap-3">
-            <ActionLink href={`${profileHref}?tab=workspace`} label="Workspace" />
-            <ActionLink href={`${profileHref}?tab=dapps`} label="dApps" />
-            <ActionLink href={`${profileHref}?tab=editors&view=vblog`} label="vBlog editor" />
-            <ActionLink href={`${profileHref}?tab=ads`} label="Ads manager" />
-            <ActionLink href={`${profileHref}?tab=assets`} label="Assets" />
-            <ActionLink href={`${profileHref}?tab=content`} label="All content" />
           </div>
         </Card>
       </div>
@@ -480,7 +578,7 @@ function ContentTab({ kaspaAddress }: { kaspaAddress: string | null }) {
           <ActionLink href="/store/dashboard?tab=products" label="My products" />
           <ActionLink href="/store/dashboard?tab=sales" label="Product sales" />
           <ActionLink href="/magazines" label="Magazines" />
-          <ActionLink href="/u?tab=editors&view=magazine" label="Magazine editor" />
+          <ActionLink href="/u?tab=editors&view=magazine" label="Open editor" />
         </div>
       </Card>
 
@@ -553,6 +651,62 @@ function DappsTab({
       <Card title="KNS in dApps">
         <div className="text-sm text-zinc-600 dark:text-zinc-400">
           dApp listings inherit your connected Kaspa identity and display KNS domain badges in creator-facing views.
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function KnsTab({
+  kaspaAddress,
+  primaryName,
+  knsDomains,
+  assets,
+  isLoading,
+}: {
+  kaspaAddress: string | null;
+  primaryName: string | null;
+  knsDomains: string[] | null;
+  assets: KnsAsset[] | null;
+  isLoading: boolean;
+}) {
+  return (
+    <div className="space-y-6">
+      <Card title="KNS identity">
+        <div className="grid sm:grid-cols-2 gap-3">
+          <InfoPill label="Kaspa wallet" value={kaspaAddress ? formatKaspaAddress(kaspaAddress).display : '—'} />
+          <InfoPill label="Primary domain" value={primaryName ? primaryName.toLowerCase() : '—'} />
+        </div>
+        {primaryName ? (
+          <div className="mt-4 text-[11px] text-zinc-600 dark:text-zinc-400">
+            Copy: <span className="font-mono">{primaryName.toLowerCase()}</span>{' '}
+            <CopyIconButton value={primaryName.toLowerCase()} label="Copy primary domain" />
+          </div>
+        ) : null}
+      </Card>
+
+      <Card title="Owned domains">
+        {!kaspaAddress ? (
+          <div className="text-sm text-zinc-600 dark:text-zinc-400">Resolve a Kaspa address to load domains.</div>
+        ) : isLoading ? (
+          <div className="text-sm text-zinc-600 dark:text-zinc-400">Loading…</div>
+        ) : (knsDomains || []).length === 0 ? (
+          <div className="text-sm text-zinc-600 dark:text-zinc-400">No domains found.</div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {(knsDomains || []).slice(0, 32).map((d) => (
+              <span
+                key={d}
+                className="inline-flex items-center gap-2 text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] font-black uppercase tracking-widest border border-[#02abb8]/20"
+              >
+                <span className="normal-case">{String(d).toLowerCase()}</span>
+                <CopyIconButton value={String(d).toLowerCase()} label="Copy domain" />
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="mt-4 text-[11px] text-zinc-500 dark:text-zinc-400">
+          Assets detected: <span className="font-semibold">{String((assets || []).length)}</span>
         </div>
       </Card>
     </div>
@@ -910,6 +1064,7 @@ function TabBar({
     { id: 'ads', label: 'Ads' },
     { id: 'assets', label: 'Assets' },
     { id: 'content', label: 'Content' },
+    { id: 'kns', label: 'KNS' },
     { id: 'settings', label: 'Settings', ownerOnly: true },
   ];
   return (
@@ -939,7 +1094,7 @@ function ActionLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="inline-flex items-center justify-center px-4 py-2 rounded-xl font-bold uppercase tracking-widest text-[10px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-[#02abb8]/40 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+      className="k-control-btn w-full justify-center"
     >
       {label}
     </Link>
