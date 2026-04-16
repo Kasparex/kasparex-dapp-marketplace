@@ -125,7 +125,8 @@ export function EVMWalletButton() {
     });
 
     const handleViewProfile = () => {
-      router.push(`/user/${address}`);
+      // Unified profile route (will resolve `.kas` or address; EVM-only links may show a hint).
+      router.push(`/u/${encodeURIComponent(address)}`);
       setIsDropdownOpen(false);
     };
 

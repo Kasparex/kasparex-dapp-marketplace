@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useAccount, useSignMessage } from 'wagmi';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -14,7 +15,16 @@ import { createKnsClient, type KnsDomainProfileResponse, type KnsAsset } from '@
 import { useUnifiedProfile } from '@/hooks/useUnifiedProfile';
 import { buildLinkEvmMessage, verifyLinkEvmSignature } from '@/lib/profile/linking';
 
-type TabId = 'overview' | 'content' | 'kns' | 'settings';
+type TabId = 'overview' | 'portfolio' | 'content' | 'kns' | 'settings';
+
+const StudioPortfolioPage = dynamic(() => import('@/app/studio/portfolio/page').then((m) => m.default), {
+  ssr: false,
+  loading: () => (
+    <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6">
+      <div className="text-sm text-zinc-600 dark:text-zinc-400">Loading portfolio…</div>
+    </div>
+  ),
+});
 
 export function ProfileHubContent({
   initialHandle,
@@ -62,6 +72,9 @@ export function ProfileHubContent({
       (kaspaAddress ? formatKaspaAddress(kaspaAddress).display : initialHandle)
     );
   }, [profile?.displayName, knsPrimaryName, kaspaAddress, initialHandle]);
+
+  const bannerUrl = profile?.bannerUrl?.trim() || knsProfile?.banner || null;
+  const avatarUrl = profile?.avatarUrl?.trim() || knsProfile?.avatar || null;
 
   const avatarSeed = useMemo(() => {
     if (knsPrimaryName) return knsPrimaryName;
@@ -187,6 +200,9 @@ export function ProfileHubContent({
                   <SidebarButton active={activeTab === 'overview'} onClick={() => setActiveTab('overview')}>
                     Overview
                   </SidebarButton>
+                  <SidebarButton active={activeTab === 'portfolio'} onClick={() => setActiveTab('portfolio')}>
+                    Portfolio
+                  </SidebarButton>
                   <SidebarButton active={activeTab === 'content'} onClick={() => setActiveTab('content')}>
                     Content
                   </SidebarButton>
@@ -230,50 +246,23 @@ export function ProfileHubContent({
           <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
             <div className="max-w-7xl mx-auto">
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <div className="mb-8 pb-6 border-b border-zinc-200 dark:border-zinc-800">
-                  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                    <div>
-                      <div className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-2">
-                        Kasparex Hub
-                      </div>
-                      <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
-                        {displayName}
-                      </h1>
-                      <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                        {profile?.bio?.trim() || knsProfile?.bio || 'Unified profile for Kaspa L1 + linked L2 wallets.'}
-                      </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {source !== 'none' && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold uppercase border border-zinc-200 dark:border-zinc-700">
-                            Source: {source}
-                          </span>
-                        )}
-                        {knsPrimaryName && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] font-bold uppercase border border-[#02abb8]/20">
-                            KNS: {knsPrimaryName}
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                <ProfileHaloHeader
+                  displayName={displayName}
+                  kaspaAddress={kaspaAddress}
+                  knsPrimaryName={knsPrimaryName}
+                  bio={profile?.bio?.trim() || knsProfile?.bio || ''}
+                  source={source}
+                  bannerUrl={bannerUrl}
+                  avatarUrl={avatarUrl}
+                  isOwnProfile={isOwnProfile}
+                  onEdit={() => setActiveTab('settings')}
+                />
 
-                    {isOwnProfile && (
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => setActiveTab('settings')}
-                          className="px-4 py-2 rounded-xl font-bold uppercase tracking-widest text-[10px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-[#02abb8]/40 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-                        >
-                          Edit profile
-                        </button>
-                        <Link
-                          href="/studio/dashboard"
-                          className="px-4 py-2 rounded-xl font-bold uppercase tracking-widest text-[10px] bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
-                        >
-                          Studio
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <TabBar
+                  activeTab={activeTab}
+                  isOwnProfile={isOwnProfile}
+                  onTab={setActiveTab}
+                />
 
                 {activeTab === 'overview' && (
                   <OverviewTab
@@ -284,6 +273,12 @@ export function ProfileHubContent({
                     profileGithub={profile?.github}
                     profileX={profile?.x}
                   />
+                )}
+
+                {activeTab === 'portfolio' && (
+                  <div className="space-y-6">
+                    <StudioPortfolioPage />
+                  </div>
                 )}
 
                 {activeTab === 'content' && <ContentTab kaspaAddress={kaspaAddress} />}
@@ -301,6 +296,8 @@ export function ProfileHubContent({
                   <SettingsTab
                     displayName={profile?.displayName || ''}
                     bio={profile?.bio || ''}
+                    avatarUrl={profile?.avatarUrl || ''}
+                    bannerUrl={profile?.bannerUrl || ''}
                     kaspaAddress={kaspaAddress}
                     connectedEvmAddress={isEvmConnected ? (connectedEvmAddress as `0x${string}`) : null}
                     isLinking={isSigningEvm}
@@ -535,6 +532,8 @@ function KnsTab({
 function SettingsTab({
   displayName,
   bio,
+  avatarUrl,
+  bannerUrl,
   kaspaAddress,
   connectedEvmAddress,
   isLinking,
@@ -543,14 +542,18 @@ function SettingsTab({
 }: {
   displayName: string;
   bio: string;
+  avatarUrl: string;
+  bannerUrl: string;
   kaspaAddress: string | null;
   connectedEvmAddress: `0x${string}` | null;
   isLinking: boolean;
   onLinkEvm: (evmAddress: `0x${string}`) => Promise<void>;
-  onSave: (updates: { displayName?: string; bio?: string }) => void;
+  onSave: (updates: { displayName?: string; bio?: string; avatarUrl?: string; bannerUrl?: string }) => void;
 }) {
   const [name, setName] = useState(displayName);
   const [b, setB] = useState(bio);
+  const [avatar, setAvatar] = useState(avatarUrl);
+  const [banner, setBanner] = useState(bannerUrl);
   const [linkError, setLinkError] = useState<string | null>(null);
   const [linkSuccess, setLinkSuccess] = useState<string | null>(null);
 
@@ -560,6 +563,12 @@ function SettingsTab({
   useEffect(() => {
     setB(bio);
   }, [bio]);
+  useEffect(() => {
+    setAvatar(avatarUrl);
+  }, [avatarUrl]);
+  useEffect(() => {
+    setBanner(bannerUrl);
+  }, [bannerUrl]);
 
   return (
     <div className="space-y-6">
@@ -619,6 +628,32 @@ function SettingsTab({
 
           <div>
             <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">
+              Avatar URL (or `ipfs://...`)
+            </label>
+            <input
+              value={avatar}
+              onChange={(e) => setAvatar(e.target.value)}
+              placeholder="https://... or ipfs://CID"
+              className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#02abb8]/40"
+              maxLength={500}
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">
+              Banner URL (or `ipfs://...`)
+            </label>
+            <input
+              value={banner}
+              onChange={(e) => setBanner(e.target.value)}
+              placeholder="https://... or ipfs://CID"
+              className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#02abb8]/40"
+              maxLength={500}
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">
               Display name
             </label>
             <input
@@ -646,7 +681,14 @@ function SettingsTab({
 
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <button
-              onClick={() => onSave({ displayName: name.trim(), bio: b.trim() })}
+              onClick={() =>
+                onSave({
+                  displayName: name.trim(),
+                  bio: b.trim(),
+                  avatarUrl: avatar.trim() || undefined,
+                  bannerUrl: banner.trim() || undefined,
+                })
+              }
               className="flex-1 px-4 py-2 rounded-xl font-black uppercase tracking-widest text-[10px] bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
             >
               Save draft
@@ -654,6 +696,156 @@ function SettingsTab({
           </div>
         </div>
       </Card>
+    </div>
+  );
+}
+
+function ProfileHaloHeader({
+  displayName,
+  kaspaAddress,
+  knsPrimaryName,
+  bio,
+  source,
+  bannerUrl,
+  avatarUrl,
+  isOwnProfile,
+  onEdit,
+}: {
+  displayName: string;
+  kaspaAddress: string | null;
+  knsPrimaryName: string | null;
+  bio: string;
+  source: string;
+  bannerUrl: string | null;
+  avatarUrl: string | null;
+  isOwnProfile: boolean;
+  onEdit: () => void;
+}) {
+  const subtitle = bio?.trim() || 'Unified Kasparex Hub profile for your L1 identity and linked wallets.';
+  return (
+    <section className="mb-6">
+      <div className="relative overflow-hidden rounded-3xl border border-zinc-200 dark:border-zinc-800/50 bg-gradient-to-br from-zinc-100 via-cyan-50/60 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/30 dark:to-zinc-950">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 right-0 w-[60%] h-[80%] bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.16),transparent_70%)] rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-[50%] h-[60%] bg-[radial-gradient(ellipse_at_bottom_left,_rgba(2,171,184,0.06),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_bottom_left,_rgba(2,171,184,0.09),transparent_70%)] rounded-full blur-3xl" />
+          {bannerUrl ? (
+            <div
+              className="absolute inset-0 opacity-25"
+              style={{
+                backgroundImage: `url(${bannerUrl})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            />
+          ) : null}
+        </div>
+
+        <div className="relative z-10 p-6 sm:p-8">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+            <div className="min-w-0">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#02abb8]/10 border border-[#02abb8]/25 text-[#017a84] dark:text-[#8ff1f8] text-[10px] font-black uppercase tracking-[0.2em] mb-4 w-fit">
+                Profile Hub
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 flex items-center justify-center overflow-hidden">
+                    {avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <Avatar address={(knsPrimaryName || kaspaAddress || displayName).replace(/^kaspa:/i, '')} size={48} />
+                    )}
+                  </div>
+                </div>
+
+                <div className="min-w-0">
+                  <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-white tracking-tight truncate">
+                    {displayName}
+                  </h1>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    {knsPrimaryName && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] font-black uppercase tracking-widest border border-[#02abb8]/20">
+                        {knsPrimaryName}
+                      </span>
+                    )}
+                    {kaspaAddress && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold uppercase border border-zinc-200 dark:border-zinc-700">
+                        {formatKaspaAddress(kaspaAddress).display}
+                      </span>
+                    )}
+                    {source !== 'none' && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/70 dark:bg-zinc-900/60 text-zinc-600 dark:text-zinc-300 font-bold uppercase border border-zinc-200 dark:border-zinc-700">
+                        {source}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <p className="mt-4 text-sm sm:text-base text-zinc-600 dark:text-zinc-400 max-w-3xl leading-relaxed">
+                {subtitle}
+              </p>
+            </div>
+
+            {isOwnProfile ? (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={onEdit}
+                  className="px-4 py-2 rounded-xl font-black uppercase tracking-widest text-[10px] bg-white/80 dark:bg-zinc-900/70 border border-zinc-200 dark:border-zinc-800 hover:border-[#02abb8]/40 hover:bg-white dark:hover:bg-zinc-800 transition-colors"
+                >
+                  Edit
+                </button>
+                <Link
+                  href="/studio/portfolio"
+                  className="px-4 py-2 rounded-xl font-black uppercase tracking-widest text-[10px] bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+                >
+                  Studio
+                </Link>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TabBar({
+  activeTab,
+  isOwnProfile,
+  onTab,
+}: {
+  activeTab: TabId;
+  isOwnProfile: boolean;
+  onTab: (t: TabId) => void;
+}) {
+  const tabs: Array<{ id: TabId; label: string; ownerOnly?: boolean }> = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'portfolio', label: 'Portfolio' },
+    { id: 'content', label: 'Content' },
+    { id: 'kns', label: 'KNS' },
+    { id: 'settings', label: 'Settings', ownerOnly: true },
+  ];
+  return (
+    <div className="mb-8 border-b border-zinc-200 dark:border-zinc-800">
+      <div className="flex flex-wrap gap-4">
+        {tabs
+          .filter((t) => !t.ownerOnly || isOwnProfile)
+          .map((t) => (
+            <button
+              key={t.id}
+              onClick={() => onTab(t.id)}
+              className={`px-4 py-3 text-[11px] font-black uppercase tracking-widest transition-colors ${
+                activeTab === t.id
+                  ? 'text-zinc-900 dark:text-zinc-100 border-b-2 border-[#02abb8]'
+                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+      </div>
     </div>
   );
 }

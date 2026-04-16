@@ -35,6 +35,7 @@ import { NFTBuyWizard } from '@/components/rewards/NFTBuyWizard';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
 import { NFTStatusBox } from '@/components/rewards/NFTStatusBox';
+import { useKnsPrimaryName } from '@/hooks/useKnsPrimaryName';
 
 const KasWareWalletButton = dynamic(
   () => import('./KasWareWalletButton').then((mod) => ({ default: mod.KasWareWalletButton })),
@@ -46,6 +47,7 @@ export function KaspaL1WalletButton() {
   const { state, connect, disconnect } = useKaspaWallet();
   const { balance, refresh: refreshBalance } = useKaspaBalance();
   const { isVisible: isBalanceVisible } = useBalanceVisibility();
+  const { primaryName: knsPrimaryName } = useKnsPrimaryName(state.address);
 
   // Rewards/holdings hooks (must be top-level)
   const { l1Balance: krexL1Balance, tier: krexTier, isLoading: isKrexLoading, refetch: refetchKrex } = useKREXBalance();
@@ -124,6 +126,7 @@ export function KaspaL1WalletButton() {
     const displayAddress = maskAddress(shortenAddress(formatAddressForDisplay(address), { head: 10, tail: 8 }), isBalanceVisible);
     const displayBalance = formatBalanceValueForDisplay(balance, false, isBalanceVisible);
     const explorerUrl = getAddressExplorerUrl({ kind: 'kaspa-l1', address });
+    const displayPrimary = knsPrimaryName ? knsPrimaryName : null;
 
     return (
       <div className="relative" ref={rootRef}>
@@ -140,7 +143,9 @@ export function KaspaL1WalletButton() {
             Kastle
           </span>
           <Avatar address={address} size={20} />
-          <span className="text-zinc-900 dark:text-zinc-100 hidden sm:inline">{displayAddress}</span>
+          <span className="text-zinc-900 dark:text-zinc-100 hidden sm:inline">
+            {displayPrimary ? <span className="font-black text-[#02abb8]">{displayPrimary}</span> : displayAddress}
+          </span>
           <span className="text-zinc-900 dark:text-zinc-100 sm:hidden">Kastle</span>
           <svg
             className={`w-4 h-4 text-zinc-600 dark:text-zinc-400 transition-transform ${open ? 'rotate-180' : ''}`}
@@ -158,6 +163,10 @@ export function KaspaL1WalletButton() {
               <WalletAddressRow
                 address={address}
                 displayAddress={displayAddress}
+                onProfile={() => {
+                  router.push(`/u/${encodeURIComponent(address)}`);
+                  setOpen(false);
+                }}
                 onRefresh={async () => {
                   await refreshBalance();
                   await refetchKrex();

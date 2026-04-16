@@ -41,12 +41,14 @@ import { KREX_TIERS } from '@/lib/rewards/types';
 import { useRouter } from 'next/navigation';
 import { NodeStatusModal } from '@/components/modals/NodeStatusModal';
 import { NFTBuyWizard } from '@/components/rewards/NFTBuyWizard';
+import { useKnsPrimaryName } from '@/hooks/useKnsPrimaryName';
 
 export function KasWareWalletButton() {
   const router = useRouter();
   const { state, connect, disconnect } = useKaspaWallet();
   const { balance, isLoading: balanceLoading, refresh: refreshBalance } = useKaspaBalance();
   const { isVisible: isBalanceVisible } = useBalanceVisibility();
+  const { primaryName: knsPrimaryName } = useKnsPrimaryName(state.address);
 
   // Rewards/holdings hooks (must be top-level)
   const { l1Balance: krexL1Balance, tier: krexTier, isLoading: isKrexLoading, refetch: refetchKrex } = useKREXBalance();
@@ -184,6 +186,7 @@ export function KasWareWalletButton() {
     const displayAddress = maskAddress(shortenAddress(formatAddressForDisplay(state.address), { head: 10, tail: 8 }), isBalanceVisible);
     const displayBalance = formatBalanceValueForDisplay(balance, balanceLoading, isBalanceVisible);
     const explorerUrl = getAddressExplorerUrl({ kind: 'kaspa-l1', address: state.address });
+    const displayPrimary = knsPrimaryName ? knsPrimaryName : null;
 
     return (
       <div className="relative" ref={dropdownRef}>
@@ -205,7 +208,9 @@ export function KasWareWalletButton() {
           <Avatar address={state.address} size={20} />
           
           {/* Address on right */}
-          <span className="text-zinc-900 dark:text-zinc-100 hidden sm:inline">{displayAddress}</span>
+          <span className="text-zinc-900 dark:text-zinc-100 hidden sm:inline">
+            {displayPrimary ? <span className="font-black text-[#02abb8]">{displayPrimary}</span> : displayAddress}
+          </span>
           <span className="text-zinc-900 dark:text-zinc-100 sm:hidden">KasWare</span>
           
           {/* Chevron */}
@@ -225,6 +230,10 @@ export function KasWareWalletButton() {
               <WalletAddressRow
                 address={state.address}
                 displayAddress={displayAddress}
+                onProfile={() => {
+                  router.push(`/u/${encodeURIComponent(state.address)}`);
+                  setIsDropdownOpen(false);
+                }}
                 onRefresh={async () => {
                   await refreshBalance();
                   await refetchKrex();

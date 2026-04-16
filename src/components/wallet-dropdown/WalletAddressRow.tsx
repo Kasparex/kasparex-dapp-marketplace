@@ -57,8 +57,9 @@ export function WalletAddressRow({
               className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
               aria-label={refreshLabel}
             >
+              {/* Refresh */}
               <svg className="w-4 h-4 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v6h6M20 20v-6h-6M5 19a9 9 0 0114-7l1 1M19 5a9 9 0 00-14 7l-1-1" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-2.64-6.36M21 3v6h-6" />
               </svg>
             </button>
           </Tooltip>
@@ -75,17 +76,19 @@ export function WalletAddressRow({
           </svg>
         </button>
         {onOpenExplorer ? (
-          <button
-            type="button"
-            onClick={onOpenExplorer}
-            className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-            aria-label={explorerLabel}
-            title={explorerLabel}
-          >
-            <svg className="w-4 h-4 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 3h7v7m0-7L10 14m-4 7h7a2 2 0 002-2v-7m-9 9H5a2 2 0 01-2-2V5a2 2 0 012-2h7" />
-            </svg>
-          </button>
+          <Tooltip content={explorerLabel}>
+            <button
+              type="button"
+              onClick={onOpenExplorer}
+              className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              aria-label={explorerLabel}
+            >
+              {/* External link */}
+              <svg className="w-4 h-4 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8L10 18m-4-4v5a2 2 0 002 2h5" />
+              </svg>
+            </button>
+          </Tooltip>
         ) : null}
       </div>
     </div>

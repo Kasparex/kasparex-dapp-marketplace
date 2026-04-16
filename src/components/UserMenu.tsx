@@ -36,7 +36,7 @@ export function UserMenu() {
   }
 
   const handleViewProfile = () => {
-    router.push(`/user/${address}`);
+    router.push(`/u/${encodeURIComponent(address)}`);
     setIsOpen(false);
   };
 

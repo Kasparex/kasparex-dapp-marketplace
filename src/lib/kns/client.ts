@@ -5,6 +5,10 @@ export type KnsClientOptions = {
   baseUrl?: string;
 };
 
+function stripKaspaPrefix(address: string): string {
+  return String(address || '').trim().replace(/^kaspa:/i, '');
+}
+
 function getDefaultBaseUrl(network: KnsNetwork): string {
   // Documented servers: https://api.knsdomains.org/mainnet , https://api.knsdomains.org/tn10
   return `https://api.knsdomains.org/${network}`;
@@ -88,7 +92,8 @@ export function createKnsClient(opts?: KnsClientOptions) {
 
     async getAssetsByOwner(ownerAddress: string): Promise<KnsAsset[]> {
       const url = new URL('/api/v1/assets', baseUrl);
-      url.searchParams.set('owner', ownerAddress);
+      // KNS expects raw owner address (no `kaspa:` prefix).
+      url.searchParams.set('owner', stripKaspaPrefix(ownerAddress));
       const data = await fetchJson<{ assets?: KnsAsset[] } | KnsAsset[]>(url.toString());
       if (Array.isArray(data)) return data;
       return data.assets || [];
@@ -102,7 +107,7 @@ export function createKnsClient(opts?: KnsClientOptions) {
     },
 
     async getPrimaryNameByOwner(ownerAddress: string): Promise<KnsPrimaryNameResponse | null> {
-      const encoded = encodeURIComponent(ownerAddress);
+      const encoded = encodeURIComponent(stripKaspaPrefix(ownerAddress));
       const url = new URL(`/api/v1/primary-name/${encoded}`, baseUrl);
       try {
         return await fetchJson<KnsPrimaryNameResponse>(url.toString());
