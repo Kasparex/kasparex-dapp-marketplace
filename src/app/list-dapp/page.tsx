@@ -29,7 +29,7 @@ export default function ListDAppPage() {
 
   const handleCancel = () => {
     if (confirm('Are you sure you want to cancel? Your progress will be lost.')) {
-      router.push('/u?tab=dapps');
+      router.push('/u?tab=my-dapps');
     }
   };
 

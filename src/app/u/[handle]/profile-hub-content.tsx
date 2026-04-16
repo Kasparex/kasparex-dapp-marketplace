@@ -19,7 +19,17 @@ import { useUnifiedProfile } from '@/hooks/useUnifiedProfile';
 import { buildLinkEvmMessage, verifyLinkEvmSignature } from '@/lib/profile/linking';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 
-type TabId = 'overview' | 'workspace' | 'dapps' | 'editors' | 'ads' | 'assets' | 'content' | 'kns' | 'settings';
+type TabId =
+  | 'overview'
+  | 'workspace'
+  | 'my-dapps'
+  | 'my-articles'
+  | 'my-products'
+  | 'my-magazines'
+  | 'ads'
+  | 'assets'
+  | 'kns'
+  | 'settings';
 
 const StudioDashboardPage = dynamic(() => import('@/app/studio/dashboard/page').then((m) => m.default), {
   ssr: false,
@@ -128,8 +138,6 @@ export function ProfileHubContent({
     );
   }, [profile?.displayName, knsPrimaryName, kaspaAddress, initialHandle]);
 
-  const displayNameLower = useMemo(() => String(displayName || '').toLowerCase(), [displayName]);
-
   const bannerUrl = profile?.bannerUrl?.trim() || knsProfile?.banner || null;
   const avatarUrl = profile?.avatarUrl?.trim() || knsProfile?.avatar || null;
 
@@ -200,20 +208,38 @@ export function ProfileHubContent({
 
   useEffect(() => {
     const tab = (searchParams?.get('tab') || '').toLowerCase();
-    if (
-      tab === 'overview' ||
-      tab === 'workspace' ||
-      tab === 'dapps' ||
-      tab === 'editors' ||
-      tab === 'ads' ||
-      tab === 'assets' ||
-      tab === 'content' ||
-      tab === 'kns' ||
-      tab === 'settings'
-    ) {
+    if (tab === 'editors') {
+      const v = (searchParams?.get('view') || 'vblog').toLowerCase();
+      setActiveTab('workspace');
+      router.replace(hrefTab('workspace', v));
+      return;
+    }
+    if (tab === 'dapps') {
+      setActiveTab('my-dapps');
+      router.replace(hrefTab('my-dapps'));
+      return;
+    }
+    if (tab === 'content') {
+      setActiveTab('my-articles');
+      router.replace(hrefTab('my-articles'));
+      return;
+    }
+    const allowed: TabId[] = [
+      'overview',
+      'workspace',
+      'my-dapps',
+      'my-articles',
+      'my-products',
+      'my-magazines',
+      'ads',
+      'assets',
+      'kns',
+      'settings',
+    ];
+    if (allowed.includes(tab as TabId)) {
       setActiveTab(tab as TabId);
     }
-  }, [searchParams]);
+  }, [searchParams, router, hrefTab]);
 
   return (
     <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -227,106 +253,130 @@ export function ProfileHubContent({
               <SidebarHeader backHref="/hub" backLabel="Back to Hub" onHide={onHide} />
             )}
           >
-            <SidebarSection title="workspace">
+            <div className="mb-6 space-y-2 px-2">
+              {isOwnProfile ? (
+                <button type="button" onClick={() => goTab('settings')} className="k-control-btn w-full justify-center">
+                  Settings
+                </button>
+              ) : null}
+              <Link href="/profile-modules" className="k-control-btn w-full justify-center">
+                Modules
+              </Link>
+            </div>
+
+            <SidebarSection title="Workspace">
               <nav className="space-y-0.5">
                 <SidebarNavItem
-                  label="overview"
+                  label="Overview"
                   active={activeTab === 'overview'}
                   onClick={() => goTab('overview')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>}
                 />
                 <SidebarNavItem
-                  label="dashboard"
-                  active={activeTab === 'workspace' && (view === '' || view === 'dashboard')}
+                  label="Creator hub"
+                  active={activeTab === 'workspace' && (!view || view === 'hub' || view === 'home')}
+                  onClick={() => goTab('workspace')}
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>}
+                />
+                <SidebarNavItem
+                  label="Dashboard"
+                  active={activeTab === 'workspace' && view === 'dashboard'}
                   onClick={() => goTab('workspace', 'dashboard')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
                 />
                 <SidebarNavItem
-                  label="portfolio"
+                  label="Portfolio"
                   active={activeTab === 'workspace' && view === 'portfolio'}
                   onClick={() => goTab('workspace', 'portfolio')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745V20a2 2 0 002 2h14a2 2 0 002-2v-6.745zM18 8a2 2 0 11-4 0 2 2 0 014 0zM10 8a2 2 0 11-4 0 2 2 0 014 0z" /><path d="M6 5c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v3H6V5z" /></svg>}
                 />
                 <SidebarNavItem
-                  label="activity"
+                  label="Activity"
                   active={activeTab === 'workspace' && view === 'activity'}
                   onClick={() => goTab('workspace', 'activity')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}
                 />
-              </nav>
-            </SidebarSection>
-
-            <SidebarSection title="editors">
-              <nav className="space-y-0.5">
                 <SidebarNavItem
-                  label="vblog"
-                  active={activeTab === 'editors' && (view === '' || view === 'vblog')}
-                  onClick={() => goTab('editors', 'vblog')}
+                  label="vBlog"
+                  active={activeTab === 'workspace' && view === 'vblog'}
+                  onClick={() => goTab('workspace', 'vblog')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>}
                 />
                 <SidebarNavItem
-                  label="magazines"
-                  active={activeTab === 'editors' && view === 'magazine'}
-                  onClick={() => goTab('editors', 'magazine')}
+                  label="Magazines"
+                  active={activeTab === 'workspace' && view === 'magazine'}
+                  onClick={() => goTab('workspace', 'magazine')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
                 />
                 <SidebarNavItem
-                  label="store"
-                  active={activeTab === 'editors' && view === 'store'}
-                  onClick={() => goTab('editors', 'store')}
+                  label="Store"
+                  active={activeTab === 'workspace' && view === 'store'}
+                  onClick={() => goTab('workspace', 'store')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7l1 2m0 0l2 10a2 2 0 002 2h8a2 2 0 002-2l2-10m-14 0h14M9 21a1 1 0 100-2 1 1 0 000 2zm6 0a1 1 0 100-2 1 1 0 000 2z" /></svg>}
                 />
               </nav>
             </SidebarSection>
 
-            <SidebarSection title="dapps">
+            <SidebarSection title="My listings">
               <nav className="space-y-0.5">
                 <SidebarNavItem
-                  label="my dapps"
-                  active={activeTab === 'dapps'}
-                  onClick={() => goTab('dapps')}
+                  label="My dApps"
+                  active={activeTab === 'my-dapps'}
+                  onClick={() => goTab('my-dapps')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
                 />
                 <SidebarNavItem
-                  label="create"
+                  label="My articles"
+                  active={activeTab === 'my-articles'}
+                  onClick={() => goTab('my-articles')}
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
+                />
+                <SidebarNavItem
+                  label="My products"
+                  active={activeTab === 'my-products'}
+                  onClick={() => goTab('my-products')}
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>}
+                />
+                <SidebarNavItem
+                  label="My magazines"
+                  active={activeTab === 'my-magazines'}
+                  onClick={() => goTab('my-magazines')}
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
+                />
+                <SidebarNavItem
+                  label="Create dApp"
                   href="/build-dapp"
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>}
                 />
                 <SidebarNavItem
-                  label="list"
+                  label="List dApp"
                   href="/list-dapp"
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h10M7 16h10" /></svg>}
                 />
               </nav>
             </SidebarSection>
 
-            <SidebarSection title="management">
+            <SidebarSection title="Management">
               <nav className="space-y-0.5">
                 <SidebarNavItem
-                  label="ads"
+                  label="Ads"
                   active={activeTab === 'ads'}
                   onClick={() => goTab('ads')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" /></svg>}
                 />
                 <SidebarNavItem
-                  label="assets"
+                  label="Assets"
                   active={activeTab === 'assets'}
                   onClick={() => goTab('assets')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
                 />
-                <SidebarNavItem
-                  label="content"
-                  active={activeTab === 'content'}
-                  onClick={() => goTab('content')}
-                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-6 4h10" /></svg>}
-                />
               </nav>
             </SidebarSection>
 
-            <SidebarSection title="identity">
+            <SidebarSection title="Identity">
               <nav className="space-y-0.5">
                 <SidebarNavItem
-                  label="kns"
+                  label="KNS"
                   active={activeTab === 'kns'}
                   onClick={() => goTab('kns')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
@@ -334,33 +384,20 @@ export function ProfileHubContent({
               </nav>
             </SidebarSection>
 
-            <SidebarSection title="tools">
+            <SidebarSection title="Tools">
               <nav className="space-y-0.5">
                 <SidebarNavItem
-                  label="modules"
+                  label="dApp modules"
                   href="/dapp-modules"
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>}
                 />
                 <SidebarNavItem
-                  label="revenue tree"
+                  label="Revenue tree"
                   href="/tree/dashboard"
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}
                 />
               </nav>
             </SidebarSection>
-
-            {isOwnProfile && (
-              <SidebarSection title="owner">
-                <nav className="space-y-0.5">
-                  <SidebarNavItem
-                    label="settings"
-                    active={activeTab === 'settings'}
-                    onClick={() => goTab('settings')}
-                    icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                  />
-                </nav>
-              </SidebarSection>
-            )}
           </UnifiedSidebar>
 
           {/* Main content */}
@@ -368,7 +405,7 @@ export function ProfileHubContent({
             <div className="max-w-7xl mx-auto">
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <ProfileHaloHeader
-                  displayName={displayNameLower}
+                  displayName={displayName}
                   kaspaAddress={kaspaAddress}
                   knsPrimaryName={knsPrimaryName}
                   knsDomains={knsDomains}
@@ -377,7 +414,7 @@ export function ProfileHubContent({
                   bannerUrl={bannerUrl}
                   avatarUrl={avatarUrl}
                   isOwnProfile={isOwnProfile}
-                  onEdit={() => setActiveTab('settings')}
+                  onEdit={() => goTab('settings')}
                   onOpenKns={() => goTab('kns')}
                 />
 
@@ -399,17 +436,21 @@ export function ProfileHubContent({
                   />
                 )}
 
-                {activeTab === 'workspace' && <WorkspaceTab view={view} />}
+                {activeTab === 'workspace' && <WorkspaceTab view={view} goTab={goTab} />}
 
-                {activeTab === 'dapps' && <DappsTab kaspaAddress={kaspaAddress} knsPrimaryName={knsPrimaryName} knsAssetsCount={knsAssets?.length || 0} />}
+                {activeTab === 'my-dapps' && (
+                  <MyDappsTab kaspaAddress={kaspaAddress} knsPrimaryName={knsPrimaryName} goTab={goTab} />
+                )}
 
-                {activeTab === 'editors' && <EditorsTab view={view} />}
+                {activeTab === 'my-articles' && <MyArticlesTab kaspaAddress={kaspaAddress} goTab={goTab} />}
+
+                {activeTab === 'my-products' && <MyProductsTab kaspaAddress={kaspaAddress} goTab={goTab} />}
+
+                {activeTab === 'my-magazines' && <MyMagazinesTab kaspaAddress={kaspaAddress} goTab={goTab} />}
 
                 {activeTab === 'ads' && <StudioAdsPage />}
 
                 {activeTab === 'assets' && <AssetsTab />}
-
-                {activeTab === 'content' && <ContentTab kaspaAddress={kaspaAddress} />}
 
                 {activeTab === 'kns' && (
                   <KnsTab
@@ -525,7 +566,7 @@ function OverviewTab({
         <Card title="Public profile">
           <div className="space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">visibility</span>
+              <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Visibility</span>
               <span className="font-black text-zinc-900 dark:text-zinc-100">Public</span>
             </div>
             <div className="text-[11px] leading-relaxed">
@@ -538,57 +579,335 @@ function OverviewTab({
   );
 }
 
-function ContentTab({ kaspaAddress }: { kaspaAddress: string | null }) {
-  const searchParams = useSearchParams();
-  const view = (searchParams?.get('view') || '').toLowerCase();
-  const encoded = kaspaAddress ? encodeURIComponent(kaspaAddress).replaceAll('%3A', ':') : null;
+function SubpageToolbar({ title, onBack }: { title: string; onBack: () => void }) {
   return (
-    <div className="space-y-6">
-      <Card title="Articles">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="text-sm text-zinc-600 dark:text-zinc-400">
-            View public content created by this profile.
-          </div>
-          <Link
-            href={kaspaAddress ? `/vblog/author/${encodeURIComponent(kaspaAddress).replaceAll('%3A', ':')}` : '/vblog'}
-            className="k-control-btn whitespace-nowrap"
-          >
-            {view === 'articles' ? 'open author articles' : 'open vblog author page'}
-          </Link>
-        </div>
-      </Card>
-
-      <Card title="Products and magazines">
-        <div className="grid sm:grid-cols-2 gap-3">
-          <ActionLink href="/store/dashboard?tab=products" label="My products" />
-          <ActionLink href="/store/dashboard?tab=sales" label="Product sales" />
-          <ActionLink href="/magazines" label="Magazines" />
-          <ActionLink href="/u?tab=editors&view=magazine" label="Open editor" />
-        </div>
-      </Card>
-
-      <Card title="dApps, buys, history">
-        <div className="grid sm:grid-cols-2 gap-3">
-          <ActionLink href="/list-dapp" label={view === 'dapps' ? 'Open listed dApps' : 'My listed dApps'} />
-          <ActionLink href="/u?tab=dapps&view=create" label="Create dApp listing" />
-          <ActionLink href="/store/dashboard?tab=purchased" label="My buys" />
-          <ActionLink href={encoded ? `/vblog/author/${encoded}` : '/vblog'} label="Publishing history" />
-        </div>
-      </Card>
+    <div className="mb-4 flex flex-wrap items-center gap-3">
+      <button type="button" onClick={onBack} className="k-control-btn">
+        Back to creator hub
+      </button>
+      <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">{title}</span>
     </div>
   );
 }
 
-function WorkspaceTab({ view }: { view: string }) {
-  if (view === 'activity') return <StudioActivityPage />;
-  if (view === 'portfolio') return <StudioPortfolioPage />;
-  return <StudioDashboardPage />;
+function EditorShell({
+  title,
+  onBack,
+  children,
+}: {
+  title: string;
+  onBack: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-4">
+      <SubpageToolbar title={title} onBack={onBack} />
+      <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:p-6">{children}</div>
+    </div>
+  );
 }
 
-function EditorsTab({ view }: { view: string }) {
-  if (view === 'magazine') return <StudioMagazinePage />;
-  if (view === 'store') return <StudioStorePage />;
-  return <StudioVBlogPage />;
+const WORKSPACE_HUB_ENTRIES: Array<{ key: string; title: string; description: string; view: string; accent: 'studio' | 'vblog' | 'magazines' | 'store' }> = [
+  { key: 'dash', title: 'Dashboard', description: 'Metrics, quick actions, and recent activity.', view: 'dashboard', accent: 'studio' },
+  { key: 'port', title: 'Portfolio', description: 'Your creator portfolio overview.', view: 'portfolio', accent: 'studio' },
+  { key: 'act', title: 'Activity', description: 'Records and timeline.', view: 'activity', accent: 'studio' },
+  { key: 'vb', title: 'vBlog', description: 'Write and publish articles.', view: 'vblog', accent: 'vblog' },
+  { key: 'mag', title: 'Magazines', description: 'Lay out digital issues.', view: 'magazine', accent: 'magazines' },
+  { key: 'st', title: 'Store', description: 'List products on Kasparex Store.', view: 'store', accent: 'store' },
+];
+
+function WorkspaceHub({ goTab }: { goTab: (tab: TabId, nextView?: string) => void }) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <SectionTitle title="Creator hub" />
+        <p className="max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
+          Choose dashboard, portfolio, activity, or an editor. Everything lives under one workspace tab.
+        </p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {WORKSPACE_HUB_ENTRIES.map((e) => (
+          <button
+            key={e.key}
+            type="button"
+            data-kx-accent={e.accent}
+            onClick={() => goTab('workspace', e.view)}
+            className="kx-listing-card group block w-full overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 text-left transition-colors dark:border-zinc-800 dark:bg-zinc-900"
+          >
+            <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{e.title}</div>
+            <p className="mt-1 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{e.description}</p>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WorkspaceTab({ view, goTab }: { view: string; goTab: (tab: TabId, nextView?: string) => void }) {
+  const v = (view || '').toLowerCase();
+  if (!v || v === 'hub' || v === 'home') {
+    return <WorkspaceHub goTab={goTab} />;
+  }
+  if (v === 'dashboard') {
+    return (
+      <>
+        <SubpageToolbar title="Dashboard" onBack={() => goTab('workspace')} />
+        <StudioDashboardPage />
+      </>
+    );
+  }
+  if (v === 'portfolio') {
+    return (
+      <>
+        <SubpageToolbar title="Portfolio" onBack={() => goTab('workspace')} />
+        <StudioPortfolioPage />
+      </>
+    );
+  }
+  if (v === 'activity') {
+    return (
+      <>
+        <SubpageToolbar title="Activity" onBack={() => goTab('workspace')} />
+        <StudioActivityPage />
+      </>
+    );
+  }
+  if (v === 'vblog') {
+    return (
+      <EditorShell title="vBlog editor" onBack={() => goTab('workspace')}>
+        <StudioVBlogPage />
+      </EditorShell>
+    );
+  }
+  if (v === 'magazine') {
+    return (
+      <EditorShell title="Magazine editor" onBack={() => goTab('workspace')}>
+        <StudioMagazinePage />
+      </EditorShell>
+    );
+  }
+  if (v === 'store') {
+    return (
+      <EditorShell title="Store editor" onBack={() => goTab('workspace')}>
+        <StudioStorePage />
+      </EditorShell>
+    );
+  }
+  return <WorkspaceHub goTab={goTab} />;
+}
+
+const MOCK_PROFILE_DAPPS = [
+  { id: 'ph-d1', title: 'Kasparex Feed', slug: 'kasparex-feed', status: 'Live' },
+  { id: 'ph-d2', title: 'CrowdKAS bridge', slug: 'crowdkas-bridge', status: 'Draft' },
+  { id: 'ph-d3', title: 'NFT tools hub', slug: 'nft-tools-hub', status: 'Review' },
+] as const;
+
+function MyDappsTab({
+  kaspaAddress,
+  knsPrimaryName,
+  goTab,
+}: {
+  kaspaAddress: string | null;
+  knsPrimaryName: string | null;
+  goTab: (tab: TabId, nextView?: string) => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <Card title="dApp identity">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <InfoPill label="Kaspa wallet" value={kaspaAddress ? formatKaspaAddress(kaspaAddress).display : 'Not resolved'} />
+          <InfoPill label="Primary KNS" value={knsPrimaryName ? knsPrimaryName.toLowerCase() : 'Not set'} />
+        </div>
+      </Card>
+
+      <div>
+        <SectionTitle title="My dApps" />
+        <p className="mb-4 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
+          Sample listings for layout preview; wire-up to your indexer next. Open the workspace editor to create more.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {MOCK_PROFILE_DAPPS.map((d) => (
+            <KxListingCard key={d.id} href={`/dapps/${d.slug}`} accent="dapps" className="flex flex-col overflow-hidden">
+              <KxListingCardMedia aspectClass="aspect-[3/2]">
+                <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800" />
+                <div className="absolute left-3 top-3 z-10">
+                  <span className="rounded-full border border-zinc-200 bg-white/90 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/90 dark:text-zinc-200">
+                    {d.status}
+                  </span>
+                </div>
+              </KxListingCardMedia>
+              <KxListingCardBody>
+                <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{d.title}</div>
+                <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">/{d.slug}</div>
+              </KxListingCardBody>
+            </KxListingCard>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        <Link href="/build-dapp" className="k-control-btn">
+          Create dApp
+        </Link>
+        <Link href="/list-dapp" className="k-control-btn">
+          List dApp
+        </Link>
+        <button type="button" className="k-control-btn" onClick={() => goTab('workspace', 'vblog')}>
+          Open in editor
+        </button>
+      </div>
+    </div>
+  );
+}
+
+const MOCK_ARTICLES = [
+  { id: 'a1', title: 'State of Kaspa 2026', status: 'Published', href: '/vblog' },
+  { id: 'a2', title: 'Building on KREX', status: 'Draft', href: '/vblog' },
+] as const;
+
+function MyArticlesTab({
+  kaspaAddress,
+  goTab,
+}: {
+  kaspaAddress: string | null;
+  goTab: (tab: TabId, nextView?: string) => void;
+}) {
+  const authorHref = kaspaAddress
+    ? `/vblog/author/${encodeURIComponent(kaspaAddress).replaceAll('%3A', ':')}`
+    : '/vblog';
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SectionTitle title="My articles" />
+        <div className="flex flex-wrap gap-2">
+          <Link href={authorHref} className="k-control-btn whitespace-nowrap">
+            Public author page
+          </Link>
+          <button type="button" className="k-control-btn whitespace-nowrap" onClick={() => goTab('workspace', 'vblog')}>
+            New in editor
+          </button>
+        </div>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {MOCK_ARTICLES.map((a) => (
+          <KxListingCard key={a.id} href={a.href} accent="vblog" className="flex flex-col overflow-hidden">
+            <KxListingCardMedia aspectClass="aspect-[3/2]">
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/15 to-amber-500/5 dark:from-orange-500/20" />
+              <div className="absolute left-3 top-3 z-10">
+                <span className="rounded-full border border-orange-500/25 bg-white/90 px-2 py-0.5 text-xs font-semibold text-orange-900 dark:bg-zinc-900/90 dark:text-orange-200">
+                  {a.status}
+                </span>
+              </div>
+            </KxListingCardMedia>
+            <KxListingCardBody>
+              <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{a.title}</div>
+              <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Open in vBlog for full edit flow.</div>
+            </KxListingCardBody>
+          </KxListingCard>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const MOCK_PRODUCTS = [
+  { id: 'p1', title: 'Kaspa UI Kit', price: '12 KAS', status: 'Active' },
+  { id: 'p2', title: 'Creator template pack', price: '5 KAS', status: 'Draft' },
+] as const;
+
+function MyProductsTab({
+  kaspaAddress: _kaspaAddress,
+  goTab,
+}: {
+  kaspaAddress: string | null;
+  goTab: (tab: TabId, nextView?: string) => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SectionTitle title="My products" />
+        <div className="flex flex-wrap gap-2">
+          <Link href="/store/dashboard?tab=products" className="k-control-btn whitespace-nowrap">
+            Store dashboard
+          </Link>
+          <button type="button" className="k-control-btn whitespace-nowrap" onClick={() => goTab('workspace', 'store')}>
+            Open store editor
+          </button>
+        </div>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {MOCK_PRODUCTS.map((p) => (
+          <KxListingCard key={p.id} href="/store/dashboard?tab=products" accent="store" className="flex flex-col overflow-hidden">
+            <KxListingCardMedia aspectClass="aspect-[3/2]">
+              <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800" />
+              <div className="absolute left-3 top-3 z-10">
+                <span className="rounded-full border border-yellow-500/30 bg-white/90 px-2 py-0.5 text-xs font-semibold text-zinc-800 dark:bg-zinc-900/90 dark:text-zinc-100">
+                  {p.status}
+                </span>
+              </div>
+            </KxListingCardMedia>
+            <KxListingCardBody>
+              <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{p.title}</div>
+              <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{p.price}</div>
+            </KxListingCardBody>
+          </KxListingCard>
+        ))}
+      </div>
+      {_kaspaAddress ? null : (
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">Connect a Kaspa address to attribute listings to this profile.</p>
+      )}
+    </div>
+  );
+}
+
+const MOCK_MAGAZINES = [
+  { id: 'm1', title: 'KREX Monthly #4', status: 'Draft' },
+  { id: 'm2', title: 'Kaspa dev digest', status: 'Published' },
+] as const;
+
+function MyMagazinesTab({
+  kaspaAddress: _kaspaAddress,
+  goTab,
+}: {
+  kaspaAddress: string | null;
+  goTab: (tab: TabId, nextView?: string) => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SectionTitle title="My magazines" />
+        <div className="flex flex-wrap gap-2">
+          <Link href="/magazines" className="k-control-btn whitespace-nowrap">
+            Browse magazines
+          </Link>
+          <button type="button" className="k-control-btn whitespace-nowrap" onClick={() => goTab('workspace', 'magazine')}>
+            Open magazine editor
+          </button>
+        </div>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {MOCK_MAGAZINES.map((m) => (
+          <KxListingCard key={m.id} href="/magazines" accent="magazines" className="flex flex-col overflow-hidden">
+            <KxListingCardMedia aspectClass="aspect-[3/2]">
+              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/15 to-violet-500/5 dark:from-violet-500/25" />
+              <div className="absolute left-3 top-3 z-10">
+                <span className="rounded-full border border-violet-500/25 bg-white/90 px-2 py-0.5 text-xs font-semibold text-violet-900 dark:bg-zinc-900/90 dark:text-violet-200">
+                  {m.status}
+                </span>
+              </div>
+            </KxListingCardMedia>
+            <KxListingCardBody>
+              <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{m.title}</div>
+              <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Layout preview — link to full editor from workspace.</div>
+            </KxListingCardBody>
+          </KxListingCard>
+        ))}
+      </div>
+      {_kaspaAddress ? null : (
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">Resolve a profile address to tie magazines to this hub.</p>
+      )}
+    </div>
+  );
 }
 
 function AssetsTab() {
@@ -601,41 +920,6 @@ function AssetsTab() {
         <div className="grid sm:grid-cols-2 gap-3">
           <ActionLink href="/dapps" label="Media and assets" />
           <ActionLink href="/activity" label="Generation history" />
-        </div>
-      </Card>
-    </div>
-  );
-}
-
-function DappsTab({
-  kaspaAddress,
-  knsPrimaryName,
-  knsAssetsCount,
-}: {
-  kaspaAddress: string | null;
-  knsPrimaryName: string | null;
-  knsAssetsCount: number;
-}) {
-  return (
-    <div className="space-y-6">
-      <Card title="dApp identity">
-        <div className="grid sm:grid-cols-2 gap-3">
-          <InfoPill label="Kaspa wallet" value={kaspaAddress ? formatKaspaAddress(kaspaAddress).display : 'Not resolved'} />
-          <InfoPill label="Primary KNS" value={knsPrimaryName || 'Not set'} />
-          <InfoPill label="KNS assets" value={String(knsAssetsCount)} />
-        </div>
-      </Card>
-      <Card title="dApp creator actions">
-        <div className="grid sm:grid-cols-2 gap-3">
-          <ActionLink href="/build-dapp" label="Create dApp (editor)" />
-          <ActionLink href="/list-dapp" label="List dApp (same creator UI)" />
-          <ActionLink href="/dapps" label="Explore dApps" />
-          <ActionLink href="/u?tab=content&view=dapps" label="All authored dApps" />
-        </div>
-      </Card>
-      <Card title="KNS in dApps">
-        <div className="text-sm text-zinc-600 dark:text-zinc-400">
-          dApp listings inherit your connected Kaspa identity and display KNS domain badges in creator-facing views.
         </div>
       </Card>
     </div>
@@ -669,7 +953,7 @@ function KnsTab({
       <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <SectionTitle title="kns" />
+            <SectionTitle title="KNS" />
             <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
               Primary: <span className="font-semibold text-zinc-900 dark:text-zinc-100">{primaryName ? primaryName.toLowerCase() : '—'}</span>
               {primaryName ? <span className="ml-2"><CopyIconButton value={primaryName.toLowerCase()} label="Copy primary domain" /></span> : null}
@@ -682,7 +966,7 @@ function KnsTab({
       </div>
 
       <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
-        <SectionTitle title="owned domains" />
+        <SectionTitle title="Owned domains" />
         {!kaspaAddress ? (
           <div className="text-sm text-zinc-600 dark:text-zinc-400">Resolve a Kaspa address to load domains.</div>
         ) : isLoading ? (
@@ -765,14 +1049,14 @@ function SettingsTab({
 
   return (
     <div className="space-y-6">
-      <Card title="profile settings (local draft)">
+      <Card title="Profile settings (local draft)">
         <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-4">
           For this first iteration, edits are saved locally. Next step is publishing to IPFS + registry updates with KAS-paid actions.
         </div>
 
         <div className="grid gap-4">
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-4">
-            <SectionTitle title="link l2 wallet (proof)" />
+            <SectionTitle title="Link L2 wallet (proof)" />
             <div className="text-[11px] text-zinc-600 dark:text-zinc-400">
               Canonical identity: <span className="font-semibold text-zinc-900 dark:text-zinc-100">{kaspaAddress || '—'}</span>
             </div>
@@ -797,7 +1081,7 @@ function SettingsTab({
                 }}
                 className={`k-control-btn flex-1 ${!connectedEvmAddress || !kaspaAddress || isLinking ? 'opacity-60 cursor-not-allowed' : ''}`}
               >
-                {isLinking ? 'signing…' : 'link evm wallet'}
+                {isLinking ? 'Signing…' : 'Link EVM wallet'}
               </button>
             </div>
 
@@ -814,7 +1098,7 @@ function SettingsTab({
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2">avatar url (or `ipfs://...`)</label>
+            <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2">Avatar URL (or `ipfs://...`)</label>
             <input
               value={avatar}
               onChange={(e) => setAvatar(e.target.value)}
@@ -825,7 +1109,7 @@ function SettingsTab({
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2">banner url (or `ipfs://...`)</label>
+            <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2">Banner URL (or `ipfs://...`)</label>
             <input
               value={banner}
               onChange={(e) => setBanner(e.target.value)}
@@ -836,7 +1120,7 @@ function SettingsTab({
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2">display name</label>
+            <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2">Display name</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -845,7 +1129,7 @@ function SettingsTab({
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2">bio</label>
+            <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2">Bio</label>
             <textarea
               value={b}
               onChange={(e) => setB(e.target.value)}
@@ -870,7 +1154,7 @@ function SettingsTab({
               }
               className="k-control-btn flex-1"
             >
-              save draft
+              Save draft
             </button>
           </div>
         </div>
@@ -957,11 +1241,11 @@ function ProfileHaloHeader({
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     {isOwnProfile ? (
                       <span className="text-[12px] px-2 py-0.5 inline-flex rounded-full bg-green-500/10 text-green-700 dark:text-green-400 font-semibold border border-green-500/10">
-                        owner
+                        Owner
                       </span>
                     ) : (
                       <span className="text-[12px] px-2 py-0.5 inline-flex rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 font-semibold border border-zinc-200 dark:border-zinc-700">
-                        public
+                        Public
                       </span>
                     )}
                     {visibleDomains.displayed.map((d) => (
@@ -1008,13 +1292,13 @@ function ProfileHaloHeader({
                   onClick={onEdit}
                   className="k-control-btn"
                 >
-                  edit
+                  Edit
                 </button>
                 <Link
                   href={kaspaAddress ? `/u/${encodeURIComponent(kaspaAddress)}?tab=workspace` : '/u?tab=workspace'}
                   className="k-control-btn !bg-[#02abb8] hover:!bg-[#028a94] !text-white !border-[#02abb8]/30"
                 >
-                  workspace
+                  Workspace
                 </Link>
               </div>
             ) : null}
@@ -1035,15 +1319,16 @@ function ProfileTabStrip({
   onTab: (t: TabId) => void;
 }) {
   const tabs: Array<{ id: TabId; label: string; ownerOnly?: boolean }> = [
-    { id: 'overview', label: 'overview' },
-    { id: 'workspace', label: 'workspace' },
-    { id: 'editors', label: 'editors' },
-    { id: 'dapps', label: 'dapps' },
-    { id: 'ads', label: 'ads' },
-    { id: 'assets', label: 'assets' },
-    { id: 'content', label: 'content' },
-    { id: 'kns', label: 'kns' },
-    { id: 'settings', label: 'settings', ownerOnly: true },
+    { id: 'overview', label: 'Overview' },
+    { id: 'workspace', label: 'Workspace' },
+    { id: 'my-dapps', label: 'My dApps' },
+    { id: 'my-articles', label: 'My articles' },
+    { id: 'my-products', label: 'My products' },
+    { id: 'my-magazines', label: 'My magazines' },
+    { id: 'ads', label: 'Ads' },
+    { id: 'assets', label: 'Assets' },
+    { id: 'kns', label: 'KNS' },
+    { id: 'settings', label: 'Settings', ownerOnly: true },
   ];
   return (
     <div className="mb-6">

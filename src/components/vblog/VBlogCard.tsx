@@ -13,7 +13,7 @@ export function VBlogCard({ article }: VBlogCardProps) {
   const excerpt = getArticleExcerpt(article, 90);
   const authorDisplay = formatAddress(article.author);
   const isLinked = article.linkedMagazineId && article.linkedIssueNumber;
-  const authorHubUrl = `/u/${encodeURIComponent(article.author)}?tab=content&view=articles`;
+  const authorHubUrl = `/u/${encodeURIComponent(article.author)}?tab=my-articles`;
 
   return (
     <KxListingCard href={`/vblog/${article.slug}`} accent="vblog" className="h-full flex flex-col font-sans">

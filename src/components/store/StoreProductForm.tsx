@@ -77,7 +77,7 @@ export function StoreProductForm() {
             }, result.txHash);
 
             setStep('complete');
-            setTimeout(() => router.push('/u?tab=editors&view=store'), 2000);
+            setTimeout(() => router.push('/u?tab=workspace&view=store'), 2000);
         } catch (err: any) {
             setError(err.message);
             setStep('form');
