@@ -120,7 +120,7 @@ export function ProfileHubContent({
   useEffect(() => {
     let cancelled = false;
     async function loadAssets() {
-      if (!kaspaAddress || activeTab !== 'kns') return;
+      if (!kaspaAddress) return;
       const defaultNet = createKnsClient().network;
       const nets: Array<'mainnet' | 'tn10'> = [defaultNet, defaultNet === 'mainnet' ? 'tn10' : 'mainnet'];
       let best: KnsAsset[] = [];
@@ -147,7 +147,7 @@ export function ProfileHubContent({
     return () => {
       cancelled = true;
     };
-  }, [kaspaAddress, activeTab]);
+  }, [kaspaAddress]);
 
   return (
     <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">

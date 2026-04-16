@@ -23,14 +23,15 @@ function getNetworkFromEnv(): KnsNetwork {
 }
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const isBrowser = typeof window !== 'undefined';
   const res = await fetch(url, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
       ...(init?.headers || {}),
     },
-    // KNS is a public indexer; cache lightly to avoid rate spikes on profile views.
-    next: { revalidate: 60 },
+    // In Next.js server/runtime we can revalidate; in browser it is ignored/unsupported.
+    ...(isBrowser ? {} : { next: { revalidate: 60 } }),
   });
   if (!res.ok) {
     const text = await res.text().catch(() => '');
@@ -83,18 +84,31 @@ export type KnsDomainProfileResponse = {
 
 export function createKnsClient(opts?: KnsClientOptions) {
   const network = opts?.network || getNetworkFromEnv();
-  const baseUrl =
+
+  const directBaseUrl =
     (opts?.baseUrl && opts.baseUrl.trim()) ||
     (process.env.NEXT_PUBLIC_KNS_API_BASE && String(process.env.NEXT_PUBLIC_KNS_API_BASE).trim()) ||
     getDefaultBaseUrl(network);
+
+  // In browser use same-origin proxy to avoid CORS issues.
+  const baseUrl = typeof window !== 'undefined'
+    ? `/api/kns/${network}`
+    : directBaseUrl;
+
+  const buildUrl = (pathname: string): string => {
+    if (baseUrl.startsWith('/')) {
+      const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
+      return new URL(pathname, origin + baseUrl).toString();
+    }
+    return new URL(pathname, baseUrl).toString();
+  };
 
   return {
     network,
     baseUrl,
 
     async getAssetsByOwner(ownerAddress: string): Promise<KnsAsset[]> {
-      const url = new URL('/api/v1/assets', baseUrl);
-      // KNS expects `kaspa:`-prefixed owner address (confirmed via live API).
+      const url = new URL(buildUrl('/assets'));
       url.searchParams.set('owner', ensureKaspaPrefix(ownerAddress));
       const data = await fetchJson<any>(url.toString());
       // Supported shapes:
@@ -110,8 +124,7 @@ export function createKnsClient(opts?: KnsClientOptions) {
     async getDomainOwner(domain: string): Promise<KnsDomainOwnerResponse> {
       // Domains must be URL-encoded (per KNS docs). The endpoint is /api/v1/{domain}/owner.
       const encoded = encodeURIComponent(domain);
-      const url = new URL(`/api/v1/${encoded}/owner`, baseUrl);
-      const data = await fetchJson<any>(url.toString());
+      const data = await fetchJson<any>(buildUrl(`/${encoded}/owner`));
       // Supported shapes:
       // - { success: true, data: { ownerAddress: 'kaspa:...' } }
       // - { ownerAddress: '...' } / { owner: '...' }
@@ -121,9 +134,8 @@ export function createKnsClient(opts?: KnsClientOptions) {
 
     async getPrimaryNameByOwner(ownerAddress: string): Promise<KnsPrimaryNameResponse | null> {
       const encoded = encodeURIComponent(ensureKaspaPrefix(ownerAddress));
-      const url = new URL(`/api/v1/primary-name/${encoded}`, baseUrl);
       try {
-        const data = await fetchJson<any>(url.toString());
+        const data = await fetchJson<any>(buildUrl(`/primary-name/${encoded}`));
         // Supported shapes:
         // - { success: true, data: { ownerAddress, inscriptionId, domain: { fullName } } }
         // - legacy flat shapes
@@ -136,9 +148,8 @@ export function createKnsClient(opts?: KnsClientOptions) {
 
     async getDomainProfileByAssetId(assetId: string): Promise<KnsDomainProfileResponse | null> {
       const encoded = encodeURIComponent(assetId);
-      const url = new URL(`/api/v1/domain/${encoded}/profile`, baseUrl);
       try {
-        return await fetchJson<KnsDomainProfileResponse>(url.toString());
+        return await fetchJson<KnsDomainProfileResponse>(buildUrl(`/domain/${encoded}/profile`));
       } catch {
         return null;
       }
