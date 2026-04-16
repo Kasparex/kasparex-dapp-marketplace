@@ -90,26 +90,23 @@ export function createKnsClient(opts?: KnsClientOptions) {
     (process.env.NEXT_PUBLIC_KNS_API_BASE && String(process.env.NEXT_PUBLIC_KNS_API_BASE).trim()) ||
     getDefaultBaseUrl(network);
 
-  // In browser use same-origin proxy to avoid CORS issues.
-  const baseUrl = typeof window !== 'undefined'
-    ? `/api/kns/${network}`
-    : directBaseUrl;
-
-  const buildUrl = (pathname: string): string => {
-    if (baseUrl.startsWith('/')) {
-      const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
-      return new URL(pathname, origin + baseUrl).toString();
-    }
-    return new URL(pathname, baseUrl).toString();
-  };
+  const isBrowser = typeof window !== 'undefined';
 
   return {
     network,
-    baseUrl,
+    baseUrl: directBaseUrl,
 
     async getAssetsByOwner(ownerAddress: string): Promise<KnsAsset[]> {
-      const url = new URL(buildUrl('/assets'));
-      url.searchParams.set('owner', ensureKaspaPrefix(ownerAddress));
+      const owner = ensureKaspaPrefix(ownerAddress);
+      const url = isBrowser
+        ? new URL(`${window.location.origin}/api/kns/assets`)
+        : new URL('/api/v1/assets', directBaseUrl);
+      if (isBrowser) {
+        url.searchParams.set('owner', owner);
+        url.searchParams.set('network', network);
+      } else {
+        url.searchParams.set('owner', owner);
+      }
       const data = await fetchJson<any>(url.toString());
       // Supported shapes:
       // - { success: true, data: { assets: [...], pagination: {...} } }
@@ -124,7 +121,14 @@ export function createKnsClient(opts?: KnsClientOptions) {
     async getDomainOwner(domain: string): Promise<KnsDomainOwnerResponse> {
       // Domains must be URL-encoded (per KNS docs). The endpoint is /api/v1/{domain}/owner.
       const encoded = encodeURIComponent(domain);
-      const data = await fetchJson<any>(buildUrl(`/${encoded}/owner`));
+      const url = isBrowser
+        ? new URL(`${window.location.origin}/api/kns/domain-owner`)
+        : new URL(`/api/v1/${encoded}/owner`, directBaseUrl);
+      if (isBrowser) {
+        url.searchParams.set('domain', domain);
+        url.searchParams.set('network', network);
+      }
+      const data = await fetchJson<any>(url.toString());
       // Supported shapes:
       // - { success: true, data: { ownerAddress: 'kaspa:...' } }
       // - { ownerAddress: '...' } / { owner: '...' }
@@ -135,7 +139,14 @@ export function createKnsClient(opts?: KnsClientOptions) {
     async getPrimaryNameByOwner(ownerAddress: string): Promise<KnsPrimaryNameResponse | null> {
       const encoded = encodeURIComponent(ensureKaspaPrefix(ownerAddress));
       try {
-        const data = await fetchJson<any>(buildUrl(`/primary-name/${encoded}`));
+        const url = isBrowser
+          ? new URL(`${window.location.origin}/api/kns/primary-name`)
+          : new URL(`/api/v1/primary-name/${encoded}`, directBaseUrl);
+        if (isBrowser) {
+          url.searchParams.set('owner', ensureKaspaPrefix(ownerAddress));
+          url.searchParams.set('network', network);
+        }
+        const data = await fetchJson<any>(url.toString());
         // Supported shapes:
         // - { success: true, data: { ownerAddress, inscriptionId, domain: { fullName } } }
         // - legacy flat shapes
@@ -149,7 +160,14 @@ export function createKnsClient(opts?: KnsClientOptions) {
     async getDomainProfileByAssetId(assetId: string): Promise<KnsDomainProfileResponse | null> {
       const encoded = encodeURIComponent(assetId);
       try {
-        return await fetchJson<KnsDomainProfileResponse>(buildUrl(`/domain/${encoded}/profile`));
+        const url = isBrowser
+          ? new URL(`${window.location.origin}/api/kns/domain-profile`)
+          : new URL(`/api/v1/domain/${encoded}/profile`, directBaseUrl);
+        if (isBrowser) {
+          url.searchParams.set('assetId', assetId);
+          url.searchParams.set('network', network);
+        }
+        return await fetchJson<KnsDomainProfileResponse>(url.toString());
       } catch {
         return null;
       }
