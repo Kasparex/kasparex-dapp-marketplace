@@ -60,7 +60,7 @@ export function MyDAppsList({ dApps, isLoading, isEmpty }: MyDAppsListProps) {
           You haven&apos;t created or listed any dApps yet.
         </p>
         <Link
-          href="/build-dapp"
+          href="/u?tab=my-dapps&view=build-dapp"
           className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-[#02abb8] rounded-lg hover:bg-[#0299a3] transition-colors"
         >
           Build Your First dApp

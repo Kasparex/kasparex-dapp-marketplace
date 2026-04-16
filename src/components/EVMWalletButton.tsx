@@ -150,13 +150,7 @@ export function EVMWalletButton() {
 
     return (
       <div className="relative" ref={dropdownRef}>
-        <button
-          type="button"
-          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium relative"
-          aria-label="EVM Wallet"
-        >
-          {/* Network badge (opens chain switcher) */}
+        <div className="flex items-center gap-1 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium pr-1 relative">
           <Tooltip content="Switch L2 network">
             <span
               role="button"
@@ -172,7 +166,7 @@ export function EVMWalletButton() {
                   openChainModal?.();
                 }
               }}
-              className={`flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm hover:opacity-90 transition-opacity cursor-pointer ${networkBadgeColorClass}`}
+              className={`flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-l-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer ${networkBadgeColorClass}`}
               aria-label="Switch L2 network"
             >
               L2
@@ -182,24 +176,33 @@ export function EVMWalletButton() {
               {networkLabel}
             </span>
           </Tooltip>
-          
-          {/* Avatar */}
-          <Avatar address={address} size={20} />
-          
-          {/* Address on right */}
-          <span className="text-zinc-900 dark:text-zinc-100 hidden sm:inline">{displayAddress}</span>
-          <span className="text-zinc-900 dark:text-zinc-100 sm:hidden">L2</span>
-          
-          {/* Chevron */}
-          <svg
-            className={`w-4 h-4 text-zinc-600 dark:text-zinc-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+          <button
+            type="button"
+            onClick={handleViewProfile}
+            className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-zinc-300/40 dark:hover:bg-zinc-700/60 transition-colors"
+            aria-label="Open Profile Hub"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+            <Avatar address={address} size={20} />
+            <span className="text-zinc-900 dark:text-zinc-100 hidden sm:inline max-w-[160px] truncate">{displayAddress}</span>
+            <span className="text-zinc-900 dark:text-zinc-100 sm:hidden">Profile</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="p-2 rounded-lg hover:bg-zinc-300/40 dark:hover:bg-zinc-700/60 transition-colors"
+            aria-expanded={isDropdownOpen}
+            aria-label="Toggle EVM wallet menu"
+          >
+            <svg
+              className={`w-4 h-4 text-zinc-600 dark:text-zinc-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
 
         {isDropdownOpen && (
           <div className="absolute right-0 top-full mt-2 z-[9999]">

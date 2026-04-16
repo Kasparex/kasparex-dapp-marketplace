@@ -191,9 +191,9 @@ export function BuildListSidebar({ title }: BuildListSidebarProps) {
                     <p className="font-medium mb-2">Helpful Links:</p>
                     <ul className="space-y-1">
                       <li>
-                        <a href="/list-dapp" className="text-[#02abb8] hover:underline">
+                        <Link href="/u?tab=my-dapps&view=list-dapp" className="text-[#02abb8] hover:underline">
                           View My dApps →
-                        </a>
+                        </Link>
                       </li>
                       <li>
                         <Link href="/dapps" className="text-[#02abb8] hover:underline">
@@ -242,7 +242,7 @@ export function BuildListSidebar({ title }: BuildListSidebarProps) {
                   onToggle={() => setRequirementsExpanded(!requirementsExpanded)}
                 >
                   <div className="text-sm text-zinc-600 dark:text-zinc-400 space-y-2">
-                    <Link href="/build-dapp" className="block text-[#02abb8] hover:underline">
+                    <Link href="/u?tab=my-dapps&view=build-dapp" className="block text-[#02abb8] hover:underline">
                       ➕ Build New dApp
                     </Link>
                     <Link href="/dapps" className="block text-[#02abb8] hover:underline">

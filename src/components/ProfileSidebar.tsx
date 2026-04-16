@@ -292,13 +292,13 @@ export function ProfileSidebar({
           >
             <div className="space-y-3 mb-4">
               <Link
-                href="/build-dapp"
+                href="/u?tab=my-dapps&view=build-dapp"
                 className="block w-full px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm text-center"
               >
                 Build dApp
               </Link>
               <Link
-                href="/list-dapp"
+                href="/u?tab=my-dapps&view=list-dapp"
                 className="block w-full px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm text-center"
               >
                 List dApp

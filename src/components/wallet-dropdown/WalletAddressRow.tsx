@@ -28,29 +28,31 @@ export function WalletAddressRow({
   refreshLabel?: string;
 }) {
   const [copied, setCopied] = useState(false);
-  return (
-    <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-3">
+  const profileButton = onProfile ? (
+    <button
+      type="button"
+      onClick={onProfile}
+      className="min-w-0 flex-1 flex items-center gap-3 text-left rounded-lg -m-1 p-1 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 transition-colors"
+      aria-label={profileLabel}
+    >
       <Avatar address={address} size={24} />
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-mono text-zinc-900 dark:text-zinc-100 truncate">
-          {displayAddress}
-        </div>
+        <div className="text-sm font-mono text-zinc-900 dark:text-zinc-100 truncate">{displayAddress}</div>
       </div>
+    </button>
+  ) : (
+    <>
+      <Avatar address={address} size={24} />
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-mono text-zinc-900 dark:text-zinc-100 truncate">{displayAddress}</div>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-3">
+      {profileButton}
       <div className="flex items-center gap-1">
-        {onProfile ? (
-          <Tooltip content={profileLabel}>
-            <button
-              type="button"
-              onClick={onProfile}
-              className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-              aria-label={profileLabel}
-            >
-              <svg className="w-4 h-4 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </button>
-          </Tooltip>
-        ) : null}
         {onRefresh ? (
           <Tooltip content={refreshLabel}>
             <button

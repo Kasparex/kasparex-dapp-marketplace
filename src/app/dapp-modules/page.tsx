@@ -118,7 +118,7 @@ export default function DAppModulesPage() {
           >
             <div className="mb-8">
               <div className="space-y-2">
-                <Link href="/list-dapp" className="k-control-btn w-full">
+                <Link href="/u?tab=my-dapps&view=list-dapp" className="k-control-btn w-full">
                   List dApp
                 </Link>
                 <Link href="/tree/dashboard" className="k-control-btn w-full">
@@ -139,7 +139,7 @@ export default function DAppModulesPage() {
           >
             <div className="mb-8">
               <div className="space-y-2">
-                <Link href="/list-dapp" className="k-control-btn w-full">
+                <Link href="/u?tab=my-dapps&view=list-dapp" className="k-control-btn w-full">
                   List dApp
                 </Link>
                 <Link href="/tree/dashboard" className="k-control-btn w-full">

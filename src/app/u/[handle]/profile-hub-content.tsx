@@ -18,6 +18,8 @@ import { createKnsClient, type KnsDomainProfileResponse, type KnsAsset } from '@
 import { useUnifiedProfile } from '@/hooks/useUnifiedProfile';
 import { buildLinkEvmMessage, verifyLinkEvmSignature } from '@/lib/profile/linking';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { BuildDAppWizard } from '@/components/dapps/BuildDAppWizard';
+import type { DApp } from '@/lib/dapps';
 
 type TabId =
   | 'overview'
@@ -42,10 +44,6 @@ const StudioPortfolioPage = dynamic(() => import('@/app/studio/portfolio/page').
 const StudioActivityPage = dynamic(() => import('@/app/studio/activity/page').then((m) => m.default), {
   ssr: false,
   loading: () => <LoadingCard label="Loading activity…" />,
-});
-const StudioAdsPage = dynamic(() => import('@/app/studio/ads/page').then((m) => m.default), {
-  ssr: false,
-  loading: () => <LoadingCard label="Loading ads…" />,
 });
 const StudioVBlogPage = dynamic(() => import('@/app/studio/vblog/page').then((m) => m.default), {
   ssr: false,
@@ -345,12 +343,14 @@ export function ProfileHubContent({
                 />
                 <SidebarNavItem
                   label="Create dApp"
-                  href="/build-dapp"
+                  active={activeTab === 'my-dapps' && view === 'build-dapp'}
+                  onClick={() => goTab('my-dapps', 'build-dapp')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>}
                 />
                 <SidebarNavItem
                   label="List dApp"
-                  href="/list-dapp"
+                  active={activeTab === 'my-dapps' && view === 'list-dapp'}
+                  onClick={() => goTab('my-dapps', 'list-dapp')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h10M7 16h10" /></svg>}
                 />
               </nav>
@@ -438,9 +438,7 @@ export function ProfileHubContent({
 
                 {activeTab === 'workspace' && <WorkspaceTab view={view} goTab={goTab} />}
 
-                {activeTab === 'my-dapps' && (
-                  <MyDappsTab kaspaAddress={kaspaAddress} knsPrimaryName={knsPrimaryName} goTab={goTab} />
-                )}
+                {activeTab === 'my-dapps' && <MyDappsTab kaspaAddress={kaspaAddress} goTab={goTab} view={view} />}
 
                 {activeTab === 'my-articles' && <MyArticlesTab kaspaAddress={kaspaAddress} goTab={goTab} />}
 
@@ -448,7 +446,7 @@ export function ProfileHubContent({
 
                 {activeTab === 'my-magazines' && <MyMagazinesTab kaspaAddress={kaspaAddress} goTab={goTab} />}
 
-                {activeTab === 'ads' && <StudioAdsPage />}
+                {activeTab === 'ads' && <ProfileAdsTab />}
 
                 {activeTab === 'assets' && <AssetsTab />}
 
@@ -702,59 +700,159 @@ const MOCK_PROFILE_DAPPS = [
   { id: 'ph-d3', title: 'NFT tools hub', slug: 'nft-tools-hub', status: 'Review' },
 ] as const;
 
-function MyDappsTab({
-  kaspaAddress,
-  knsPrimaryName,
+function HubDappWizardPanel({
+  mode,
   goTab,
 }: {
-  kaspaAddress: string | null;
-  knsPrimaryName: string | null;
+  mode: 'build-dapp' | 'list-dapp';
   goTab: (tab: TabId, nextView?: string) => void;
 }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const title = mode === 'build-dapp' ? 'Build dApp' : 'List dApp';
+
+  const handleComplete = async (dapp: Partial<DApp>) => {
+    setBusy(true);
+    try {
+      const key = `dapp_${dapp.id}_metadata`;
+      localStorage.setItem(key, JSON.stringify(dapp));
+      router.push('/dapps');
+    } catch (e) {
+      console.error(e);
+      alert('Failed to save dApp. Please try again.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleCancel = () => {
+    if (confirm('Are you sure you want to cancel? Your progress will be lost.')) {
+      goTab('my-dapps');
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <SubpageToolbar title={title} onBack={() => goTab('my-dapps')} />
+      <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+        {busy ? (
+          <div className="py-8 text-center text-sm text-zinc-600 dark:text-zinc-400">Saving listing…</div>
+        ) : (
+          <BuildDAppWizard onComplete={handleComplete} onCancel={handleCancel} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MyDappsTab({
+  kaspaAddress,
+  goTab,
+  view,
+}: {
+  kaspaAddress: string | null;
+  goTab: (tab: TabId, nextView?: string) => void;
+  view: string;
+}) {
+  const v = (view || '').toLowerCase();
+  if (v === 'build-dapp') {
+    return <HubDappWizardPanel mode="build-dapp" goTab={goTab} />;
+  }
+  if (v === 'list-dapp') {
+    return <HubDappWizardPanel mode="list-dapp" goTab={goTab} />;
+  }
+
   return (
     <div className="space-y-6">
-      <Card title="dApp identity">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <InfoPill label="Kaspa wallet" value={kaspaAddress ? formatKaspaAddress(kaspaAddress).display : 'Not resolved'} />
-          <InfoPill label="Primary KNS" value={knsPrimaryName ? knsPrimaryName.toLowerCase() : 'Not set'} />
-        </div>
-      </Card>
-
-      <div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <SectionTitle title="My dApps" />
-        <p className="mb-4 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
-          Sample listings for layout preview; wire-up to your indexer next. Open the workspace editor to create more.
-        </p>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {MOCK_PROFILE_DAPPS.map((d) => (
-            <KxListingCard key={d.id} href={`/dapps/${d.slug}`} accent="dapps" className="flex flex-col overflow-hidden">
-              <KxListingCardMedia aspectClass="aspect-[3/2]">
-                <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800" />
-                <div className="absolute left-3 top-3 z-10">
-                  <span className="rounded-full border border-zinc-200 bg-white/90 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/90 dark:text-zinc-200">
-                    {d.status}
-                  </span>
-                </div>
-              </KxListingCardMedia>
-              <KxListingCardBody>
-                <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{d.title}</div>
-                <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">/{d.slug}</div>
-              </KxListingCardBody>
-            </KxListingCard>
-          ))}
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="k-control-btn whitespace-nowrap" onClick={() => goTab('my-dapps', 'build-dapp')}>
+            Create dApp
+          </button>
+          <button type="button" className="k-control-btn whitespace-nowrap" onClick={() => goTab('my-dapps', 'list-dapp')}>
+            List dApp
+          </button>
+          <button type="button" className="k-control-btn whitespace-nowrap" onClick={() => goTab('workspace', 'vblog')}>
+            Open in editor
+          </button>
         </div>
       </div>
+      <p className="max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
+        Sample listings for layout preview; wire-up to your indexer next. Build or list a dApp from the buttons above.
+      </p>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {MOCK_PROFILE_DAPPS.map((d) => (
+          <KxListingCard key={d.id} href={`/dapps/${d.slug}`} accent="dapps" className="flex flex-col overflow-hidden">
+            <KxListingCardMedia aspectClass="aspect-[3/2]">
+              <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800" />
+              <div className="absolute left-3 top-3 z-10">
+                <span className="rounded-full border border-zinc-200 bg-white/90 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/90 dark:text-zinc-200">
+                  {d.status}
+                </span>
+              </div>
+            </KxListingCardMedia>
+            <KxListingCardBody>
+              <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{d.title}</div>
+              <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">/{d.slug}</div>
+            </KxListingCardBody>
+          </KxListingCard>
+        ))}
+      </div>
+      {kaspaAddress ? null : (
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">Connect a Kaspa wallet to attribute listings to this profile.</p>
+      )}
+    </div>
+  );
+}
 
-      <div className="flex flex-wrap gap-3">
-        <Link href="/build-dapp" className="k-control-btn">
-          Create dApp
-        </Link>
-        <Link href="/list-dapp" className="k-control-btn">
-          List dApp
-        </Link>
-        <button type="button" className="k-control-btn" onClick={() => goTab('workspace', 'vblog')}>
-          Open in editor
-        </button>
+const MOCK_PROFILE_ADS = [
+  { id: 'pad-1', title: 'Sidebar spotlight', slot: 'SIDEBAR_RANDOM', status: 'Active', daysLeft: 12 },
+  { id: 'pad-2', title: 'dApps hero takeover', slot: 'DAPPS_HERO', status: 'Paused', daysLeft: 0 },
+  { id: 'pad-3', title: 'Cross-network bundle', slot: 'Bundle', status: 'Draft', daysLeft: 30 },
+] as const;
+
+function ProfileAdsTab() {
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SectionTitle title="My ads" />
+        <div className="flex flex-wrap gap-2">
+          <Link href="/ads?create=1" className="k-control-btn whitespace-nowrap">
+            Create ad
+          </Link>
+          <Link href="/ads/overview" className="k-control-btn whitespace-nowrap">
+            Pricing
+          </Link>
+          <Link href="/ads" className="k-control-btn whitespace-nowrap">
+            Kasparex Ads
+          </Link>
+        </div>
+      </div>
+      <p className="max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
+        Campaigns paid from your connected Kaspa (L1) wallet. Below is a layout preview; live checkout and registry data stay
+        in Kasparex Ads.
+      </p>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {MOCK_PROFILE_ADS.map((a) => (
+          <KxListingCard key={a.id} href="/ads?create=1" accent="ads" className="flex flex-col overflow-hidden">
+            <KxListingCardMedia aspectClass="aspect-[3/2]">
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-500/15 to-pink-500/5 dark:from-pink-500/25" />
+              <div className="absolute left-3 top-3 z-10">
+                <span className="rounded-full border border-pink-500/25 bg-white/90 px-2 py-0.5 text-xs font-semibold text-pink-900 dark:bg-zinc-900/90 dark:text-pink-200">
+                  {a.status}
+                </span>
+              </div>
+            </KxListingCardMedia>
+            <KxListingCardBody>
+              <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{a.title}</div>
+              <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                Slot: {a.slot}
+                {a.daysLeft > 0 ? ` · ${a.daysLeft} days left` : ''}
+              </div>
+            </KxListingCardBody>
+          </KxListingCard>
+        ))}
       </div>
     </div>
   );

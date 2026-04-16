@@ -149,3 +149,10 @@ export function maskAddress(address: string, isVisible: boolean): string {
   }
   return '****';
 }
+
+/** When privacy mode is on, hide KNS domain labels on connect buttons and similar surfaces. */
+export function maskKnsDomain(domain: string | null | undefined, isVisible: boolean): string | null {
+  if (!domain) return null;
+  if (isVisible) return String(domain).toLowerCase();
+  return '***';
+}

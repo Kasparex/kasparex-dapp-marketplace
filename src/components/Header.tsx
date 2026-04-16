@@ -528,8 +528,8 @@ export function Header() {
           <button
             onClick={toggleBalanceVisibility}
             className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
-            aria-label={isBalanceVisible ? 'Hide balance' : 'Show balance'}
-            title={isBalanceVisible ? 'Hide wallet balances' : 'Show wallet balances'}
+            aria-label={isBalanceVisible ? 'Hide balances and KNS' : 'Show balances and KNS'}
+            title={isBalanceVisible ? 'Hide wallet balances and KNS names' : 'Show wallet balances and KNS names'}
           >
             {isBalanceVisible ? (
               <svg

@@ -10,6 +10,7 @@ import { useChainId } from 'wagmi';
 import { parseEther } from 'viem';
 import { getErrorMessage } from '@/lib/utils';
 import { useSafeError } from '@/hooks/useSafeError';
+import Link from 'next/link';
 
 export function SubscriptionManager() {
   const { dApps } = useMyDApps();
@@ -139,12 +140,12 @@ export function SubscriptionManager() {
         <p className="text-zinc-600 dark:text-zinc-400 mb-6">
           You need to register a dApp with a contract address to set up subscriptions.
         </p>
-        <a
-          href="/build-dapp"
+        <Link
+          href="/u?tab=my-dapps&view=build-dapp"
           className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-[#02abb8] rounded-lg hover:bg-[#0299a3] transition-colors"
         >
           Build a dApp
-        </a>
+        </Link>
       </div>
     );
   }

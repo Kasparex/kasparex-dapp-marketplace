@@ -14,7 +14,13 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 import { detectKaspaWallets, formatKaspaAddress } from '@/lib/kaspa/wallet';
 import { getErrorMessage } from '@/lib/utils';
-import { useBalanceVisibility, maskAddress, formatBalanceForDisplay, formatBalanceValueForDisplay } from '@/hooks/useBalanceVisibility';
+import {
+  useBalanceVisibility,
+  maskAddress,
+  formatBalanceForDisplay,
+  formatBalanceValueForDisplay,
+  maskKnsDomain,
+} from '@/hooks/useBalanceVisibility';
 import { Avatar } from './Avatar';
 import { WalletDropdownShell } from '@/components/wallet-dropdown/WalletDropdownShell';
 import { WalletAddressRow } from '@/components/wallet-dropdown/WalletAddressRow';
@@ -127,36 +133,57 @@ export function KaspaL1WalletButton() {
     const displayAddress = maskAddress(shortenAddress(formatAddressForDisplay(address), { head: 10, tail: 8 }), isBalanceVisible);
     const displayBalance = formatBalanceValueForDisplay(balance, false, isBalanceVisible);
     const explorerUrl = getAddressExplorerUrl({ kind: 'kaspa-l1', address });
-    const displayPrimary = knsPrimaryName ? knsPrimaryName.toLowerCase() : null;
+    const displayPrimary = maskKnsDomain(knsPrimaryName, isBalanceVisible);
 
     return (
       <div className="relative" ref={rootRef}>
-        <button
-          onClick={() => setOpen((o) => !o)}
-          className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium"
-          aria-label="Kastle Wallet"
-        >
-          <span className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 rounded-lg border border-cyan-300/50 dark:border-cyan-600/40 shadow-sm">
-            L1
-            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
-            </svg>
-            Kastle
-          </span>
-          <Avatar address={address} size={20} />
-          <span className="text-zinc-900 dark:text-zinc-100 hidden sm:inline">
-            {displayPrimary ? displayPrimary : displayAddress}
-          </span>
-          <span className="text-zinc-900 dark:text-zinc-100 sm:hidden">Kastle</span>
-          <svg
-            className={`w-4 h-4 text-zinc-600 dark:text-zinc-400 transition-transform ${open ? 'rotate-180' : ''}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        <div className="flex items-center gap-1 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium pr-1">
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-l-xl"
+            aria-label="Open Kastle wallet menu"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+            <span className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 rounded-lg border border-cyan-300/50 dark:border-cyan-600/40 shadow-sm">
+              L1
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
+              </svg>
+              Kastle
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              router.push(`/u/${encodeURIComponent(address)}`);
+              setOpen(false);
+            }}
+            className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-zinc-300/40 dark:hover:bg-zinc-700/60 transition-colors"
+            aria-label="Open Profile Hub"
+          >
+            <Avatar address={address} size={20} />
+            <span className="text-zinc-900 dark:text-zinc-100 hidden sm:inline max-w-[200px] truncate">
+              {displayPrimary ? displayPrimary : displayAddress}
+            </span>
+            <span className="text-zinc-900 dark:text-zinc-100 sm:hidden">Profile</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            className="p-2 rounded-lg hover:bg-zinc-300/40 dark:hover:bg-zinc-700/60 transition-colors"
+            aria-expanded={open}
+            aria-label="Toggle Kastle wallet menu"
+          >
+            <svg
+              className={`w-4 h-4 text-zinc-600 dark:text-zinc-400 transition-transform ${open ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
 
         {open && (
           <div className="absolute right-0 mt-2 z-50">

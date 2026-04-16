@@ -219,14 +219,14 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
             className="absolute left-0 top-full mt-1.5 w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[9999] overflow-hidden"
           >
             <Link
-              href="/list-dapp"
+              href="/u?tab=my-dapps&view=list-dapp"
               onClick={() => setIsPlusMenuOpen(false)}
               className="block w-full text-left px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
             >
               List dApp
             </Link>
             <Link
-              href="/build-dapp"
+              href="/u?tab=my-dapps&view=build-dapp"
               onClick={() => setIsPlusMenuOpen(false)}
               className="block w-full text-left px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
             >

@@ -239,7 +239,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
         <div className={`p-5 space-y-6 ${isHidden ? 'lg:hidden' : ''}`}>
             <div className="mb-8">
               <div className="space-y-2">
-                <Link href="/list-dapp" className="k-control-btn w-full">
+                <Link href="/u?tab=my-dapps&view=list-dapp" className="k-control-btn w-full">
                   List dApp
                 </Link>
                 <Link href="/tree/dashboard" className="k-control-btn w-full">
