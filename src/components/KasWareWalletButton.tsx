@@ -183,9 +183,10 @@ export function KasWareWalletButton() {
 
   // If connected, show button with balance and address
   if (state.isConnected && state.address && state.provider === 'kasware') {
-    const displayAddress = maskAddress(shortenAddress(formatAddressForDisplay(state.address), { head: 10, tail: 8 }), isBalanceVisible);
+    const address = state.address;
+    const displayAddress = maskAddress(shortenAddress(formatAddressForDisplay(address), { head: 10, tail: 8 }), isBalanceVisible);
     const displayBalance = formatBalanceValueForDisplay(balance, balanceLoading, isBalanceVisible);
-    const explorerUrl = getAddressExplorerUrl({ kind: 'kaspa-l1', address: state.address });
+    const explorerUrl = getAddressExplorerUrl({ kind: 'kaspa-l1', address });
     const displayPrimary = knsPrimaryName ? knsPrimaryName : null;
 
     return (
@@ -228,10 +229,10 @@ export function KasWareWalletButton() {
           <div className="absolute right-0 mt-2 z-50">
             <WalletDropdownShell>
               <WalletAddressRow
-                address={state.address}
+                address={address}
                 displayAddress={displayAddress}
                 onProfile={() => {
-                  router.push(`/u/${encodeURIComponent(state.address)}`);
+                  router.push(`/u/${encodeURIComponent(address)}`);
                   setIsDropdownOpen(false);
                 }}
                 onRefresh={async () => {
