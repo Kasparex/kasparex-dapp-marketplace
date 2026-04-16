@@ -74,6 +74,8 @@ export function ProfileHubContent({
     );
   }, [profile?.displayName, knsPrimaryName, kaspaAddress, initialHandle]);
 
+  const displayNameLower = useMemo(() => String(displayName || '').toLowerCase(), [displayName]);
+
   const bannerUrl = profile?.bannerUrl?.trim() || knsProfile?.banner || null;
   const avatarUrl = profile?.avatarUrl?.trim() || knsProfile?.avatar || null;
 
@@ -278,7 +280,7 @@ export function ProfileHubContent({
                 </h3>
                 <div className="space-y-2">
                   <Link
-                    href={kaspaAddress ? `/vblog/author/${encodeURIComponent(kaspaAddress)}` : '/vblog'}
+                    href={kaspaAddress ? `/vblog/author/${encodeURIComponent(kaspaAddress).replaceAll('%3A', ':')}` : '/vblog'}
                     className="block w-full px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-center border border-zinc-200 dark:border-zinc-700 hover:border-[#02abb8]/40"
                   >
                     View articles
@@ -301,7 +303,7 @@ export function ProfileHubContent({
             <div className="max-w-7xl mx-auto">
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <ProfileHaloHeader
-                  displayName={displayName}
+                  displayName={displayNameLower}
                   kaspaAddress={kaspaAddress}
                   knsPrimaryName={knsPrimaryName}
                   bio={profile?.bio?.trim() || knsProfile?.bio || ''}
@@ -555,23 +557,38 @@ function KnsTab({
         ) : (assets || []).length === 0 ? (
           <div className="text-sm text-zinc-600 dark:text-zinc-400">No assets found.</div>
         ) : (
-          <div className="grid md:grid-cols-2 gap-3">
-            {(assets || []).slice(0, 12).map((a, idx) => (
-              <div
-                key={`${a.assetId || a.asset_id || a.inscriptionId || a.inscription_id || idx}`}
-                className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 p-4"
-              >
-                <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Domain</div>
-                <div className="text-sm font-black text-zinc-900 dark:text-zinc-100 truncate">
-                  {String(a.domain || a.assetId || a.asset_id || 'Unknown')}
-                </div>
-                {a.verified != null && (
-                  <div className="mt-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-                    Verified: <span className="text-zinc-800 dark:text-zinc-200">{String(a.verified)}</span>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {(assets || [])
+              .map((a, idx) => ({
+                key: `${(a as any).assetId || (a as any).asset_id || (a as any).inscriptionId || (a as any).inscription_id || idx}`,
+                name: String((a as any).asset || (a as any).domain || '').trim().toLowerCase(),
+                verified: (a as any).isVerifiedDomain ?? (a as any).is_verified_domain ?? (a as any).verified,
+              }))
+              .filter((x) => Boolean(x.name))
+              .slice(0, 24)
+              .map((x) => (
+                <div
+                  key={x.key}
+                  className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 hover:border-[#02abb8]/30 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-[11px] font-black text-zinc-900 dark:text-zinc-100 truncate">
+                        {x.name}
+                      </div>
+                      <div className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+                        kns domain
+                      </div>
+                    </div>
+                    <CopyIconButton value={x.name} label="Copy domain" />
                   </div>
-                )}
-              </div>
-            ))}
+                  {x.verified != null && (
+                    <div className="mt-4 text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                      Verified: <span className="text-zinc-800 dark:text-zinc-200">{String(x.verified)}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
           </div>
         )}
       </Card>
@@ -824,8 +841,9 @@ function ProfileHaloHeader({
                       </span>
                     )}
                     {kaspaAddress && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold uppercase border border-zinc-200 dark:border-zinc-700">
-                        {formatKaspaAddress(kaspaAddress).display}
+                      <span className="inline-flex items-center gap-2 text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold uppercase border border-zinc-200 dark:border-zinc-700">
+                        <span className="font-mono normal-case">{formatKaspaAddress(kaspaAddress).full.toLowerCase()}</span>
+                        <CopyIconButton value={formatKaspaAddress(kaspaAddress).full.toLowerCase()} label="Copy address" />
                       </span>
                     )}
                     {source !== 'none' && (
@@ -852,7 +870,7 @@ function ProfileHaloHeader({
                 </button>
                 <Link
                   href="/studio/portfolio"
-                  className="px-4 py-2 rounded-xl font-black uppercase tracking-widest text-[10px] bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+                  className="px-4 py-2 rounded-xl font-black uppercase tracking-widest text-[10px] bg-[#02abb8] hover:bg-[#028a94] text-white transition-colors"
                 >
                   Studio
                 </Link>
@@ -862,6 +880,28 @@ function ProfileHaloHeader({
         </div>
       </div>
     </section>
+  );
+}
+
+function CopyIconButton({ value, label }: { value: string; label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(value);
+        } catch {
+          // ignore
+        }
+      }}
+      className="p-1 rounded-lg hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
+      aria-label={label}
+      title={label}
+    >
+      <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+      </svg>
+    </button>
   );
 }
 
@@ -907,7 +947,7 @@ function TabBar({
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6">
-      <div className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4">
+      <div className="text-[11px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4">
         {title}
       </div>
       {children}
