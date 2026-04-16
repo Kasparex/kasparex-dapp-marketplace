@@ -3,6 +3,7 @@
 import { VBlogArticle } from '@/lib/vblog/types';
 import { formatAddress, formatDate, getArticleExcerpt } from '@/lib/vblog/utils';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import Link from 'next/link';
 
 interface VBlogCardProps {
   article: VBlogArticle;
@@ -12,6 +13,7 @@ export function VBlogCard({ article }: VBlogCardProps) {
   const excerpt = getArticleExcerpt(article, 90);
   const authorDisplay = formatAddress(article.author);
   const isLinked = article.linkedMagazineId && article.linkedIssueNumber;
+  const authorHubUrl = `/u/${encodeURIComponent(article.author)}?tab=content&view=articles`;
 
   return (
     <KxListingCard href={`/vblog/${article.slug}`} accent="vblog" className="h-full flex flex-col font-sans">
@@ -48,11 +50,15 @@ export function VBlogCard({ article }: VBlogCardProps) {
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900 transition-transform duration-700 group-hover:scale-105">
-              <svg className="w-16 h-16 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-              </svg>
-            </div>
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#02abb8]/15 via-zinc-100 to-zinc-200 dark:from-[#02abb8]/20 dark:via-zinc-900 dark:to-zinc-950 transition-transform duration-700 group-hover:scale-105">
+              <div className="text-center px-6">
+                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 mb-3">
+                  vBlog
+                </div>
+                <div className="text-lg font-black text-zinc-900 dark:text-zinc-100 leading-tight line-clamp-2">
+                  {article.title}
+                </div>
+              </div>
           )}
 
       </KxListingCardMedia>
@@ -68,7 +74,13 @@ export function VBlogCard({ article }: VBlogCardProps) {
           <div className="flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800 pt-5">
             <div className="flex flex-col">
               <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Author</span>
-              <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-200">{authorDisplay}</span>
+              <Link
+                href={authorHubUrl}
+                className="text-sm font-semibold text-zinc-900 dark:text-zinc-200 hover:text-[#02abb8] dark:hover:text-[#66dfe8] transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {authorDisplay}
+              </Link>
             </div>
             <div className="text-right">
               <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Published</span>

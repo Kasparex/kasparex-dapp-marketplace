@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { useSearchParams } from 'next/navigation';
 import { useAccount, useSignMessage } from 'wagmi';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -36,6 +37,7 @@ export function ProfileHubContent({
   initialKaspaAddress: string | null;
   initialKnsName: string | null;
 }) {
+  const searchParams = useSearchParams();
   const { address: connectedEvmAddress, isConnected: isEvmConnected } = useAccount();
   const { signMessageAsync, isPending: isSigningEvm } = useSignMessage();
   const { state: kaspaState } = useKaspaWallet();
@@ -158,6 +160,13 @@ export function ProfileHubContent({
       cancelled = true;
     };
   }, [kaspaAddress]);
+
+  useEffect(() => {
+    const tab = (searchParams?.get('tab') || '').toLowerCase();
+    if (tab === 'overview' || tab === 'portfolio' || tab === 'content' || tab === 'kns' || tab === 'settings') {
+      setActiveTab(tab as TabId);
+    }
+  }, [searchParams]);
 
   return (
     <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -408,6 +417,8 @@ function OverviewTab({
 }
 
 function ContentTab({ kaspaAddress }: { kaspaAddress: string | null }) {
+  const searchParams = useSearchParams();
+  const view = (searchParams?.get('view') || '').toLowerCase();
   return (
     <div className="space-y-6">
       <Card title="Articles">
@@ -419,7 +430,7 @@ function ContentTab({ kaspaAddress }: { kaspaAddress: string | null }) {
             href={kaspaAddress ? `/vblog/author/${encodeURIComponent(kaspaAddress).replaceAll('%3A', ':')}` : '/vblog'}
             className="inline-flex items-center justify-center px-4 py-2 rounded-xl font-bold uppercase tracking-widest text-[10px] bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
           >
-            Open vBlog author page
+            {view === 'articles' ? 'Open author articles' : 'Open vBlog author page'}
           </Link>
         </div>
       </Card>
