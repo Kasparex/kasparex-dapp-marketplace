@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAccount, useSignMessage } from 'wagmi';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -17,6 +17,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { createKnsClient, type KnsDomainProfileResponse, type KnsAsset } from '@/lib/kns/client';
 import { useUnifiedProfile } from '@/hooks/useUnifiedProfile';
 import { buildLinkEvmMessage, verifyLinkEvmSignature } from '@/lib/profile/linking';
+import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 
 type TabId = 'overview' | 'workspace' | 'dapps' | 'editors' | 'ads' | 'assets' | 'content' | 'kns' | 'settings';
 
@@ -58,6 +59,7 @@ export function ProfileHubContent({
   initialKaspaAddress: string | null;
   initialKnsName: string | null;
 }) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { address: connectedEvmAddress, isConnected: isEvmConnected } = useAccount();
   const { signMessageAsync, isPending: isSigningEvm } = useSignMessage();
@@ -102,6 +104,13 @@ export function ProfileHubContent({
       return `${baseProfileHref}?${params.toString()}`;
     };
   }, [baseProfileHref]);
+
+  const goTab = useMemo(() => {
+    return (tab: TabId, nextView?: string) => {
+      setActiveTab(tab);
+      router.replace(hrefTab(tab, nextView));
+    };
+  }, [hrefTab, router]);
 
   const { profile, source, updateLocalProfile } = useUnifiedProfile(kaspaAddress);
 
@@ -219,30 +228,33 @@ export function ProfileHubContent({
             )}
           >
             <div className="px-3 pt-3 pb-4 space-y-2 border-b border-zinc-200/70 dark:border-zinc-800/70 mb-4">
-              <Link
-                href={hrefTab('workspace')}
+              <button
+                type="button"
+                onClick={() => goTab('workspace', 'dashboard')}
                 className={`k-control-btn w-full justify-center gap-2 ${
                   activeTab === 'workspace' ? '!border-[#02abb8]/40 !bg-[#02abb8]/15 !text-[#017a84] dark:!text-[#8ff1f8]' : ''
                 }`}
               >
                 <span className="text-xs font-black uppercase tracking-widest">Workspace</span>
-              </Link>
-              <Link
-                href={hrefTab('editors', 'vblog')}
+              </button>
+              <button
+                type="button"
+                onClick={() => goTab('editors', 'vblog')}
                 className={`k-control-btn w-full justify-center gap-2 ${
                   activeTab === 'editors' ? '!border-[#02abb8]/40 !bg-[#02abb8]/15 !text-[#017a84] dark:!text-[#8ff1f8]' : ''
                 }`}
               >
                 <span className="text-xs font-black uppercase tracking-widest">Editors</span>
-              </Link>
-              <Link
-                href={hrefTab('dapps')}
+              </button>
+              <button
+                type="button"
+                onClick={() => goTab('dapps')}
                 className={`k-control-btn w-full justify-center gap-2 ${
                   activeTab === 'dapps' ? '!border-[#02abb8]/40 !bg-[#02abb8]/15 !text-[#017a84] dark:!text-[#8ff1f8]' : ''
                 }`}
               >
                 <span className="text-xs font-black uppercase tracking-widest">dApps</span>
-              </Link>
+              </button>
             </div>
 
             <SidebarSection title="Workspace">
@@ -250,25 +262,25 @@ export function ProfileHubContent({
                 <SidebarNavItem
                   label="Overview"
                   active={activeTab === 'overview'}
-                  href={hrefTab('overview')}
+                  onClick={() => goTab('overview')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>}
                 />
                 <SidebarNavItem
                   label="Dashboard"
                   active={activeTab === 'workspace' && (view === '' || view === 'dashboard')}
-                  href={hrefTab('workspace', 'dashboard')}
+                  onClick={() => goTab('workspace', 'dashboard')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
                 />
                 <SidebarNavItem
                   label="Portfolio"
                   active={activeTab === 'workspace' && view === 'portfolio'}
-                  href={hrefTab('workspace', 'portfolio')}
+                  onClick={() => goTab('workspace', 'portfolio')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745V20a2 2 0 002 2h14a2 2 0 002-2v-6.745zM18 8a2 2 0 11-4 0 2 2 0 014 0zM10 8a2 2 0 11-4 0 2 2 0 014 0z" /><path d="M6 5c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v3H6V5z" /></svg>}
                 />
                 <SidebarNavItem
                   label="Activity"
                   active={activeTab === 'workspace' && view === 'activity'}
-                  href={hrefTab('workspace', 'activity')}
+                  onClick={() => goTab('workspace', 'activity')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}
                 />
               </nav>
@@ -279,19 +291,19 @@ export function ProfileHubContent({
                 <SidebarNavItem
                   label="vBlog"
                   active={activeTab === 'editors' && (view === '' || view === 'vblog')}
-                  href={hrefTab('editors', 'vblog')}
+                  onClick={() => goTab('editors', 'vblog')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>}
                 />
                 <SidebarNavItem
                   label="Magazines"
                   active={activeTab === 'editors' && view === 'magazine'}
-                  href={hrefTab('editors', 'magazine')}
+                  onClick={() => goTab('editors', 'magazine')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
                 />
                 <SidebarNavItem
                   label="Store"
                   active={activeTab === 'editors' && view === 'store'}
-                  href={hrefTab('editors', 'store')}
+                  onClick={() => goTab('editors', 'store')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7l1 2m0 0l2 10a2 2 0 002 2h8a2 2 0 002-2l2-10m-14 0h14M9 21a1 1 0 100-2 1 1 0 000 2zm6 0a1 1 0 100-2 1 1 0 000 2z" /></svg>}
                 />
               </nav>
@@ -302,7 +314,7 @@ export function ProfileHubContent({
                 <SidebarNavItem
                   label="My dApps"
                   active={activeTab === 'dapps'}
-                  href={hrefTab('dapps')}
+                  onClick={() => goTab('dapps')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
                 />
                 <SidebarNavItem
@@ -323,19 +335,19 @@ export function ProfileHubContent({
                 <SidebarNavItem
                   label="Ads"
                   active={activeTab === 'ads'}
-                  href={hrefTab('ads')}
+                  onClick={() => goTab('ads')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" /></svg>}
                 />
                 <SidebarNavItem
                   label="Assets"
                   active={activeTab === 'assets'}
-                  href={hrefTab('assets')}
+                  onClick={() => goTab('assets')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
                 />
                 <SidebarNavItem
                   label="Content"
                   active={activeTab === 'content'}
-                  href={hrefTab('content')}
+                  onClick={() => goTab('content')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-6 4h10" /></svg>}
                 />
               </nav>
@@ -346,7 +358,7 @@ export function ProfileHubContent({
                 <SidebarNavItem
                   label="KNS"
                   active={activeTab === 'kns'}
-                  href={hrefTab('kns')}
+                  onClick={() => goTab('kns')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
                 />
               </nav>
@@ -373,7 +385,7 @@ export function ProfileHubContent({
                   <SidebarNavItem
                     label="Settings"
                     active={activeTab === 'settings'}
-                    href={hrefTab('settings')}
+                    onClick={() => goTab('settings')}
                     icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
                   />
                 </nav>
@@ -396,12 +408,7 @@ export function ProfileHubContent({
                   avatarUrl={avatarUrl}
                   isOwnProfile={isOwnProfile}
                   onEdit={() => setActiveTab('settings')}
-                />
-
-                <TabBar
-                  activeTab={activeTab}
-                  isOwnProfile={isOwnProfile}
-                  onTab={setActiveTab}
+                  onOpenKns={() => goTab('kns')}
                 />
 
                 {activeTab === 'overview' && (
@@ -672,45 +679,69 @@ function KnsTab({
   assets: KnsAsset[] | null;
   isLoading: boolean;
 }) {
+  const cards = useMemo(() => {
+    const fromDomains = (knsDomains || []).map((d) => String(d).trim()).filter(Boolean);
+    if (fromDomains.length > 0) return fromDomains;
+    const fromAssets = (assets || [])
+      .map((a) => String((a as any).asset || (a as any).domain || '').trim())
+      .filter(Boolean);
+    return fromAssets;
+  }, [assets, knsDomains]);
+
   return (
     <div className="space-y-6">
-      <Card title="KNS identity">
-        <div className="grid sm:grid-cols-2 gap-3">
-          <InfoPill label="Kaspa wallet" value={kaspaAddress ? formatKaspaAddress(kaspaAddress).display : '—'} />
-          <InfoPill label="Primary domain" value={primaryName ? primaryName.toLowerCase() : '—'} />
-        </div>
-        {primaryName ? (
-          <div className="mt-4 text-[11px] text-zinc-600 dark:text-zinc-400">
-            Copy: <span className="font-mono">{primaryName.toLowerCase()}</span>{' '}
-            <CopyIconButton value={primaryName.toLowerCase()} label="Copy primary domain" />
+      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="text-[11px] font-black text-zinc-400 uppercase tracking-[0.2em]">KNS</div>
+            <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+              Primary: <span className="font-semibold text-zinc-900 dark:text-zinc-100">{primaryName ? primaryName.toLowerCase() : '—'}</span>
+              {primaryName ? <span className="ml-2"><CopyIconButton value={primaryName.toLowerCase()} label="Copy primary domain" /></span> : null}
+            </div>
           </div>
-        ) : null}
-      </Card>
+          <div className="text-xs text-zinc-500 dark:text-zinc-400">
+            Assets: <span className="font-semibold">{String((assets || []).length)}</span>
+          </div>
+        </div>
+      </div>
 
-      <Card title="Owned domains">
+      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
+        <div className="text-[11px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4">Owned domains</div>
         {!kaspaAddress ? (
           <div className="text-sm text-zinc-600 dark:text-zinc-400">Resolve a Kaspa address to load domains.</div>
         ) : isLoading ? (
           <div className="text-sm text-zinc-600 dark:text-zinc-400">Loading…</div>
-        ) : (knsDomains || []).length === 0 ? (
+        ) : cards.length === 0 ? (
           <div className="text-sm text-zinc-600 dark:text-zinc-400">No domains found.</div>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {(knsDomains || []).slice(0, 32).map((d) => (
-              <span
-                key={d}
-                className="inline-flex items-center gap-2 text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] font-black uppercase tracking-widest border border-[#02abb8]/20"
-              >
-                <span className="normal-case">{String(d).toLowerCase()}</span>
-                <CopyIconButton value={String(d).toLowerCase()} label="Copy domain" />
-              </span>
-            ))}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {cards.slice(0, 24).map((d) => {
+              const name = String(d).toLowerCase();
+              return (
+                <KxListingCard key={name} accent="dapps" className="overflow-hidden">
+                  <KxListingCardMedia aspectClass="aspect-[3/2]">
+                    <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800" />
+                    <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
+                      <div className="text-[18px] font-black tracking-tight text-zinc-900 dark:text-zinc-100 truncate w-full">
+                        {name}
+                      </div>
+                    </div>
+                  </KxListingCardMedia>
+                  <KxListingCardBody>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-[13px] font-semibold text-zinc-900 dark:text-zinc-100 truncate">{name}</div>
+                        <div className="mt-1 text-[11px] text-zinc-600 dark:text-zinc-400">KNS domain</div>
+                      </div>
+                      <CopyIconButton value={name} label="Copy domain" />
+                    </div>
+                  </KxListingCardBody>
+                </KxListingCard>
+              );
+            })}
           </div>
         )}
-        <div className="mt-4 text-[11px] text-zinc-500 dark:text-zinc-400">
-          Assets detected: <span className="font-semibold">{String((assets || []).length)}</span>
-        </div>
-      </Card>
+      </div>
     </div>
   );
 }
@@ -897,6 +928,7 @@ function ProfileHaloHeader({
   avatarUrl,
   isOwnProfile,
   onEdit,
+  onOpenKns,
 }: {
   displayName: string;
   kaspaAddress: string | null;
@@ -908,8 +940,23 @@ function ProfileHaloHeader({
   avatarUrl: string | null;
   isOwnProfile: boolean;
   onEdit: () => void;
+  onOpenKns: () => void;
 }) {
   const subtitle = bio?.trim() || 'Unified Kasparex Hub profile for your L1 identity and linked wallets.';
+  const visibleDomains = useMemo(() => {
+    const primary = (knsPrimaryName || '').toLowerCase();
+    const domains = (knsDomains || []).map((d) => String(d).toLowerCase());
+    const uniq = Array.from(new Set(domains)).filter(Boolean);
+    const withoutPrimary = primary ? uniq.filter((d) => d !== primary) : uniq;
+    const displayed: string[] = [];
+    if (primary) displayed.push(primary);
+    for (const d of withoutPrimary) {
+      if (displayed.length >= 5) break;
+      displayed.push(d);
+    }
+    const remaining = Math.max(0, uniq.length - displayed.length);
+    return { displayed, remaining };
+  }, [knsDomains, knsPrimaryName]);
   return (
     <section className="mb-6">
       <div className="relative overflow-hidden rounded-3xl border border-zinc-200 dark:border-zinc-800/50 bg-gradient-to-br from-zinc-100 via-cyan-50/60 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/30 dark:to-zinc-950">
@@ -961,21 +1008,24 @@ function ProfileHaloHeader({
                         Public
                       </span>
                     )}
-                    {knsPrimaryName && (
-                      <span className="inline-flex items-center gap-2 text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] font-black uppercase tracking-widest border border-[#02abb8]/20">
-                        <span className="font-mono normal-case">{knsPrimaryName.toLowerCase()}</span>
-                        <CopyIconButton value={knsPrimaryName.toLowerCase()} label="Copy domain" />
-                      </span>
-                    )}
-                    {(knsDomains || []).slice(0, 6).filter(Boolean).map((d) => (
+                    {visibleDomains.displayed.map((d) => (
                       <span
                         key={d}
-                        className="inline-flex items-center gap-2 text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] font-black uppercase tracking-widest border border-[#02abb8]/20"
+                        className="inline-flex items-center gap-2 text-[11px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] font-bold normal-case border border-[#02abb8]/20"
                       >
-                        <span className="normal-case">{String(d).toLowerCase()}</span>
-                        <CopyIconButton value={String(d).toLowerCase()} label="Copy domain" />
+                        <span className="truncate max-w-[180px]">{d}</span>
+                        <CopyIconButton value={d} label="Copy domain" />
                       </span>
                     ))}
+                    {visibleDomains.remaining > 0 ? (
+                      <button
+                        type="button"
+                        onClick={onOpenKns}
+                        className="inline-flex items-center gap-2 text-[11px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 font-bold normal-case border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200/70 dark:hover:bg-zinc-700/70 transition-colors"
+                      >
+                        +{visibleDomains.remaining}
+                      </button>
+                    ) : null}
                     {kaspaAddress && (
                       <span className="inline-flex items-center gap-2 text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 font-semibold border border-zinc-200 dark:border-zinc-700">
                         <span className="font-mono normal-case">{formatKaspaAddress(kaspaAddress).display.toLowerCase()}</span>
@@ -1046,49 +1096,6 @@ function CopyIconButton({ value, label }: { value: string; label: string }) {
         </svg>
       )}
     </button>
-  );
-}
-
-function TabBar({
-  activeTab,
-  isOwnProfile,
-  onTab,
-}: {
-  activeTab: TabId;
-  isOwnProfile: boolean;
-  onTab: (t: TabId) => void;
-}) {
-  const tabs: Array<{ id: TabId; label: string; ownerOnly?: boolean }> = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'workspace', label: 'Workspace' },
-    { id: 'dapps', label: 'dApps' },
-    { id: 'editors', label: 'Editors' },
-    { id: 'ads', label: 'Ads' },
-    { id: 'assets', label: 'Assets' },
-    { id: 'content', label: 'Content' },
-    { id: 'kns', label: 'KNS' },
-    { id: 'settings', label: 'Settings', ownerOnly: true },
-  ];
-  return (
-    <div className="mb-8 border-b border-zinc-200 dark:border-zinc-800">
-      <div className="flex flex-wrap gap-4">
-        {tabs
-          .filter((t) => !t.ownerOnly || isOwnProfile)
-          .map((t) => (
-            <button
-              key={t.id}
-              onClick={() => onTab(t.id)}
-              className={`px-4 py-3 text-[11px] font-black uppercase tracking-widest transition-colors ${
-                activeTab === t.id
-                  ? 'text-zinc-900 dark:text-zinc-100 border-b-2 border-[#02abb8]'
-                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-      </div>
-    </div>
   );
 }
 
