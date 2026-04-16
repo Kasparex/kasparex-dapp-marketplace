@@ -43,6 +43,7 @@ export function ProfileHubContent({
   const [knsProfile, setKnsProfile] = useState<KnsDomainProfileResponse | null>(null);
   const [knsAssets, setKnsAssets] = useState<KnsAsset[] | null>(null);
   const [knsPrimaryName, setKnsPrimaryName] = useState<string | null>(initialKnsName);
+  const [knsDomains, setKnsDomains] = useState<string[] | null>(null);
 
   const kaspaAddress = useMemo(() => {
     if (initialKaspaAddress) return initialKaspaAddress;
@@ -85,18 +86,23 @@ export function ProfileHubContent({
     let cancelled = false;
     async function loadKns() {
       if (!kaspaAddress) return;
-      const kns = createKnsClient();
-      const primary = await kns.getPrimaryNameByOwner(kaspaAddress);
-      if (!cancelled) {
-        const name = (primary?.primaryName || primary?.primary_name || primary?.domain || null) as string | null;
-        if (name) setKnsPrimaryName(String(name).toLowerCase());
-      }
+      const defaultNet = createKnsClient().network;
+      const nets: Array<'mainnet' | 'tn10'> = [defaultNet, defaultNet === 'mainnet' ? 'tn10' : 'mainnet'];
 
-      // If primary has inscription/asset id, try profile endpoint; otherwise skip.
-      const assetId = (primary?.inscriptionId || primary?.inscription_id) as string | undefined;
-      if (assetId) {
-        const p = await kns.getDomainProfileByAssetId(assetId);
-        if (!cancelled) setKnsProfile(p);
+      let primaryAssetId: string | undefined;
+      for (const net of nets) {
+        const kns = createKnsClient({ network: net });
+        const primary = await kns.getPrimaryNameByOwner(kaspaAddress);
+        const name = (primary?.primaryName || primary?.primary_name || primary?.domain || null) as string | null;
+        if (!cancelled && name) setKnsPrimaryName(String(name).toLowerCase());
+        const assetId = (primary?.inscriptionId || primary?.inscription_id) as string | undefined;
+        if (assetId) {
+          primaryAssetId = assetId;
+          const p = await kns.getDomainProfileByAssetId(assetId);
+          if (!cancelled) setKnsProfile(p);
+          break;
+        }
+        if (name) break;
       }
     }
     loadKns();
@@ -109,12 +115,26 @@ export function ProfileHubContent({
     let cancelled = false;
     async function loadAssets() {
       if (!kaspaAddress || activeTab !== 'kns') return;
-      const kns = createKnsClient();
-      try {
-        const assets = await kns.getAssetsByOwner(kaspaAddress);
-        if (!cancelled) setKnsAssets(assets);
-      } catch {
-        if (!cancelled) setKnsAssets([]);
+      const defaultNet = createKnsClient().network;
+      const nets: Array<'mainnet' | 'tn10'> = [defaultNet, defaultNet === 'mainnet' ? 'tn10' : 'mainnet'];
+      let best: KnsAsset[] = [];
+      for (const net of nets) {
+        try {
+          const kns = createKnsClient({ network: net });
+          const assets = await kns.getAssetsByOwner(kaspaAddress);
+          if (assets && assets.length > best.length) best = assets;
+        } catch {
+          // ignore
+        }
+      }
+      if (!cancelled) {
+        setKnsAssets(best);
+        const domains = best
+          .map((a) => String((a as any).domain || '').trim())
+          .filter(Boolean)
+          .map((d) => d.toLowerCase());
+        const uniq = Array.from(new Set(domains)).sort();
+        setKnsDomains(uniq);
       }
     }
     loadAssets();
@@ -186,6 +206,34 @@ export function ProfileHubContent({
                   ) : (
                     <div className="text-[10px] px-2 py-0.5 inline-flex rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold uppercase border border-zinc-200 dark:border-zinc-700">
                       Public
+                    </div>
+                  )}
+                </div>
+
+                {/* KNS domains preview */}
+                <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-3">
+                    KNS domains
+                  </div>
+                  {knsDomains == null ? (
+                    <div className="text-[11px] text-zinc-600 dark:text-zinc-400">Open the KNS tab to load domains.</div>
+                  ) : knsDomains.length === 0 ? (
+                    <div className="text-[11px] text-zinc-600 dark:text-zinc-400">No domains detected.</div>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {knsDomains.slice(0, 6).map((d) => (
+                        <span
+                          key={d}
+                          className="text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] font-black uppercase tracking-widest border border-[#02abb8]/20"
+                        >
+                          {d}
+                        </span>
+                      ))}
+                      {knsDomains.length > 6 && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold uppercase border border-zinc-200 dark:border-zinc-700">
+                          +{knsDomains.length - 6}
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -442,7 +490,7 @@ function ContentTab({ kaspaAddress }: { kaspaAddress: string | null }) {
             View public content created by this profile.
           </div>
           <Link
-            href={kaspaAddress ? `/vblog/author/${encodeURIComponent(kaspaAddress)}` : '/vblog'}
+            href={kaspaAddress ? `/vblog/author/${encodeURIComponent(kaspaAddress).replaceAll('%3A', ':')}` : '/vblog'}
             className="inline-flex items-center justify-center px-4 py-2 rounded-xl font-bold uppercase tracking-widest text-[10px] bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
           >
             Open vBlog author page

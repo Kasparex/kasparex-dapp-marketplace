@@ -8,16 +8,74 @@ import { useVBlog } from '@/hooks/useVBlog';
 import { formatAddress } from '@/lib/vblog/utils';
 import { Alert } from '@/components/Alert';
 import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
+import { createKnsClient } from '@/lib/kns/client';
+import { isValidKaspaAddress, normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 
 export function AuthorPageContent() {
   const params = useParams();
   const rawAddress = params?.address as string | undefined;
-  const address = rawAddress ? decodeURIComponent(rawAddress) : undefined;
+  const addressParam = rawAddress ? decodeURIComponent(rawAddress) : undefined;
   const { getAuthorArticles } = useVBlog();
-  
-  const authorArticles = address ? getAuthorArticles(address) : [];
 
-  if (!address) {
+  const [resolvedOwner, setResolvedOwner] = useState<string | null>(null);
+  const [resolvedLabel, setResolvedLabel] = useState<string | null>(null);
+
+  const normalizedOwner = useMemo(() => {
+    if (!resolvedOwner) return null;
+    try {
+      return normalizeKaspaAddress(resolvedOwner).toLowerCase();
+    } catch {
+      return resolvedOwner.toLowerCase();
+    }
+  }, [resolvedOwner]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function resolve() {
+      setResolvedOwner(null);
+      setResolvedLabel(null);
+      const v = String(addressParam || '').trim();
+      if (!v) return;
+
+      // Accept `.kas` name or Kaspa address.
+      if (v.toLowerCase().endsWith('.kas')) {
+        const kns = createKnsClient();
+        try {
+          const owner = await kns.getDomainOwner(v.toLowerCase());
+          const addr =
+            (owner.ownerAddress as string | undefined) ||
+            (owner.owner_address as string | undefined) ||
+            (owner.owner as string | undefined) ||
+            null;
+          if (!cancelled && addr) {
+            setResolvedOwner(addr);
+            setResolvedLabel(v.toLowerCase());
+          }
+          return;
+        } catch {
+          // fall through
+        }
+      }
+
+      if (isValidKaspaAddress(v)) {
+        setResolvedOwner(v);
+        setResolvedLabel(v);
+      } else {
+        // Still allow raw string; author articles are currently keyed by the stored author string.
+        setResolvedOwner(v);
+        setResolvedLabel(v);
+      }
+    }
+    resolve();
+    return () => {
+      cancelled = true;
+    };
+  }, [addressParam]);
+
+  const authorArticles = normalizedOwner ? getAuthorArticles(normalizedOwner) : (resolvedOwner ? getAuthorArticles(resolvedOwner) : []);
+
+  if (!addressParam) {
     return (
       <div className="flex flex-col min-h-screen">
         <Header />
@@ -49,7 +107,7 @@ export function AuthorPageContent() {
                 Go back to vBlog
               </Link>
               <h1 className="text-4xl font-black text-zinc-900 dark:text-zinc-100 mb-2 tracking-tight">
-                Author: {formatAddress(address)}
+                Author: {formatAddress(resolvedLabel || addressParam)}
               </h1>
               <p className="text-zinc-600 dark:text-zinc-400">
                 {authorArticles.length} article{authorArticles.length !== 1 ? 's' : ''} published

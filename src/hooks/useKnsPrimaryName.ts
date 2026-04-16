@@ -20,10 +20,25 @@ export function useKnsPrimaryName(ownerKaspaAddress: string | null | undefined) 
       if (!owner) return;
       setIsLoading(true);
       try {
-        const kns = createKnsClient();
-        const res = await kns.getPrimaryNameByOwner(owner);
-        const name = (res?.primaryName || res?.primary_name || res?.domain || null) as string | null;
-        if (!cancelled) setPrimaryName(name ? String(name).toLowerCase() : null);
+        // KNS can run on mainnet or TN10; users may own domains on either.
+        // Try current default first, then fall back to the other network.
+        const networks = (process.env.NEXT_PUBLIC_KNS_NETWORK ? [] : ['mainnet', 'tn10']) as Array<'mainnet' | 'tn10'>;
+        const candidates: Array<'mainnet' | 'tn10'> = [
+          createKnsClient().network,
+          ...networks.filter((n) => n !== createKnsClient().network),
+        ];
+
+        let found: string | null = null;
+        for (const net of candidates) {
+          const kns = createKnsClient({ network: net });
+          const res = await kns.getPrimaryNameByOwner(owner);
+          const name = (res?.primaryName || res?.primary_name || res?.domain || null) as string | null;
+          if (name) {
+            found = String(name).toLowerCase();
+            break;
+          }
+        }
+        if (!cancelled) setPrimaryName(found);
       } catch {
         if (!cancelled) setPrimaryName(null);
       } finally {
