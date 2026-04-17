@@ -24,6 +24,7 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useGRIDToken } from '@/hooks/useGRIDToken';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
+import { useKpxPublicIdentity } from '@/hooks/useKpxPublicIdentity';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
 import { TierBadge } from '@/components/rewards/TierBadge';
@@ -102,6 +103,7 @@ export function ProfileHubContent({
   }, [hrefTab, router]);
 
   const { profile, source, updateLocalProfile } = useUnifiedProfile(kaspaAddress);
+  const kpxIdentity = useKpxPublicIdentity(kaspaAddress);
 
   const isOwnProfile = useMemo(() => {
     if (!kaspaAddress) return false;
@@ -325,6 +327,9 @@ export function ProfileHubContent({
                   bannerUrl={bannerUrl}
                   avatarUrl={avatarUrl}
                   isOwnProfile={isOwnProfile}
+                  kpxDisplay={kpxIdentity.kpxDisplay}
+                  kpxKasparexVerified={kpxIdentity.kpxKasparexVerified}
+                  kpxIdentityLoading={kpxIdentity.loading}
                   onEdit={() => goTab('settings')}
                   onOpenKns={() => goTab('kns')}
                 />
@@ -1326,6 +1331,9 @@ function ProfileHaloHeader({
   bannerUrl,
   avatarUrl,
   isOwnProfile,
+  kpxDisplay,
+  kpxKasparexVerified,
+  kpxIdentityLoading,
   onEdit,
   onOpenKns,
 }: {
@@ -1338,6 +1346,9 @@ function ProfileHaloHeader({
   bannerUrl: string | null;
   avatarUrl: string | null;
   isOwnProfile: boolean;
+  kpxDisplay: string | null;
+  kpxKasparexVerified: boolean;
+  kpxIdentityLoading: boolean;
   onEdit: () => void;
   onOpenKns: () => void;
 }) {
@@ -1391,6 +1402,18 @@ function ProfileHaloHeader({
                   <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-white tracking-tight truncate">
                     {displayName}
                   </h1>
+                  {!kpxIdentityLoading && kpxDisplay ? (
+                    <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400 truncate">
+                      <span className="font-bold text-[#02abb8]">kpx/pf</span>{' '}
+                      <span className="font-semibold text-zinc-800 dark:text-zinc-200">{kpxDisplay}</span>
+                      <Link
+                        href="/protocols/kpx-tools"
+                        className="ml-2 text-[11px] font-bold text-zinc-500 hover:text-[#02abb8] underline-offset-2 hover:underline"
+                      >
+                        broadcast
+                      </Link>
+                    </p>
+                  ) : null}
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     {isOwnProfile ? (
                       <span className="text-[12px] px-2 py-0.5 inline-flex rounded-full bg-green-500/10 text-green-700 dark:text-green-400 font-semibold border border-green-500/10">
@@ -1401,6 +1424,11 @@ function ProfileHaloHeader({
                         Public
                       </span>
                     )}
+                    {!kpxIdentityLoading && kpxKasparexVerified ? (
+                      <span className="text-[12px] px-2 py-0.5 inline-flex rounded-full bg-[#02abb8]/15 text-[#02abb8] font-black border border-[#02abb8]/25">
+                        Kasparex verified
+                      </span>
+                    ) : null}
                     {visibleDomains.displayed.map((d) => (
                       <span
                         key={d}

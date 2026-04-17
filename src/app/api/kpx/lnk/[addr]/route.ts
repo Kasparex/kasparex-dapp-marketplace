@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   defaultKpxIndexerNet,
   defaultKpxIndexTxLimit,
-  indexKpxPfForAddress,
+  indexKpxLnkForAddress,
   parseKpxIndexOffsetParam,
   parseKpxIndexerNetParam,
 } from '@/lib/kpx/indexFromChain';
@@ -30,14 +30,14 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ addr: strin
     : defaultKpxIndexTxLimit();
   const offset = parseKpxIndexOffsetParam(req.nextUrl.searchParams.get('offset'));
 
-  const result = await indexKpxPfForAddress(canonical, { net, txLimit, offset });
+  const result = await indexKpxLnkForAddress(canonical, { net, txLimit, offset });
 
   return NextResponse.json(
     {
       ok: true,
       addr: addrKey,
       net: result.net,
-      state: result.state,
+      evm: result.evm,
       provenance: result.provenance,
       indexed: result.indexed,
       ...(result.indexed.truncated

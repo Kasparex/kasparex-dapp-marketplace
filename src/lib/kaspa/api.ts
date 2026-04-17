@@ -236,14 +236,17 @@ export function toKaspaRestAddress(address: string): string {
 /**
  * Recent full transactions for an address (incoming + outgoing). Uses public indexer.
  * Path matches kaspa-rest-server OpenAPI (no `/v1` prefix on some deployments).
+ * Supports `offset` paging when the deployment exposes it (e.g. api.kaspa.org: `limit`, `offset`, `resolve_previous_outpoints`).
  */
 export async function getFullTransactionsForAddress(
   kaspaAddress: string,
-  limit: number = 50
+  limit: number = 50,
+  opts?: { offset?: number }
 ): Promise<KaspaRestTransaction[]> {
   if (!isValidKaspaAddress(kaspaAddress)) return [];
   const addr = encodeURIComponent(toKaspaRestAddress(kaspaAddress));
-  const q = `limit=${Math.min(500, Math.max(1, limit))}&resolve_previous_outpoints=light`;
+  const off = Math.max(0, Math.min(50_000, Math.trunc(opts?.offset ?? 0)));
+  const q = `limit=${Math.min(500, Math.max(1, limit))}&offset=${off}&resolve_previous_outpoints=light`;
   const urls = [
     `${KASPA_REST_BASE}/addresses/${addr}/full-transactions?${q}`,
     `${KASPA_REST_BASE}/v1/addresses/${addr}/full-transactions?${q}`,

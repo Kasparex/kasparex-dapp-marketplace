@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { KPX_CM_RT_CODES_V1 } from '@/lib/kpx/constants';
 import {
   defaultKpxIndexerNet,
   defaultKpxIndexTxLimit,
-  indexKpxPfForAddress,
+  indexKpxCmForResource,
+  parseKpxCmRtParam,
   parseKpxIndexOffsetParam,
   parseKpxIndexerNetParam,
 } from '@/lib/kpx/indexFromChain';
+import { normalizeRid } from '@/lib/kpx/normalize';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 
 export async function GET(req: NextRequest, ctx: { params: Promise<{ addr: string }> }) {
@@ -17,6 +20,30 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ addr: strin
     return NextResponse.json({ ok: false, error: 'Invalid address' }, { status: 400 });
   }
   const addrKey = canonical.toLowerCase();
+
+  const rtRaw = req.nextUrl.searchParams.get('rt');
+  const ridRaw = req.nextUrl.searchParams.get('rid');
+  const rt = parseKpxCmRtParam(rtRaw);
+  const rid = normalizeRid(ridRaw ?? '');
+  if (!rtRaw?.trim()) {
+    return NextResponse.json({ ok: false, error: 'Missing required query param: rt' }, { status: 400 });
+  }
+  if (!ridRaw?.trim()) {
+    return NextResponse.json({ ok: false, error: 'Missing required query param: rid' }, { status: 400 });
+  }
+  if (!rt) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: 'Invalid rt (must be a v1 registry code)',
+        rtCodesV1: KPX_CM_RT_CODES_V1,
+      },
+      { status: 400 }
+    );
+  }
+  if (!rid) {
+    return NextResponse.json({ ok: false, error: 'Invalid rid' }, { status: 400 });
+  }
 
   const fallbackNet = defaultKpxIndexerNet();
   const net = parseKpxIndexerNetParam(req.nextUrl.searchParams.get('net'), fallbackNet);
@@ -30,14 +57,16 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ addr: strin
     : defaultKpxIndexTxLimit();
   const offset = parseKpxIndexOffsetParam(req.nextUrl.searchParams.get('offset'));
 
-  const result = await indexKpxPfForAddress(canonical, { net, txLimit, offset });
+  const result = await indexKpxCmForResource(canonical, { net, txLimit, offset, rt, rid });
 
   return NextResponse.json(
     {
       ok: true,
       addr: addrKey,
       net: result.net,
-      state: result.state,
+      rt: result.rt,
+      rid: result.rid,
+      commit: result.commit,
       provenance: result.provenance,
       indexed: result.indexed,
       ...(result.indexed.truncated

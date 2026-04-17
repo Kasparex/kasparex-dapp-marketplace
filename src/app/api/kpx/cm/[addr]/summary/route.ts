@@ -2,12 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   defaultKpxIndexerNet,
   defaultKpxIndexTxLimit,
-  indexKpxPfForAddress,
+  indexKpxCmCatalogForAddress,
+  parseKpxCmCatalogMaxResources,
   parseKpxIndexOffsetParam,
   parseKpxIndexerNetParam,
 } from '@/lib/kpx/indexFromChain';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 
+/**
+ * Lists winning `kpx/cm` pointers per distinct `(rt, rid)` seen in the scanned tx window
+ * (same validity rules as single-resource `/api/kpx/cm/[addr]`).
+ */
 export async function GET(req: NextRequest, ctx: { params: Promise<{ addr: string }> }) {
   const { addr } = await ctx.params;
   let canonical: string;
@@ -29,23 +34,30 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ addr: strin
     ? Math.min(500, Math.max(20, Math.trunc(limRaw)))
     : defaultKpxIndexTxLimit();
   const offset = parseKpxIndexOffsetParam(req.nextUrl.searchParams.get('offset'));
+  const maxResources = parseKpxCmCatalogMaxResources(req.nextUrl.searchParams.get('max_resources'));
 
-  const result = await indexKpxPfForAddress(canonical, { net, txLimit, offset });
+  const result = await indexKpxCmCatalogForAddress(canonical, { net, txLimit, offset, maxResources });
+
+  const notes: string[] = [];
+  if (result.indexed.truncated) {
+    notes.push(
+      'Tx lookback limit reached for this window. Increase `limit`, use `offset` for the next REST page, or scan with your own indexer for full history.'
+    );
+  }
+  if (result.indexed.responseCapped) {
+    notes.push(
+      `More than max_resources=${result.indexed.maxResources} distinct resources were resolved; increase max_resources (max 500) or narrow the scan.`
+    );
+  }
 
   return NextResponse.json(
     {
       ok: true,
       addr: addrKey,
       net: result.net,
-      state: result.state,
-      provenance: result.provenance,
+      resources: result.resources,
       indexed: result.indexed,
-      ...(result.indexed.truncated
-        ? {
-            note:
-              'Tx lookback limit reached for this window. Increase `limit`, use `offset` for the next REST page, or scan with your own indexer for full history.',
-          }
-        : {}),
+      ...(notes.length ? { note: notes.join(' ') } : {}),
     },
     {
       headers: {

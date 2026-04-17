@@ -40,6 +40,14 @@ export default function ProtocolsPage() {
                     <div className="text-sm font-black uppercase tracking-widest text-[#02abb8]">{p.id}</div>
                     <div className="mt-1 text-xl font-black text-zinc-900 dark:text-zinc-100">{p.title}</div>
                     <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{p.description}</div>
+                    {p.id === 'kpx' ? (
+                      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        <Link href="/protocols/kpx-tools" className="font-bold text-[#02abb8] hover:underline">
+                          kpx broadcast tool
+                        </Link>{' '}
+                        — compose, validate, and send payloads with your Kaspa wallet.
+                      </p>
+                    ) : null}
                   </div>
                   <Link href="/knowledge-base" className="k-control-btn whitespace-nowrap">
                     Open Knowledge Base
