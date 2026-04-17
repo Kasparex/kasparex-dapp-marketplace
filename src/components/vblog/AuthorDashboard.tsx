@@ -14,9 +14,10 @@ import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 
 interface AuthorDashboardProps {
   createIntentKey?: number;
+  editArticleId?: string | null;
 }
 
-export function AuthorDashboard({ createIntentKey = 0 }: AuthorDashboardProps) {
+export function AuthorDashboard({ createIntentKey = 0, editArticleId }: AuthorDashboardProps) {
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
 
@@ -24,7 +25,7 @@ export function AuthorDashboard({ createIntentKey = 0 }: AuthorDashboardProps) {
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
   const isWalletConnected = kaspaState.isConnected || isEVMConnected;
 
-  const { createNewArticle, updateExistingArticle, deleteExistingArticle, getAuthorArticles, loadArticles } = useVBlog();
+  const { createNewArticle, updateExistingArticle, deleteExistingArticle, getAuthorArticles, loadArticles, articles } = useVBlog();
   const pricing = useVBlogPricing();
   const [activeTab, setActiveTab] = useState<'create' | 'my-articles'>('create');
   const [editingArticle, setEditingArticle] = useState<VBlogArticle | null>(null);
@@ -34,6 +35,15 @@ export function AuthorDashboard({ createIntentKey = 0 }: AuthorDashboardProps) {
     setActiveTab('create');
     setEditingArticle(null);
   }, [createIntentKey]);
+
+  useEffect(() => {
+    if (!editArticleId) return;
+    const match = (articles || []).find((a) => a.id === editArticleId) || null;
+    if (match) {
+      setEditingArticle(match);
+      setActiveTab('create');
+    }
+  }, [articles, editArticleId]);
 
   const authorArticles = walletAddress ? getAuthorArticles(walletAddress) : [];
 

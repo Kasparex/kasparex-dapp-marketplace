@@ -55,7 +55,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
   // Format author address (last 5 digits)
   const authorDisplay = formatAddress(article.author);
   const authorAddress = article.author.replace(/^(evm:|kaspa:)/, '');
-  const authorProfileUrl = `/vblog/author/${encodeURIComponent(article.author)}`;
+  const authorProfileUrl = `/u/${encodeURIComponent(article.author)}`;
   const premiumUnlockEntitled = walletAddress ? hasReaderEntitlement(walletAddress, article.id, 'premium_unlock') : false;
   const tipRevealEntitled = walletAddress ? hasReaderEntitlement(walletAddress, article.id, 'tip_to_reveal_unlock') : false;
   const canVotePoll = walletAddress ? premiumUnlockEntitled && !hasPollVote(article.id, walletAddress) : false;

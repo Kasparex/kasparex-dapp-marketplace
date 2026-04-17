@@ -16,6 +16,7 @@ export default function VBlogDashboardPage() {
   const searchParams = useSearchParams();
   const initialCreateIntent = searchParams.get('tab') === 'create' ? 1 : 0;
   const [createIntentKey, setCreateIntentKey] = useState(initialCreateIntent);
+  const editArticleId = searchParams.get('edit');
 
   // Filter state for sidebar (though dashboard mostly manages its own)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -110,7 +111,7 @@ export default function VBlogDashboardPage() {
                   </div>
                 </div>
               ) : (
-                <AuthorDashboard createIntentKey={createIntentKey} />
+                <AuthorDashboard createIntentKey={createIntentKey} editArticleId={editArticleId} />
               )}
             </div>
           </div>

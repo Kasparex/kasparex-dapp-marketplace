@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAccount, useSignMessage } from 'wagmi';
 import { Header } from '@/components/Header';
@@ -18,42 +17,18 @@ import { createKnsClient, type KnsDomainProfileResponse, type KnsAsset } from '@
 import { useUnifiedProfile } from '@/hooks/useUnifiedProfile';
 import { buildLinkEvmMessage, verifyLinkEvmSignature } from '@/lib/profile/linking';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { useVBlog } from '@/hooks/useVBlog';
+import type { VBlogArticle } from '@/lib/vblog/types';
 // heavy editors are opened as dedicated routes; keep Profile Hub lightweight
 
 type TabId =
   | 'overview'
-  | 'workspace'
   | 'creator-content'
   | 'creator-create'
   | 'ads'
   | 'assets'
   | 'kns'
   | 'settings';
-
-const StudioDashboardPage = dynamic(() => import('@/app/studio/dashboard/page').then((m) => m.default), {
-  ssr: false,
-  loading: () => <LoadingCard label="Loading dashboard…" />,
-});
-const StudioPortfolioPage = dynamic(() => import('@/app/studio/portfolio/page').then((m) => m.default), {
-  ssr: false,
-  loading: () => <LoadingCard label="Loading portfolio…" />,
-});
-const StudioActivityPage = dynamic(() => import('@/app/studio/activity/page').then((m) => m.default), {
-  ssr: false,
-  loading: () => <LoadingCard label="Loading activity…" />,
-});
-const StudioVBlogPage = dynamic(() => import('@/app/studio/vblog/page').then((m) => m.default), {
-  ssr: false,
-  loading: () => <LoadingCard label="Loading article editor…" />,
-});
-const StudioMagazinePage = dynamic(() => import('@/app/studio/magazine/page').then((m) => m.default), {
-  ssr: false,
-  loading: () => <LoadingCard label="Loading magazine editor…" />,
-});
-const StudioStorePage = dynamic(() => import('@/app/studio/store/page').then((m) => m.default), {
-  ssr: false,
-  loading: () => <LoadingCard label="Loading store editor…" />,
-});
 
 export function ProfileHubContent({
   initialHandle,
@@ -204,9 +179,9 @@ export function ProfileHubContent({
   useEffect(() => {
     const tab = (searchParams?.get('tab') || '').toLowerCase();
     if (tab === 'editors') {
-      const v = (searchParams?.get('view') || 'vblog').toLowerCase();
-      setActiveTab('workspace');
-      router.replace(hrefTab('workspace', v));
+      // legacy mapping
+      setActiveTab('creator-create');
+      router.replace(hrefTab('creator-create'));
       return;
     }
     if (tab === 'dapps') {
@@ -227,7 +202,6 @@ export function ProfileHubContent({
     }
     const allowed: TabId[] = [
       'overview',
-      'workspace',
       'creator-content',
       'creator-create',
       'ads',
@@ -263,55 +237,13 @@ export function ProfileHubContent({
               </Link>
             </div>
 
-            <SidebarSection title="Workspace">
+            <SidebarSection title="Profile">
               <nav className="space-y-0.5">
                 <SidebarNavItem
                   label="Overview"
                   active={activeTab === 'overview'}
                   onClick={() => goTab('overview')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>}
-                />
-                <SidebarNavItem
-                  label="Creator hub"
-                  active={activeTab === 'workspace' && (!view || view === 'hub' || view === 'home')}
-                  onClick={() => goTab('workspace')}
-                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>}
-                />
-                <SidebarNavItem
-                  label="Dashboard"
-                  active={activeTab === 'workspace' && view === 'dashboard'}
-                  onClick={() => goTab('workspace', 'dashboard')}
-                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
-                />
-                <SidebarNavItem
-                  label="Portfolio"
-                  active={activeTab === 'workspace' && view === 'portfolio'}
-                  onClick={() => goTab('workspace', 'portfolio')}
-                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745V20a2 2 0 002 2h14a2 2 0 002-2v-6.745zM18 8a2 2 0 11-4 0 2 2 0 014 0zM10 8a2 2 0 11-4 0 2 2 0 014 0z" /><path d="M6 5c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v3H6V5z" /></svg>}
-                />
-                <SidebarNavItem
-                  label="Activity"
-                  active={activeTab === 'workspace' && view === 'activity'}
-                  onClick={() => goTab('workspace', 'activity')}
-                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}
-                />
-                <SidebarNavItem
-                  label="vBlog"
-                  active={activeTab === 'workspace' && view === 'vblog'}
-                  onClick={() => goTab('workspace', 'vblog')}
-                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>}
-                />
-                <SidebarNavItem
-                  label="Magazines"
-                  active={activeTab === 'workspace' && view === 'magazine'}
-                  onClick={() => goTab('workspace', 'magazine')}
-                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
-                />
-                <SidebarNavItem
-                  label="Store"
-                  active={activeTab === 'workspace' && view === 'store'}
-                  onClick={() => goTab('workspace', 'store')}
-                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7l1 2m0 0l2 10a2 2 0 002 2h8a2 2 0 002-2l2-10m-14 0h14M9 21a1 1 0 100-2 1 1 0 000 2zm6 0a1 1 0 100-2 1 1 0 000 2z" /></svg>}
                 />
               </nav>
             </SidebarSection>
@@ -410,10 +342,9 @@ export function ProfileHubContent({
                     profileGithub={profile?.github}
                     profileX={profile?.x}
                     profileHref={kaspaAddress ? `/u/${encodeURIComponent(kaspaAddress)}` : '/u'}
+                    isOwnProfile={isOwnProfile}
                   />
                 )}
-
-                {activeTab === 'workspace' && <WorkspaceTab view={view} goTab={goTab} />}
 
                 {activeTab === 'creator-content' && (
                   <CreatorContentTab
@@ -512,6 +443,7 @@ function OverviewTab({
   profileGithub,
   profileX,
   profileHref,
+  isOwnProfile,
 }: {
   kaspaAddress: string | null;
   knsProfile: KnsDomainProfileResponse | null;
@@ -520,6 +452,7 @@ function OverviewTab({
   profileGithub?: string;
   profileX?: string;
   profileHref: string;
+  isOwnProfile: boolean;
 }) {
   const website = profileWebsite || knsProfile?.website;
   const github = profileGithub || knsProfile?.github;
@@ -542,6 +475,15 @@ function OverviewTab({
             <InfoPill label="Kaspa" value={kaspaAddress ? formatKaspaAddress(kaspaAddress).display : '—'} />
           </div>
         </Card>
+
+        {isOwnProfile ? (
+          <Card title="Portfolio (summary)">
+            <div className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+              Portfolio is being unified into Profile Hub. For now, use the dedicated page for full balances and rewards.
+            </div>
+            <ActionLink href="/studio/portfolio" label="Open portfolio" />
+          </Card>
+        ) : null}
       </div>
 
       <div className="space-y-6">
@@ -561,122 +503,7 @@ function OverviewTab({
   );
 }
 
-function SubpageToolbar({ title, onBack }: { title: string; onBack: () => void }) {
-  return (
-    <div className="mb-4 flex flex-wrap items-center gap-3">
-      <button type="button" onClick={onBack} className="k-control-btn">
-        Back to creator hub
-      </button>
-      <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">{title}</span>
-    </div>
-  );
-}
-
-function EditorShell({
-  title,
-  onBack,
-  children,
-}: {
-  title: string;
-  onBack: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-4">
-      <SubpageToolbar title={title} onBack={onBack} />
-      <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:p-6">{children}</div>
-    </div>
-  );
-}
-
-const WORKSPACE_HUB_ENTRIES: Array<{ key: string; title: string; description: string; view: string; accent: 'studio' | 'vblog' | 'magazines' | 'store' }> = [
-  { key: 'dash', title: 'Dashboard', description: 'Metrics, quick actions, and recent activity.', view: 'dashboard', accent: 'studio' },
-  { key: 'port', title: 'Portfolio', description: 'Your creator portfolio overview.', view: 'portfolio', accent: 'studio' },
-  { key: 'act', title: 'Activity', description: 'Records and timeline.', view: 'activity', accent: 'studio' },
-  { key: 'vb', title: 'vBlog', description: 'Write and publish articles.', view: 'vblog', accent: 'vblog' },
-  { key: 'mag', title: 'Magazines', description: 'Lay out digital issues.', view: 'magazine', accent: 'magazines' },
-  { key: 'st', title: 'Store', description: 'List products on Kasparex Store.', view: 'store', accent: 'store' },
-];
-
-function WorkspaceHub({ goTab }: { goTab: (tab: TabId, nextView?: string) => void }) {
-  return (
-    <div className="space-y-6">
-      <div>
-        <SectionTitle title="Creator hub" />
-        <p className="max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
-          Choose dashboard, portfolio, activity, or an editor. Everything lives under one workspace tab.
-        </p>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {WORKSPACE_HUB_ENTRIES.map((e) => (
-          <button
-            key={e.key}
-            type="button"
-            data-kx-accent={e.accent}
-            onClick={() => goTab('workspace', e.view)}
-            className="kx-listing-card group block w-full overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 text-left transition-colors dark:border-zinc-800 dark:bg-zinc-900"
-          >
-            <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{e.title}</div>
-            <p className="mt-1 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{e.description}</p>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function WorkspaceTab({ view, goTab }: { view: string; goTab: (tab: TabId, nextView?: string) => void }) {
-  const v = (view || '').toLowerCase();
-  if (!v || v === 'hub' || v === 'home') {
-    return <WorkspaceHub goTab={goTab} />;
-  }
-  if (v === 'dashboard') {
-    return (
-      <>
-        <SubpageToolbar title="Dashboard" onBack={() => goTab('workspace')} />
-        <StudioDashboardPage />
-      </>
-    );
-  }
-  if (v === 'portfolio') {
-    return (
-      <>
-        <SubpageToolbar title="Portfolio" onBack={() => goTab('workspace')} />
-        <StudioPortfolioPage />
-      </>
-    );
-  }
-  if (v === 'activity') {
-    return (
-      <>
-        <SubpageToolbar title="Activity" onBack={() => goTab('workspace')} />
-        <StudioActivityPage />
-      </>
-    );
-  }
-  if (v === 'vblog') {
-    return (
-      <EditorShell title="vBlog editor" onBack={() => goTab('workspace')}>
-        <StudioVBlogPage />
-      </EditorShell>
-    );
-  }
-  if (v === 'magazine') {
-    return (
-      <EditorShell title="Magazine editor" onBack={() => goTab('workspace')}>
-        <StudioMagazinePage />
-      </EditorShell>
-    );
-  }
-  if (v === 'store') {
-    return (
-      <EditorShell title="Store editor" onBack={() => goTab('workspace')}>
-        <StudioStorePage />
-      </EditorShell>
-    );
-  }
-  return <WorkspaceHub goTab={goTab} />;
-}
+// Workspace tab removed; Creator Hub + project editors live under Create + dedicated routes.
 
 const MOCK_PROFILE_DAPPS = [
   { id: 'ph-d1', title: 'Kasparex Feed', slug: 'kasparex-feed', status: 'Live' },
@@ -799,9 +626,21 @@ function CreatorContentTab({
 }) {
   const [typeFilter, setTypeFilter] = useState<CreatorContentType | 'all'>('all');
 
-  const authorHref = useMemo(() => {
-    return kaspaAddress ? `/vblog/author/${encodeURIComponent(kaspaAddress).replaceAll('%3A', ':')}` : '/vblog';
+  const { articles, isLoading: vblogLoading } = useVBlog();
+
+  const normalizedKaspa = useMemo(() => {
+    if (!kaspaAddress) return null;
+    try {
+      return normalizeKaspaAddress(kaspaAddress).toLowerCase();
+    } catch {
+      return kaspaAddress.toLowerCase();
+    }
   }, [kaspaAddress]);
+
+  const creatorArticles = useMemo(() => {
+    if (!normalizedKaspa) return [] as VBlogArticle[];
+    return (articles || []).filter((a) => String(a.author || '').toLowerCase() === normalizedKaspa);
+  }, [articles, normalizedKaspa]);
 
   const items: CreatorCardItem[] = useMemo(() => {
     const dapps: CreatorCardItem[] = MOCK_PROFILE_DAPPS.map((d) => ({
@@ -816,17 +655,21 @@ function CreatorContentTab({
       accent: 'dapps',
     }));
 
-    const articles: CreatorCardItem[] = MOCK_ARTICLES.map((a) => ({
-      id: a.id,
+    const articlesCards: CreatorCardItem[] = creatorArticles.map((a) => {
+      const isPublished =
+        a.status === 'published' || a.status === 'verified' || a.status === 'on-chain-ready';
+      return {
+        id: a.id,
       type: 'articles',
       title: a.title,
-      subtitle: 'Kasparex vBlog',
-      status: toStatus(a.status),
+      subtitle: a.description || 'Kasparex vBlog',
+      status: isPublished ? 'published' : 'draft',
       availability: 'live',
-      publicHref: authorHref,
-      editHref: '/vblog/editor/new',
+      publicHref: `/vblog/${encodeURIComponent(a.slug)}`,
+      editHref: `/vblog/editor/${encodeURIComponent(a.id)}`,
       accent: 'vblog',
-    }));
+      } satisfies CreatorCardItem;
+    });
 
     const products: CreatorCardItem[] = MOCK_PRODUCTS.map((p) => ({
       id: p.id,
@@ -878,8 +721,8 @@ function CreatorContentTab({
       },
     ];
 
-    return [...dapps, ...articles, ...crowdkas, ...products, ...magazines, ...ads];
-  }, [authorHref, linkedEvmAddress]);
+    return [...dapps, ...articlesCards, ...crowdkas, ...products, ...magazines, ...ads];
+  }, [creatorArticles, linkedEvmAddress]);
 
   const filtered = useMemo(() => {
     const base = typeFilter === 'all' ? items : items.filter((i) => i.type === typeFilter);
@@ -893,8 +736,8 @@ function CreatorContentTab({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <SectionTitle title="Creator content" />
         <div className="flex flex-wrap gap-2">
-          <Link href={authorHref} className="k-control-btn whitespace-nowrap">
-            Public creator page
+          <Link href={kaspaAddress ? `/u/${encodeURIComponent(kaspaAddress)}` : '/u'} className="k-control-btn whitespace-nowrap">
+            Public profile
           </Link>
           {isOwnProfile ? (
             <Link href="/u?tab=creator-create" className="k-control-btn whitespace-nowrap">
@@ -903,6 +746,14 @@ function CreatorContentTab({
           ) : null}
         </div>
       </div>
+
+      {typeFilter === 'articles' || typeFilter === 'all' ? (
+        vblogLoading ? (
+          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 text-sm text-zinc-600 dark:text-zinc-400">
+            Loading articles…
+          </div>
+        ) : null
+      ) : null}
 
       <div className="flex flex-wrap gap-2">
         {(['all', 'dapps', 'articles', 'crowdkas', 'products', 'magazines', 'ads'] as const).map((t) => (
@@ -925,9 +776,12 @@ function CreatorContentTab({
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((i) => (
             <div key={`${i.type}_${i.id}`} className="space-y-2">
-              <KxListingCard href={i.publicHref} accent={i.accent} className="flex flex-col overflow-hidden">
+              <KxListingCard href={i.publicHref} accent={i.accent} className="relative flex flex-col overflow-hidden">
                 <KxListingCardMedia aspectClass="aspect-[3/2]">
                   <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <ContentTypeIcon type={i.type} />
+                  </div>
                   <div className="absolute left-3 top-3 z-10">
                     <span className="rounded-full border border-zinc-200 bg-white/90 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/90 dark:text-zinc-200">
                       {statusLabel(i.status)}
@@ -1037,6 +891,50 @@ function CreatorCreateTab({
         })}
       </div>
     </div>
+  );
+}
+
+function ContentTypeIcon({ type }: { type: CreatorContentType }) {
+  const common = 'h-12 w-12 text-zinc-400 dark:text-zinc-600';
+  if (type === 'articles') {
+    return (
+      <svg className={common} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    );
+  }
+  if (type === 'dapps') {
+    return (
+      <svg className={common} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    );
+  }
+  if (type === 'products') {
+    return (
+      <svg className={common} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+      </svg>
+    );
+  }
+  if (type === 'magazines') {
+    return (
+      <svg className={common} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+      </svg>
+    );
+  }
+  if (type === 'crowdkas') {
+    return (
+      <svg className={common} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+      </svg>
+    );
+  }
+  return (
+    <svg className={common} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h18M3 16h18" />
+    </svg>
   );
 }
 
@@ -1425,10 +1323,10 @@ function ProfileHaloHeader({
                   Edit
                 </button>
                 <Link
-                  href={kaspaAddress ? `/u/${encodeURIComponent(kaspaAddress)}?tab=workspace` : '/u?tab=workspace'}
+                  href={kaspaAddress ? `/u/${encodeURIComponent(kaspaAddress)}?tab=creator-content` : '/u?tab=creator-content'}
                   className="k-control-btn !bg-[#02abb8] hover:!bg-[#028a94] !text-white !border-[#02abb8]/30"
                 >
-                  Workspace
+                  Creator hub
                 </Link>
               </div>
             ) : null}
@@ -1449,9 +1347,11 @@ function ProfileTabStrip({
   onTab: (t: TabId) => void;
 }) {
   const [overflowOpen, setOverflowOpen] = useState(false);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const containerRef = (useMemo(() => ({ current: null as HTMLDivElement | null }), []) as unknown) as { current: HTMLDivElement | null };
+
   const tabs: Array<{ id: TabId; label: string; ownerOnly?: boolean }> = [
     { id: 'overview', label: 'Overview' },
-    { id: 'workspace', label: 'Workspace' },
     { id: 'creator-content', label: 'Content' },
     { id: 'creator-create', label: 'Create' },
     { id: 'ads', label: 'Ads' },
@@ -1461,11 +1361,30 @@ function ProfileTabStrip({
   ];
 
   const allowedTabs = tabs.filter((t) => !t.ownerOnly || isOwnProfile);
-  const visibleTabs = allowedTabs.slice(0, 4);
-  const overflowTabs = allowedTabs.slice(4);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => {
+      setIsOverflowing(el.scrollWidth > el.clientWidth + 8);
+    };
+    update();
+    const ro = new ResizeObserver(() => update());
+    ro.observe(el);
+    window.addEventListener('resize', update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', update);
+    };
+  }, [allowedTabs.length, containerRef]);
+
+  const visibleCount = isOverflowing ? 5 : allowedTabs.length;
+  const visibleTabs = allowedTabs.slice(0, visibleCount);
+  const overflowTabs = allowedTabs.slice(visibleCount);
+
   return (
     <div className="mb-6">
-      <div className="k-control-group w-full overflow-x-auto">
+      <div ref={(n) => (containerRef.current = n)} className="k-control-group w-full overflow-x-auto">
         {visibleTabs.map((t) => (
           <button
             key={t.id}
