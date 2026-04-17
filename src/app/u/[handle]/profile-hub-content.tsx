@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAccount, useSignMessage } from 'wagmi';
@@ -1348,7 +1348,7 @@ function ProfileTabStrip({
 }) {
   const [overflowOpen, setOverflowOpen] = useState(false);
   const [isOverflowing, setIsOverflowing] = useState(false);
-  const containerRef = (useMemo(() => ({ current: null as HTMLDivElement | null }), []) as unknown) as { current: HTMLDivElement | null };
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const tabs: Array<{ id: TabId; label: string; ownerOnly?: boolean }> = [
     { id: 'overview', label: 'Overview' },
@@ -1376,7 +1376,7 @@ function ProfileTabStrip({
       ro.disconnect();
       window.removeEventListener('resize', update);
     };
-  }, [allowedTabs.length, containerRef]);
+  }, [allowedTabs.length]);
 
   const visibleCount = isOverflowing ? 5 : allowedTabs.length;
   const visibleTabs = allowedTabs.slice(0, visibleCount);
@@ -1384,7 +1384,7 @@ function ProfileTabStrip({
 
   return (
     <div className="mb-6">
-      <div ref={(n) => (containerRef.current = n)} className="k-control-group w-full overflow-x-auto">
+      <div ref={containerRef} className="k-control-group w-full overflow-x-auto">
         {visibleTabs.map((t) => (
           <button
             key={t.id}
