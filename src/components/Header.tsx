@@ -123,7 +123,7 @@ function getCurrentSectionTitle(pathname: string): string {
   if (pathname.startsWith('/stats')) {
     return 'Stats';
   }
-  if (pathname.startsWith('/studio') || pathname.startsWith('/u')) {
+  if (pathname.startsWith('/u')) {
     return 'Profile Hub';
   }
   // Default to dApps

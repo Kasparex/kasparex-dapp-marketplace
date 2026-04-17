@@ -19,13 +19,22 @@ import { buildLinkEvmMessage, verifyLinkEvmSignature } from '@/lib/profile/linki
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 import { useVBlog } from '@/hooks/useVBlog';
 import type { VBlogArticle } from '@/lib/vblog/types';
+import { useKaspaBalance } from '@/hooks/useKaspaBalance';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useGRIDToken } from '@/hooks/useGRIDToken';
+import { useNFTStatus } from '@/hooks/useNFTStatus';
+import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
+import { formatLargeNumber } from '@/lib/rewards/calculator';
+import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
+import { TierBadge } from '@/components/rewards/TierBadge';
+import { KREX_TIERS } from '@/lib/rewards/types';
+import { CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
 // heavy editors are opened as dedicated routes; keep Profile Hub lightweight
 
 type TabId =
   | 'overview'
   | 'creator-content'
   | 'creator-create'
-  | 'ads'
   | 'assets'
   | 'kns'
   | 'settings';
@@ -204,7 +213,6 @@ export function ProfileHubContent({
       'overview',
       'creator-content',
       'creator-create',
-      'ads',
       'assets',
       'kns',
       'settings',
@@ -267,12 +275,6 @@ export function ProfileHubContent({
 
             <SidebarSection title="Management">
               <nav className="space-y-0.5">
-                <SidebarNavItem
-                  label="Ads"
-                  active={activeTab === 'ads'}
-                  onClick={() => goTab('ads')}
-                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" /></svg>}
-                />
                 <SidebarNavItem
                   label="Assets"
                   active={activeTab === 'assets'}
@@ -360,8 +362,6 @@ export function ProfileHubContent({
                     isOwnProfile={isOwnProfile}
                   />
                 )}
-
-                {activeTab === 'ads' && <ProfileAdsTab />}
 
                 {activeTab === 'assets' && <AssetsTab />}
 
@@ -476,14 +476,7 @@ function OverviewTab({
           </div>
         </Card>
 
-        {isOwnProfile ? (
-          <Card title="Portfolio (summary)">
-            <div className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-              Portfolio is being unified into Profile Hub. For now, use the dedicated page for full balances and rewards.
-            </div>
-            <ActionLink href="/studio/portfolio" label="Open portfolio" />
-          </Card>
-        ) : null}
+        {isOwnProfile ? <PortfolioOverview /> : null}
       </div>
 
       <div className="space-y-6">
@@ -503,6 +496,151 @@ function OverviewTab({
   );
 }
 
+function PortfolioOverview() {
+  const { isConnected: isEVMConnected } = useAccount();
+  const { state: kaspaState } = useKaspaWallet();
+  const isL1Connected = kaspaState.isConnected;
+
+  const { balance: krexBalance, l1Balance: krexL1, l2Balance: krexL2, tier: krexTier, isLoading: isKREXLoading } = useKREXBalance();
+  const { balanceInKas: kasBalance, isLoading: isKasLoading } = useKaspaBalance();
+  const gridToken = useGRIDToken(CONTRACT_ADDRESSES.kasplexL2Testnet.GRIDToken);
+  const { nftStatus, nftPoints } = useNFTStatus();
+  const { totalPoints: xpPoints } = useLoyaltyPoints();
+
+  const krexMultiplier = KREX_TIERS[krexTier].multiplier;
+  const nftMultiplierAdd =
+    nftStatus?.hasRarestNFT
+      ? 5
+      : nftStatus?.hasDiamondKREXPRIME || nftStatus?.hasDiamondPIXELKREX
+        ? 3
+        : nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX
+          ? 1
+          : 0;
+  const totalMultiplier = krexMultiplier + nftMultiplierAdd;
+
+  return (
+    <Card title="Portfolio">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <BalanceCard
+          symbol="KAS"
+          name="Kaspa Native"
+          balance={kasBalance || 0}
+          isLoading={isKasLoading}
+          color="cyan"
+          tokenId="kas"
+          isConnected={isL1Connected}
+        />
+        <BalanceCard
+          symbol="KREX"
+          name="Ecosystem Token"
+          balance={krexBalance}
+          isLoading={isKREXLoading}
+          color="emerald"
+          tokenId="krex"
+          isConnected={isL1Connected || isEVMConnected}
+          extra={`L1: ${formatLargeNumber(krexL1)} | L2: ${formatLargeNumber(krexL2)}`}
+        />
+        <BalanceCard
+          symbol="GRID"
+          name="Ecosystem Reward"
+          balance={Number(String(gridToken.formattedBalance || '0').replace(/,/g, ''))}
+          isLoading={gridToken.isLoading}
+          color="indigo"
+          tokenId="grid"
+          isConnected={isEVMConnected}
+        />
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div>
+            <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Total Multiplier</div>
+            <div className="text-xl font-black text-cyan-600 dark:text-cyan-400">{totalMultiplier}x</div>
+          </div>
+        </div>
+        <div className="space-y-4">
+          <RewardItem label="KREX Tier" value={KREX_TIERS[krexTier].label} icon={<TierBadge tier={krexTier} isUnlocked={true} />} />
+          <RewardItem label="XP Points" value={formatLargeNumber(xpPoints)} icon="✨" />
+          <RewardItem label="NFT Points" value={String(nftPoints)} icon="🖼️" />
+          <RewardItem label="Active boosts" value={`${nftMultiplierAdd}x active`} icon="🚀" />
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function BalanceCard({
+  symbol,
+  name,
+  balance,
+  isLoading,
+  color,
+  tokenId,
+  isConnected,
+  extra,
+}: {
+  symbol: string;
+  name: string;
+  balance: number;
+  isLoading: boolean;
+  color: 'cyan' | 'emerald' | 'indigo';
+  tokenId: 'kas' | 'krex' | 'grid';
+  isConnected: boolean;
+  extra?: string;
+}) {
+  const colorClasses = {
+    cyan: 'from-cyan-500/10 to-transparent border-cyan-500/20 text-cyan-500 shadow-cyan-500/5',
+    emerald: 'from-emerald-500/10 to-transparent border-emerald-500/20 text-emerald-500 shadow-emerald-500/5',
+    indigo: 'from-indigo-500/10 to-transparent border-indigo-500/20 text-indigo-500 shadow-indigo-500/5',
+  };
+
+  return (
+    <div
+      className={`bg-gradient-to-br ${colorClasses[color]} bg-white dark:bg-zinc-900 rounded-2xl border p-5 dark:shadow-none transition-all duration-300 group`}
+    >
+      <div className="flex items-start justify-between mb-4">
+        <div className="p-3 bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-zinc-100 dark:border-zinc-700">
+          <TokenLogoImage tokenId={tokenId} size={24} />
+        </div>
+        {!isConnected ? (
+          <span className="text-[10px] px-2 py-0.5 bg-red-500/10 text-red-500 rounded-full font-bold uppercase border border-red-500/10">
+            Disconnected
+          </span>
+        ) : (
+          <span className="text-[10px] px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full font-bold uppercase border border-green-500/10">
+            Live
+          </span>
+        )}
+      </div>
+
+      <div className="space-y-1">
+        <div className="text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase tracking-widest">{name}</div>
+        <div className="flex items-baseline gap-2">
+          <div className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tracking-tighter">
+            {isLoading ? <div className="w-24 h-7 bg-zinc-200 dark:bg-zinc-800 animate-pulse rounded-lg" /> : isConnected ? formatLargeNumber(balance) : '0'}
+          </div>
+          <div className="text-sm font-bold text-zinc-500 uppercase">{symbol}</div>
+        </div>
+        {extra && <div className="text-[10px] text-zinc-400 font-medium pt-2">{extra}</div>}
+      </div>
+    </div>
+  );
+}
+
+function RewardItem({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between group">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 flex items-center justify-center border border-zinc-100 dark:border-zinc-700 transition-transform group-hover:scale-105">
+          {typeof icon === 'string' ? <span className="text-lg">{icon}</span> : icon}
+        </div>
+        <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">{label}</span>
+      </div>
+      <span className="font-black text-zinc-900 dark:text-zinc-100 tracking-tight">{value}</span>
+    </div>
+  );
+}
+
 // Workspace tab removed; Creator Hub + project editors live under Create + dedicated routes.
 
 const MOCK_PROFILE_DAPPS = [
@@ -516,52 +654,6 @@ const MOCK_PROFILE_ADS = [
   { id: 'pad-2', title: 'dApps hero takeover', slot: 'DAPPS_HERO', status: 'Paused', daysLeft: 0 },
   { id: 'pad-3', title: 'Cross-network bundle', slot: 'Bundle', status: 'Draft', daysLeft: 30 },
 ] as const;
-
-function ProfileAdsTab() {
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <SectionTitle title="My ads" />
-        <div className="flex flex-wrap gap-2">
-          <Link href="/ads?create=1" className="k-control-btn whitespace-nowrap">
-            Create ad
-          </Link>
-          <Link href="/ads/overview" className="k-control-btn whitespace-nowrap">
-            Pricing
-          </Link>
-          <Link href="/ads" className="k-control-btn whitespace-nowrap">
-            Kasparex Ads
-          </Link>
-        </div>
-      </div>
-      <p className="max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
-        Campaigns paid from your connected Kaspa (L1) wallet. Below is a layout preview; live checkout and registry data stay
-        in Kasparex Ads.
-      </p>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {MOCK_PROFILE_ADS.map((a) => (
-          <KxListingCard key={a.id} href="/ads?create=1" accent="ads" className="flex flex-col overflow-hidden">
-            <KxListingCardMedia aspectClass="aspect-[3/2]">
-              <div className="absolute inset-0 bg-gradient-to-br from-pink-500/15 to-pink-500/5 dark:from-pink-500/25" />
-              <div className="absolute left-3 top-3 z-10">
-                <span className="rounded-full border border-pink-500/25 bg-white/90 px-2 py-0.5 text-xs font-semibold text-pink-900 dark:bg-zinc-900/90 dark:text-pink-200">
-                  {a.status}
-                </span>
-              </div>
-            </KxListingCardMedia>
-            <KxListingCardBody>
-              <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{a.title}</div>
-              <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                Slot: {a.slot}
-                {a.daysLeft > 0 ? ` · ${a.daysLeft} days left` : ''}
-              </div>
-            </KxListingCardBody>
-          </KxListingCard>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 const MOCK_ARTICLES = [
   { id: 'a1', title: 'State of Kaspa 2026', status: 'Published', href: '/vblog' },
@@ -587,6 +679,8 @@ type CreatorCardItem = {
   type: CreatorContentType;
   title: string;
   subtitle?: string;
+  excerpt?: string;
+  imageUrl?: string;
   status: CreatorContentStatus;
   availability: CreatorAvailability;
   publicHref: string;
@@ -625,6 +719,14 @@ function CreatorContentTab({
   linkedEvmAddress: string | null;
 }) {
   const [typeFilter, setTypeFilter] = useState<CreatorContentType | 'all'>('all');
+  const searchParams = useSearchParams();
+  const urlType = (searchParams?.get('type') || '').toLowerCase();
+  useEffect(() => {
+    const allowed: Array<CreatorContentType | 'all'> = ['all', 'dapps', 'articles', 'crowdkas', 'products', 'magazines', 'ads'];
+    if (allowed.includes(urlType as any)) {
+      setTypeFilter(urlType as any);
+    }
+  }, [urlType]);
 
   const { articles, isLoading: vblogLoading } = useVBlog();
 
@@ -662,7 +764,9 @@ function CreatorContentTab({
         id: a.id,
       type: 'articles',
       title: a.title,
-      subtitle: a.description || 'Kasparex vBlog',
+      subtitle: 'Kasparex vBlog',
+      excerpt: (a.description || a.content || '').trim(),
+      imageUrl: a.featuredImage?.trim() || undefined,
       status: isPublished ? 'published' : 'draft',
       availability: 'live',
       publicHref: `/vblog/${encodeURIComponent(a.slug)}`,
@@ -703,7 +807,7 @@ function CreatorContentTab({
       status: toStatus(a.status),
       availability: 'coming-soon',
       publicHref: '/ads',
-      editHref: undefined,
+      editHref: '/ads/editor/new',
       accent: 'ads',
     }));
 
@@ -776,9 +880,21 @@ function CreatorContentTab({
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((i) => (
             <div key={`${i.type}_${i.id}`} className="space-y-2">
+              <div className="space-y-2">
               <KxListingCard href={i.publicHref} accent={i.accent} className="relative flex flex-col overflow-hidden">
                 <KxListingCardMedia aspectClass="aspect-[3/2]">
                   <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800" />
+                  {i.imageUrl ? (
+                    <div
+                      className="absolute inset-0 opacity-90"
+                      style={{
+                        backgroundImage: `url(${i.imageUrl})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }}
+                    />
+                  ) : null}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <ContentTypeIcon type={i.type} />
                   </div>
@@ -793,35 +909,45 @@ function CreatorContentTab({
                     ) : null}
                   </div>
                 </KxListingCardMedia>
-                <KxListingCardBody>
+                <KxListingCardBody className="relative z-10 flex min-h-0 flex-1 flex-col">
                   <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{i.title}</div>
-                  {i.subtitle ? <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{i.subtitle}</div> : null}
+                  {i.excerpt ? (
+                    <p className="mt-1 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 line-clamp-2">
+                      {i.excerpt}
+                    </p>
+                  ) : null}
+                  {i.subtitle ? (
+                    <div className="mt-2 text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
+                      {i.subtitle}
+                    </div>
+                  ) : null}
                 </KxListingCardBody>
               </KxListingCard>
 
               {isOwnProfile ? (
                 <div className="flex flex-wrap gap-2">
+                  <Link href={i.publicHref} className="k-control-btn whitespace-nowrap">
+                    Open
+                  </Link>
                   {i.availability === 'live' && i.editHref ? (
                     <Link href={i.editHref} className="k-control-btn whitespace-nowrap">
                       Edit
                     </Link>
                   ) : null}
-                  {i.availability === 'live' ? (
-                    <button
-                      type="button"
-                      className="k-control-btn whitespace-nowrap !border-red-300 dark:!border-red-800 !text-red-700 dark:!text-red-300"
-                      onClick={() => alert('Delete/unpublish will be wired to project APIs next.')}
-                    >
-                      Delete
-                    </button>
-                  ) : (
+                  {i.availability !== 'live' ? (
                     <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 px-2 py-2">
                       Controls coming soon
                     </span>
-                  )}
+                  ) : null}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  <Link href={i.publicHref} className="k-control-btn whitespace-nowrap">
+                    Open
+                  </Link>
                 </div>
               ) : null}
-            </div>
+              </div>
           ))}
         </div>
       )}
@@ -856,7 +982,7 @@ function CreatorCreateTab({
     { key: 'mag', title: 'Create Magazine Issue', description: 'Open the magazines editor.', href: `/magazines/editor` },
     { key: 'product', title: 'Create Product', description: 'Open the store dashboard.', href: `/store/dashboard?tab=products` },
     { key: 'dapp', title: 'New dApp', description: 'Build or list a dApp.', href: `/dapps/editor/new?returnTo=${encodeURIComponent(returnTo)}` },
-    { key: 'ads', title: 'Create Ad', description: 'Open Kasparex Ads create flow.', href: `/ads?create=1` },
+    { key: 'ads', title: 'Create Ad', description: 'Open Kasparex Ads editor.', href: `/ads/editor/new?returnTo=${encodeURIComponent(returnTo)}` },
     { key: 'crowdkas', title: 'New CrowdKAS Campaign', description: 'Open CrowdKAS Studio.', href: `/donations/studio` },
     { key: 'games', title: 'New Game', description: 'Coming soon.', disabled: true },
   ];
@@ -1354,7 +1480,6 @@ function ProfileTabStrip({
     { id: 'overview', label: 'Overview' },
     { id: 'creator-content', label: 'Content' },
     { id: 'creator-create', label: 'Create' },
-    { id: 'ads', label: 'Ads' },
     { id: 'assets', label: 'Assets' },
     { id: 'kns', label: 'KNS' },
     { id: 'settings', label: 'Settings', ownerOnly: true },
