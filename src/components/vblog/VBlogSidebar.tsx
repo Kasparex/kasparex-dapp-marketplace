@@ -88,7 +88,7 @@ export function VBlogSidebar({
               Create Article
             </button>
           ) : (
-            <Link href="/vblog/dashboard?tab=create" className="k-control-btn w-full justify-center gap-2 !bg-orange-500 hover:!bg-orange-600 !text-white !border-orange-400/30">
+            <Link href="/vblog/editor/new" className="k-control-btn w-full justify-center gap-2 !bg-orange-500 hover:!bg-orange-600 !text-white !border-orange-400/30">
               <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
               Create Article
             </Link>

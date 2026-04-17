@@ -26,7 +26,7 @@ export default function VBlogPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<VBlogSortOption>('newest');
   const openEditorDashboard = () => {
-    router.push('/vblog/dashboard?tab=create');
+    router.push('/vblog/editor/new');
   };
 
   const filteredArticles = useMemo(() => {

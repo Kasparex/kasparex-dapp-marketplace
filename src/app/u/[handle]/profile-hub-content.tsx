@@ -18,16 +18,13 @@ import { createKnsClient, type KnsDomainProfileResponse, type KnsAsset } from '@
 import { useUnifiedProfile } from '@/hooks/useUnifiedProfile';
 import { buildLinkEvmMessage, verifyLinkEvmSignature } from '@/lib/profile/linking';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
-import { BuildDAppWizard } from '@/components/dapps/BuildDAppWizard';
-import type { DApp } from '@/lib/dapps';
+// heavy editors are opened as dedicated routes; keep Profile Hub lightweight
 
 type TabId =
   | 'overview'
   | 'workspace'
-  | 'my-dapps'
-  | 'my-articles'
-  | 'my-products'
-  | 'my-magazines'
+  | 'creator-content'
+  | 'creator-create'
   | 'ads'
   | 'assets'
   | 'kns'
@@ -213,22 +210,26 @@ export function ProfileHubContent({
       return;
     }
     if (tab === 'dapps') {
-      setActiveTab('my-dapps');
-      router.replace(hrefTab('my-dapps'));
+      setActiveTab('creator-content');
+      router.replace(hrefTab('creator-content'));
       return;
     }
     if (tab === 'content') {
-      setActiveTab('my-articles');
-      router.replace(hrefTab('my-articles'));
+      setActiveTab('creator-content');
+      router.replace(hrefTab('creator-content'));
+      return;
+    }
+    // Back-compat: old My-* tabs now map to unified creator content.
+    if (tab === 'my-dapps' || tab === 'my-articles' || tab === 'my-products' || tab === 'my-magazines') {
+      setActiveTab('creator-content');
+      router.replace(hrefTab('creator-content'));
       return;
     }
     const allowed: TabId[] = [
       'overview',
       'workspace',
-      'my-dapps',
-      'my-articles',
-      'my-products',
-      'my-magazines',
+      'creator-content',
+      'creator-create',
       'ads',
       'assets',
       'kns',
@@ -315,43 +316,19 @@ export function ProfileHubContent({
               </nav>
             </SidebarSection>
 
-            <SidebarSection title="My listings">
+            <SidebarSection title="Creator hub">
               <nav className="space-y-0.5">
                 <SidebarNavItem
-                  label="My dApps"
-                  active={activeTab === 'my-dapps'}
-                  onClick={() => goTab('my-dapps')}
+                  label="Content"
+                  active={activeTab === 'creator-content'}
+                  onClick={() => goTab('creator-content')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
                 />
                 <SidebarNavItem
-                  label="My articles"
-                  active={activeTab === 'my-articles'}
-                  onClick={() => goTab('my-articles')}
+                  label="Create"
+                  active={activeTab === 'creator-create'}
+                  onClick={() => goTab('creator-create')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
-                />
-                <SidebarNavItem
-                  label="My products"
-                  active={activeTab === 'my-products'}
-                  onClick={() => goTab('my-products')}
-                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>}
-                />
-                <SidebarNavItem
-                  label="My magazines"
-                  active={activeTab === 'my-magazines'}
-                  onClick={() => goTab('my-magazines')}
-                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
-                />
-                <SidebarNavItem
-                  label="Create dApp"
-                  active={activeTab === 'my-dapps' && view === 'build-dapp'}
-                  onClick={() => goTab('my-dapps', 'build-dapp')}
-                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>}
-                />
-                <SidebarNavItem
-                  label="List dApp"
-                  active={activeTab === 'my-dapps' && view === 'list-dapp'}
-                  onClick={() => goTab('my-dapps', 'list-dapp')}
-                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h10M7 16h10" /></svg>}
                 />
               </nav>
             </SidebarSection>
@@ -438,13 +415,20 @@ export function ProfileHubContent({
 
                 {activeTab === 'workspace' && <WorkspaceTab view={view} goTab={goTab} />}
 
-                {activeTab === 'my-dapps' && <MyDappsTab kaspaAddress={kaspaAddress} goTab={goTab} view={view} />}
+                {activeTab === 'creator-content' && (
+                  <CreatorContentTab
+                    kaspaAddress={kaspaAddress}
+                    isOwnProfile={isOwnProfile}
+                    linkedEvmAddress={profile?.linkedEvmWallets?.[0]?.address || null}
+                  />
+                )}
 
-                {activeTab === 'my-articles' && <MyArticlesTab kaspaAddress={kaspaAddress} goTab={goTab} />}
-
-                {activeTab === 'my-products' && <MyProductsTab kaspaAddress={kaspaAddress} goTab={goTab} />}
-
-                {activeTab === 'my-magazines' && <MyMagazinesTab kaspaAddress={kaspaAddress} goTab={goTab} />}
+                {activeTab === 'creator-create' && (
+                  <CreatorCreateTab
+                    kaspaAddress={kaspaAddress}
+                    isOwnProfile={isOwnProfile}
+                  />
+                )}
 
                 {activeTab === 'ads' && <ProfileAdsTab />}
 
@@ -700,112 +684,6 @@ const MOCK_PROFILE_DAPPS = [
   { id: 'ph-d3', title: 'NFT tools hub', slug: 'nft-tools-hub', status: 'Review' },
 ] as const;
 
-function HubDappWizardPanel({
-  mode,
-  goTab,
-}: {
-  mode: 'build-dapp' | 'list-dapp';
-  goTab: (tab: TabId, nextView?: string) => void;
-}) {
-  const router = useRouter();
-  const [busy, setBusy] = useState(false);
-  const title = mode === 'build-dapp' ? 'Build dApp' : 'List dApp';
-
-  const handleComplete = async (dapp: Partial<DApp>) => {
-    setBusy(true);
-    try {
-      const key = `dapp_${dapp.id}_metadata`;
-      localStorage.setItem(key, JSON.stringify(dapp));
-      router.push('/dapps');
-    } catch (e) {
-      console.error(e);
-      alert('Failed to save dApp. Please try again.');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleCancel = () => {
-    if (confirm('Are you sure you want to cancel? Your progress will be lost.')) {
-      goTab('my-dapps');
-    }
-  };
-
-  return (
-    <div className="space-y-4">
-      <SubpageToolbar title={title} onBack={() => goTab('my-dapps')} />
-      <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        {busy ? (
-          <div className="py-8 text-center text-sm text-zinc-600 dark:text-zinc-400">Saving listing…</div>
-        ) : (
-          <BuildDAppWizard onComplete={handleComplete} onCancel={handleCancel} />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function MyDappsTab({
-  kaspaAddress,
-  goTab,
-  view,
-}: {
-  kaspaAddress: string | null;
-  goTab: (tab: TabId, nextView?: string) => void;
-  view: string;
-}) {
-  const v = (view || '').toLowerCase();
-  if (v === 'build-dapp') {
-    return <HubDappWizardPanel mode="build-dapp" goTab={goTab} />;
-  }
-  if (v === 'list-dapp') {
-    return <HubDappWizardPanel mode="list-dapp" goTab={goTab} />;
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <SectionTitle title="My dApps" />
-        <div className="flex flex-wrap gap-2">
-          <button type="button" className="k-control-btn whitespace-nowrap" onClick={() => goTab('my-dapps', 'build-dapp')}>
-            Create dApp
-          </button>
-          <button type="button" className="k-control-btn whitespace-nowrap" onClick={() => goTab('my-dapps', 'list-dapp')}>
-            List dApp
-          </button>
-          <button type="button" className="k-control-btn whitespace-nowrap" onClick={() => goTab('workspace', 'vblog')}>
-            Open in editor
-          </button>
-        </div>
-      </div>
-      <p className="max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
-        Sample listings for layout preview; wire-up to your indexer next. Build or list a dApp from the buttons above.
-      </p>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {MOCK_PROFILE_DAPPS.map((d) => (
-          <KxListingCard key={d.id} href={`/dapps/${d.slug}`} accent="dapps" className="flex flex-col overflow-hidden">
-            <KxListingCardMedia aspectClass="aspect-[3/2]">
-              <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800" />
-              <div className="absolute left-3 top-3 z-10">
-                <span className="rounded-full border border-zinc-200 bg-white/90 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/90 dark:text-zinc-200">
-                  {d.status}
-                </span>
-              </div>
-            </KxListingCardMedia>
-            <KxListingCardBody>
-              <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{d.title}</div>
-              <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">/{d.slug}</div>
-            </KxListingCardBody>
-          </KxListingCard>
-        ))}
-      </div>
-      {kaspaAddress ? null : (
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">Connect a Kaspa wallet to attribute listings to this profile.</p>
-      )}
-    </div>
-  );
-}
-
 const MOCK_PROFILE_ADS = [
   { id: 'pad-1', title: 'Sidebar spotlight', slot: 'SIDEBAR_RANDOM', status: 'Active', daysLeft: 12 },
   { id: 'pad-2', title: 'dApps hero takeover', slot: 'DAPPS_HERO', status: 'Paused', daysLeft: 0 },
@@ -863,147 +741,301 @@ const MOCK_ARTICLES = [
   { id: 'a2', title: 'Building on KREX', status: 'Draft', href: '/vblog' },
 ] as const;
 
-function MyArticlesTab({
-  kaspaAddress,
-  goTab,
-}: {
-  kaspaAddress: string | null;
-  goTab: (tab: TabId, nextView?: string) => void;
-}) {
-  const authorHref = kaspaAddress
-    ? `/vblog/author/${encodeURIComponent(kaspaAddress).replaceAll('%3A', ':')}`
-    : '/vblog';
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <SectionTitle title="My articles" />
-        <div className="flex flex-wrap gap-2">
-          <Link href={authorHref} className="k-control-btn whitespace-nowrap">
-            Public author page
-          </Link>
-          <button type="button" className="k-control-btn whitespace-nowrap" onClick={() => goTab('workspace', 'vblog')}>
-            New in editor
-          </button>
-        </div>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {MOCK_ARTICLES.map((a) => (
-          <KxListingCard key={a.id} href={a.href} accent="vblog" className="flex flex-col overflow-hidden">
-            <KxListingCardMedia aspectClass="aspect-[3/2]">
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/15 to-amber-500/5 dark:from-orange-500/20" />
-              <div className="absolute left-3 top-3 z-10">
-                <span className="rounded-full border border-orange-500/25 bg-white/90 px-2 py-0.5 text-xs font-semibold text-orange-900 dark:bg-zinc-900/90 dark:text-orange-200">
-                  {a.status}
-                </span>
-              </div>
-            </KxListingCardMedia>
-            <KxListingCardBody>
-              <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{a.title}</div>
-              <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Open in vBlog for full edit flow.</div>
-            </KxListingCardBody>
-          </KxListingCard>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 const MOCK_PRODUCTS = [
   { id: 'p1', title: 'Kaspa UI Kit', price: '12 KAS', status: 'Active' },
   { id: 'p2', title: 'Creator template pack', price: '5 KAS', status: 'Draft' },
 ] as const;
-
-function MyProductsTab({
-  kaspaAddress: _kaspaAddress,
-  goTab,
-}: {
-  kaspaAddress: string | null;
-  goTab: (tab: TabId, nextView?: string) => void;
-}) {
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <SectionTitle title="My products" />
-        <div className="flex flex-wrap gap-2">
-          <Link href="/store/dashboard?tab=products" className="k-control-btn whitespace-nowrap">
-            Store dashboard
-          </Link>
-          <button type="button" className="k-control-btn whitespace-nowrap" onClick={() => goTab('workspace', 'store')}>
-            Open store editor
-          </button>
-        </div>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {MOCK_PRODUCTS.map((p) => (
-          <KxListingCard key={p.id} href="/store/dashboard?tab=products" accent="store" className="flex flex-col overflow-hidden">
-            <KxListingCardMedia aspectClass="aspect-[3/2]">
-              <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800" />
-              <div className="absolute left-3 top-3 z-10">
-                <span className="rounded-full border border-yellow-500/30 bg-white/90 px-2 py-0.5 text-xs font-semibold text-zinc-800 dark:bg-zinc-900/90 dark:text-zinc-100">
-                  {p.status}
-                </span>
-              </div>
-            </KxListingCardMedia>
-            <KxListingCardBody>
-              <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{p.title}</div>
-              <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{p.price}</div>
-            </KxListingCardBody>
-          </KxListingCard>
-        ))}
-      </div>
-      {_kaspaAddress ? null : (
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">Connect a Kaspa address to attribute listings to this profile.</p>
-      )}
-    </div>
-  );
-}
 
 const MOCK_MAGAZINES = [
   { id: 'm1', title: 'KREX Monthly #4', status: 'Draft' },
   { id: 'm2', title: 'Kaspa dev digest', status: 'Published' },
 ] as const;
 
-function MyMagazinesTab({
-  kaspaAddress: _kaspaAddress,
-  goTab,
+type CreatorContentType = 'dapps' | 'articles' | 'products' | 'magazines' | 'ads' | 'crowdkas';
+type CreatorContentStatus = 'published' | 'draft' | 'review' | 'paused';
+type CreatorAvailability = 'live' | 'coming-soon' | 'demo';
+
+type CreatorCardItem = {
+  id: string;
+  type: CreatorContentType;
+  title: string;
+  subtitle?: string;
+  status: CreatorContentStatus;
+  availability: CreatorAvailability;
+  publicHref: string;
+  editHref?: string;
+  accent: 'dapps' | 'vblog' | 'store' | 'magazines' | 'ads' | 'crowdkas';
+};
+
+function toStatus(raw: string): CreatorContentStatus {
+  const v = (raw || '').toLowerCase();
+  if (v.includes('publish') || v === 'live' || v === 'active') return 'published';
+  if (v.includes('pause')) return 'paused';
+  if (v.includes('review')) return 'review';
+  return 'draft';
+}
+
+function statusLabel(s: CreatorContentStatus): string {
+  if (s === 'published') return 'Published';
+  if (s === 'paused') return 'Paused';
+  if (s === 'review') return 'Review';
+  return 'Draft';
+}
+
+function availabilityLabel(a: CreatorAvailability): string | null {
+  if (a === 'live') return null;
+  if (a === 'demo') return 'Demo';
+  return 'Coming soon';
+}
+
+function CreatorContentTab({
+  kaspaAddress,
+  isOwnProfile,
+  linkedEvmAddress,
 }: {
   kaspaAddress: string | null;
-  goTab: (tab: TabId, nextView?: string) => void;
+  isOwnProfile: boolean;
+  linkedEvmAddress: string | null;
 }) {
+  const [typeFilter, setTypeFilter] = useState<CreatorContentType | 'all'>('all');
+
+  const authorHref = useMemo(() => {
+    return kaspaAddress ? `/vblog/author/${encodeURIComponent(kaspaAddress).replaceAll('%3A', ':')}` : '/vblog';
+  }, [kaspaAddress]);
+
+  const items: CreatorCardItem[] = useMemo(() => {
+    const dapps: CreatorCardItem[] = MOCK_PROFILE_DAPPS.map((d) => ({
+      id: d.id,
+      type: 'dapps',
+      title: d.title,
+      subtitle: `/${d.slug}`,
+      status: toStatus(d.status),
+      availability: 'coming-soon',
+      publicHref: `/dapps/${d.slug}`,
+      editHref: undefined,
+      accent: 'dapps',
+    }));
+
+    const articles: CreatorCardItem[] = MOCK_ARTICLES.map((a) => ({
+      id: a.id,
+      type: 'articles',
+      title: a.title,
+      subtitle: 'Kasparex vBlog',
+      status: toStatus(a.status),
+      availability: 'live',
+      publicHref: authorHref,
+      editHref: '/vblog/editor/new',
+      accent: 'vblog',
+    }));
+
+    const products: CreatorCardItem[] = MOCK_PRODUCTS.map((p) => ({
+      id: p.id,
+      type: 'products',
+      title: p.title,
+      subtitle: p.price,
+      status: toStatus(p.status),
+      availability: 'coming-soon',
+      publicHref: '/store',
+      editHref: undefined,
+      accent: 'store',
+    }));
+
+    const magazines: CreatorCardItem[] = MOCK_MAGAZINES.map((m) => ({
+      id: m.id,
+      type: 'magazines',
+      title: m.title,
+      subtitle: 'Kasparex Magazines',
+      status: toStatus(m.status),
+      availability: 'coming-soon',
+      publicHref: '/magazines',
+      editHref: undefined,
+      accent: 'magazines',
+    }));
+
+    const ads: CreatorCardItem[] = MOCK_PROFILE_ADS.map((a) => ({
+      id: a.id,
+      type: 'ads',
+      title: a.title,
+      subtitle: `Slot: ${a.slot}${a.daysLeft > 0 ? ` · ${a.daysLeft} days left` : ''}`,
+      status: toStatus(a.status),
+      availability: 'coming-soon',
+      publicHref: '/ads',
+      editHref: undefined,
+      accent: 'ads',
+    }));
+
+    const crowdkas: CreatorCardItem[] = [
+      {
+        id: 'crowdkas-campaigns',
+        type: 'crowdkas',
+        title: 'CrowdKAS campaigns',
+        subtitle: linkedEvmAddress ? 'Public campaign page' : 'Link an EVM wallet to enable public campaigns page',
+        status: linkedEvmAddress ? 'published' : 'draft',
+        availability: linkedEvmAddress ? 'live' : 'coming-soon',
+        publicHref: linkedEvmAddress ? `/donations/${linkedEvmAddress}` : '/donations',
+        editHref: '/donations/studio',
+        accent: 'crowdkas',
+      },
+    ];
+
+    return [...dapps, ...articles, ...crowdkas, ...products, ...magazines, ...ads];
+  }, [authorHref, linkedEvmAddress]);
+
+  const filtered = useMemo(() => {
+    const base = typeFilter === 'all' ? items : items.filter((i) => i.type === typeFilter);
+    if (isOwnProfile) return base;
+    // Public view: show published live items, plus non-live placeholders so users can see what's planned.
+    return base.filter((i) => i.availability !== 'live' || i.status === 'published');
+  }, [items, isOwnProfile, typeFilter]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <SectionTitle title="My magazines" />
+        <SectionTitle title="Creator content" />
         <div className="flex flex-wrap gap-2">
-          <Link href="/magazines" className="k-control-btn whitespace-nowrap">
-            Browse magazines
+          <Link href={authorHref} className="k-control-btn whitespace-nowrap">
+            Public creator page
           </Link>
-          <button type="button" className="k-control-btn whitespace-nowrap" onClick={() => goTab('workspace', 'magazine')}>
-            Open magazine editor
-          </button>
+          {isOwnProfile ? (
+            <Link href="/u?tab=creator-create" className="k-control-btn whitespace-nowrap">
+              Create new
+            </Link>
+          ) : null}
         </div>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {MOCK_MAGAZINES.map((m) => (
-          <KxListingCard key={m.id} href="/magazines" accent="magazines" className="flex flex-col overflow-hidden">
-            <KxListingCardMedia aspectClass="aspect-[3/2]">
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/15 to-violet-500/5 dark:from-violet-500/25" />
-              <div className="absolute left-3 top-3 z-10">
-                <span className="rounded-full border border-violet-500/25 bg-white/90 px-2 py-0.5 text-xs font-semibold text-violet-900 dark:bg-zinc-900/90 dark:text-violet-200">
-                  {m.status}
-                </span>
-              </div>
-            </KxListingCardMedia>
-            <KxListingCardBody>
-              <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{m.title}</div>
-              <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Layout preview — link to full editor from workspace.</div>
-            </KxListingCardBody>
-          </KxListingCard>
+
+      <div className="flex flex-wrap gap-2">
+        {(['all', 'dapps', 'articles', 'crowdkas', 'products', 'magazines', 'ads'] as const).map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTypeFilter(t)}
+            className={`k-control-btn whitespace-nowrap ${typeFilter === t ? '!bg-[#02abb8] !text-white !border-[#02abb8]/30' : ''}`}
+          >
+            {t === 'all' ? 'All' : t[0].toUpperCase() + t.slice(1)}
+          </button>
         ))}
       </div>
-      {_kaspaAddress ? null : (
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">Resolve a profile address to tie magazines to this hub.</p>
+
+      {filtered.length === 0 ? (
+        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 text-sm text-zinc-600 dark:text-zinc-400">
+          {isOwnProfile ? 'No items yet. Use Create to publish your first content.' : 'No published items yet.'}
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((i) => (
+            <div key={`${i.type}_${i.id}`} className="space-y-2">
+              <KxListingCard href={i.publicHref} accent={i.accent} className="flex flex-col overflow-hidden">
+                <KxListingCardMedia aspectClass="aspect-[3/2]">
+                  <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800" />
+                  <div className="absolute left-3 top-3 z-10">
+                    <span className="rounded-full border border-zinc-200 bg-white/90 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/90 dark:text-zinc-200">
+                      {statusLabel(i.status)}
+                    </span>
+                    {availabilityLabel(i.availability) ? (
+                      <span className="ml-2 rounded-full border border-zinc-200 bg-white/90 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/90 dark:text-zinc-200">
+                        {availabilityLabel(i.availability)}
+                      </span>
+                    ) : null}
+                  </div>
+                </KxListingCardMedia>
+                <KxListingCardBody>
+                  <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{i.title}</div>
+                  {i.subtitle ? <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{i.subtitle}</div> : null}
+                </KxListingCardBody>
+              </KxListingCard>
+
+              {isOwnProfile ? (
+                <div className="flex flex-wrap gap-2">
+                  {i.availability === 'live' && i.editHref ? (
+                    <Link href={i.editHref} className="k-control-btn whitespace-nowrap">
+                      Edit
+                    </Link>
+                  ) : null}
+                  {i.availability === 'live' ? (
+                    <button
+                      type="button"
+                      className="k-control-btn whitespace-nowrap !border-red-300 dark:!border-red-800 !text-red-700 dark:!text-red-300"
+                      onClick={() => alert('Delete/unpublish will be wired to project APIs next.')}
+                    >
+                      Delete
+                    </button>
+                  ) : (
+                    <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 px-2 py-2">
+                      Controls coming soon
+                    </span>
+                  )}
+                </div>
+              ) : null}
+            </div>
+          ))}
+        </div>
       )}
+    </div>
+  );
+}
+
+function CreatorCreateTab({
+  kaspaAddress,
+  isOwnProfile,
+}: {
+  kaspaAddress: string | null;
+  isOwnProfile: boolean;
+}) {
+  if (!isOwnProfile) {
+    return (
+      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 text-sm text-zinc-600 dark:text-zinc-400">
+        Connect your wallet and open your own profile to access creator tools.
+      </div>
+    );
+  }
+
+  const returnTo = kaspaAddress ? `/u/${encodeURIComponent(kaspaAddress)}?tab=creator-content` : '/u?tab=creator-content';
+  const tiles: Array<{
+    key: string;
+    title: string;
+    description: string;
+    href?: string;
+    disabled?: boolean;
+  }> = [
+    { key: 'article', title: 'Create Article', description: 'Open the vBlog editor.', href: `/vblog/editor/new?returnTo=${encodeURIComponent(returnTo)}` },
+    { key: 'mag', title: 'Create Magazine Issue', description: 'Open the magazines editor.', href: `/magazines/editor` },
+    { key: 'product', title: 'Create Product', description: 'Open the store dashboard.', href: `/store/dashboard?tab=products` },
+    { key: 'dapp', title: 'New dApp', description: 'Build or list a dApp.', href: `/dapps/editor/new?returnTo=${encodeURIComponent(returnTo)}` },
+    { key: 'ads', title: 'Create Ad', description: 'Open Kasparex Ads create flow.', href: `/ads?create=1` },
+    { key: 'crowdkas', title: 'New CrowdKAS Campaign', description: 'Open CrowdKAS Studio.', href: `/donations/studio` },
+    { key: 'games', title: 'New Game', description: 'Coming soon.', disabled: true },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SectionTitle title="Create" />
+        <Link href={returnTo} className="k-control-btn whitespace-nowrap">
+          Back to content
+        </Link>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {tiles.map((t) => {
+          const cls =
+            'kx-listing-card group block w-full overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 text-left transition-colors dark:border-zinc-800 dark:bg-zinc-900';
+          if (t.disabled || !t.href) {
+            return (
+              <div key={t.key} className={`${cls} opacity-60`}>
+                <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{t.title}</div>
+                <p className="mt-1 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{t.description}</p>
+              </div>
+            );
+          }
+          return (
+            <Link key={t.key} href={t.href} className={cls}>
+              <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">{t.title}</div>
+              <p className="mt-1 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{t.description}</p>
+            </Link>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -1416,37 +1448,85 @@ function ProfileTabStrip({
   isOwnProfile: boolean;
   onTab: (t: TabId) => void;
 }) {
+  const [overflowOpen, setOverflowOpen] = useState(false);
   const tabs: Array<{ id: TabId; label: string; ownerOnly?: boolean }> = [
     { id: 'overview', label: 'Overview' },
     { id: 'workspace', label: 'Workspace' },
-    { id: 'my-dapps', label: 'My dApps' },
-    { id: 'my-articles', label: 'My articles' },
-    { id: 'my-products', label: 'My products' },
-    { id: 'my-magazines', label: 'My magazines' },
+    { id: 'creator-content', label: 'Content' },
+    { id: 'creator-create', label: 'Create' },
     { id: 'ads', label: 'Ads' },
     { id: 'assets', label: 'Assets' },
     { id: 'kns', label: 'KNS' },
     { id: 'settings', label: 'Settings', ownerOnly: true },
   ];
+
+  const allowedTabs = tabs.filter((t) => !t.ownerOnly || isOwnProfile);
+  const visibleTabs = allowedTabs.slice(0, 4);
+  const overflowTabs = allowedTabs.slice(4);
   return (
     <div className="mb-6">
       <div className="k-control-group w-full overflow-x-auto">
-        {tabs
-          .filter((t) => !t.ownerOnly || isOwnProfile)
-          .map((t) => (
+        {visibleTabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => {
+              setOverflowOpen(false);
+              onTab(t.id);
+            }}
+            className={`h-10 px-4 text-sm font-medium whitespace-nowrap transition-colors ${
+              activeTab === t.id
+                ? 'bg-[#02abb8]/10 text-[#017a84] dark:text-[#8ff1f8]'
+                : 'text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+
+        {overflowTabs.length > 0 ? (
+          <div className="relative">
             <button
-              key={t.id}
               type="button"
-              onClick={() => onTab(t.id)}
+              onClick={() => setOverflowOpen((v) => !v)}
+              aria-haspopup="menu"
+              aria-expanded={overflowOpen}
               className={`h-10 px-4 text-sm font-medium whitespace-nowrap transition-colors ${
-                activeTab === t.id
+                overflowTabs.some((t) => t.id === activeTab)
                   ? 'bg-[#02abb8]/10 text-[#017a84] dark:text-[#8ff1f8]'
                   : 'text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800'
               }`}
             >
-              {t.label}
+              <span className="sr-only">More tabs</span>
+              <span aria-hidden className="text-lg leading-none">⋯</span>
             </button>
-          ))}
+            {overflowOpen ? (
+              <div
+                role="menu"
+                className="absolute right-0 mt-2 min-w-44 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl p-1 z-50"
+              >
+                {overflowTabs.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setOverflowOpen(false);
+                      onTab(t.id);
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                      activeTab === t.id
+                        ? 'bg-[#02abb8]/10 text-[#017a84] dark:text-[#8ff1f8]'
+                        : 'text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </div>
   );
