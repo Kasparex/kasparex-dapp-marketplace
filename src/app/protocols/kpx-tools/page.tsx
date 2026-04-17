@@ -92,8 +92,9 @@ export default function KpxToolsPage() {
   }
 
   function buildRecord(): unknown {
+    if (!owner) throw new Error('Connect a Kaspa wallet from the header so this tool knows your payer address.');
     const s = parseSeq();
-    if (!s || !owner) throw new Error('Connect wallet and enter a valid seq (≥ 1).');
+    if (s == null) throw new Error('Enter seq as an integer ≥ 1.');
     const addr = normalizeKaspaAddress(owner);
     switch (kind) {
       case 'pf':
@@ -177,8 +178,12 @@ export default function KpxToolsPage() {
       setSendErr('Connect a Kaspa wallet (KasWare or Kastle) from the header first.');
       return;
     }
-    const kas = Number.parseFloat(amountKas);
-    if (!Number.isFinite(kas) || kas < MIN_SELF_KAS) {
+    const kas = Number.parseFloat(amountKas.trim());
+    if (!Number.isFinite(kas)) {
+      setSendErr('Enter a valid amount in KAS (for example 0.001).');
+      return;
+    }
+    if (kas < MIN_SELF_KAS) {
       setSendErr(`Amount must be at least ${MIN_SELF_KAS} KAS (self-transfer + payload).`);
       return;
     }
@@ -255,11 +260,11 @@ export default function KpxToolsPage() {
               )}
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="block text-sm font-bold text-zinc-800 dark:text-zinc-200">
+            <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+              <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                 Record type
                 <select
-                  className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                  className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                   value={kind}
                   onChange={(e) => setKind(e.target.value as KpxKind)}
                 >
@@ -269,10 +274,10 @@ export default function KpxToolsPage() {
                   <option value="cm">kpx/cm — commit</option>
                 </select>
               </label>
-              <label className="block text-sm font-bold text-zinc-800 dark:text-zinc-200">
+              <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                 net
                 <select
-                  className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                  className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                   value={net}
                   onChange={(e) => setNet(e.target.value as KpxNet)}
                 >
@@ -282,148 +287,10 @@ export default function KpxToolsPage() {
               </label>
             </div>
 
-            <div className="rounded-xl border border-dashed border-[#02abb8]/30 bg-[#02abb8]/5 p-4 dark:border-[#02abb8]/25 dark:bg-[#02abb8]/10">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Reference indexer</div>
-                <div className="flex flex-wrap items-center gap-2">
-                  {kpxIndex.loading ? (
-                    <span className="text-xs font-semibold text-zinc-500">Loading…</span>
-                  ) : owner ? (
-                    <span className="text-xs text-zinc-500">net={net}</span>
-                  ) : null}
-                  <button
-                    type="button"
-                    className="k-control-btn h-8 px-3 text-xs"
-                    disabled={!owner || kpxIndex.loading}
-                    onClick={() => kpxIndex.refetch()}
-                  >
-                    Refresh
-                  </button>
-                </div>
-              </div>
-              {owner ? (
-                <div className="mt-3 grid gap-2 sm:grid-cols-3">
-                  <label className="block text-[11px] font-bold text-zinc-600 dark:text-zinc-300">
-                    limit (20–500)
-                    <input
-                      className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1.5 font-mono text-xs dark:border-zinc-700 dark:bg-zinc-950"
-                      value={idxLimit}
-                      onChange={(e) => setIdxLimit(e.target.value)}
-                      inputMode="numeric"
-                    />
-                  </label>
-                  <label className="block text-[11px] font-bold text-zinc-600 dark:text-zinc-300">
-                    offset (0–50k)
-                    <input
-                      className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1.5 font-mono text-xs dark:border-zinc-700 dark:bg-zinc-950"
-                      value={idxOffset}
-                      onChange={(e) => setIdxOffset(e.target.value)}
-                      inputMode="numeric"
-                    />
-                  </label>
-                  <label className="block text-[11px] font-bold text-zinc-600 dark:text-zinc-300">
-                    cm max_resources (1–500)
-                    <input
-                      className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-2 py-1.5 font-mono text-xs dark:border-zinc-700 dark:bg-zinc-950"
-                      value={idxMaxCm}
-                      onChange={(e) => setIdxMaxCm(e.target.value)}
-                      inputMode="numeric"
-                    />
-                  </label>
-                </div>
-              ) : null}
-              {!owner ? (
-                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                  Connect your wallet to load <code className="rounded bg-white/60 px-1 dark:bg-zinc-900/60">/api/kpx/*</code> for the
-                  selected net.
-                </p>
-              ) : kpxIndex.error ? (
-                <p className="mt-2 text-sm font-semibold text-red-700 dark:text-red-300">{kpxIndex.error}</p>
-              ) : (
-                <div className="mt-3 space-y-3">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-lg border border-zinc-200 bg-white p-3 text-xs dark:border-zinc-700 dark:bg-zinc-950">
-                      <div className="font-black text-zinc-700 dark:text-zinc-300">kpx/pf</div>
-                      <pre className="mt-2 max-h-28 overflow-auto whitespace-pre-wrap break-all text-[11px] leading-relaxed text-zinc-800 dark:text-zinc-200">
-                        {kpxIndex.pf
-                          ? JSON.stringify(
-                              {
-                                state: kpxIndex.pf.state,
-                                provenance: kpxIndex.pf.provenance,
-                                indexed: kpxIndex.pf.indexed,
-                                note: kpxIndex.pf.note,
-                              },
-                              null,
-                              2
-                            )
-                          : '—'}
-                      </pre>
-                    </div>
-                    <div className="rounded-lg border border-zinc-200 bg-white p-3 text-xs dark:border-zinc-700 dark:bg-zinc-950">
-                      <div className="font-black text-zinc-700 dark:text-zinc-300">kpx/ver</div>
-                      <pre className="mt-2 max-h-28 overflow-auto whitespace-pre-wrap break-all text-[11px] leading-relaxed text-zinc-800 dark:text-zinc-200">
-                        {kpxIndex.ver
-                          ? JSON.stringify(
-                              {
-                                verified: kpxIndex.ver.verified,
-                                provenance: kpxIndex.ver.provenance,
-                                indexed: kpxIndex.ver.indexed,
-                                note: kpxIndex.ver.note,
-                              },
-                              null,
-                              2
-                            )
-                          : '—'}
-                      </pre>
-                    </div>
-                    <div className="rounded-lg border border-zinc-200 bg-white p-3 text-xs dark:border-zinc-700 dark:bg-zinc-950 sm:col-span-2">
-                      <div className="font-black text-zinc-700 dark:text-zinc-300">kpx/lnk</div>
-                      <pre className="mt-2 max-h-24 overflow-auto whitespace-pre-wrap break-all text-[11px] leading-relaxed text-zinc-800 dark:text-zinc-200">
-                        {kpxIndex.lnk
-                          ? JSON.stringify(
-                              {
-                                evm: kpxIndex.lnk.evm,
-                                provenance: kpxIndex.lnk.provenance,
-                                indexed: kpxIndex.lnk.indexed,
-                                note: kpxIndex.lnk.note,
-                              },
-                              null,
-                              2
-                            )
-                          : '—'}
-                      </pre>
-                    </div>
-                    <div className="rounded-lg border border-zinc-200 bg-white p-3 text-xs dark:border-zinc-700 dark:bg-zinc-950 sm:col-span-2">
-                      <div className="font-black text-zinc-700 dark:text-zinc-300">kpx/cm summary</div>
-                      <pre className="mt-2 max-h-36 overflow-auto whitespace-pre-wrap break-all text-[11px] leading-relaxed text-zinc-800 dark:text-zinc-200">
-                        {kpxIndex.cm
-                          ? JSON.stringify(
-                              {
-                                count: kpxIndex.cm.resources?.length ?? 0,
-                                resources: (kpxIndex.cm.resources ?? []).slice(0, 12),
-                                indexed: kpxIndex.cm.indexed,
-                                note: kpxIndex.cm.note,
-                              },
-                              null,
-                              2
-                            )
-                          : '—'}
-                      </pre>
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                    Fetches use <code className="rounded bg-white/60 px-0.5 dark:bg-zinc-900/60">useKpxIndexer</code> (see{' '}
-                    <code className="rounded bg-white/60 px-0.5 dark:bg-zinc-900/60">src/hooks/useKpxIndexer.ts</code>). Adjust limit/offset, change{' '}
-                    <strong>net</strong> above, or broadcast — then refresh.
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <label className="block text-sm font-bold text-zinc-800 dark:text-zinc-200">
+            <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
               seq
               <input
-                className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                 value={seq}
                 onChange={(e) => setSeq(e.target.value)}
                 inputMode="numeric"
@@ -432,20 +299,20 @@ export default function KpxToolsPage() {
 
             <div className="rounded-xl border border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950/50">
               <div className="text-xs font-black uppercase tracking-widest text-zinc-500">Transfer (carries payload)</div>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <label className="block text-sm font-bold text-zinc-800 dark:text-zinc-200">
+              <div className="mt-3 grid min-w-0 gap-3 sm:grid-cols-2">
+                <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                   To (Kaspa address)
                   <input
-                    className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-xs dark:border-zinc-700 dark:bg-zinc-950"
+                    className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     value={toAddress}
                     onChange={(e) => setToAddress(e.target.value)}
                     placeholder="kaspa:…"
                   />
                 </label>
-                <label className="block text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                   Amount (KAS)
                   <input
-                    className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                    className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     value={amountKas}
                     onChange={(e) => setAmountKas(e.target.value)}
                   />
@@ -455,10 +322,10 @@ export default function KpxToolsPage() {
 
             {kind === 'pf' && (
               <div className="space-y-3">
-                <label className="block text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                   op
                   <select
-                    className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                    className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     value={pfOp}
                     onChange={(e) => setPfOp(e.target.value as 'set' | 'clear')}
                   >
@@ -468,27 +335,27 @@ export default function KpxToolsPage() {
                 </label>
                 {pfOp === 'set' && (
                   <>
-                    <label className="block text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                    <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                       display (optional)
                       <input
-                        className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                        className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                         value={display}
                         onChange={(e) => setDisplay(e.target.value)}
                       />
                     </label>
-                    <label className="block text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                    <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                       bio (optional)
                       <textarea
-                        className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                        className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                         rows={2}
                         value={bio}
                         onChange={(e) => setBio(e.target.value)}
                       />
                     </label>
-                    <label className="block text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                    <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                       tags (optional, comma-separated)
                       <input
-                        className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                        className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                         value={tagsCsv}
                         onChange={(e) => setTagsCsv(e.target.value)}
                         placeholder="kaspa, builder"
@@ -500,10 +367,10 @@ export default function KpxToolsPage() {
             )}
 
             {kind === 'ver' && (
-              <label className="block text-sm font-bold text-zinc-800 dark:text-zinc-200">
+              <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                 op
                 <select
-                  className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                  className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                   value={verOp}
                   onChange={(e) => setVerOp(e.target.value as 'set' | 'clear')}
                 >
@@ -515,10 +382,10 @@ export default function KpxToolsPage() {
 
             {kind === 'lnk' && (
               <div className="space-y-3">
-                <label className="block text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                   op
                   <select
-                    className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                    className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     value={lnkOp}
                     onChange={(e) => setLnkOp(e.target.value as 'set' | 'clear')}
                   >
@@ -527,10 +394,10 @@ export default function KpxToolsPage() {
                   </select>
                 </label>
                 {lnkOp === 'set' && (
-                  <label className="block text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                  <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                     EVM address (0x…)
                     <input
-                      className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                      className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                       value={evm}
                       onChange={(e) => setEvm(e.target.value)}
                       placeholder="0x…"
@@ -543,10 +410,10 @@ export default function KpxToolsPage() {
             {kind === 'cm' && (
               <div className="space-y-3">
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="block text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                  <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                     op
                     <select
-                      className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                      className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                       value={cmOp}
                       onChange={(e) => setCmOp(e.target.value as 'create' | 'edit')}
                     >
@@ -554,10 +421,10 @@ export default function KpxToolsPage() {
                       <option value="edit">edit</option>
                     </select>
                   </label>
-                  <label className="block text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                  <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                     rt
                     <select
-                      className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                      className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                       value={cmRt}
                       onChange={(e) => setCmRt(e.target.value as KpxResourceTypeCodeV1)}
                     >
@@ -569,28 +436,28 @@ export default function KpxToolsPage() {
                     </select>
                   </label>
                 </div>
-                <label className="block text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                   rid
                   <input
-                    className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                    className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     value={cmRid}
                     onChange={(e) => setCmRid(e.target.value)}
                     placeholder="resource id"
                   />
                 </label>
-                <label className="block text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                   ch (64 hex)
                   <input
-                    className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-xs dark:border-zinc-700 dark:bg-zinc-950"
+                    className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     value={cmCh}
                     onChange={(e) => setCmCh(e.target.value)}
                     placeholder="0123…abcd"
                   />
                 </label>
-                <label className="block text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                   sv
                   <input
-                    className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                    className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     value={cmSv}
                     onChange={(e) => setCmSv(e.target.value)}
                     inputMode="numeric"
@@ -631,6 +498,144 @@ export default function KpxToolsPage() {
               >
                 {busy ? 'Sending…' : 'Validate & broadcast'}
               </button>
+            </div>
+
+            <div className="rounded-xl border border-dashed border-[#02abb8]/30 bg-[#02abb8]/5 p-4 dark:border-[#02abb8]/25 dark:bg-[#02abb8]/10">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Reference indexer</div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {kpxIndex.loading ? (
+                    <span className="text-xs font-semibold text-zinc-500">Loading…</span>
+                  ) : owner ? (
+                    <span className="text-xs text-zinc-500">net={net}</span>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="k-control-btn h-8 px-3 text-xs"
+                    disabled={!owner || kpxIndex.loading}
+                    onClick={() => kpxIndex.refetch()}
+                  >
+                    Refresh
+                  </button>
+                </div>
+              </div>
+              {owner ? (
+                <div className="mt-3 grid min-w-0 gap-2 sm:grid-cols-3">
+                  <label className="no-k-style block min-w-0 text-[11px] font-bold text-zinc-600 dark:text-zinc-300">
+                    limit (20–500)
+                    <input
+                      className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 font-mono text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                      value={idxLimit}
+                      onChange={(e) => setIdxLimit(e.target.value)}
+                      inputMode="numeric"
+                    />
+                  </label>
+                  <label className="no-k-style block min-w-0 text-[11px] font-bold text-zinc-600 dark:text-zinc-300">
+                    offset (0–50k)
+                    <input
+                      className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 font-mono text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                      value={idxOffset}
+                      onChange={(e) => setIdxOffset(e.target.value)}
+                      inputMode="numeric"
+                    />
+                  </label>
+                  <label className="no-k-style block min-w-0 text-[11px] font-bold text-zinc-600 dark:text-zinc-300">
+                    cm max_resources (1–500)
+                    <input
+                      className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 font-mono text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                      value={idxMaxCm}
+                      onChange={(e) => setIdxMaxCm(e.target.value)}
+                      inputMode="numeric"
+                    />
+                  </label>
+                </div>
+              ) : null}
+              {!owner ? (
+                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                  Connect your wallet to load <code className="rounded bg-white/60 px-1 dark:bg-zinc-900/60">/api/kpx/*</code> for the
+                  selected net.
+                </p>
+              ) : kpxIndex.error ? (
+                <p className="mt-2 text-sm font-semibold text-red-700 dark:text-red-300">{kpxIndex.error}</p>
+              ) : (
+                <div className="mt-3 min-w-0 space-y-3">
+                  <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+                    <div className="min-w-0 rounded-lg border border-zinc-200 bg-white p-3 text-xs dark:border-zinc-700 dark:bg-zinc-950">
+                      <div className="font-black text-zinc-700 dark:text-zinc-300">kpx/pf</div>
+                      <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap break-all text-[11px] leading-relaxed text-zinc-800 dark:text-zinc-200 [scrollbar-width:thin]">
+                        {kpxIndex.pf
+                          ? JSON.stringify(
+                              {
+                                state: kpxIndex.pf.state,
+                                provenance: kpxIndex.pf.provenance,
+                                indexed: kpxIndex.pf.indexed,
+                                note: kpxIndex.pf.note,
+                              },
+                              null,
+                              2
+                            )
+                          : '—'}
+                      </pre>
+                    </div>
+                    <div className="min-w-0 rounded-lg border border-zinc-200 bg-white p-3 text-xs dark:border-zinc-700 dark:bg-zinc-950">
+                      <div className="font-black text-zinc-700 dark:text-zinc-300">kpx/ver</div>
+                      <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap break-all text-[11px] leading-relaxed text-zinc-800 dark:text-zinc-200 [scrollbar-width:thin]">
+                        {kpxIndex.ver
+                          ? JSON.stringify(
+                              {
+                                verified: kpxIndex.ver.verified,
+                                provenance: kpxIndex.ver.provenance,
+                                indexed: kpxIndex.ver.indexed,
+                                note: kpxIndex.ver.note,
+                              },
+                              null,
+                              2
+                            )
+                          : '—'}
+                      </pre>
+                    </div>
+                    <div className="min-w-0 rounded-lg border border-zinc-200 bg-white p-3 text-xs dark:border-zinc-700 dark:bg-zinc-950 sm:col-span-2">
+                      <div className="font-black text-zinc-700 dark:text-zinc-300">kpx/lnk</div>
+                      <pre className="mt-2 max-h-32 overflow-auto whitespace-pre-wrap break-all text-[11px] leading-relaxed text-zinc-800 dark:text-zinc-200 [scrollbar-width:thin]">
+                        {kpxIndex.lnk
+                          ? JSON.stringify(
+                              {
+                                evm: kpxIndex.lnk.evm,
+                                provenance: kpxIndex.lnk.provenance,
+                                indexed: kpxIndex.lnk.indexed,
+                                note: kpxIndex.lnk.note,
+                              },
+                              null,
+                              2
+                            )
+                          : '—'}
+                      </pre>
+                    </div>
+                    <div className="min-w-0 rounded-lg border border-zinc-200 bg-white p-3 text-xs dark:border-zinc-700 dark:bg-zinc-950 sm:col-span-2">
+                      <div className="font-black text-zinc-700 dark:text-zinc-300">kpx/cm summary</div>
+                      <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-all text-[11px] leading-relaxed text-zinc-800 dark:text-zinc-200 [scrollbar-width:thin]">
+                        {kpxIndex.cm
+                          ? JSON.stringify(
+                              {
+                                count: kpxIndex.cm.resources?.length ?? 0,
+                                resources: (kpxIndex.cm.resources ?? []).slice(0, 12),
+                                indexed: kpxIndex.cm.indexed,
+                                note: kpxIndex.cm.note,
+                              },
+                              null,
+                              2
+                            )
+                          : '—'}
+                      </pre>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                    Fetches use <code className="rounded bg-white/60 px-0.5 dark:bg-zinc-900/60">useKpxIndexer</code> (see{' '}
+                    <code className="rounded bg-white/60 px-0.5 dark:bg-zinc-900/60">src/hooks/useKpxIndexer.ts</code>). Adjust limit/offset here, change{' '}
+                    <strong>net</strong> at the top of the form, broadcast — then refresh.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
