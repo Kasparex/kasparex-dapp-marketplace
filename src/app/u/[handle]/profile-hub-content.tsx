@@ -880,7 +880,6 @@ function CreatorContentTab({
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((i) => (
             <div key={`${i.type}_${i.id}`} className="space-y-2">
-              <div className="space-y-2">
               <KxListingCard href={i.publicHref} accent={i.accent} className="relative flex flex-col overflow-hidden">
                 <KxListingCardMedia aspectClass="aspect-[3/2]">
                   <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800" />
