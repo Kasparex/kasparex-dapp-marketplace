@@ -946,7 +946,7 @@ function CreatorContentTab({
                     Open
                   </Link>
                 </div>
-              ) : null}
+              )}
               </div>
           ))}
         </div>
