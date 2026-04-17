@@ -245,6 +245,94 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
       },
     ],
   },
+  'kpx-v1-overview': {
+    sections: [
+      {
+        id: 'what-is-kpx',
+        title: 'What is kpx?',
+        content:
+          'kpx is a Kaspa-wide, app-agnostic payload standard for wallet-owned records. Kasparex ships a reference implementation and UI, but the format is designed so other indexers can implement it too.',
+      },
+      {
+        id: 'mental-model',
+        title: 'Mental model',
+        content:
+          'Protocol spec = the rules\\nWriter = code that creates the transaction payload\\nReader = code that scans + interprets payloads\\nUI = what users see (Profile Hub, Creator Hub, etc.)',
+      },
+      {
+        id: 'v1-types',
+        title: 'kpx v1 types',
+        content:
+          'kpx/pf: profile (display, bio, tags)\\nkpx/ver: verified badge (boolean)\\nkpx/lnk: Kaspa ↔ EVM link (hybrid auth)\\nkpx/cm: commits for creator-owned resources (rt/rid/ch/sv)',
+      },
+      {
+        id: 'determinism',
+        title: 'Determinism rules',
+        content:
+          'Records are valid when payer == addr (normalized). For any (net, addr, t), the highest seq wins. If seq ties exist, highest block height wins, then txid.',
+      },
+    ],
+  },
+  'kpx-v1-verified-badge': {
+    sections: [
+      {
+        id: 'overview',
+        title: 'Overview',
+        content:
+          'kpx/ver v1 is a minimal verified badge record. It is deterministic and preset-free in v1: it is simply a boolean badge derived from the highest-seq record.',
+      },
+      {
+        id: 'shape',
+        title: 'Record shape',
+        content:
+          'Top-level envelope fields only: p,t,v,net,op,addr,seq. No data. op:set adds the badge, op:clear removes it.',
+      },
+      {
+        id: 'policy',
+        title: 'Kasparex policy vs protocol validity',
+        content:
+          'The protocol only defines how the badge is written and resolved. Kasparex may define what qualifies as “verified” in its own policy and tooling in v1.',
+      },
+    ],
+  },
+  'kpx-v1-linking': {
+    sections: [
+      {
+        id: 'overview',
+        title: 'Overview',
+        content:
+          'kpx/lnk v1 links a Kaspa principal to an EVM address to support hybrid authentication. Kaspa remains the canonical identity for ownership and commit payments.',
+      },
+      {
+        id: 'rules',
+        title: 'Rules',
+        content:
+          'The record is wallet-owned (payer == addr). The highest seq wins. op:set stores the evm address, op:clear removes it.',
+      },
+    ],
+  },
+  'kpx-v1-commits': {
+    sections: [
+      {
+        id: 'overview',
+        title: 'Overview',
+        content:
+          'kpx/cm v1 is a global commit pointer for creator-owned resources. It standardizes how a resource is referenced and how a canonical update is finalized on-chain.',
+      },
+      {
+        id: 'fields',
+        title: 'Fields (v1)',
+        content:
+          'data.rt (type code), data.rid (resource id), data.ch (content hash, 64 hex), data.sv (schema version). op:create for first publish, op:edit for canonical updates.',
+      },
+      {
+        id: 'fees',
+        title: 'Fees (Kasparex reference policy)',
+        content:
+          'Drafts are free. Public canonical commits require a paid Kaspa transaction. The platform may enforce minimums and size-based fees, and apply KREX tier discounts (Kasparex-enforced in v1).',
+      },
+    ],
+  },
   'node-troubleshooting': {
     sections: [
       {

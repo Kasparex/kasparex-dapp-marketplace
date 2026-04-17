@@ -33,6 +33,8 @@ import {
   buildVBlogDeletePlainNote,
   computeVBlogRootHash,
 } from '@/lib/vblog/payloadHex';
+import { getRestTransactionById } from '@/lib/kaspa/api';
+import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 
 /**
  * Hook for managing vBlog data
@@ -221,6 +223,36 @@ export function useVBlog() {
     if (!existing) {
       throw new Error('Article not found');
     }
+    if (!kaspaState.isConnected || !kaspaState.provider || !kaspaState.address) {
+      throw new Error('Kaspa wallet must be connected to update an article.');
+    }
+
+    // Best-effort: derive canonical author from the last verified commit tx input.
+    // This prevents localStorage tampering from reassigning ownership in the editor UX.
+    let canonicalAuthor = existing.author;
+    const commitHash = existing.commitTxHash ?? existing.txHash ?? '';
+    if (commitHash) {
+      const tx = await getRestTransactionById(commitHash, { maxAttempts: 2, delayMs: 400 });
+      const firstInputAddr =
+        (tx?.inputs ?? [])[0]?.previous_outpoint_address ?? (tx?.inputs ?? [])[0]?.previousOutpointAddress;
+      if (typeof firstInputAddr === 'string' && firstInputAddr.trim()) {
+        try {
+          canonicalAuthor = normalizeKaspaAddress(firstInputAddr).toLowerCase();
+        } catch {
+          // ignore
+        }
+      }
+    }
+    try {
+      const connected = normalizeKaspaAddress(kaspaState.address).toLowerCase();
+      const required = normalizeKaspaAddress(canonicalAuthor).toLowerCase();
+      if (connected !== required) {
+        throw new Error('Only the original author wallet can update this article.');
+      }
+    } catch (e) {
+      throw new Error(e instanceof Error ? e.message : 'Unauthorized');
+    }
+
     const merged: VBlogArticle = { ...existing, ...updates };
     const canonicalPayload = buildCanonicalArticlePayload({
       title: merged.title,
@@ -231,7 +263,7 @@ export function useVBlog() {
       featuredImage: merged.featuredImage,
       linkedMagazineId: merged.linkedMagazineId,
       linkedIssueNumber: merged.linkedIssueNumber,
-      author: merged.author,
+      author: canonicalAuthor,
     }, 'edit');
     const contentHash = fnv1aHex(canonicalPayload);
     const quote = pricing.estimateQuote({
@@ -243,13 +275,13 @@ export function useVBlog() {
       featuredImage: merged.featuredImage,
       linkedMagazineId: merged.linkedMagazineId,
       linkedIssueNumber: merged.linkedIssueNumber,
-      author: merged.author,
+      author: canonicalAuthor,
     }, 'edit');
     const chainArticleId = existing.articleId ?? `vba-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const bundle = await sendVBlogTxBundle({
       articleId: chainArticleId,
       op: 'edit',
-      author: merged.author,
+      author: canonicalAuthor,
       payload: canonicalPayload,
       totalKas: quote.totalKas,
       contentHash,
