@@ -31,7 +31,7 @@ export function SidebarHeader({ backHref, backLabel, onHide, className = '' }: S
       <button
         type="button"
         onClick={onHide}
-        className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-colors"
+        className="k-control-icon-btn h-9 w-9"
         aria-label="Hide sidebar"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

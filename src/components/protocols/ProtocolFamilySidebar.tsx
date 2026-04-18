@@ -1,11 +1,12 @@
 'use client';
 
-import Link from 'next/link';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
+import { SidebarSection } from '@/components/sidebar/SidebarSection';
+import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 import type { ProtocolFamilySlug } from '@/lib/protocolFamilies';
 
-const NAV: { id: string; label: string }[] = [
+const NAV: Array<{ id: string; label: string }> = [
   { id: 'overview', label: 'Overview' },
   { id: 'tools', label: 'Tools' },
   { id: 'apis', label: 'APIs' },
@@ -19,19 +20,26 @@ export function ProtocolFamilySidebar({ slug, name }: { slug: ProtocolFamilySlug
       storageKeyPrefix={`protocol-${slug}`}
       header={(onHide) => <SidebarHeader backHref="/protocols" backLabel="All protocols" onHide={onHide} />}
     >
-      <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">In this protocol</p>
-      <p className="mb-4 text-sm font-bold text-zinc-800 dark:text-zinc-100">{name}</p>
-      <nav className="space-y-0.5">
-        {NAV.map((item) => (
-          <Link
-            key={item.id}
-            href={`/protocols/${slug}#${item.id}`}
-            className="block rounded-xl px-3 py-2 text-sm font-semibold text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800/70"
-          >
-            {item.label}
-          </Link>
-        ))}
-      </nav>
+      <SidebarSection title="Protocol">
+        <p className="px-2 text-sm font-semibold text-zinc-800 dark:text-zinc-100">{name}</p>
+      </SidebarSection>
+
+      <SidebarSection title="Page navigation">
+        <nav className="space-y-0.5">
+          {NAV.map((item) => (
+            <SidebarNavItem
+              key={item.id}
+              href={`#${item.id}`}
+              label={item.label}
+              icon={
+                <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-6 4h10" />
+                </svg>
+              }
+            />
+          ))}
+        </nav>
+      </SidebarSection>
     </UnifiedSidebar>
   );
 }

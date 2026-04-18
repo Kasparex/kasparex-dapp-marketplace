@@ -72,25 +72,21 @@ export function ProtocolFamilyDetailContent({ family }: { family: ProtocolFamily
   const isMock = family.slug !== 'kpx';
 
   return (
-    <>
+    <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
       <Header />
-      <main className="flex flex-1 flex-col lg:flex-row">
-        <div className="hidden shrink-0 lg:block">
+      <main className="flex-1 min-h-[calc(100vh-4rem)]">
+        <div className="flex flex-col lg:flex-row h-full">
           <ProtocolFamilySidebar slug={family.slug} name={family.name} />
-        </div>
-        <div className="lg:hidden">
-          <ProtocolFamilySidebar slug={family.slug} name={family.name} />
-        </div>
 
-        <div className="relative min-w-0 flex-1 p-4 sm:p-6 lg:p-8 lg:pl-6">
-          <div className="mx-auto max-w-4xl">
-            <nav className="mb-6 text-sm text-zinc-500 dark:text-zinc-400">
-              <Link href="/protocols" className="font-bold text-[#02abb8] hover:underline">
-                Protocols
-              </Link>
-              <span className="mx-2 text-zinc-400">/</span>
-              <span className="font-semibold text-zinc-800 dark:text-zinc-100">{family.name}</span>
-            </nav>
+          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
+            <div className="max-w-6xl mx-auto">
+              <nav className="mb-6 text-sm text-zinc-500 dark:text-zinc-400">
+                <Link href="/protocols" className="font-bold text-[#02abb8] hover:underline">
+                  Protocols
+                </Link>
+                <span className="mx-2 text-zinc-400">/</span>
+                <span className="font-semibold text-zinc-800 dark:text-zinc-100">{family.name}</span>
+              </nav>
 
             <div className="relative mb-10 overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-br from-zinc-100 via-cyan-50/40 to-zinc-100 px-6 py-10 sm:px-8 dark:border-zinc-800/50 dark:from-zinc-950 dark:via-cyan-950/20 dark:to-zinc-950">
               <div className="absolute inset-0 overflow-hidden">
@@ -221,6 +217,6 @@ export function ProtocolFamilyDetailContent({ family }: { family: ProtocolFamily
         </div>
       </main>
       <Footer />
-    </>
+    </div>
   );
 }

@@ -116,7 +116,7 @@ export function UnifiedSidebar({
       {/* Mobile menu button */}
       <button
         onClick={() => setOpen(!isOpen)}
-        className="lg:hidden fixed top-20 left-4 z-40 p-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-lg"
+        className="lg:hidden fixed left-4 z-40 k-control-icon-btn h-10 w-10 shadow-lg"
         style={{ top: '5.5rem' }}
         aria-label="Toggle menu"
       >
@@ -136,7 +136,7 @@ export function UnifiedSidebar({
       {isHidden && (
         <button
           onClick={() => setHidden(false)}
-          className="hidden lg:block fixed left-0 top-20 z-[60] p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+          className="hidden lg:block fixed left-0 top-20 z-[60] k-control-icon-btn h-9 w-9"
           aria-label="Show sidebar"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
