@@ -311,9 +311,17 @@ export default function KpxToolsPage() {
       <main className="flex-1">
         <div className="mx-auto w-full max-w-3xl p-4 sm:p-6 lg:p-10">
           <div className="mb-6">
-            <Link href="/protocols" className="text-sm font-bold text-[#02abb8] hover:underline">
-              ← Protocols
-            </Link>
+            <nav className="text-sm text-zinc-500 dark:text-zinc-400">
+              <Link href="/protocols" className="font-bold text-[#02abb8] hover:underline">
+                Protocols
+              </Link>
+              <span className="mx-2 text-zinc-400">/</span>
+              <Link href="/protocols/kpx" className="font-bold text-[#02abb8] hover:underline">
+                KPX protocol
+              </Link>
+              <span className="mx-2 text-zinc-400">/</span>
+              <span className="font-semibold text-zinc-800 dark:text-zinc-200">Tools</span>
+            </nav>
             <h1 className="mt-3 text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100">Post identity updates on Kaspa</h1>
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
               Fill in the form, review the preview, then confirm in your wallet. Most people send a small amount <strong>to their own address</strong> so the

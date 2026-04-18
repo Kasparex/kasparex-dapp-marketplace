@@ -100,7 +100,7 @@ export const PROTOCOL_HUB_ITEMS: ProtocolHubItem[] = [
     title: 'Self-custody identity updates',
     subtitle: 'You keep the keys',
     description: 'Publish profile, links, and fingerprints without a custodian: the wallet signs, Kaspa stores, indexers aggregate.',
-    href: '/protocols#use-cases',
+    href: '/protocols/kpx#use-cases',
     bucket: 'use-case',
     suite: 'kpx',
     maturity: 'beta',
@@ -110,7 +110,7 @@ export const PROTOCOL_HUB_ITEMS: ProtocolHubItem[] = [
     title: 'Creator provenance for releases',
     subtitle: 'Ship hashes, not files, on L1',
     description: 'Use content commits to point to IPFS, Arweave, or mirrors while keeping an immutable Kaspa audit trail.',
-    href: '/protocols#use-cases',
+    href: '/protocols/kpx#use-cases',
     bucket: 'use-case',
     suite: 'kpx',
     maturity: 'draft',
@@ -180,4 +180,10 @@ export function parseKindsParam(param: string | null): ProtocolHubBucket[] | nul
     if (allowed.includes(p)) valid.push(p);
   }
   return valid.length ? valid : null;
+}
+
+/** Resources listed on `/protocols/kpx` (suite-scoped catalog rows). */
+export function protocolHubItemsForFamilySlug(slug: string): ProtocolHubItem[] {
+  if (slug === 'kpx') return PROTOCOL_HUB_ITEMS.filter((i) => i.suite === 'kpx');
+  return [];
 }
