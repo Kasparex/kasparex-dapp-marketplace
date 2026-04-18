@@ -67,7 +67,7 @@ export function TokenHeroSection({ token }: TokenHeroSectionProps) {
             </div>
           ) : (
             <div className="flex h-40 w-full max-w-[200px] items-center justify-center self-end rounded-2xl border border-zinc-200 bg-white/60 p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <TokenLogo token={token} size={96} showName={false} showSymbol={false} />
+              <TokenLogo token={token} size={80} showName={false} showSymbol={false} />
             </div>
           )}
         </div>
