@@ -21,11 +21,23 @@ import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { useKpxIndexer } from '@/hooks/useKpxIndexer';
 import { isStorageMassErrorMessage } from '@/lib/chronicles/leaderboard/massMode';
+import { FieldHint } from '@/components/ui/FieldHint';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 type KpxKind = 'pf' | 'ver' | 'lnk' | 'cm';
 
 const MIN_SELF_KAS = 0.0001;
 const KPX_HIGH_MASS_MODE_KEY = 'kpx-tools-high-mass-mode-v1';
+
+const CM_CONTENT_TYPE_LABELS: Record<KpxResourceTypeCodeV1, string> = {
+  vb: 'Blog / article',
+  ck: 'Checksum / proof',
+  st: 'Structured record',
+  dp: 'dApp',
+  mg: 'Magazine',
+  ad: 'Listing / ad',
+  gm: 'Game / module',
+};
 
 export default function KpxToolsPage() {
   const { state: kaspa } = useKaspaWallet();
@@ -195,7 +207,7 @@ export default function KpxToolsPage() {
         setParseErr(body.error ?? 'Validation failed');
         return;
       }
-      setParseOk(`Valid kpx record (${body.byteLength ?? '?'} bytes).`);
+      setParseOk(`Looks good — ready to send (${body.byteLength ?? '?'} bytes).`);
     } catch (e) {
       setParseErr(e instanceof Error ? e.message : 'Build failed');
       setPreviewJson('');
@@ -293,17 +305,6 @@ export default function KpxToolsPage() {
 
   const explorerTx = txHash ? `https://explorer.kaspa.org/transactions/${txHash}` : null;
 
-  const HelpTip = ({ text }: { text: string }) => (
-    <span className="group relative inline-flex align-middle">
-      <span className="ml-2 inline-flex h-4 w-4 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-black text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-        ?
-      </span>
-      <span className="pointer-events-none absolute left-0 top-full z-50 mt-2 w-[260px] rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs text-zinc-700 opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200">
-        {text}
-      </span>
-    </span>
-  );
-
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
@@ -313,53 +314,64 @@ export default function KpxToolsPage() {
             <Link href="/protocols" className="text-sm font-bold text-[#02abb8] hover:underline">
               ← Protocols
             </Link>
-            <h1 className="mt-3 text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100">kpx broadcast tool</h1>
+            <h1 className="mt-3 text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100">Post identity updates on Kaspa</h1>
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-              Build a v1 <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">kpx</code> JSON payload, validate it against{' '}
-              <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">/api/kpx/parse</code>, then send a small KAS transfer to any address (often{' '}
-              <strong>your own</strong>) with the payload attached so indexers see <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">payer == addr</code>.
+              Fill in the form, review the preview, then confirm in your wallet. Most people send a small amount <strong>to their own address</strong> so the
+              network can attach your update to that payment.
             </p>
           </div>
 
           <div className="space-y-6 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="text-sm text-zinc-600 dark:text-zinc-400">
-              Wallet:{' '}
-              {kaspa.isConnected && owner ? (
-                <span className="font-mono text-zinc-900 dark:text-zinc-100">{owner}</span>
-              ) : (
-                <span className="font-semibold text-amber-700 dark:text-amber-300">Not connected — use the header wallet menu.</span>
-              )}
+            <div className="flex flex-wrap items-baseline gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+              <span className="font-bold text-zinc-800 dark:text-zinc-200">Your wallet</span>
+              <FieldHint text="This address is used as the owner of the update. Connect KasWare or Kastle from the header first." />
+              <span className="min-w-0">
+                {kaspa.isConnected && owner ? (
+                  <span className="font-mono text-zinc-900 dark:text-zinc-100">{owner}</span>
+                ) : (
+                  <span className="font-semibold text-amber-700 dark:text-amber-300">Not connected — use the header wallet menu.</span>
+                )}
+              </span>
             </div>
 
             <div className="grid min-w-0 gap-4 sm:grid-cols-2">
-              <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
-                Record type
+              <label className="no-k-style block min-w-0">
+                <div className="mb-1 flex items-center gap-1.5">
+                  <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200">What are you posting?</span>
+                  <FieldHint text="Pick the kind of update. Profile is the most common. Advanced users use fingerprints or wallet links." />
+                </div>
                 <select
                   className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                   value={kind}
                   onChange={(e) => setKind(e.target.value as KpxKind)}
                 >
-                  <option value="pf">kpx/pf — profile</option>
-                  <option value="ver">kpx/ver — verified badge</option>
-                  <option value="lnk">kpx/lnk — EVM link</option>
-                  <option value="cm">kpx/cm — commit</option>
+                  <option value="pf">Public profile (name, bio, tags)</option>
+                  <option value="ver">Verified badge</option>
+                  <option value="lnk">Link to Ethereum address</option>
+                  <option value="cm">Content fingerprint (commit)</option>
                 </select>
               </label>
-              <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
-                net
+              <label className="no-k-style block min-w-0">
+                <div className="mb-1 flex items-center gap-1.5">
+                  <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Kaspa network</span>
+                  <FieldHint text="Mainnet is real money. Testnet is for trying things out without real KAS." />
+                </div>
                 <select
                   className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                   value={net}
                   onChange={(e) => setNet(e.target.value as KpxNet)}
                 >
-                  <option value="mainnet">mainnet</option>
-                  <option value="testnet">testnet</option>
+                  <option value="mainnet">Mainnet (live)</option>
+                  <option value="testnet">Testnet (practice)</option>
                 </select>
               </label>
             </div>
 
-            <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
-              seq
+            <label className="no-k-style block min-w-0">
+              <div className="mb-1 flex items-center gap-1.5">
+                <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Update number</span>
+                <FieldHint text="A counter for your updates. Start at 1 and increase by 1 each time you publish a new version for the same kind of record." />
+              </div>
               <input
                 className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                 value={seq}
@@ -369,11 +381,16 @@ export default function KpxToolsPage() {
             </label>
 
             <div className="rounded-xl border border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950/50">
-              <div className="text-xs font-black uppercase tracking-widest text-zinc-500">Transfer (carries payload)</div>
+              <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-zinc-500">
+                <span>Payment that carries your update</span>
+                <FieldHint text="This is a normal KAS transfer from your wallet. The app attaches your update to it. Sending to yourself is the usual way to publish without paying someone else." />
+              </div>
               <div className="mt-3 grid min-w-0 gap-3 sm:grid-cols-2">
-                <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
-                  To (Kaspa address)
-                  <HelpTip text="Where the KAS is sent. For posting kpx records, sending to yourself is recommended so payer == your addr." />
+                <label className="no-k-style block min-w-0">
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Send to (Kaspa address)</span>
+                    <FieldHint text="Where the KAS goes. Use your own address for a self-send so the payment and update line up with your wallet." />
+                  </div>
                   <input
                     className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     value={toAddress}
@@ -381,18 +398,22 @@ export default function KpxToolsPage() {
                     placeholder="kaspa:…"
                   />
                 </label>
-                <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
-                  Amount (KAS)
-                  <HelpTip text="This is a real on-chain transfer. If you send to yourself, you get it back (minus fee). Minimum is 0.0001 KAS so wallets accept payload txs." />
+                <label className="no-k-style block min-w-0">
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Amount (KAS)</span>
+                    <FieldHint text="Real KAS leaves your wallet. On a self-send you get it back minus network fees. Minimum 0.0001 KAS so wallets accept the transaction with an attached update." />
+                  </div>
                   <input
                     className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     value={amountKas}
                     onChange={(e) => setAmountKas(e.target.value)}
                   />
                 </label>
-                <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
-                  Priority fee (optional, KAS)
-                  <HelpTip text="Some wallets call this “priority fee”. Increasing it can help transactions relay faster and sometimes helps with wallet mass/UTXO edge cases. Leave blank to let the wallet decide." />
+                <label className="no-k-style block min-w-0">
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Priority fee (optional)</span>
+                    <FieldHint text="Extra fee in KAS for faster relay, if your wallet supports it (KasWare / Kastle). Leave blank to let the wallet choose. Helps some wallets when the network is busy." />
+                  </div>
                   <input
                     className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     value={priorityFeeKas}
@@ -402,9 +423,9 @@ export default function KpxToolsPage() {
                 </label>
                 <div className="min-w-0 rounded-lg border border-zinc-200 bg-white p-3 text-sm dark:border-zinc-700 dark:bg-zinc-950">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="font-bold text-zinc-800 dark:text-zinc-200">
-                      High‑mass mode
-                      <HelpTip text="If your wallet shows “Storage mass exceeds maximum”, it usually means you have too many small UTXOs. This mode retries (self-send only) with higher amounts so the wallet can pick fewer inputs." />
+                    <div className="flex items-center gap-1.5 font-bold text-zinc-800 dark:text-zinc-200">
+                      <span>High‑mass mode</span>
+                      <FieldHint text="If your wallet says storage mass is too high, you may have many small coins (UTXOs). Turning this on retries a self-send with larger amounts so the wallet can use fewer inputs. You can also compound UTXOs in KasWare." />
                     </div>
                     <button
                       type="button"
@@ -433,29 +454,38 @@ export default function KpxToolsPage() {
 
             {kind === 'pf' && (
               <div className="space-y-3">
-                <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
-                  op
+                <label className="no-k-style block min-w-0">
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Profile action</span>
+                    <FieldHint text="Update saves your fields. Clear removes optional fields from your public profile record (wallet still signs the update)." />
+                  </div>
                   <select
                     className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     value={pfOp}
                     onChange={(e) => setPfOp(e.target.value as 'set' | 'clear')}
                   >
-                    <option value="set">set</option>
-                    <option value="clear">clear</option>
+                    <option value="set">Update my public profile</option>
+                    <option value="clear">Clear my public profile</option>
                   </select>
                 </label>
                 {pfOp === 'set' && (
                   <>
-                    <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
-                      display (optional)
+                    <label className="no-k-style block min-w-0">
+                      <div className="mb-1 flex items-center gap-1.5">
+                        <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Display name (optional)</span>
+                        <FieldHint text="Short public name shown with your profile. Leave blank to keep it unchanged on later updates." />
+                      </div>
                       <input
                         className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                         value={display}
                         onChange={(e) => setDisplay(e.target.value)}
                       />
                     </label>
-                    <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
-                      bio (optional)
+                    <label className="no-k-style block min-w-0">
+                      <div className="mb-1 flex items-center gap-1.5">
+                        <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Bio (optional)</span>
+                        <FieldHint text="A few lines about you or your project. Keep it short; very long text may hit size limits." />
+                      </div>
                       <textarea
                         className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                         rows={2}
@@ -463,8 +493,11 @@ export default function KpxToolsPage() {
                         onChange={(e) => setBio(e.target.value)}
                       />
                     </label>
-                    <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
-                      tags (optional, comma-separated)
+                    <label className="no-k-style block min-w-0">
+                      <div className="mb-1 flex items-center gap-1.5">
+                        <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Topics (optional)</span>
+                        <FieldHint text="Comma-separated keywords (for example: kaspa, builder). Spaces around commas are fine." />
+                      </div>
                       <input
                         className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                         value={tagsCsv}
@@ -478,35 +511,44 @@ export default function KpxToolsPage() {
             )}
 
             {kind === 'ver' && (
-              <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
-                op
+              <label className="no-k-style block min-w-0">
+                <div className="mb-1 flex items-center gap-1.5">
+                  <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Verified badge</span>
+                  <FieldHint text="Writes an on-chain verified flag for your address. Kasparex and other apps may still apply their own rules before showing a badge in the UI." />
+                </div>
                 <select
                   className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                   value={verOp}
                   onChange={(e) => setVerOp(e.target.value as 'set' | 'clear')}
                 >
-                  <option value="set">set</option>
-                  <option value="clear">clear</option>
+                  <option value="set">Turn verified on</option>
+                  <option value="clear">Turn verified off</option>
                 </select>
               </label>
             )}
 
             {kind === 'lnk' && (
               <div className="space-y-3">
-                <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
-                  op
+                <label className="no-k-style block min-w-0">
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Link action</span>
+                    <FieldHint text="Link stores an Ethereum address next to your Kaspa address. Unlink removes it from the on-chain record." />
+                  </div>
                   <select
                     className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     value={lnkOp}
                     onChange={(e) => setLnkOp(e.target.value as 'set' | 'clear')}
                   >
-                    <option value="set">set</option>
-                    <option value="clear">clear</option>
+                    <option value="set">Link an Ethereum address</option>
+                    <option value="clear">Remove linked Ethereum address</option>
                   </select>
                 </label>
                 {lnkOp === 'set' && (
-                  <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
-                    EVM address (0x…)
+                  <label className="no-k-style block min-w-0">
+                    <div className="mb-1 flex items-center gap-1.5">
+                      <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Ethereum address</span>
+                      <FieldHint text="Standard 0x… address on Ethereum-compatible networks. Double-check — mistakes are permanent on-chain." />
+                    </div>
                     <input
                       className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                       value={evm}
@@ -521,19 +563,25 @@ export default function KpxToolsPage() {
             {kind === 'cm' && (
               <div className="space-y-3">
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
-                    op
+                  <label className="no-k-style block min-w-0">
+                    <div className="mb-1 flex items-center gap-1.5">
+                      <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200">First publish or update?</span>
+                      <FieldHint text="Create is the first time you anchor this item. Edit is a newer version of the same item id and fingerprint line." />
+                    </div>
                     <select
                       className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                       value={cmOp}
                       onChange={(e) => setCmOp(e.target.value as 'create' | 'edit')}
                     >
-                      <option value="create">create</option>
-                      <option value="edit">edit</option>
+                      <option value="create">First time (create)</option>
+                      <option value="edit">New version (edit)</option>
                     </select>
                   </label>
-                  <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
-                    rt
+                  <label className="no-k-style block min-w-0">
+                    <div className="mb-1 flex items-center gap-1.5">
+                      <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Content type</span>
+                      <FieldHint text="Tells apps what kind of content this fingerprint refers to. The short code is stored on-chain; the label is only for you here." />
+                    </div>
                     <select
                       className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                       value={cmRt}
@@ -541,23 +589,29 @@ export default function KpxToolsPage() {
                     >
                       {KPX_CM_RT_CODES_V1.map((c) => (
                         <option key={c} value={c}>
-                          {c}
+                          {CM_CONTENT_TYPE_LABELS[c]} ({c})
                         </option>
                       ))}
                     </select>
                   </label>
                 </div>
-                <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
-                  rid
+                <label className="no-k-style block min-w-0">
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Item id</span>
+                    <FieldHint text="Your stable name for this piece of content (for example article slug or product id). Use the same id when publishing updates." />
+                  </div>
                   <input
                     className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     value={cmRid}
                     onChange={(e) => setCmRid(e.target.value)}
-                    placeholder="resource id"
+                    placeholder="my-article-v1"
                   />
                 </label>
-                <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
-                  ch (64 hex)
+                <label className="no-k-style block min-w-0">
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Fingerprint (64 hex characters)</span>
+                    <FieldHint text="A content hash you already computed — exactly 64 lowercase hex characters (256 bits). This is the tamper-evident fingerprint apps will compare against." />
+                  </div>
                   <input
                     className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     value={cmCh}
@@ -565,8 +619,11 @@ export default function KpxToolsPage() {
                     placeholder="0123…abcd"
                   />
                 </label>
-                <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
-                  sv
+                <label className="no-k-style block min-w-0">
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Fingerprint version</span>
+                    <FieldHint text="Whole number starting at 1. Increase when you publish a new version of the same item and fingerprint line." />
+                  </div>
                   <input
                     className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     value={cmSv}
@@ -579,7 +636,10 @@ export default function KpxToolsPage() {
 
             {previewJson ? (
               <div>
-                <div className="text-xs font-black uppercase tracking-widest text-zinc-500">Preview JSON</div>
+                <div className="flex items-center gap-1.5">
+                  <div className="text-xs font-black uppercase tracking-widest text-zinc-500">Technical preview</div>
+                  <FieldHint text="Exact payload your wallet will attach to the payment. You do not need to edit this by hand." />
+                </div>
                 <pre className="mt-2 max-h-48 overflow-auto rounded-lg border border-zinc-200 bg-zinc-950 p-3 text-xs text-zinc-100 dark:border-zinc-700">
                   {previewJson}
                 </pre>
@@ -598,42 +658,54 @@ export default function KpxToolsPage() {
             ) : null}
 
             <div className="flex flex-wrap gap-2">
-              <button type="button" className="k-control-btn" onClick={handleValidate} disabled={busy}>
-                Validate JSON
-              </button>
-              <button
-                type="button"
-                className="k-control-btn border-[#02abb8]/50 bg-[#02abb8]/10 font-black hover:bg-[#02abb8]/20"
-                onClick={handleBroadcast}
-                disabled={busy}
-              >
-                {busy ? 'Sending…' : 'Validate & broadcast'}
-              </button>
+              <Tooltip content="Checks your inputs and server rules. No KAS is sent." side="top">
+                <button type="button" className="k-control-btn" onClick={handleValidate} disabled={busy}>
+                  Check before sending
+                </button>
+              </Tooltip>
+              <Tooltip content="Builds the update, checks it, then opens your wallet to sign a real KAS transfer with the update attached." side="top">
+                <button
+                  type="button"
+                  className="k-control-btn border-[#02abb8]/50 bg-[#02abb8]/10 font-black hover:bg-[#02abb8]/20"
+                  onClick={handleBroadcast}
+                  disabled={busy}
+                >
+                  {busy ? 'Waiting for wallet…' : 'Sign & send in wallet'}
+                </button>
+              </Tooltip>
             </div>
 
             <div className="rounded-xl border border-dashed border-[#02abb8]/30 bg-[#02abb8]/5 p-4 dark:border-[#02abb8]/25 dark:bg-[#02abb8]/10">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Reference indexer</div>
+                <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-[#02abb8]">
+                  <span>Live readout (advanced)</span>
+                  <FieldHint text="Shows what the Kasparex indexer last saw for your address on the network you selected. Useful after you send an update." />
+                </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {kpxIndex.loading ? (
                     <span className="text-xs font-semibold text-zinc-500">Loading…</span>
                   ) : owner ? (
-                    <span className="text-xs text-zinc-500">net={net}</span>
+                    <span className="text-xs text-zinc-500">Network: {net}</span>
                   ) : null}
-                  <button
-                    type="button"
-                    className="k-control-btn h-8 px-3 text-xs"
-                    disabled={!owner || kpxIndex.loading}
-                    onClick={() => kpxIndex.refetch()}
-                  >
-                    Refresh
-                  </button>
+                  <Tooltip content="Fetch the latest indexer snapshot again." side="left">
+                    <button
+                      type="button"
+                      className="k-control-btn h-8 px-3 text-xs"
+                      disabled={!owner || kpxIndex.loading}
+                      onClick={() => kpxIndex.refetch()}
+                    >
+                      Refresh
+                    </button>
+                  </Tooltip>
                 </div>
               </div>
               {owner ? (
                 <div className="mt-3 grid min-w-0 gap-2 sm:grid-cols-3">
-                  <label className="no-k-style block min-w-0 text-[11px] font-bold text-zinc-600 dark:text-zinc-300">
-                    limit (20–500)
+                  <label className="no-k-style block min-w-0">
+                    <div className="mb-1 flex items-center gap-1 text-[11px] font-bold text-zinc-600 dark:text-zinc-300">
+                      <span>How many rows</span>
+                      <FieldHint text="Indexer page size (20–500). Higher values load more data at once." side="top" />
+                    </div>
                     <input
                       className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 font-mono text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                       value={idxLimit}
@@ -641,8 +713,11 @@ export default function KpxToolsPage() {
                       inputMode="numeric"
                     />
                   </label>
-                  <label className="no-k-style block min-w-0 text-[11px] font-bold text-zinc-600 dark:text-zinc-300">
-                    offset (0–50k)
+                  <label className="no-k-style block min-w-0">
+                    <div className="mb-1 flex items-center gap-1 text-[11px] font-bold text-zinc-600 dark:text-zinc-300">
+                      <span>Skip first rows</span>
+                      <FieldHint text="Pagination offset (0–50000). Use with “How many rows” to page through older items." side="top" />
+                    </div>
                     <input
                       className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 font-mono text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                       value={idxOffset}
@@ -650,8 +725,11 @@ export default function KpxToolsPage() {
                       inputMode="numeric"
                     />
                   </label>
-                  <label className="no-k-style block min-w-0 text-[11px] font-bold text-zinc-600 dark:text-zinc-300">
-                    cm max_resources (1–500)
+                  <label className="no-k-style block min-w-0">
+                    <div className="mb-1 flex items-center gap-1 text-[11px] font-bold text-zinc-600 dark:text-zinc-300">
+                      <span>Max fingerprints</span>
+                      <FieldHint text="Caps how many content fingerprints (commits) are returned in one response (1–500)." side="top" />
+                    </div>
                     <input
                       className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 font-mono text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                       value={idxMaxCm}
@@ -663,8 +741,7 @@ export default function KpxToolsPage() {
               ) : null}
               {!owner ? (
                 <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                  Connect your wallet to load <code className="rounded bg-white/60 px-1 dark:bg-zinc-900/60">/api/kpx/*</code> for the
-                  selected net.
+                  Connect your wallet to load the latest indexed data for the network you selected.
                 </p>
               ) : kpxIndex.error ? (
                 <p className="mt-2 text-sm font-semibold text-red-700 dark:text-red-300">{kpxIndex.error}</p>
@@ -672,7 +749,10 @@ export default function KpxToolsPage() {
                 <div className="mt-3 min-w-0 space-y-3">
                   <div className="grid min-w-0 gap-3 sm:grid-cols-2">
                     <div className="min-w-0 rounded-lg border border-zinc-200 bg-white p-3 text-xs dark:border-zinc-700 dark:bg-zinc-950">
-                      <div className="font-black text-zinc-700 dark:text-zinc-300">kpx/pf</div>
+                      <div className="flex items-center gap-1.5 font-black text-zinc-700 dark:text-zinc-300">
+                        <span>Profile</span>
+                        <FieldHint text="Indexed public profile fields for your address." />
+                      </div>
                       <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap break-all text-[11px] leading-relaxed text-zinc-800 dark:text-zinc-200 [scrollbar-width:thin]">
                         {kpxIndex.pf
                           ? JSON.stringify(
@@ -689,7 +769,10 @@ export default function KpxToolsPage() {
                       </pre>
                     </div>
                     <div className="min-w-0 rounded-lg border border-zinc-200 bg-white p-3 text-xs dark:border-zinc-700 dark:bg-zinc-950">
-                      <div className="font-black text-zinc-700 dark:text-zinc-300">kpx/ver</div>
+                      <div className="flex items-center gap-1.5 font-black text-zinc-700 dark:text-zinc-300">
+                        <span>Verified</span>
+                        <FieldHint text="Indexed verified flag for your address." />
+                      </div>
                       <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap break-all text-[11px] leading-relaxed text-zinc-800 dark:text-zinc-200 [scrollbar-width:thin]">
                         {kpxIndex.ver
                           ? JSON.stringify(
@@ -706,7 +789,10 @@ export default function KpxToolsPage() {
                       </pre>
                     </div>
                     <div className="min-w-0 rounded-lg border border-zinc-200 bg-white p-3 text-xs dark:border-zinc-700 dark:bg-zinc-950 sm:col-span-2">
-                      <div className="font-black text-zinc-700 dark:text-zinc-300">kpx/lnk</div>
+                      <div className="flex items-center gap-1.5 font-black text-zinc-700 dark:text-zinc-300">
+                        <span>Ethereum link</span>
+                        <FieldHint text="Indexed link between your Kaspa address and an Ethereum-style address." />
+                      </div>
                       <pre className="mt-2 max-h-32 overflow-auto whitespace-pre-wrap break-all text-[11px] leading-relaxed text-zinc-800 dark:text-zinc-200 [scrollbar-width:thin]">
                         {kpxIndex.lnk
                           ? JSON.stringify(
@@ -723,7 +809,10 @@ export default function KpxToolsPage() {
                       </pre>
                     </div>
                     <div className="min-w-0 rounded-lg border border-zinc-200 bg-white p-3 text-xs dark:border-zinc-700 dark:bg-zinc-950 sm:col-span-2">
-                      <div className="font-black text-zinc-700 dark:text-zinc-300">kpx/cm summary</div>
+                      <div className="flex items-center gap-1.5 font-black text-zinc-700 dark:text-zinc-300">
+                        <span>Content fingerprints</span>
+                        <FieldHint text="Summary of anchored content hashes (commits) seen for your address." />
+                      </div>
                       <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-all text-[11px] leading-relaxed text-zinc-800 dark:text-zinc-200 [scrollbar-width:thin]">
                         {kpxIndex.cm
                           ? JSON.stringify(
@@ -741,9 +830,7 @@ export default function KpxToolsPage() {
                     </div>
                   </div>
                   <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                    Fetches use <code className="rounded bg-white/60 px-0.5 dark:bg-zinc-900/60">useKpxIndexer</code> (see{' '}
-                    <code className="rounded bg-white/60 px-0.5 dark:bg-zinc-900/60">src/hooks/useKpxIndexer.ts</code>). Adjust limit/offset here, change{' '}
-                    <strong>net</strong> at the top of the form, broadcast — then refresh.
+                    Tip: after you send, wait a moment and press Refresh. Change the network at the top if you posted on testnet instead of mainnet.
                   </p>
                 </div>
               )}
