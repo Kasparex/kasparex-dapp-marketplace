@@ -99,6 +99,7 @@ export function StoreSidebar({
             selectedIds={selectedCategories}
             onSelect={handleCategoryToggle}
             multi={true}
+            collapsedItemCount={5}
           />
         </>
       )}

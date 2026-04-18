@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { SidebarSection } from './SidebarSection';
 import { SidebarNavItem } from './SidebarNavItem';
 
@@ -22,6 +22,16 @@ export interface SidebarCategoriesProps {
   /** If true, use checkboxes (multi-select). If false, single selection (no checkbox). */
   multi?: boolean;
   className?: string;
+  /**
+   * When set and `items.length` is greater than this value, show only the first N rows
+   * plus a **Load more (x)** / **Show less** control (same pattern as the dApps listing sidebar).
+   */
+  collapsedItemCount?: number;
+  /**
+   * When true, render only the nav + optional load-more control (no `SidebarSection` wrapper).
+   * Use when an outer `SidebarSection` already provides the heading.
+   */
+  bare?: boolean;
 }
 
 export function SidebarCategories({
@@ -30,21 +40,29 @@ export function SidebarCategories({
   items,
   selectedIds,
   onSelect,
-  multi = true,
+  multi: _multi = true,
   className = '',
+  collapsedItemCount,
+  bare = false,
 }: SidebarCategoriesProps) {
+  const [expanded, setExpanded] = useState(false);
   const selectedSet = Array.isArray(selectedIds)
     ? new Set(selectedIds)
     : selectedIds != null
       ? new Set([selectedIds])
       : new Set<string>();
 
-  return (
-    <SidebarSection title={title} className={className}>
+  const needsCollapse =
+    collapsedItemCount != null && items.length > collapsedItemCount;
+  const visibleItems =
+    needsCollapse && !expanded ? items.slice(0, collapsedItemCount!) : items;
+  const hiddenCount = needsCollapse ? items.length - collapsedItemCount! : 0;
+
+  const nav = (
+    <>
       <nav className="space-y-0.5">
-        {items.map((item) => {
+        {visibleItems.map((item) => {
           const isChecked = selectedSet.has(item.id);
-          // Always use onClick/active pattern, never checkboxes
           return (
             <SidebarNavItem
               key={item.id}
@@ -57,6 +75,25 @@ export function SidebarCategories({
           );
         })}
       </nav>
+      {needsCollapse ? (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="mb-0 mt-1 w-full k-control-btn"
+        >
+          {expanded ? 'Show less' : `Load more (${hiddenCount})`}
+        </button>
+      ) : null}
+    </>
+  );
+
+  if (bare) {
+    return className ? <div className={className}>{nav}</div> : <>{nav}</>;
+  }
+
+  return (
+    <SidebarSection title={title} icon={sectionIcon} className={className}>
+      {nav}
     </SidebarSection>
   );
 }

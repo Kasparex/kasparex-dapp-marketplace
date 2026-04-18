@@ -123,6 +123,7 @@ export function VBlogSidebar({
               selectedIds={selectedCategory == null ? ALL_ID : selectedCategory}
               onSelect={handleCategorySelect}
               multi={false}
+              collapsedItemCount={5}
             />
             {allTags.length > 0 && <SidebarTags title="Tags" tags={allTags} selectedTags={selectedTags} onToggle={onTagToggle} />}
             {(selectedCategory !== null || selectedTags.length > 0 || searchQuery) && (

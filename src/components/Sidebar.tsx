@@ -2,15 +2,12 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
 import { Category, categories } from '@/lib/categories';
 import type { FilterState, DAppStatus } from '@/lib/dapps';
-import { CategoriesIcon, StatusIcon, NetworkIcon } from '@/components/icons/SectionIcons';
 import { StatusIndicatorDot, getStatusTypeFromString } from './dapps/StatusIndicatorDot';
 import { UnifiedSidebar } from './UnifiedSidebar';
 import { SidebarHeader } from './sidebar/SidebarHeader';
 import { SidebarCategories } from './sidebar/SidebarCategories';
-import { SidebarSection } from './sidebar/SidebarSection';
 
 interface SidebarProps {
   categories: Category[];
@@ -76,7 +73,6 @@ export function Sidebar({
   onResetFilters,
 }: SidebarProps) {
   const pathname = usePathname();
-  const [showAllCategories, setShowAllCategories] = useState(false);
 
   const handleCategoryToggle = (id: string) => {
     const catId = id as Category;
@@ -110,10 +106,6 @@ export function Sidebar({
     count: counts[c.id] ?? 0,
     icon: <CategoryIcon id={c.id} />,
   }));
-
-  const visibleCategoryItems = useMemo(() => {
-    return showAllCategories ? categoryItems : categoryItems.slice(0, 5);
-  }, [categoryItems, showAllCategories]);
 
   const statusItems = statusOptions.map((opt) => ({
     id: opt.value,
@@ -167,20 +159,12 @@ export function Sidebar({
 
       <SidebarCategories
         title="Categories"
-        items={visibleCategoryItems}
+        items={categoryItems}
         selectedIds={selectedCategories}
         onSelect={handleCategoryToggle}
         multi
+        collapsedItemCount={5}
       />
-      {categoryItems.length > 5 ? (
-        <button
-          type="button"
-          onClick={() => setShowAllCategories((v) => !v)}
-          className="w-full -mt-2 mb-6 k-control-btn"
-        >
-          {showAllCategories ? 'Show less' : `Load more (${categoryItems.length - 5})`}
-        </button>
-      ) : null}
 
       <SidebarCategories
         title="Status"
@@ -188,6 +172,7 @@ export function Sidebar({
         selectedIds={filters.status || []}
         onSelect={(id) => handleStatusToggle(id as DAppStatus | 'all')}
         multi={true}
+        collapsedItemCount={5}
       />
 
       <SidebarCategories
@@ -199,6 +184,7 @@ export function Sidebar({
           if (opt) handleNetworkToggle(opt.label);
         }}
         multi={true}
+        collapsedItemCount={5}
       />
 
       <button type="button" onClick={onResetFilters} className="w-full mt-4 k-control-btn">

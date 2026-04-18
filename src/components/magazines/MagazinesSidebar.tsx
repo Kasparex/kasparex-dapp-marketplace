@@ -105,6 +105,7 @@ export function MagazinesSidebar({
           selectedIds={selectedCategory}
           onSelect={(id) => onCategoryChange?.(id)}
           multi={false}
+          collapsedItemCount={5}
         />
       )}
 

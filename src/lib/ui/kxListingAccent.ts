@@ -4,6 +4,7 @@
  */
 export type KxListingAccent =
   | 'hub'
+  | 'protocols'
   | 'dapps'
   | 'records'
   | 'tokens'

@@ -172,11 +172,12 @@ export function DonationsSidebar(props: DonationsSidebarProps) {
       {isListing && (
         <SidebarSection title="Filter by status">
           <SidebarCategories
-            title=""
+            bare
             items={categoryItems}
             selectedIds={[props.selectedStatus]}
             onSelect={(id) => props.onStatusChange(id as DonationFilterStatus)}
             multi={false}
+            collapsedItemCount={5}
           />
         </SidebarSection>
       )}

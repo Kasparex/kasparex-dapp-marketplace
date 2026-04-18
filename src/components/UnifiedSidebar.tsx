@@ -115,8 +115,9 @@ export function UnifiedSidebar({
     <>
       {/* Mobile menu button */}
       <button
+        type="button"
         onClick={() => setOpen(!isOpen)}
-        className="lg:hidden fixed left-4 z-40 k-control-icon-btn h-10 w-10 shadow-lg"
+        className="fixed left-4 z-40 flex h-10 w-10 items-center justify-center rounded border border-zinc-200 bg-white p-1.5 text-zinc-500 shadow-lg transition-colors hover:bg-zinc-100 hover:text-zinc-800 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 lg:hidden"
         style={{ top: '5.5rem' }}
         aria-label="Toggle menu"
       >
@@ -135,11 +136,12 @@ export function UnifiedSidebar({
 
       {isHidden && (
         <button
+          type="button"
           onClick={() => setHidden(false)}
-          className="hidden lg:block fixed left-0 top-20 z-[60] k-control-icon-btn h-9 w-9"
+          className="fixed left-0 top-20 z-[60] hidden items-center justify-center border border-zinc-200 bg-white p-1.5 text-zinc-400 shadow-md transition-colors hover:bg-zinc-200 hover:text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 lg:flex"
           aria-label="Show sidebar"
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>

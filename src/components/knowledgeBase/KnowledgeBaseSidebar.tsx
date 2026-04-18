@@ -3,7 +3,6 @@
 import { knowledgeBaseCategories, type KnowledgeBaseCategory } from '@/lib/knowledgeBase';
 import { UnifiedSidebar } from '../UnifiedSidebar';
 import { SidebarHeader } from '../sidebar/SidebarHeader';
-import { SidebarSection } from '../sidebar/SidebarSection';
 import { SidebarCategories } from '../sidebar/SidebarCategories';
 
 interface KnowledgeBaseSidebarProps {
@@ -89,14 +88,14 @@ export function KnowledgeBaseSidebar({
       )}
       defaultWidth={280}
     >
-      <SidebarSection title="Categories">
-        <SidebarCategories
-          items={categoryItems}
-          selectedIds={selectedCategory}
-          onSelect={(id) => onCategoryChange(id as KnowledgeBaseCategory | 'all')}
-          multi={false}
-        />
-      </SidebarSection>
+      <SidebarCategories
+        title="Categories"
+        items={categoryItems}
+        selectedIds={selectedCategory}
+        onSelect={(id) => onCategoryChange(id as KnowledgeBaseCategory | 'all')}
+        multi={false}
+        collapsedItemCount={5}
+      />
     </UnifiedSidebar>
   );
 }

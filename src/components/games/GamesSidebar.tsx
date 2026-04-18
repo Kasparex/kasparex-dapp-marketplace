@@ -151,6 +151,7 @@ export function GamesSidebar({
               selectedIds={selectedGameTypes}
               onSelect={(id) => handleGameTypeToggle(id as GameType)}
               multi={true}
+              collapsedItemCount={5}
             />
             <SidebarCategories
               title="Difficulty"
@@ -158,6 +159,7 @@ export function GamesSidebar({
               selectedIds={selectedDifficulties}
               onSelect={(id) => handleDifficultyToggle(id as GameDifficulty)}
               multi={true}
+              collapsedItemCount={5}
             />
             <SidebarCategories
               title="Status"
@@ -165,6 +167,7 @@ export function GamesSidebar({
               selectedIds={selectedStatuses}
               onSelect={(id) => handleStatusToggle(id as GameStatus)}
               multi={true}
+              collapsedItemCount={5}
             />
             {onCostRangeChange && costRange != null && (
               <SidebarSection title="Entry Cost (KAS)">
@@ -178,7 +181,7 @@ export function GamesSidebar({
                         const min = e.target.value ? parseFloat(e.target.value) : 0;
                         onCostRangeChange({ min, max: costRange.max ?? 10 });
                       }}
-                      className="w-full px-2 py-1.5 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded focus:outline-none focus:ring-2 focus:ring-[#02abb8] text-zinc-900 dark:text-zinc-100"
+                      className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#02abb8] dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                     />
                     <span className="text-zinc-500">to</span>
                     <input
@@ -189,7 +192,7 @@ export function GamesSidebar({
                         const max = e.target.value ? parseFloat(e.target.value) : 10;
                         onCostRangeChange({ min: costRange.min ?? 0, max });
                       }}
-                      className="w-full px-2 py-1.5 text-sm bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded focus:outline-none focus:ring-2 focus:ring-[#02abb8] text-zinc-900 dark:text-zinc-100"
+                      className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#02abb8] dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                     />
                   </div>
                   <button type="button" onClick={() => onCostRangeChange(undefined)} className="w-full text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300">

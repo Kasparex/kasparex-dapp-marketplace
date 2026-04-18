@@ -12,15 +12,10 @@ export function ProtocolsHomeContent() {
   return (
     <>
       <Header />
-      <main className="flex flex-1 flex-col lg:flex-row">
-        <div className="hidden shrink-0 lg:block">
-          <ProtocolsIndexSidebar />
-        </div>
-        <div className="lg:hidden">
-          <ProtocolsIndexSidebar />
-        </div>
+      <main className="flex min-h-[calc(100vh-4rem)] flex-1 flex-col bg-zinc-50 dark:bg-zinc-950 lg:flex-row">
+        <ProtocolsIndexSidebar />
 
-        <div className="relative min-w-0 flex-1 p-4 sm:p-6 lg:p-8 lg:pl-6">
+        <div className="relative min-w-0 flex-1 border-l border-zinc-200 p-4 sm:p-6 lg:p-8 lg:pl-6 dark:border-zinc-800">
           <div className="mx-auto max-w-7xl">
             <div className="relative mb-10 overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 px-6 py-12 sm:px-8 dark:border-zinc-800/50 dark:from-zinc-950 dark:via-cyan-950/25 dark:to-zinc-950">
               <div className="absolute inset-0 overflow-hidden">
@@ -66,7 +61,7 @@ export function ProtocolsHomeContent() {
                   <div className="pointer-events-none relative opacity-90">
                     <div className="h-56 w-48 rotate-3 transform rounded-2xl border-2 border-cyan-500/30 bg-white/80 shadow-2xl shadow-cyan-500/10 dark:bg-zinc-900/80" />
                     <div className="absolute -bottom-2 -right-2 h-48 w-40 -rotate-6 transform rounded-xl border-2 border-teal-500/20 bg-zinc-100/90 shadow-xl dark:bg-zinc-800/90" />
-                    <div className="absolute bottom-4 left-4 right-4 top-4 flex items-center justify-center rounded-lg border border-zinc-300 dark:border-zinc-700/50">
+                    <div className="absolute bottom-4 left-4 right-4 top-4 flex items-center justify-center rounded-xl border border-zinc-300 dark:border-zinc-700/50">
                       <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">kpx · ktree · kref</span>
                     </div>
                   </div>
@@ -85,7 +80,7 @@ export function ProtocolsHomeContent() {
               <p className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
                 Each card opens a dedicated page for that protocol (tools, APIs, use cases, and documentation).
               </p>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {PROTOCOL_FAMILIES.map((family) => (
                   <ProtocolFamilyCard key={family.slug} family={family} />
                 ))}
