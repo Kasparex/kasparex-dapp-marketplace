@@ -215,6 +215,7 @@ export function ProtocolFamilyDetailContent({ family }: { family: ProtocolFamily
             </Section>
           </div>
         </div>
+        </div>
       </main>
       <Footer />
     </div>
