@@ -153,6 +153,9 @@ export function Sidebar({
           <Link href="/u?tab=my-dapps&view=list-dapp" className="k-control-btn w-full">
             List dApp
           </Link>
+          <Link href="/protocols" className="k-control-btn w-full">
+            Kasparex Protocols
+          </Link>
           <Link href="/tree/dashboard" className="k-control-btn w-full">
             Revenue Tree
           </Link>

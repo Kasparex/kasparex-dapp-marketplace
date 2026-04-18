@@ -27,6 +27,7 @@ import { useBalanceVisibility } from '@/hooks/useBalanceVisibility';
 import Link from 'next/link';
 import { hubProjects, type HubProject } from '@/lib/hubProjects';
 import { HeaderLeaderboardLink } from '@/components/HeaderLeaderboardLink';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 function AdminLink() {
   const { isAdmin } = useAdmin();
@@ -69,6 +70,9 @@ function getCurrentSectionTitle(pathname: string): string {
   }
   if (pathname === '/dapps' || pathname.startsWith('/dapps/')) {
     return 'dApps';
+  }
+  if (pathname.startsWith('/protocols')) {
+    return 'Protocols';
   }
   if (pathname.startsWith('/tokens')) {
     return 'Tokens';
@@ -152,6 +156,11 @@ function getProjectIcon(projectId: string) {
     'kasparex-dapps': ({ className = 'w-4 h-4' }) => (
       <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    ),
+    'kasparex-protocols': ({ className = 'w-4 h-4' }) => (
+      <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
     ),
     'kasparex-records': ({ className = 'w-4 h-4' }) => (
@@ -350,42 +359,46 @@ export function Header() {
       <div className="flex h-16 items-center justify-between w-full">
         {/* Left side: Logo and Title - no padding, flush to left */}
         <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 lg:pl-6">
-          <Link
-            href="/dapps"
-            className="flex items-center gap-2 sm:gap-3 relative group"
-            title="Kasparex dApps"
-          >
-            {!logoError ? (
-              <div className="relative h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
-                <Image
-                  src="/kasparex-oval.png"
-                  alt="Kasparex Logo"
-                  fill
-                  className="object-contain"
-                  priority
-                  unoptimized
-                  onError={() => setLogoError(true)}
-                />
-              </div>
-            ) : (
-              <div className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 rounded-lg">
-                <span className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                  K
-                </span>
-              </div>
-            )}
-            <h1 className="text-base sm:text-lg lg:text-xl font-semibold text-zinc-900 dark:text-zinc-100 whitespace-nowrap flex items-center gap-2">
-              <span className="uppercase">
-                <span className="font-bold">KASPA</span>
-                <span className="font-normal">REX</span>
+          <Tooltip
+            content={
+              <span className="block max-w-xs text-left leading-snug">
+                Open the Kasparex dApps marketplace (Hub home).
               </span>
-              <span className="text-[#02abb8]">𐤊</span>
-            </h1>
-            {/* Tooltip */}
-            <span className="absolute left-0 top-full mt-2 px-2 py-1 text-xs text-white bg-zinc-900 dark:bg-zinc-700 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-              dApps marketplace
-            </span>
-          </Link>
+            }
+            side="bottom"
+            align="start"
+          >
+            <Link
+              href="/dapps"
+              className="flex items-center gap-2 sm:gap-3"
+              aria-label="Kasparex — dApps marketplace home"
+            >
+              {!logoError ? (
+                <div className="relative h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
+                  <Image
+                    src="/kasparex-oval.png"
+                    alt="Kasparex Logo"
+                    fill
+                    className="object-contain"
+                    priority
+                    unoptimized
+                    onError={() => setLogoError(true)}
+                  />
+                </div>
+              ) : (
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 sm:h-12 sm:w-12">
+                  <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100 sm:text-xl">K</span>
+                </div>
+              )}
+              <h1 className="flex items-center gap-2 whitespace-nowrap text-base font-semibold text-zinc-900 dark:text-zinc-100 sm:text-lg lg:text-xl">
+                <span className="uppercase">
+                  <span className="font-bold">KASPA</span>
+                  <span className="font-normal">REX</span>
+                </span>
+                <span className="text-[#02abb8]">𐤊</span>
+              </h1>
+            </Link>
+          </Tooltip>
           <span className="relative">
             <div
               onMouseEnter={() => {

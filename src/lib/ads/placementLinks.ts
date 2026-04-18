@@ -14,6 +14,12 @@ export const AD_SLOT_PLACEMENT_LINKS: {
     placement: 'dApps home, hero right',
   },
   {
+    slotId: 'HALO_PROTOCOLS_RIGHT',
+    title: 'Protocols halo',
+    href: '/protocols#ad-slot-protocols-halo',
+    placement: 'Protocols hub, halo header right',
+  },
+  {
     slotId: 'HALO_MAGAZINES_RIGHT',
     title: 'Magazines halo',
     href: '/magazines#ad-slot-magazines-halo',
