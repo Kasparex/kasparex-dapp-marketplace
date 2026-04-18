@@ -20,10 +20,12 @@ import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { useKpxIndexer } from '@/hooks/useKpxIndexer';
+import { isStorageMassErrorMessage } from '@/lib/chronicles/leaderboard/massMode';
 
 type KpxKind = 'pf' | 'ver' | 'lnk' | 'cm';
 
 const MIN_SELF_KAS = 0.0001;
+const KPX_HIGH_MASS_MODE_KEY = 'kpx-tools-high-mass-mode-v1';
 
 export default function KpxToolsPage() {
   const { state: kaspa } = useKaspaWallet();
@@ -31,7 +33,9 @@ export default function KpxToolsPage() {
   const [net, setNet] = useState<KpxNet>('mainnet');
   const [seq, setSeq] = useState('1');
   const [amountKas, setAmountKas] = useState('0.001');
+  const [priorityFeeKas, setPriorityFeeKas] = useState('');
   const [toAddress, setToAddress] = useState('');
+  const [highMassMode, setHighMassMode] = useState(false);
 
   const [pfOp, setPfOp] = useState<'set' | 'clear'>('set');
   const [display, setDisplay] = useState('');
@@ -83,12 +87,39 @@ export default function KpxToolsPage() {
     }
   }, [kaspa.address]);
 
+  useEffect(() => {
+    try {
+      setHighMassMode(localStorage.getItem(KPX_HIGH_MASS_MODE_KEY) === '1');
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const owner = kaspa.address?.trim() ?? '';
 
   function parseSeq(): number | null {
     const n = Number.parseInt(seq, 10);
     if (!Number.isFinite(n) || n < 1) return null;
     return n;
+  }
+
+  function parsePriorityFeeKas(): number | null {
+    const s = priorityFeeKas.trim();
+    if (!s) return null;
+    const n = Number.parseFloat(s);
+    if (!Number.isFinite(n) || n < 0) return null;
+    return n;
+  }
+
+  function retryKasCandidates(baseKas: number, enabled: boolean): number[] {
+    const ladder = enabled ? [1, 2, 5, 10, 20, 30] : [baseKas, 0.2, 0.5, 1, 2, 5, 10];
+    const unique: number[] = [];
+    for (const x of ladder) {
+      const v = Number.isFinite(x) ? Number(x.toFixed(8)) : 0;
+      if (v <= 0) continue;
+      if (!unique.some((u) => Math.abs(u - v) < 1e-9)) unique.push(v);
+    }
+    return unique;
   }
 
   function buildRecord(): unknown {
@@ -187,6 +218,11 @@ export default function KpxToolsPage() {
       setSendErr(`Amount must be at least ${MIN_SELF_KAS} KAS (self-transfer + payload).`);
       return;
     }
+    const feeKas = parsePriorityFeeKas();
+    if (priorityFeeKas.trim() && feeKas == null) {
+      setSendErr('Priority fee must be a valid non-negative number (in KAS).');
+      return;
+    }
     let to: string;
     try {
       to = normalizeKaspaAddress(toAddress.trim());
@@ -194,6 +230,14 @@ export default function KpxToolsPage() {
       setSendErr('Invalid recipient Kaspa address.');
       return;
     }
+    let payer: string;
+    try {
+      payer = normalizeKaspaAddress(owner);
+    } catch {
+      setSendErr('Wallet address is not a valid Kaspa address.');
+      return;
+    }
+    const isSelfTransfer = to === payer;
 
     setBusy(true);
     try {
@@ -212,17 +256,33 @@ export default function KpxToolsPage() {
       const payloadHex = kpxUtf8JsonToPayloadHex(json);
       if (!payloadHex) throw new Error('Empty payload');
 
-      const sompi = kasToSompi(kas);
-      const out = await sendKaspaTransaction(kaspa.provider as KaspaWalletProvider, {
-        to,
-        amount: String(sompi),
-        payload: payloadHex,
-      });
-      if (out.status === 'failed' || !out.txHash) {
-        throw new Error(out.error ?? 'Wallet rejected the transaction');
+      const candidates = highMassMode && isSelfTransfer ? retryKasCandidates(kas, true) : [kas];
+      let lastErr: string | null = null;
+      for (const candidateKas of candidates) {
+        const sompi = kasToSompi(candidateKas);
+        const out = await sendKaspaTransaction(kaspa.provider as KaspaWalletProvider, {
+          to,
+          amount: String(sompi),
+          ...(feeKas != null ? { fee: String(feeKas) } : {}),
+          payload: payloadHex,
+        });
+        if (out.status !== 'failed' && out.txHash) {
+          setTxHash(out.txHash.replace(/^0x/i, '').toLowerCase());
+          setParseOk('Transaction submitted.');
+          lastErr = null;
+          break;
+        }
+        lastErr = out.error ?? 'Wallet rejected the transaction';
+        if (!isStorageMassErrorMessage(lastErr)) break;
       }
-      setTxHash(out.txHash.replace(/^0x/i, '').toLowerCase());
-      setParseOk('Transaction submitted.');
+      if (lastErr) {
+        if (isStorageMassErrorMessage(lastErr) && isSelfTransfer && !highMassMode) {
+          throw new Error(
+            "Wallet hit Kaspa mass limits (often too many UTXOs). Try: enable “High‑mass mode”, increase amount (self-send only), or compound UTXOs in your wallet."
+          );
+        }
+        throw new Error(lastErr);
+      }
       setIdxNonce((n) => n + 1);
     } catch (e) {
       setSendErr(e instanceof Error ? e.message : 'Send failed');
@@ -232,6 +292,17 @@ export default function KpxToolsPage() {
   }
 
   const explorerTx = txHash ? `https://explorer.kaspa.org/transactions/${txHash}` : null;
+
+  const HelpTip = ({ text }: { text: string }) => (
+    <span className="group relative inline-flex align-middle">
+      <span className="ml-2 inline-flex h-4 w-4 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-black text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+        ?
+      </span>
+      <span className="pointer-events-none absolute left-0 top-full z-50 mt-2 w-[260px] rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs text-zinc-700 opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200">
+        {text}
+      </span>
+    </span>
+  );
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -302,6 +373,7 @@ export default function KpxToolsPage() {
               <div className="mt-3 grid min-w-0 gap-3 sm:grid-cols-2">
                 <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                   To (Kaspa address)
+                  <HelpTip text="Where the KAS is sent. For posting kpx records, sending to yourself is recommended so payer == your addr." />
                   <input
                     className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     value={toAddress}
@@ -311,12 +383,51 @@ export default function KpxToolsPage() {
                 </label>
                 <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                   Amount (KAS)
+                  <HelpTip text="This is a real on-chain transfer. If you send to yourself, you get it back (minus fee). Minimum is 0.0001 KAS so wallets accept payload txs." />
                   <input
                     className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     value={amountKas}
                     onChange={(e) => setAmountKas(e.target.value)}
                   />
                 </label>
+                <label className="no-k-style block min-w-0 text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                  Priority fee (optional, KAS)
+                  <HelpTip text="Some wallets call this “priority fee”. Increasing it can help transactions relay faster and sometimes helps with wallet mass/UTXO edge cases. Leave blank to let the wallet decide." />
+                  <input
+                    className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                    value={priorityFeeKas}
+                    onChange={(e) => setPriorityFeeKas(e.target.value)}
+                    placeholder="0.001"
+                  />
+                </label>
+                <div className="min-w-0 rounded-lg border border-zinc-200 bg-white p-3 text-sm dark:border-zinc-700 dark:bg-zinc-950">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="font-bold text-zinc-800 dark:text-zinc-200">
+                      High‑mass mode
+                      <HelpTip text="If your wallet shows “Storage mass exceeds maximum”, it usually means you have too many small UTXOs. This mode retries (self-send only) with higher amounts so the wallet can pick fewer inputs." />
+                    </div>
+                    <button
+                      type="button"
+                      className={`k-control-btn h-8 px-3 text-xs ${highMassMode ? 'border-[#02abb8]/50 bg-[#02abb8]/10 font-black' : ''}`}
+                      onClick={() => {
+                        setHighMassMode((v) => {
+                          const next = !v;
+                          try {
+                            localStorage.setItem(KPX_HIGH_MASS_MODE_KEY, next ? '1' : '0');
+                          } catch {
+                            // ignore
+                          }
+                          return next;
+                        });
+                      }}
+                    >
+                      {highMassMode ? 'Enabled' : 'Disabled'}
+                    </button>
+                  </div>
+                  <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
+                    Tip: In KasWare, you can also reduce UTXO count via wallet maintenance / compound.
+                  </p>
+                </div>
               </div>
             </div>
 
