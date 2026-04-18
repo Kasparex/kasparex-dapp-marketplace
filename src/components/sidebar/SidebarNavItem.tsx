@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import type { MouseEventHandler, ReactNode } from 'react';
 
 export interface SidebarNavItemProps {
   /** If true, show checkbox indicator (checked style). */
@@ -17,6 +17,11 @@ export interface SidebarNavItemProps {
   active?: boolean;
   /** Render as link (href) or button (onClick). If neither, renders as div (for label wrapper). */
   href?: string;
+  /** Anchor-only: e.g. smooth in-page scroll with preventDefault. */
+  onLinkClick?: MouseEventHandler<HTMLAnchorElement>;
+  /** When `href` is set, open in a new tab (sets target + rel). */
+  external?: boolean;
+  /** Button-only: in-page action (no `href`). */
   onClick?: () => void;
   className?: string;
   /** Override default label typography (e.g. Chronicles sidebar). */
@@ -35,6 +40,8 @@ export function SidebarNavItem({
   count,
   active,
   href,
+  onLinkClick,
+  external,
   onClick,
   className = '',
   labelClassName,
@@ -57,7 +64,12 @@ export function SidebarNavItem({
 
   if (href != null) {
     return (
-      <a href={href} className={baseClass}>
+      <a
+        href={href}
+        className={baseClass}
+        onClick={onLinkClick}
+        {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+      >
         {content}
       </a>
     );

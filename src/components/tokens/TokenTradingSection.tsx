@@ -76,9 +76,9 @@ export function TokenTradingSection({ token }: TokenTradingSectionProps) {
   const hasL1AndL2 = isKREX || (token.l1Address && token.l2Address);
 
   return (
-    <section id="trading" className="space-y-6">
+    <section id="trading" className="scroll-mt-28 space-y-6 border-b border-zinc-200 py-10 dark:border-zinc-800">
       <div className="flex items-center gap-3">
-        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Trade</h2>
+        <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100">Trade</h2>
         <TokenLogo token={token} size={32} showSymbol={true} showName={false} />
       </div>
 

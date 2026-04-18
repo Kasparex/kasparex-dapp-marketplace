@@ -14,25 +14,24 @@ export default function KasparexAPIPage() {
     <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <Header />
       
-      <main className="flex-1">
-        <div className="flex flex-col lg:flex-row">
-          {/* Left Sidebar - Table of Contents */}
-          <div className="w-full lg:w-64 lg:flex-shrink-0">
-            <TableOfContentsSidebar
-              items={[
-                { id: 'what-is-api', title: 'What is the Kasparex API?' },
-                { id: 'why-needed', title: 'Why is the Kasparex API needed?' },
-                { id: 'what-it-does', title: 'What does the Kasparex API do?' },
-                { id: 'api-endpoints', title: 'API Endpoints' },
-                { id: 'affects-project', title: 'How the Kasparex API Affects Your Project' },
-                { id: 'technical-summary', title: 'Technical Summary' },
-                { id: 'vprogs-integration', title: 'Future: vProgs Integration' },
-              ]}
-            />
-          </div>
+      <main className="flex min-h-[calc(100vh-4rem)] flex-1 flex-col lg:flex-row">
+        <TableOfContentsSidebar
+          storageKeyPrefix="kasparex-api-doc"
+          backHref="/dapps"
+          backLabel="Back to dApps"
+          items={[
+            { id: 'what-is-api', title: 'What is the Kasparex API?' },
+            { id: 'why-needed', title: 'Why is the Kasparex API needed?' },
+            { id: 'what-it-does', title: 'What does the Kasparex API do?' },
+            { id: 'api-endpoints', title: 'API Endpoints' },
+            { id: 'affects-project', title: 'How the Kasparex API Affects Your Project' },
+            { id: 'technical-summary', title: 'Technical Summary' },
+            { id: 'vprogs-integration', title: 'Future: vProgs Integration' },
+          ]}
+        />
 
-          {/* Main Content */}
-          <div className="flex-1 min-w-0 max-w-4xl mx-auto px-4 sm:px-6 lg:px-12 py-8 sm:py-12">
+        <div className="min-w-0 flex-1 overflow-y-auto border-l border-zinc-200 px-4 py-8 sm:px-6 sm:py-12 lg:px-12 dark:border-zinc-800">
+          <div className="mx-auto max-w-4xl">
           {/* Hero - project style (cyan gradient, same as Nodes) */}
           <div className="relative mb-12 py-12 px-6 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/40 dark:to-zinc-950 border border-zinc-200 dark:border-transparent">
             <div className="absolute inset-0 opacity-20">

@@ -32,8 +32,8 @@ export function RoadmapSection({ token }: RoadmapSectionProps) {
   };
 
   return (
-    <section id="roadmap" className="space-y-6">
-      <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Roadmap</h2>
+    <section id="roadmap" className="scroll-mt-28 space-y-6 border-b border-zinc-200 py-10 dark:border-zinc-800">
+      <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100">Roadmap</h2>
 
       <div className="relative">
         {/* Timeline line */}

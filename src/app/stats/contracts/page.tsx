@@ -15,16 +15,11 @@ export default function StatsContractsPage() {
     <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <Header />
 
-      <main className="flex-1 flex flex-col lg:flex-row">
-        <div className="hidden lg:block flex-shrink-0">
-          <StatsSidebar />
-        </div>
-        <div className="lg:hidden">
-          <StatsSidebar />
-        </div>
+      <main className="flex min-h-[calc(100vh-4rem)] flex-1 flex-col lg:flex-row">
+        <StatsSidebar />
 
-        <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-12 overflow-y-auto">
-          <div className="max-w-7xl mx-auto w-full">
+        <div className="min-w-0 flex-1 overflow-y-auto border-l border-zinc-200 p-4 sm:p-6 lg:p-12 dark:border-zinc-800">
+          <div className="mx-auto w-full max-w-6xl">
             <div className="relative mb-8 py-10 px-6 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-violet-50/50 to-zinc-100 dark:from-zinc-950 dark:via-violet-950/40 dark:to-zinc-950 border border-zinc-200 dark:border-transparent">
               <div className="absolute inset-0 opacity-20">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,#8b5cf6,transparent_50%)]" />

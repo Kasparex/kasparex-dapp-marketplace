@@ -55,10 +55,10 @@ export default async function TokenPage({ params }: PageProps) {
   const tokenWithMetadata = await loadTokenWithMetadata(token);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
       <Header />
-      
-      <main className="flex-1">
+
+      <main className="flex min-h-0 flex-1 flex-col">
         <TokenLandingPage token={tokenWithMetadata} />
       </main>
 

@@ -15,15 +15,10 @@ export default function KREXNodePage() {
     <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <Header />
 
-      <div className="flex flex-1">
-        <div className="hidden lg:block flex-shrink-0">
-          <KrexNodeDocSidebar />
-        </div>
-        <div className="lg:hidden flex-shrink-0">
-          <KrexNodeDocSidebar />
-        </div>
-        <main className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto">
-          <div className="max-w-4xl mx-auto">
+      <main className="flex min-h-[calc(100vh-4rem)] flex-1 flex-col lg:flex-row">
+        <KrexNodeDocSidebar />
+        <div className="min-w-0 flex-1 overflow-y-auto border-l border-zinc-200 p-4 sm:p-6 lg:p-12 dark:border-zinc-800">
+          <div className="mx-auto max-w-4xl">
             {/* Hero - Donations style (cyan gradient) */}
             <div className="relative mb-12 py-12 px-6 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/40 dark:to-zinc-950 border border-zinc-200 dark:border-transparent">
               <div className="absolute inset-0 opacity-20">
@@ -476,10 +471,10 @@ export default function KREXNodePage() {
                 Learn about the API
               </Link>
             </div>
-            </div>
           </div>
-        </main>
-      </div>
+          </div>
+        </div>
+      </main>
 
       <Footer />
     </div>

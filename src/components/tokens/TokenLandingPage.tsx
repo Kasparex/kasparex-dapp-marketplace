@@ -1,6 +1,5 @@
 /**
- * Token Landing Page Component
- * Combines all token sections with sidebar navigation
+ * Token landing: protocols hub layout (bg shell, border-l main, max-width column).
  */
 
 'use client';
@@ -17,123 +16,97 @@ import { PriceSection } from './PriceSection';
 import { TokenBalanceDisplay } from './TokenBalanceDisplay';
 import { TokenMintingProgress } from './TokenMintingProgress';
 import { TokenTradingSection } from './TokenTradingSection';
-import { getExplorerUrl } from '@/lib/dapps/deployer';
-import { useChainId } from 'wagmi';
 
 interface TokenLandingPageProps {
   token: Token;
 }
 
-// Calculate if token is fully minted
 function isFullyMinted(token: Token): boolean {
   if (!token.maxSupply || !token.circulatingSupply) return false;
   return token.circulatingSupply >= token.maxSupply;
 }
 
 export function TokenLandingPage({ token }: TokenLandingPageProps) {
-  const chainId = useChainId();
-
-  const explorerUrl = token.contractAddress
-    ? getExplorerUrl(token.contractAddress, chainId)
-    : null;
-
   const fullyMinted = isFullyMinted(token);
   const showMintingProgress = token.maxSupply && token.circulatingSupply !== undefined && !fullyMinted;
   const showTrading = fullyMinted || token.id === 'krex' || token.type === 'global';
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen">
-      {/* Sidebar */}
+    <div className="flex min-h-0 flex-1 flex-col bg-zinc-50 dark:bg-zinc-950 lg:flex-row">
       <TokenSidebar token={token} />
 
-      {/* Main Content */}
-      <main className="flex-1 min-w-0">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-            <Link href="/tokens" className="hover:text-zinc-900 dark:hover:text-zinc-100">
+      <main className="min-h-[calc(100vh-4rem)] flex-1 min-w-0 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:pl-6">
+          <nav className="mb-6 text-sm text-zinc-500 dark:text-zinc-400">
+            <Link href="/tokens" className="font-bold text-[#02abb8] hover:underline">
               Tokens
             </Link>
-            <span>/</span>
-            <span className="text-zinc-900 dark:text-zinc-100">{token.name}</span>
+            <span className="mx-2 text-zinc-400">/</span>
+            <span className="font-semibold text-zinc-800 dark:text-zinc-100">{token.name}</span>
+          </nav>
+
+          <div className="space-y-10">
+            <TokenHeroSection token={token} />
+
+            {showMintingProgress && <TokenMintingProgress token={token} />}
+            {showTrading && <TokenTradingSection token={token} />}
+
+            <TokenInfoSection token={token} />
+            <PriceSection token={token} />
+            <TokenomicsSection token={token} />
+            <RoadmapSection token={token} />
+            <DAppRelationSection token={token} />
+            <TokenBalanceDisplay token={token} />
+
+            {token.links && token.links.length > 0 && (
+              <section id="links" className="scroll-mt-28 space-y-6 py-10">
+                <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100">Links</h2>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {token.links.map((link, index) => (
+                    <a
+                      key={index}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-cyan-500/30 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/80"
+                    >
+                      <div className="flex-shrink-0 text-zinc-500 dark:text-zinc-400">
+                        {link.type === 'website' && (
+                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                          </svg>
+                        )}
+                        {link.type === 'explorer' && (
+                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        )}
+                        {link.type === 'social' && (
+                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                          </svg>
+                        )}
+                        {(!link.type || link.type === 'other') && (
+                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                          </svg>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">{link.label}</div>
+                        <div className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                          {link.url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                        </div>
+                      </div>
+                      <svg className="h-4 w-4 flex-shrink-0 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </a>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
-
-          {/* Hero Section with Featured Image */}
-          <TokenHeroSection token={token} />
-
-          {/* Minting Progress or Trading Section */}
-          {showMintingProgress && <TokenMintingProgress token={token} />}
-          {showTrading && <TokenTradingSection token={token} />}
-
-          {/* Token Info */}
-          <TokenInfoSection token={token} />
-
-          {/* Price */}
-          <PriceSection token={token} />
-
-          {/* Tokenomics */}
-          <TokenomicsSection token={token} />
-
-          {/* Roadmap */}
-          <RoadmapSection token={token} />
-
-          {/* Related dApps */}
-          <DAppRelationSection token={token} />
-
-          {/* Balance */}
-          <TokenBalanceDisplay token={token} />
-
-          {/* Links Section */}
-          {token.links && token.links.length > 0 && (
-            <section id="links" className="space-y-6">
-              <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Links</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {token.links.map((link, index) => (
-                  <a
-                    key={index}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-4 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:border-[#02abb8] hover:shadow-lg transition-all"
-                  >
-                    <div className="flex-shrink-0">
-                      {link.type === 'website' && (
-                        <svg className="w-5 h-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                        </svg>
-                      )}
-                      {link.type === 'explorer' && (
-                        <svg className="w-5 h-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                      )}
-                      {link.type === 'social' && (
-                        <svg className="w-5 h-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                        </svg>
-                      )}
-                      {(!link.type || link.type === 'other') && (
-                        <svg className="w-5 h-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                        </svg>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
-                        {link.label}
-                      </div>
-                      <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
-                        {link.url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-                      </div>
-                    </div>
-                    <svg className="w-4 h-4 text-zinc-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </a>
-                ))}
-              </div>
-            </section>
-          )}
         </div>
       </main>
     </div>

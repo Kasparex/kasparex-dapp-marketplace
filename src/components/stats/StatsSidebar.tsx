@@ -1,9 +1,10 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
+import { SidebarSection } from '@/components/sidebar/SidebarSection';
+import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 
 const STATS_LINKS = [
   { href: '/stats', label: 'Overview' },
@@ -18,82 +19,62 @@ const QUICK_LINKS = [
   { href: '/points', label: 'Rewards' },
 ] as const;
 
+const chartIcon = (
+  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+  </svg>
+);
+
+const linkIcon = (
+  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+  </svg>
+);
+
 export function StatsSidebar() {
   const pathname = usePathname();
 
   return (
     <UnifiedSidebar
       storageKeyPrefix="stats"
-      header={(onHide) => (
-        <SidebarHeader
-          backHref="/hub"
-          backLabel="Back to Hub"
-          onHide={onHide}
-        />
-      )}
+      header={(onHide) => <SidebarHeader backHref="/hub" backLabel="Back to Hub" onHide={onHide} />}
       defaultWidth={260}
     >
-      <div className="flex-1 overflow-y-auto space-y-8">
-        {/* Quick Stats Box for Consistency */}
-        <div className="p-4 bg-gradient-to-br from-cyan-500/10 to-blue-600/10 rounded-xl border border-cyan-500/20">
-          <div className="text-[10px] font-black text-cyan-500 uppercase tracking-widest mb-3">
-            Ecosystem Stats
+      <div className="p-4 bg-gradient-to-br from-cyan-500/10 to-blue-600/10 rounded-xl border border-cyan-500/20 mb-6">
+        <div className="text-[10px] font-black text-cyan-600 dark:text-cyan-400 uppercase tracking-widest mb-3">Ecosystem Stats</div>
+        <div className="space-y-4">
+          <div>
+            <div className="text-[9px] font-bold text-zinc-500 uppercase tracking-tight mb-0.5">Global Transactions</div>
+            <div className="text-lg font-black text-zinc-900 dark:text-zinc-100 italic">4.2M+</div>
           </div>
-          <div className="space-y-4">
-            <div>
-                <div className="text-[9px] font-bold text-zinc-500 uppercase tracking-tight mb-0.5">Global Transactions</div>
-                <div className="text-lg font-black text-zinc-900 dark:text-zinc-100 italic">4.2M+</div>
-            </div>
-            <div>
-                <div className="text-[9px] font-bold text-zinc-500 uppercase tracking-tight mb-0.5">Connected Nodes</div>
-                <div className="text-lg font-black text-emerald-600 dark:text-emerald-400 italic">1,248</div>
-            </div>
+          <div>
+            <div className="text-[9px] font-bold text-zinc-500 uppercase tracking-tight mb-0.5">Connected Nodes</div>
+            <div className="text-lg font-black text-emerald-600 dark:text-emerald-400 italic">1,248</div>
           </div>
         </div>
-
-        <section>
-          <h3 className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] mb-4 px-2">
-            Main Stats
-          </h3>
-          <nav className="space-y-1">
-            {STATS_LINKS.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-              <Link
-                key={item.label}
-                href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
-                    ? 'bg-[#02abb8]/10 text-[#02abb8] border border-[#02abb8]/20'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
-                    }`}
-              >
-                <span className="text-[11px] font-bold uppercase tracking-wider min-w-0 break-words">
-                  {item.label}
-                </span>
-              </Link>
-            )})}
-          </nav>
-        </section>
-
-        <section>
-          <h3 className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] mb-4 px-2">
-            Resources
-          </h3>
-          <nav className="space-y-1">
-            {QUICK_LINKS.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-              >
-                <span className="text-[11px] font-bold uppercase tracking-wider min-w-0 break-words">
-                  {item.label}
-                </span>
-              </Link>
-            ))}
-          </nav>
-        </section>
       </div>
+
+      <SidebarSection title="Main stats">
+        <nav className="space-y-0.5">
+          {STATS_LINKS.map((item) => (
+            <SidebarNavItem
+              key={item.href}
+              href={item.href}
+              label={item.label}
+              icon={chartIcon}
+              active={pathname === item.href}
+            />
+          ))}
+        </nav>
+      </SidebarSection>
+
+      <SidebarSection title="Resources">
+        <nav className="space-y-0.5">
+          {QUICK_LINKS.map((item) => (
+            <SidebarNavItem key={item.href} href={item.href} label={item.label} icon={linkIcon} />
+          ))}
+        </nav>
+      </SidebarSection>
     </UnifiedSidebar>
   );
 }

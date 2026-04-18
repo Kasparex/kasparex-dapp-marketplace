@@ -430,21 +430,23 @@ export default async function KnowledgeBaseArticlePage({ params }: PageProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
       <Header />
-      
-      <main className="flex-1">
-        <div className="flex flex-col lg:flex-row">
-          {/* Left Sidebar - Table of Contents */}
-          <TableOfContentsSidebar
-            items={content.sections.map((section) => ({
-              id: section.id,
-              title: section.title,
-            }))}
-          />
-          
-          {/* Main Content */}
-          <div className="flex-1 min-w-0 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+
+      <main className="flex min-h-[calc(100vh-4rem)] flex-1 flex-col lg:flex-row">
+        <TableOfContentsSidebar
+          storageKeyPrefix={`kb-${slug}`}
+          backHref="/knowledge-base"
+          backLabel="Knowledge Base"
+          showKnowledgeBaseLink={false}
+          items={content.sections.map((section) => ({
+            id: section.id,
+            title: section.title,
+          }))}
+        />
+
+        <div className="min-w-0 flex-1 overflow-y-auto border-l border-zinc-200 px-4 py-8 sm:px-6 sm:py-12 lg:px-8 dark:border-zinc-800">
+          <div className="mx-auto max-w-4xl">
             {/* Breadcrumb */}
             <nav className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
               <Link href="/knowledge-base" className="hover:text-[#02abb8]">

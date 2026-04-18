@@ -20,8 +20,8 @@ export function TokenomicsSection({ token }: TokenomicsSectionProps) {
   }
 
   return (
-    <section id="tokenomics" className="space-y-6">
-      <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Tokenomics</h2>
+    <section id="tokenomics" className="scroll-mt-28 space-y-6 border-b border-zinc-200 py-10 dark:border-zinc-800">
+      <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100">Tokenomics</h2>
 
       {/* Supply Info */}
       {(token.totalSupply || token.circulatingSupply) && (

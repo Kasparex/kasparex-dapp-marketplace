@@ -80,14 +80,14 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
       <Header />
 
-      <main className="flex-1 flex flex-col lg:flex-row">
+      <main className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <TokensListingSidebar />
 
-        <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6">
-          <div className="max-w-7xl mx-auto">
+        <div className="min-h-[calc(100vh-4rem)] flex-1 min-w-0 border-l border-zinc-200 p-4 sm:p-6 lg:p-8 lg:pl-6 dark:border-zinc-800">
+          <div className="mx-auto max-w-6xl">
             <TokensHero />
 
             <div id="content" className="scroll-mt-4" />

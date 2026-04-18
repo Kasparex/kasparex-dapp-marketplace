@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { StatsSidebar } from '@/components/stats/StatsSidebar';
@@ -15,18 +14,11 @@ export default function StatsPage() {
     <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <Header />
 
-      <main className="flex-1 flex flex-col lg:flex-row">
-        {/* Global sidebar */}
-        <div className="hidden lg:block flex-shrink-0">
-          <StatsSidebar />
-        </div>
-        <div className="lg:hidden">
-          <StatsSidebar />
-        </div>
+      <main className="flex min-h-[calc(100vh-4rem)] flex-1 flex-col lg:flex-row">
+        <StatsSidebar />
 
-        {/* Main content */}
-        <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto">
-          <div className="max-w-7xl mx-auto w-full">
+        <div className="min-w-0 flex-1 overflow-y-auto border-l border-zinc-200 p-4 sm:p-6 lg:p-8 lg:pl-6 dark:border-zinc-800">
+          <div className="mx-auto w-full max-w-6xl">
             {/* Header */}
             <div className="mb-8">
               <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">

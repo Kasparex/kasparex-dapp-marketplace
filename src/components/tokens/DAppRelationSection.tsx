@@ -29,8 +29,8 @@ export function DAppRelationSection({ token }: DAppRelationSectionProps) {
   }
 
   return (
-    <section id="dapps" className="space-y-6">
-      <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Related dApps</h2>
+    <section id="dapps" className="scroll-mt-28 space-y-6 border-b border-zinc-200 py-10 dark:border-zinc-800">
+      <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100">Related dApps</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {relatedDApps.map((dapp) => {
