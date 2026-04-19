@@ -239,7 +239,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
             />
           )}
           {tab === 'rewards' && (
-            <RewardsPanel address={walletState.address} refinementPointsTotal={refinementPointsTotal} localLedger={gridLedger} />
+            <RewardsPanel address={walletState.address ?? undefined} refinementPointsTotal={refinementPointsTotal} localLedger={gridLedger} />
           )}
         </div>
 
