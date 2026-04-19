@@ -11,9 +11,11 @@ export const KASPA_REWARDS_ADDRESS =
 export const CIPHER_TICKET_REDEEM_RATE_POINTS = 100; // 100 refinement points = 1 ticket
 
 export const CIPHER_VAULT_TIERS = [
-  { id: 't1', label: 'Easy Vault', entryKAS: 0.5, gridPreview: 1, moveLimit: 14 },
-  { id: 't2', label: 'Medium Vault', entryKAS: 1.0, gridPreview: 2, moveLimit: 12 },
-  { id: 't3', label: 'Hard Vault', entryKAS: 2.0, gridPreview: 4, moveLimit: 10 },
+  // Note: 4x4 permutations can require up to 15 swaps in the worst case.
+  // Keep V1 generous so the puzzle is always solvable without boosts.
+  { id: 't1', label: 'Easy Vault', entryKAS: 0.5, gridPreview: 1, moveLimit: 24 },
+  { id: 't2', label: 'Medium Vault', entryKAS: 1.0, gridPreview: 2, moveLimit: 20 },
+  { id: 't3', label: 'Hard Vault', entryKAS: 2.0, gridPreview: 4, moveLimit: 18 },
 ] as const;
 
 export type CipherVaultTierId = (typeof CIPHER_VAULT_TIERS)[number]['id'];

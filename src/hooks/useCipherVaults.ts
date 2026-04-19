@@ -160,6 +160,22 @@ export function useCipherVaults() {
     [walletState.isConnected, walletState.address]
   );
 
+  const cancelRun = useCallback(
+    async (runId?: string) => {
+      const addr = walletState.address;
+      if (!walletState.isConnected || !addr) throw new Error('Wallet not connected');
+      const r = await fetch('/api/games/cipher-vaults/run/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: addr, runId }),
+      });
+      const j = (await r.json()) as any;
+      if (j?.state) setState(j.state as CipherVaultsState);
+      return j;
+    },
+    [walletState.isConnected, walletState.address]
+  );
+
   const redeemRefinement = useCallback(
     async (pointsToRedeem: number) => {
       const addr = walletState.address;
@@ -181,6 +197,22 @@ export function useCipherVaults() {
     const addr = walletState.address;
     if (!walletState.isConnected || !addr) return 0;
     try {
+      // Sync local Diamond Veins state (if any) to server so Cipher redeem sees it.
+      if (typeof window !== 'undefined') {
+        const raw = window.localStorage.getItem('diamond-veins-state');
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            await fetch('/api/games/diamond-veins/state', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ address: addr, state: parsed }),
+            });
+          } catch {
+            // ignore local parse errors
+          }
+        }
+      }
       const r = await fetch(`/api/games/diamond-veins/state?address=${encodeURIComponent(addr)}`);
       const j = (await r.json()) as { state?: { refinementPointsTotal?: number } };
       return Math.floor(j?.state?.refinementPointsTotal ?? 0);
@@ -195,6 +227,7 @@ export function useCipherVaults() {
     tickets,
     startRun,
     submitRun,
+    cancelRun,
     redeemRefinement,
     fetchDiamondVeinsRefinementPoints,
   };

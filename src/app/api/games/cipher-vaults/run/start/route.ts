@@ -37,6 +37,9 @@ export async function POST(request: NextRequest) {
     const seed = randomUUID().replace(/-/g, '');
 
     const state = getCipherPlayerState(address);
+    if (state.activeRun) {
+      return NextResponse.json({ error: 'Active run already in progress. Cancel it before starting a new one.' }, { status: 409 });
+    }
     const tier = CIPHER_VAULT_TIERS.find((t) => t.id === tierId)!;
     const ticketsTotal = Math.floor((state.redeemedRefinementPointsTotal ?? 0) / CIPHER_TICKET_REDEEM_RATE_POINTS);
     const ticketsAvailable = Math.max(0, ticketsTotal - (state.ticketsSpent ?? 0));

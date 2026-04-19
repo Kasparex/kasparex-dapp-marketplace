@@ -19,7 +19,7 @@ type TabId = (typeof TABS)[number]['id'];
 
 export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', gameDescription = '' }: { featuredImage?: string; loreStory?: string; gameDescription?: string }) {
   const { state: walletState } = useKaspaWallet();
-  const { state, tickets, canPayWithL1, startRun, submitRun, redeemRefinement, fetchDiamondVeinsRefinementPoints } = useCipherVaults();
+  const { state, tickets, canPayWithL1, startRun, submitRun, cancelRun, redeemRefinement, fetchDiamondVeinsRefinementPoints } = useCipherVaults();
 
   const [tab, setTab] = useState<TabId>('vaults');
   const [tierId, setTierId] = useState<CipherVaultTierId>('t1');
@@ -140,7 +140,18 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
             <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Start a run</p>
+                  <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 inline-flex items-center gap-2">
+                    Start a run
+                    <Tooltip content="Starting a run creates a single active attempt. If you already have an active run, end it first to avoid accidental duplicate payments.">
+                      <button
+                        type="button"
+                        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold text-zinc-600 dark:border-zinc-600 dark:text-zinc-300"
+                        aria-label="About starting runs"
+                      >
+                        i
+                      </button>
+                    </Tooltip>
+                  </p>
                   <p className="text-xs text-zinc-500 dark:text-zinc-500">Pay with KAS or spend 1 ticket.</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -148,13 +159,14 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
                     value={payWith}
                     onChange={(e) => setPayWith(e.target.value === 'TICKET' ? 'TICKET' : 'KAS')}
                     className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-800 dark:bg-zinc-950"
+                    disabled={Boolean(puzzle && activeRunId)}
                   >
                     <option value="KAS">Pay with KAS</option>
                     <option value="TICKET">Use 1 ticket ({tickets.available} avail)</option>
                   </select>
                   <button
                     type="button"
-                    disabled={starting || (payWith === 'KAS' && !canPayWithL1)}
+                    disabled={Boolean(puzzle && activeRunId) || starting || (payWith === 'KAS' && !canPayWithL1)}
                     onClick={async () => {
                       setToast(null);
                       setStarting(true);
@@ -175,6 +187,31 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
                   </button>
                 </div>
               </div>
+
+              {puzzle && activeRunId && (
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-200">
+                  You have an active run in progress. Finish it (submit) or end it to start a new paid attempt.
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      className="k-control-btn"
+                      onClick={async () => {
+                        setToast(null);
+                        try {
+                          await cancelRun(activeRunId);
+                          setPuzzle(null);
+                          setActiveRunId(null);
+                          setToast('Run ended. You can start a new attempt now.');
+                        } catch (e: any) {
+                          setToast(e?.message || 'Failed to end run');
+                        }
+                      }}
+                    >
+                      End run (no refund)
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {payWith === 'KAS' && !canPayWithL1 && (
                 <p className="text-xs text-amber-600 dark:text-amber-300">
@@ -210,9 +247,18 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
                     }
                   }}
                   onFailed={() => {
-                    setToast('Out of moves. Start a new run to try again.');
-                    setPuzzle(null);
-                    setActiveRunId(null);
+                    void (async () => {
+                      setToast(null);
+                      try {
+                        await cancelRun(activeRunId);
+                      } catch {
+                        // ignore
+                      } finally {
+                        setToast('Out of moves. Start a new paid attempt to try again.');
+                        setPuzzle(null);
+                        setActiveRunId(null);
+                      }
+                    })();
                   }}
                 />
                 {submitting && <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-500">Verifying…</p>}
