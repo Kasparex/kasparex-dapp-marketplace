@@ -4,6 +4,7 @@
 
 import type { KaspaWalletProvider } from './types';
 import { signKRC20Transaction as kaswareSignKrc20, getUtxoEntries as kaswareGetUtxoEntries } from './kasware';
+import { normalizeKaspaAddress } from './sdk';
 
 function getKastle(): Record<string, unknown> | null {
   if (typeof window === 'undefined') return null;
@@ -53,8 +54,9 @@ export async function signKrc20Transfer(
   destAddr: string,
   priorityFee?: number | string
 ): Promise<string> {
+  const normalizedDest = normalizeKaspaAddress(destAddr);
   if (provider === 'kasware') {
-    return kaswareSignKrc20(inscribeJsonString, type, destAddr, priorityFee);
+    return kaswareSignKrc20(inscribeJsonString, type, normalizedDest, priorityFee);
   }
 
   if (provider === 'kastle') {

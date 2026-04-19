@@ -682,7 +682,14 @@ export async function sendKaspaTransaction(
   }
 
   try {
-    const raw = await walletProvider.sendTransaction(transaction);
+    // Wallets expect a full kaspa: address prefix.
+    // Some call sites pass an address without prefix, so normalize here centrally.
+    const normalizedTx = {
+      ...transaction,
+      to: sdkNormalizeKaspaAddress(transaction.to),
+    };
+
+    const raw = await walletProvider.sendTransaction(normalizedTx);
     const txHash = extractKaspaTransactionId(raw);
     if (!txHash) {
       return {

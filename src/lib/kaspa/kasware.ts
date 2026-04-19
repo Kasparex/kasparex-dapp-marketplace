@@ -350,6 +350,10 @@ export async function signKRC20Transaction(
     console.error('[KasWare] Invalid destAddr type:', typeof destAddr, destAddr);
     throw new Error(`destAddr must be a non-empty string, received ${typeof destAddr}`);
   }
+  // Wallet expects kaspa: prefix
+  if (!destAddr.trim().toLowerCase().startsWith('kaspa:')) {
+    throw new Error('The address prefix is missing');
+  }
   
   // Ensure priorityFee is a number if provided
   let priorityFeeNum: number | undefined = undefined;
