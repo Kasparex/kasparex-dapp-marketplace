@@ -17,6 +17,7 @@ Tier 1 requires at least 1 KREX; zero balance is Tier 0.
 ## GRID treasury
 
 - 5% of GRID from each reward distribution goes to the configured `gridTreasury` address; 95% goes to the user.
+- **Supply model:** For one global GRID story across L1 / Kasplex / Igra, see [GRID_CANONICAL_SUPPLY_MODEL.md](./GRID_CANONICAL_SUPPLY_MODEL.md).
 
 ## Points
 

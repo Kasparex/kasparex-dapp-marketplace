@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAccount, useSignMessage } from 'wagmi';
+import { useAccount, useChainId, useSignMessage } from 'wagmi';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
@@ -29,7 +29,7 @@ import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
 import { TierBadge } from '@/components/rewards/TierBadge';
 import { KREX_TIERS } from '@/lib/rewards/types';
-import { CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
+import { getContractAddress } from '@/lib/contracts/addresses';
 // heavy editors are opened as dedicated routes; keep Profile Hub lightweight
 
 type TabId =
@@ -503,12 +503,15 @@ function OverviewTab({
 
 function PortfolioOverview() {
   const { isConnected: isEVMConnected } = useAccount();
+  const chainId = useChainId();
   const { state: kaspaState } = useKaspaWallet();
   const isL1Connected = kaspaState.isConnected;
 
   const { balance: krexBalance, l1Balance: krexL1, l2Balance: krexL2, tier: krexTier, isLoading: isKREXLoading } = useKREXBalance();
   const { balanceInKas: kasBalance, isLoading: isKasLoading } = useKaspaBalance();
-  const gridToken = useGRIDToken(CONTRACT_ADDRESSES.kasplexL2Testnet.GRIDToken);
+  const gridTokenAddress =
+    getContractAddress(chainId, 'tGRID') || getContractAddress(chainId, 'GRIDToken') || undefined;
+  const gridToken = useGRIDToken(gridTokenAddress);
   const { nftStatus, nftPoints } = useNFTStatus();
   const { totalPoints: xpPoints } = useLoyaltyPoints();
 

@@ -1,8 +1,8 @@
 /**
  * Contract Addresses
- * 
- * These addresses are populated after deployment.
- * Update these with the deployed contract addresses from the deployments folder.
+ *
+ * GRID: canonical KRC-20 on L1; **mainnet** `GRIDToken` here = Katbridge ERC-20 only (`src/lib/tokens/grid-l2-bridged.ts`).
+ * Legacy lab GRID on Kasplex testnet is cleared—use **tGRID** on Igra Galleon testnet for sandboxes, or set env for experiments.
  */
 
 // Helper to safely get env var (handles both server and client side)
@@ -29,7 +29,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     AuthorizationRegistry: "",
     DAOVoting: "0x97004140704097e122CB7B9808330c80464ab69d",
     QuizToEarn: "",
-    GRIDToken: "",
+    GRIDToken: "0x9396eDf77EcA8087DDE39121e7A15ABfB8784570",
     RewardVault: "",
     RewardManager: "",
     ProofOfUtility: "",
@@ -56,7 +56,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     AuthorizationRegistry: "0x90A9aa9eB4C91b9c7A6eb72248bDe6a9FB6f79ef",
     DAOVoting: "0xf5b2a43A626116690675676C00f4b2c4c86020D3",
     QuizToEarn: "0x7EF3E5215c722D7A3D41C2426e57b1B4A5bC4a05",
-    GRIDToken: "0x6c4B153eE2Fe3EfcD9CbF5D4A55e058d40Ec86a2",
+    GRIDToken: "",
     RewardVault: "0x59e49E4f60397CC1C2F0eB3d7ebcF9C9c8AACCAD",
     RewardManager: "0x2044FEb08a4Cb14Ff736b00f947E017044da50E6",
     ProofOfUtility: "0xBa8701e6545F3e00864A374Cf61950872eccCDAC",
@@ -113,7 +113,7 @@ const HARDCODED_FALLBACK_ADDRESSES = {
     AuthorizationRegistry: "",
     DAOVoting: "",
     QuizToEarn: "",
-    GRIDToken: "",
+    GRIDToken: "0x05E02a8b14CD7974c6102CDB855F2dCd8E1f4902",
     tGRID: "",
     RewardVault: "",
     RewardManager: "",

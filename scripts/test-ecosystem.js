@@ -1,6 +1,9 @@
 /**
  * Test Ecosystem Contracts
- * Quick test script to verify all contracts are working
+ * Quick test script to verify all contracts are working.
+ *
+ * Legacy non-canonical Kasplex testnet GRID is no longer used. Set GRID_TOKEN_ADDRESS
+ * (env) to a bridged canonical GRID on the network you target, or leave empty to skip GRID reads.
  */
 
 const hre = require('hardhat');
@@ -10,9 +13,9 @@ async function main() {
   console.log('Testing with account:', deployer.address);
   console.log('Account balance:', (await hre.ethers.provider.getBalance(deployer.address)).toString(), 'wei\n');
 
-  // Contract addresses from deployment
+  // Contract addresses from deployment (Kasplex L2 testnet era — update via env for new runs)
   const addresses = {
-    GRIDToken: "0x6c4B153eE2Fe3EfcD9CbF5D4A55e058d40Ec86a2",
+    GRIDToken: process.env.GRID_TOKEN_ADDRESS || '',
     RewardVault: "0x59e49E4f60397CC1C2F0eB3d7ebcF9C9c8AACCAD",
     RewardManager: "0x2044FEb08a4Cb14Ff736b00f947E017044da50E6",
     ProofOfUtility: "0x1aB97D324Ea68FF7c51A91689564377e433A77f6",
@@ -28,19 +31,23 @@ async function main() {
   console.log('ECOSYSTEM CONTRACTS TEST');
   console.log('='.repeat(60) + '\n');
 
-  // Test 1: GRIDToken
+  // Test 1: GRIDToken (optional — skip if GRID_TOKEN_ADDRESS unset)
   console.log('1. Testing GRIDToken...');
-  try {
-    const GRIDToken = await hre.ethers.getContractAt('GRIDToken', addresses.GRIDToken);
-    const totalSupply = await GRIDToken.totalSupply();
-    const name = await GRIDToken.name();
-    const symbol = await GRIDToken.symbol();
-    console.log(`   ✅ Name: ${name}`);
-    console.log(`   ✅ Symbol: ${symbol}`);
-    console.log(`   ✅ Total Supply: ${totalSupply.toString()}`);
-    console.log(`   ✅ Expected: 10,000,000,000 (10B)\n`);
-  } catch (error) {
-    console.log(`   ❌ Error: ${error.message}\n`);
+  if (!addresses.GRIDToken) {
+    console.log('   ⏭️  Skipped (set GRID_TOKEN_ADDRESS to bridged canonical GRID on this network).\n');
+  } else {
+    try {
+      const GRIDToken = await hre.ethers.getContractAt('GRIDToken', addresses.GRIDToken);
+      const totalSupply = await GRIDToken.totalSupply();
+      const name = await GRIDToken.name();
+      const symbol = await GRIDToken.symbol();
+      console.log(`   ✅ Name: ${name}`);
+      console.log(`   ✅ Symbol: ${symbol}`);
+      console.log(`   ✅ Total Supply: ${totalSupply.toString()}`);
+      console.log(`   ✅ Expected: 10,000,000,000 (10B)\n`);
+    } catch (error) {
+      console.log(`   ❌ Error: ${error.message}\n`);
+    }
   }
 
   // Test 2: RewardVault

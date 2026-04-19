@@ -112,14 +112,17 @@ Complete reference guide for all available ecosystem contracts in the Kasparex d
 ---
 
 ### GRIDToken
-**Status**: Ecosystem Token  
-**Purpose**: Unified reward currency across all dApps  
-**Key Features**:
-- Fixed 10B supply
-- Deflationary mechanism
-- Pre-minted to RewardVault
+**Status**: Ecosystem Token (EVM / L2 representation)  
+**Purpose**: Unified reward currency across dApps **on the EVM L2 where this contract is deployed** (e.g. Kasplex L2 or Igra L2).
 
-**When to Use**: If using GRID tokens for rewards (default reward type)  
+**Canonical supply story:** Kasparex targets **one GRID brand** with fixed global supply anchored on **Kaspa L1 (KRC-20)** and **official bridged** ERC-20 GRID on each L2—not unrelated mints. See **[GRID_CANONICAL_SUPPLY_MODEL.md](./GRID_CANONICAL_SUPPLY_MODEL.md)**.
+
+**Key Features** (this repo’s Solidity `GRIDToken`):
+- Fixed 10B supply (18 decimals) on deploy
+- Deflationary mechanism (`burn` / `burnFrom`)
+- Pre-minted to `RewardVault` at construction
+
+**When to Use**: If using GRID tokens for rewards (default reward type) on that L2  
 **Default**: ✅ Auto-connected if RewardManager is used
 
 ---

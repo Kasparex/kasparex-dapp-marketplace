@@ -20,6 +20,7 @@
  *   REWARD_RATE - Reward rate in basis points (100 = 1%, default: 100)
  *   USE_GRID - Use GRID token (true) or dApp token (false, default: true)
  *   DAPP_TOKEN_ADDRESS - dApp token address (required if USE_GRID=false)
+ *   GRID_TOKEN_ADDRESS - Bridged GRID token (required if USE_GRID=true)
  */
 
 const hre = require('hardhat');
@@ -114,9 +115,14 @@ async function main() {
 
     // Check token availability
     if (useGRID) {
+      const gridTokenAddress = process.env.GRID_TOKEN_ADDRESS || '';
+      if (!gridTokenAddress) {
+        console.error('\n❌ Set GRID_TOKEN_ADDRESS to the bridged canonical GRID on this network when USE_GRID=true.');
+        process.exit(1);
+      }
       console.log('\n💰 Checking GRID token availability...');
       const GRIDToken = await hre.ethers.getContractFactory('GRIDToken');
-      const gridToken = GRIDToken.attach('0x6c4B153eE2Fe3EfcD9CbF5D4A55e058d40Ec86a2');
+      const gridToken = GRIDToken.attach(gridTokenAddress);
       const rewardManagerBalance = await gridToken.balanceOf(rewardManagerAddress);
       console.log('   RewardManager GRID Balance:', hre.ethers.formatEther(rewardManagerBalance), 'GRID');
       

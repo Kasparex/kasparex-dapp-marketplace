@@ -11,6 +11,8 @@ import { TokenTypeSwitcher } from '@/components/tokens/TokenTypeSwitcher';
 import { NetworkSwitcher } from '@/components/NetworkSwitcher';
 import { FilterBar } from '@/components/FilterBar';
 import type { Token, TokenNetwork, TokenType } from '@/lib/tokens/types';
+import { TokenLedgerDashboard } from '@/components/tokens/TokenLedgerDashboard';
+import { getTokenLedger } from '@/lib/tokens/ledger';
 
 interface TokensPageContentProps {
   tokens: Token[];
@@ -57,6 +59,8 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
     return filtered;
   }, [tokens, searchQuery, typeFilter, networkFilter, sortField, sortDirection]);
 
+  const gridLedger = useMemo(() => getTokenLedger('grid'), []);
+
   const handleSort = (field: TokenSortField) => {
     if (sortField === field) {
       setSortDirection((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -91,6 +95,10 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
             <TokensHero />
 
             <div id="content" className="scroll-mt-4" />
+
+            <div className="mb-10">
+              <TokenLedgerDashboard snapshot={gridLedger} />
+            </div>
 
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">

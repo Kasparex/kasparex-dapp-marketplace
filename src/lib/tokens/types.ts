@@ -1,6 +1,7 @@
 /**
  * Token Type Definitions
- * Comprehensive interface for ecosystem tokens (KREX, GRID, dApp tokens, collab tokens)
+ * Comprehensive interface for ecosystem tokens (KREX, GRID, dApp tokens, collab tokens).
+ * GRID: see docs/GRID_CANONICAL_SUPPLY_MODEL.md (L1 canonical KRC-20 + bridged L2 ERC-20 representations).
  */
 
 export type TokenNetwork = 'L1' | 'L2';

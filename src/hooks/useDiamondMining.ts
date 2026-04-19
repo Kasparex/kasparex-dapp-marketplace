@@ -1,15 +1,11 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
-import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { BASE_YIELDS, getBonusForTrait, getNFTTier, type BonusType } from '@/lib/game/diamond-bonuses';
+import type { BonusType } from '@/lib/game/diamond-bonuses';
 import {
-  WORKER_TIER_MULTIPLIERS,
-  OPERATOR_TIER_MULTIPLIERS,
-  KREX_TIER_YIELD_BONUS_PCT,
   KREX_TIER_SHOP_DISCOUNT_PCT,
   DIAMOND_VEINS_GARAGE_ADDRESS,
   REFINE_MIN_DIAMONDS,
@@ -22,53 +18,39 @@ import {
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
+import {
+  applyEvent,
+  applyEvents,
+  computeYieldStats,
+  computeDiamondDropWeights,
+  hydrateTyconState,
+  createInitialTyconState,
+  type TyconGameState,
+  type ActiveBoost,
+  type MiningSlot,
+} from '@/lib/game/engine';
+import { fetchDiamondVeinsServerState, pushDiamondVeinsServerSnapshot, registerGarageReceipt } from '@/lib/game/diamond-veins-api';
 
-export interface MiningSlot {
-  type: 'worker' | 'operator' | 'booster';
-  nftId: number | null;
-  collection: string | null;
-}
-
-export interface ActiveBoost {
-  id: string;
-  type: BonusType;
-  multiplier: number;
-  endTime: number;
-  name?: string;
-  pendingVerification?: boolean;
-  txHash?: string;
-}
+export type { MiningSlot, ActiveBoost } from '@/lib/game/engine';
 
 const DIAMOND_VEINS_STORAGE_KEY = 'diamond-veins-state';
-const RECONNECT_GRACE_MS = 24 * 60 * 60 * 1000; // 24h – must reconnect at least once per day for mining to continue
+const RECONNECT_GRACE_MS = 24 * 60 * 60 * 1000;
+const SERVER_SYNC_MS = 2500;
 
-interface PersistedMiningState {
-  slots: MiningSlot[];
-  diamonds: number;
-  lastRefinedAt: number;
-  refinementPointsTotal: number;
-  miningRunEndTime: number;
-  miningRunMultiplier: number;
-  miningRunOptionIndex: number | null;
-  activeBoosts: ActiveBoost[];
-  lastConnectedAt: number | null;
-  lastConnectedAddress: string | null;
-}
-
-function loadPersistedState(): Partial<PersistedMiningState> | null {
+function loadPersistedTycon(): TyconGameState | null {
   if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(DIAMOND_VEINS_STORAGE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as PersistedMiningState;
+    const parsed = JSON.parse(raw) as Partial<TyconGameState>;
     if (!parsed || typeof parsed !== 'object') return null;
-    return parsed;
+    return hydrateTyconState(parsed);
   } catch {
     return null;
   }
 }
 
-function savePersistedState(state: PersistedMiningState) {
+function savePersistedTycon(state: TyconGameState) {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(DIAMOND_VEINS_STORAGE_KEY, JSON.stringify(state));
@@ -80,8 +62,17 @@ function savePersistedState(state: PersistedMiningState) {
 export function useDiamondMining() {
   const { state: walletState } = useKaspaWallet();
   const { balanceInKas, refresh: refreshKasBalance, isLoading: kasBalanceHookLoading } = useKaspaBalance();
-  const { nfts } = useNFTStatus();
   const { balance: krexBalance, l1Balance: krexL1Balance, tier: krexTier } = useKREXBalance();
+
+  const [tycon, setTycon] = useState<TyconGameState>(() => loadPersistedTycon() ?? createInitialTyconState());
+  const tyconRef = useRef(tycon);
+  tyconRef.current = tycon;
+
+  const [slottedMetadata, setSlottedMetadata] = useState<Record<number, ParsedNFTMetadata>>({});
+  const [buyingItemId, setBuyingItemId] = useState<string | null>(null);
+  const [lastRefineClaim, setLastRefineClaim] = useState<{ points: number; amount: number } | null>(null);
+  const metaRef = useRef(slottedMetadata);
+  metaRef.current = slottedMetadata;
 
   const canPayWithL1 =
     walletState.isConnected &&
@@ -98,78 +89,53 @@ export function useDiamondMining() {
 
   const kasBalance = balanceInKas ?? 0;
 
-  const defaultSlots: MiningSlot[] = [
-    { type: 'worker', nftId: null, collection: 'KREXPRIME' },
-    { type: 'operator', nftId: null, collection: 'PIXELKREX' },
-    { type: 'booster', nftId: null, collection: null },
-  ];
+  useEffect(() => {
+    savePersistedTycon(tycon);
+  }, [tycon]);
 
-  const [slots, setSlots] = useState<MiningSlot[]>(() => {
-    const p = loadPersistedState();
-    if (p?.slots && Array.isArray(p.slots) && p.slots.length >= 3) return p.slots;
-    return defaultSlots;
-  });
-  const [slottedMetadata, setSlottedMetadata] = useState<Record<number, ParsedNFTMetadata>>({});
-  const [diamonds, setDiamonds] = useState<number>(() => {
-    const p = loadPersistedState();
-    if (p != null && typeof p.diamonds === 'number' && p.diamonds >= 0) return p.diamonds;
-    return 0;
-  });
-  const [activeBoosts, setActiveBoosts] = useState<ActiveBoost[]>(() => {
-    const p = loadPersistedState();
-    if (p?.activeBoosts && Array.isArray(p.activeBoosts)) return p.activeBoosts;
-    return [];
-  });
-  const [lastRefinedAt, setLastRefinedAt] = useState<number>(() => {
-    const p = loadPersistedState();
-    if (p?.lastRefinedAt != null && typeof p.lastRefinedAt === 'number') return p.lastRefinedAt;
-    return Date.now();
-  });
-  const [buyingItemId, setBuyingItemId] = useState<string | null>(null);
-  const [refinementPointsTotal, setRefinementPointsTotal] = useState<number>(() => {
-    const p = loadPersistedState();
-    if (p != null && typeof p.refinementPointsTotal === 'number' && p.refinementPointsTotal >= 0) return p.refinementPointsTotal;
-    return 0;
-  });
-  const [lastRefineClaim, setLastRefineClaim] = useState<{ points: number; amount: number } | null>(null);
-  const [miningRunEndTime, setMiningRunEndTime] = useState<number>(() => {
-    const p = loadPersistedState();
-    if (p?.miningRunEndTime != null && typeof p.miningRunEndTime === 'number') return p.miningRunEndTime;
-    return 0;
-  });
-  const [miningRunMultiplier, setMiningRunMultiplier] = useState<number>(() => {
-    const p = loadPersistedState();
-    if (p?.miningRunMultiplier != null && typeof p.miningRunMultiplier === 'number') return p.miningRunMultiplier;
-    return 1;
-  });
-  const [miningRunOptionIndex, setMiningRunOptionIndex] = useState<number | null>(() => {
-    const p = loadPersistedState();
-    if (p?.miningRunOptionIndex != null && typeof p.miningRunOptionIndex === 'number') return p.miningRunOptionIndex;
-    return null;
-  });
-  const [lastConnectedAt, setLastConnectedAt] = useState<number | null>(() => {
-    const p = loadPersistedState();
-    if (p?.lastConnectedAt != null && typeof p.lastConnectedAt === 'number') return p.lastConnectedAt;
-    return null;
-  });
-  const [lastConnectedAddress, setLastConnectedAddress] = useState<string | null>(() => {
-    const p = loadPersistedState();
-    if (p?.lastConnectedAddress != null && typeof p.lastConnectedAddress === 'string') return p.lastConnectedAddress;
-    return null;
-  });
-
-  // When wallet connects, update last-connected time for 24h mining grace
   useEffect(() => {
     if (walletState.isConnected && walletState.address) {
       const now = Date.now();
-      setLastConnectedAt(now);
-      setLastConnectedAddress(walletState.address);
+      setTycon((s) =>
+        applyEvent(s, {
+          type: 'HeartbeatConnect',
+          address: walletState.address!,
+          at: now,
+        })
+      );
     }
   }, [walletState.isConnected, walletState.address]);
 
   useEffect(() => {
+    const addr = walletState.address;
+    if (!addr || !walletState.isConnected) return;
+    let cancelled = false;
+    void (async () => {
+      const remote = await fetchDiamondVeinsServerState(addr);
+      if (cancelled || !remote) return;
+      setTycon((local) => (remote.version > local.version ? hydrateTyconState(remote) : local));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [walletState.address, walletState.isConnected]);
+
+  useEffect(() => {
+    const addr = walletState.address;
+    if (!addr || !walletState.isConnected) return;
+    const t = setTimeout(() => {
+      void pushDiamondVeinsServerSnapshot(addr, tyconRef.current).then((res) => {
+        if (res?.state && res.state.version >= tyconRef.current.version) {
+          setTycon(hydrateTyconState(res.state));
+        }
+      });
+    }, SERVER_SYNC_MS);
+    return () => clearTimeout(t);
+  }, [tycon, walletState.address, walletState.isConnected]);
+
+  useEffect(() => {
     const fetchMetadata = async () => {
-      for (const slot of slots) {
+      for (const slot of tycon.slots) {
         if (slot.nftId !== null && !slottedMetadata[slot.nftId] && slot.collection) {
           try {
             const meta = await fetchNFTMetadata(slot.collection, slot.nftId);
@@ -182,107 +148,48 @@ export function useDiamondMining() {
         }
       }
     };
+    void fetchMetadata();
+  }, [tycon.slots]);
 
-    fetchMetadata();
-  }, [slots, slottedMetadata]);
+  const stats = useMemo(
+    () => computeYieldStats(tycon, krexTier, slottedMetadata),
+    [tycon, krexTier, slottedMetadata]
+  );
 
-  const stats = useMemo(() => {
-    let yieldPerSecond = 0;
-    let totalMultiplier = 1;
-
-    const workerSlot = slots.find((s) => s.type === 'worker');
-    if (workerSlot && workerSlot.nftId !== null && workerSlot.collection) {
-      const baseYield = BASE_YIELDS.WORKER_BASE;
-      const meta = slottedMetadata[workerSlot.nftId];
-      const tier = getNFTTier(workerSlot.collection, workerSlot.nftId, meta);
-      const tierMult = WORKER_TIER_MULTIPLIERS[tier];
-      yieldPerSecond = baseYield * tierMult;
-
-      meta?.traits?.forEach((trait) => {
-        const bonus = getBonusForTrait(String(trait.value));
-        if (bonus?.type === 'yield') yieldPerSecond += BASE_YIELDS.WORKER_BASE * bonus.value;
-        if (bonus?.type === 'efficiency') yieldPerSecond += BASE_YIELDS.WORKER_BASE * (bonus.value / 2);
-      });
-    }
-
-    const operatorSlot = slots.find((s) => s.type === 'operator');
-    if (operatorSlot && operatorSlot.nftId !== null && operatorSlot.collection) {
-      const meta = slottedMetadata[operatorSlot.nftId];
-      const tier = getNFTTier(operatorSlot.collection, operatorSlot.nftId, meta);
-      const tierMult = OPERATOR_TIER_MULTIPLIERS[tier];
-      totalMultiplier *= tierMult;
-
-      meta?.traits?.forEach((trait) => {
-        const bonus = getBonusForTrait(String(trait.value));
-        if (bonus?.type === 'speed') totalMultiplier += bonus.value;
-      });
-    }
-
-    const krexBonusPct = KREX_TIER_YIELD_BONUS_PCT[krexTier] ?? 0;
-    const krexMult = 1 + krexBonusPct / 100;
-    yieldPerSecond *= krexMult;
-
-    const now = Date.now();
-    activeBoosts.forEach((boost) => {
-      if (boost.endTime > now) {
-        if (boost.type === 'yield') yieldPerSecond *= 1 + boost.multiplier;
-        if (boost.type === 'speed') totalMultiplier *= 1 + boost.multiplier;
-        if (boost.type === 'efficiency') yieldPerSecond *= 1 + boost.multiplier;
-        if (boost.type === 'luck') totalMultiplier *= 1 + boost.multiplier;
-      }
-    });
-
-    let finalYield = yieldPerSecond * totalMultiplier;
-    if (miningRunEndTime > now) finalYield *= miningRunMultiplier;
-
-    return {
-      yieldPerSecond: finalYield,
-      totalMultiplier,
-      rawYield: yieldPerSecond,
-    };
-  }, [slots, slottedMetadata, activeBoosts, krexTier, miningRunEndTime, miningRunMultiplier]);
-
-  // Mining continues when connected or within 24h of last connect (reconnect-at-least-once-per-day rule)
   const miningAllowed = useMemo(() => {
     if (walletState.isConnected) return true;
-    if (lastConnectedAt == null) return false;
-    return Date.now() - lastConnectedAt <= RECONNECT_GRACE_MS;
-  }, [walletState.isConnected, lastConnectedAt]);
+    if (tycon.lastConnectedAt == null) return false;
+    return Date.now() - tycon.lastConnectedAt <= RECONNECT_GRACE_MS;
+  }, [walletState.isConnected, tycon.lastConnectedAt]);
 
   useEffect(() => {
     if (stats.yieldPerSecond === 0 || !miningAllowed) return;
-
     const interval = setInterval(() => {
-      setDiamonds((prev) => prev + stats.yieldPerSecond);
+      setTycon((s) => {
+        const st = computeYieldStats(s, krexTier, metaRef.current);
+        if (st.yieldPerSecond === 0) return s;
+        const w = computeDiamondDropWeights(s, metaRef.current);
+        return applyEvent(s, {
+          type: 'DistributeDiamondDelta',
+          delta: st.yieldPerSecond,
+          weights: w,
+          at: Date.now(),
+        });
+      });
     }, 1000);
-
     return () => clearInterval(interval);
-  }, [stats.yieldPerSecond, miningAllowed]);
-
-  // Persist state so mining and counts survive refresh and disconnect
-  useEffect(() => {
-    savePersistedState({
-      slots,
-      diamonds,
-      lastRefinedAt,
-      refinementPointsTotal,
-      miningRunEndTime,
-      miningRunMultiplier,
-      miningRunOptionIndex,
-      activeBoosts,
-      lastConnectedAt,
-      lastConnectedAddress,
-    });
-  }, [slots, diamonds, lastRefinedAt, refinementPointsTotal, miningRunEndTime, miningRunMultiplier, miningRunOptionIndex, activeBoosts, lastConnectedAt, lastConnectedAddress]);
+  }, [stats.yieldPerSecond, miningAllowed, krexTier, tycon.slots, tycon.activeBoosts, tycon.machines, tycon.powerCapMw, tycon.miningRunEndTime, tycon.miningRunMultiplier]);
 
   const deployNFT = useCallback((slotIndex: number, nftId: number, collection: string) => {
-    setSlots((prev) => {
-      const newSlots = [...prev];
-      newSlots[slotIndex] = { ...newSlots[slotIndex], nftId, collection };
-      return newSlots;
-    });
-
-    (window as any).dispatchEvent(
+    setTycon((s) =>
+      applyEvent(s, {
+        type: 'DeployNFT',
+        slotIndex,
+        nftId,
+        collection,
+      })
+    );
+    (window as Window & { dispatchEvent: typeof window.dispatchEvent }).dispatchEvent(
       new CustomEvent('record-transaction', {
         detail: {
           type: 'deploy-nft',
@@ -296,21 +203,19 @@ export function useDiamondMining() {
   }, []);
 
   const removeSlot = useCallback((slotIndex: number) => {
-    setSlots((prev) => {
-      const newSlots = [...prev];
-      newSlots[slotIndex] = { ...newSlots[slotIndex], nftId: null, collection: newSlots[slotIndex].type === 'worker' ? 'KREXPRIME' : newSlots[slotIndex].type === 'operator' ? 'PIXELKREX' : null };
-      return newSlots;
-    });
+    setTycon((s) => applyEvent(s, { type: 'RemoveSlot', slotIndex }));
   }, []);
 
   const refineDiamonds = useCallback(async (): Promise<{ points: number; amount: number } | null> => {
-    if (diamonds < REFINE_MIN_DIAMONDS) return null;
+    const prev = tyconRef.current;
+    if (prev.diamonds < REFINE_MIN_DIAMONDS) return null;
+    const at = Date.now();
+    const next = applyEvent(prev, { type: 'Refine', at });
+    const lastEntry = next.gridLedger[next.gridLedger.length - 1];
+    const refinementPoints = lastEntry?.refinementPoints ?? 0;
+    const amount = lastEntry?.diamondsRefined ?? Math.floor(prev.diamonds);
 
-    const amount = Math.floor(diamonds);
-    const timeSinceLastRefine = (Date.now() - lastRefinedAt) / 1000;
-    const refinementPoints = Math.floor(amount * (1 + Math.min(timeSinceLastRefine / 3600, 0.5)));
-
-    (window as any).dispatchEvent(
+    (window as Window & { dispatchEvent: typeof window.dispatchEvent }).dispatchEvent(
       new CustomEvent('record-transaction', {
         detail: {
           type: 'diamond-refine',
@@ -322,12 +227,27 @@ export function useDiamondMining() {
       })
     );
 
-    setDiamonds(0);
-    setLastRefinedAt(Date.now());
-    setRefinementPointsTotal((prev) => prev + refinementPoints);
+    const syntheticTx =
+      typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function'
+        ? Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, '0')).join('')
+        : `${at}`.padStart(64, '0');
+    void fetch('/api/rewards/l1/record', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        txHash: syntheticTx,
+        userAddress: walletState.address ?? '',
+        dappId: 'diamond-veins',
+        actionType: 'refine',
+        actionValue: refinementPoints,
+        network: 'L1' as const,
+      }),
+    }).catch(() => {});
+
+    setTycon(next);
     setLastRefineClaim({ points: refinementPoints, amount });
     return { points: refinementPoints, amount };
-  }, [diamonds, lastRefinedAt, walletState.address]);
+  }, [walletState.address]);
 
   const getPriceAfterDiscount = useCallback(
     (priceKrex: number) => {
@@ -335,6 +255,54 @@ export function useDiamondMining() {
       return Math.max(0, Math.floor(priceKrex * (1 - discountPct / 100)));
     },
     [krexTier]
+  );
+
+  const applyGaragePurchase = useCallback(
+    async (
+      itemId: string,
+      name: string,
+      type: BonusType,
+      multiplier: number,
+      txHash: string,
+      currency: 'KREX' | 'KAS',
+      amount: number
+    ) => {
+      const receiptId = `${currency}:${txHash}`;
+      const boost: ActiveBoost = {
+        id: `${itemId}-${Date.now()}`,
+        type,
+        multiplier,
+        endTime: Date.now() + 3600000,
+        name,
+        pendingVerification: true,
+        txHash,
+      };
+      const addr = walletState.address;
+      if (addr) {
+        const prev = tyconRef.current;
+        const res = await registerGarageReceipt({
+          address: addr,
+          state: prev,
+          receiptId,
+          txHash,
+          currency,
+          amount,
+          itemId,
+          boost,
+        });
+        if ('state' in res) {
+          setTycon(hydrateTyconState(res.state));
+          return;
+        }
+      }
+      setTycon((s) =>
+        applyEvents(s, [
+          { type: 'RegisterReceipt', receiptId, at: Date.now() },
+          { type: 'AddBoost', boost },
+        ])
+      );
+    },
+    [walletState.address]
   );
 
   const buyBoost = useCallback(
@@ -371,17 +339,7 @@ export function useDiamondMining() {
           priorityFeeKAS
         );
 
-        const boost: ActiveBoost = {
-          id: `${itemId}-${Date.now()}`,
-          type,
-          multiplier,
-          endTime: Date.now() + 3600000,
-          name,
-          pendingVerification: true,
-          txHash,
-        };
-
-        (window as any).dispatchEvent(
+        (window as Window & { dispatchEvent: typeof window.dispatchEvent }).dispatchEvent(
           new CustomEvent('record-transaction', {
             detail: {
               type: 'garage-purchase',
@@ -394,7 +352,7 @@ export function useDiamondMining() {
           })
         );
 
-        setActiveBoosts((prev) => [...prev, boost]);
+        await applyGaragePurchase(itemId, name, type, multiplier, txHash, 'KREX', priceAfterDiscount);
       } catch (err) {
         console.error('[Diamond Veins] Garage purchase failed:', err);
         throw err;
@@ -402,7 +360,7 @@ export function useDiamondMining() {
         setBuyingItemId(null);
       }
     },
-    [walletState.isConnected, canPayWithL1, walletState.provider, krexL1Balance, getPriceAfterDiscount]
+    [walletState.isConnected, canPayWithL1, walletState.provider, krexL1Balance, getPriceAfterDiscount, applyGaragePurchase]
   );
 
   const buyBoostWithKAS = useCallback(
@@ -428,17 +386,7 @@ export function useDiamondMining() {
         }
         const txHash = sent.txHash;
 
-        const boost: ActiveBoost = {
-          id: `${itemId}-${Date.now()}`,
-          type,
-          multiplier,
-          endTime: Date.now() + 3600000,
-          name,
-          pendingVerification: true,
-          txHash,
-        };
-
-        (window as any).dispatchEvent(
+        (window as Window & { dispatchEvent: typeof window.dispatchEvent }).dispatchEvent(
           new CustomEvent('record-transaction', {
             detail: {
               type: 'garage-purchase',
@@ -451,7 +399,7 @@ export function useDiamondMining() {
           })
         );
 
-        setActiveBoosts((prev) => [...prev, boost]);
+        await applyGaragePurchase(itemId, name, type, multiplier, txHash, 'KAS', priceKAS);
         void refreshKasBalance();
       } catch (err) {
         console.error('[Diamond Veins] Garage KAS purchase failed:', err);
@@ -460,15 +408,50 @@ export function useDiamondMining() {
         setBuyingItemId(null);
       }
     },
-    [walletState.isConnected, canPayWithL1, walletState.provider, kasBalance, refreshKasBalance]
+    [walletState.isConnected, canPayWithL1, walletState.provider, kasBalance, refreshKasBalance, applyGaragePurchase]
   );
 
+  const startMiningRun = useCallback((optionIndex: number) => {
+    const opt = MINING_RUN_OPTIONS[optionIndex];
+    if (!opt) return;
+    const now = Date.now();
+    setTycon((s) =>
+      applyEvent(s, {
+        type: 'StartMiningRun',
+        optionIndex,
+        at: now,
+        durationMs: opt.durationMs,
+        mult: opt.mult,
+      })
+    );
+  }, []);
+
+  const setAutoRestartMiningRun = useCallback((enabled: boolean) => {
+    setTycon((s) => applyEvent(s, { type: 'SetAutomation', patch: { autoRestartMiningRun: enabled } }));
+  }, []);
+
+  const buyExtraDrill = useCallback(() => {
+    setTycon((s) =>
+      applyEvent(s, {
+        type: 'AddMachine',
+        machine: { id: 'surface-drill-mk1', count: 1, powerPerUnit: 2, yieldPerUnit: 0.12 },
+      })
+    );
+  }, []);
+
+  const buyPowerUpgrade = useCallback(() => {
+    setTycon((s) => applyEvent(s, { type: 'UpgradePower', addedMw: 4 }));
+  }, []);
+
   return {
-    diamonds,
-    slots,
+    tycon,
+    diamonds: tycon.diamonds,
+    diamondInventory: tycon.diamondInventory,
+    slots: tycon.slots,
     stats,
-    activeBoosts,
+    activeBoosts: tycon.activeBoosts,
     deployNFT,
+    removeSlot,
     refineDiamonds,
     buyBoost,
     buyBoostWithKAS,
@@ -483,23 +466,33 @@ export function useDiamondMining() {
     revenuePoolPct: Math.round(GARAGE_REVENUE_TO_POOL_PCT * 100),
     buyingItemId,
     canPayWithL1,
-    refinementPointsTotal,
+    refinementPointsTotal: tycon.refinementPointsTotal,
     lastRefineClaim,
     clearLastRefineClaim: () => setLastRefineClaim(null),
     kasBalanceLoading: canPayWithL1 && kasBalanceHookLoading && balanceInKas === null,
     refreshKasBalance,
-    removeSlot,
-    miningRun: miningRunEndTime > Date.now() ? { endTime: miningRunEndTime, multiplier: miningRunMultiplier, optionIndex: miningRunOptionIndex, option: miningRunOptionIndex != null ? MINING_RUN_OPTIONS[miningRunOptionIndex] : null } : null,
-    startMiningRun: (optionIndex: number) => {
-      const opt = MINING_RUN_OPTIONS[optionIndex];
-      if (opt) {
-        setMiningRunEndTime(Date.now() + opt.durationMs);
-        setMiningRunMultiplier(opt.mult);
-        setMiningRunOptionIndex(optionIndex);
-      }
-    },
+    miningRun:
+      tycon.miningRunEndTime > Date.now()
+        ? {
+            endTime: tycon.miningRunEndTime,
+            multiplier: tycon.miningRunMultiplier,
+            optionIndex: tycon.miningRunOptionIndex,
+            option: tycon.miningRunOptionIndex != null ? MINING_RUN_OPTIONS[tycon.miningRunOptionIndex] : null,
+          }
+        : null,
+    startMiningRun,
     miningRunOptions: MINING_RUN_OPTIONS,
     miningAllowed,
-    reconnectRequiredBy: lastConnectedAt != null && !walletState.isConnected && Date.now() - lastConnectedAt > RECONNECT_GRACE_MS,
+    reconnectRequiredBy:
+      tycon.lastConnectedAt != null &&
+      !walletState.isConnected &&
+      Date.now() - tycon.lastConnectedAt > RECONNECT_GRACE_MS,
+    machines: tycon.machines,
+    powerCapMw: tycon.powerCapMw,
+    automation: tycon.automation,
+    gridLedger: tycon.gridLedger,
+    setAutoRestartMiningRun,
+    buyExtraDrill,
+    buyPowerUpgrade,
   };
 }

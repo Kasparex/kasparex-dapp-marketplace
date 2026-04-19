@@ -13,7 +13,7 @@
  * 
  * Environment Variables:
  *   AMOUNT - Amount of GRID tokens to transfer (default: 10000)
- *   GRID_TOKEN_ADDRESS - GRID token contract address (default: from addresses.ts)
+ *   GRID_TOKEN_ADDRESS - Bridged canonical GRID token address (required; no legacy default)
  *   REWARD_MANAGER_ADDRESS - RewardManager contract address (default: from addresses.ts)
  */
 
@@ -27,8 +27,12 @@ async function main() {
   const network = hre.network.name;
   console.log(`Network: ${network}\n`);
 
-  // Get contract addresses
-  const gridTokenAddress = process.env.GRID_TOKEN_ADDRESS || '0x6c4B153eE2Fe3EfcD9CbF5D4A55e058d40Ec86a2';
+  // Get contract addresses (canonical GRID via env — legacy testnet GRID not used)
+  const gridTokenAddress = process.env.GRID_TOKEN_ADDRESS || '';
+  if (!gridTokenAddress) {
+    console.error('Set GRID_TOKEN_ADDRESS to the bridged GRID token on this network.');
+    process.exit(1);
+  }
   const rewardVaultAddress = process.env.REWARD_VAULT_ADDRESS || '0x59e49E4f60397CC1C2F0eB3d7ebcF9C9c8AACCAD';
   const rewardManagerAddress = process.env.REWARD_MANAGER_ADDRESS || '0x2044FEb08a4Cb14Ff736b00f947E017044da50E6';
   

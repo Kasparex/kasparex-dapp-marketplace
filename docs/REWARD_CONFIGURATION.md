@@ -64,7 +64,8 @@ USE_GRID=true npm run hardhat:configure:rewards
 **Fund RewardManager:**
 ```javascript
 const GRIDToken = await ethers.getContractFactory('GRIDToken');
-const gridToken = GRIDToken.attach('0x6c4B153eE2Fe3EfcD9CbF5D4A55e058d40Ec86a2');
+// Use bridged canonical GRID for the target L2 (see docs/GRID_L2_BRIDGED_KATBRIDGE_DEPLOYMENT.md)
+const gridToken = GRIDToken.attach(process.env.GRID_TOKEN_ADDRESS);
 const rewardManager = '0x2044FEb08a4Cb14Ff736b00f947E017044da50E6';
 
 // Transfer GRID to RewardManager

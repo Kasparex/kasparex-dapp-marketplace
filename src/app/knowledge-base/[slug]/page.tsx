@@ -155,7 +155,7 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
       {
         id: 'what-is-grid',
         title: 'What is GRID?',
-        content: 'GRID (Global Reward Token) is the primary reward token in the Kasparex ecosystem. It is earned through various activities including running KREX Nodes, using dApps, and participating in the marketplace.',
+        content: 'GRID (Global Reward Token) has a fixed supply of 10B on Kaspa L1. L2 deployments are operational layers used for rewards and utility across Kasparex dApps. GRID is earned through activity like using dApps and participating in the ecosystem.',
       },
       {
         id: 'uses',

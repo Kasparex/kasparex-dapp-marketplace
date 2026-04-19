@@ -94,13 +94,15 @@ const CONTRACT_METADATA: Partial<Record<ContractKey, ContractMetadataEntry>> = {
     linksTo: ['FeeCollector', 'PlatformSubscription', 'DAppSubscription'],
   },
   GRIDToken: {
-    description: 'ERC-20 GRID token for rewards and ecosystem.',
+    description:
+      'ERC-20 GRID on an EVM L2 (e.g. Kasplex): bridged representation of canonical GRID; same brand/supply story as L1 KRC-20. See docs/GRID_CANONICAL_SUPPLY_MODEL.md.',
     category: 'tokens',
     linksTo: ['RewardManager', 'RewardVault'],
     params: ['symbol'],
   },
   tGRID: {
-    description: 'Testnet GRID token (e.g. on IGRA Galleon).',
+    description:
+      'Test or alternate GRID ERC-20 on Igra (e.g. Galleon); treat as official bridged GRID only if minting is tied to the same canonical supply/bridge.',
     category: 'tokens',
     linksTo: ['RewardManager'],
     params: ['symbol'],

@@ -133,7 +133,7 @@ export function DAppFeesModal({ dapp, clickable = true }: DAppFeesModalProps) {
                 </p>
                 <ul className="text-xs text-zinc-600 dark:text-zinc-400 space-y-2 mb-3 list-disc list-inside">
                   <li>
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">GRID (Global Reward Token):</span> Earned across the entire Kasparex ecosystem. Max supply: 100B. Holding KREX and NFTs multiplies your GRID rewards.
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">GRID (Global Reward Token):</span> Earned across the entire Kasparex ecosystem. Fixed supply: 10B on Kaspa L1. L2 deployments are operational layers used for rewards and utility.
                   </li>
                   <li>
                     <span className="font-semibold text-zinc-900 dark:text-zinc-100">XP Points:</span> Earned with every action. Unlock perks and badges as you level up.

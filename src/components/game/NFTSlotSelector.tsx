@@ -7,7 +7,7 @@ import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { fetchNFTMetadata } from '@/lib/nft/metadata';
 import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
 import type { UserNFT } from '@/lib/nft/nft-query';
-import type { MiningSlot } from '@/hooks/useDiamondMining';
+import type { MiningSlot } from '@/lib/game/engine';
 import { LazyImg } from '@/components/ui/LazyImg';
 
 const KREXPRIME_KASPACOM = 'https://www.kaspa.com/nft/collections/KREXPRIME';
@@ -33,8 +33,8 @@ function useNFTsWithTier(
   const filtered = useMemo(() => {
     if (!slot) return [];
     return nfts.filter((nft) => {
-      if (slot.type === 'worker') return nft.collection === 'KREXPRIME';
-      if (slot.type === 'operator') return nft.collection === 'PIXELKREX';
+      if (slot.type === 'worker' || slot.type === 'engineer') return nft.collection === 'KREXPRIME';
+      if (slot.type === 'operator' || slot.type === 'foreman') return nft.collection === 'PIXELKREX';
       return true;
     });
   }, [nfts, slot]);
@@ -108,13 +108,24 @@ const SLOT_DESCRIPTIONS: Record<string, { title: string; body: string; collectio
     body: 'Reserved for future partner collections. No NFT is required for now; your yield comes from the Worker and Operator slots.',
     collection: 'Any',
   },
+  foreman: {
+    title: 'Foreman slot',
+    body: 'Deploy a PIXELKREX NFT as Foreman to unlock automation perks (auto-restart mining runs, up to daily caps). Higher rarity improves yield slightly.',
+    collection: 'PIXELKREX',
+  },
+  engineer: {
+    title: 'Engineer slot',
+    body: 'Deploy a KREXPRIME NFT as Engineer for a small efficiency boost to your operation and future repair bonuses.',
+    collection: 'KREXPRIME',
+  },
 };
 
 export function NFTSlotSelector({ slotIndex, slot, allSlots, isOpen, onClose, onDeploy, onRemove }: NFTSlotSelectorProps) {
   const { nfts, isLoading } = useNFTStatus();
   const nftsWithTier = useNFTsWithTier(nfts, slot ?? undefined, isOpen);
   const slotInfo = slot ? SLOT_DESCRIPTIONS[slot.type] ?? null : null;
-  const hasCompatibleNFTs = slot?.type === 'worker' || slot?.type === 'operator';
+  const hasCompatibleNFTs =
+    slot?.type === 'worker' || slot?.type === 'operator' || slot?.type === 'foreman' || slot?.type === 'engineer';
   const showBuyLinks = !isLoading && nftsWithTier.length === 0 && hasCompatibleNFTs;
 
   // Any NFT deployed in any slot (including this one) is "in use" globally until removed
@@ -199,7 +210,7 @@ export function NFTSlotSelector({ slotIndex, slot, allSlots, isOpen, onClose, on
                       Buy KREXPRIME on KaspaCom
                     </a>
                   )}
-                  {slot?.type === 'operator' && (
+                  {(slot?.type === 'operator' || slot?.type === 'foreman') && (
                     <a
                       href={PIXELKREX_KASPACOM}
                       target="_blank"
@@ -207,6 +218,16 @@ export function NFTSlotSelector({ slotIndex, slot, allSlots, isOpen, onClose, on
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30 transition-colors"
                     >
                       Buy PIXELKREX on KaspaCom
+                    </a>
+                  )}
+                  {slot?.type === 'engineer' && (
+                    <a
+                      href={KREXPRIME_KASPACOM}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30 transition-colors"
+                    >
+                      Buy KREXPRIME on KaspaCom
                     </a>
                   )}
                 </div>
