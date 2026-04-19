@@ -3,8 +3,13 @@
  * Garage address, NFT diamond/rarest IDs, KREX tier bonuses, revenue pool.
  */
 
-/** L1 KREX recipient for Garage shop (Diamond Veins). */
-export const DIAMOND_VEINS_GARAGE_ADDRESS = 'kaspa:qry6yp5hugn7ln3j6q3x7czaf2pammunpsqkelk58s4gjd3n45dwsfrqtefhc';
+/**
+ * L1 recipient for Diamond Veins payments (Garage / boosts).
+ * Override via `NEXT_PUBLIC_DIAMOND_VEINS_TREASURY_ADDRESS`.
+ */
+export const DIAMOND_VEINS_GARAGE_ADDRESS =
+  process.env.NEXT_PUBLIC_DIAMOND_VEINS_TREASURY_ADDRESS?.trim()
+  || 'kaspa:qr54v0692g4csc45z6phshyh2twy5dv73mylx5uqjtpphynvg70vksky9xffw';
 
 /** KREXPRIME Diamond NFT IDs by element (from plan Section 9). */
 export const KREXPRIME_DIAMOND_IDS_BY_ELEMENT = {

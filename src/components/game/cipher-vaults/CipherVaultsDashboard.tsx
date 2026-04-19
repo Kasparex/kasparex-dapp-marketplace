@@ -6,6 +6,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useCipherVaults } from '@/hooks/useCipherVaults';
 import { CIPHER_TICKET_REDEEM_RATE_POINTS, CIPHER_VAULTS_TREASURY_ADDRESS, CIPHER_VAULT_TIERS, type CipherVaultTierId } from '@/lib/game/cipher-vaults-config';
 import { CipherGridPuzzle } from './CipherGridPuzzle';
+import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
@@ -41,16 +42,21 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
   const tier = useMemo(() => CIPHER_VAULT_TIERS.find((t) => t.id === tierId)!, [tierId]);
 
   return (
+    <TooltipProvider>
     <div className="grid h-full grid-cols-1 gap-8 lg:grid-cols-12">
       <div className="flex flex-col space-y-6 lg:col-span-8">
         <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-zinc-100 p-4 text-base dark:border-zinc-800 dark:bg-zinc-900/60">
           <div className="flex flex-wrap items-center gap-6">
             <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">Cipher Tickets</span>
-            <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-              {tickets.available.toLocaleString()} <span className="text-zinc-500 dark:text-zinc-400 font-semibold">avail</span>
-            </span>
+            <Tooltip content="Tickets let you start a vault run without paying KAS. Earn them by redeeming Diamond Veins refinement points.">
+              <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400 cursor-help">
+                {tickets.available.toLocaleString()} <span className="text-zinc-500 dark:text-zinc-400 font-semibold">avail</span>
+              </span>
+            </Tooltip>
             <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">Treasury</span>
-            <span className="font-mono text-xs text-zinc-600 dark:text-zinc-400">{CIPHER_VAULTS_TREASURY_ADDRESS}</span>
+            <Tooltip content="Entry fees are sent here on L1. You can override this address via NEXT_PUBLIC_CIPHER_VAULTS_TREASURY_ADDRESS.">
+              <span className="font-mono text-xs text-zinc-600 dark:text-zinc-400 cursor-help">{CIPHER_VAULTS_TREASURY_ADDRESS}</span>
+            </Tooltip>
           </div>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
             Pay entry on L1 · later claim GRID on L2 via{' '}
@@ -95,6 +101,13 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
               <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mb-2">Diamond Veins bridge</h3>
               <p className="text-sm text-zinc-600 dark:text-zinc-400">
                 Redeem Diamond Veins <strong>refinement points</strong> into Cipher Tickets: <strong>{CIPHER_TICKET_REDEEM_RATE_POINTS} pts</strong> = <strong>1 ticket</strong>.
+              </p>
+              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                Need points? Start mining in{' '}
+                <Link href="/games/diamond-veins" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
+                  Diamond Veins
+                </Link>
+                .
               </p>
             </div>
           </div>
@@ -196,6 +209,11 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
                       setSubmitting(false);
                     }
                   }}
+                  onFailed={() => {
+                    setToast('Out of moves. Start a new run to try again.');
+                    setPuzzle(null);
+                    setActiveRunId(null);
+                  }}
                 />
                 {submitting && <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-500">Verifying…</p>}
               </div>
@@ -212,6 +230,13 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
               </p>
               <p className="text-xs text-zinc-500 dark:text-zinc-500">
                 Tickets earned are tracked inside Cipher Vaults. This V1 redemption does not burn points in Diamond Veins yet.
+              </p>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Earn refinement points by playing{' '}
+                <Link href="/games/diamond-veins" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
+                  Diamond Veins
+                </Link>
+                .
               </p>
               <div className="flex flex-wrap items-center gap-2">
                 <input
@@ -360,6 +385,7 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
         </div>
       </div>
     </div>
+    </TooltipProvider>
   );
 }
 

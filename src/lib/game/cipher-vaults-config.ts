@@ -1,8 +1,12 @@
-import { DIAMOND_VEINS_GARAGE_ADDRESS } from '@/lib/game/diamond-veins-config';
-
 /** L1 KAS recipient for Cipher Vault entry fees. Override via `NEXT_PUBLIC_CIPHER_VAULTS_TREASURY_ADDRESS`. */
 export const CIPHER_VAULTS_TREASURY_ADDRESS =
-  process.env.NEXT_PUBLIC_CIPHER_VAULTS_TREASURY_ADDRESS?.trim() || DIAMOND_VEINS_GARAGE_ADDRESS;
+  process.env.NEXT_PUBLIC_CIPHER_VAULTS_TREASURY_ADDRESS?.trim()
+  || 'kaspa:qr54v0692g4csc45z6phshyh2twy5dv73mylx5uqjtpphynvg70vksky9xffw';
+
+/** Rewards wallet (future on-chain distributions). Override via `NEXT_PUBLIC_REWARDS_ADDRESS`. */
+export const KASPA_REWARDS_ADDRESS =
+  process.env.NEXT_PUBLIC_REWARDS_ADDRESS?.trim()
+  || 'kaspa:qzsjrd50vw36g4aj7ufj2d9a4fhewehaegxm7xmlt7jntlx6dpv2q77jl6fkn';
 
 export const CIPHER_TICKET_REDEEM_RATE_POINTS = 100; // 100 refinement points = 1 ticket
 
