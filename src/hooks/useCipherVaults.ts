@@ -56,6 +56,17 @@ async function pushServerState(address: string, state: CipherVaultsState): Promi
   }
 }
 
+async function fetchCurrentRun(address: string): Promise<{ run: any; puzzle?: { size: number; initial: number[]; target: number[]; moveLimit: number } } | null> {
+  try {
+    const r = await fetch(`/api/games/cipher-vaults/run/current?address=${encodeURIComponent(address)}`);
+    const j = (await r.json()) as any;
+    if (!j?.ok) return null;
+    return j as { run: any; puzzle?: { size: number; initial: number[]; target: number[]; moveLimit: number } };
+  } catch {
+    return null;
+  }
+}
+
 export function useCipherVaults() {
   const { state: walletState } = useKaspaWallet();
   const canPayWithL1 =
@@ -165,6 +176,12 @@ export function useCipherVaults() {
     [walletState.isConnected, walletState.address]
   );
 
+  const loadActiveRun = useCallback(async () => {
+    const addr = walletState.address;
+    if (!walletState.isConnected || !addr) return null;
+    return await fetchCurrentRun(addr);
+  }, [walletState.isConnected, walletState.address]);
+
   const cancelRun = useCallback(
     async (runId?: string) => {
       const addr = walletState.address;
@@ -238,6 +255,7 @@ export function useCipherVaults() {
     tickets,
     startRun,
     submitRun,
+    loadActiveRun,
     cancelRun,
     redeemRefinement,
     fetchDiamondVeinsRefinementPoints,

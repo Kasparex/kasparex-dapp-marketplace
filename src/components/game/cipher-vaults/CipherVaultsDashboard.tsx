@@ -19,7 +19,7 @@ type TabId = (typeof TABS)[number]['id'];
 
 export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', gameDescription = '' }: { featuredImage?: string; loreStory?: string; gameDescription?: string }) {
   const { state: walletState } = useKaspaWallet();
-  const { state, tickets, canPayWithL1, startRun, submitRun, cancelRun, redeemRefinement, fetchDiamondVeinsRefinementPoints } = useCipherVaults();
+  const { state, tickets, canPayWithL1, startRun, submitRun, loadActiveRun, cancelRun, redeemRefinement, fetchDiamondVeinsRefinementPoints } = useCipherVaults();
 
   const [tab, setTab] = useState<TabId>('vaults');
   const [tierId, setTierId] = useState<CipherVaultTierId>('t1');
@@ -38,6 +38,21 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
     if (!walletState.isConnected) return;
     void fetchDiamondVeinsRefinementPoints().then((pts) => setRedeemablePoints(pts));
   }, [walletState.isConnected, fetchDiamondVeinsRefinementPoints, state.version]);
+
+  useEffect(() => {
+    if (!walletState.isConnected) return;
+    if (puzzle && activeRunId) return;
+    void (async () => {
+      const cur = await loadActiveRun();
+      if (cur?.run?.runId && cur?.puzzle) {
+        setActiveRunId(cur.run.runId);
+        setPuzzle(cur.puzzle);
+        setToast('Resumed your active run.');
+      }
+    })();
+    // only on connect + when not currently showing a puzzle
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [walletState.isConnected]);
 
   const redeemableRemaining = Math.max(0, redeemablePoints - (state.redeemedRefinementPointsTotal ?? 0));
 
@@ -194,6 +209,29 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
                 <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-200">
                   You have an active run in progress. Finish it (submit) or end it to start a new paid attempt.
                   <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      className="k-control-btn"
+                      onClick={async () => {
+                        setToast(null);
+                        try {
+                          const cur = await loadActiveRun();
+                          if (cur?.run?.runId && cur?.puzzle) {
+                            setActiveRunId(cur.run.runId);
+                            setPuzzle(cur.puzzle);
+                            setToast('Loaded your active run.');
+                          } else {
+                            setToast('No active run found.');
+                            setActiveRunId(null);
+                            setPuzzle(null);
+                          }
+                        } catch (e: any) {
+                          setToast(e?.message || 'Failed to load run');
+                        }
+                      }}
+                    >
+                      Resume run
+                    </button>
                     <button
                       type="button"
                       className="k-control-btn"
