@@ -39,6 +39,8 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
     void fetchDiamondVeinsRefinementPoints().then((pts) => setRedeemablePoints(pts));
   }, [walletState.isConnected, fetchDiamondVeinsRefinementPoints, state.version]);
 
+  const redeemableRemaining = Math.max(0, redeemablePoints - (state.redeemedRefinementPointsTotal ?? 0));
+
   const tier = useMemo(() => CIPHER_VAULT_TIERS.find((t) => t.id === tierId)!, [tierId]);
 
   return (
@@ -54,7 +56,7 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
               </span>
             </Tooltip>
             <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">Treasury</span>
-            <Tooltip content="Entry fees are sent here on L1. You can override this address via NEXT_PUBLIC_CIPHER_VAULTS_TREASURY_ADDRESS.">
+            <Tooltip content="Entry fees are sent here on L1. (Configurable by the site admin.)">
               <span className="font-mono text-xs text-zinc-600 dark:text-zinc-400 cursor-help">{CIPHER_VAULTS_TREASURY_ADDRESS}</span>
             </Tooltip>
           </div>
@@ -270,9 +272,20 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
         {tab === 'redeem' && (
           <div className="space-y-6">
             <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60 space-y-3">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Redeem Diamond Veins refinement</h3>
+              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 inline-flex items-center gap-2">
+                Redeem Diamond Veins refinement
+                <Tooltip content="Tickets are tracked in Cipher Vaults. This V1 redemption does not burn points inside Diamond Veins, but Cipher Vaults will only let you redeem each point once (it tracks redeemed totals).">
+                  <button
+                    type="button"
+                    className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold text-zinc-600 dark:border-zinc-600 dark:text-zinc-300"
+                    aria-label="About redeeming refinement"
+                  >
+                    i
+                  </button>
+                </Tooltip>
+              </h3>
               <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Available refinement points (Diamond Veins server state): <strong>{redeemablePoints.toLocaleString()}</strong>
+                Diamond Veins refinement points: <strong>{redeemablePoints.toLocaleString()}</strong> · Unredeemed: <strong>{redeemableRemaining.toLocaleString()}</strong>
               </p>
               <p className="text-xs text-zinc-500 dark:text-zinc-500">
                 Tickets earned are tracked inside Cipher Vaults. This V1 redemption does not burn points in Diamond Veins yet.
@@ -301,7 +314,10 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
                     try {
                       const rounded = Math.floor(redeemAmount / CIPHER_TICKET_REDEEM_RATE_POINTS) * CIPHER_TICKET_REDEEM_RATE_POINTS;
                       if (rounded <= 0) throw new Error('Enter a valid amount');
+                      if (rounded > redeemableRemaining) throw new Error('Not enough unredeemed refinement points');
                       await redeemRefinement(rounded);
+                      const pts = await fetchDiamondVeinsRefinementPoints();
+                      setRedeemablePoints(pts);
                       setToast(`Redeemed ${rounded} points into tickets.`);
                     } catch (e: any) {
                       setToast(e?.message || 'Redeem failed');

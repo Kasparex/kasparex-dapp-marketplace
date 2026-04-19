@@ -105,12 +105,17 @@ export function useCipherVaults() {
       const tier = CIPHER_VAULT_TIERS.find((t) => t.id === tierId);
       if (!tier) throw new Error('Invalid tier');
 
+      // Never charge unless the server confirms no run is active.
+      const remote = await fetchServerState(addr);
+      if (remote?.activeRun) {
+        throw new Error('You already have an active run. Finish it or end it before starting a new attempt.');
+      }
+
       let entryTxHash: string | undefined;
       if (payWith === 'KAS') {
         if (!canPayWithL1 || !walletState.provider) throw new Error('Connect KasWare or Kastle to pay on L1');
         const sompi = Math.round(tier.entryKAS * 100_000_000);
-        const to = CIPHER_VAULTS_TREASURY_ADDRESS.replace(/^kaspa:/i, '');
-        const sent = await sendKaspaTransaction(walletState.provider, { to, amount: String(sompi) });
+        const sent = await sendKaspaTransaction(walletState.provider, { to: CIPHER_VAULTS_TREASURY_ADDRESS, amount: String(sompi) });
         if (sent.status === 'failed') throw new Error(sent.error || 'KAS transfer failed');
         entryTxHash = sent.txHash;
 
@@ -197,17 +202,23 @@ export function useCipherVaults() {
     const addr = walletState.address;
     if (!walletState.isConnected || !addr) return 0;
     try {
-      // Sync local Diamond Veins state (if any) to server so Cipher redeem sees it.
+      // Sync local Diamond Veins state (if newer) so Cipher redeem sees it.
       if (typeof window !== 'undefined') {
         const raw = window.localStorage.getItem('diamond-veins-state');
         if (raw) {
           try {
-            const parsed = JSON.parse(raw);
-            await fetch('/api/games/diamond-veins/state', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ address: addr, state: parsed }),
-            });
+            const local = JSON.parse(raw) as { version?: number };
+            const remoteRes = await fetch(`/api/games/diamond-veins/state?address=${encodeURIComponent(addr)}`, { method: 'GET' });
+            const remoteJson = remoteRes.ok ? ((await remoteRes.json()) as { state?: { version?: number } | null; found?: boolean }) : null;
+            const remoteVersion = remoteJson?.found && remoteJson?.state ? (remoteJson.state.version ?? 0) : 0;
+            const localVersion = typeof local?.version === 'number' ? local.version : 0;
+            if (localVersion > remoteVersion) {
+              await fetch('/api/games/diamond-veins/state', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ address: addr, state: local }),
+              });
+            }
           } catch {
             // ignore local parse errors
           }
