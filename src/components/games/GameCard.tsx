@@ -7,6 +7,7 @@ import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
 import { GameDifficultyBadge } from './GameDifficultyBadge';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { GameTypeIcon } from './GameTypeIcon';
 
 interface GameCardProps {
   game: Game;
@@ -33,10 +34,16 @@ export function GameCard({ game }: GameCardProps) {
         {game.featuredImage ? (
           <img src={game.featuredImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
         ) : (
-          <svg className="w-12 h-12 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <svg className="h-12 w-12 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+          </div>
         )}
         
         {/* Beta Status Badge - Top Left */}
@@ -59,9 +66,27 @@ export function GameCard({ game }: GameCardProps) {
             {game.name}
           </h3>
           <div className="flex items-center gap-2 text-sm">
-            <span className="text-zinc-500 dark:text-zinc-500 font-medium">Type:</span>
-            <span className="text-zinc-900 dark:text-zinc-100 font-medium">
-              {gameType.emoji} {gameType.name}
+            <span className="inline-flex items-center gap-2 text-zinc-900 dark:text-zinc-100 font-medium">
+              <span className="text-zinc-500 dark:text-zinc-500 inline-flex items-center gap-1.5">
+                <GameTypeIcon type={game.gameType} className="h-4 w-4" />
+                <span>{gameType.name}</span>
+              </span>
+              {(game.rewardConfig?.gridReward || game.rewardConfig?.xpReward) && (
+                <span className="text-zinc-400 dark:text-zinc-600">·</span>
+              )}
+              {game.rewardConfig?.gridReward ? (
+                <span className="text-zinc-600 dark:text-zinc-400">
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">{game.rewardConfig.gridReward}</span> GRID
+                </span>
+              ) : null}
+              {game.rewardConfig?.gridReward && game.rewardConfig?.xpReward ? (
+                <span className="text-zinc-400 dark:text-zinc-600">·</span>
+              ) : null}
+              {game.rewardConfig?.xpReward ? (
+                <span className="text-zinc-600 dark:text-zinc-400">
+                  <span className="font-semibold text-zinc-700 dark:text-zinc-200">{game.rewardConfig.xpReward}</span> XP
+                </span>
+              ) : null}
             </span>
           </div>
         </div>
@@ -90,53 +115,14 @@ export function GameCard({ game }: GameCardProps) {
             </div>
           </div>
 
-          {/* Reward Indicators - Diamond Veins: same card styling as others, clear ratio + L1→L2 */}
-          {game.slug === 'diamond-veins' && (
-            <div className="pt-3 border-t border-zinc-200/50 dark:border-zinc-800/50 space-y-1.5">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-xs text-zinc-500 dark:text-zinc-400">Rewards</span>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-700 dark:text-zinc-300">
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400">1 diamond = 1 pt</span>
-                <span className="text-zinc-400 dark:text-zinc-500">·</span>
-                <span>Up to <strong>1.5×</strong> with time bonus</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                <span>Earn points on L1</span>
-                <span aria-hidden>→</span>
-                <Link href="/rewards-and-points" className="hover:underline" onClick={(e) => e.stopPropagation()}>
-                  Claim rewards on L2
-                </Link>
-              </div>
-            </div>
-          )}
-          {game.rewardConfig && game.slug !== 'diamond-veins' && (
-            <div className="flex items-center gap-4 text-xs text-zinc-600 dark:text-zinc-400">
-              {game.rewardConfig.gridReward && (
-                <div className="flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="font-medium">{game.rewardConfig.gridReward} GRID</span>
-                </div>
-              )}
-              {game.rewardConfig.xpReward && (
-                <div className="flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  <span className="font-medium">{game.rewardConfig.xpReward} XP</span>
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Game Type Badge and Action Icons */}
           <div className="flex items-center justify-between gap-2 flex-wrap">
             {/* Left: Game Type Badge */}
             <div className="px-3 py-1.5 text-sm font-medium rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
-              <span className="mr-1.5">{gameType.emoji}</span>
-              <span>{gameType.name}</span>
+              <span className="mr-1.5 inline-flex align-middle text-zinc-500 dark:text-zinc-400">
+                <GameTypeIcon type={game.gameType} className="h-4 w-4" />
+              </span>
+              <span className="align-middle">{gameType.name}</span>
             </div>
 
             {/* Right: Star/Heart Icons */}

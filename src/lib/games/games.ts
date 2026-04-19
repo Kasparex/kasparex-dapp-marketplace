@@ -48,14 +48,14 @@ export interface Game {
   favoriteCount?: number;
 }
 
-export const gameTypes: Record<GameType, { name: string; emoji: string }> = {
-  puzzle: { name: 'Puzzle', emoji: '🧩' },
-  arcade: { name: 'Arcade', emoji: '🎮' },
-  strategy: { name: 'Strategy', emoji: '♟️' },
-  casual: { name: 'Casual', emoji: '🎯' },
-  multiplayer: { name: 'Multiplayer', emoji: '👥' },
-  trivia: { name: 'Trivia', emoji: '❓' },
-  skill: { name: 'Skill', emoji: '🎪' },
+export const gameTypes: Record<GameType, { name: string }> = {
+  puzzle: { name: 'Puzzle' },
+  arcade: { name: 'Arcade' },
+  strategy: { name: 'Strategy' },
+  casual: { name: 'Casual' },
+  multiplayer: { name: 'Multiplayer' },
+  trivia: { name: 'Trivia' },
+  skill: { name: 'Skill' },
 };
 
 export const difficultyLevels: Record<GameDifficulty, { name: string; color: string }> = {
@@ -231,6 +231,29 @@ export const placeholderGames: Game[] = [
       xpReward: 22,
     },
     createdAt: '2025-01-22T10:00:00.000Z',
+    playCount: 0,
+    likeCount: 0,
+    favoriteCount: 0,
+  },
+  {
+    id: 'game-10',
+    name: 'Krex’s Cipher Vaults',
+    slug: 'cipher-vaults',
+    description: 'Decode Krex’s encrypted vaults scattered across Kaspaland. Pay a small KAS entry (or redeem Diamond Veins refinement) to attempt a cipher run and earn GRID checkpoints.',
+    instructions:
+      'Connect your Kaspa wallet. Start a vault run (pay with KAS or a Cipher Ticket redeemed from Diamond Veins refinement points). Solve the Cipher Grid and submit your solution to record a checkpoint.',
+    gameType: 'puzzle',
+    difficulty: 'easy',
+    entryCostKAS: 0.5,
+    status: 'beta',
+    developer: 'Kasparex',
+    version: '1.0.0',
+    featuredImage: 'https://static.wixstatic.com/media/de4185_efae4724bb814ecd8b995da523a42c36~mv2.jpg',
+    rewardConfig: {
+      gridReward: 1,
+      xpReward: 10,
+    },
+    createdAt: new Date().toISOString(),
     playCount: 0,
     likeCount: 0,
     favoriteCount: 0,

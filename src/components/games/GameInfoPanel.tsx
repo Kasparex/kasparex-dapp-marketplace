@@ -2,6 +2,7 @@
 
 import { Game, gameTypes, difficultyLevels } from '@/lib/games/games';
 import { GameDifficultyBadge } from './GameDifficultyBadge';
+import { GameTypeIcon } from './GameTypeIcon';
 
 interface GameInfoPanelProps {
   game: Game;
@@ -21,7 +22,10 @@ export function GameInfoPanel({ game }: GameInfoPanelProps) {
           <div className="flex items-center justify-between">
             <span className="text-sm text-zinc-600 dark:text-zinc-400">Type:</span>
             <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-              {gameType.emoji} {gameType.name}
+              <span className="inline-flex items-center gap-2">
+                <GameTypeIcon type={game.gameType} className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+                {gameType.name}
+              </span>
             </span>
           </div>
           <div className="flex items-center justify-between">
