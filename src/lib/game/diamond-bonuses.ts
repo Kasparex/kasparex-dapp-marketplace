@@ -11,6 +11,8 @@ import { RAREST_NFT_IDS, KREXPRIME_DIAMOND_IDS } from './diamond-veins-config';
 import { isDiamondNFT } from '@/lib/nft/diamond-detection';
 import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
 
+export type { ParsedNFTMetadata };
+
 export const BASE_YIELDS = {
   WORKER_BASE: 0.1, // Diamonds per second
   OPERATOR_MULTIPLIER_BASE: 2.0, // 2x multiplier
