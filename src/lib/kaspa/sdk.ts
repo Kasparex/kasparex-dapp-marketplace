@@ -73,13 +73,15 @@ export function normalizeKaspaAddress(address: string): string {
     return '';
   }
   
-  // Validate first
-  if (!isValidKaspaAddress(address)) {
+  const trimmed = address.trim();
+  const withPrefix = trimmed.toLowerCase().startsWith('kaspa:') ? trimmed : `kaspa:${trimmed.replace(/^kaspa:/i, '')}`;
+
+  // Validate after ensuring prefix (some SDK versions require the prefix to parse).
+  if (!isValidKaspaAddress(withPrefix)) {
     throw new Error('Invalid Kaspa address');
   }
-  
-  // Ensure kaspa: prefix
-  return address.startsWith('kaspa:') ? address : `kaspa:${address.replace(/^kaspa:/i, '')}`;
+
+  return withPrefix;
 }
 
 /**
