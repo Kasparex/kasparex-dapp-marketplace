@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useDiamondMining } from '@/hooks/useDiamondMining';
 import { NFTSlotSelector } from './NFTSlotSelector';
@@ -21,9 +22,19 @@ const TABS = [
   { id: 'workers', label: 'Workers' },
   { id: 'upgrades', label: 'Upgrades' },
   { id: 'rewards', label: 'Rewards' },
+  { id: 'comments', label: 'Comments' },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
+
+const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
+  ssr: false,
+  loading: () => (
+    <div className="rounded-2xl border border-zinc-200 bg-white p-6 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-400">
+      Loading comments…
+    </div>
+  ),
+});
 
 interface MiningDashboardProps {
   featuredImage?: string;
@@ -240,6 +251,17 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
           )}
           {tab === 'rewards' && (
             <RewardsPanel address={walletState.address ?? undefined} refinementPointsTotal={refinementPointsTotal} localLedger={gridLedger} />
+          )}
+          {tab === 'comments' && (
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
+                <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Community comments</h3>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Share mining setups, traits, and strategies. Wallet connection required to post.
+                </p>
+              </div>
+              <CommentsSection articleId="game:diamond-veins" />
+            </div>
           )}
         </div>
 

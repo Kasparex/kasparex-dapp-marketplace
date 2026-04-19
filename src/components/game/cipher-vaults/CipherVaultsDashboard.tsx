@@ -7,15 +7,26 @@ import { useCipherVaults } from '@/hooks/useCipherVaults';
 import { CIPHER_TICKET_REDEEM_RATE_POINTS, CIPHER_VAULTS_TREASURY_ADDRESS, CIPHER_VAULT_TIERS, type CipherVaultTierId } from '@/lib/game/cipher-vaults-config';
 import { CipherGridPuzzle } from './CipherGridPuzzle';
 import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
+import dynamic from 'next/dynamic';
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
   { id: 'vaults', label: 'Vaults' },
   { id: 'redeem', label: 'Redeem' },
   { id: 'rewards', label: 'Rewards' },
+  { id: 'comments', label: 'Comments' },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
+
+const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
+  ssr: false,
+  loading: () => (
+    <div className="rounded-2xl border border-zinc-200 bg-white p-6 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-400">
+      Loading comments…
+    </div>
+  ),
+});
 
 export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', gameDescription = '' }: { featuredImage?: string; loreStory?: string; gameDescription?: string }) {
   const { state: walletState } = useKaspaWallet();
@@ -175,7 +186,7 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
                   <select
                     value={payWith}
                     onChange={(e) => setPayWith(e.target.value === 'TICKET' ? 'TICKET' : 'KAS')}
-                    className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-800 dark:bg-zinc-950"
+                    className="h-12 rounded-xl border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
                     disabled={Boolean(puzzle && activeRunId)}
                   >
                     <option value="KAS">Pay with KAS</option>
@@ -260,50 +271,72 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
               )}
             </div>
 
-            {puzzle && activeRunId && (
-              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-800 dark:bg-zinc-900/40">
-                <CipherGridPuzzle
-                  size={puzzle.size}
-                  initial={puzzle.initial}
-                  target={puzzle.target}
-                  moveLimit={puzzle.moveLimit}
-                  onSolved={async (moves) => {
-                    setToast(null);
-                    setSubmitting(true);
-                    try {
-                      const res = await submitRun(activeRunId, moves);
-                      if (res?.solved) {
-                        setToast('Solution verified. Checkpoint recorded.');
-                        setPuzzle(null);
-                        setActiveRunId(null);
-                        setTab('rewards');
-                      } else {
-                        setToast('Not solved yet (server verification failed).');
-                      }
-                    } catch (e: any) {
-                      setToast(e?.message || 'Submit failed');
-                    } finally {
-                      setSubmitting(false);
-                    }
-                  }}
-                  onFailed={() => {
-                    void (async () => {
+            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-800 dark:bg-zinc-900/40">
+              {!puzzle || !activeRunId ? (
+                <div className="space-y-3">
+                  <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Cipher Grid</h3>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Preview mode. Start a run to unlock the rune tables and submit a solution.
+                  </p>
+                  <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
+                    <div className="grid grid-cols-4 gap-2 opacity-60">
+                      {Array.from({ length: 16 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="aspect-square rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950/40"
+                        />
+                      ))}
+                    </div>
+                    <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-200">
+                      Locked. Pay entry or use a ticket to begin.
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <CipherGridPuzzle
+                    size={puzzle.size}
+                    initial={puzzle.initial}
+                    target={puzzle.target}
+                    moveLimit={puzzle.moveLimit}
+                    onSolved={async (moves) => {
                       setToast(null);
+                      setSubmitting(true);
                       try {
-                        await cancelRun(activeRunId);
-                      } catch {
-                        // ignore
+                        const res = await submitRun(activeRunId, moves);
+                        if (res?.solved) {
+                          setToast('Solution verified. Checkpoint recorded.');
+                          setPuzzle(null);
+                          setActiveRunId(null);
+                          setTab('rewards');
+                        } else {
+                          setToast('Not solved yet (server verification failed).');
+                        }
+                      } catch (e: any) {
+                        setToast(e?.message || 'Submit failed');
                       } finally {
-                        setToast('Out of moves. Start a new paid attempt to try again.');
-                        setPuzzle(null);
-                        setActiveRunId(null);
+                        setSubmitting(false);
                       }
-                    })();
-                  }}
-                />
-                {submitting && <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-500">Verifying…</p>}
-              </div>
-            )}
+                    }}
+                    onFailed={() => {
+                      void (async () => {
+                        setToast(null);
+                        try {
+                          await cancelRun(activeRunId);
+                        } catch {
+                          // ignore
+                        } finally {
+                          setToast('Out of moves. Start a new paid attempt to try again.');
+                          setPuzzle(null);
+                          setActiveRunId(null);
+                        }
+                      })();
+                    }}
+                  />
+                  {submitting && <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-500">Verifying…</p>}
+                </>
+              )}
+            </div>
           </div>
         )}
 
@@ -414,6 +447,18 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {tab === 'comments' && (
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
+              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Community comments</h3>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Discuss strategies, report bugs, and share vault seeds. Wallet connection required to post.
+              </p>
+            </div>
+            <CommentsSection articleId="game:cipher-vaults" />
           </div>
         )}
       </div>

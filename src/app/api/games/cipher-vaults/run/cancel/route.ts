@@ -18,9 +18,7 @@ export async function POST(request: NextRequest) {
     if (!state.activeRun) {
       return NextResponse.json({ ok: true, state });
     }
-    if (body.runId && state.activeRun.runId !== body.runId) {
-      return NextResponse.json({ error: 'Run id mismatch' }, { status: 409 });
-    }
+    // Best-effort cancel: allow clearing stale runs even if client runId mismatches (refresh/resume edge cases).
     const next = { ...state, version: (state.version ?? 1) + 1, activeRun: null };
     const saved = replaceCipherPlayerState(address, next);
     return NextResponse.json({ ok: true, state: saved });
