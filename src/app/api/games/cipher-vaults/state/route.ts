@@ -25,8 +25,16 @@ export async function POST(request: NextRequest) {
     if (!address || !isValidAddress(address)) {
       return NextResponse.json({ error: 'Missing or invalid address' }, { status: 400 });
     }
-    const s = body.state && typeof body.state === 'object' ? body.state : createInitialCipherVaultsState();
-    const saved = replaceCipherPlayerState(address, s);
+    const existing = getCipherPlayerState(address);
+    const incoming = body.state && typeof body.state === 'object' ? body.state : createInitialCipherVaultsState();
+    // Active runs are created/cleared only via /api/games/cipher-vaults/run/* routes.
+    // Client sync must not overwrite server activeRun (stale localStorage / version races caused "ghost" states).
+    const merged: CipherVaultsState = {
+      ...incoming,
+      activeRun: existing.activeRun,
+      version: Math.max(existing.version ?? 0, incoming.version ?? 0),
+    };
+    const saved = replaceCipherPlayerState(address, merged);
     return NextResponse.json({ state: saved, ok: true });
   } catch (e) {
     console.error('[cipher-vaults/state]', e);

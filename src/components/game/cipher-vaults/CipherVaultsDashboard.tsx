@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useCipherVaults } from '@/hooks/useCipherVaults';
 import { CIPHER_TICKET_REDEEM_RATE_POINTS, CIPHER_VAULTS_TREASURY_ADDRESS, CIPHER_VAULT_TIERS, type CipherVaultTierId } from '@/lib/game/cipher-vaults-config';
+import { CipherGridLockedPreview } from './CipherGridLockedPreview';
 import { CipherGridPuzzle } from './CipherGridPuzzle';
 import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
 import dynamic from 'next/dynamic';
@@ -50,22 +51,39 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
     void fetchDiamondVeinsRefinementPoints().then((pts) => setRedeemablePoints(pts));
   }, [walletState.isConnected, fetchDiamondVeinsRefinementPoints, state.version]);
 
+  /** Always mirror server /run/current while on Vaults so UI never disagrees with “already active” errors. */
   useEffect(() => {
-    if (!walletState.isConnected) return;
-    if (puzzle && activeRunId) return;
+    if (!walletState.isConnected || walletState.address == null || tab !== 'vaults') return;
+    let cancelled = false;
     void (async () => {
-      const cur = await loadActiveRun();
-      if (cur?.run?.runId && cur?.puzzle) {
-        setActiveRunId(cur.run.runId);
-        setPuzzle(cur.puzzle);
-        setToast('Resumed your active run.');
+      try {
+        const cur = await loadActiveRun();
+        if (cancelled) return;
+        if (cur?.run?.runId && cur?.puzzle) {
+          setActiveRunId(cur.run.runId);
+          setPuzzle(cur.puzzle);
+        } else {
+          setActiveRunId(null);
+          setPuzzle(null);
+        }
+      } catch {
+        if (!cancelled) {
+          setActiveRunId(null);
+          setPuzzle(null);
+        }
       }
     })();
-    // only on connect + when not currently showing a puzzle
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [walletState.isConnected]);
+    return () => {
+      cancelled = true;
+    };
+  }, [walletState.isConnected, walletState.address, tab, loadActiveRun]);
 
   const redeemableRemaining = Math.max(0, redeemablePoints - (state.redeemedRefinementPointsTotal ?? 0));
+
+  /** Authoritative: hook state tracks server activeRun; puzzle mirrors GET /run/current */
+  const hasActiveRunOnServer = Boolean(state.activeRun);
+  const canPlayGrid = Boolean(puzzle && activeRunId);
+  const runIdForActions = activeRunId ?? state.activeRun?.runId ?? null;
 
   const tier = useMemo(() => CIPHER_VAULT_TIERS.find((t) => t.id === tierId)!, [tierId]);
 
@@ -82,7 +100,7 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
               </span>
             </Tooltip>
             <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">Treasury</span>
-            <Tooltip content="Entry fees are sent here on L1. (Configurable by the site admin.)">
+            <Tooltip content="Entry fees are sent here on L1.">
               <span className="font-mono text-xs text-zinc-600 dark:text-zinc-400 cursor-help">{CIPHER_VAULTS_TREASURY_ADDRESS}</span>
             </Tooltip>
           </div>
@@ -187,14 +205,14 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
                     value={payWith}
                     onChange={(e) => setPayWith(e.target.value === 'TICKET' ? 'TICKET' : 'KAS')}
                     className="h-12 rounded-xl border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
-                    disabled={Boolean(puzzle && activeRunId)}
+                    disabled={hasActiveRunOnServer}
                   >
                     <option value="KAS">Pay with KAS</option>
                     <option value="TICKET">Use 1 ticket ({tickets.available} avail)</option>
                   </select>
                   <button
                     type="button"
-                    disabled={Boolean(puzzle && activeRunId) || starting || (payWith === 'KAS' && !canPayWithL1)}
+                    disabled={hasActiveRunOnServer || starting || (payWith === 'KAS' && !canPayWithL1)}
                     onClick={async () => {
                       setToast(null);
                       setStarting(true);
@@ -216,9 +234,13 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
                 </div>
               </div>
 
-              {puzzle && activeRunId && (
+              {hasActiveRunOnServer && (
                 <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-200">
-                  You have an active run in progress. Finish it (submit) or end it to start a new paid attempt.
+                  {canPlayGrid ? (
+                    <p>You have an active vault run. Submit your solution, or end the run before starting another attempt.</p>
+                  ) : (
+                    <p>Loading your active vault from the server… If this persists, tap Resume run.</p>
+                  )}
                   <div className="mt-3 flex flex-wrap gap-2">
                     <button
                       type="button"
@@ -249,7 +271,7 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
                       onClick={async () => {
                         setToast(null);
                         try {
-                          await cancelRun(activeRunId);
+                          await cancelRun(runIdForActions ?? undefined);
                           setPuzzle(null);
                           setActiveRunId(null);
                           setToast('Run ended. You can start a new attempt now.');
@@ -272,27 +294,7 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
             </div>
 
             <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-800 dark:bg-zinc-900/40">
-              {!puzzle || !activeRunId ? (
-                <div className="space-y-3">
-                  <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Cipher Grid</h3>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Preview mode. Start a run to unlock the rune tables and submit a solution.
-                  </p>
-                  <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-                    <div className="grid grid-cols-4 gap-2 opacity-60">
-                      {Array.from({ length: 16 }).map((_, i) => (
-                        <div
-                          key={i}
-                          className="aspect-square rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950/40"
-                        />
-                      ))}
-                    </div>
-                    <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-200">
-                      Locked. Pay entry or use a ticket to begin.
-                    </div>
-                  </div>
-                </div>
-              ) : (
+              {canPlayGrid && puzzle ? (
                 <>
                   <CipherGridPuzzle
                     size={puzzle.size}
@@ -303,7 +305,9 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
                       setToast(null);
                       setSubmitting(true);
                       try {
-                        const res = await submitRun(activeRunId, moves);
+                        const rid = activeRunId ?? state.activeRun?.runId;
+                        if (!rid) throw new Error('Missing run id');
+                        const res = await submitRun(rid, moves);
                         if (res?.solved) {
                           setToast('Solution verified. Checkpoint recorded.');
                           setPuzzle(null);
@@ -322,7 +326,7 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
                       void (async () => {
                         setToast(null);
                         try {
-                          await cancelRun(activeRunId);
+                          await cancelRun(activeRunId ?? state.activeRun?.runId ?? undefined);
                         } catch {
                           // ignore
                         } finally {
@@ -335,6 +339,16 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
                   />
                   {submitting && <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-500">Verifying…</p>}
                 </>
+              ) : hasActiveRunOnServer && !canPlayGrid ? (
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Fetching vault puzzle…</p>
+                  <div className="grid animate-pulse gap-3 md:grid-cols-2">
+                    <div className="h-48 rounded-2xl bg-zinc-200 dark:bg-zinc-800" />
+                    <div className="h-48 rounded-2xl bg-zinc-200 dark:bg-zinc-800" />
+                  </div>
+                </div>
+              ) : (
+                <CipherGridLockedPreview />
               )}
             </div>
           </div>

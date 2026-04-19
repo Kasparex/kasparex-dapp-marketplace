@@ -85,7 +85,15 @@ export function useCipherVaults() {
     void (async () => {
       const remote = await fetchServerState(addr);
       if (cancelled || !remote) return;
-      setState((local) => ((remote.version ?? 0) > (local.version ?? 0) ? remote : local));
+      setState((local) => {
+        const base = (remote.version ?? 0) > (local.version ?? 0) ? remote : local;
+        return {
+          ...base,
+          // Server is authoritative for whether a vault run is in progress.
+          activeRun: remote.activeRun ?? null,
+          version: Math.max(remote.version ?? 0, local.version ?? 0),
+        };
+      });
     })();
     return () => {
       cancelled = true;
@@ -116,10 +124,12 @@ export function useCipherVaults() {
       const tier = CIPHER_VAULT_TIERS.find((t) => t.id === tierId);
       if (!tier) throw new Error('Invalid tier');
 
-      // Never charge unless the server confirms no run is active.
-      const remote = await fetchServerState(addr);
-      if (remote?.activeRun) {
-        throw new Error('You already have an active run. Finish it or end it before starting a new attempt.');
+      // Never charge unless the server confirms no run is active (same source as /run/current).
+      const current = await fetchCurrentRun(addr);
+      if (current?.run) {
+        throw new Error(
+          'You already have an active run. Use Resume run to continue, or End run before paying again.'
+        );
       }
 
       let entryTxHash: string | undefined;
