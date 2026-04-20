@@ -66,7 +66,7 @@ export function NodeOverview({ nodeInfo, metrics }: NodeOverviewProps) {
                   Uptime
                 </p>
                 <p className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                  {metrics.uptimePercent}%
+                  {typeof metrics.uptimeHours === 'number' ? `${metrics.uptimeHours.toFixed(1)}h` : '-'}
                 </p>
               </div>
               <div>

@@ -49,7 +49,10 @@ export function StatusAndParameters({ nodeInfo, metrics }: StatusAndParametersPr
         </div>
         <div className="space-y-0">
           <Row label="Status" value={status.label} valueClassName={status.className} />
-          <Row label="Uptime" value={`${metrics.uptimePercent}%`} />
+          <Row
+            label="Uptime"
+            value={typeof metrics.uptimeHours === 'number' ? `${metrics.uptimeHours.toFixed(1)}h` : '-'}
+          />
           <Row label="Pinned CIDs" value={metrics.pinnedCids} />
           {metrics.requestsServed != null && (
             <Row label="Requests served" value={metrics.requestsServed} />

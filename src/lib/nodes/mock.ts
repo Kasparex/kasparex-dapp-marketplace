@@ -19,7 +19,7 @@ export const mockNodeInfo: NodeInfo = {
 };
 
 export const mockNodeMetrics: NodeMetrics = {
-  uptimePercent: 98.5,
+  uptimeHours: 98.5,
   pinnedCids: 128,
   requestsServed: 3420,
   lastPingAt: '2025-02-22T14:30:00Z',

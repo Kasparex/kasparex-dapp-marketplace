@@ -19,7 +19,8 @@ export interface NodeInfo {
 }
 
 export interface NodeMetrics {
-  uptimePercent: number;
+  /** Uptime in hours (as reported by node registry). */
+  uptimeHours: number;
   pinnedCids: number;
   /** Mirror nodes only */
   requestsServed?: number;
