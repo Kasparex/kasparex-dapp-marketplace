@@ -17,12 +17,13 @@ CREATE TABLE IF NOT EXISTS rewards_active (
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL,
   distributed_at INTEGER,
-  ipfs_cid TEXT, -- Set when archived to IPFS
-  INDEX idx_user (user_address),
-  INDEX idx_status (status),
-  INDEX idx_created (created_at),
-  INDEX idx_tx_hash (tx_hash)
+  ipfs_cid TEXT -- Set when archived to IPFS
 );
+
+CREATE INDEX IF NOT EXISTS idx_rewards_active_user ON rewards_active(user_address);
+CREATE INDEX IF NOT EXISTS idx_rewards_active_status ON rewards_active(status);
+CREATE INDEX IF NOT EXISTS idx_rewards_active_created ON rewards_active(created_at);
+CREATE INDEX IF NOT EXISTS idx_rewards_active_tx_hash ON rewards_active(tx_hash);
 
 -- Archived rewards (CID references only, full data on IPFS)
 CREATE TABLE IF NOT EXISTS rewards_archived (
@@ -31,11 +32,12 @@ CREATE TABLE IF NOT EXISTS rewards_archived (
   user_address TEXT NOT NULL,
   dapp_id TEXT NOT NULL,
   created_at INTEGER NOT NULL,
-  archived_at INTEGER NOT NULL,
-  INDEX idx_user (user_address),
-  INDEX idx_archived (archived_at),
-  INDEX idx_cid (ipfs_cid)
+  archived_at INTEGER NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS idx_rewards_archived_user ON rewards_archived(user_address);
+CREATE INDEX IF NOT EXISTS idx_rewards_archived_archived_at ON rewards_archived(archived_at);
+CREATE INDEX IF NOT EXISTS idx_rewards_archived_cid ON rewards_archived(ipfs_cid);
 
 -- User reward summary (cached, updated periodically)
 CREATE TABLE IF NOT EXISTS user_reward_summary (
@@ -44,9 +46,10 @@ CREATE TABLE IF NOT EXISTS user_reward_summary (
   total_grid_reward REAL NOT NULL DEFAULT 0,
   total_dapp_token_reward REAL NOT NULL DEFAULT 0,
   last_reward_at INTEGER,
-  updated_at INTEGER NOT NULL,
-  INDEX idx_updated (updated_at)
+  updated_at INTEGER NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS idx_user_reward_summary_updated ON user_reward_summary(updated_at);
 
 -- Diamonds ledger (off-chain, cross-game)
 -- Append-only entries with derived per-user summary for cheap Deck reads.
@@ -60,11 +63,12 @@ CREATE TABLE IF NOT EXISTS diamonds_ledger (
   reason TEXT,
   related_tx_hash TEXT,
   related_sku_id TEXT,
-  created_at INTEGER NOT NULL,
-  INDEX idx_diamonds_user (user_address),
-  INDEX idx_diamonds_created (created_at),
-  INDEX idx_diamonds_related_tx (related_tx_hash)
+  created_at INTEGER NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS idx_diamonds_ledger_user ON diamonds_ledger(user_address);
+CREATE INDEX IF NOT EXISTS idx_diamonds_ledger_created ON diamonds_ledger(created_at);
+CREATE INDEX IF NOT EXISTS idx_diamonds_ledger_related_tx ON diamonds_ledger(related_tx_hash);
 
 CREATE TABLE IF NOT EXISTS user_diamonds_summary (
   user_address TEXT PRIMARY KEY,
@@ -89,10 +93,11 @@ CREATE TABLE IF NOT EXISTS l1_payments_verified (
   purchase_type TEXT,
   session_id TEXT,
   evm_address TEXT,
-  verified_at INTEGER NOT NULL,
-  INDEX idx_l1_payments_user (user_address),
-  INDEX idx_l1_payments_verified_at (verified_at)
+  verified_at INTEGER NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS idx_l1_payments_verified_user ON l1_payments_verified(user_address);
+CREATE INDEX IF NOT EXISTS idx_l1_payments_verified_at ON l1_payments_verified(verified_at);
 
 -- Per-user reward settings (auto-claim)
 CREATE TABLE IF NOT EXISTS user_reward_settings (
@@ -110,8 +115,9 @@ CREATE TABLE IF NOT EXISTS grid_distribution_jobs (
   status TEXT NOT NULL DEFAULT 'queued', -- queued|sent|failed
   l2_tx_hash TEXT,
   created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL,
-  INDEX idx_grid_jobs_user (user_address),
-  INDEX idx_grid_jobs_status (status),
-  INDEX idx_grid_jobs_created (created_at)
+  updated_at INTEGER NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS idx_grid_jobs_user ON grid_distribution_jobs(user_address);
+CREATE INDEX IF NOT EXISTS idx_grid_jobs_status ON grid_distribution_jobs(status);
+CREATE INDEX IF NOT EXISTS idx_grid_jobs_created ON grid_distribution_jobs(created_at);
