@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
+import { SidebarSection } from '@/components/sidebar/SidebarSection';
+import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 
 const QUICK_LINKS = [
   { href: '/api/krex-node', label: 'Run a KREX Node', icon: 'run' },
@@ -88,64 +90,55 @@ export function NodesDashboardSidebar() {
       )}
       defaultWidth={300}
     >
-      <div className="flex-1 overflow-y-auto p-4 space-y-8">
-        <section>
-          <h3 className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] mb-4 px-2">
-            Quick links
-          </h3>
-          <nav className="space-y-1">
-            {QUICK_LINKS.map((item) =>
-              'external' in item && item.external ? (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="k-sidebar-item w-full text-left group flex items-center gap-3 !px-3"
-                >
-                  <span className="k-sidebar-icon text-zinc-500 dark:text-zinc-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors flex-shrink-0">
-                    {ICONS[item.icon]}
-                  </span>
-                  <span className="text-[11px] font-bold uppercase tracking-wider min-w-0 break-words">{item.label}</span>
-                </a>
-              ) : (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="k-sidebar-item w-full text-left group flex items-center gap-3 !px-3"
-                >
-                  <span className="k-sidebar-icon text-zinc-500 dark:text-zinc-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors flex-shrink-0">
-                    {ICONS[item.icon]}
-                  </span>
-                  <span className="text-[11px] font-bold uppercase tracking-wider min-w-0 break-words">{item.label}</span>
-                </Link>
-              )
-            )}
-          </nav>
-        </section>
+      <div className="space-y-6">
+        <div className="mb-2">
+          <div className="space-y-2">
+            <Link href="/api/krex-node" className="k-control-btn w-full">
+              Run a KREX Node
+            </Link>
+            <Link href="/api" className="k-control-btn w-full">
+              API overview
+            </Link>
+            <Link href="/knowledge-base" className="k-control-btn w-full">
+              Knowledge base
+            </Link>
+            <a
+              href="https://github.com/Kasparex/kasparex-krex-node"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="k-control-btn w-full"
+            >
+              GitHub repo
+            </a>
+          </div>
+        </div>
 
-        <section>
-          <h3 className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] mb-4 px-2">
-            On this page
-          </h3>
-          <nav className="space-y-1">
-            {NODES_SECTIONS.map((section) => (
-              <button
-                key={section.id}
-                type="button"
-                onClick={() => scrollToSection(section.id)}
-                className="k-sidebar-item w-full text-left group flex items-center gap-3 !px-3"
-              >
-                <span className="k-sidebar-icon transition-colors duration-200 text-zinc-500 dark:text-zinc-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 flex-shrink-0">
-                  {ICONS[section.icon] ?? ICONS.node}
-                </span>
-                <span className="text-[11px] font-bold uppercase tracking-wider transition-colors min-w-0 break-words">
-                  {section.label}
-                </span>
-              </button>
+        <SidebarSection title="Quick links">
+          <nav className="space-y-0.5">
+            {QUICK_LINKS.map((item) => (
+              <SidebarNavItem
+                key={item.label}
+                label={item.label}
+                icon={ICONS[item.icon] ?? ICONS.node}
+                href={item.href}
+                external={Boolean((item as any).external)}
+              />
             ))}
           </nav>
-        </section>
+        </SidebarSection>
+
+        <SidebarSection title="On this page">
+          <nav className="space-y-0.5">
+            {NODES_SECTIONS.map((section) => (
+              <SidebarNavItem
+                key={section.id}
+                label={section.label}
+                icon={ICONS[section.icon] ?? ICONS.node}
+                onClick={() => scrollToSection(section.id)}
+              />
+            ))}
+          </nav>
+        </SidebarSection>
       </div>
     </UnifiedSidebar>
   );
