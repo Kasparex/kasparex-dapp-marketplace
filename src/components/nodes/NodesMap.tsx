@@ -12,17 +12,22 @@ type RegionPin = { id: string; label: string; x: number; y: number };
 
 // Lightweight mapping without extra deps. We refine as regions standardize.
 const REGION_PINS: RegionPin[] = [
-  { id: 'us', label: 'US', x: 155, y: 120 },
-  { id: 'us-east', label: 'US East', x: 185, y: 120 },
-  { id: 'us-west', label: 'US West', x: 135, y: 120 },
-  { id: 'eu', label: 'EU', x: 285, y: 105 },
-  { id: 'uk', label: 'UK', x: 270, y: 100 },
-  { id: 'pl', label: 'PL', x: 290, y: 100 },
-  { id: 'asia', label: 'Asia', x: 390, y: 125 },
-  { id: 'sg', label: 'Singapore', x: 410, y: 170 },
-  { id: 'jp', label: 'Japan', x: 435, y: 118 },
-  { id: 'au', label: 'Australia', x: 450, y: 210 },
+  // Coordinates are in the SVG's viewBox space (public/world-map.svg).
+  { id: 'us', label: 'US', x: 147, y: 123 },
+  { id: 'us-east', label: 'US East', x: 176, y: 123 },
+  { id: 'us-west', label: 'US West', x: 128, y: 123 },
+  { id: 'eu', label: 'EU', x: 271, y: 107 },
+  { id: 'uk', label: 'UK', x: 257, y: 102 },
+  { id: 'pl', label: 'PL', x: 276, y: 102 },
+  { id: 'asia', label: 'Asia', x: 371, y: 128 },
+  { id: 'sg', label: 'Singapore', x: 390, y: 174 },
+  { id: 'jp', label: 'Japan', x: 414, y: 121 },
+  { id: 'au', label: 'Australia', x: 428, y: 215 },
 ];
+
+// The SVG we use (public/world-map.svg) is ~495x266.
+const MAP_W = 494.7;
+const MAP_H = 265.7;
 
 function normalizeRegion(r: string | null | undefined): string {
   const x = (r ?? '').trim().toLowerCase();
@@ -75,7 +80,7 @@ export function NodesMap(props: { nodes: KrexNode[] }) {
         />
 
         <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 overflow-hidden">
-          <div className="relative w-full aspect-[2/1]">
+          <div className="relative w-full aspect-[494.7/265.7]">
             <Image
               src="/world-map.svg"
               alt="World map"
@@ -93,9 +98,9 @@ export function NodesMap(props: { nodes: KrexNode[] }) {
                 ? `${p.label}: ${row.total} (mirror ${row.mirror}, light ${row.light}, super ${row.super})`
                 : `${p.label}: 0`;
 
-              // Convert old SVG coords (520x260) to percent for the overlay.
-              const leftPct = (p.x / 520) * 100;
-              const topPct = (p.y / 260) * 100;
+              // Convert SVG coords to percent for the overlay.
+              const leftPct = (p.x / MAP_W) * 100;
+              const topPct = (p.y / MAP_H) * 100;
               const size = Math.max(10, r * 2);
 
               return (
