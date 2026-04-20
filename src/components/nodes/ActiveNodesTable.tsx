@@ -33,34 +33,39 @@ export function ActiveNodesTable(props: { nodes: KrexNode[] }) {
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="text-[10px] uppercase tracking-wider text-zinc-500 dark:text-zinc-500 border-b border-zinc-200 dark:border-zinc-800">
-                <th className="text-left py-2 pr-4 font-bold">
-                  Health <FieldHint text="Simple health signal derived from node uptime hours. Green ≥ 1h, yellow 0.1–1h, red < 0.1h." />
+              <tr className="border-b border-zinc-200 dark:border-zinc-800">
+                <th className="text-left py-2.5 pr-4 text-sm font-semibold text-zinc-600 dark:text-zinc-400">
+                  Health{' '}
+                  <FieldHint text="Simple health signal derived from node uptime hours. Green ≥ 1h, yellow 0.1–1h, red < 0.1h." />
                 </th>
-                <th className="text-left py-2 pr-4 font-bold">Role</th>
-                <th className="text-left py-2 pr-4 font-bold">Region</th>
-                <th className="text-left py-2 pr-4 font-bold">Uptime</th>
-                <th className="text-left py-2 pr-4 font-bold">Pinned</th>
-                <th className="text-left py-2 pr-4 font-bold">URL</th>
+                <th className="text-left py-2.5 pr-4 text-sm font-semibold text-zinc-600 dark:text-zinc-400">Role</th>
+                <th className="text-left py-2.5 pr-4 text-sm font-semibold text-zinc-600 dark:text-zinc-400">Region</th>
+                <th className="text-left py-2.5 pr-4 text-sm font-semibold text-zinc-600 dark:text-zinc-400">Uptime</th>
+                <th className="text-left py-2.5 pr-4 text-sm font-semibold text-zinc-600 dark:text-zinc-400">Pinned</th>
+                <th className="text-left py-2.5 pr-4 text-sm font-semibold text-zinc-600 dark:text-zinc-400">URL</th>
               </tr>
             </thead>
             <tbody>
               {nodes.map((n) => (
                 <tr
                   key={n.url}
-                  className="border-b border-zinc-100 dark:border-zinc-800/70 text-zinc-700 dark:text-zinc-300"
+                  className="border-b border-zinc-100 dark:border-zinc-800/70"
                 >
-                  <td className="py-2 pr-4">
+                  <td className="py-2.5 pr-4">
                     {(() => {
                       const h = healthFromUptimeHours(typeof n.uptime === 'number' ? n.uptime : null);
                       return <HealthDot level={h.level} label={h.label} />;
                     })()}
                   </td>
-                  <td className="py-2 pr-4 font-semibold text-zinc-900 dark:text-zinc-100">{n.role}</td>
-                  <td className="py-2 pr-4">{n.region || 'unknown'}</td>
-                  <td className="py-2 pr-4">{typeof n.uptime === 'number' ? `${n.uptime.toFixed(1)}h` : '-'}</td>
-                  <td className="py-2 pr-4">{Array.isArray(n.pinnedCids) ? n.pinnedCids.length : 0}</td>
-                  <td className="py-2 pr-4">
+                  <td className="py-2.5 pr-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">{n.role}</td>
+                  <td className="py-2.5 pr-4 text-sm text-zinc-600 dark:text-zinc-400">{n.region || 'unknown'}</td>
+                  <td className="py-2.5 pr-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                    {typeof n.uptime === 'number' ? `${n.uptime.toFixed(1)}h` : '-'}
+                  </td>
+                  <td className="py-2.5 pr-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                    {Array.isArray(n.pinnedCids) ? n.pinnedCids.length : 0}
+                  </td>
+                  <td className="py-2.5 pr-4 text-sm">
                     <a
                       href={n.url}
                       target="_blank"

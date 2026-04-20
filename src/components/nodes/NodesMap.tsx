@@ -3,6 +3,7 @@
 import type { KrexNode } from '@/lib/storage/krex-nodes';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { SectionHeader } from './SectionHeader';
+import Image from 'next/image';
 
 const CARD_CLASS =
   'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 p-6';
@@ -73,29 +74,17 @@ export function NodesMap(props: { nodes: KrexNode[] }) {
           right={<span>{nodes.length} active</span>}
         />
 
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-3 overflow-hidden">
-          <svg viewBox="0 0 520 260" className="w-full h-auto">
-            {/* Simplified world map silhouette (recognizable continents, decorative). */}
-            <g fill="currentColor" className="text-zinc-200 dark:text-zinc-800" opacity={0.55}>
-              {/* North America */}
-              <path d="M82 86c20-18 44-26 70-24 16 1 26 10 36 16 10 6 26 4 36 12 10 8 16 20 10 30-7 12-20 10-30 18-10 8-10 22-24 26-16 5-34-2-52-10-16-7-34-8-50-18-12-7-16-32 4-50z" />
-              {/* Greenland */}
-              <path d="M198 42c12-10 30-10 40 0 7 7 6 16-2 22-10 8-24 10-36 4-10-5-10-16-2-26z" />
-              {/* South America */}
-              <path d="M190 150c12-6 28-4 36 6 8 10 2 22-2 34-4 12-2 24-10 34-9 11-24 14-30 0-6-13 0-26-2-38-2-14-12-26 8-36z" />
-              {/* Europe */}
-              <path d="M270 86c10-10 28-14 44-10 14 4 22 14 18 24-4 10-18 10-28 14-10 4-14 14-26 12-14-2-20-26-8-40z" />
-              {/* Africa */}
-              <path d="M280 132c14-10 34-10 48 0 14 10 14 30 6 44-8 14-10 28-28 32-18 4-28-14-30-30-2-16-16-32 4-46z" />
-              {/* Middle East / West Asia */}
-              <path d="M330 112c10-10 26-10 36-2 8 7 6 18-4 24-8 4-14 14-24 12-12-2-16-22-8-34z" />
-              {/* Asia */}
-              <path d="M356 86c22-18 52-22 78-12 22 9 40 26 38 44-2 18-22 24-36 34-14 10-16 26-34 30-18 4-32-10-48-16-18-6-40-2-54-14-16-14-8-50 56-66z" />
-              {/* Australia */}
-              <path d="M416 190c14-12 36-12 52-2 12 8 12 20 0 28-14 10-32 14-48 8-16-7-18-22-4-34z" />
-            </g>
+        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 overflow-hidden">
+          <div className="relative w-full aspect-[2/1]">
+            <Image
+              src="/world-map.svg"
+              alt="World map"
+              fill
+              priority={false}
+              className="object-contain opacity-70 dark:opacity-60"
+            />
 
-            {/* Region pins */}
+            {/* Pins are positioned using percentages in the 2:1 map box. */}
             {REGION_PINS.map((p) => {
               const row = counts.get(p.id);
               const total = row?.total ?? 0;
@@ -103,26 +92,39 @@ export function NodesMap(props: { nodes: KrexNode[] }) {
               const label = row
                 ? `${p.label}: ${row.total} (mirror ${row.mirror}, light ${row.light}, super ${row.super})`
                 : `${p.label}: 0`;
+
+              // Convert old SVG coords (520x260) to percent for the overlay.
+              const leftPct = (p.x / 520) * 100;
+              const topPct = (p.y / 260) * 100;
+              const size = Math.max(10, r * 2);
+
               return (
-                <g key={p.id}>
+                <div
+                  key={p.id}
+                  className="absolute"
+                  style={{ left: `${leftPct}%`, top: `${topPct}%`, transform: 'translate(-50%, -50%)' }}
+                >
                   <Tooltip content={label} side="top" align="center">
-                    <g>
-                      <circle
-                        cx={p.x}
-                        cy={p.y}
-                        r={Math.max(4, r)}
-                        className={total > 0 ? 'fill-[#02abb8]' : 'fill-zinc-300 dark:fill-zinc-700'}
-                        opacity={total > 0 ? 0.95 : 0.7}
+                    <div className="relative">
+                      <div
+                        className={[
+                          'rounded-full',
+                          total > 0 ? 'bg-[#02abb8]' : 'bg-zinc-300 dark:bg-zinc-700',
+                        ].join(' ')}
+                        style={{ width: size, height: size, opacity: total > 0 ? 0.95 : 0.75 }}
                       />
                       {total > 0 ? (
-                        <circle cx={p.x} cy={p.y} r={Math.max(9, r + 6)} className="fill-[#02abb8]" opacity={0.15} />
+                        <div
+                          className="absolute inset-0 rounded-full bg-[#02abb8]"
+                          style={{ transform: 'scale(1.7)', opacity: 0.15 }}
+                        />
                       ) : null}
-                    </g>
+                    </div>
                   </Tooltip>
-                </g>
+                </div>
               );
             })}
-          </svg>
+          </div>
         </div>
 
         <div className="mt-3 text-xs text-zinc-500 dark:text-zinc-500">

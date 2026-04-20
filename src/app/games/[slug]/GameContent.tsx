@@ -7,6 +7,7 @@ import { GameInfoPanel } from '@/components/games/GameInfoPanel';
 import { RelatedGames } from '@/components/games/RelatedGames';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
 import { GamePayment } from '@/components/games/GamePayment';
+import { GameModulesBar } from '@/components/games/modules/GameModulesBar';
 import { placeholderGames, GameType, GameDifficulty, GameStatus, Game } from '@/lib/games/games';
 import { getGameTypeCounts, getDifficultyCounts, getStatusCounts, GameFilterState } from '@/lib/games/filtering';
 
@@ -16,6 +17,7 @@ interface GameContentProps {
 
 export function GameContent({ game }: GameContentProps) {
     const router = useRouter();
+    const [riskChoice, setRiskChoice] = useState<'cashout' | 'push' | 'none'>('none');
 
     // Sidebar state
     const [selectedGameTypes, setSelectedGameTypes] = useState<GameType[]>([]);
@@ -107,6 +109,11 @@ export function GameContent({ game }: GameContentProps) {
                 {/* Payment and Play Section */}
                 <div className="mb-6">
                     <GamePayment game={game} />
+                </div>
+
+                {/* Standard game modules (unified cross-game UI blocks) */}
+                <div className="mb-6">
+                    <GameModulesBar risk={riskChoice} onRiskChange={setRiskChoice} />
                 </div>
 
                 {/* Game Embed Area */}

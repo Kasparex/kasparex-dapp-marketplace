@@ -41,49 +41,49 @@ export function NodeOverview({ nodeInfo, metrics }: NodeOverviewProps) {
     <section id="node-type" className="mb-6">
       <div className={CARD_CLASS}>
         <SectionHeader title="Node overview" />
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider mb-1 inline-flex items-center gap-1.5">
+        <ul className="space-y-0">
+          <li className="flex justify-between items-center py-2.5 border-b border-zinc-100 dark:border-zinc-800">
+            <span className="text-sm text-zinc-600 dark:text-zinc-400 inline-flex items-center gap-1.5">
               Type
-              <FieldHint text="Derived from the primary active node (Mirror preferred, otherwise Light). Shows what kind of node is currently connected to the registry." />
-            </p>
-            <p className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-              {typeLabel}
-            </p>
-          </div>
-          <div>
-            <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider mb-1 inline-flex items-center gap-1.5">
+              <FieldHint text="Derived from the primary active node (Mirror preferred, otherwise Light)." />
+            </span>
+            <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{typeLabel}</span>
+          </li>
+          <li className="flex justify-between items-center py-2.5 border-b border-zinc-100 dark:border-zinc-800">
+            <span className="text-sm text-zinc-600 dark:text-zinc-400 inline-flex items-center gap-1.5">
               Status
-              <FieldHint text="Connected means at least one node is actively pinging the registry. Not registered means no active node entries yet." />
-            </p>
-            <p className={`text-base font-semibold ${status.className} inline-flex items-center gap-2`}>
+              <FieldHint text="Connected means at least one node is actively pinging the registry." />
+            </span>
+            <span className={`text-sm font-semibold ${status.className} inline-flex items-center gap-2`}>
               <HealthDot level={health.level} label={health.label} />
               {status.label}
-            </p>
-          </div>
-          {nodeInfo.status !== 'not_registered' && (
+            </span>
+          </li>
+          {nodeInfo.status !== 'not_registered' ? (
             <>
-              <div>
-                <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider mb-1 inline-flex items-center gap-1.5">
+              <li className="flex justify-between items-center py-2.5 border-b border-zinc-100 dark:border-zinc-800">
+                <span className="text-sm text-zinc-600 dark:text-zinc-400 inline-flex items-center gap-1.5">
                   Uptime
-                  <FieldHint text="Uptime (hours) reported by the node registry for the primary node. Used as a simple health signal." />
-                </p>
-                <p className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                  <FieldHint text="Uptime (hours) reported by the node registry for the primary node." />
+                </span>
+                <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                   {typeof metrics.uptimeHours === 'number' ? `${metrics.uptimeHours.toFixed(1)}h` : '-'}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider mb-1 inline-flex items-center gap-1.5">
+                </span>
+              </li>
+              <li className="flex justify-between items-center py-2.5 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
+                <span className="text-sm text-zinc-600 dark:text-zinc-400 inline-flex items-center gap-1.5">
                   Pinned CIDs
-                  <FieldHint text="How many IPFS CIDs the primary node reports as pinned. Higher pin counts improve cache hit rates for node-first reads." />
-                </p>
-                <p className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                  {metrics.pinnedCids}
-                </p>
-              </div>
+                  <FieldHint text="How many IPFS CIDs the primary node reports as pinned." />
+                </span>
+                <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{metrics.pinnedCids}</span>
+              </li>
             </>
+          ) : (
+            <li className="py-2.5 text-sm text-zinc-500 dark:text-zinc-500">
+              No node registered yet. Start a node and make it ping the registry to populate these stats.
+            </li>
           )}
-        </div>
+        </ul>
       </div>
     </section>
   );
