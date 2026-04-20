@@ -6,6 +6,10 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useGRIDToken } from '@/hooks/useGRIDToken';
 import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
+import { useWalletDeck } from '@/hooks/useWalletDeck';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { useWalletSettings } from '@/hooks/useWalletSettings';
+import { useQueryClient } from '@tanstack/react-query';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { getChainById } from '@/lib/wagmi';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
@@ -34,10 +38,17 @@ export function RewardsDashboardContent({
   searchQuery,
 }: RewardsDashboardContentProps) {
   const { address, isConnected } = useAccount();
+  const { state: kaspaState } = useKaspaWallet();
   const chainId = useChainId();
   const { balance: krexBalance, l1Balance, l2Balance, tier: krexTier, isLoading: isKREXLoading } = useKREXBalance();
   const { nftStatus, nftPoints, isLoading: isNFTLoading } = useNFTStatus();
   const { totalPoints: xpPoints } = useLoyaltyPoints();
+  const { data: deck, isLoading: isDeckLoading } = useWalletDeck();
+  const { data: walletSettings } = useWalletSettings();
+  const queryClient = useQueryClient();
+  const [autoClaimEnabledDraft, setAutoClaimEnabledDraft] = useState<boolean | null>(null);
+  const [autoClaimMinGridDraft, setAutoClaimMinGridDraft] = useState<string>('');
+  const [savingAutoClaim, setSavingAutoClaim] = useState(false);
   const [showKREXBuyWizard, setShowKREXBuyWizard] = useState(false);
   const [showNFTBuyWizard, setShowNFTBuyWizard] = useState(false);
 
@@ -53,7 +64,7 @@ export function RewardsDashboardContent({
   const { formattedBalance: gridFormattedBalance, isLoading: isGRIDLoading } = useGRIDToken(gridTokenAddress);
 
 
-  const isLoading = isKREXLoading || isNFTLoading || isGRIDLoading;
+  const isLoading = isKREXLoading || isNFTLoading || isGRIDLoading || isDeckLoading;
   
   const defaultNFTStatus = {
     hasKREXPRIME: false,
@@ -275,6 +286,160 @@ export function RewardsDashboardContent({
                 );
               })()}
             </div>
+          </div>
+
+          {/* Deck summary (node-first, off-chain accruals) */}
+          <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+              Rewards deck (summary)
+            </h3>
+            {!kaspaState.isConnected ? (
+              <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                Connect your Kaspa wallet to load your pending/total rewards summary.
+              </div>
+            ) : isDeckLoading ? (
+              <div className="text-sm text-zinc-500 dark:text-zinc-400">Loading…</div>
+            ) : deck?.ok ? (
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-600 dark:text-zinc-400">Diamonds</span>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                    {formatLargeNumber(deck.diamonds?.balance ?? 0)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-600 dark:text-zinc-400">Diamonds earned</span>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                    {formatLargeNumber(deck.diamonds?.earnedTotal ?? 0)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-600 dark:text-zinc-400">Diamonds spent</span>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                    {formatLargeNumber(deck.diamonds?.spentTotal ?? 0)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-600 dark:text-zinc-400">Pending GRID</span>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                    {formatLargeNumber(deck.rewards.pendingGrid)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-600 dark:text-zinc-400">Pending items</span>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                    {deck.rewards.pendingCount}
+                  </span>
+                </div>
+                <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
+                  <span className="font-semibold text-zinc-700 dark:text-zinc-300">Total GRID (tracked)</span>
+                  <span className="font-bold text-[#02abb8] text-lg">
+                    {formatLargeNumber(deck.rewards.totalGrid)}
+                  </span>
+                </div>
+
+                <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-600 dark:text-zinc-400">Auto-claim</span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                      {walletSettings?.ok ? (walletSettings.autoClaimEnabled ? 'On' : 'Off') : deck.settings?.autoClaimEnabled ? 'On' : 'Off'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-zinc-600 dark:text-zinc-400">Min GRID threshold</span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                      {walletSettings?.ok ? formatLargeNumber(walletSettings.autoClaimMinGrid) : formatLargeNumber(deck.settings?.autoClaimMinGrid ?? 0)}
+                    </span>
+                  </div>
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const curEnabled = walletSettings?.ok
+                          ? walletSettings.autoClaimEnabled
+                          : Boolean(deck.settings?.autoClaimEnabled);
+                        setAutoClaimEnabledDraft(!(autoClaimEnabledDraft ?? curEnabled));
+                      }}
+                      className="k-control-btn h-9 px-3 text-xs justify-center"
+                    >
+                      Toggle
+                    </button>
+                    <input
+                      value={autoClaimMinGridDraft}
+                      onChange={(e) => setAutoClaimMinGridDraft(e.target.value)}
+                      placeholder="Min GRID"
+                      inputMode="decimal"
+                      className="h-9 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/30 px-3 text-xs text-zinc-900 dark:text-zinc-100"
+                    />
+                    <button
+                      type="button"
+                      disabled={savingAutoClaim}
+                      onClick={async () => {
+                        if (!kaspaState.address) return;
+                        const curEnabled = walletSettings?.ok
+                          ? walletSettings.autoClaimEnabled
+                          : Boolean(deck.settings?.autoClaimEnabled);
+                        const enabled = autoClaimEnabledDraft ?? curEnabled;
+                        const minGrid =
+                          autoClaimMinGridDraft.trim() === ''
+                            ? walletSettings?.ok
+                              ? walletSettings.autoClaimMinGrid
+                              : Number(deck.settings?.autoClaimMinGrid ?? 0) || 0
+                            : Math.max(0, Number(autoClaimMinGridDraft) || 0);
+                        const workerBase = process.env.NEXT_PUBLIC_CLOUDFLARE_WORKER_URL?.replace(/\/$/, '');
+                        if (!workerBase) return;
+                        setSavingAutoClaim(true);
+                        try {
+                          await fetch(`${workerBase}/kasparex/wallet/settings`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              userAddress: kaspaState.address,
+                              autoClaimEnabled: enabled,
+                              autoClaimMinGrid: minGrid,
+                            }),
+                          });
+                          setAutoClaimEnabledDraft(null);
+                          setAutoClaimMinGridDraft('');
+                          await queryClient.invalidateQueries({ queryKey: ['wallet-settings'] });
+                          await queryClient.invalidateQueries({ queryKey: ['wallet-deck'] });
+                        } finally {
+                          setSavingAutoClaim(false);
+                        }
+                      }}
+                      className="k-control-btn h-9 px-3 text-xs justify-center disabled:opacity-50"
+                    >
+                      {savingAutoClaim ? 'Saving…' : 'Save'}
+                    </button>
+                  </div>
+                </div>
+
+                {deck.perGame?.rewardsByGame?.length ? (
+                  <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
+                    <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-500 mb-2">
+                      Per-game breakdown
+                    </p>
+                    <div className="space-y-1">
+                      {deck.perGame.rewardsByGame.slice(0, 5).map((g) => (
+                        <div key={g.gameId} className="flex items-center justify-between text-xs">
+                          <span className="text-zinc-600 dark:text-zinc-400">{g.gameId}</span>
+                          <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                            {formatLargeNumber(g.pendingGrid)} pending · {formatLargeNumber(g.totalGrid)} total
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+                <div className="text-xs text-zinc-500 dark:text-zinc-500">
+                  Node-first: `/kasparex/wallet/deck`
+                </div>
+              </div>
+            ) : (
+              <div className="text-sm text-zinc-500 dark:text-zinc-500">
+                No deck data found yet for this wallet.
+              </div>
+            )}
           </div>
         </div>
 

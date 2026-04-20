@@ -11,6 +11,10 @@ import { handleNodeRequest } from './kasparex-api/nodes';
 import { handleRewardRequest } from './kasparex-api/rewards';
 import { handleL1RewardRequest } from './kasparex-api/rewards-l1';
 import { handlePublicRequest } from './kasparex-api/public';
+import { handleLeaderboardRequest } from './kasparex-api/leaderboard';
+import { handleWalletRequest } from './kasparex-api/wallet';
+import { handleDiamondsRequest } from './kasparex-api/diamonds';
+import { handlePaymentsRequest } from './kasparex-api/payments';
 import { handleProcessRewards, processPendingRewards } from './kasparex-api/reward-processor';
 import { handleArchiveRewards, handleManualArchive } from './kasparex-api/archive';
 import { handleUsageRequest } from './kasparex-api/usage';
@@ -30,6 +34,14 @@ export interface Env {
   PINATA_API_KEY?: string;
   STORACHA_API_KEY?: string;
   KASPAREX_API_URL?: string;
+  /** Canonical Kasparex app base URL (Next). Used for read-only upstreams. */
+  KASPAREX_APP_URL?: string;
+  /** Diamonds cashback: diamonds per 1 KAS paid (float allowed, applied then floored). */
+  DIAMONDS_PAYMENT_BONUS_PER_KAS?: string;
+  /** Max Diamonds from payment bonus per tx. */
+  DIAMONDS_PAYMENT_BONUS_TX_CAP?: string;
+  /** Max Diamonds from payment bonus per wallet per day. */
+  DIAMONDS_PAYMENT_BONUS_DAILY_CAP?: string;
   ARCHIVE_AUTH_TOKEN?: string; // For manual archive endpoint
   IGRA_RPC_URL?: string; // Igra testnet RPC URL for event indexing
   USAGE_WORKER_SECRET?: string; // Shared secret for internal usage/lock endpoints
@@ -90,6 +102,22 @@ export default {
 
       if (pathname.startsWith('/kasparex/stats') || pathname.startsWith('/kasparex/dapps/availability')) {
         return handlePublicRequest(request, env);
+      }
+
+      if (pathname.startsWith('/kasparex/leaderboard/')) {
+        return handleLeaderboardRequest(request, env);
+      }
+
+      if (pathname.startsWith('/kasparex/wallet/')) {
+        return handleWalletRequest(request, env);
+      }
+
+      if (pathname.startsWith('/kasparex/diamonds/')) {
+        return handleDiamondsRequest(request, env);
+      }
+
+      if (pathname.startsWith('/kasparex/payments/')) {
+        return handlePaymentsRequest(request, env);
       }
 
       // Internal usage monitor + locks (KV-backed)

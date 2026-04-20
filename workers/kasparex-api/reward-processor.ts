@@ -18,26 +18,86 @@ import {
   type D1Database,
 } from './d1Database';
 
-/**
- * KREX Tier thresholds (matches frontend logic)
- */
-const KREX_TIERS = {
-  Tier1: { min: 0, multiplier: 1.0 },
-  Tier2: { min: 10_000_000, multiplier: 1.5 },
-  Tier3: { min: 50_000_000, multiplier: 2.0 },
-  Tier4: { min: 100_000_000, multiplier: 3.0 },
-} as const;
+// Single source of truth: reuse the frontend tier config.
+// This keeps Worker payouts consistent with UI multipliers.
+import { KREX_TIERS as FRONTEND_KREX_TIERS, BASE_REWARDS } from '../../src/lib/rewards/types';
+type KREXTier = keyof typeof FRONTEND_KREX_TIERS;
 
-type KREXTier = keyof typeof KREX_TIERS;
+async function getUserAutoClaimSettings(env: Env, userAddress: string): Promise<{ enabled: boolean; minGrid: number }> {
+  try {
+    const row = await env.REWARDS_DB.prepare(
+      `SELECT auto_claim_enabled, auto_claim_min_grid
+       FROM user_reward_settings
+       WHERE user_address = ?`
+    )
+      .bind(userAddress)
+      .first<{ auto_claim_enabled: number; auto_claim_min_grid: number }>();
+    return {
+      enabled: Boolean((row?.auto_claim_enabled ?? 0) === 1),
+      minGrid: Math.max(0, Number(row?.auto_claim_min_grid ?? 0) || 0),
+    };
+  } catch {
+    return { enabled: false, minGrid: 0 };
+  }
+}
+
+async function getUserPendingGrid(env: Env, userAddress: string): Promise<number> {
+  const row = await env.REWARDS_DB.prepare(
+    `SELECT COALESCE(SUM(COALESCE(grid_reward,0)),0) as pending_grid
+     FROM rewards_active
+     WHERE user_address = ?
+       AND status IN ('pending','processing')`
+  )
+    .bind(userAddress)
+    .first<{ pending_grid: number }>();
+  return Number(row?.pending_grid ?? 0) || 0;
+}
+
+async function getQueuedDistributionJob(env: Env, userAddress: string): Promise<{ id: string } | null> {
+  const row = await env.REWARDS_DB.prepare(
+    `SELECT id FROM grid_distribution_jobs
+     WHERE user_address = ? AND status = 'queued'
+     LIMIT 1`
+  )
+    .bind(userAddress)
+    .first<{ id: string }>();
+  return row?.id ? row : null;
+}
+
+async function createDistributionJob(env: Env, userAddress: string, totalGrid: number): Promise<string | null> {
+  const now = Date.now();
+  const id = `job_${now}_${userAddress.replace(/^kaspa:/i, '').slice(0, 10)}`;
+  const res = await env.REWARDS_DB.prepare(
+    `INSERT INTO grid_distribution_jobs (id, user_address, total_grid, status, created_at, updated_at)
+     VALUES (?, ?, ?, 'queued', ?, ?)`
+  )
+    .bind(id, userAddress, totalGrid, now, now)
+    .run();
+  return res.success ? id : null;
+}
+
+async function stageRewardForDistribution(reward: RewardRecord, env: Env): Promise<{ ok: boolean; gridReward?: number }> {
+  // Verify + calculate, then mark as processing (not completed).
+  const isVerified = await verifyKaspaTransaction(reward.txHash);
+  if (!isVerified) {
+    // still proceed
+  }
+  const krexBalance = await queryL1KREXBalance(reward.userAddress);
+  const krexTier = getKREXTierFromBalance(krexBalance);
+  const { gridReward, dAppTokenReward } = calculateRewardAmounts(reward.actionValue, krexTier);
+  await updateRewardStatus(env.REWARDS_DB, reward.id, 'processing', gridReward, dAppTokenReward);
+  return { ok: true, gridReward };
+}
 
 /**
  * Get KREX tier from balance
  */
 function getKREXTierFromBalance(balance: number): KREXTier {
-  if (balance >= 100_000_000) return 'Tier4';
-  if (balance >= 50_000_000) return 'Tier3';
-  if (balance >= 10_000_000) return 'Tier2';
-  return 'Tier1';
+  if (balance >= FRONTEND_KREX_TIERS.Tier4.minKREX) return 'Tier4';
+  if (balance >= FRONTEND_KREX_TIERS.Tier3.minKREX) return 'Tier3';
+  if (balance >= FRONTEND_KREX_TIERS.Tier2.minKREX) return 'Tier2';
+  if (balance >= FRONTEND_KREX_TIERS.Tier1.minKREX) return 'Tier1';
+  return 'Tier0';
 }
 
 /**
@@ -147,19 +207,17 @@ function calculateRewardAmounts(
   actionValue: number,
   krexTier: KREXTier
 ): { gridReward: number; dAppTokenReward: number } {
-  // Base reward rates (per KAS)
-  // These should match the rates in src/lib/rewards/mockData.ts
-  // Default: 10000 GRT per KAS, 1000 LRT per KAS (from mockData)
-  // For production, these may need to be adjusted based on actual token economics
-  const GRID_PER_KAS = 10000; // GRID per KAS (matches mockData.GRT_PER_KAS)
-  const DAPP_TOKEN_PER_KAS = 1000; // dApp token per KAS (matches mockData.LRT_PER_KAS)
+  // Base reward rate (per KAS) — canonical config.
+  const GRID_PER_KAS = BASE_REWARDS.GRT_PER_KAS;
+  // This project is GRID-first; keep dApp token rewards disabled for now.
+  const DAPP_TOKEN_PER_KAS = 0;
 
   // Calculate base rewards
   const baseGridReward = actionValue * GRID_PER_KAS;
   const baseDAppTokenReward = actionValue * DAPP_TOKEN_PER_KAS;
 
   // Get tier multiplier
-  const tierConfig = KREX_TIERS[krexTier];
+  const tierConfig = FRONTEND_KREX_TIERS[krexTier];
   const multiplier = tierConfig.multiplier;
 
   // Apply multiplier
@@ -300,24 +358,78 @@ export async function processPendingRewards(
 
     console.log(`[Reward Processor] Found ${pendingRewards.length} pending rewards`);
 
-    // Process each reward
-    for (const reward of pendingRewards) {
-      results.processed++;
-      
-      const result = await processReward(reward, env);
-      
-      if (result.success) {
-        results.succeeded++;
-      } else {
-        results.failed++;
-        if (result.error) {
-          results.errors.push(`Reward ${reward.id}: ${result.error}`);
+    // Apply per-user auto-claim threshold gating.
+    const grouped = new Map<string, RewardRecord[]>();
+    for (const r of pendingRewards) {
+      if (!grouped.has(r.userAddress)) grouped.set(r.userAddress, []);
+      grouped.get(r.userAddress)!.push(r);
+    }
+
+    const eligible: RewardRecord[] = [];
+    for (const [userAddress, list] of grouped.entries()) {
+      const settings = await getUserAutoClaimSettings(env, userAddress);
+      if (!settings.enabled) {
+        eligible.push(...list);
+        continue;
+      }
+      const pendingGrid = await getUserPendingGrid(env, userAddress);
+      if (pendingGrid >= settings.minGrid) {
+        eligible.push(...list);
+      }
+    }
+
+    // Process per-user so we can create a single distribution job.
+    const eligibleByUser = new Map<string, RewardRecord[]>();
+    for (const r of eligible) {
+      if (!eligibleByUser.has(r.userAddress)) eligibleByUser.set(r.userAddress, []);
+      eligibleByUser.get(r.userAddress)!.push(r);
+    }
+
+    for (const [userAddress, list] of eligibleByUser.entries()) {
+      const settings = await getUserAutoClaimSettings(env, userAddress);
+
+      // If auto-claim enabled, stage rewards and create/refresh a distribution job (queued).
+      if (settings.enabled) {
+        const existingJob = await getQueuedDistributionJob(env, userAddress);
+
+        // Stage (calculate -> processing) for this user's pending rewards.
+        for (const reward of list) {
+          results.processed++;
+          try {
+            const staged = await stageRewardForDistribution(reward, env);
+            if (staged.ok) results.succeeded++;
+          } catch (e) {
+            results.failed++;
+            results.errors.push(`Reward ${reward.id}: ${e instanceof Error ? e.message : 'Stage failed'}`);
+          }
+          if (results.processed < eligible.length) {
+            await new Promise((resolve) => setTimeout(resolve, 250));
+          }
         }
+
+        // Create a job only if none queued (idempotent at job level).
+        if (!existingJob) {
+          const totalGrid = await getUserPendingGrid(env, userAddress);
+          if (totalGrid >= settings.minGrid) {
+            await createDistributionJob(env, userAddress, totalGrid);
+          }
+        }
+
+        continue;
       }
 
-      // Small delay between processing to avoid rate limits
-      if (results.processed < pendingRewards.length) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+      // Otherwise, keep current behavior: immediate completion per reward.
+      for (const reward of list) {
+        results.processed++;
+        const result = await processReward(reward, env);
+        if (result.success) results.succeeded++;
+        else {
+          results.failed++;
+          if (result.error) results.errors.push(`Reward ${reward.id}: ${result.error}`);
+        }
+        if (results.processed < eligible.length) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
       }
     }
 

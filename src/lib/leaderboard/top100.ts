@@ -25,9 +25,16 @@ export function leaderboardKvKeyTx(seasonId: SeasonId, txHash: string): string {
 }
 
 export async function fetchGlobalTop100Snapshot(seasonId: SeasonId): Promise<GlobalTop100Snapshot | null> {
-  const res = await fetch(`/api/leaderboard/top100?season=${encodeURIComponent(seasonId)}`, { cache: 'no-store' });
-  if (!res.ok) return null;
-  const j = (await res.json()) as { ok?: boolean; snapshot?: GlobalTop100Snapshot | null };
+  const { nodeFirstGet } = await import('@/lib/nodes/node-first');
+  const r = await nodeFirstGet<{ ok?: boolean; snapshot?: GlobalTop100Snapshot | null }>(
+    `/kasparex/leaderboard/top100?season=${encodeURIComponent(seasonId)}`,
+    {
+      roles: ['mirror', 'light'],
+      maxNodeAttempts: 3,
+      timeoutMs: 3200,
+    }
+  );
+  const j = r.data;
   if (!j.ok) return null;
   return j.snapshot ?? null;
 }

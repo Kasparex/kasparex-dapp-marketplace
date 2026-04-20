@@ -8,6 +8,9 @@ import { StatusAndParameters } from './StatusAndParameters';
 import { TechnicalRequirements } from './TechnicalRequirements';
 import { IncentivesAndEarnings } from './IncentivesAndEarnings';
 import { NodeTypesInfoCards } from './NodeTypesInfoCards';
+import { ActiveNodesTable } from './ActiveNodesTable';
+import { NodeFirstDiagnosticsPanel } from './NodeFirstDiagnosticsPanel';
+import { useKrexNodeNetwork } from '@/hooks/useKrexNodeNetwork';
 import {
   mockNodeInfo,
   mockNodeMetrics,
@@ -16,6 +19,8 @@ import {
 } from '@/lib/nodes/mock';
 
 export function NodesDashboardContent() {
+  const { data: activeNodes = [] } = useKrexNodeNetwork();
+
   useEffect(() => {
     const hash = typeof window !== 'undefined' ? window.location.hash.slice(1) : '';
     if (hash) {
@@ -69,6 +74,8 @@ export function NodesDashboardContent() {
       </div>
 
       <NodeTypesInfoCards />
+      <ActiveNodesTable nodes={activeNodes} />
+      <NodeFirstDiagnosticsPanel />
 
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -21,6 +21,27 @@ export interface KrexNodesResponse {
 }
 
 /**
+ * Get all currently active nodes (pinged recently) from the registry.
+ * This is the base primitive for node-first routing.
+ */
+export async function getKrexNodes(options?: {
+  region?: string;
+  role?: KrexNode['role'];
+}): Promise<KrexNode[]> {
+  try {
+    const query = new URLSearchParams();
+    if (options?.region) query.set('region', options.region);
+    if (options?.role) query.set('role', options.role);
+    const endpoint = `/kasparex/nodes${query.size ? `?${query.toString()}` : ''}`;
+    const response = await api.get<KrexNodesResponse>(endpoint);
+    return Array.isArray(response.nodes) ? response.nodes : [];
+  } catch (error) {
+    console.warn('Failed to fetch Krex nodes:', error);
+    return [];
+  }
+}
+
+/**
  * Get Krex Node URLs that have pinned a specific CID
  * 
  * @param cid - IPFS CID
@@ -80,6 +101,34 @@ export async function checkAvailability(url: string, timeout = 2000): Promise<bo
     return response.ok;
   } catch {
     return false;
+  }
+}
+
+/**
+ * Quick JSON GET with timeout (used by node-first routing).
+ */
+export async function fetchJsonWithTimeout<T>(
+  url: string,
+  options?: { timeoutMs?: number; headers?: Record<string, string> }
+): Promise<T> {
+  const timeoutMs = Math.max(500, options?.timeoutMs ?? 3500);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        ...(options?.headers ?? {}),
+      },
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+    return (await res.json()) as T;
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 

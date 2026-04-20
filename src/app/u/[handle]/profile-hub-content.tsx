@@ -30,10 +30,12 @@ import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
 import { TierBadge } from '@/components/rewards/TierBadge';
 import { KREX_TIERS } from '@/lib/rewards/types';
 import { getContractAddress } from '@/lib/contracts/addresses';
+import { ProfileTransactionsTab } from '@/components/profile/ProfileTransactionsTab';
 // heavy editors are opened as dedicated routes; keep Profile Hub lightweight
 
 type TabId =
   | 'overview'
+  | 'transactions'
   | 'creator-content'
   | 'creator-create'
   | 'assets'
@@ -52,6 +54,7 @@ export function ProfileHubContent({
   const router = useRouter();
   const searchParams = useSearchParams();
   const { address: connectedEvmAddress, isConnected: isEvmConnected } = useAccount();
+  const chainId = useChainId();
   const { signMessageAsync, isPending: isSigningEvm } = useSignMessage();
   const { state: kaspaState } = useKaspaWallet();
 
@@ -213,6 +216,7 @@ export function ProfileHubContent({
     }
     const allowed: TabId[] = [
       'overview',
+      'transactions',
       'creator-content',
       'creator-create',
       'assets',
@@ -254,6 +258,12 @@ export function ProfileHubContent({
                   active={activeTab === 'overview'}
                   onClick={() => goTab('overview')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>}
+                />
+                <SidebarNavItem
+                  label="Transactions"
+                  active={activeTab === 'transactions'}
+                  onClick={() => goTab('transactions')}
+                  icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2a2 2 0 012-2h2a2 2 0 012 2v2m4-8V7a2 2 0 00-2-2H5a2 2 0 00-2 2v2m18 0H3m18 0v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8" /></svg>}
                 />
               </nav>
             </SidebarSection>
@@ -350,6 +360,14 @@ export function ProfileHubContent({
                     profileX={profile?.x}
                     profileHref={kaspaAddress ? `/u/${encodeURIComponent(kaspaAddress)}` : '/u'}
                     isOwnProfile={isOwnProfile}
+                  />
+                )}
+
+                {activeTab === 'transactions' && (
+                  <ProfileTransactionsTab
+                    kaspaAddress={kaspaAddress}
+                    linkedEvmAddress={profile?.linkedEvmWallets?.[0]?.address || null}
+                    chainId={chainId}
                   />
                 )}
 
@@ -503,14 +521,14 @@ function OverviewTab({
 
 function PortfolioOverview() {
   const { isConnected: isEVMConnected } = useAccount();
-  const chainId = useChainId();
+  const portfolioChainId = useChainId();
   const { state: kaspaState } = useKaspaWallet();
   const isL1Connected = kaspaState.isConnected;
 
   const { balance: krexBalance, l1Balance: krexL1, l2Balance: krexL2, tier: krexTier, isLoading: isKREXLoading } = useKREXBalance();
   const { balanceInKas: kasBalance, isLoading: isKasLoading } = useKaspaBalance();
   const gridTokenAddress =
-    getContractAddress(chainId, 'tGRID') || getContractAddress(chainId, 'GRIDToken') || undefined;
+    getContractAddress(portfolioChainId, 'tGRID') || getContractAddress(portfolioChainId, 'GRIDToken') || undefined;
   const gridToken = useGRIDToken(gridTokenAddress);
   const { nftStatus, nftPoints } = useNFTStatus();
   const { totalPoints: xpPoints } = useLoyaltyPoints();
@@ -1508,6 +1526,7 @@ function ProfileTabStrip({
 
   const tabs: Array<{ id: TabId; label: string; ownerOnly?: boolean }> = [
     { id: 'overview', label: 'Overview' },
+    { id: 'transactions', label: 'Transactions' },
     { id: 'creator-content', label: 'Content' },
     { id: 'creator-create', label: 'Create' },
     { id: 'assets', label: 'Assets' },

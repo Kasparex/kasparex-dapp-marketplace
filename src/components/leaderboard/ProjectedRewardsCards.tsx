@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { computeRewardBreakdown, rewardsPoolPercent, rewardsSplits, rewardsWalletAddress } from '@/lib/leaderboard/rewardsPool';
+import { nodeFirstGet } from '@/lib/nodes/node-first';
 
 type BalanceResponse = { success?: boolean; balance?: string | null };
 
@@ -27,8 +28,11 @@ export function ProjectedRewardsCards() {
       try {
         // Prefer internal API, then fallback directly to Kaspa API if needed.
         let kas = 0;
-        const res = await fetch(`/api/leaderboard/rewards-balance?address=${encodeURIComponent(wallet)}`, { cache: 'no-store' });
-        const j = (await res.json()) as BalanceResponse;
+        const r = await nodeFirstGet<BalanceResponse>(
+          `/kasparex/leaderboard/rewards-balance?address=${encodeURIComponent(wallet)}`,
+          { roles: ['mirror', 'light'], maxNodeAttempts: 3, timeoutMs: 3200 }
+        );
+        const j = r.data;
         if (j.success && j.balance) {
           const sompis = Number(j.balance);
           kas = Number.isFinite(sompis) ? sompis / 100000000 : 0;

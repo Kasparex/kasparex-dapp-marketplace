@@ -83,32 +83,48 @@ export async function getL1RewardStatus(
   rewardId: string
 ): Promise<{ status: string; gridReward?: number; dAppTokenReward?: number; distributedAt?: string; error?: string }> {
   try {
-    // Use Cloudflare Worker API if configured, otherwise use Next.js API route
-    const cloudflareApiUrl = process.env.NEXT_PUBLIC_CLOUDFLARE_WORKER_URL;
-    const nextjsApiUrl = process.env.NEXT_PUBLIC_KASPAREX_API_URL;
-    
-    const endpoint = cloudflareApiUrl
-      ? `${cloudflareApiUrl}/kasparex/rewards/l1/status/${rewardId}`
-      : nextjsApiUrl
-      ? `${nextjsApiUrl}/api/rewards/l1/status/${rewardId}`
-      : `/api/rewards/l1/status/${rewardId}`;
+    // Prefer node-first reads for status (cheap + cacheable), fall back to central.
+    // Writes (record endpoint) should remain centralized and verifiable.
+    const enableNodeFirst = process.env.NEXT_PUBLIC_NODE_FIRST_READS !== 'false';
 
-    const response = await fetch(endpoint, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    let data: any;
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-      return {
-        status: 'error',
-        error: errorData.error || `API error: ${response.status} ${response.statusText}`,
-      };
+    if (enableNodeFirst) {
+      const { nodeFirstGet } = await import('@/lib/nodes/node-first');
+      const result = await nodeFirstGet<any>(`/kasparex/rewards/l1/status/${rewardId}`, {
+        roles: ['mirror', 'light'],
+        maxNodeAttempts: 3,
+        timeoutMs: 3200,
+      });
+      data = result.data;
+    } else {
+      // Central-only fallback using existing endpoint selection.
+      const cloudflareApiUrl = process.env.NEXT_PUBLIC_CLOUDFLARE_WORKER_URL;
+      const nextjsApiUrl = process.env.NEXT_PUBLIC_KASPAREX_API_URL;
+
+      const endpoint = cloudflareApiUrl
+        ? `${cloudflareApiUrl}/kasparex/rewards/l1/status/${rewardId}`
+        : nextjsApiUrl
+          ? `${nextjsApiUrl}/api/rewards/l1/status/${rewardId}`
+          : `/api/rewards/l1/status/${rewardId}`;
+
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        return {
+          status: 'error',
+          error: errorData.error || `API error: ${response.status} ${response.statusText}`,
+        };
+      }
+
+      data = await response.json();
     }
-
-    const data = await response.json();
 
     return {
       status: data.status || 'pending',

@@ -3,9 +3,8 @@
 import { useState } from 'react';
 import { Game } from '@/lib/games/games';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
-import { kasToSompis } from '@/lib/kaspa/api';
 import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
+import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sdk';
 
 interface GamePaymentProps {
   game: Game;
@@ -20,6 +19,7 @@ export function GamePayment({ game }: GamePaymentProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [diamondsMinted, setDiamondsMinted] = useState<number | null>(null);
 
   const handlePlay = async () => {
     if (!state.isConnected || !state.provider) {
@@ -51,55 +51,62 @@ export function GamePayment({ game }: GamePaymentProps) {
     setError(null);
     setSuccess(false);
     setTxHash(null);
+    setDiamondsMinted(null);
 
     try {
-      // Convert KAS to sompis
-      const sompiAmount = kasToSompis(game.entryCostKAS);
+      const pay = await payKaspaL1({
+        provider: state.provider,
+        fromKaspaAddress: state.address,
+        toKaspaAddress: GAME_TREASURY_ADDRESS,
+        amountKas: game.entryCostKAS,
+        gameId: game.id,
+        skuId: `${game.id}:entry`,
+        purchaseType: 'entry',
+      });
+      if (!pay.ok) throw new Error(pay.error);
 
-      // Send payment transaction
-      const transaction = {
-        to: GAME_TREASURY_ADDRESS,
-        amount: sompiAmount.toString(),
-      };
-
-      const result = await sendKaspaTransaction(state.provider, transaction);
-
-      if (result.status === 'failed') {
-        throw new Error(result.error || 'Transaction failed');
-      }
-
-      setTxHash(result.txHash);
+      setTxHash(pay.txHash);
       setSuccess(true);
 
       // Record reward transaction
       try {
-        const response = await fetch('/api/rewards/l1/record', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userAddress: state.address,
-            dappId: game.id,
-            actionType: 'game_entry',
-            actionValue: game.entryCostKAS,
-            txHash: result.txHash,
-            network: 'L1',
-          }),
+        await recordL1Reward({
+          userAddress: state.address,
+          dappId: game.id,
+          actionType: 'game_entry',
+          actionValue: game.entryCostKAS,
+          txHash: pay.txHash,
+          network: 'L1',
         });
-
-        if (!response.ok) {
-          console.warn('Failed to record reward transaction:', await response.text());
-        }
       } catch (rewardError) {
         console.error('Error recording reward:', rewardError);
         // Don't fail the payment if reward recording fails
+      }
+
+      // Verify payment via unified Worker endpoint (node-first infra will consume this later for Diamonds/unlocks).
+      try {
+        const vr = await verifyKaspaL1Payment({
+          txHash: pay.txHash,
+          payerKaspaAddress: state.address,
+          toKaspaAddress: GAME_TREASURY_ADDRESS,
+          minAmountKas: game.entryCostKAS,
+          gameId: game.id,
+          skuId: `${game.id}:entry`,
+          purchaseType: 'entry',
+          sessionId: pay.sessionId,
+        });
+        if (vr.ok && typeof vr.diamondsMinted === 'number') {
+          setDiamondsMinted(vr.diamondsMinted);
+        }
+      } catch {
+        // Verification is best-effort for now; core loop should not break on transient indexer delays.
       }
 
       // Clear success message after 5 seconds
       setTimeout(() => {
         setSuccess(false);
         setTxHash(null);
+        setDiamondsMinted(null);
       }, 5000);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to process payment';
@@ -200,6 +207,11 @@ export function GamePayment({ game }: GamePaymentProps) {
             <p className="text-sm text-green-800 dark:text-green-300 mb-1">
               Payment successful! Transaction: {txHash.slice(0, 10)}...{txHash.slice(-8)}
             </p>
+            {typeof diamondsMinted === 'number' && diamondsMinted > 0 ? (
+              <p className="text-xs text-green-700 dark:text-green-400">
+                Bonus: +{diamondsMinted} Diamonds
+              </p>
+            ) : null}
             <p className="text-xs text-green-700 dark:text-green-400">
               You can now play the game. Rewards will be processed automatically.
             </p>

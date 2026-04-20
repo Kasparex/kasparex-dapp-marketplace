@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { currentSeasonWindowUtc } from '@/lib/leaderboard/seasons';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { nodeFirstGet } from '@/lib/nodes/node-first';
 
 export function GlobalTop100Preview({ title = 'Global Top 100' }: { title?: string }) {
   const season = useMemo(() => currentSeasonWindowUtc(), []);
@@ -17,12 +18,16 @@ export function GlobalTop100Preview({ title = 'Global Top 100' }: { title?: stri
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/leaderboard/top100?season=${encodeURIComponent(season.id)}`, { cache: 'no-store' });
-        const j = (await res.json()) as {
+        const r = await nodeFirstGet<{
           ok?: boolean;
           snapshot?: { items?: unknown[] } | null;
           seasonMeta?: { status?: string } | null;
-        };
+        }>(`/kasparex/leaderboard/top100?season=${encodeURIComponent(season.id)}`, {
+          roles: ['mirror', 'light'],
+          maxNodeAttempts: 3,
+          timeoutMs: 3200,
+        });
+        const j = r.data;
         const snap = j.ok ? j.snapshot : null;
         if (cancelled) return;
         setCount(snap?.items?.length ?? 0);
