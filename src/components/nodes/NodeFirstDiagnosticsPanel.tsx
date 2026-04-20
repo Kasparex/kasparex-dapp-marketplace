@@ -9,11 +9,9 @@ import { SectionHeader } from './SectionHeader';
 const CARD_CLASS =
   'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 p-6';
 
-const SUBCARD_CLASS =
-  'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-950/50 p-4';
+const SUBCARD_CLASS = 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4';
 
-const SUBCARD_TITLE_CLASS =
-  'text-xs md:text-sm font-black uppercase tracking-wide text-[#02abb8] dark:text-cyan-300 mb-3 flex items-center gap-2';
+const SUBCARD_TITLE_CLASS = 'text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-3 flex items-center gap-2';
 
 function KVRow(props: { label: string; children: React.ReactNode; hint?: React.ReactNode }) {
   return (
@@ -190,44 +188,57 @@ export function NodeFirstDiagnosticsPanel() {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+      </div>
 
-            <div className={`${SUBCARD_CLASS} lg:col-span-2`}>
+      <div className={`${CARD_CLASS} mt-6`}>
+        <SectionHeader
+          title="Stats endpoint test (/kasparex/stats)"
+          hint="Read-heavy example endpoint to compare node-first vs central payloads and latency."
+        />
+
+        {data ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 text-sm">
+            <div className={SUBCARD_CLASS}>
               <div className={SUBCARD_TITLE_CLASS}>
-                <span>Stats endpoint test (`/kasparex/stats`)</span>
-                <FieldHint text="This endpoint is a good read-heavy example: nodes can cache it, and it’s easy to compare node vs central responses." />
+                <span>Node-first</span>
+                <FieldHint text="This call uses node-first routing (node or central fallback depending on availability)." />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/30 p-3">
-                  <div className="text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-2">Node-first</div>
-                  {data.nodeStats ? (
-                    <div className="space-y-2">
-                      <KVRow label="Source">{data.nodeStats.source}</KVRow>
-                      <KVRow label="Node">{data.nodeStats.nodeUrl ?? '-'}</KVRow>
-                      <KVRow label="Latency">{ms(data.nodeStats.elapsedMs)}</KVRow>
-                      <div className="pt-1 text-xs text-zinc-500 dark:text-zinc-500">
-                        Nodes: {data.nodeStats.payload?.totalNodes ?? '-'} (mirror {data.nodeStats.payload?.mirrorNodes ?? '-'}
-                        , light {data.nodeStats.payload?.lightNodes ?? '-'})
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-zinc-500 dark:text-zinc-500">Disabled</div>
-                  )}
-                </div>
 
-                <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/30 p-3">
-                  <div className="text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-2">Central</div>
-                  <div className="space-y-2">
-                    <KVRow label="Latency">{ms(data.centralStats.elapsedMs)}</KVRow>
-                    <div className="pt-1 text-xs text-zinc-500 dark:text-zinc-500">
-                      Nodes: {data.centralStats.payload?.totalNodes ?? '-'} (mirror {data.centralStats.payload?.mirrorNodes ?? '-'}
-                      , light {data.centralStats.payload?.lightNodes ?? '-'})
-                    </div>
+              {data.nodeStats ? (
+                <div className="space-y-2">
+                  <KVRow label="Source">{data.nodeStats.source}</KVRow>
+                  <KVRow label="Node">{data.nodeStats.nodeUrl ?? '-'}</KVRow>
+                  <KVRow label="Latency">{ms(data.nodeStats.elapsedMs)}</KVRow>
+                  <div className="pt-1 text-xs text-zinc-500 dark:text-zinc-500">
+                    Nodes: {data.nodeStats.payload?.totalNodes ?? '-'} (mirror {data.nodeStats.payload?.mirrorNodes ?? '-'}, light{' '}
+                    {data.nodeStats.payload?.lightNodes ?? '-'})
                   </div>
+                </div>
+              ) : (
+                <div className="text-zinc-500 dark:text-zinc-500">Disabled</div>
+              )}
+            </div>
+
+            <div className={SUBCARD_CLASS}>
+              <div className={SUBCARD_TITLE_CLASS}>
+                <span>Central</span>
+                <FieldHint text="Direct call to the Worker API (central) as baseline." />
+              </div>
+
+              <div className="space-y-2">
+                <KVRow label="Latency">{ms(data.centralStats.elapsedMs)}</KVRow>
+                <div className="pt-1 text-xs text-zinc-500 dark:text-zinc-500">
+                  Nodes: {data.centralStats.payload?.totalNodes ?? '-'} (mirror {data.centralStats.payload?.mirrorNodes ?? '-'}, light{' '}
+                  {data.centralStats.payload?.lightNodes ?? '-'})
                 </div>
               </div>
             </div>
           </div>
-        )}
+        ) : isLoading ? (
+          <div className="text-sm text-zinc-500 dark:text-zinc-500">Loading…</div>
+        ) : null}
       </div>
     </section>
   );

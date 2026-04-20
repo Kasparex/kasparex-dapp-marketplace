@@ -13,16 +13,16 @@ type RegionPin = { id: string; label: string; x: number; y: number };
 // Lightweight mapping without extra deps. We refine as regions standardize.
 const REGION_PINS: RegionPin[] = [
   // Coordinates are in the SVG's viewBox space (public/world-map.svg).
-  { id: 'us', label: 'US', x: 147, y: 123 },
-  { id: 'us-east', label: 'US East', x: 176, y: 123 },
-  { id: 'us-west', label: 'US West', x: 128, y: 123 },
-  { id: 'eu', label: 'EU', x: 271, y: 107 },
-  { id: 'uk', label: 'UK', x: 257, y: 102 },
-  { id: 'pl', label: 'PL', x: 276, y: 102 },
-  { id: 'asia', label: 'Asia', x: 371, y: 128 },
-  { id: 'sg', label: 'Singapore', x: 390, y: 174 },
-  { id: 'jp', label: 'Japan', x: 414, y: 121 },
-  { id: 'au', label: 'Australia', x: 428, y: 215 },
+  { id: 'us', label: 'US', x: 148, y: 120 },
+  { id: 'us-east', label: 'US East', x: 182, y: 122 },
+  { id: 'us-west', label: 'US West', x: 118, y: 123 },
+  { id: 'eu', label: 'EU', x: 266, y: 108 },
+  { id: 'uk', label: 'UK', x: 254, y: 104 },
+  { id: 'pl', label: 'PL', x: 276, y: 106 },
+  { id: 'asia', label: 'Asia', x: 372, y: 122 },
+  { id: 'sg', label: 'Singapore', x: 381, y: 176 },
+  { id: 'jp', label: 'Japan', x: 416, y: 125 },
+  { id: 'au', label: 'Australia', x: 419, y: 218 },
 ];
 
 // The SVG we use (public/world-map.svg) is ~495x266.

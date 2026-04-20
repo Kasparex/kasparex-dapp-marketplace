@@ -17,49 +17,49 @@ export function IncentivesAndEarnings({ incentives }: IncentivesAndEarningsProps
       <div className={CARD_CLASS}>
         <SectionHeader title="Earnings & incentives" />
         <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700">
-            <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider mb-1 inline-flex items-center gap-1.5">
+          <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+            <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 tracking-wide mb-1 inline-flex items-center gap-1.5">
               GRID earned
               <FieldHint text="Operator accounting is not enabled yet, so this is 0 for now. Later this will show GRID earned by running nodes." />
             </p>
-            <p className="text-xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
+            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
               {incentives.gridEarned}
             </p>
           </div>
-          <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700">
-            <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider mb-1 inline-flex items-center gap-1.5">
+          <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+            <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 tracking-wide mb-1 inline-flex items-center gap-1.5">
               XP earned
               <FieldHint text="Operator XP incentives are not enabled yet. This will become real when node rewards are turned on." />
             </p>
-            <p className="text-xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
+            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
               {incentives.xpEarned}
             </p>
           </div>
-          <div className="p-4 rounded-xl bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800">
-            <p className="text-[10px] font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-wider mb-1 inline-flex items-center gap-1.5">
+          <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+            <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 tracking-wide mb-1 inline-flex items-center gap-1.5">
               Current multiplier
               <FieldHint text="Current multiplier is derived from your connected node type (Mirror: 5x, Light: 4x). This will become per-operator once accounting is enabled." />
             </p>
-            <p className="text-xl font-black text-cyan-700 dark:text-cyan-400 tracking-tight">
+            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
               {incentives.currentMultiplier}x
             </p>
           </div>
-          <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700">
-            <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider mb-1 inline-flex items-center gap-1.5">
+          <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+            <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 tracking-wide mb-1 inline-flex items-center gap-1.5">
               Fee reduction
               <FieldHint text="Fee reduction is derived from node type (Mirror: 0.2%, Light: 0.1%). This will become real once fee routing is turned on." />
             </p>
-            <p className="text-xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
+            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
               {incentives.feeReductionPercent}%
             </p>
           </div>
         </div>
         {incentives.krexTier && (
-          <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700">
-            <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider mb-1">
+          <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+            <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 tracking-wide mb-1">
               KREX tier
             </p>
-            <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+            <p className="text-base font-bold text-zinc-900 dark:text-zinc-100">
               {incentives.krexTier}
             </p>
           </div>
