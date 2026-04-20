@@ -15,7 +15,7 @@ const NODE_TYPE_CONFIG: Record<
     multiplier: 4,
     feeReduction: 0.1,
     description:
-      'Pins Hub snapshots (projects, modules, profiles, rewards, and listings), caches Hub metadata, and syncs with the Kasparex API.',
+      'Pins IPFS/Storacha CIDs, caches dApp/tools metadata locally, and periodically syncs with the Kasparex API. Ideal for regular community members.',
   },
   mirror: {
     name: 'Mirror Node',

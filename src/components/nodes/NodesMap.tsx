@@ -13,12 +13,12 @@ type RegionPin = { id: string; label: string; x: number; y: number };
 // Lightweight mapping without extra deps. We refine as regions standardize.
 const REGION_PINS: RegionPin[] = [
   // Continent-only pins (coordinates are in the SVG's viewBox space: public/world-map.svg).
-  { id: 'north-america', label: 'North America', x: 105, y: 58 },
-  { id: 'south-america', label: 'South America', x: 132, y: 130 },
-  { id: 'europe', label: 'Europe', x: 248, y: 42 },
-  { id: 'africa', label: 'Africa', x: 252, y: 100 },
-  { id: 'asia', label: 'Asia', x: 342, y: 60 },
-  { id: 'oceania', label: 'Oceania', x: 415, y: 155 },
+  { id: 'north-america', label: 'North America', x: 105, y: 78 },
+  { id: 'south-america', label: 'South America', x: 132, y: 150 },
+  { id: 'europe', label: 'Europe', x: 248, y: 62 },
+  { id: 'africa', label: 'Africa', x: 252, y: 120 },
+  { id: 'asia', label: 'Asia', x: 342, y: 80 },
+  { id: 'oceania', label: 'Oceania', x: 415, y: 185 },
 ];
 
 // The SVG we use (public/world-map.svg) is ~495x266.
