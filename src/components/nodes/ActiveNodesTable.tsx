@@ -3,6 +3,7 @@
 import type { KrexNode } from '@/lib/storage/krex-nodes';
 import { HealthDot, healthFromUptimeHours } from './HealthDot';
 import { FieldHint } from '@/components/ui/FieldHint';
+import { SectionHeader } from './SectionHeader';
 
 const CARD_CLASS =
   'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 p-6';
@@ -22,17 +23,7 @@ export function ActiveNodesTable(props: { nodes: KrexNode[] }) {
   return (
     <section id="network" className="mb-6">
       <div className={CARD_CLASS}>
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-1.5 h-6 bg-cyan-500 rounded-full" />
-            <h2 className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">
-              Active node network
-            </h2>
-          </div>
-          <div className="text-xs font-bold text-zinc-500 dark:text-zinc-500">
-            {nodes.length} active
-          </div>
-        </div>
+        <SectionHeader title="Active node network" right={<span>{nodes.length} active</span>} />
 
         <p className="text-zinc-600 dark:text-zinc-400 mb-4 text-sm leading-relaxed">
           These are nodes currently pinging the registry. The app can route read-heavy requests through them and fall back

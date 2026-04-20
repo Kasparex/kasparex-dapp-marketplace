@@ -3,6 +3,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import type { KrexNode } from '@/lib/storage/krex-nodes';
+import { FieldHint } from '@/components/ui/FieldHint';
+import { SectionHeader } from './SectionHeader';
 
 const CARD_CLASS =
   'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 p-6';
@@ -97,17 +99,11 @@ export function NodeFirstDiagnosticsPanel() {
   return (
     <section id="diagnostics" className="mb-6">
       <div className={CARD_CLASS}>
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-1.5 h-6 bg-cyan-500 rounded-full" />
-            <h2 className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">
-              Node-first diagnostics
-            </h2>
-          </div>
-          <div className="text-xs font-bold text-zinc-500 dark:text-zinc-500">
-            {enabled ? 'Enabled' : 'Disabled'}
-          </div>
-        </div>
+        <SectionHeader
+          title="Node-first diagnostics"
+          hint="Compares node-first routing vs central API for key read endpoints."
+          right={<span>{enabled ? 'Enabled' : 'Disabled'}</span>}
+        />
 
         <p className="text-zinc-600 dark:text-zinc-400 mb-4 text-sm leading-relaxed">
           Quick health check showing whether a request was served by a community node or the central API. This is the
@@ -125,21 +121,31 @@ export function NodeFirstDiagnosticsPanel() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4">
               <div className="text-[10px] uppercase tracking-wider text-zinc-500 dark:text-zinc-500 font-bold mb-2">
-                Node-first result
+                Node-first result{' '}
+                <FieldHint text="This call goes through node-first routing. If a community node is reachable, it should show Source: node and its URL. Otherwise it will fall back to central." />
               </div>
               {data.node ? (
                 <div className="space-y-1 text-sm">
                   <div>
                     <span className="text-zinc-500 dark:text-zinc-500">Source:</span>{' '}
                     <span className="font-semibold text-zinc-900 dark:text-zinc-100">{data.node.source}</span>
+                    <span className="ml-2 inline-flex align-middle">
+                      <FieldHint text="node = served by a community node. central = node-first fell back to the Worker API." />
+                    </span>
                   </div>
                   <div>
                     <span className="text-zinc-500 dark:text-zinc-500">Node:</span>{' '}
                     <span className="font-semibold text-zinc-900 dark:text-zinc-100">{data.node.nodeUrl ?? '-'}</span>
+                    <span className="ml-2 inline-flex align-middle">
+                      <FieldHint text="URL of the node that served the response (when Source=node). Useful for debugging trust/latency." />
+                    </span>
                   </div>
                   <div>
                     <span className="text-zinc-500 dark:text-zinc-500">Latency:</span>{' '}
                     <span className="font-semibold text-zinc-900 dark:text-zinc-100">{ms(data.node.elapsedMs)}</span>
+                    <span className="ml-2 inline-flex align-middle">
+                      <FieldHint text="Measured client-side duration for the request. Includes network + node processing." />
+                    </span>
                   </div>
                   <div className="pt-2 text-xs text-zinc-500 dark:text-zinc-500">
                     {data.node.payload?.service ?? 'Service'} · {data.node.payload?.version ?? 'v?'}
@@ -154,7 +160,7 @@ export function NodeFirstDiagnosticsPanel() {
 
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4">
               <div className="text-[10px] uppercase tracking-wider text-zinc-500 dark:text-zinc-500 font-bold mb-2">
-                Central fallback
+                Central fallback <FieldHint text="Direct call to the Worker API (central). Used as baseline latency and to validate payload consistency." />
               </div>
               <div className="space-y-1 text-sm">
                 <div>
@@ -173,7 +179,7 @@ export function NodeFirstDiagnosticsPanel() {
 
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 lg:col-span-2">
               <div className="text-[10px] uppercase tracking-wider text-zinc-500 dark:text-zinc-500 font-bold mb-2">
-                Stats endpoint test (`/kasparex/stats`)
+                Stats endpoint test (`/kasparex/stats`) <FieldHint text="This endpoint is a good read-heavy example: nodes can cache it, and it’s easy to compare node vs central responses." />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                 <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-3">

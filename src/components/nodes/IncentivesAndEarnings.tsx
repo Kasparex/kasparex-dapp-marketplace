@@ -2,6 +2,7 @@
 
 import type { Incentives } from '@/lib/nodes/types';
 import { FieldHint } from '@/components/ui/FieldHint';
+import { SectionHeader } from './SectionHeader';
 
 const CARD_CLASS =
   'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 p-6';
@@ -14,12 +15,7 @@ export function IncentivesAndEarnings({ incentives }: IncentivesAndEarningsProps
   return (
     <section id="incentives-earnings" className="mb-6">
       <div className={CARD_CLASS}>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-1.5 h-6 bg-cyan-500 rounded-full" />
-          <h2 className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">
-            Earnings & incentives
-          </h2>
-        </div>
+        <SectionHeader title="Earnings & incentives" />
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700">
             <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider mb-1 inline-flex items-center gap-1.5">

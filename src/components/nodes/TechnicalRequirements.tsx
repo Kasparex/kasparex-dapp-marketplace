@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { TechnicalRequirements as TechnicalRequirementsType } from '@/lib/nodes/types';
+import { SectionHeader } from './SectionHeader';
 
 const CARD_CLASS =
   'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 p-6';
@@ -14,12 +15,7 @@ export function TechnicalRequirements({ requirements }: TechnicalRequirementsPro
   return (
     <section id="technical-requirements" className="mb-6">
       <div className={CARD_CLASS}>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-1.5 h-6 bg-[#02abb8] rounded-full" />
-          <h2 className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">
-            Technical requirements
-          </h2>
-        </div>
+        <SectionHeader title="Technical requirements" />
         <ul className="space-y-0 mb-4">
           {requirements.map((item) => (
             <li

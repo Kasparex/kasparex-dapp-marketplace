@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { NodeInfo } from '@/lib/nodes/types';
+import { SectionHeader } from './SectionHeader';
 
 const CARD_CLASS =
   'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 p-6';
@@ -14,12 +15,7 @@ export function ConnectAndRegister({ nodeInfo }: ConnectAndRegisterProps) {
   return (
     <section id="connect-register" className="mb-6">
       <div className={CARD_CLASS}>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-1.5 h-6 bg-cyan-500 rounded-full" />
-          <h2 className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">
-            Connection guide
-          </h2>
-        </div>
+        <SectionHeader title="Connection guide" />
         <p className="text-zinc-600 dark:text-zinc-400 mb-4 text-sm leading-relaxed">
           Run a KREX Node on your machine to support the Kasparex ecosystem and earn rewards.
           Install Node.js, clone the repo, then start and register your node.

@@ -10,6 +10,7 @@ import { IncentivesAndEarnings } from './IncentivesAndEarnings';
 import { NodeTypesInfoCards } from './NodeTypesInfoCards';
 import { ActiveNodesTable } from './ActiveNodesTable';
 import { NodeFirstDiagnosticsPanel } from './NodeFirstDiagnosticsPanel';
+import { NodesMap } from './NodesMap';
 import { useKrexNodeNetwork } from '@/hooks/useKrexNodeNetwork';
 import type { NodeInfo, NodeMetrics, Incentives } from '@/lib/nodes/types';
 import type { KrexNode } from '@/lib/storage/krex-nodes';
@@ -117,6 +118,7 @@ export function NodesDashboardContent() {
       </div>
 
       <NodeTypesInfoCards />
+      <NodesMap nodes={activeNodes} />
       <ActiveNodesTable nodes={activeNodes} />
       <NodeFirstDiagnosticsPanel />
 

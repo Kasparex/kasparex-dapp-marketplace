@@ -3,6 +3,7 @@
 import type { NodeInfo, NodeMetrics } from '@/lib/nodes/types';
 import { FieldHint } from '@/components/ui/FieldHint';
 import { HealthDot, healthFromUptimeHours } from './HealthDot';
+import { SectionHeader } from './SectionHeader';
 
 const CARD_CLASS =
   'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 p-6';
@@ -39,12 +40,7 @@ export function NodeOverview({ nodeInfo, metrics }: NodeOverviewProps) {
   return (
     <section id="node-type" className="mb-6">
       <div className={CARD_CLASS}>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-1.5 h-6 bg-cyan-500 rounded-full" />
-          <h2 className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">
-            Node overview
-          </h2>
-        </div>
+        <SectionHeader title="Node overview" />
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider mb-1 inline-flex items-center gap-1.5">
