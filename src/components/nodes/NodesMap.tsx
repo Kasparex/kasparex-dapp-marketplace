@@ -12,17 +12,13 @@ type RegionPin = { id: string; label: string; x: number; y: number };
 
 // Lightweight mapping without extra deps. We refine as regions standardize.
 const REGION_PINS: RegionPin[] = [
-  // Coordinates are in the SVG's viewBox space (public/world-map.svg).
-  { id: 'us', label: 'US', x: 146, y: 116 },
-  { id: 'us-east', label: 'US East', x: 172, y: 116 },
-  { id: 'us-west', label: 'US West', x: 114, y: 118 },
-  { id: 'eu', label: 'EU', x: 258, y: 108 },
-  { id: 'uk', label: 'UK', x: 245, y: 100 },
-  { id: 'pl', label: 'PL', x: 268, y: 104 },
-  { id: 'asia', label: 'Asia', x: 368, y: 114 },
-  { id: 'sg', label: 'Singapore', x: 388, y: 165 },
-  { id: 'jp', label: 'Japan', x: 418, y: 116 },
-  { id: 'au', label: 'Australia', x: 432, y: 214 },
+  // Continent-only pins (coordinates are in the SVG's viewBox space: public/world-map.svg).
+  { id: 'north-america', label: 'North America', x: 105, y: 108 },
+  { id: 'south-america', label: 'South America', x: 132, y: 180 },
+  { id: 'europe', label: 'Europe', x: 248, y: 92 },
+  { id: 'africa', label: 'Africa', x: 252, y: 150 },
+  { id: 'asia', label: 'Asia', x: 342, y: 110 },
+  { id: 'oceania', label: 'Oceania', x: 415, y: 205 },
 ];
 
 // The SVG we use (public/world-map.svg) is ~495x266.
@@ -32,15 +28,15 @@ const MAP_H = 265.7;
 function normalizeRegion(r: string | null | undefined): string {
   const x = (r ?? '').trim().toLowerCase();
   if (!x) return 'unknown';
-  if (x.startsWith('us-')) return x;
-  if (x === 'usa' || x === 'us') return 'us';
-  if (x === 'europe' || x === 'eu') return 'eu';
-  if (x === 'uk' || x.includes('london')) return 'uk';
-  if (x === 'pl' || x.includes('poland') || x.includes('warsaw')) return 'pl';
-  if (x === 'asia' || x.includes('asia')) return 'asia';
-  if (x === 'sg' || x.includes('singapore')) return 'sg';
-  if (x === 'jp' || x.includes('japan') || x.includes('tokyo')) return 'jp';
-  if (x === 'au' || x.includes('australia') || x.includes('sydney')) return 'au';
+
+  // Continent-first normalization (simple + stable for the current SVG map).
+  if (x.includes('north america') || x === 'na' || x === 'north-america') return 'north-america';
+  if (x.includes('south america') || x === 'sa' || x === 'south-america') return 'south-america';
+  if (x.includes('europe') || x === 'eu') return 'europe';
+  if (x.includes('africa') || x === 'af') return 'africa';
+  if (x.includes('asia') || x === 'as') return 'asia';
+  if (x.includes('oceania') || x.includes('australia') || x === 'au' || x === 'oc') return 'oceania';
+
   return x;
 }
 
@@ -133,7 +129,8 @@ export function NodesMap(props: { nodes: KrexNode[] }) {
         </div>
 
         <div className="mt-3 text-xs text-zinc-500 dark:text-zinc-500">
-          Tip: if your nodes show up as “unknown”, standardize their `region` (e.g. `eu`, `us-east`, `us-west`, `sg`).
+          Tip: standardize node `region` to a continent for now (e.g. `north-america`, `south-america`, `europe`, `africa`,
+          `asia`, `oceania`).
         </div>
       </div>
     </section>

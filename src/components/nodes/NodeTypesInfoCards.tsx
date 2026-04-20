@@ -6,7 +6,8 @@ const CARD_CLASS = 'rounded-xl border border-zinc-200 dark:border-zinc-800 overf
 
 const LIGHT_NODE = {
   name: 'Light Node',
-  description: 'Pins IPFS/Storacha CIDs, caches dApp metadata locally, and periodically syncs with the Kasparex API. Ideal for regular community members.',
+  description:
+    'Pins Hub snapshots (projects, modules, profiles, rewards, and listings), caches Kasparex Hub metadata locally, and periodically syncs with the Kasparex API. Ideal for regular community members.',
   multiplier: '4x',
   feeReduction: '0.1%',
   features: ['Pins CIDs', 'Caches metadata', 'Syncs with API', 'Low resource use'],
