@@ -6,8 +6,8 @@ export function SectionHeader(props: { title: string; hint?: string; right?: Rea
   return (
     <div className="flex items-center justify-between gap-3 mb-4">
       <div className="flex items-center gap-3">
-        <div className={`w-1.5 h-6 rounded-full ${props.accentClassName ?? 'bg-[#02abb8]'}`} />
-        <h2 className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight inline-flex items-center gap-2">
+        <div className={`w-1 h-4 rounded-full ${props.accentClassName ?? 'bg-[#02abb8]'}`} />
+        <h2 className="text-sm font-semibold text-zinc-700 dark:text-zinc-200 leading-tight inline-flex items-center gap-2">
           {props.title}
           {props.hint ? <FieldHint text={props.hint} /> : null}
         </h2>

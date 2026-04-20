@@ -90,55 +90,52 @@ export function NodesDashboardSidebar() {
       )}
       defaultWidth={300}
     >
-      <div className="space-y-6">
-        <div className="mb-2">
-          <div className="space-y-2">
-            <Link href="/api/krex-node" className="k-control-btn w-full">
-              Run a KREX Node
-            </Link>
-            <Link href="/api" className="k-control-btn w-full">
-              API overview
-            </Link>
-            <Link href="/knowledge-base" className="k-control-btn w-full">
-              Knowledge base
-            </Link>
-            <a
-              href="https://github.com/Kasparex/kasparex-krex-node"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="k-control-btn w-full"
-            >
-              GitHub repo
-            </a>
+      <div className="h-full flex flex-col">
+        <div className="space-y-6">
+          <div className="mb-2">
+            <div className="space-y-2">
+              <Link href="/api/krex-node" className="k-control-btn w-full">
+                Run a KREX Node
+              </Link>
+            </div>
           </div>
+
+          <SidebarSection title="Quick links">
+            <nav className="space-y-0.5">
+              {QUICK_LINKS.map((item) => (
+                <SidebarNavItem
+                  key={item.label}
+                  label={item.label}
+                  icon={ICONS[item.icon] ?? ICONS.node}
+                  href={item.href}
+                  external={Boolean((item as any).external)}
+                />
+              ))}
+            </nav>
+          </SidebarSection>
+
+          <SidebarSection title="On this page">
+            <nav className="space-y-0.5">
+              {NODES_SECTIONS.map((section) => (
+                <SidebarNavItem
+                  key={section.id}
+                  label={section.label}
+                  icon={ICONS[section.icon] ?? ICONS.node}
+                  onClick={() => scrollToSection(section.id)}
+                />
+              ))}
+            </nav>
+          </SidebarSection>
         </div>
 
-        <SidebarSection title="Quick links">
-          <nav className="space-y-0.5">
-            {QUICK_LINKS.map((item) => (
-              <SidebarNavItem
-                key={item.label}
-                label={item.label}
-                icon={ICONS[item.icon] ?? ICONS.node}
-                href={item.href}
-                external={Boolean((item as any).external)}
-              />
-            ))}
-          </nav>
-        </SidebarSection>
-
-        <SidebarSection title="On this page">
-          <nav className="space-y-0.5">
-            {NODES_SECTIONS.map((section) => (
-              <SidebarNavItem
-                key={section.id}
-                label={section.label}
-                icon={ICONS[section.icon] ?? ICONS.node}
-                onClick={() => scrollToSection(section.id)}
-              />
-            ))}
-          </nav>
-        </SidebarSection>
+        <div className="mt-auto pt-4 space-y-2">
+          <Link href="/api" className="k-control-btn w-full">
+            API overview
+          </Link>
+          <Link href="/knowledge-base" className="k-control-btn w-full">
+            Knowledge base
+          </Link>
+        </div>
       </div>
     </UnifiedSidebar>
   );

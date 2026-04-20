@@ -1,6 +1,7 @@
 'use client';
 
 import type { NodeType } from '@/lib/nodes/types';
+import { SectionHeader } from './SectionHeader';
 
 const CARD_CLASS =
   'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl sm:rounded-[32px] overflow-hidden shadow-sm p-6';
@@ -35,14 +36,20 @@ export function NodeTypeCard({ nodeType }: NodeTypeCardProps) {
   return (
     <section id="node-type-detail" className="mb-6">
       <div className={CARD_CLASS}>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-1.5 h-6 bg-[#02abb8] rounded-full" />
-          <h2 className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">
-            Node type
-          </h2>
-        </div>
+        <SectionHeader title="Node type" />
         {config ? (
           <>
+            <div className="mb-4 overflow-hidden rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 bg-zinc-100 dark:bg-zinc-800 aspect-[3/2] relative">
+              <div className="absolute inset-0 flex items-center justify-center text-zinc-400 dark:text-zinc-500">
+                <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
+                  />
+                </svg>
+              </div>
+            </div>
             <div className="flex items-center gap-2 mb-3">
               <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
                 {config.name}

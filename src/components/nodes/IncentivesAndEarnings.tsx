@@ -9,11 +9,17 @@ const CARD_CLASS =
 
 interface IncentivesAndEarningsProps {
   incentives: Incentives;
+  embedded?: boolean;
 }
 
-export function IncentivesAndEarnings({ incentives }: IncentivesAndEarningsProps) {
+export function IncentivesAndEarnings({ incentives, embedded }: IncentivesAndEarningsProps) {
+  const Outer: any = embedded ? 'div' : 'section';
+  const outerProps = embedded
+    ? { id: 'incentives-earnings', className: 'w-full' }
+    : { id: 'incentives-earnings', className: 'mb-6' };
+
   return (
-    <section id="incentives-earnings" className="mb-6">
+    <Outer {...outerProps}>
       <div className={CARD_CLASS}>
         <SectionHeader title="Earnings & incentives" />
         <div className="grid grid-cols-2 gap-4 mb-4">
@@ -22,7 +28,7 @@ export function IncentivesAndEarnings({ incentives }: IncentivesAndEarningsProps
               GRID earned
               <FieldHint text="Operator accounting is not enabled yet, so this is 0 for now. Later this will show GRID earned by running nodes." />
             </p>
-            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
+            <p className="text-2xl font-black text-[#02abb8] dark:text-cyan-300 tracking-tight">
               {incentives.gridEarned}
             </p>
           </div>
@@ -31,7 +37,7 @@ export function IncentivesAndEarnings({ incentives }: IncentivesAndEarningsProps
               XP earned
               <FieldHint text="Operator XP incentives are not enabled yet. This will become real when node rewards are turned on." />
             </p>
-            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
+            <p className="text-2xl font-black text-[#02abb8] dark:text-cyan-300 tracking-tight">
               {incentives.xpEarned}
             </p>
           </div>
@@ -40,7 +46,7 @@ export function IncentivesAndEarnings({ incentives }: IncentivesAndEarningsProps
               Current multiplier
               <FieldHint text="Current multiplier is derived from your connected node type (Mirror: 5x, Light: 4x). This will become per-operator once accounting is enabled." />
             </p>
-            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
+            <p className="text-2xl font-black text-[#02abb8] dark:text-cyan-300 tracking-tight">
               {incentives.currentMultiplier}x
             </p>
           </div>
@@ -49,7 +55,7 @@ export function IncentivesAndEarnings({ incentives }: IncentivesAndEarningsProps
               Fee reduction
               <FieldHint text="Fee reduction is derived from node type (Mirror: 0.2%, Light: 0.1%). This will become real once fee routing is turned on." />
             </p>
-            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
+            <p className="text-2xl font-black text-[#02abb8] dark:text-cyan-300 tracking-tight">
               {incentives.feeReductionPercent}%
             </p>
           </div>
@@ -65,6 +71,6 @@ export function IncentivesAndEarnings({ incentives }: IncentivesAndEarningsProps
           </div>
         )}
       </div>
-    </section>
+    </Outer>
   );
 }

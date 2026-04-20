@@ -1,5 +1,7 @@
 'use client';
 
+import { SectionHeader } from './SectionHeader';
+
 const CARD_CLASS = 'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 p-6';
 
 const LIGHT_NODE = {
@@ -19,17 +21,29 @@ const MIRROR_NODE = {
   recommended: true,
 };
 
+function PlaceholderMedia() {
+  return (
+    <div className="mb-4 overflow-hidden rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 bg-zinc-100 dark:bg-zinc-800 aspect-[3/2] relative">
+      <div className="absolute inset-0 flex items-center justify-center text-zinc-400 dark:text-zinc-500">
+        <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
+          />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 export function NodeTypesInfoCards() {
   return (
     <section id="node-types-info" className="mb-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-1.5 h-6 bg-cyan-500 rounded-full" />
-        <h2 className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">
-          Light Node & Mirror Node
-        </h2>
-      </div>
+      <SectionHeader title="Light Node & Mirror Node" />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className={CARD_CLASS}>
+          <PlaceholderMedia />
           <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">{LIGHT_NODE.name}</h3>
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">{LIGHT_NODE.description}</p>
           <ul className="space-y-1.5 mb-4">
@@ -46,6 +60,7 @@ export function NodeTypesInfoCards() {
           </div>
         </div>
         <div className={`${CARD_CLASS} border-cyan-500/50`}>
+          <PlaceholderMedia />
           <div className="flex items-center gap-2 mb-2">
             <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{MIRROR_NODE.name}</h3>
             {MIRROR_NODE.recommended && (
