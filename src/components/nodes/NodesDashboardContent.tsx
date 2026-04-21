@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { NodeOverview } from './NodeOverview';
 import { ConnectAndRegister } from './ConnectAndRegister';
 import { StatusAndParameters } from './StatusAndParameters';
@@ -12,6 +13,7 @@ import { ActiveNodesTable } from './ActiveNodesTable';
 import { NodeFirstDiagnosticsPanel } from './NodeFirstDiagnosticsPanel';
 import { NodesMap } from './NodesMap';
 import { KrexNodeEnrollmentModal } from './KrexNodeEnrollmentModal';
+import { KrexNodeRunGuideContent } from './KrexNodeRunGuideContent';
 import { useKrexNodeNetwork } from '@/hooks/useKrexNodeNetwork';
 import { useKrexOperatorDashboard } from '@/hooks/useKrexOperatorDashboard';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -84,11 +86,116 @@ const technicalRequirements = [
   { label: 'OS', value: 'Linux, macOS, Windows, Raspberry Pi' },
 ] as const;
 
+type TabId = 'dashboard' | 'setup';
+
+function NodesTabStrip({ activeTab, onTab }: { activeTab: TabId; onTab: (t: TabId) => void }) {
+  const [overflowOpen, setOverflowOpen] = useState(false);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const tabs: Array<{ id: TabId; label: string }> = [
+    { id: 'dashboard', label: 'Dashboard' },
+    { id: 'setup', label: 'Setup / Docs' },
+  ];
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => setIsOverflowing(el.scrollWidth > el.clientWidth + 8);
+    update();
+    const ro = new ResizeObserver(() => update());
+    ro.observe(el);
+    window.addEventListener('resize', update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', update);
+    };
+  }, []);
+
+  const visibleCount = isOverflowing ? 1 : tabs.length;
+  const visibleTabs = tabs.slice(0, visibleCount);
+  const overflowTabs = tabs.slice(visibleCount);
+
+  return (
+    <div className="mb-6">
+      <div ref={containerRef} className="k-control-group w-full overflow-x-auto">
+        {visibleTabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => {
+              setOverflowOpen(false);
+              onTab(t.id);
+            }}
+            className={`h-10 px-4 text-sm font-medium whitespace-nowrap transition-colors ${
+              activeTab === t.id
+                ? 'bg-[#02abb8]/10 text-[#017a84] dark:text-[#8ff1f8]'
+                : 'text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+
+        {overflowTabs.length > 0 ? (
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setOverflowOpen((v) => !v)}
+              aria-haspopup="menu"
+              aria-expanded={overflowOpen}
+              className={`h-10 px-4 text-sm font-medium whitespace-nowrap transition-colors ${
+                overflowTabs.some((t) => t.id === activeTab)
+                  ? 'bg-[#02abb8]/10 text-[#017a84] dark:text-[#8ff1f8]'
+                  : 'text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+              }`}
+            >
+              <span className="sr-only">More tabs</span>
+              <span aria-hidden className="text-lg leading-none">
+                ⋯
+              </span>
+            </button>
+            {overflowOpen ? (
+              <div
+                role="menu"
+                className="absolute right-0 mt-2 min-w-44 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl p-1 z-50"
+              >
+                {overflowTabs.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setOverflowOpen(false);
+                      onTab(t.id);
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                      activeTab === t.id
+                        ? 'bg-[#02abb8]/10 text-[#017a84] dark:text-[#8ff1f8]'
+                        : 'text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export function NodesDashboardContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const { state: kaspa } = useKaspaWallet();
   const { data: activeNodes = [] } = useKrexNodeNetwork();
   const { data: operator } = useKrexOperatorDashboard(kaspa.isConnected ? kaspa.address : null);
   const [enrollOpen, setEnrollOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabId>('dashboard');
 
   const myNode = operator?.myNodes?.[0] ?? null;
 
@@ -117,6 +224,19 @@ export function NodesDashboardContent() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    const tab = (searchParams?.get('tab') || '').toLowerCase();
+    if (tab === 'setup') setActiveTab('setup');
+    else setActiveTab('dashboard');
+  }, [searchParams]);
+
+  const goTab = (t: TabId) => {
+    setActiveTab(t);
+    const params = new URLSearchParams(searchParams?.toString() || '');
+    params.set('tab', t);
+    router.replace(`/nodes?${params.toString()}`);
+  };
 
   return (
     <div className="space-y-10">
@@ -147,7 +267,7 @@ export function NodesDashboardContent() {
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
-                  href="/api/krex-node"
+                  href="/nodes?tab=setup"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 rounded-xl font-bold text-sm tracking-wide hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border border-zinc-200 dark:border-zinc-700"
                 >
                   <span>Run a KREX Node</span>
@@ -172,22 +292,32 @@ export function NodesDashboardContent() {
         </div>
       </div>
 
-      <NodeTypesInfoCards />
-      <NodesMap nodes={activeNodes} />
-      <ActiveNodesTable nodes={activeNodes} />
-      <NodeFirstDiagnosticsPanel />
+      <NodesTabStrip activeTab={activeTab} onTab={goTab} />
 
-      {/* Two-column layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-6">
-          <NodeOverview nodeInfo={nodeInfo} metrics={metrics} />
-          <ConnectAndRegister nodeInfo={nodeInfo} onEnrollClick={() => setEnrollOpen(true)} />
+      {activeTab === 'setup' ? (
+        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 sm:p-6">
+          <KrexNodeRunGuideContent />
         </div>
-        <div className="space-y-6">
-          <StatusAndParameters nodeInfo={nodeInfo} metrics={metrics} />
-          <TechnicalRequirements requirements={technicalRequirements as any} />
-        </div>
-      </div>
+      ) : (
+        <>
+          <NodeTypesInfoCards />
+          <NodesMap nodes={activeNodes} />
+          <ActiveNodesTable nodes={activeNodes} />
+          <NodeFirstDiagnosticsPanel />
+
+          {/* Two-column layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-6">
+              <NodeOverview nodeInfo={nodeInfo} metrics={metrics} />
+              <ConnectAndRegister nodeInfo={nodeInfo} onEnrollClick={() => setEnrollOpen(true)} />
+            </div>
+            <div className="space-y-6">
+              <StatusAndParameters nodeInfo={nodeInfo} metrics={metrics} />
+              <TechnicalRequirements requirements={technicalRequirements as any} />
+            </div>
+          </div>
+        </>
+      )}
 
       <KrexNodeEnrollmentModal
         isOpen={enrollOpen}
