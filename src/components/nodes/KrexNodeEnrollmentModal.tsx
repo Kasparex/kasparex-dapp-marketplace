@@ -2,7 +2,7 @@
 
 import { createPortal } from 'react-dom';
 import { useEffect, useMemo, useState } from 'react';
-import { apiClient } from '@/lib/api/client';
+import { ApiClientError, apiClient } from '@/lib/api/client';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { signKaspaMessage } from '@/lib/kaspa/wallet';
 import { getWalletProvider } from '@/lib/kaspa/wallet';
@@ -312,12 +312,17 @@ export function KrexNodeEnrollmentModal(props: {
             throw new Error((vr as any)?.error || 'On-chain verification failed');
           }
         } catch (e) {
+          // apiClient throws for non-2xx; Worker uses 202 for "pending".
+          if (e instanceof ApiClientError && e.status === 202) {
+            // pending: keep polling
+          } else {
           const msg = e instanceof Error ? e.message : 'Verification failed';
           // apiClient throws on non-2xx; treat "not found yet" as retryable.
           if (/not found yet/i.test(msg) || /transaction not found/i.test(msg) || /HTTP 404/i.test(msg)) {
             // keep waiting
           } else {
             throw e;
+          }
           }
         }
         await wait(sleepMs);
