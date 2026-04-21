@@ -192,8 +192,13 @@ export function KrexNodeEnrollmentModal(props: {
         signature,
       });
       if (!v?.ok || !v.enrollmentToken) throw new Error(v?.error || 'Verification failed');
+      if (!v.verifyPayload) {
+        throw new Error(
+          'Your API is missing verifyPayload. This usually means the Worker is not deployed to the latest version yet. Please redeploy the Worker and try again.'
+        );
+      }
       setEnrollmentToken(v.enrollmentToken);
-      setVerifyPayload(v.verifyPayload || null);
+      setVerifyPayload(v.verifyPayload);
       setStep('verify');
       void loadRuntimeConfig();
     } catch (e) {
@@ -564,7 +569,7 @@ export function KrexNodeEnrollmentModal(props: {
               <div className="flex gap-2">
                 <button
                   type="button"
-                  disabled={busy}
+                  disabled={busy || !verifyPayload}
                   onClick={runOnchainVerification}
                   className="flex-1 mt-2 px-4 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-black text-sm disabled:opacity-60"
                 >
