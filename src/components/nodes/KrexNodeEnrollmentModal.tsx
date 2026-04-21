@@ -1,7 +1,7 @@
 'use client';
 
 import { createPortal } from 'react-dom';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { apiClient } from '@/lib/api/client';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { signKaspaMessage } from '@/lib/kaspa/wallet';
@@ -99,6 +99,22 @@ export function KrexNodeEnrollmentModal(props: {
 
   if (!props.isOpen || typeof window === 'undefined') return null;
 
+  const loadRuntimeConfig = async () => {
+    try {
+      const rc = await apiClient.get<RuntimeConfig>('/kasparex/node/runtime-config');
+      if (rc) setRuntimeConfig(rc);
+      return rc;
+    } catch {
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    if (!props.isOpen) return;
+    void loadRuntimeConfig();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.isOpen]);
+
   const close = () => {
     setBusy(false);
     setError(null);
@@ -137,13 +153,7 @@ export function KrexNodeEnrollmentModal(props: {
       if (!v?.ok || !v.enrollmentToken) throw new Error(v?.error || 'Verification failed');
       setEnrollmentToken(v.enrollmentToken);
       setStep('enroll');
-
-      try {
-        const rc = await apiClient.get<RuntimeConfig>('/kasparex/node/runtime-config');
-        if (rc) setRuntimeConfig(rc);
-      } catch {
-        // ignore
-      }
+      void loadRuntimeConfig();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed');
     } finally {
@@ -166,7 +176,10 @@ export function KrexNodeEnrollmentModal(props: {
       });
       if (!r?.ok || !r.node_id || !r.node_secret) throw new Error(r?.error || 'Enrollment failed');
       setEnrollResult(r);
-      const onchainEnabled = Boolean(runtimeConfig?.onchainVerify?.enabled && runtimeConfig?.onchainVerify?.toAddress);
+
+      // Ensure we don't miss on-chain verification due to a race (user clicks fast).
+      const rc = runtimeConfig ?? (await loadRuntimeConfig());
+      const onchainEnabled = Boolean(rc?.onchainVerify?.enabled && rc?.onchainVerify?.toAddress);
       setStep(onchainEnabled ? 'verify' : 'done');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed');
