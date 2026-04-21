@@ -215,16 +215,38 @@ export function KrexNodeEnrollmentModal(props: {
       });
       if (!txid) throw new Error('No transaction id returned');
 
-      // Worker verify + persist.
-      const vr = await apiClient.post<VerifyOnchainResponse>('/kasparex/node/verify-onchain', {
-        enrollmentToken,
-        node_id: enrollResult.node_id,
-        tx_hash: txid,
-      });
-      if (!vr || (vr as any).ok !== true) throw new Error((vr as any)?.error || 'On-chain verification failed');
+      const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-      setVerifyTxid((vr as any).tx_hash || txid);
-      setStep('done');
+      // Worker verify + persist (retry until indexer sees the tx).
+      const started = Date.now();
+      const maxMs = 60_000;
+      let lastErr: string | null = null;
+      while (Date.now() - started < maxMs) {
+        try {
+          const vr = await apiClient.post<VerifyOnchainResponse>('/kasparex/node/verify-onchain', {
+            enrollmentToken,
+            node_id: enrollResult.node_id,
+            tx_hash: txid,
+          });
+          if (vr && (vr as any).ok === true) {
+            setVerifyTxid((vr as any).tx_hash || txid);
+            setStep('done');
+            return;
+          }
+          lastErr = (vr as any)?.error || 'On-chain verification failed';
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : 'Verification failed';
+          // apiClient throws on non-2xx; treat "not found yet" as retryable.
+          if (/not found yet/i.test(msg) || /transaction not found/i.test(msg) || /HTTP 404/i.test(msg)) {
+            lastErr = msg;
+          } else {
+            throw e;
+          }
+        }
+        await wait(2500);
+      }
+      throw new Error(lastErr || 'Transaction not found yet. Wait for confirmation and try again.');
+
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed');
     } finally {
