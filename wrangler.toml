@@ -39,6 +39,11 @@ database_id = "35760760-ee43-4ab4-b8c2-f9e134335acd"
 [env.production]
 name = "kasparex-api-production"
 
+[env.production.vars]
+# Public config (not a secret): recipient for 1 KAS verification tx.
+NODE_VERIFY_TO_ADDRESS = "kaspa:qr54v0692g4csc45z6phshyh2twy5dv73mylx5uqjtpphynvg70vksky9xffw"
+NODE_VERIFY_MIN_KAS = "1"
+
 [[env.production.kv_namespaces]]
 binding = "KASPAREX_CACHE"
 id = "2d35691ad6da46a69d725645273f44ac"
