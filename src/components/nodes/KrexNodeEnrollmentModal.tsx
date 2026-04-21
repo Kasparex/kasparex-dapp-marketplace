@@ -113,6 +113,7 @@ export function KrexNodeEnrollmentModal(props: {
   const [verifyTxid, setVerifyTxid] = useState<string | null>(null);
   const [verifyPending, setVerifyPending] = useState(false);
   const [verifyAttempts, setVerifyAttempts] = useState(0);
+  const [verifyLastCheckAt, setVerifyLastCheckAt] = useState<number | null>(null);
 
   const [nodeName, setNodeName] = useState(props.existingNode?.node_name || 'My Krex Node');
   const [role, setRole] = useState<'light' | 'mirror' | 'super'>(props.existingNode?.role || 'light');
@@ -152,6 +153,7 @@ export function KrexNodeEnrollmentModal(props: {
     setVerifyTxid(null);
     setVerifyPending(false);
     setVerifyAttempts(0);
+    setVerifyLastCheckAt(null);
     setStep('connect');
     props.onClose();
   };
@@ -252,6 +254,21 @@ export function KrexNodeEnrollmentModal(props: {
       }
 
       const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+      const withTimeout = async <T,>(p: Promise<T>, ms: number): Promise<T> => {
+        const c = new AbortController();
+        const t = setTimeout(() => c.abort(), ms);
+        try {
+          // apiClient doesn't accept a signal today; timeout guard still helps catch stuck loops.
+          return await Promise.race([
+            p,
+            new Promise<T>((_, rej) => {
+              c.signal.addEventListener('abort', () => rej(new Error('Verification request timed out.')));
+            }),
+          ]);
+        } finally {
+          clearTimeout(t);
+        }
+      };
 
       // Worker verify + persist (retry until indexer sees the tx).
       const started = Date.now();
@@ -259,12 +276,16 @@ export function KrexNodeEnrollmentModal(props: {
       let lastErr: string | null = null;
       while (Date.now() - started < maxMs) {
         setVerifyAttempts((x) => x + 1);
+        setVerifyLastCheckAt(Date.now());
         try {
-          const vr = await apiClient.post<VerifyOnchainResponse>('/kasparex/node/verify-onchain', {
-            enrollmentToken,
-            node_id: enrollResult.node_id,
-            tx_hash: txid,
-          });
+          const vr = await withTimeout(
+            apiClient.post<VerifyOnchainResponse>('/kasparex/node/verify-onchain', {
+              enrollmentToken,
+              node_id: enrollResult.node_id,
+              tx_hash: txid,
+            }),
+            12_000
+          );
           if (vr && (vr as any).ok === true) {
             setVerifyTxid(normalizeTxId((vr as any).tx_hash || txid));
             setStep('done');
@@ -293,6 +314,12 @@ export function KrexNodeEnrollmentModal(props: {
       setBusy(false);
       setVerifyPending(false);
     }
+  };
+
+  const retryVerifyOnly = async () => {
+    // If txid exists, runOnchainVerification will only verify (no payment).
+    if (!verifyTxid) return;
+    await runOnchainVerification();
   };
 
   const submitUpdate = async () => {
@@ -464,6 +491,11 @@ export function KrexNodeEnrollmentModal(props: {
                 On-chain verification
                 <FieldHint text="To reduce Sybil abuse, you’ll send a symbolic 1 KAS transaction. The tx payload includes your node_id binding." />
               </div>
+
+              {/* Always show secrets immediately after enrollment so users can save them even if verification is slow. */}
+              {enrollResult?.node_id ? <CopyRow label="node_id" value={enrollResult.node_id} /> : null}
+              {enrollResult?.node_secret ? <CopyRow label="node_secret (HMAC)" value={enrollResult.node_secret} /> : null}
+
               {verifyTxid ? (
                 <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-3">
                   <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
@@ -499,22 +531,42 @@ export function KrexNodeEnrollmentModal(props: {
                     Checking confirmation… attempt {Math.max(1, verifyAttempts)}
                   </div>
                 ) : null}
+                {!verifyPending ? (
+                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400 pt-1">
+                    Verification can take ~30–120s depending on indexer propagation.
+                    {verifyLastCheckAt ? ` Last check: ${new Date(verifyLastCheckAt).toLocaleTimeString()}` : ''}
+                  </div>
+                ) : null}
               </div>
 
-              <button
-                type="button"
-                disabled={busy || !enrollResult?.node_id}
-                onClick={runOnchainVerification}
-                className="w-full mt-2 px-4 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-black text-sm disabled:opacity-60"
-              >
-                {busy
-                  ? verifyTxid
-                    ? 'Verifying…'
-                    : 'Waiting…'
-                  : verifyTxid
-                    ? 'Verify tx (no new payment)'
-                    : 'Send 1 KAS and verify'}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={busy || !enrollResult?.node_id}
+                  onClick={runOnchainVerification}
+                  className="flex-1 mt-2 px-4 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-black text-sm disabled:opacity-60"
+                >
+                  {busy
+                    ? verifyTxid
+                      ? 'Verifying…'
+                      : 'Waiting…'
+                    : verifyTxid
+                      ? 'Verify tx (no new payment)'
+                      : 'Send 1 KAS and verify'}
+                </button>
+                {verifyTxid ? (
+                  <button
+                    type="button"
+                    onClick={retryVerifyOnly}
+                    disabled={busy}
+                    className="mt-2 px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-60"
+                    aria-label="Retry verification"
+                    title="Retry verification (no new payment)"
+                  >
+                    ↻
+                  </button>
+                ) : null}
+              </div>
             </div>
           )}
 
@@ -566,12 +618,6 @@ export function KrexNodeEnrollmentModal(props: {
                 >
                   Done
                 </button>
-                <a
-                  href="/api/krex-node#how-to-run"
-                  className="px-4 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors text-sm font-medium"
-                >
-                  Full setup guide
-                </a>
               </div>
             </div>
           )}
