@@ -105,6 +105,25 @@ function getTxPayload(tx: KaspaRestTransaction): string | null {
   return null;
 }
 
+function tryDecodeHexPayloadToText(raw: string): string | null {
+  const s = (raw || '').trim();
+  if (!s) return null;
+  const hex = s.startsWith('0x') ? s.slice(2) : s;
+  if (!/^[0-9a-fA-F]+$/.test(hex)) return null;
+  if (hex.length % 2 !== 0) return null;
+  try {
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < hex.length; i += 2) {
+      bytes[i / 2] = parseInt(hex.slice(i, i + 2), 16);
+    }
+    // Kaspa payloads are typically UTF-8 text for our use-case.
+    const text = new TextDecoder().decode(bytes);
+    return text && text.trim() ? text : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Fetch transaction from public Kaspa REST.
  *
@@ -244,7 +263,9 @@ export async function handleNodeVerifyOnchain(request: Request, env: Env): Promi
       });
     }
 
-    const payload = (getTxPayload(tx) || '').toLowerCase();
+    const rawPayload = getTxPayload(tx) || '';
+    const decodedPayload = tryDecodeHexPayloadToText(rawPayload) || rawPayload;
+    const payload = decodedPayload.toLowerCase();
     const want = 'krex:verify';
     if (!payload.includes(want)) {
       return new Response(JSON.stringify({ ok: false, error: `Transaction payload must include "${want}".` }), {
