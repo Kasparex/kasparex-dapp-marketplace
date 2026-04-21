@@ -1,0 +1,85 @@
+# Cloudflare Workers Configuration (workers/ scoped)
+# Keep in sync with repo root wrangler.toml.
+
+name = "kasparex-api"
+main = "index.ts"
+compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "KASPAREX_CACHE"
+id = "2d35691ad6da46a69d725645273f44ac"
+preview_id = "11f7cf16ec6f45309b57c6a3c7b42b12"
+
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "c4db19a526a344e79109cf4faae746c8"
+preview_id = "c2988fb2cfbf44e2a0a6e00e000997f1"
+
+[[d1_databases]]
+binding = "NODES_DB"
+database_name = "kasparex-nodes"
+database_id = "ec15da5c-133a-4735-9cd6-afde1377577a"
+
+[[d1_databases]]
+binding = "REWARDS_DB"
+database_name = "kasparex-rewards"
+database_id = "35760760-ee43-4ab4-b8c2-f9e134335acd"
+
+[env.production]
+name = "kasparex-api-production"
+
+[env.production.vars]
+NODE_VERIFY_TO_ADDRESS = "kaspa:qr54v0692g4csc45z6phshyh2twy5dv73mylx5uqjtpphynvg70vksky9xffw"
+NODE_VERIFY_MIN_KAS = "1"
+
+[[env.production.kv_namespaces]]
+binding = "KASPAREX_CACHE"
+id = "2d35691ad6da46a69d725645273f44ac"
+preview_id = "11f7cf16ec6f45309b57c6a3c7b42b12"
+
+[[env.production.kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "c4db19a526a344e79109cf4faae746c8"
+preview_id = "c2988fb2cfbf44e2a0a6e00e000997f1"
+
+[[env.production.d1_databases]]
+binding = "NODES_DB"
+database_name = "kasparex-nodes"
+database_id = "ec15da5c-133a-4735-9cd6-afde1377577a"
+
+[[env.production.d1_databases]]
+binding = "REWARDS_DB"
+database_name = "kasparex-rewards"
+database_id = "35760760-ee43-4ab4-b8c2-f9e134335acd"
+
+[env.preview]
+name = "kasparex-api-preview"
+
+[[env.preview.kv_namespaces]]
+binding = "KASPAREX_CACHE"
+id = "2d35691ad6da46a69d725645273f44ac"
+preview_id = "11f7cf16ec6f45309b57c6a3c7b42b12"
+
+[[env.preview.kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "c4db19a526a344e79109cf4faae746c8"
+preview_id = "c2988fb2cfbf44e2a0a6e00e000997f1"
+
+[[env.preview.d1_databases]]
+binding = "NODES_DB"
+database_name = "kasparex-nodes"
+database_id = "ec15da5c-133a-4735-9cd6-afde1377577a"
+
+[[env.preview.d1_databases]]
+binding = "REWARDS_DB"
+database_name = "kasparex-rewards"
+database_id = "35760760-ee43-4ab4-b8c2-f9e134335acd"
+
+[triggers]
+crons = ["*/15 * * * *", "0 2 * * *"]
+
+[observability]
+[observability.logs]
+enabled = false
+invocation_logs = true
+
