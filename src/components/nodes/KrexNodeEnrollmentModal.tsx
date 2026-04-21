@@ -173,7 +173,7 @@ export function KrexNodeEnrollmentModal(props: {
         ok: true,
         node_id: props.existingNode.node_id,
         node_secret: 'updated',
-        owner_wallet: kaspa.address,
+        owner_wallet: kaspa.address || undefined,
         message: 'Updated',
       });
       setStep('done');
