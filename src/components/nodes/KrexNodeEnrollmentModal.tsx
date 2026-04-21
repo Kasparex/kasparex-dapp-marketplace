@@ -87,6 +87,8 @@ export function KrexNodeEnrollmentModal(props: {
   const [enrollResult, setEnrollResult] = useState<EnrollResponse | null>(null);
   const [runtimeConfig, setRuntimeConfig] = useState<RuntimeConfig | null>(null);
   const [verifyTxid, setVerifyTxid] = useState<string | null>(null);
+  const [verifyPending, setVerifyPending] = useState(false);
+  const [verifyAttempts, setVerifyAttempts] = useState(0);
 
   const [nodeName, setNodeName] = useState(props.existingNode?.node_name || 'My Krex Node');
   const [role, setRole] = useState<'light' | 'mirror' | 'super'>(props.existingNode?.role || 'light');
@@ -124,6 +126,8 @@ export function KrexNodeEnrollmentModal(props: {
     setEnrollResult(null);
     setRuntimeConfig(null);
     setVerifyTxid(null);
+    setVerifyPending(false);
+    setVerifyAttempts(0);
     setStep('connect');
     props.onClose();
   };
@@ -192,6 +196,8 @@ export function KrexNodeEnrollmentModal(props: {
   const runOnchainVerification = async () => {
     setError(null);
     setBusy(true);
+    setVerifyPending(true);
+    setVerifyAttempts(0);
     try {
       if (!enrollmentToken) throw new Error('Missing enrollment token');
       if (!enrollResult?.node_id) throw new Error('Missing node_id');
@@ -207,21 +213,27 @@ export function KrexNodeEnrollmentModal(props: {
       const sompi = String(Math.floor(minKas * 100_000_000));
       const payload = `krex:${enrollResult.node_id}`;
 
-      // Wallet prompt: send 1 KAS with a payload binding to node_id.
-      const txid = await adapter.sendTransaction({
-        to: toAddress,
-        amount: sompi,
-        payload,
-      });
-      if (!txid) throw new Error('No transaction id returned');
+      // If we already have a txid, do NOT re-send funds. Just re-verify.
+      let txid = verifyTxid;
+      if (!txid) {
+        // Wallet prompt: send 1 KAS with a payload binding to node_id.
+        txid = await adapter.sendTransaction({
+          to: toAddress,
+          amount: sompi,
+          payload,
+        });
+        if (!txid) throw new Error('No transaction id returned');
+        setVerifyTxid(txid);
+      }
 
       const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
       // Worker verify + persist (retry until indexer sees the tx).
       const started = Date.now();
-      const maxMs = 60_000;
+      const maxMs = 90_000;
       let lastErr: string | null = null;
       while (Date.now() - started < maxMs) {
+        setVerifyAttempts((x) => x + 1);
         try {
           const vr = await apiClient.post<VerifyOnchainResponse>('/kasparex/node/verify-onchain', {
             enrollmentToken,
@@ -245,12 +257,16 @@ export function KrexNodeEnrollmentModal(props: {
         }
         await wait(2500);
       }
-      throw new Error(lastErr || 'Transaction not found yet. Wait for confirmation and try again.');
+      // Don't show a scary red error for normal indexer lag; keep it actionable and safe.
+      throw new Error(
+        'Your transaction is broadcast, but it is not visible to the indexer yet. Wait ~30–120s, then click “Verify tx” (it will NOT send another payment).'
+      );
 
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed');
     } finally {
       setBusy(false);
+      setVerifyPending(false);
     }
   };
 
@@ -349,12 +365,6 @@ export function KrexNodeEnrollmentModal(props: {
                 >
                   {busy ? 'Working…' : 'Bind wallet & continue'}
                 </button>
-                <a
-                  href="/api/krex-node#how-to-run"
-                  className="px-4 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors text-sm font-medium"
-                >
-                  Setup guide
-                </a>
               </div>
             </div>
           )}
@@ -429,6 +439,17 @@ export function KrexNodeEnrollmentModal(props: {
                 On-chain verification
                 <FieldHint text="To reduce Sybil abuse, you’ll send a symbolic 1 KAS transaction. The tx payload includes your node_id binding." />
               </div>
+              {verifyTxid ? (
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-3">
+                  <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                    verification_txid (broadcast)
+                  </div>
+                  <div className="mt-1 font-mono text-xs text-zinc-900 dark:text-zinc-100 break-all">{verifyTxid}</div>
+                  <div className="mt-2 text-[11px] text-zinc-500 dark:text-zinc-400">
+                    This txid is already created. Clicking verify will <span className="font-semibold">not</span> send another payment.
+                  </div>
+                </div>
+              ) : null}
               <div className="text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
                 <div>
                   Amount:{' '}
@@ -448,6 +469,11 @@ export function KrexNodeEnrollmentModal(props: {
                     {enrollResult?.node_id ? `krex:${enrollResult.node_id}` : 'krex:<node_id>'}
                   </span>
                 </div>
+                {verifyPending ? (
+                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400 pt-1">
+                    Checking confirmation… attempt {Math.max(1, verifyAttempts)}
+                  </div>
+                ) : null}
               </div>
 
               <button
@@ -456,7 +482,13 @@ export function KrexNodeEnrollmentModal(props: {
                 onClick={runOnchainVerification}
                 className="w-full mt-2 px-4 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-black text-sm disabled:opacity-60"
               >
-                {busy ? 'Waiting…' : 'Send 1 KAS and verify'}
+                {busy
+                  ? verifyTxid
+                    ? 'Verifying…'
+                    : 'Waiting…'
+                  : verifyTxid
+                    ? 'Verify tx (no new payment)'
+                    : 'Send 1 KAS and verify'}
               </button>
             </div>
           )}
