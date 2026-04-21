@@ -29,7 +29,7 @@ type RuntimeConfig = {
 
 type VerifyOnchainResponse =
   | { ok: true; tx_hash: string; verified_at?: number; alreadyVerified?: boolean; node_secret?: string | null }
-  | { ok: false; error: string };
+  | { ok: false; error: string; pending?: boolean };
 
 const OVERLAY_CLASS = 'fixed inset-0 z-[99999] flex items-center justify-center p-4';
 const MODAL_CLASS =
@@ -286,8 +286,8 @@ export function KrexNodeEnrollmentModal(props: {
 
       // Worker verify + persist (retry until indexer sees the tx).
       const started = Date.now();
-      const maxMs = 90_000;
-      let lastErr: string | null = null;
+      const maxMs = 10 * 60_000; // 10 minutes
+      let sleepMs = 2500;
       while (Date.now() - started < maxMs) {
         setVerifyAttempts((x) => x + 1);
         setVerifyLastCheckAt(Date.now());
@@ -304,21 +304,28 @@ export function KrexNodeEnrollmentModal(props: {
             setStep('enroll');
             return;
           }
-          lastErr = (vr as any)?.error || 'On-chain verification failed';
+          // Pending is normal indexer lag; do not surface as scary error.
+          if ((vr as any)?.pending) {
+            // keep waiting
+          } else {
+            // Non-pending failures should stop.
+            throw new Error((vr as any)?.error || 'On-chain verification failed');
+          }
         } catch (e) {
           const msg = e instanceof Error ? e.message : 'Verification failed';
           // apiClient throws on non-2xx; treat "not found yet" as retryable.
           if (/not found yet/i.test(msg) || /transaction not found/i.test(msg) || /HTTP 404/i.test(msg)) {
-            lastErr = msg;
+            // keep waiting
           } else {
             throw e;
           }
         }
-        await wait(2500);
+        await wait(sleepMs);
+        // gentle backoff to reduce pressure on public API
+        sleepMs = Math.min(12_000, Math.floor(sleepMs * 1.25));
       }
-      // Don't show a scary red error for normal indexer lag; keep it actionable and safe.
       throw new Error(
-        'Your transaction is broadcast, but it is not visible to the indexer yet. Wait ~30–120s, then click “Verify tx” (it will NOT send another payment).'
+        'Your transaction is broadcast, but it is still not visible to the indexer. It will verify automatically as soon as it appears; you can close this modal and come back later — it will not send another payment.'
       );
 
     } catch (e) {

@@ -143,6 +143,8 @@ type VerifyOnchainBody = {
   tx_hash?: string;
 };
 
+type PendingResponse = { ok: false; pending: true; error: string };
+
 /**
  * POST /kasparex/node/verify-onchain
  *
@@ -214,8 +216,14 @@ export async function handleNodeVerifyOnchain(request: Request, env: Env): Promi
     // Keep the endpoint fast; UI polls until the indexer sees it.
     const tx = await getRestTransactionById(txHash, 2);
     if (!tx) {
-      return new Response(JSON.stringify({ ok: false, error: 'Transaction not found yet. Wait for confirmation and try again.' }), {
-        status: 404,
+      const body: PendingResponse = {
+        ok: false,
+        pending: true,
+        error: 'Transaction not indexed yet. Please wait and retry.',
+      };
+      // 202 indicates "accepted, still processing" (indexer lag).
+      return new Response(JSON.stringify(body), {
+        status: 202,
         headers: { ...cors, 'Content-Type': 'application/json' },
       });
     }
