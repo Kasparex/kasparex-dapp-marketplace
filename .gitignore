@@ -4,6 +4,8 @@
 .registry-cid
 wrangler.toml.local
 .wrangler/
+workers/verify.json
+workers/enroll.json
 
 # IPFS uploads
 public/ipfs-asset-map.json
