@@ -1,20 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
 import type { NodeInfo } from '@/lib/nodes/types';
 import { SectionHeader } from './SectionHeader';
-import { KrexNodeEnrollmentModal } from './KrexNodeEnrollmentModal';
 
 const CARD_CLASS =
   'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 p-6';
 
 interface ConnectAndRegisterProps {
   nodeInfo: NodeInfo;
+  onEnrollClick?: () => void;
 }
 
-export function ConnectAndRegister({ nodeInfo }: ConnectAndRegisterProps) {
-  const [open, setOpen] = useState(false);
+export function ConnectAndRegister({ nodeInfo, onEnrollClick }: ConnectAndRegisterProps) {
   return (
     <section id="connect-register" className="mb-6">
       <div className={CARD_CLASS}>
@@ -26,7 +24,7 @@ export function ConnectAndRegister({ nodeInfo }: ConnectAndRegisterProps) {
         <div className="flex flex-wrap gap-3">
           <button
             type="button"
-            onClick={() => setOpen(true)}
+            onClick={() => onEnrollClick?.()}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 hover:opacity-90 transition"
           >
             Enroll (get node secret)
@@ -58,7 +56,6 @@ export function ConnectAndRegister({ nodeInfo }: ConnectAndRegisterProps) {
           </p>
         )}
       </div>
-      <KrexNodeEnrollmentModal isOpen={open} onClose={() => setOpen(false)} />
     </section>
   );
 }

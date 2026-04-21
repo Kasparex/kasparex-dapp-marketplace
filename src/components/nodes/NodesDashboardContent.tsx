@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { NodeOverview } from './NodeOverview';
 import { ConnectAndRegister } from './ConnectAndRegister';
@@ -11,6 +11,7 @@ import { NodeTypesInfoCards } from './NodeTypesInfoCards';
 import { ActiveNodesTable } from './ActiveNodesTable';
 import { NodeFirstDiagnosticsPanel } from './NodeFirstDiagnosticsPanel';
 import { NodesMap } from './NodesMap';
+import { KrexNodeEnrollmentModal } from './KrexNodeEnrollmentModal';
 import { useKrexNodeNetwork } from '@/hooks/useKrexNodeNetwork';
 import { useKrexOperatorDashboard } from '@/hooks/useKrexOperatorDashboard';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -87,6 +88,7 @@ export function NodesDashboardContent() {
   const { state: kaspa } = useKaspaWallet();
   const { data: activeNodes = [] } = useKrexNodeNetwork();
   const { data: operator } = useKrexOperatorDashboard(kaspa.isConnected ? kaspa.address : null);
+  const [enrollOpen, setEnrollOpen] = useState(false);
 
   const primaryNode = useMemo(() => {
     const mine = operator?.myNodes?.[0];
@@ -151,12 +153,13 @@ export function NodesDashboardContent() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
                 </Link>
-                <Link
-                  href="/api/krex-node"
+                <button
+                  type="button"
+                  onClick={() => setEnrollOpen(true)}
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                 >
-                  Setup guide
-                </Link>
+                  Enroll (get node secret)
+                </button>
               </div>
             </div>
 
@@ -176,13 +179,15 @@ export function NodesDashboardContent() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6">
           <NodeOverview nodeInfo={nodeInfo} metrics={metrics} />
-          <ConnectAndRegister nodeInfo={nodeInfo} />
+          <ConnectAndRegister nodeInfo={nodeInfo} onEnrollClick={() => setEnrollOpen(true)} />
         </div>
         <div className="space-y-6">
           <StatusAndParameters nodeInfo={nodeInfo} metrics={metrics} />
           <TechnicalRequirements requirements={technicalRequirements as any} />
         </div>
       </div>
+
+      <KrexNodeEnrollmentModal isOpen={enrollOpen} onClose={() => setEnrollOpen(false)} />
     </div>
   );
 }
