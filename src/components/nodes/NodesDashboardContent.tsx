@@ -90,6 +90,8 @@ export function NodesDashboardContent() {
   const { data: operator } = useKrexOperatorDashboard(kaspa.isConnected ? kaspa.address : null);
   const [enrollOpen, setEnrollOpen] = useState(false);
 
+  const myNode = operator?.myNodes?.[0] ?? null;
+
   const primaryNode = useMemo(() => {
     const mine = operator?.myNodes?.[0];
     if (mine) return operatorRowToKrexNode(mine);
@@ -158,7 +160,7 @@ export function NodesDashboardContent() {
                   onClick={() => setEnrollOpen(true)}
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                 >
-                  Enroll (get node secret)
+                  {myNode ? 'Edit node details' : 'Enroll (get node secret)'}
                 </button>
               </div>
             </div>
@@ -187,7 +189,22 @@ export function NodesDashboardContent() {
         </div>
       </div>
 
-      <KrexNodeEnrollmentModal isOpen={enrollOpen} onClose={() => setEnrollOpen(false)} />
+      <KrexNodeEnrollmentModal
+        isOpen={enrollOpen}
+        onClose={() => setEnrollOpen(false)}
+        existingNode={
+          myNode
+            ? {
+                node_id: myNode.node_id,
+                node_name: myNode.node_name,
+                role: (myNode.role as any) || 'light',
+                url: myNode.url,
+                region: myNode.region,
+                version: (myNode as any).version || '1.0.0',
+              }
+            : null
+        }
+      />
     </div>
   );
 }

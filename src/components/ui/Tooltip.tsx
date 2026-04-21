@@ -8,7 +8,8 @@ import * as TooltipPrimitive from '@radix-ui/react-tooltip';
  * Import this when you need the same look outside Radix (rare); prefer `<Tooltip>`.
  */
 export const KASPPAREX_TOOLTIP_SURFACE_CLASS =
-  'z-50 max-w-xs rounded-lg bg-zinc-100 px-3 py-2.5 text-sm text-zinc-800 shadow-xl border border-zinc-300 dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-600';
+  // Must sit above full-screen modals (some use z-[99999]).
+  'z-[100000] max-w-xs rounded-lg bg-zinc-100 px-3 py-2.5 text-sm text-zinc-800 shadow-xl border border-zinc-300 dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-600';
 
 export function TooltipProvider({ children }: { children: React.ReactNode }) {
   return (

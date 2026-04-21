@@ -10,6 +10,7 @@ import {
   handleNodeVerifyWallet,
   handleNodeEnroll,
   handleNodeRotateSecret,
+  handleNodeUpdateDetails,
 } from './node-enrollment';
 import { handleGetNodeRewards } from './rewards';
 
@@ -524,6 +525,9 @@ export async function handleNodeRequest(request: Request, env: Env): Promise<Res
   }
   if (pathname === '/kasparex/node/enroll' && request.method === 'POST') {
     return handleNodeEnroll(request, env);
+  }
+  if (pathname === '/kasparex/node/update-details' && request.method === 'POST') {
+    return handleNodeUpdateDetails(request, env);
   }
   if (pathname === '/kasparex/node/rotate-secret' && request.method === 'POST') {
     return handleNodeRotateSecret(request, env);

@@ -51,7 +51,20 @@ function CopyRow(props: { label: string; value: string }) {
   );
 }
 
-export function KrexNodeEnrollmentModal(props: { isOpen: boolean; onClose: () => void }) {
+type ExistingNode = {
+  node_id: string;
+  node_name: string;
+  role: 'light' | 'mirror' | 'super';
+  url: string;
+  region: string;
+  version: string;
+};
+
+export function KrexNodeEnrollmentModal(props: {
+  isOpen: boolean;
+  onClose: () => void;
+  existingNode?: ExistingNode | null;
+}) {
   const { state: kaspa, connect } = useKaspaWallet();
 
   const [step, setStep] = useState<Step>('connect');
@@ -62,11 +75,11 @@ export function KrexNodeEnrollmentModal(props: { isOpen: boolean; onClose: () =>
   const [enrollmentToken, setEnrollmentToken] = useState<string | null>(null);
   const [enrollResult, setEnrollResult] = useState<EnrollResponse | null>(null);
 
-  const [nodeName, setNodeName] = useState('My Krex Node');
-  const [role, setRole] = useState<'light' | 'mirror' | 'super'>('light');
-  const [url, setUrl] = useState('https://example.invalid/krex-node');
-  const [region, setRegion] = useState('eu-central');
-  const [version, setVersion] = useState('1.0.0');
+  const [nodeName, setNodeName] = useState(props.existingNode?.node_name || 'My Krex Node');
+  const [role, setRole] = useState<'light' | 'mirror' | 'super'>(props.existingNode?.role || 'light');
+  const [url, setUrl] = useState(props.existingNode?.url || 'https://example.invalid/krex-node');
+  const [region, setRegion] = useState(props.existingNode?.region || 'eu-central');
+  const [version, setVersion] = useState(props.existingNode?.version || '1.0.0');
 
   const canEnroll = useMemo(() => {
     return Boolean(nodeName.trim() && role && url.trim());
@@ -140,8 +153,47 @@ export function KrexNodeEnrollmentModal(props: { isOpen: boolean; onClose: () =>
     }
   };
 
+  const submitUpdate = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      if (!props.existingNode?.node_id) throw new Error('Missing node_id');
+      if (!enrollmentToken) throw new Error('Missing enrollment token');
+      const r = await apiClient.post<{ ok: boolean; error?: string }>('/kasparex/node/update-details', {
+        enrollmentToken,
+        node_id: props.existingNode.node_id,
+        node_name: nodeName.trim(),
+        role,
+        url: url.trim(),
+        region: region.trim() || 'unknown',
+        version: version.trim() || '1.0.0',
+      });
+      if (!r?.ok) throw new Error(r?.error || 'Update failed');
+      setEnrollResult({
+        ok: true,
+        node_id: props.existingNode.node_id,
+        node_secret: 'updated',
+        owner_wallet: kaspa.address,
+        message: 'Updated',
+      });
+      setStep('done');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const title =
-    step === 'done' ? 'Node enrolled' : step === 'enroll' ? 'Enroll node' : 'Bind wallet & verify';
+    step === 'done'
+      ? props.existingNode
+        ? 'Node updated'
+        : 'Node enrolled'
+      : step === 'enroll'
+        ? props.existingNode
+          ? 'Edit node details'
+          : 'Enroll node'
+        : 'Bind wallet & verify';
 
   return createPortal(
     <div className={OVERLAY_CLASS} onClick={close}>
@@ -260,22 +312,30 @@ export function KrexNodeEnrollmentModal(props: { isOpen: boolean; onClose: () =>
               <button
                 type="button"
                 disabled={busy || !canEnroll}
-                onClick={submitEnroll}
+                onClick={props.existingNode ? submitUpdate : submitEnroll}
                 className="w-full mt-2 px-4 py-3 rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 font-black text-sm disabled:opacity-60"
               >
-                {busy ? 'Enrolling…' : 'Enroll and generate node secret'}
+                {busy ? 'Working…' : props.existingNode ? 'Save changes' : 'Enroll and generate node secret'}
               </button>
             </div>
           )}
 
-          {step === 'done' && enrollResult?.node_id && enrollResult?.node_secret && (
+          {step === 'done' && (
             <div className="space-y-3">
-              <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 p-3 text-sm text-emerald-700 dark:text-emerald-300">
-                Your node is enrolled. Save the secret securely — it’s required for signed pings.
-              </div>
-              <CopyRow label="node_id" value={enrollResult.node_id} />
-              <CopyRow label="node_secret (HMAC)" value={enrollResult.node_secret} />
-              <CopyRow label="owner_wallet" value={enrollResult.owner_wallet || kaspa.address || ''} />
+              {props.existingNode ? (
+                <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 p-3 text-sm text-emerald-700 dark:text-emerald-300">
+                  Node details updated.
+                </div>
+              ) : (
+                <>
+                  <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 p-3 text-sm text-emerald-700 dark:text-emerald-300">
+                    Your node is enrolled. Save the secret securely — it’s required for signed pings.
+                  </div>
+                  {enrollResult?.node_id && <CopyRow label="node_id" value={enrollResult.node_id} />}
+                  {enrollResult?.node_secret && <CopyRow label="node_secret (HMAC)" value={enrollResult.node_secret} />}
+                  <CopyRow label="owner_wallet" value={enrollResult?.owner_wallet || kaspa.address || ''} />
+                </>
+              )}
 
               <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 text-sm text-zinc-700 dark:text-zinc-300 space-y-2">
                 <div className="font-bold text-zinc-900 dark:text-zinc-100">Next</div>
@@ -286,12 +346,16 @@ export function KrexNodeEnrollmentModal(props: { isOpen: boolean; onClose: () =>
                   <li>
                     <span className="font-mono">apiBaseUrl</span> → your production Worker URL
                   </li>
-                  <li>
-                    <span className="font-mono">nodeId</span> → <span className="font-mono">{enrollResult.node_id}</span>
-                  </li>
-                  <li>
-                    <span className="font-mono">hmacSecret</span> → <span className="font-mono">{enrollResult.node_secret}</span>
-                  </li>
+                  {!props.existingNode && enrollResult?.node_id && (
+                    <li>
+                      <span className="font-mono">nodeId</span> → <span className="font-mono">{enrollResult.node_id}</span>
+                    </li>
+                  )}
+                  {!props.existingNode && enrollResult?.node_secret && (
+                    <li>
+                      <span className="font-mono">hmacSecret</span> → <span className="font-mono">{enrollResult.node_secret}</span>
+                    </li>
+                  )}
                 </ul>
               </div>
 

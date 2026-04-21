@@ -112,6 +112,16 @@ type EnrollBody = {
   version?: string;
 };
 
+type UpdateBody = {
+  enrollmentToken?: string;
+  node_id?: string;
+  node_name?: string;
+  role?: 'light' | 'mirror' | 'super';
+  url?: string;
+  region?: string;
+  version?: string;
+};
+
 export async function handleNodeEnroll(request: Request, env: Env): Promise<Response> {
   const cors = getCorsHeaders();
   const secret = enrollmentSecret(env);
@@ -193,6 +203,99 @@ export async function handleNodeEnroll(request: Request, env: Env): Promise<Resp
   } catch (e) {
     console.error('enroll', e);
     return new Response(JSON.stringify({ error: 'Enrollment failed' }), {
+      status: 500,
+      headers: { ...cors, 'Content-Type': 'application/json' },
+    });
+  }
+}
+
+export async function handleNodeUpdateDetails(request: Request, env: Env): Promise<Response> {
+  const cors = getCorsHeaders();
+  const secret = enrollmentSecret(env);
+  if (!secret) {
+    return new Response(JSON.stringify({ error: 'NODE_ENROLLMENT_SECRET not configured' }), {
+      status: 503,
+      headers: { ...cors, 'Content-Type': 'application/json' },
+    });
+  }
+  try {
+    const body = (await request.json()) as UpdateBody;
+    const token = body.enrollmentToken?.trim();
+    const nodeId = body.node_id?.trim();
+    if (!token || !nodeId) {
+      return new Response(JSON.stringify({ error: 'Missing enrollmentToken or node_id' }), {
+        status: 400,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const pl = await verifyJwtHs256(secret, token);
+    if (!pl || pl.typ !== 'krex-enroll' || typeof pl.wallet !== 'string') {
+      return new Response(JSON.stringify({ error: 'Invalid or expired enrollment token' }), {
+        status: 401,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+    const wallet = pl.wallet as string;
+
+    const existing = await env.NODES_DB.prepare(`SELECT owner_wallet FROM nodes WHERE node_id = ?`)
+      .bind(nodeId)
+      .first<{ owner_wallet: string }>();
+    if (!existing) {
+      return new Response(JSON.stringify({ error: 'Node not found' }), {
+        status: 404,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+    if (normalizeWallet(existing.owner_wallet) !== normalizeWallet(wallet)) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const sets: string[] = [];
+    const binds: unknown[] = [];
+
+    if (typeof body.node_name === 'string' && body.node_name.trim()) {
+      sets.push('node_name = ?');
+      binds.push(body.node_name.trim());
+    }
+    if (typeof body.role === 'string' && ['light', 'mirror', 'super'].includes(body.role)) {
+      sets.push('role = ?');
+      binds.push(body.role);
+    }
+    if (typeof body.region === 'string' && body.region.trim()) {
+      sets.push('region = ?');
+      binds.push(body.region.trim());
+    }
+    if (typeof body.url === 'string' && body.url.trim()) {
+      sets.push('url = ?');
+      binds.push(body.url.trim());
+    }
+    if (typeof body.version === 'string' && body.version.trim()) {
+      sets.push('version = ?');
+      binds.push(body.version.trim());
+    }
+
+    if (!sets.length) {
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+
+    await env.NODES_DB.prepare(`UPDATE nodes SET ${sets.join(', ')} WHERE node_id = ?`)
+      .bind(...binds, nodeId)
+      .run();
+
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { ...cors, 'Content-Type': 'application/json' },
+    });
+  } catch (e) {
+    console.error('update-details', e);
+    return new Response(JSON.stringify({ error: 'Failed' }), {
       status: 500,
       headers: { ...cors, 'Content-Type': 'application/json' },
     });
