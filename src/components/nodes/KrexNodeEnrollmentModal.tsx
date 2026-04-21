@@ -27,7 +27,7 @@ type RuntimeConfig = {
 };
 
 type VerifyOnchainResponse =
-  | { ok: true; tx_hash: string; verified_at?: number; alreadyVerified?: boolean }
+  | { ok: true; tx_hash: string; verified_at?: number; alreadyVerified?: boolean; node_secret?: string | null }
   | { ok: false; error: string };
 
 const OVERLAY_CLASS = 'fixed inset-0 z-[99999] flex items-center justify-center p-4';
@@ -111,6 +111,10 @@ export function KrexNodeEnrollmentModal(props: {
   const [enrollResult, setEnrollResult] = useState<EnrollResponse | null>(null);
   const [runtimeConfig, setRuntimeConfig] = useState<RuntimeConfig | null>(null);
   const [verifyTxid, setVerifyTxid] = useState<string | null>(null);
+  // Freeze modal mode for the entire open session to avoid flipping to "edit"
+  // mid-enrollment when the dashboard data refreshes.
+  const [sessionMode, setSessionMode] = useState<'enroll' | 'edit' | null>(null);
+
   const [verifyPending, setVerifyPending] = useState(false);
   const [verifyAttempts, setVerifyAttempts] = useState(0);
   const [verifyLastCheckAt, setVerifyLastCheckAt] = useState<number | null>(null);
@@ -137,6 +141,7 @@ export function KrexNodeEnrollmentModal(props: {
 
   useEffect(() => {
     if (!props.isOpen || !isClient) return;
+    setSessionMode(props.existingNode ? 'edit' : 'enroll');
     void loadRuntimeConfig();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.isOpen]);
@@ -154,6 +159,7 @@ export function KrexNodeEnrollmentModal(props: {
     setVerifyPending(false);
     setVerifyAttempts(0);
     setVerifyLastCheckAt(null);
+    setSessionMode(null);
     setStep('connect');
     props.onClose();
   };
@@ -205,7 +211,7 @@ export function KrexNodeEnrollmentModal(props: {
         region: region.trim() || 'unknown',
         version: version.trim() || '1.0.0',
       });
-      if (!r?.ok || !r.node_id || !r.node_secret) throw new Error(r?.error || 'Enrollment failed');
+      if (!r?.ok || !r.node_id) throw new Error(r?.error || 'Enrollment failed');
       setEnrollResult(r);
 
       // Ensure we don't miss on-chain verification due to a race (user clicks fast).
@@ -288,6 +294,13 @@ export function KrexNodeEnrollmentModal(props: {
           );
           if (vr && (vr as any).ok === true) {
             setVerifyTxid(normalizeTxId((vr as any).tx_hash || txid));
+            const ns = (vr as any).node_secret;
+            if (typeof ns === 'string' && ns.trim()) {
+              setEnrollResult((prev) => ({
+                ...(prev || { ok: true, node_id: enrollResult.node_id }),
+                node_secret: ns,
+              }));
+            }
             setStep('done');
             return;
           }
@@ -355,13 +368,13 @@ export function KrexNodeEnrollmentModal(props: {
 
   const title =
     step === 'done'
-      ? props.existingNode
+      ? sessionMode === 'edit'
         ? 'Node updated'
         : 'Node enrolled'
       : step === 'verify'
         ? 'Verify on-chain (1 KAS)'
         : step === 'enroll'
-        ? props.existingNode
+        ? sessionMode === 'edit'
           ? 'Edit node details'
           : 'Enroll node'
         : 'Bind wallet & verify';
@@ -477,15 +490,15 @@ export function KrexNodeEnrollmentModal(props: {
               <button
                 type="button"
                 disabled={busy || !canEnroll}
-                onClick={props.existingNode ? submitUpdate : submitEnroll}
+                onClick={sessionMode === 'edit' ? submitUpdate : submitEnroll}
                 className="w-full mt-2 px-4 py-3 rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 font-black text-sm disabled:opacity-60"
               >
-                {busy ? 'Working…' : props.existingNode ? 'Save changes' : 'Enroll and generate node secret'}
+                {busy ? 'Working…' : sessionMode === 'edit' ? 'Save changes' : 'Enroll and continue'}
               </button>
             </div>
           )}
 
-          {step === 'verify' && !props.existingNode && (
+          {step === 'verify' && sessionMode !== 'edit' && (
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 space-y-3">
               <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100 inline-flex items-center gap-2">
                 On-chain verification
@@ -494,7 +507,6 @@ export function KrexNodeEnrollmentModal(props: {
 
               {/* Always show secrets immediately after enrollment so users can save them even if verification is slow. */}
               {enrollResult?.node_id ? <CopyRow label="node_id" value={enrollResult.node_id} /> : null}
-              {enrollResult?.node_secret ? <CopyRow label="node_secret (HMAC)" value={enrollResult.node_secret} /> : null}
 
               {verifyTxid ? (
                 <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-3">
@@ -572,14 +584,14 @@ export function KrexNodeEnrollmentModal(props: {
 
           {step === 'done' && (
             <div className="space-y-3">
-              {props.existingNode ? (
+              {sessionMode === 'edit' ? (
                 <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 p-3 text-sm text-emerald-700 dark:text-emerald-300">
                   Node details updated.
                 </div>
               ) : (
                 <>
                   <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 p-3 text-sm text-emerald-700 dark:text-emerald-300">
-                    Your node is enrolled. Save the secret securely — it’s required for signed pings.
+                    Your node is verified. Save the secret securely — it’s required for signed pings.
                   </div>
                   {enrollResult?.node_id && <CopyRow label="node_id" value={enrollResult.node_id} />}
                   {enrollResult?.node_secret && <CopyRow label="node_secret (HMAC)" value={enrollResult.node_secret} />}
@@ -597,12 +609,12 @@ export function KrexNodeEnrollmentModal(props: {
                   <li>
                     <span className="font-mono">apiBaseUrl</span> → your production Worker URL
                   </li>
-                  {!props.existingNode && enrollResult?.node_id && (
+                  {sessionMode !== 'edit' && enrollResult?.node_id && (
                     <li>
                       <span className="font-mono">nodeId</span> → <span className="font-mono">{enrollResult.node_id}</span>
                     </li>
                   )}
-                  {!props.existingNode && enrollResult?.node_secret && (
+                  {sessionMode !== 'edit' && enrollResult?.node_secret && (
                     <li>
                       <span className="font-mono">hmacSecret</span> → <span className="font-mono">{enrollResult.node_secret}</span>
                     </li>

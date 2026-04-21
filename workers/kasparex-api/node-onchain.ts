@@ -199,10 +199,19 @@ export async function handleNodeVerifyOnchain(request: Request, env: Env): Promi
       });
     }
     if (node.verified_txid) {
-      return new Response(JSON.stringify({ ok: true, tx_hash: node.verified_txid, alreadyVerified: true }), {
+      const nodeSecret = await env.KASPAREX_CACHE.get(`node:hmac:${nodeId}`);
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          tx_hash: node.verified_txid,
+          alreadyVerified: true,
+          node_secret: nodeSecret || null,
+        }),
+        {
         status: 200,
         headers: { ...cors, 'Content-Type': 'application/json' },
-      });
+        }
+      );
     }
 
     const tx = await getRestTransactionById(txHash, 8);
@@ -244,7 +253,8 @@ export async function handleNodeVerifyOnchain(request: Request, env: Env): Promi
       .bind(normTxid, now, nodeId)
       .run();
 
-    return new Response(JSON.stringify({ ok: true, tx_hash: normTxid, verified_at: now }), {
+    const nodeSecret = await env.KASPAREX_CACHE.get(`node:hmac:${nodeId}`);
+    return new Response(JSON.stringify({ ok: true, tx_hash: normTxid, verified_at: now, node_secret: nodeSecret || null }), {
       status: 200,
       headers: { ...cors, 'Content-Type': 'application/json' },
     });

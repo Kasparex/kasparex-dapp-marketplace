@@ -194,9 +194,9 @@ export async function handleNodeEnroll(request: Request, env: Env): Promise<Resp
       JSON.stringify({
         ok: true,
         node_id: nodeId,
-        node_secret: nodeSecret,
         owner_wallet: wallet,
-        message: 'Store node_secret securely; required for signed pings.',
+        requires_onchain: true,
+        message: 'Complete on-chain verification to unlock your node secret.',
       }),
       { status: 200, headers: { ...cors, 'Content-Type': 'application/json' } }
     );
@@ -238,9 +238,9 @@ export async function handleNodeUpdateDetails(request: Request, env: Env): Promi
     }
     const wallet = pl.wallet as string;
 
-    const existing = await env.NODES_DB.prepare(`SELECT owner_wallet FROM nodes WHERE node_id = ?`)
+    const existing = await env.NODES_DB.prepare(`SELECT owner_wallet, verified_txid FROM nodes WHERE node_id = ?`)
       .bind(nodeId)
-      .first<{ owner_wallet: string }>();
+      .first<{ owner_wallet: string; verified_txid: string | null }>();
     if (!existing) {
       return new Response(JSON.stringify({ error: 'Node not found' }), {
         status: 404,
@@ -250,6 +250,12 @@ export async function handleNodeUpdateDetails(request: Request, env: Env): Promi
     if (normalizeWallet(existing.owner_wallet) !== normalizeWallet(wallet)) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+    if (!existing.verified_txid) {
+      return new Response(JSON.stringify({ error: 'Complete on-chain verification before editing node details.' }), {
+        status: 403,
         headers: { ...cors, 'Content-Type': 'application/json' },
       });
     }
@@ -313,6 +319,15 @@ export async function handleNodeRotateSecret(request: Request, env: Env): Promis
     if (!nodeId || !oldSecret) {
       return new Response(JSON.stringify({ error: 'Missing node_id or node_secret' }), {
         status: 400,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+    const row = await env.NODES_DB.prepare(`SELECT verified_txid FROM nodes WHERE node_id = ?`)
+      .bind(nodeId)
+      .first<{ verified_txid: string | null }>();
+    if (!row || !row.verified_txid) {
+      return new Response(JSON.stringify({ error: 'Complete on-chain verification before rotating secret.' }), {
+        status: 403,
         headers: { ...cors, 'Content-Type': 'application/json' },
       });
     }
