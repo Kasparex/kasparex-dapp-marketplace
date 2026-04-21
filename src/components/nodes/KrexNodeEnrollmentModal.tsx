@@ -76,6 +76,7 @@ export function KrexNodeEnrollmentModal(props: {
   existingNode?: ExistingNode | null;
 }) {
   const { state: kaspa, connect } = useKaspaWallet();
+  const isClient = typeof window !== 'undefined';
 
   const [step, setStep] = useState<Step>('connect');
   const [busy, setBusy] = useState(false);
@@ -97,8 +98,6 @@ export function KrexNodeEnrollmentModal(props: {
     return Boolean(nodeName.trim() && role && url.trim());
   }, [nodeName, role, url]);
 
-  if (!props.isOpen || typeof window === 'undefined') return null;
-
   const loadRuntimeConfig = async () => {
     try {
       const rc = await apiClient.get<RuntimeConfig>('/kasparex/node/runtime-config');
@@ -110,10 +109,12 @@ export function KrexNodeEnrollmentModal(props: {
   };
 
   useEffect(() => {
-    if (!props.isOpen) return;
+    if (!props.isOpen || !isClient) return;
     void loadRuntimeConfig();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.isOpen]);
+
+  if (!props.isOpen || !isClient) return null;
 
   const close = () => {
     setBusy(false);
