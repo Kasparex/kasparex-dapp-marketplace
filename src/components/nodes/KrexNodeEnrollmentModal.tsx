@@ -272,7 +272,7 @@ export function KrexNodeEnrollmentModal(props: {
               enrollmentToken,
               tx_hash: txid,
             }),
-            12_000
+            25_000
           );
           if (vr && (vr as any).ok === true) {
             setVerifyTxid(normalizeTxId((vr as any).tx_hash || txid));

@@ -105,7 +105,12 @@ function getTxPayload(tx: KaspaRestTransaction): string | null {
   return null;
 }
 
-async function getRestTransactionById(txId: string, maxAttempts = 8): Promise<KaspaRestTransaction | null> {
+/**
+ * Fetch transaction from public Kaspa REST.
+ *
+ * IMPORTANT: This must return quickly. The UI does its own polling to handle indexer lag.
+ */
+async function getRestTransactionById(txId: string, maxAttempts = 2): Promise<KaspaRestTransaction | null> {
   const hash = normalizeKaspaTxid(txId);
   if (!/^[0-9a-f]{64}$/.test(hash)) return null;
   const query = 'inputs=true&outputs=true&resolve_previous_outpoints=light';
@@ -125,8 +130,10 @@ async function getRestTransactionById(txId: string, maxAttempts = 8): Promise<Ka
         // ignore
       }
     }
-    // backoff
-    await new Promise((r) => setTimeout(r, 1200 * (attempt + 1)));
+    // backoff (only if we will retry)
+    if (attempt < maxAttempts - 1) {
+      await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+    }
   }
   return null;
 }
@@ -205,7 +212,8 @@ export async function handleNodeVerifyOnchain(request: Request, env: Env): Promi
       );
     }
 
-    const tx = await getRestTransactionById(txHash, 8);
+    // Keep the endpoint fast; UI polls until the indexer sees it.
+    const tx = await getRestTransactionById(txHash, 2);
     if (!tx) {
       return new Response(JSON.stringify({ ok: false, error: 'Transaction not found yet. Wait for confirmation and try again.' }), {
         status: 404,
