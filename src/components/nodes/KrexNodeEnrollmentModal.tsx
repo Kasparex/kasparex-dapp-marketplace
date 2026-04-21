@@ -32,7 +32,31 @@ type VerifyOnchainResponse =
 
 const OVERLAY_CLASS = 'fixed inset-0 z-[99999] flex items-center justify-center p-4';
 const MODAL_CLASS =
-  'relative bg-white dark:bg-zinc-900 rounded-xl shadow-xl max-w-2xl w-full border border-zinc-200 dark:border-zinc-800 overflow-hidden';
+  'relative bg-white dark:bg-zinc-900 rounded-xl shadow-xl max-w-2xl w-full border border-zinc-200 dark:border-zinc-800 overflow-hidden max-h-[90vh] flex flex-col';
+
+function normalizeTxId(raw: unknown): string {
+  if (!raw) return '';
+  if (typeof raw === 'string') {
+    const s = raw.trim();
+    if (!s) return '';
+    if (s.startsWith('{') && s.endsWith('}')) {
+      try {
+        const o = JSON.parse(s) as Record<string, unknown>;
+        const id = (o.transactionId ?? o.transaction_id ?? o.id ?? o.txid ?? o.txId) as unknown;
+        if (typeof id === 'string' && id.trim()) return id.trim();
+      } catch {
+        // ignore
+      }
+    }
+    return s;
+  }
+  if (typeof raw === 'object') {
+    const o = raw as Record<string, unknown>;
+    const id = (o.transactionId ?? o.transaction_id ?? o.id ?? o.txid ?? o.txId) as unknown;
+    if (typeof id === 'string' && id.trim()) return id.trim();
+  }
+  return '';
+}
 
 function CopyRow(props: { label: string; value: string }) {
   const [copied, setCopied] = useState(false);
@@ -217,11 +241,12 @@ export function KrexNodeEnrollmentModal(props: {
       let txid = verifyTxid;
       if (!txid) {
         // Wallet prompt: send 1 KAS with a payload binding to node_id.
-        txid = await adapter.sendTransaction({
+        const sent = await adapter.sendTransaction({
           to: toAddress,
           amount: sompi,
           payload,
         });
+        txid = normalizeTxId(sent);
         if (!txid) throw new Error('No transaction id returned');
         setVerifyTxid(txid);
       }
@@ -241,7 +266,7 @@ export function KrexNodeEnrollmentModal(props: {
             tx_hash: txid,
           });
           if (vr && (vr as any).ok === true) {
-            setVerifyTxid((vr as any).tx_hash || txid);
+            setVerifyTxid(normalizeTxId((vr as any).tx_hash || txid));
             setStep('done');
             return;
           }
@@ -337,7 +362,7 @@ export function KrexNodeEnrollmentModal(props: {
           </button>
         </div>
 
-        <div className="p-5 space-y-4">
+        <div className="p-5 space-y-4 overflow-y-auto">
           {error && (
             <div className="rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-700 dark:text-red-300">
               {error}
