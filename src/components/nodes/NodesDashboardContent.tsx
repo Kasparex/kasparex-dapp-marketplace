@@ -55,6 +55,8 @@ function operatorRowToKrexNode(row: {
   region: string;
   role: string;
   uptime_hours: number;
+  verified_txid?: string | null;
+  verified_at?: number | null;
 }): KrexNode {
   return {
     node_id: row.node_id,
@@ -64,6 +66,8 @@ function operatorRowToKrexNode(row: {
     role: (row.role as KrexNode['role']) || 'light',
     uptime: Number(row.uptime_hours) || 0,
     pinnedCids: [],
+    verifiedTxid: row.verified_txid ?? undefined,
+    verifiedAt: row.verified_at ?? undefined,
   };
 }
 

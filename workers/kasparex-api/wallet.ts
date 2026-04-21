@@ -459,7 +459,8 @@ export async function handleWalletNodes(request: Request, env: Env): Promise<Res
   const address = normalizeKaspaAddress(raw);
   try {
     const rows = await env.NODES_DB.prepare(
-      `SELECT node_id, node_name, role, region, url, version, last_ping, uptime_hours, status, requests_served_total, created_at
+      `SELECT node_id, node_name, role, region, url, version, last_ping, uptime_hours, status, requests_served_total, created_at,
+              verified_txid, verified_at
        FROM nodes WHERE LOWER(owner_wallet) = LOWER(?)
        ORDER BY created_at DESC`
     )
@@ -476,6 +477,8 @@ export async function handleWalletNodes(request: Request, env: Env): Promise<Res
         status: string;
         requests_served_total: number;
         created_at: number;
+        verified_txid: string | null;
+        verified_at: number | null;
       }>();
 
     return new Response(

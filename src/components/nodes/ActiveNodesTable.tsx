@@ -42,6 +42,7 @@ export function ActiveNodesTable(props: { nodes: KrexNode[] }) {
                 <th className="text-left py-2.5 pr-4 text-sm font-semibold text-zinc-600 dark:text-zinc-400">Region</th>
                 <th className="text-left py-2.5 pr-4 text-sm font-semibold text-zinc-600 dark:text-zinc-400">Uptime</th>
                 <th className="text-left py-2.5 pr-4 text-sm font-semibold text-zinc-600 dark:text-zinc-400">Pinned</th>
+                <th className="text-left py-2.5 pr-4 text-sm font-semibold text-zinc-600 dark:text-zinc-400">Verified</th>
                 <th className="text-left py-2.5 pr-4 text-sm font-semibold text-zinc-600 dark:text-zinc-400">URL</th>
               </tr>
             </thead>
@@ -66,6 +67,15 @@ export function ActiveNodesTable(props: { nodes: KrexNode[] }) {
                     {Array.isArray(n.pinnedCids) ? n.pinnedCids.length : 0}
                   </td>
                   <td className="py-2.5 pr-4 text-sm">
+                    {n.verifiedTxid ? (
+                      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-black bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                        Verified
+                      </span>
+                    ) : (
+                      <span className="text-zinc-400">—</span>
+                    )}
+                  </td>
+                  <td className="py-2.5 pr-4 text-sm">
                     <a
                       href={n.url}
                       target="_blank"
@@ -80,7 +90,7 @@ export function ActiveNodesTable(props: { nodes: KrexNode[] }) {
               ))}
               {nodes.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-6 text-center text-zinc-500 dark:text-zinc-500">
+                  <td colSpan={7} className="py-6 text-center text-zinc-500 dark:text-zinc-500">
                     No active nodes found yet. When nodes start pinging the registry, they’ll appear here.
                   </td>
                 </tr>

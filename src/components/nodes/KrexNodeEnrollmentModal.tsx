@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { apiClient } from '@/lib/api/client';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { signKaspaMessage } from '@/lib/kaspa/wallet';
+import { getWalletProvider } from '@/lib/kaspa/wallet';
 import { FieldHint } from '@/components/ui/FieldHint';
 
 type ChallengeResponse = { message: string; challengeToken: string; error?: string };
@@ -18,7 +19,16 @@ type EnrollResponse = {
   error?: string;
 };
 
-type Step = 'connect' | 'challenge' | 'enroll' | 'done';
+type Step = 'connect' | 'challenge' | 'enroll' | 'verify' | 'done';
+
+type RuntimeConfig = {
+  enrollmentEnabled: boolean;
+  onchainVerify?: { enabled?: boolean; toAddress?: string | null; minKas?: string };
+};
+
+type VerifyOnchainResponse =
+  | { ok: true; tx_hash: string; verified_at?: number; alreadyVerified?: boolean }
+  | { ok: false; error: string };
 
 const OVERLAY_CLASS = 'fixed inset-0 z-[99999] flex items-center justify-center p-4';
 const MODAL_CLASS =
@@ -74,6 +84,8 @@ export function KrexNodeEnrollmentModal(props: {
   const [challenge, setChallenge] = useState<ChallengeResponse | null>(null);
   const [enrollmentToken, setEnrollmentToken] = useState<string | null>(null);
   const [enrollResult, setEnrollResult] = useState<EnrollResponse | null>(null);
+  const [runtimeConfig, setRuntimeConfig] = useState<RuntimeConfig | null>(null);
+  const [verifyTxid, setVerifyTxid] = useState<string | null>(null);
 
   const [nodeName, setNodeName] = useState(props.existingNode?.node_name || 'My Krex Node');
   const [role, setRole] = useState<'light' | 'mirror' | 'super'>(props.existingNode?.role || 'light');
@@ -93,6 +105,8 @@ export function KrexNodeEnrollmentModal(props: {
     setChallenge(null);
     setEnrollmentToken(null);
     setEnrollResult(null);
+    setRuntimeConfig(null);
+    setVerifyTxid(null);
     setStep('connect');
     props.onClose();
   };
@@ -123,6 +137,13 @@ export function KrexNodeEnrollmentModal(props: {
       if (!v?.ok || !v.enrollmentToken) throw new Error(v?.error || 'Verification failed');
       setEnrollmentToken(v.enrollmentToken);
       setStep('enroll');
+
+      try {
+        const rc = await apiClient.get<RuntimeConfig>('/kasparex/node/runtime-config');
+        if (rc) setRuntimeConfig(rc);
+      } catch {
+        // ignore
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed');
     } finally {
@@ -145,6 +166,50 @@ export function KrexNodeEnrollmentModal(props: {
       });
       if (!r?.ok || !r.node_id || !r.node_secret) throw new Error(r?.error || 'Enrollment failed');
       setEnrollResult(r);
+      const onchainEnabled = Boolean(runtimeConfig?.onchainVerify?.enabled && runtimeConfig?.onchainVerify?.toAddress);
+      setStep(onchainEnabled ? 'verify' : 'done');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const runOnchainVerification = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      if (!enrollmentToken) throw new Error('Missing enrollment token');
+      if (!enrollResult?.node_id) throw new Error('Missing node_id');
+      if (!kaspa.provider) throw new Error('Kaspa wallet provider missing');
+
+      const toAddress = runtimeConfig?.onchainVerify?.toAddress;
+      const minKas = Number(runtimeConfig?.onchainVerify?.minKas ?? '1') || 1;
+      if (!toAddress) throw new Error('On-chain verification is not configured');
+
+      const adapter = getWalletProvider(kaspa.provider);
+      if (!adapter) throw new Error('Wallet adapter not available');
+
+      const sompi = String(Math.floor(minKas * 100_000_000));
+      const payload = `krex:${enrollResult.node_id}`;
+
+      // Wallet prompt: send 1 KAS with a payload binding to node_id.
+      const txid = await adapter.sendTransaction({
+        to: toAddress,
+        amount: sompi,
+        payload,
+      });
+      if (!txid) throw new Error('No transaction id returned');
+
+      // Worker verify + persist.
+      const vr = await apiClient.post<VerifyOnchainResponse>('/kasparex/node/verify-onchain', {
+        enrollmentToken,
+        node_id: enrollResult.node_id,
+        tx_hash: txid,
+      });
+      if (!vr || (vr as any).ok !== true) throw new Error((vr as any)?.error || 'On-chain verification failed');
+
+      setVerifyTxid((vr as any).tx_hash || txid);
       setStep('done');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed');
@@ -189,7 +254,9 @@ export function KrexNodeEnrollmentModal(props: {
       ? props.existingNode
         ? 'Node updated'
         : 'Node enrolled'
-      : step === 'enroll'
+      : step === 'verify'
+        ? 'Verify on-chain (1 KAS)'
+        : step === 'enroll'
         ? props.existingNode
           ? 'Edit node details'
           : 'Enroll node'
@@ -320,6 +387,44 @@ export function KrexNodeEnrollmentModal(props: {
             </div>
           )}
 
+          {step === 'verify' && !props.existingNode && (
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 space-y-3">
+              <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100 inline-flex items-center gap-2">
+                On-chain verification
+                <FieldHint text="To reduce Sybil abuse, you’ll send a symbolic 1 KAS transaction. The tx payload includes your node_id binding." />
+              </div>
+              <div className="text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
+                <div>
+                  Amount:{' '}
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                    {runtimeConfig?.onchainVerify?.minKas || '1'} KAS
+                  </span>
+                </div>
+                <div>
+                  To:{' '}
+                  <span className="font-mono text-xs text-zinc-900 dark:text-zinc-100 break-all">
+                    {runtimeConfig?.onchainVerify?.toAddress || '—'}
+                  </span>
+                </div>
+                <div>
+                  Payload:{' '}
+                  <span className="font-mono text-xs text-zinc-900 dark:text-zinc-100">
+                    {enrollResult?.node_id ? `krex:${enrollResult.node_id}` : 'krex:<node_id>'}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                disabled={busy || !enrollResult?.node_id}
+                onClick={runOnchainVerification}
+                className="w-full mt-2 px-4 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-black text-sm disabled:opacity-60"
+              >
+                {busy ? 'Waiting…' : 'Send 1 KAS and verify'}
+              </button>
+            </div>
+          )}
+
           {step === 'done' && (
             <div className="space-y-3">
               {props.existingNode ? (
@@ -333,6 +438,7 @@ export function KrexNodeEnrollmentModal(props: {
                   </div>
                   {enrollResult?.node_id && <CopyRow label="node_id" value={enrollResult.node_id} />}
                   {enrollResult?.node_secret && <CopyRow label="node_secret (HMAC)" value={enrollResult.node_secret} />}
+                  {verifyTxid && <CopyRow label="verification_txid" value={verifyTxid} />}
                   <CopyRow label="owner_wallet" value={enrollResult?.owner_wallet || kaspa.address || ''} />
                 </>
               )}

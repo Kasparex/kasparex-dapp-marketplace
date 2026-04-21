@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS nodes (
   requests_served_epoch INTEGER NOT NULL DEFAULT 0,
   last_seq INTEGER NOT NULL DEFAULT 0,
   binding_version INTEGER NOT NULL DEFAULT 0,
+  verified_txid TEXT,
+  verified_at INTEGER,
   anomaly_flags INTEGER NOT NULL DEFAULT 0,
   created_from_ip_hash TEXT
 );

@@ -16,6 +16,8 @@ export type OperatorNodeRow = {
   status: string;
   requests_served_total: number;
   created_at: number;
+  verified_txid?: string | null;
+  verified_at?: number | null;
 };
 
 export type WalletNodesResponse = {

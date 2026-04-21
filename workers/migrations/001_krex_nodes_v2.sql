@@ -8,6 +8,8 @@ ALTER TABLE nodes ADD COLUMN requests_served_total INTEGER DEFAULT 0;
 ALTER TABLE nodes ADD COLUMN requests_served_epoch INTEGER DEFAULT 0;
 ALTER TABLE nodes ADD COLUMN last_seq INTEGER DEFAULT 0;
 ALTER TABLE nodes ADD COLUMN binding_version INTEGER DEFAULT 0;
+ALTER TABLE nodes ADD COLUMN verified_txid TEXT;
+ALTER TABLE nodes ADD COLUMN verified_at INTEGER;
 ALTER TABLE nodes ADD COLUMN anomaly_flags INTEGER DEFAULT 0;
 ALTER TABLE nodes ADD COLUMN created_from_ip_hash TEXT;
 

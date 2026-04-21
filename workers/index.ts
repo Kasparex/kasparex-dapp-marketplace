@@ -51,6 +51,10 @@ export interface Env {
   NODE_ENROLLMENT_SECRET?: string;
   /** If "true", nodes with a KV HMAC secret must send valid X-Krex-* signatures on ping/register. */
   KREX_NODE_REQUIRE_HMAC?: string;
+  /** On-chain verification: KAS recipient address (Kaspa L1). */
+  NODE_VERIFY_TO_ADDRESS?: string;
+  /** On-chain verification: minimum KAS amount (default "1"). */
+  NODE_VERIFY_MIN_KAS?: string;
 }
 
 async function runCron(cron: string, env: Env, event?: ScheduledEvent): Promise<void> {

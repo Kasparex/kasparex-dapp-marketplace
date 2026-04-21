@@ -12,6 +12,7 @@ import {
   handleNodeRotateSecret,
   handleNodeUpdateDetails,
 } from './node-enrollment';
+import { handleNodeVerifyOnchain } from './node-onchain';
 import { handleGetNodeRewards } from './rewards';
 
 export interface Node {
@@ -30,6 +31,8 @@ export interface Node {
   requests_served_total?: number;
   requests_served_epoch?: number;
   last_seq?: number;
+  verified_txid?: string | null;
+  verified_at?: number | null;
 }
 
 export interface NodeRegistration {
@@ -450,6 +453,8 @@ export async function handleGetNodeStatus(nodeId: string, env: Env): Promise<Res
 
 export async function handleRuntimeConfig(env: Env): Promise<Response> {
   const cors = getCorsHeaders();
+  const verifyTo = (env.NODE_VERIFY_TO_ADDRESS || '').trim();
+  const verifyMinKas = (env.NODE_VERIFY_MIN_KAS || '1').trim() || '1';
   return new Response(
     JSON.stringify({
       minNodeVersion: '1.0.0',
@@ -457,6 +462,11 @@ export async function handleRuntimeConfig(env: Env): Promise<Response> {
       heartbeatMaxIntervalSec: 180,
       apiVersion: 1,
       enrollmentEnabled: Boolean(env.NODE_ENROLLMENT_SECRET),
+      onchainVerify: {
+        enabled: Boolean(verifyTo),
+        toAddress: verifyTo || null,
+        minKas: verifyMinKas,
+      },
     }),
     { status: 200, headers: { ...cors, 'Content-Type': 'application/json' } }
   );
@@ -525,6 +535,9 @@ export async function handleNodeRequest(request: Request, env: Env): Promise<Res
   }
   if (pathname === '/kasparex/node/enroll' && request.method === 'POST') {
     return handleNodeEnroll(request, env);
+  }
+  if (pathname === '/kasparex/node/verify-onchain' && request.method === 'POST') {
+    return handleNodeVerifyOnchain(request, env);
   }
   if (pathname === '/kasparex/node/update-details' && request.method === 'POST') {
     return handleNodeUpdateDetails(request, env);

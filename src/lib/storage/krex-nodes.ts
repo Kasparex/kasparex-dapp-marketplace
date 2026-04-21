@@ -14,6 +14,8 @@ export interface KrexNode {
   role: 'light' | 'mirror' | 'super';
   uptime: number;
   pinnedCids: string[];
+  verifiedTxid?: string;
+  verifiedAt?: number;
 }
 
 export interface KrexNodesResponse {
@@ -40,6 +42,18 @@ function mapWorkerNodeRow(raw: Record<string, unknown>): KrexNode {
     role: (raw.role as KrexNode['role']) || 'light',
     uptime,
     pinnedCids: Array.isArray(pinnedCids) ? pinnedCids : [],
+    verifiedTxid:
+      typeof raw.verified_txid === 'string'
+        ? raw.verified_txid
+        : typeof raw.verifiedTxid === 'string'
+          ? raw.verifiedTxid
+          : undefined,
+    verifiedAt:
+      typeof raw.verified_at === 'number'
+        ? raw.verified_at
+        : typeof raw.verifiedAt === 'number'
+          ? raw.verifiedAt
+          : undefined,
   };
 }
 
