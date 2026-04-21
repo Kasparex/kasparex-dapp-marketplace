@@ -113,6 +113,37 @@ export function KrexNodeEnrollmentModal(props: {
   const [enrollResult, setEnrollResult] = useState<EnrollResponse | null>(null);
   const [runtimeConfig, setRuntimeConfig] = useState<RuntimeConfig | null>(null);
   const [verifyTxid, setVerifyTxid] = useState<string | null>(null);
+  const verifyTxStorageKey = useMemo(() => {
+    const a = (kaspa.address || '').toLowerCase();
+    return a ? `krex:verifyTx:${a}` : null;
+  }, [kaspa.address]);
+
+  // If the user already broadcast a tx, persist it so refresh cannot cause double spend.
+  useEffect(() => {
+    if (!isClient) return;
+    if (!verifyTxStorageKey) return;
+    if (verifyTxid) {
+      try {
+        window.localStorage.setItem(verifyTxStorageKey, verifyTxid);
+      } catch {
+        // ignore
+      }
+    }
+  }, [isClient, verifyTxStorageKey, verifyTxid]);
+
+  // Restore pending txid on open (prevents re-sending payment).
+  useEffect(() => {
+    if (!props.isOpen || !isClient) return;
+    if (!verifyTxStorageKey) return;
+    try {
+      const raw = window.localStorage.getItem(verifyTxStorageKey);
+      if (raw && !verifyTxid) setVerifyTxid(raw);
+    } catch {
+      // ignore
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.isOpen, isClient, verifyTxStorageKey]);
+
   // Freeze modal mode for the entire open session to avoid flipping to "edit"
   // mid-enrollment when the dashboard data refreshes.
   const [sessionMode, setSessionMode] = useState<'enroll' | 'edit' | null>(null);
@@ -192,13 +223,8 @@ export function KrexNodeEnrollmentModal(props: {
         signature,
       });
       if (!v?.ok || !v.enrollmentToken) throw new Error(v?.error || 'Verification failed');
-      if (!v.verifyPayload) {
-        throw new Error(
-          'Your API is missing verifyPayload. This usually means the Worker is not deployed to the latest version yet. Please redeploy the Worker and try again.'
-        );
-      }
       setEnrollmentToken(v.enrollmentToken);
-      setVerifyPayload(v.verifyPayload);
+      setVerifyPayload(v.verifyPayload || 'krex:verify');
       setStep('verify');
       void loadRuntimeConfig();
     } catch (e) {
@@ -220,8 +246,7 @@ export function KrexNodeEnrollmentModal(props: {
       const toAddress = runtimeConfig?.onchainVerify?.toAddress;
       const minKas = Number(runtimeConfig?.onchainVerify?.minKas ?? '1') || 1;
       if (!toAddress) throw new Error('On-chain verification is not configured');
-      const payload = verifyPayload || '';
-      if (!payload) throw new Error('Missing verification payload');
+      const payload = (verifyPayload || 'krex:verify').trim();
 
       const adapter = getWalletProvider(kaspa.provider);
       if (!adapter) throw new Error('Wallet adapter not available');

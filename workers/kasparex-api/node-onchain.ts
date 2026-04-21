@@ -150,7 +150,7 @@ type VerifyOnchainBody = {
  * from the wallet that just passed /verify-wallet.
  *
  * Wallet-first flow:
- * - payload must contain `krex:verify:<nonce>` where nonce comes from the enrollment token.
+ * - payload must contain `krex:verify` (stable, not session-based).
  * - once verified, the wallet is marked verified in D1 and enrollment/editing is unlocked.
  */
 export async function handleNodeVerifyOnchain(request: Request, env: Env): Promise<Response> {
@@ -189,7 +189,6 @@ export async function handleNodeVerifyOnchain(request: Request, env: Env): Promi
       });
     }
     const wallet = normalizeWallet(pl.wallet as string);
-    const nonce = (pl.nonce as string).trim();
 
     // If wallet is already verified, return the existing txid.
     const existing = await env.NODES_DB.prepare(
@@ -238,7 +237,7 @@ export async function handleNodeVerifyOnchain(request: Request, env: Env): Promi
     }
 
     const payload = (getTxPayload(tx) || '').toLowerCase();
-    const want = `krex:verify:${nonce}`.toLowerCase();
+    const want = 'krex:verify';
     if (!payload.includes(want)) {
       return new Response(JSON.stringify({ ok: false, error: `Transaction payload must include "${want}".` }), {
         status: 400,

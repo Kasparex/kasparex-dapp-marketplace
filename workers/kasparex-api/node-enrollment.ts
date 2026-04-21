@@ -84,14 +84,14 @@ export async function handleNodeVerifyWallet(request: Request, env: Env): Promis
       });
     }
     const enrollExp = Math.floor(Date.now() / 1000) + 15 * 60;
-    const verifyNonce = randomHex(10);
     const enrollmentToken = await signJwtHs256(secret, {
       typ: 'krex-enroll',
       wallet: address,
       exp: enrollExp,
-      nonce: verifyNonce,
+      nonce: randomHex(12),
     });
-    return new Response(JSON.stringify({ ok: true, enrollmentToken, wallet: address, verifyPayload: `krex:verify:${verifyNonce}` }), {
+    // Verification payload is stable to avoid double-spend confusion if user re-binds wallet.
+    return new Response(JSON.stringify({ ok: true, enrollmentToken, wallet: address, verifyPayload: 'krex:verify' }), {
       status: 200,
       headers: { ...cors, 'Content-Type': 'application/json' },
     });
