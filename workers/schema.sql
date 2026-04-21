@@ -32,6 +32,13 @@ CREATE TABLE IF NOT EXISTS node_uptime_slices (
   FOREIGN KEY (node_id) REFERENCES nodes(node_id)
 );
 
+-- Wallet-level on-chain verification (sybil resistance).
+CREATE TABLE IF NOT EXISTS wallet_verifications (
+  wallet TEXT PRIMARY KEY,
+  verified_txid TEXT NOT NULL,
+  verified_at INTEGER NOT NULL
+);
+
 -- Legacy table kept empty on new installs; migration may still reference for drop.
 CREATE TABLE IF NOT EXISTS node_pings (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

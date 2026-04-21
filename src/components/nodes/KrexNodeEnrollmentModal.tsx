@@ -9,17 +9,18 @@ import { getWalletProvider } from '@/lib/kaspa/wallet';
 import { FieldHint } from '@/components/ui/FieldHint';
 
 type ChallengeResponse = { message: string; challengeToken: string; error?: string };
-type VerifyResponse = { ok: boolean; enrollmentToken?: string; wallet?: string; error?: string };
+type VerifyResponse = { ok: boolean; enrollmentToken?: string; wallet?: string; verifyPayload?: string; error?: string };
 type EnrollResponse = {
   ok: boolean;
   node_id?: string;
   node_secret?: string;
   owner_wallet?: string;
+  verification_txid?: string;
   message?: string;
   error?: string;
 };
 
-type Step = 'connect' | 'challenge' | 'enroll' | 'verify' | 'done';
+type Step = 'connect' | 'challenge' | 'verify' | 'enroll' | 'done';
 
 type RuntimeConfig = {
   enrollmentEnabled: boolean;
@@ -108,6 +109,7 @@ export function KrexNodeEnrollmentModal(props: {
 
   const [challenge, setChallenge] = useState<ChallengeResponse | null>(null);
   const [enrollmentToken, setEnrollmentToken] = useState<string | null>(null);
+  const [verifyPayload, setVerifyPayload] = useState<string | null>(null);
   const [enrollResult, setEnrollResult] = useState<EnrollResponse | null>(null);
   const [runtimeConfig, setRuntimeConfig] = useState<RuntimeConfig | null>(null);
   const [verifyTxid, setVerifyTxid] = useState<string | null>(null);
@@ -124,6 +126,7 @@ export function KrexNodeEnrollmentModal(props: {
   const [url, setUrl] = useState(props.existingNode?.url || 'https://example.invalid/krex-node');
   const [region, setRegion] = useState(props.existingNode?.region || 'eu-central');
   const [version, setVersion] = useState(props.existingNode?.version || '1.0.0');
+  const [transferToWallet, setTransferToWallet] = useState('');
 
   const canEnroll = useMemo(() => {
     return Boolean(nodeName.trim() && role && url.trim());
@@ -153,6 +156,7 @@ export function KrexNodeEnrollmentModal(props: {
     setError(null);
     setChallenge(null);
     setEnrollmentToken(null);
+    setVerifyPayload(null);
     setEnrollResult(null);
     setRuntimeConfig(null);
     setVerifyTxid(null);
@@ -189,35 +193,9 @@ export function KrexNodeEnrollmentModal(props: {
       });
       if (!v?.ok || !v.enrollmentToken) throw new Error(v?.error || 'Verification failed');
       setEnrollmentToken(v.enrollmentToken);
-      setStep('enroll');
+      setVerifyPayload(v.verifyPayload || null);
+      setStep('verify');
       void loadRuntimeConfig();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const submitEnroll = async () => {
-    setError(null);
-    setBusy(true);
-    try {
-      if (!enrollmentToken) throw new Error('Missing enrollment token');
-      const r = await apiClient.post<EnrollResponse>('/kasparex/node/enroll', {
-        enrollmentToken,
-        node_name: nodeName.trim(),
-        role,
-        url: url.trim(),
-        region: region.trim() || 'unknown',
-        version: version.trim() || '1.0.0',
-      });
-      if (!r?.ok || !r.node_id) throw new Error(r?.error || 'Enrollment failed');
-      setEnrollResult(r);
-
-      // Ensure we don't miss on-chain verification due to a race (user clicks fast).
-      const rc = runtimeConfig ?? (await loadRuntimeConfig());
-      const onchainEnabled = Boolean(rc?.onchainVerify?.enabled && rc?.onchainVerify?.toAddress);
-      setStep(onchainEnabled ? 'verify' : 'done');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed');
     } finally {
@@ -232,18 +210,18 @@ export function KrexNodeEnrollmentModal(props: {
     setVerifyAttempts(0);
     try {
       if (!enrollmentToken) throw new Error('Missing enrollment token');
-      if (!enrollResult?.node_id) throw new Error('Missing node_id');
       if (!kaspa.provider) throw new Error('Kaspa wallet provider missing');
 
       const toAddress = runtimeConfig?.onchainVerify?.toAddress;
       const minKas = Number(runtimeConfig?.onchainVerify?.minKas ?? '1') || 1;
       if (!toAddress) throw new Error('On-chain verification is not configured');
+      const payload = verifyPayload || '';
+      if (!payload) throw new Error('Missing verification payload');
 
       const adapter = getWalletProvider(kaspa.provider);
       if (!adapter) throw new Error('Wallet adapter not available');
 
       const sompi = String(Math.floor(minKas * 100_000_000));
-      const payload = `krex:${enrollResult.node_id}`;
 
       // If we already have a txid, do NOT re-send funds. Just re-verify.
       let txid = verifyTxid;
@@ -287,21 +265,13 @@ export function KrexNodeEnrollmentModal(props: {
           const vr = await withTimeout(
             apiClient.post<VerifyOnchainResponse>('/kasparex/node/verify-onchain', {
               enrollmentToken,
-              node_id: enrollResult.node_id,
               tx_hash: txid,
             }),
             12_000
           );
           if (vr && (vr as any).ok === true) {
             setVerifyTxid(normalizeTxId((vr as any).tx_hash || txid));
-            const ns = (vr as any).node_secret;
-            if (typeof ns === 'string' && ns.trim()) {
-              setEnrollResult((prev) => ({
-                ...(prev || { ok: true, node_id: enrollResult.node_id }),
-                node_secret: ns,
-              }));
-            }
-            setStep('done');
+            setStep('enroll');
             return;
           }
           lastErr = (vr as any)?.error || 'On-chain verification failed';
@@ -333,6 +303,114 @@ export function KrexNodeEnrollmentModal(props: {
     // If txid exists, runOnchainVerification will only verify (no payment).
     if (!verifyTxid) return;
     await runOnchainVerification();
+  };
+
+  const submitDeactivate = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      if (!props.existingNode?.node_id) throw new Error('Missing node_id');
+      if (!enrollmentToken) throw new Error('Missing enrollment token');
+      const r = await apiClient.post<{ ok?: boolean; error?: string }>('/kasparex/node/deactivate', {
+        enrollmentToken,
+        node_id: props.existingNode.node_id,
+      });
+      if (!(r as any)?.ok) throw new Error((r as any)?.error || 'Deactivate failed');
+      setEnrollResult({
+        ok: true,
+        node_id: props.existingNode.node_id,
+        owner_wallet: kaspa.address || undefined,
+        message: 'Deactivated',
+      });
+      setStep('done');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitTransferOwnership = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      if (!props.existingNode?.node_id) throw new Error('Missing node_id');
+      if (!enrollmentToken) throw new Error('Missing enrollment token');
+      const to = transferToWallet.trim();
+      if (!to) throw new Error('Enter the new owner wallet');
+      const r = await apiClient.post<{ ok?: boolean; error?: string }>('/kasparex/node/transfer-ownership', {
+        enrollmentToken,
+        node_id: props.existingNode.node_id,
+        new_wallet: to,
+      });
+      if (!(r as any)?.ok) throw new Error((r as any)?.error || 'Transfer failed');
+      setEnrollResult({
+        ok: true,
+        node_id: props.existingNode.node_id,
+        owner_wallet: to,
+        message: 'Transferred',
+      });
+      setStep('done');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitIssueSecret = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      if (!props.existingNode?.node_id) throw new Error('Missing node_id');
+      if (!enrollmentToken) throw new Error('Missing enrollment token');
+      const r = await apiClient.post<{ ok?: boolean; node_secret?: string; error?: string }>(
+        '/kasparex/node/issue-secret',
+        {
+          enrollmentToken,
+          node_id: props.existingNode.node_id,
+        }
+      );
+      const ns = (r as any)?.node_secret;
+      if (!(r as any)?.ok || typeof ns !== 'string' || !ns.trim()) {
+        throw new Error((r as any)?.error || 'Issue secret failed');
+      }
+      setEnrollResult({
+        ok: true,
+        node_id: props.existingNode.node_id,
+        owner_wallet: kaspa.address || undefined,
+        node_secret: ns,
+        message: 'IssuedSecret',
+      });
+      setStep('done');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitEnroll = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      if (!enrollmentToken) throw new Error('Missing enrollment token');
+      const r = await apiClient.post<EnrollResponse>('/kasparex/node/enroll', {
+        enrollmentToken,
+        node_name: nodeName.trim(),
+        role,
+        url: url.trim(),
+        region: region.trim() || 'unknown',
+        version: version.trim() || '1.0.0',
+      });
+      if (!r?.ok || !r.node_id || !r.node_secret) throw new Error(r?.error || 'Enrollment failed');
+      setEnrollResult(r);
+      setStep('done');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed');
+    } finally {
+      setBusy(false);
+    }
   };
 
   const submitUpdate = async () => {
@@ -434,6 +512,86 @@ export function KrexNodeEnrollmentModal(props: {
             </div>
           )}
 
+          {step === 'verify' && sessionMode !== 'edit' && (
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 space-y-3">
+              <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100 inline-flex items-center gap-2">
+                On-chain verification
+                <FieldHint text="First step. You’ll send a symbolic 1 KAS transaction. Only after confirmation we unlock enrollment + secrets." />
+              </div>
+
+              {verifyTxid ? (
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-3">
+                  <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                    verification_txid (broadcast)
+                  </div>
+                  <div className="mt-1 font-mono text-xs text-zinc-900 dark:text-zinc-100 break-all">{verifyTxid}</div>
+                  <div className="mt-2 text-[11px] text-zinc-500 dark:text-zinc-400">
+                    This txid is already created. Clicking verify will <span className="font-semibold">not</span> send another payment.
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
+                <div>
+                  Amount:{' '}
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                    {runtimeConfig?.onchainVerify?.minKas || '1'} KAS
+                  </span>
+                </div>
+                <div>
+                  To:{' '}
+                  <span className="font-mono text-xs text-zinc-900 dark:text-zinc-100 break-all">
+                    {runtimeConfig?.onchainVerify?.toAddress || '—'}
+                  </span>
+                </div>
+                <div>
+                  Payload:{' '}
+                  <span className="font-mono text-xs text-zinc-900 dark:text-zinc-100">{verifyPayload || '—'}</span>
+                </div>
+                {verifyPending ? (
+                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400 pt-1">
+                    Checking confirmation… attempt {Math.max(1, verifyAttempts)}
+                  </div>
+                ) : null}
+                {!verifyPending ? (
+                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400 pt-1">
+                    Verification can take ~30–120s depending on indexer propagation.
+                    {verifyLastCheckAt ? ` Last check: ${new Date(verifyLastCheckAt).toLocaleTimeString()}` : ''}
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={runOnchainVerification}
+                  className="flex-1 mt-2 px-4 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-black text-sm disabled:opacity-60"
+                >
+                  {busy
+                    ? verifyTxid
+                      ? 'Verifying…'
+                      : 'Waiting…'
+                    : verifyTxid
+                      ? 'Verify tx (no new payment)'
+                      : 'Send 1 KAS and verify'}
+                </button>
+                {verifyTxid ? (
+                  <button
+                    type="button"
+                    onClick={retryVerifyOnly}
+                    disabled={busy}
+                    className="mt-2 px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-60"
+                    aria-label="Retry verification"
+                    title="Retry verification (no new payment)"
+                  >
+                    ↻
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          )}
+
           {step === 'enroll' && (
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 space-y-3">
               <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Node details</div>
@@ -493,105 +651,89 @@ export function KrexNodeEnrollmentModal(props: {
                 onClick={sessionMode === 'edit' ? submitUpdate : submitEnroll}
                 className="w-full mt-2 px-4 py-3 rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 font-black text-sm disabled:opacity-60"
               >
-                {busy ? 'Working…' : sessionMode === 'edit' ? 'Save changes' : 'Enroll and continue'}
+                {busy ? 'Working…' : sessionMode === 'edit' ? 'Save changes' : 'Enroll (unlock secret)'}
               </button>
-            </div>
-          )}
 
-          {step === 'verify' && sessionMode !== 'edit' && (
-            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 space-y-3">
-              <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100 inline-flex items-center gap-2">
-                On-chain verification
-                <FieldHint text="To reduce Sybil abuse, you’ll send a symbolic 1 KAS transaction. The tx payload includes your node_id binding." />
-              </div>
+              {sessionMode === 'edit' ? (
+                <div className="pt-3 mt-3 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
+                  <div className="text-sm font-black text-zinc-900 dark:text-zinc-100">Operator actions</div>
 
-              {/* Always show secrets immediately after enrollment so users can save them even if verification is slow. */}
-              {enrollResult?.node_id ? <CopyRow label="node_id" value={enrollResult.node_id} /> : null}
-
-              {verifyTxid ? (
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-3">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-                    verification_txid (broadcast)
+                  <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-3 space-y-2">
+                    <div className="text-xs font-bold text-zinc-700 dark:text-zinc-300 inline-flex items-center gap-1.5">
+                      Transfer ownership
+                      <FieldHint text="Moves the node to a new wallet. The new wallet must have completed the 1 KAS verification. This clears the node secret, so the new owner must issue a new one before the node can ping again." />
+                    </div>
+                    <input
+                      value={transferToWallet}
+                      onChange={(e) => setTransferToWallet(e.target.value)}
+                      placeholder="kaspa:..."
+                      className="w-full px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-sm"
+                    />
+                    <button
+                      type="button"
+                      disabled={busy || !transferToWallet.trim()}
+                      onClick={submitTransferOwnership}
+                      className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 font-bold text-sm disabled:opacity-60"
+                    >
+                      Transfer to this wallet
+                    </button>
                   </div>
-                  <div className="mt-1 font-mono text-xs text-zinc-900 dark:text-zinc-100 break-all">{verifyTxid}</div>
-                  <div className="mt-2 text-[11px] text-zinc-500 dark:text-zinc-400">
-                    This txid is already created. Clicking verify will <span className="font-semibold">not</span> send another payment.
+
+                  <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 space-y-2">
+                    <div className="text-xs font-bold text-zinc-700 dark:text-zinc-300 inline-flex items-center gap-1.5">
+                      Issue new secret
+                      <FieldHint text="Generates a fresh node_secret for the current owner. Use this after transfer ownership (the secret is cleared) or to invalidate the current runtime config." />
+                    </div>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={submitIssueSecret}
+                      className="w-full px-4 py-2.5 rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 font-black text-sm disabled:opacity-60"
+                    >
+                      Issue new secret
+                    </button>
+                  </div>
+
+                  <div className="rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 p-3 space-y-2">
+                    <div className="text-xs font-bold text-red-700 dark:text-red-300 inline-flex items-center gap-1.5">
+                      Deactivate node
+                      <FieldHint text="Disables the node: pings are rejected and the node is excluded from rewards." />
+                    </div>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={submitDeactivate}
+                      className="w-full px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-sm disabled:opacity-60"
+                    >
+                      Deactivate node
+                    </button>
                   </div>
                 </div>
               ) : null}
-              <div className="text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
-                <div>
-                  Amount:{' '}
-                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                    {runtimeConfig?.onchainVerify?.minKas || '1'} KAS
-                  </span>
-                </div>
-                <div>
-                  To:{' '}
-                  <span className="font-mono text-xs text-zinc-900 dark:text-zinc-100 break-all">
-                    {runtimeConfig?.onchainVerify?.toAddress || '—'}
-                  </span>
-                </div>
-                <div>
-                  Payload:{' '}
-                  <span className="font-mono text-xs text-zinc-900 dark:text-zinc-100">
-                    {enrollResult?.node_id ? `krex:${enrollResult.node_id}` : 'krex:<node_id>'}
-                  </span>
-                </div>
-                {verifyPending ? (
-                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400 pt-1">
-                    Checking confirmation… attempt {Math.max(1, verifyAttempts)}
-                  </div>
-                ) : null}
-                {!verifyPending ? (
-                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400 pt-1">
-                    Verification can take ~30–120s depending on indexer propagation.
-                    {verifyLastCheckAt ? ` Last check: ${new Date(verifyLastCheckAt).toLocaleTimeString()}` : ''}
-                  </div>
-                ) : null}
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  disabled={busy || !enrollResult?.node_id}
-                  onClick={runOnchainVerification}
-                  className="flex-1 mt-2 px-4 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-black text-sm disabled:opacity-60"
-                >
-                  {busy
-                    ? verifyTxid
-                      ? 'Verifying…'
-                      : 'Waiting…'
-                    : verifyTxid
-                      ? 'Verify tx (no new payment)'
-                      : 'Send 1 KAS and verify'}
-                </button>
-                {verifyTxid ? (
-                  <button
-                    type="button"
-                    onClick={retryVerifyOnly}
-                    disabled={busy}
-                    className="mt-2 px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-60"
-                    aria-label="Retry verification"
-                    title="Retry verification (no new payment)"
-                  >
-                    ↻
-                  </button>
-                ) : null}
-              </div>
             </div>
           )}
 
           {step === 'done' && (
             <div className="space-y-3">
               {sessionMode === 'edit' ? (
-                <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 p-3 text-sm text-emerald-700 dark:text-emerald-300">
-                  Node details updated.
+                <div className="space-y-3">
+                  <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 p-3 text-sm text-emerald-700 dark:text-emerald-300">
+                    {enrollResult?.message === 'Deactivated'
+                      ? 'Node deactivated.'
+                      : enrollResult?.message === 'Transferred'
+                        ? 'Ownership transferred.'
+                        : enrollResult?.message === 'IssuedSecret'
+                          ? 'New secret issued.'
+                          : 'Node details updated.'}
+                  </div>
+                  {enrollResult?.message === 'IssuedSecret' && enrollResult?.node_secret ? (
+                    <CopyRow label="node_secret (HMAC)" value={enrollResult.node_secret} />
+                  ) : null}
                 </div>
               ) : (
                 <>
                   <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 p-3 text-sm text-emerald-700 dark:text-emerald-300">
-                    Your node is verified. Save the secret securely — it’s required for signed pings.
+                    Your node is enrolled. Save the secret securely — it’s required for signed pings.
                   </div>
                   {enrollResult?.node_id && <CopyRow label="node_id" value={enrollResult.node_id} />}
                   {enrollResult?.node_secret && <CopyRow label="node_secret (HMAC)" value={enrollResult.node_secret} />}

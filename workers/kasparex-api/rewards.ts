@@ -50,7 +50,9 @@ async function previewNodeRewardGrid(
   region: string;
 } | null> {
   const nodeResult = await env.NODES_DB.prepare(
-    `SELECT role, region, uptime_hours, owner_wallet, requests_served_total FROM nodes WHERE node_id = ?`
+    `SELECT role, region, uptime_hours, owner_wallet, requests_served_total
+     FROM nodes
+     WHERE node_id = ? AND COALESCE(status, 'active') = 'active'`
   )
     .bind(nodeId)
     .first<{

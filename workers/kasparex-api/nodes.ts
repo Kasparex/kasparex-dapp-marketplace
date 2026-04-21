@@ -11,6 +11,9 @@ import {
   handleNodeEnroll,
   handleNodeRotateSecret,
   handleNodeUpdateDetails,
+  handleNodeDeactivate,
+  handleNodeTransferOwnership,
+  handleNodeIssueSecret,
 } from './node-enrollment';
 import { handleNodeVerifyOnchain } from './node-onchain';
 import { handleGetNodeRewards } from './rewards';
@@ -211,13 +214,19 @@ export async function handleNodePing(request: Request, env: Env): Promise<Respon
       });
     }
 
-    // Ensure node exists (avoid FK failures on node_uptime_slices).
-    const exists = await env.NODES_DB.prepare(`SELECT node_id FROM nodes WHERE node_id = ?`)
+    // Ensure node exists and is active (avoid FK failures and ignore deactivated nodes).
+    const exists = await env.NODES_DB.prepare(`SELECT node_id, status FROM nodes WHERE node_id = ?`)
       .bind(body.node_id)
-      .first<{ node_id: string }>();
+      .first<{ node_id: string; status: string | null }>();
     if (!exists) {
       return new Response(JSON.stringify({ error: 'Node not registered. Enroll first.' }), {
         status: 404,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+    if ((exists.status ?? 'active') !== 'active') {
+      return new Response(JSON.stringify({ error: 'Node is disabled.' }), {
+        status: 403,
         headers: { ...cors, 'Content-Type': 'application/json' },
       });
     }
@@ -544,6 +553,15 @@ export async function handleNodeRequest(request: Request, env: Env): Promise<Res
   }
   if (pathname === '/kasparex/node/rotate-secret' && request.method === 'POST') {
     return handleNodeRotateSecret(request, env);
+  }
+  if (pathname === '/kasparex/node/deactivate' && request.method === 'POST') {
+    return handleNodeDeactivate(request, env);
+  }
+  if (pathname === '/kasparex/node/transfer-ownership' && request.method === 'POST') {
+    return handleNodeTransferOwnership(request, env);
+  }
+  if (pathname === '/kasparex/node/issue-secret' && request.method === 'POST') {
+    return handleNodeIssueSecret(request, env);
   }
 
   if (pathname === '/kasparex/node/runtime-config' && request.method === 'GET') {

@@ -84,13 +84,14 @@ export async function handleNodeVerifyWallet(request: Request, env: Env): Promis
       });
     }
     const enrollExp = Math.floor(Date.now() / 1000) + 15 * 60;
+    const verifyNonce = randomHex(10);
     const enrollmentToken = await signJwtHs256(secret, {
       typ: 'krex-enroll',
       wallet: address,
       exp: enrollExp,
-      nonce: randomHex(12),
+      nonce: verifyNonce,
     });
-    return new Response(JSON.stringify({ ok: true, enrollmentToken, wallet: address }), {
+    return new Response(JSON.stringify({ ok: true, enrollmentToken, wallet: address, verifyPayload: `krex:verify:${verifyNonce}` }), {
       status: 200,
       headers: { ...cors, 'Content-Type': 'application/json' },
     });
@@ -148,6 +149,20 @@ export async function handleNodeEnroll(request: Request, env: Env): Promise<Resp
       });
     }
     const wallet = pl.wallet as string;
+
+    // Require wallet-level on-chain verification before showing secrets or allowing enrollment.
+    const walletVerification = await env.NODES_DB.prepare(
+      `SELECT verified_txid, verified_at FROM wallet_verifications WHERE LOWER(wallet) = LOWER(?)`
+    )
+      .bind(wallet)
+      .first<{ verified_txid: string; verified_at: number }>();
+    if (!walletVerification) {
+      return new Response(JSON.stringify({ error: 'Complete 1 KAS on-chain verification first.' }), {
+        status: 403,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+
     if (!body.node_name || !body.role || !body.url) {
       return new Response(JSON.stringify({ error: 'Missing node_name, role, or url' }), {
         status: 400,
@@ -171,8 +186,9 @@ export async function handleNodeEnroll(request: Request, env: Env): Promise<Resp
       `INSERT INTO nodes (
         node_id, node_name, role, owner_wallet, region, version, url,
         last_ping, uptime_hours, pinned_cids, created_at, status,
-        requests_served_total, requests_served_epoch, last_seq, binding_version
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, 'active', 0, 0, 0, 1)`
+        requests_served_total, requests_served_epoch, last_seq, binding_version,
+        verified_txid, verified_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, 'active', 0, 0, 0, 1, ?, ?)`
     )
       .bind(
         nodeId,
@@ -184,7 +200,9 @@ export async function handleNodeEnroll(request: Request, env: Env): Promise<Resp
         body.url.trim(),
         0,
         pinned,
-        now
+        now,
+        walletVerification.verified_txid,
+        walletVerification.verified_at
       )
       .run();
 
@@ -194,9 +212,10 @@ export async function handleNodeEnroll(request: Request, env: Env): Promise<Resp
       JSON.stringify({
         ok: true,
         node_id: nodeId,
+        node_secret: nodeSecret,
         owner_wallet: wallet,
-        requires_onchain: true,
-        message: 'Complete on-chain verification to unlock your node secret.',
+        verification_txid: walletVerification.verified_txid,
+        message: 'Store node_secret securely; required for signed pings.',
       }),
       { status: 200, headers: { ...cors, 'Content-Type': 'application/json' } }
     );
@@ -346,6 +365,228 @@ export async function handleNodeRotateSecret(request: Request, env: Env): Promis
     });
   } catch (e) {
     console.error('rotate-secret', e);
+    return new Response(JSON.stringify({ error: 'Failed' }), {
+      status: 500,
+      headers: { ...cors, 'Content-Type': 'application/json' },
+    });
+  }
+}
+
+type DeactivateBody = { enrollmentToken?: string; node_id?: string };
+
+export async function handleNodeDeactivate(request: Request, env: Env): Promise<Response> {
+  const cors = getCorsHeaders();
+  const secret = enrollmentSecret(env);
+  if (!secret) {
+    return new Response(JSON.stringify({ error: 'NODE_ENROLLMENT_SECRET not configured' }), {
+      status: 503,
+      headers: { ...cors, 'Content-Type': 'application/json' },
+    });
+  }
+  try {
+    const body = (await request.json()) as DeactivateBody;
+    const token = body.enrollmentToken?.trim();
+    const nodeId = body.node_id?.trim();
+    if (!token || !nodeId) {
+      return new Response(JSON.stringify({ error: 'Missing enrollmentToken or node_id' }), {
+        status: 400,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+    const pl = await verifyJwtHs256(secret, token);
+    if (!pl || pl.typ !== 'krex-enroll' || typeof pl.wallet !== 'string') {
+      return new Response(JSON.stringify({ error: 'Invalid or expired enrollment token' }), {
+        status: 401,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+    const wallet = pl.wallet as string;
+    const existing = await env.NODES_DB.prepare(`SELECT owner_wallet FROM nodes WHERE node_id = ?`)
+      .bind(nodeId)
+      .first<{ owner_wallet: string }>();
+    if (!existing) {
+      return new Response(JSON.stringify({ error: 'Node not found' }), {
+        status: 404,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+    if (normalizeWallet(existing.owner_wallet) !== normalizeWallet(wallet)) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+
+    await env.NODES_DB.prepare(`UPDATE nodes SET status = 'disabled' WHERE node_id = ?`).bind(nodeId).run();
+
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { ...cors, 'Content-Type': 'application/json' },
+    });
+  } catch (e) {
+    console.error('deactivate', e);
+    return new Response(JSON.stringify({ error: 'Failed' }), {
+      status: 500,
+      headers: { ...cors, 'Content-Type': 'application/json' },
+    });
+  }
+}
+
+type TransferBody = { enrollmentToken?: string; node_id?: string; new_wallet?: string };
+
+/**
+ * Transfers ownership to a new wallet (must already pass 1 KAS wallet verification).
+ * Safety: clears the node runtime secret so the new owner must re-issue a new one.
+ */
+export async function handleNodeTransferOwnership(request: Request, env: Env): Promise<Response> {
+  const cors = getCorsHeaders();
+  const secret = enrollmentSecret(env);
+  if (!secret) {
+    return new Response(JSON.stringify({ error: 'NODE_ENROLLMENT_SECRET not configured' }), {
+      status: 503,
+      headers: { ...cors, 'Content-Type': 'application/json' },
+    });
+  }
+  try {
+    const body = (await request.json()) as TransferBody;
+    const token = body.enrollmentToken?.trim();
+    const nodeId = body.node_id?.trim();
+    const newWallet = normalizeWallet(body.new_wallet ?? '');
+    if (!token || !nodeId || !newWallet) {
+      return new Response(JSON.stringify({ error: 'Missing enrollmentToken, node_id, or new_wallet' }), {
+        status: 400,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const pl = await verifyJwtHs256(secret, token);
+    if (!pl || pl.typ !== 'krex-enroll' || typeof pl.wallet !== 'string') {
+      return new Response(JSON.stringify({ error: 'Invalid or expired enrollment token' }), {
+        status: 401,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+    const wallet = pl.wallet as string;
+
+    const existing = await env.NODES_DB.prepare(`SELECT owner_wallet FROM nodes WHERE node_id = ?`)
+      .bind(nodeId)
+      .first<{ owner_wallet: string }>();
+    if (!existing) {
+      return new Response(JSON.stringify({ error: 'Node not found' }), {
+        status: 404,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+    if (normalizeWallet(existing.owner_wallet) !== normalizeWallet(wallet)) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // New wallet must be verified (1 KAS).
+    const newV = await env.NODES_DB.prepare(
+      `SELECT verified_txid, verified_at FROM wallet_verifications WHERE LOWER(wallet) = LOWER(?)`
+    )
+      .bind(newWallet)
+      .first<{ verified_txid: string; verified_at: number }>();
+    if (!newV) {
+      return new Response(JSON.stringify({ error: 'New wallet must complete 1 KAS verification first.' }), {
+        status: 403,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+
+    await env.NODES_DB.prepare(
+      `UPDATE nodes SET owner_wallet = ?, verified_txid = ?, verified_at = ? WHERE node_id = ?`
+    )
+      .bind(newWallet, newV.verified_txid, newV.verified_at, nodeId)
+      .run();
+
+    // Clear runtime secret so the previous operator cannot keep pinging.
+    await env.KASPAREX_CACHE.delete(`node:hmac:${nodeId}`);
+
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { ...cors, 'Content-Type': 'application/json' },
+    });
+  } catch (e) {
+    console.error('transfer-ownership', e);
+    return new Response(JSON.stringify({ error: 'Failed' }), {
+      status: 500,
+      headers: { ...cors, 'Content-Type': 'application/json' },
+    });
+  }
+}
+
+type IssueSecretBody = { enrollmentToken?: string; node_id?: string };
+
+/**
+ * Issues a new runtime secret for the current owner wallet (must be verified).
+ * Useful after transfer-ownership cleared the secret.
+ */
+export async function handleNodeIssueSecret(request: Request, env: Env): Promise<Response> {
+  const cors = getCorsHeaders();
+  const secret = enrollmentSecret(env);
+  if (!secret) {
+    return new Response(JSON.stringify({ error: 'NODE_ENROLLMENT_SECRET not configured' }), {
+      status: 503,
+      headers: { ...cors, 'Content-Type': 'application/json' },
+    });
+  }
+  try {
+    const body = (await request.json()) as IssueSecretBody;
+    const token = body.enrollmentToken?.trim();
+    const nodeId = body.node_id?.trim();
+    if (!token || !nodeId) {
+      return new Response(JSON.stringify({ error: 'Missing enrollmentToken or node_id' }), {
+        status: 400,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+    const pl = await verifyJwtHs256(secret, token);
+    if (!pl || pl.typ !== 'krex-enroll' || typeof pl.wallet !== 'string') {
+      return new Response(JSON.stringify({ error: 'Invalid or expired enrollment token' }), {
+        status: 401,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+    const wallet = normalizeWallet(pl.wallet as string);
+
+    const node = await env.NODES_DB.prepare(`SELECT owner_wallet FROM nodes WHERE node_id = ?`)
+      .bind(nodeId)
+      .first<{ owner_wallet: string }>();
+    if (!node) {
+      return new Response(JSON.stringify({ error: 'Node not found' }), {
+        status: 404,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+    if (normalizeWallet(node.owner_wallet) !== wallet) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const v = await env.NODES_DB.prepare(`SELECT 1 as x FROM wallet_verifications WHERE LOWER(wallet) = LOWER(?)`)
+      .bind(wallet)
+      .first<{ x: number }>();
+    if (!v) {
+      return new Response(JSON.stringify({ error: 'Complete 1 KAS verification first.' }), {
+        status: 403,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const nodeSecret = randomHex(32);
+    await env.KASPAREX_CACHE.put(`node:hmac:${nodeId}`, nodeSecret, { expirationTtl: 60 * 60 * 24 * 365 * 5 });
+    return new Response(JSON.stringify({ ok: true, node_secret: nodeSecret }), {
+      status: 200,
+      headers: { ...cors, 'Content-Type': 'application/json' },
+    });
+  } catch (e) {
+    console.error('issue-secret', e);
     return new Response(JSON.stringify({ error: 'Failed' }), {
       status: 500,
       headers: { ...cors, 'Content-Type': 'application/json' },

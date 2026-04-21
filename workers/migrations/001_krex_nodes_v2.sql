@@ -23,6 +23,13 @@ CREATE TABLE IF NOT EXISTS node_uptime_slices (
 );
 CREATE INDEX IF NOT EXISTS idx_uptime_slices_hour ON node_uptime_slices(hour_ts);
 
+-- Wallet-level on-chain verification (sybil resistance)
+CREATE TABLE IF NOT EXISTS wallet_verifications (
+  wallet TEXT PRIMARY KEY,
+  verified_txid TEXT NOT NULL,
+  verified_at INTEGER NOT NULL
+);
+
 DROP TABLE IF EXISTS rewards_new;
 
 -- Rewards: migrate from grt_amount/lrt_amount to GRID-only columns

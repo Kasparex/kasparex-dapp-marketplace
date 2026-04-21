@@ -133,7 +133,6 @@ async function getRestTransactionById(txId: string, maxAttempts = 8): Promise<Ka
 
 type VerifyOnchainBody = {
   enrollmentToken?: string;
-  node_id?: string;
   tx_hash?: string;
 };
 
@@ -143,7 +142,9 @@ type VerifyOnchainBody = {
  * Verifies a symbolic L1 action: send >= NODE_VERIFY_MIN_KAS KAS to NODE_VERIFY_TO_ADDRESS
  * from the wallet that just passed /verify-wallet.
  *
- * Also requires the transaction payload to contain `krex:<node_id>` for binding.
+ * Wallet-first flow:
+ * - payload must contain `krex:verify:<nonce>` where nonce comes from the enrollment token.
+ * - once verified, the wallet is marked verified in D1 and enrollment/editing is unlocked.
  */
 export async function handleNodeVerifyOnchain(request: Request, env: Env): Promise<Response> {
   const cors = getCorsHeaders();
@@ -165,47 +166,37 @@ export async function handleNodeVerifyOnchain(request: Request, env: Env): Promi
   try {
     const body = (await request.json()) as VerifyOnchainBody;
     const token = body.enrollmentToken?.trim();
-    const nodeId = body.node_id?.trim();
     const txHash = body.tx_hash?.trim();
-    if (!token || !nodeId || !txHash) {
-      return new Response(JSON.stringify({ ok: false, error: 'Missing enrollmentToken, node_id, or tx_hash' }), {
+    if (!token || !txHash) {
+      return new Response(JSON.stringify({ ok: false, error: 'Missing enrollmentToken or tx_hash' }), {
         status: 400,
         headers: { ...cors, 'Content-Type': 'application/json' },
       });
     }
 
     const pl = await verifyJwtHs256(secret, token);
-    if (!pl || pl.typ !== 'krex-enroll' || typeof pl.wallet !== 'string') {
+    if (!pl || pl.typ !== 'krex-enroll' || typeof pl.wallet !== 'string' || typeof pl.nonce !== 'string') {
       return new Response(JSON.stringify({ ok: false, error: 'Invalid or expired enrollment token' }), {
         status: 401,
         headers: { ...cors, 'Content-Type': 'application/json' },
       });
     }
     const wallet = normalizeWallet(pl.wallet as string);
+    const nonce = (pl.nonce as string).trim();
 
-    const node = await env.NODES_DB.prepare(`SELECT owner_wallet, verified_txid FROM nodes WHERE node_id = ?`)
-      .bind(nodeId)
-      .first<{ owner_wallet: string; verified_txid: string | null }>();
-    if (!node) {
-      return new Response(JSON.stringify({ ok: false, error: 'Node not found' }), {
-        status: 404,
-        headers: { ...cors, 'Content-Type': 'application/json' },
-      });
-    }
-    if (normalizeWallet(node.owner_wallet) !== wallet) {
-      return new Response(JSON.stringify({ ok: false, error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...cors, 'Content-Type': 'application/json' },
-      });
-    }
-    if (node.verified_txid) {
-      const nodeSecret = await env.KASPAREX_CACHE.get(`node:hmac:${nodeId}`);
+    // If wallet is already verified, return the existing txid.
+    const existing = await env.NODES_DB.prepare(
+      `SELECT verified_txid, verified_at FROM wallet_verifications WHERE LOWER(wallet) = LOWER(?)`
+    )
+      .bind(wallet)
+      .first<{ verified_txid: string; verified_at: number }>();
+    if (existing?.verified_txid) {
       return new Response(
         JSON.stringify({
           ok: true,
-          tx_hash: node.verified_txid,
+          tx_hash: existing.verified_txid,
           alreadyVerified: true,
-          node_secret: nodeSecret || null,
+          verified_at: existing.verified_at,
         }),
         {
         status: 200,
@@ -239,7 +230,7 @@ export async function handleNodeVerifyOnchain(request: Request, env: Env): Promi
     }
 
     const payload = (getTxPayload(tx) || '').toLowerCase();
-    const want = `krex:${nodeId}`.toLowerCase();
+    const want = `krex:verify:${nonce}`.toLowerCase();
     if (!payload.includes(want)) {
       return new Response(JSON.stringify({ ok: false, error: `Transaction payload must include "${want}".` }), {
         status: 400,
@@ -249,12 +240,15 @@ export async function handleNodeVerifyOnchain(request: Request, env: Env): Promi
 
     const normTxid = normalizeKaspaTxid(txHash);
     const now = Date.now();
-    await env.NODES_DB.prepare(`UPDATE nodes SET verified_txid = ?, verified_at = ? WHERE node_id = ?`)
-      .bind(normTxid, now, nodeId)
+    await env.NODES_DB.prepare(
+      `INSERT INTO wallet_verifications (wallet, verified_txid, verified_at)
+       VALUES (?, ?, ?)
+       ON CONFLICT(wallet) DO UPDATE SET verified_txid = excluded.verified_txid, verified_at = excluded.verified_at`
+    )
+      .bind(wallet, normTxid, now)
       .run();
 
-    const nodeSecret = await env.KASPAREX_CACHE.get(`node:hmac:${nodeId}`);
-    return new Response(JSON.stringify({ ok: true, tx_hash: normTxid, verified_at: now, node_secret: nodeSecret || null }), {
+    return new Response(JSON.stringify({ ok: true, tx_hash: normTxid, verified_at: now }), {
       status: 200,
       headers: { ...cors, 'Content-Type': 'application/json' },
     });
