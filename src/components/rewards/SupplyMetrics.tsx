@@ -13,11 +13,7 @@ export function SupplyMetrics({ result, className = '' }: SupplyMetricsProps) {
     return null;
   }
 
-  const { 
-    daysUntilGRTExhaustion, 
-    grtProgress, 
-    dailyGRTEmission,
-  } = result.supplyMetrics;
+  const { daysUntilGridExhaustion, gridMintProgress, dailyGridEmission } = result.supplyMetrics;
 
   const formatDays = (days: number): string => {
     if (days === Infinity || days > 36500) {
@@ -42,18 +38,16 @@ export function SupplyMetrics({ result, className = '' }: SupplyMetricsProps) {
 
       <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-            GRID (GRT) Supply
-          </span>
+          <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">GRID supply</span>
           <span className="text-xs text-zinc-500 dark:text-zinc-400">
-            {grtProgress.toFixed(2)}% minted
+            {gridMintProgress.toFixed(2)}% minted
           </span>
         </div>
-        
+
         <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-3 mb-3">
           <div
             className="bg-[#02abb8] h-3 rounded-full transition-all"
-            style={{ width: `${Math.min(100, grtProgress)}%` }}
+            style={{ width: `${Math.min(100, gridMintProgress)}%` }}
           />
         </div>
 
@@ -61,13 +55,15 @@ export function SupplyMetrics({ result, className = '' }: SupplyMetricsProps) {
           <div className="flex items-center justify-between">
             <span className="text-zinc-600 dark:text-zinc-400">Daily Emission:</span>
             <span className="font-medium text-zinc-900 dark:text-zinc-100">
-              {formatLargeNumber(dailyGRTEmission)}
+              {formatLargeNumber(dailyGridEmission)}
             </span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-zinc-600 dark:text-zinc-400">Time Until Exhaustion:</span>
-            <span className={`font-medium ${daysUntilGRTExhaustion < 365 ? 'text-orange-600 dark:text-orange-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
-              {formatDays(daysUntilGRTExhaustion)}
+            <span
+              className={`font-medium ${daysUntilGridExhaustion < 365 ? 'text-orange-600 dark:text-orange-400' : 'text-zinc-900 dark:text-zinc-100'}`}
+            >
+              {formatDays(daysUntilGridExhaustion)}
             </span>
           </div>
         </div>

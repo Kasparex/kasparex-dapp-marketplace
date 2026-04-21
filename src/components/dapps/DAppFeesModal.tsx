@@ -28,10 +28,10 @@ export function DAppFeesModal({ dapp, clickable = true }: DAppFeesModalProps) {
       return {
         action: a.actionName,
         cost: `${costKAS} ${nativeSymbol}`,
-        rewards: `${formatLargeNumber(costKAS * rewards.grtPerKas)} GRID → ${formatLargeNumber(costKAS * rewards.xpPerKas)} XP`,
+        rewards: `${formatLargeNumber(costKAS * rewards.gridPerKas)} GRID → ${formatLargeNumber(costKAS * rewards.xpPerKas)} XP`,
       };
     });
-  }, [dapp, networkType, paymentConfig?.actions, nativeSymbol, rewards.grtPerKas, rewards.xpPerKas]);
+  }, [dapp, networkType, paymentConfig?.actions, nativeSymbol, rewards.gridPerKas, rewards.xpPerKas]);
 
   if (!clickable) {
     return (

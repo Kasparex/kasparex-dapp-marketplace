@@ -17,7 +17,30 @@ export interface KrexNode {
 }
 
 export interface KrexNodesResponse {
-  nodes: KrexNode[];
+  /** Worker may return snake_case / mixed shapes; always normalize with mapWorkerNodeRow. */
+  nodes?: unknown[];
+}
+
+function mapWorkerNodeRow(raw: Record<string, unknown>): KrexNode {
+  let pinnedCids: string[] = [];
+  if (Array.isArray(raw.pinnedCids)) pinnedCids = raw.pinnedCids as string[];
+  else if (typeof raw.pinned_cids === 'string') {
+    try {
+      pinnedCids = JSON.parse(raw.pinned_cids) as string[];
+    } catch {
+      pinnedCids = [];
+    }
+  }
+  const uptime = Number(raw.uptime ?? raw.uptime_hours ?? 0) || 0;
+  return {
+    node_id: String(raw.node_id ?? ''),
+    node_name: String(raw.node_name ?? ''),
+    url: String(raw.url ?? ''),
+    region: String(raw.region ?? ''),
+    role: (raw.role as KrexNode['role']) || 'light',
+    uptime,
+    pinnedCids: Array.isArray(pinnedCids) ? pinnedCids : [],
+  };
 }
 
 /**
@@ -33,8 +56,9 @@ export async function getKrexNodes(options?: {
     if (options?.region) query.set('region', options.region);
     if (options?.role) query.set('role', options.role);
     const endpoint = `/kasparex/nodes${query.size ? `?${query.toString()}` : ''}`;
-    const response = await api.get<KrexNodesResponse>(endpoint);
-    return Array.isArray(response.nodes) ? response.nodes : [];
+    const response = await api.get<{ nodes?: Record<string, unknown>[] }>(endpoint);
+    const rows = Array.isArray(response.nodes) ? response.nodes : [];
+    return rows.map((r) => mapWorkerNodeRow(r));
   } catch (error) {
     console.warn('Failed to fetch Krex nodes:', error);
     return [];
@@ -56,12 +80,16 @@ export async function getKrexNodeUrls(
     const endpoint = `/kasparex/nodes/pinned/${cid}${region ? `?region=${region}` : ''}`;
     const response = await api.get<KrexNodesResponse>(endpoint);
 
-    if (!response.nodes || response.nodes.length === 0) {
+    const mapped = (Array.isArray(response.nodes) ? response.nodes : []).map((r) =>
+      mapWorkerNodeRow(r as unknown as Record<string, unknown>)
+    );
+
+    if (!mapped.length) {
       return [];
     }
 
     // Sort by: region match → uptime → proximity
-    const sortedNodes = response.nodes
+    const sortedNodes = mapped
       .filter(node => {
         // Ensure node has the CID pinned
         return Array.isArray(node.pinnedCids) && node.pinnedCids.includes(cid);

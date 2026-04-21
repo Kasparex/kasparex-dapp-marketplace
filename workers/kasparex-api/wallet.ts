@@ -442,9 +442,62 @@ export async function handleWalletSettingsSet(request: Request, env: Env): Promi
   }
 }
 
+/**
+ * GET /kasparex/wallet/nodes?address=kaspa:...
+ * Lists Krex nodes registered to a wallet (for operator dashboard).
+ */
+export async function handleWalletNodes(request: Request, env: Env): Promise<Response> {
+  const cors = getCorsHeaders();
+  const url = new URL(request.url);
+  const raw = (url.searchParams.get('address') ?? '').trim();
+  if (!raw) {
+    return new Response(JSON.stringify({ ok: false, error: 'Missing address.' }), {
+      status: 400,
+      headers: { ...cors, 'Content-Type': 'application/json' },
+    });
+  }
+  const address = normalizeKaspaAddress(raw);
+  try {
+    const rows = await env.NODES_DB.prepare(
+      `SELECT node_id, node_name, role, region, url, version, last_ping, uptime_hours, status, requests_served_total, created_at
+       FROM nodes WHERE LOWER(owner_wallet) = LOWER(?)
+       ORDER BY created_at DESC`
+    )
+      .bind(address)
+      .all<{
+        node_id: string;
+        node_name: string;
+        role: string;
+        region: string;
+        url: string;
+        version: string;
+        last_ping: number;
+        uptime_hours: number;
+        status: string;
+        requests_served_total: number;
+        created_at: number;
+      }>();
+
+    return new Response(
+      JSON.stringify({ ok: true, address, nodes: rows.results ?? [] }),
+      { status: 200, headers: { ...cors, 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    console.error('Wallet nodes error:', error);
+    return new Response(JSON.stringify({ ok: false, error: 'Failed to load nodes.' }), {
+      status: 500,
+      headers: { ...cors, 'Content-Type': 'application/json' },
+    });
+  }
+}
+
 export async function handleWalletRequest(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const pathname = url.pathname;
+
+  if (pathname === '/kasparex/wallet/nodes' && request.method === 'GET') {
+    return handleWalletNodes(request, env);
+  }
 
   if (pathname === '/kasparex/wallet/deck' && request.method === 'GET') {
     return handleWalletDeck(request, env);

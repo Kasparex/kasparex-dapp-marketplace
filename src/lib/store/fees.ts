@@ -32,14 +32,14 @@ export function calculatePlatformFee(
     seasonalBoost: 0,
     customBaseRewards: {
       useCustom: false,
-      grtPerKas: 0,
+      gridPerKas: 0,
       xpPerKas: 0,
     },
     feeSettings: {
       baseFeePercent: BASE_PLATFORM_FEE_PERCENT,
       useCustomDistribution: false,
       kasparexPercent: 0,
-      grtTreasuryPercent: 0,
+      gridTreasuryPercent: 0,
     },
     nodeProvider: {
       isNodeProvider: false,

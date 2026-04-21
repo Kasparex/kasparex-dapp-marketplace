@@ -3,9 +3,9 @@
 import { useMemo } from 'react';
 import { useAccount, useChainId } from 'wagmi';
 import Link from 'next/link';
-import { getDefaultRewardsBreakdown, MOCK_REWARDS_CONFIG } from '@/lib/rewards/mockData';
+import { getDefaultRewardsBreakdown } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
-import { DEFAULT_FEE_DISTRIBUTION } from '@/lib/rewards/types';
+import { DEFAULT_FEE_DISTRIBUTION, DEFAULT_BASE_FEE_PERCENT } from '@/lib/rewards/types';
 import { useGRIDToken } from '@/hooks/useGRIDToken';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { getChainById } from '@/lib/wagmi';
@@ -30,7 +30,7 @@ export function DAppRewardsSidebar({ dappName }: DAppRewardsSidebarProps) {
   }, [chainId, isTestnet]);
 
   const { totalSupply, maxSupply, isLoading: gridLoading } = useGRIDToken(gridTokenAddress);
-  const grtMetrics = useMemo(() => {
+  const gridMetrics = useMemo(() => {
     if (totalSupply != null && maxSupply != null && Number(maxSupply) > 0) {
       const minted = Number(totalSupply) / 1e18;
       const max = Number(maxSupply) / 1e18;
@@ -47,14 +47,9 @@ export function DAppRewardsSidebar({ dappName }: DAppRewardsSidebarProps) {
   const mockTotalMultiplier = mockKrexMultiplier * mockNftMultiplier * mockNodeMultiplier * mockSeasonalMultiplier;
   const mockPointsMultiplier = mockKrexMultiplier * mockNftMultiplier;
   
-  const baseFee = MOCK_REWARDS_CONFIG.DEFAULT_FEE_PERCENT;
+  const baseFee = DEFAULT_BASE_FEE_PERCENT;
   const finalFee = baseFee;
   
-  const exampleKasAmount = 1;
-  const exampleGRT = exampleKasAmount * rewards.grtPerKas * mockTotalMultiplier;
-  const exampleXP = exampleKasAmount * rewards.xpPerKas * mockPointsMultiplier;
-  const exampleFee = (exampleKasAmount * finalFee) / 100;
-
   return (
     <>
       <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
@@ -64,16 +59,16 @@ export function DAppRewardsSidebar({ dappName }: DAppRewardsSidebarProps) {
           </h3>
         </div>
         <div className="space-y-3">
-          {/* Base Rates - GRT only */}
+          {/* Base rates (GRID) */}
           <div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
               Base Rates (per 1 KAS):
             </div>
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-zinc-600 dark:text-zinc-400">GRID (GRT):</span>
+                <span className="text-zinc-600 dark:text-zinc-400">GRID:</span>
                 <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                  {formatLargeNumber(rewards.grtPerKas)}
+                  {formatLargeNumber(rewards.gridPerKas)}
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs">
@@ -85,24 +80,24 @@ export function DAppRewardsSidebar({ dappName }: DAppRewardsSidebarProps) {
             </div>
           </div>
 
-          {/* GRT Supply Metrics - real contract data only */}
+          {/* GRID supply (on-chain where available) */}
           <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-zinc-600 dark:text-zinc-400">
                 GRID Supply
               </span>
               <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                {grtMetrics ? `${grtMetrics.progress.toFixed(2)}% minted` : (gridLoading ? '...' : '-')}
+                {gridMetrics ? `${gridMetrics.progress.toFixed(2)}% minted` : (gridLoading ? '...' : '-')}
               </span>
             </div>
             <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2 mb-1">
               <div
                 className="bg-[#02abb8] h-2 rounded-full transition-all"
-                style={{ width: `${grtMetrics ? Math.min(100, grtMetrics.progress) : 0}%` }}
+                style={{ width: `${gridMetrics ? Math.min(100, gridMetrics.progress) : 0}%` }}
               />
             </div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400">
-              {grtMetrics ? `${formatLargeNumber(grtMetrics.minted)} / ${formatLargeNumber(grtMetrics.maxSupply)}` : (gridLoading && gridTokenAddress ? '...' : '-')}
+              {gridMetrics ? `${formatLargeNumber(gridMetrics.minted)} / ${formatLargeNumber(gridMetrics.maxSupply)}` : (gridLoading && gridTokenAddress ? '...' : '-')}
             </div>
           </div>
 
@@ -136,9 +131,9 @@ export function DAppRewardsSidebar({ dappName }: DAppRewardsSidebarProps) {
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-zinc-600 dark:text-zinc-400">GRT Treasury:</span>
+                    <span className="text-zinc-600 dark:text-zinc-400">GRID treasury:</span>
                     <span className="text-zinc-900 dark:text-zinc-100">
-                      {DEFAULT_FEE_DISTRIBUTION.GRT_TREASURY}%
+                      {DEFAULT_FEE_DISTRIBUTION.GRID_TREASURY}%
                     </span>
                   </div>
                 </div>

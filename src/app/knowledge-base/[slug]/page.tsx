@@ -98,7 +98,7 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
       {
         id: 'reward-types',
         title: 'Types of Rewards',
-        content: 'KREX Node operators earn GRID (Global Reward Token) for network participation. Rewards are multiplied by your KREX holdings tier. XP Points are also earned for activity.',
+        content: 'KREX Node operators earn GRID for network participation. Rewards are multiplied by your KREX holdings tier and node role. XP Points are earned separately for marketplace activity.',
       },
       {
         id: 'reward-calculation',
@@ -108,7 +108,7 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
       {
         id: 'multipliers',
         title: 'Multipliers',
-        content: 'KREX holders get additional multipliers on all rewards. The multiplier ranges from 1.0x (0 KREX) to 1.5x (10M+ KREX). Mirror Nodes also get a 2x role multiplier compared to Light Nodes.',
+        content: 'Role multipliers (see worker config `node-reward-tiers.json`): Light ≈4×, Mirror ≈5×, Super ≈6× on top of the base GRID formula. KREX tier multipliers apply to the operator wallet (cached server-side).',
       },
     ],
   },

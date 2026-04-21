@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { NodeOverview } from './NodeOverview';
 import { ConnectAndRegister } from './ConnectAndRegister';
@@ -12,13 +12,16 @@ import { ActiveNodesTable } from './ActiveNodesTable';
 import { NodeFirstDiagnosticsPanel } from './NodeFirstDiagnosticsPanel';
 import { NodesMap } from './NodesMap';
 import { useKrexNodeNetwork } from '@/hooks/useKrexNodeNetwork';
+import { useKrexOperatorDashboard } from '@/hooks/useKrexOperatorDashboard';
+import { useKaspaWallet } from '@/lib/kaspa/context';
 import type { NodeInfo, NodeMetrics, Incentives } from '@/lib/nodes/types';
 import type { KrexNode } from '@/lib/storage/krex-nodes';
+import nodeRewardTiers from '@/config/node-reward-tiers.json';
 
 function pickPrimaryNode(nodes: KrexNode[]): KrexNode | null {
   if (!nodes || nodes.length === 0) return null;
   const score = (n: KrexNode) => {
-    const roleScore = n.role === 'mirror' ? 30 : n.role === 'light' ? 20 : 10;
+    const roleScore = n.role === 'mirror' ? 30 : n.role === 'super' ? 35 : n.role === 'light' ? 20 : 10;
     const uptimeScore = typeof n.uptime === 'number' ? Math.min(20, Math.max(0, n.uptime)) : 0;
     const pinnedScore = Array.isArray(n.pinnedCids) ? Math.min(10, n.pinnedCids.length / 10) : 0;
     return roleScore + uptimeScore + pinnedScore;
@@ -29,7 +32,7 @@ function pickPrimaryNode(nodes: KrexNode[]): KrexNode | null {
 function deriveNodeInfo(primary: KrexNode | null): NodeInfo {
   if (!primary) return { type: 'light', status: 'not_registered' };
   return {
-    type: primary.role === 'mirror' ? 'mirror' : 'light',
+    type: primary.role === 'mirror' ? 'mirror' : primary.role === 'super' ? 'super' : 'light',
     status: 'connected',
     nodeId: primary.node_id || primary.node_name || primary.url,
   };
@@ -42,10 +45,32 @@ function deriveNodeMetrics(primary: KrexNode | null): NodeMetrics {
   };
 }
 
+function operatorRowToKrexNode(row: {
+  node_id: string;
+  node_name: string;
+  url: string;
+  region: string;
+  role: string;
+  uptime_hours: number;
+}): KrexNode {
+  return {
+    node_id: row.node_id,
+    node_name: row.node_name,
+    url: row.url,
+    region: row.region,
+    role: (row.role as KrexNode['role']) || 'light',
+    uptime: Number(row.uptime_hours) || 0,
+    pinnedCids: [],
+  };
+}
+
 function deriveIncentives(info: NodeInfo): Incentives {
-  // Until we have operator accounting, show multiplier/fee reduction based on node type.
-  const currentMultiplier = info.status === 'connected' ? (info.type === 'mirror' ? 5 : 4) : 1;
-  const feeReductionPercent = info.status === 'connected' ? (info.type === 'mirror' ? 0.2 : 0.1) : 0;
+  const role = info.type;
+  const multTable = nodeRewardTiers.roleMultipliers as Record<string, number>;
+  const feeTable = nodeRewardTiers.feeReductionPercent as Record<string, number>;
+  const currentMultiplier =
+    info.status === 'connected' ? multTable[role] ?? multTable.light ?? 1 : 1;
+  const feeReductionPercent = info.status === 'connected' ? feeTable[role] ?? 0 : 0;
   return { gridEarned: 0, xpEarned: 0, currentMultiplier, feeReductionPercent };
 }
 
@@ -59,11 +84,25 @@ const technicalRequirements = [
 ] as const;
 
 export function NodesDashboardContent() {
+  const { state: kaspa } = useKaspaWallet();
   const { data: activeNodes = [] } = useKrexNodeNetwork();
-  const primaryNode = pickPrimaryNode(activeNodes);
+  const { data: operator } = useKrexOperatorDashboard(kaspa.isConnected ? kaspa.address : null);
+
+  const primaryNode = useMemo(() => {
+    const mine = operator?.myNodes?.[0];
+    if (mine) return operatorRowToKrexNode(mine);
+    return pickPrimaryNode(activeNodes);
+  }, [operator?.myNodes, activeNodes]);
+
   const nodeInfo = deriveNodeInfo(primaryNode);
   const metrics = deriveNodeMetrics(primaryNode);
-  const incentives = deriveIncentives(nodeInfo);
+  const incentives: Incentives = useMemo(
+    () => ({
+      ...deriveIncentives(nodeInfo),
+      gridEarned: operator?.gridEarnedToday ?? 0,
+    }),
+    [nodeInfo, operator?.gridEarnedToday]
+  );
 
   useEffect(() => {
     const hash = typeof window !== 'undefined' ? window.location.hash.slice(1) : '';

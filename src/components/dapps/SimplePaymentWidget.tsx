@@ -612,9 +612,9 @@ export function SimplePaymentWidget() {
                       const mult = tierConfig?.multiplier ?? 1;
                       const tierConfigOnChain = KREX_TIERS[tierForChain];
                       const multOnChain = tierConfigOnChain?.multiplier ?? 1;
-                      const gridReward = Math.round(paymentNum * rewards.grtPerKas * mult);
+                      const gridReward = Math.round(paymentNum * rewards.gridPerKas * mult);
                       const xpReward = Math.round(paymentNum * rewards.xpPerKas * mult);
-                      const gridRewardOnChain = Math.round(paymentNum * rewards.grtPerKas * multOnChain);
+                      const gridRewardOnChain = Math.round(paymentNum * rewards.gridPerKas * multOnChain);
                       const xpRewardOnChain = Math.round(paymentNum * rewards.xpPerKas * multOnChain);
                       const gridLabel = chainId === 167012 || chainId === 38836 ? 'tGRID' : 'GRID';
                       const onChainIsBaseOnly = mult > 1 && multOnChain === 1 && (krexL2Balance ?? 0) === 0;
@@ -673,9 +673,9 @@ export function SimplePaymentWidget() {
                       const mult = tierConfig?.multiplier ?? 1;
                       const tierConfigOnChain = KREX_TIERS[tierForChain];
                       const multOnChain = tierConfigOnChain?.multiplier ?? 1;
-                      const gridReward = Math.round(paymentNum * rewards.grtPerKas * mult);
+                      const gridReward = Math.round(paymentNum * rewards.gridPerKas * mult);
                       const xpReward = Math.round(paymentNum * rewards.xpPerKas * mult);
-                      const gridRewardOnChain = Math.round(paymentNum * rewards.grtPerKas * multOnChain);
+                      const gridRewardOnChain = Math.round(paymentNum * rewards.gridPerKas * multOnChain);
                       const xpRewardOnChain = Math.round(paymentNum * rewards.xpPerKas * multOnChain);
                       const gridLabel = chainId === 167012 || chainId === 38836 ? 'tGRID' : 'GRID';
                       const onChainIsBaseOnly = mult > 1 && multOnChain === 1 && (krexL2Balance ?? 0) === 0;

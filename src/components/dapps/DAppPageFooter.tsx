@@ -77,7 +77,7 @@ export function DAppPageFooter({ dapp }: DAppPageFooterProps) {
               <NetworkAvailabilityBox dapp={mergedDApp} />
             </div>
 
-            {/* Rewards Sidebar - GRT-only */}
+            {/* Rewards Sidebar - GRID */}
             <div>
               <DAppRewardsSidebar dappName={mergedDApp.name} />
             </div>

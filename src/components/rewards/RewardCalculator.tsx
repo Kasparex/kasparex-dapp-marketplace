@@ -26,7 +26,7 @@ export function RewardCalculator() {
   });
   const [seasonalBoost, setSeasonalBoost] = useState<number>(0);
   const [customBaseRewards, setCustomBaseRewards] = useState<CustomBaseRewards>({
-    grtPerKas: BASE_REWARDS.GRT_PER_KAS,
+    gridPerKas: BASE_REWARDS.GRID_PER_KAS,
     xpPerKas: BASE_REWARDS.XP_PER_KAS,
     useCustom: false,
   });
@@ -36,16 +36,16 @@ export function RewardCalculator() {
     nodeFeeReduction: DEFAULT_NODE_FEE_REDUCTION,
   });
   const [supplyMetrics, setSupplyMetrics] = useState<SupplyMetrics>({
-    grtMaxSupply: 100_000_000_000, // 100B
+    gridMaxSupply: 100_000_000_000, // 100B
     dailyKasSpent: 1000,
     numberOfUsers: 100,
-    grtMinted: 0,
+    gridMinted: 0,
   });
   const [feeSettings, setFeeSettings] = useState<FeeSettings>({
     baseFeePercent: DEFAULT_BASE_FEE_PERCENT,
     useCustomDistribution: false,
     kasparexPercent: DEFAULT_FEE_DISTRIBUTION.KASPAREX,
-    grtTreasuryPercent: DEFAULT_FEE_DISTRIBUTION.GRT_TREASURY,
+    gridTreasuryPercent: DEFAULT_FEE_DISTRIBUTION.GRID_TREASURY,
   });
 
   // Build inputs object
@@ -108,7 +108,7 @@ export function RewardCalculator() {
     }));
   };
 
-  const handleCustomRewardChange = (field: 'grtPerKas' | 'xpPerKas', value: number) => {
+  const handleCustomRewardChange = (field: 'gridPerKas' | 'xpPerKas', value: number) => {
     setCustomBaseRewards((prev) => ({
       ...prev,
       [field]: Math.max(0, value),
@@ -192,12 +192,12 @@ export function RewardCalculator() {
                   <div className="space-y-3 mt-3">
                     <div>
                       <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
-                        GRT per KAS
+                        GRID per KAS
                       </label>
                       <input
                         type="number"
-                        value={customBaseRewards.grtPerKas}
-                        onChange={(e) => handleCustomRewardChange('grtPerKas', parseFloat(e.target.value) || 0)}
+                        value={customBaseRewards.gridPerKas}
+                        onChange={(e) => handleCustomRewardChange('gridPerKas', parseFloat(e.target.value) || 0)}
                         min="0"
                         className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded text-sm"
                       />
@@ -376,12 +376,12 @@ export function RewardCalculator() {
                 <div className="space-y-3">
                   <div>
                     <label className="k-label text-xs mb-1">
-                      GRT Max Supply
+                      GRID max supply
                     </label>
                     <input
                       type="number"
-                      value={supplyMetrics.grtMaxSupply}
-                      onChange={(e) => setSupplyMetrics(prev => ({ ...prev, grtMaxSupply: parseFloat(e.target.value) || 0 }))}
+                      value={supplyMetrics.gridMaxSupply}
+                      onChange={(e) => setSupplyMetrics(prev => ({ ...prev, gridMaxSupply: parseFloat(e.target.value) || 0 }))}
                       min="0"
                       className="k-input py-1.5 px-3 h-auto min-h-0"
                     />
@@ -412,12 +412,12 @@ export function RewardCalculator() {
                   </div>
                   <div>
                     <label className="k-label text-xs mb-1">
-                      GRT Already Minted
+                      GRID already minted
                     </label>
                     <input
                       type="number"
-                      value={supplyMetrics.grtMinted}
-                      onChange={(e) => setSupplyMetrics(prev => ({ ...prev, grtMinted: parseFloat(e.target.value) || 0 }))}
+                      value={supplyMetrics.gridMinted}
+                      onChange={(e) => setSupplyMetrics(prev => ({ ...prev, gridMinted: parseFloat(e.target.value) || 0 }))}
                       min="0"
                       className="k-input py-1.5 px-3 h-auto min-h-0"
                     />

@@ -34,7 +34,7 @@ export function WalletHoldingsBox() {
             Connect wallet to view holdings
           </p>
           <div className="text-xs text-zinc-400 dark:text-zinc-500">
-            GRID (GRT) and balances
+            GRID and balances
           </div>
         </div>
       ) : gridTokenAddress ? (
@@ -42,7 +42,7 @@ export function WalletHoldingsBox() {
           <div className="pb-2 border-b border-zinc-200 dark:border-zinc-700">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-zinc-600 dark:text-zinc-400">
-                GRT (GRID)
+                GRID
               </span>
               <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                 {isLoading ? '...' : formatLargeNumber(parseFloat(gridFormattedBalance || '0'))}

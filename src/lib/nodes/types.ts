@@ -3,7 +3,7 @@
  * Designed so the UI can be wired to a real node system later.
  */
 
-export type NodeType = 'light' | 'mirror';
+export type NodeType = 'light' | 'mirror' | 'super';
 
 export type NodeStatus =
   | 'connected'

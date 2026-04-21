@@ -1,0 +1,29 @@
+{
+  "name": "@kasparex/krex-node",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal Kasparex Krex Node heartbeat client (reference implementation).",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "krex-node": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "heartbeat": "node dist/cli.js heartbeat",
+    "status": "node dist/cli.js status",
+    "once": "node dist/cli.js once"
+  },
+  "files": [
+    "dist",
+    "config.example.json",
+    "ecosystem.config.cjs",
+    "README.md",
+    "COMPATIBILITY.md"
+  ],
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

@@ -44,7 +44,7 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
     const rewards = getDefaultRewardsBreakdown(chainId);
     const firstAction = config?.actions?.[0];
     const baseCost = firstAction?.baseCost ?? 1;
-    const gridReward = Math.round(rewards.grtPerKas * baseCost);
+    const gridReward = Math.round(rewards.gridPerKas * baseCost);
     const xpReward = Math.round(rewards.xpPerKas * baseCost);
     const gridLabel = isTestnet ? 'tGRID' : 'GRID';
     return { gridReward, xpReward, gridLabel };

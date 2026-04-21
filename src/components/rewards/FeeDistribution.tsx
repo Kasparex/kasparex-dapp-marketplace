@@ -17,9 +17,9 @@ export function FeeDistribution({
 }: FeeDistributionProps) {
   const { feeAmount, feePercent, feeDistribution } = result;
 
-  const total = feeDistribution.kasparex + feeDistribution.grtTreasury;
+  const total = feeDistribution.kasparex + feeDistribution.gridTreasury;
   const kasparexPercent = total > 0 ? (feeDistribution.kasparex / total) * 100 : 0;
-  const grtPercent = total > 0 ? (feeDistribution.grtTreasury / total) * 100 : 0;
+  const gridTreasuryPercentBar = total > 0 ? (feeDistribution.gridTreasury / total) * 100 : 0;
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -46,7 +46,7 @@ export function FeeDistribution({
         <div className="flex items-center justify-between text-sm mb-2">
           <span className="text-zinc-600 dark:text-zinc-400">Distribution:</span>
           <span className="text-zinc-500 dark:text-zinc-400">
-            {Math.round((feeDistribution.kasparex / total) * 100)}% / {Math.round((feeDistribution.grtTreasury / total) * 100)}%
+            {Math.round((feeDistribution.kasparex / total) * 100)}% / {Math.round((feeDistribution.gridTreasury / total) * 100)}%
           </span>
         </div>
 
@@ -60,10 +60,10 @@ export function FeeDistribution({
           </div>
           <div
             className="bg-[#02abb8]/70 flex items-center justify-center text-white text-xs font-medium"
-            style={{ width: `${grtPercent}%` }}
-            title="GRT Treasury: 40%"
+            style={{ width: `${gridTreasuryPercentBar}%` }}
+            title="GRID treasury: 40%"
           >
-            {grtPercent > 10 && '40%'}
+            {gridTreasuryPercentBar > 10 && '40%'}
           </div>
         </div>
 
@@ -83,11 +83,11 @@ export function FeeDistribution({
 
           <div className="p-3 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
             <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
-              GRT Treasury
+              GRID treasury (KAS fee slice)
             </div>
             <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1">
               <TokenLogoImage tokenId="kas" size={14} />
-              {formatNumber(feeDistribution.grtTreasury, 4)} KAS
+              {formatNumber(feeDistribution.gridTreasury, 4)} KAS
             </div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
               40% - GRID Token Support

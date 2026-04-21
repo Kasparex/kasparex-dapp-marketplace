@@ -4,6 +4,10 @@ import { Footer } from '@/components/Footer';
 import Link from 'next/link';
 import { KrexNodeDocSidebar } from '@/components/nodes/KrexNodeDocSidebar';
 import { NodeTypesInfoCards } from '@/components/nodes/NodeTypesInfoCards';
+import nodeRewardTiers from '@/config/node-reward-tiers.json';
+
+const rm = nodeRewardTiers.roleMultipliers as Record<string, number>;
+const fr = nodeRewardTiers.feeReductionPercent as Record<string, number>;
 
 export const metadata: Metadata = {
   title: 'Run a KREX Node · Join Kasparex',
@@ -142,7 +146,7 @@ export default function KREXNodePage() {
                 </ul>
                 <div className="pt-4 border-t border-zinc-200 dark:border-zinc-700">
                   <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    Reward: 4x multiplier, 0.1% fee reduction
+                    Reward: {rm.light}x multiplier, {fr.light}% fee reduction
                   </p>
                 </div>
               </div>
@@ -174,7 +178,7 @@ export default function KREXNodePage() {
                 </ul>
                 <div className="pt-4 border-t border-zinc-200 dark:border-zinc-700">
                   <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    Reward: 5x multiplier, 0.2% fee reduction
+                    Reward: {rm.mirror}x multiplier, {fr.mirror}% fee reduction
                   </p>
                 </div>
               </div>
@@ -189,6 +193,31 @@ export default function KREXNodePage() {
               How to Run a KREX Node
             </h2>
             <div className="space-y-6">
+              <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 bg-cyan-500 text-white rounded-full flex items-center justify-center font-bold">
+                    0
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                      Enroll in the Hub (recommended)
+                    </h3>
+                    <p className="text-zinc-600 dark:text-zinc-400 mb-3">
+                      Open the Nodes dashboard, connect your Kaspa wallet, and use the <strong>Enroll (get node secret)</strong> button. This binds your wallet and generates a per-node HMAC secret.
+                    </p>
+                    <Link
+                      href="/nodes"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 font-semibold transition-colors"
+                    >
+                      Enroll on Nodes dashboard →
+                    </Link>
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                      Tip: enrollment is one-time per node. After that, the runtime sends signed pings every minute.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 w-8 h-8 bg-cyan-500 text-white rounded-full flex items-center justify-center font-bold">
@@ -223,7 +252,7 @@ export default function KREXNodePage() {
                       Download KREX Node
                     </h3>
                     <p className="text-zinc-600 dark:text-zinc-400 mb-3">
-                      Clone or download the Kasparex KREX Node repository.
+                      Clone the public operator runtime repo, or use <code className="text-xs">packages/krex-node</code> from this marketplace monorepo (same HTTP contract).
                     </p>
                     <div className="p-3 bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-700 font-mono text-sm text-zinc-900 dark:text-zinc-100">
                       git clone https://github.com/Kasparex/kasparex-krex-node.git
@@ -450,6 +479,12 @@ export default function KREXNodePage() {
               Join Kasparex and help build a decentralized, censorship-resistant dApp marketplace.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
+              <Link
+                href="/nodes#connect-register"
+                className="px-6 py-3 bg-zinc-900 hover:opacity-90 text-white rounded-xl font-black text-sm transition"
+              >
+                Enroll (get node secret)
+              </Link>
               <a
                 href="https://github.com/Kasparex/kasparex-krex-node"
                 target="_blank"

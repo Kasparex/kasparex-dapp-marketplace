@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "description": "Example reward tuning for Krex Nodes (GRID). Production uses workers/config/node-reward-tiers.json — keep fields aligned when editing.",
+  "roleMultipliers": { "light": 4, "mirror": 5, "super": 6 },
+  "underservedRegions": ["africa", "south-america", "southeast-asia"],
+  "regionMultiplierUnderserved": 1.2,
+  "regionMultiplierDefault": 1.0,
+  "feeReductionPercent": { "light": 0.1, "mirror": 0.2, "super": 0.2 },
+  "settlement": {
+    "gridPerEpochBase": 1000,
+    "alpha": 0.7,
+    "beta": 0.3,
+    "targetUptimeHours": 24,
+    "activityLogNorm": 9.21034,
+    "minUptimeHoursForEpoch": 12,
+    "capPerNodePerEpoch": 50000,
+    "globalEpochBudget": 10000000
+  }
+}

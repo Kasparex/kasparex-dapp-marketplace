@@ -200,7 +200,7 @@ async function verifyKaspaTransaction(txHash: string): Promise<boolean> {
  * Simplified version - matches frontend rewardCalculator logic
  * 
  * Note: Reward rates should match src/lib/rewards/mockData.ts getDefaultRewardsBreakdown()
- * The mock data uses high numbers (10000 GRT per KAS) which may be for simulation.
+ * The mock data uses high numbers (10000 GRID per KAS) which may be for simulation.
  * For production, adjust these rates based on actual token economics.
  */
 function calculateRewardAmounts(
@@ -208,7 +208,7 @@ function calculateRewardAmounts(
   krexTier: KREXTier
 ): { gridReward: number; dAppTokenReward: number } {
   // Base reward rate (per KAS) — canonical config.
-  const GRID_PER_KAS = BASE_REWARDS.GRT_PER_KAS;
+  const GRID_PER_KAS = BASE_REWARDS.GRID_PER_KAS;
   // This project is GRID-first; keep dApp token rewards disabled for now.
   const DAPP_TOKEN_PER_KAS = 0;
 

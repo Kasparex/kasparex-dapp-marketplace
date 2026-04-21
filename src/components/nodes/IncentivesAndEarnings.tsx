@@ -13,6 +13,10 @@ interface IncentivesAndEarningsProps {
 }
 
 export function IncentivesAndEarnings({ incentives, embedded }: IncentivesAndEarningsProps) {
+  const gridHint =
+    incentives.gridEarned > 0
+      ? 'Sum of final GRID accrual for today (UTC date) across nodes bound to your connected wallet, from the Kasparex Worker API.'
+      : 'Connect the wallet that owns your enrolled nodes. When the Worker has epoch data, today’s GRID accrual appears here.';
   const Outer: any = embedded ? 'div' : 'section';
   const outerProps = embedded
     ? { id: 'incentives-earnings', className: 'w-full' }
@@ -26,7 +30,7 @@ export function IncentivesAndEarnings({ incentives, embedded }: IncentivesAndEar
           <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
             <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 tracking-wide mb-1 inline-flex items-center gap-1.5">
               GRID earned
-              <FieldHint text="Operator accounting is not enabled yet, so this is 0 for now. Later this will show GRID earned by running nodes." />
+              <FieldHint text={gridHint} />
             </p>
             <p className="text-2xl font-black text-[#02abb8] dark:text-cyan-300 tracking-tight">
               {incentives.gridEarned}
@@ -44,7 +48,7 @@ export function IncentivesAndEarnings({ incentives, embedded }: IncentivesAndEar
           <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
             <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 tracking-wide mb-1 inline-flex items-center gap-1.5">
               Current multiplier
-              <FieldHint text="Current multiplier is derived from your connected node type (Mirror: 5x, Light: 4x). This will become per-operator once accounting is enabled." />
+              <FieldHint text="Multiplier follows the enrolled node role (Light / Mirror / Super) from the same tier config as the Worker reward engine." />
             </p>
             <p className="text-2xl font-black text-[#02abb8] dark:text-cyan-300 tracking-tight">
               {incentives.currentMultiplier}x
@@ -53,7 +57,7 @@ export function IncentivesAndEarnings({ incentives, embedded }: IncentivesAndEar
           <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
             <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 tracking-wide mb-1 inline-flex items-center gap-1.5">
               Fee reduction
-              <FieldHint text="Fee reduction is derived from node type (Mirror: 0.2%, Light: 0.1%). This will become real once fee routing is turned on." />
+              <FieldHint text="Fee reduction percentages are defined per role in the Worker tier config; on-chain fee routing is optional follow-up work." />
             </p>
             <p className="text-2xl font-black text-[#02abb8] dark:text-cyan-300 tracking-tight">
               {incentives.feeReductionPercent}%

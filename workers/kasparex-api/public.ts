@@ -41,7 +41,7 @@ export async function handleGetStats(env: Env): Promise<Response> {
     // Get total rewards (today's epoch)
     const today = new Date().toISOString().split('T')[0];
     const rewardsResult = await env.NODES_DB.prepare(
-      `SELECT SUM(total_reward) as total FROM rewards WHERE epoch_date = ?`
+      `SELECT SUM(COALESCE(final_grid, 0)) as total FROM rewards WHERE epoch_date = ?`
     ).bind(today).first<{ total: number }>();
 
     return new Response(
@@ -51,6 +51,7 @@ export async function handleGetStats(env: Env): Promise<Response> {
         mirror_nodes: mirrorNodesResult?.count || 0,
         super_nodes: superNodesResult?.count || 0,
         total_uptime_hours: uptimeResult?.total || 0,
+        total_grid_rewards_today: rewardsResult?.total || 0,
         total_rewards_today: rewardsResult?.total || 0,
         timestamp: Date.now(),
       }),
@@ -162,6 +163,11 @@ export async function handlePublicRequest(
   // GET /kasparex/dapps/availability
   if (pathname === '/kasparex/dapps/availability' && request.method === 'GET') {
     return handleGetDAppAvailability(request, env);
+  }
+
+  // GET /kasparex/network/stats — same payload as /kasparex/stats (alias for node clients)
+  if (pathname === '/kasparex/network/stats' && request.method === 'GET') {
+    return handleGetStats(env);
   }
 
   return new Response('Not found', {

@@ -2,6 +2,10 @@
 
 import type { NodeType } from '@/lib/nodes/types';
 import { SectionHeader } from './SectionHeader';
+import nodeRewardTiers from '@/config/node-reward-tiers.json';
+
+const rm = nodeRewardTiers.roleMultipliers as Record<string, number>;
+const fr = nodeRewardTiers.feeReductionPercent as Record<string, number>;
 
 const CARD_CLASS =
   'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl sm:rounded-[32px] overflow-hidden shadow-sm p-6';
@@ -12,17 +16,23 @@ const NODE_TYPE_CONFIG: Record<
 > = {
   light: {
     name: 'Light Node',
-    multiplier: 4,
-    feeReduction: 0.1,
+    multiplier: rm.light,
+    feeReduction: fr.light,
     description:
       'Pins IPFS/Storacha CIDs, caches dApp/tools metadata locally, and periodically syncs with the Kasparex API. Ideal for regular community members.',
   },
   mirror: {
     name: 'Mirror Node',
-    multiplier: 5,
-    feeReduction: 0.2,
+    multiplier: rm.mirror,
+    feeReduction: fr.mirror,
     description:
       'Everything Light does, plus a read-only HTTP API as fallback data source.',
+  },
+  super: {
+    name: 'Super Node',
+    multiplier: rm.super,
+    feeReduction: fr.super,
+    description: 'Highest tier helper capacity when enabled for your operator account.',
   },
 };
 

@@ -192,20 +192,15 @@ export function QuickGuideWizard({ isOpen, onClose }: QuickGuideWizardProps) {
                     </tr>
                     <tr className="border-b border-zinc-100 dark:border-zinc-800">
                       <td className="py-3 px-4 font-medium text-zinc-900 dark:text-zinc-100">GRID</td>
-                      <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">Global Reward Token</td>
-                      <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">Earned across entire ecosystem (Max: 100B)</td>
-                    </tr>
-                    <tr className="border-b border-zinc-100 dark:border-zinc-800">
-                      <td className="py-3 px-4 font-medium text-zinc-900 dark:text-zinc-100">LRT</td>
-                      <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">Local Reward Token</td>
-                      <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">Earned only through using specific dApp (Max: 100M per dApp)</td>
+                      <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">Ecosystem rewards</td>
+                      <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">Earned across the Kasparex ecosystem (canonical supply on L1 / bridged L2)</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
               <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                 <p className="text-xs text-blue-700 dark:text-blue-300">
-                  💡 <strong>Default Rewards:</strong> 1 KAS spent = 10,000 GRID → 1,000 LRT → 100 XP Points
+                  💡 <strong>Default Rewards:</strong> 1 KAS spent ≈ 10,000 GRID + 100 XP Points (before multipliers)
                 </p>
               </div>
             </div>
@@ -247,9 +242,8 @@ export function QuickGuideWizard({ isOpen, onClose }: QuickGuideWizardProps) {
                   </h4>
                   <div className="text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
                     <p><strong>KAS</strong> → Fees split into treasuries</p>
-                    <p><strong>GRID</strong> → Global utility reward (10,000 per KAS)</p>
-                    <p><strong>LRT</strong> → Local dApp token (1,000 per KAS)</p>
-                    <p><strong>KREX</strong> → Multiplies all rewards and reduces fees</p>
+                    <p><strong>GRID</strong> → Ecosystem reward token (rates vary by activity and chain)</p>
+                    <p><strong>KREX</strong> → Multiplies GRID rewards and reduces fees</p>
                   </div>
                 </div>
               </div>

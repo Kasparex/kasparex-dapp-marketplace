@@ -1,23 +1,27 @@
 'use client';
 
 import { SectionHeader } from './SectionHeader';
+import nodeRewardTiers from '@/config/node-reward-tiers.json';
 
 const CARD_CLASS = 'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 p-6';
+
+const rm = nodeRewardTiers.roleMultipliers as Record<string, number>;
+const fr = nodeRewardTiers.feeReductionPercent as Record<string, number>;
 
 const LIGHT_NODE = {
   name: 'Light Node',
   description:
     'Pins IPFS/Storacha CIDs, caches dApp/tools metadata locally, and periodically syncs with the Kasparex API. Ideal for regular community members.',
-  multiplier: '4x',
-  feeReduction: '0.1%',
+  multiplier: `${rm.light}x`,
+  feeReduction: `${fr.light}%`,
   features: ['Pins CIDs', 'Caches metadata', 'Syncs with API', 'Low resource use'],
 };
 
 const MIRROR_NODE = {
   name: 'Mirror Node',
   description: 'Everything Light Node does, plus exposes a read-only HTTP API that can serve as a fallback data source. Ideal for power users and partners.',
-  multiplier: '5x',
-  feeReduction: '0.2%',
+  multiplier: `${rm.mirror}x`,
+  feeReduction: `${fr.mirror}%`,
   features: ['All Light features', 'Read-only HTTP API', 'Fallback data source', 'Request serving'],
   recommended: true,
 };

@@ -1,6 +1,6 @@
 /**
  * Reward Calculator Logic
- * Calculates GRT (GRID), XP Points, fees, and distributions based on user inputs (GRT-only)
+ * Calculates GRID, XP Points, fees, and distributions based on user inputs.
  */
 
 import type {
@@ -8,6 +8,7 @@ import type {
   RewardResult,
   KREXTier,
   NFTStatus,
+  SupplyMetrics,
 } from './types';
 import {
   KREX_TIERS,
@@ -19,39 +20,36 @@ import {
   RAREST_NFT_MULTIPLIER,
   RAREST_NFT_FEE_REDUCTION,
   DEFAULT_FEE_DISTRIBUTION,
-  DEFAULT_BASE_FEE_PERCENT,
 } from './types';
-import type { SupplyMetrics } from './types';
 
 /**
- * Calculate supply exhaustion metrics (GRT only)
+ * Calculate supply exhaustion metrics (GRID)
  */
 export function calculateSupplyExhaustion(
   inputs: CalculatorInputs,
   supplyMetrics: SupplyMetrics,
   avgMultiplier: number
 ): {
-  daysUntilGRTExhaustion: number;
-  grtProgress: number;
-  dailyGRTEmission: number;
+  daysUntilGridExhaustion: number;
+  gridMintProgress: number;
+  dailyGridEmission: number;
 } {
-  const { grtMaxSupply, dailyKasSpent, grtMinted } = supplyMetrics;
-  
-  const grtPerKas = inputs.customBaseRewards.useCustom 
-    ? inputs.customBaseRewards.grtPerKas 
-    : BASE_REWARDS.GRT_PER_KAS;
+  const { gridMaxSupply, dailyKasSpent, gridMinted } = supplyMetrics;
 
-  const dailyGRTEmission = dailyKasSpent * grtPerKas * avgMultiplier;
-  const remainingGRT = Math.max(0, grtMaxSupply - grtMinted);
-  const daysUntilGRTExhaustion = dailyGRTEmission > 0 
-    ? remainingGRT / dailyGRTEmission 
-    : Infinity;
-  const grtProgress = grtMaxSupply > 0 ? (grtMinted / grtMaxSupply) * 100 : 0;
+  const gridPerKas = inputs.customBaseRewards.useCustom
+    ? inputs.customBaseRewards.gridPerKas
+    : BASE_REWARDS.GRID_PER_KAS;
+
+  const dailyGridEmission = dailyKasSpent * gridPerKas * avgMultiplier;
+  const remainingGrid = Math.max(0, gridMaxSupply - gridMinted);
+  const daysUntilGridExhaustion =
+    dailyGridEmission > 0 ? remainingGrid / dailyGridEmission : Infinity;
+  const gridMintProgress = gridMaxSupply > 0 ? (gridMinted / gridMaxSupply) * 100 : 0;
 
   return {
-    daysUntilGRTExhaustion,
-    grtProgress: Math.min(100, grtProgress),
-    dailyGRTEmission,
+    daysUntilGridExhaustion,
+    gridMintProgress: Math.min(100, gridMintProgress),
+    dailyGridEmission,
   };
 }
 
@@ -64,100 +62,79 @@ export function calculateRewards(
 ): RewardResult {
   const { kasAmount, krexTier, nftStatus, seasonalBoost, customBaseRewards, nodeProvider } = inputs;
 
-  // Get KREX tier configuration
   const tierConfig = KREX_TIERS[krexTier];
 
-  // Determine base reward rates (use custom if enabled, otherwise default)
-  const grtPerKas = customBaseRewards.useCustom ? customBaseRewards.grtPerKas : BASE_REWARDS.GRT_PER_KAS;
+  const gridPerKas = customBaseRewards.useCustom
+    ? customBaseRewards.gridPerKas
+    : BASE_REWARDS.GRID_PER_KAS;
   const xpPerKas = customBaseRewards.useCustom ? customBaseRewards.xpPerKas : BASE_REWARDS.XP_PER_KAS;
 
-  // Calculate base rewards (GRT-only)
-  const baseGRT = kasAmount * grtPerKas;
+  const baseGrid = kasAmount * gridPerKas;
   const baseXP = kasAmount * xpPerKas;
 
-  // Calculate multipliers
   const krexMultiplier = tierConfig.multiplier;
-  
-  // NFT multiplier: Rarest NFT > Diamond NFT > Regular NFT
+
   let nftMultiplier = 1;
   const hasRegularNFT = nftStatus.hasKREXPRIME || nftStatus.hasPIXELKREX;
   const hasDiamondNFT = nftStatus.hasDiamondKREXPRIME || nftStatus.hasDiamondPIXELKREX;
-  const hasRarestNFT = nftStatus.hasRarestNFT; // NFT #515 PIXELKREX or #345 KREXPRIME
-  
+  const hasRarestNFT = nftStatus.hasRarestNFT;
+
   if (hasRarestNFT) {
-    nftMultiplier += RAREST_NFT_MULTIPLIER; // +5x for rarest NFT (highest priority)
+    nftMultiplier += RAREST_NFT_MULTIPLIER;
   } else if (hasDiamondNFT) {
-    nftMultiplier += DIAMOND_NFT_MULTIPLIER; // +3x for any Diamond NFT
+    nftMultiplier += DIAMOND_NFT_MULTIPLIER;
   } else if (hasRegularNFT) {
-    nftMultiplier += NFT_MULTIPLIER; // +1x for at least 1 regular NFT
+    nftMultiplier += NFT_MULTIPLIER;
   }
-  
-  // Node provider multiplier
+
   const nodeMultiplier = nodeProvider.isNodeProvider ? nodeProvider.nodeMultiplier : 1;
-  
-  // Seasonal multiplier
-  const seasonalMultiplier = 1 + seasonalBoost / 100; // Convert percentage to multiplier
-  
-  // Total multiplier (all combined)
+  const seasonalMultiplier = 1 + seasonalBoost / 100;
   const totalMultiplier = krexMultiplier * nftMultiplier * nodeMultiplier * seasonalMultiplier;
 
-  // Apply multipliers to rewards
-  const finalGRT = baseGRT * totalMultiplier;
-  // Points use KREX multiplier + NFT multiplier (not node or seasonal)
+  const finalGrid = baseGrid * totalMultiplier;
   const pointsMultiplier = tierConfig.pointsMultiplier * nftMultiplier;
   const finalXP = baseXP * pointsMultiplier;
 
-  // Calculate fee
-  // Use custom base fee if provided, otherwise use default
   const baseFee = inputs.feeSettings.baseFeePercent;
   let feePercent = baseFee;
-  
-  // Apply tier-based fee reductions from the base fee (like NFT fee reductions)
-  // All tiers now use fee reduction system
+
   feePercent = Math.max(0, feePercent - tierConfig.feeReduction);
-  
-  // Apply NFT fee reductions (stack with tier reduction)
-  // Rarest NFT: 100% reduction = zero-fee mode (highest priority)
-  // Diamond NFT: -0.2% if holding any Diamond NFT
-  // Regular NFT: -0.1% if holding at least 1 NFT from KREXPRIME or PIXELKREX
+
   if (hasRarestNFT) {
-    feePercent = 0; // Zero-fee mode for rarest NFT
+    feePercent = 0;
   } else if (hasDiamondNFT) {
     feePercent = Math.max(0, feePercent - DIAMOND_NFT_FEE_REDUCTION);
   } else if (hasRegularNFT) {
     feePercent = Math.max(0, feePercent - NFT_FEE_REDUCTION);
   }
-  
-  // Apply node provider fee reduction (only if not in zero-fee mode)
+
   if (nodeProvider.isNodeProvider && feePercent > 0) {
     feePercent = Math.max(0, feePercent - nodeProvider.nodeFeeReduction);
   }
 
   const feeAmount = (kasAmount * feePercent) / 100;
 
-  // Calculate fee distribution (use custom if enabled, otherwise default). GRT-only.
   const kasparexPercent = inputs.feeSettings.useCustomDistribution
     ? inputs.feeSettings.kasparexPercent
     : DEFAULT_FEE_DISTRIBUTION.KASPAREX;
-  const grtTreasuryPercent = inputs.feeSettings.useCustomDistribution
-    ? inputs.feeSettings.grtTreasuryPercent
-    : DEFAULT_FEE_DISTRIBUTION.GRT_TREASURY;
+  const gridTreasuryPercent = inputs.feeSettings.useCustomDistribution
+    ? inputs.feeSettings.gridTreasuryPercent
+    : DEFAULT_FEE_DISTRIBUTION.GRID_TREASURY;
 
   const feeDistribution = {
     kasparex: (feeAmount * kasparexPercent) / 100,
-    grtTreasury: (feeAmount * grtTreasuryPercent) / 100,
+    gridTreasury: (feeAmount * gridTreasuryPercent) / 100,
   };
 
-  // Calculate supply exhaustion if metrics provided
   let supplyMetricsResult;
   if (supplyMetrics) {
     supplyMetricsResult = calculateSupplyExhaustion(inputs, supplyMetrics, totalMultiplier);
   }
 
   return {
-    baseGRT,
+    baseGrid,
     baseXP,
-    finalGRT,
+    finalGrid,
     finalXP,
     krexMultiplier,
     nftMultiplier,
@@ -172,9 +149,6 @@ export function calculateRewards(
   };
 }
 
-/**
- * Format number with commas
- */
 export function formatNumber(num: number, decimals: number = 2): string {
   return num.toLocaleString('en-US', {
     minimumFractionDigits: decimals,
@@ -182,18 +156,12 @@ export function formatNumber(num: number, decimals: number = 2): string {
   });
 }
 
-/**
- * Format number for display: integers as "100", decimals with minimal places (no trailing zeros).
- */
 export function formatCompact(num: number): string {
   if (Number.isInteger(num)) return String(num);
   const s = num.toFixed(2);
   return s.replace(/\.?0+$/, '') || '0';
 }
 
-/**
- * Format large number with appropriate suffix (K, M, B). Integers shown without decimals.
- */
 export function formatLargeNumber(num: number): string {
   if (num >= 1_000_000_000) {
     const v = num / 1_000_000_000;
@@ -210,9 +178,6 @@ export function formatLargeNumber(num: number): string {
   return Number.isInteger(num) ? String(num) : num.toFixed(2).replace(/\.?0+$/, '') || '0';
 }
 
-/**
- * Validate calculator inputs
- */
 export function validateInputs(inputs: Partial<CalculatorInputs>): {
   valid: boolean;
   errors: string[];
@@ -238,8 +203,8 @@ export function validateInputs(inputs: Partial<CalculatorInputs>): {
   }
 
   if (inputs.customBaseRewards?.useCustom) {
-    if (inputs.customBaseRewards.grtPerKas < 0) {
-      errors.push('GRT per KAS must be positive');
+    if (inputs.customBaseRewards.gridPerKas < 0) {
+      errors.push('GRID per KAS must be positive');
     }
     if (inputs.customBaseRewards.xpPerKas < 0) {
       errors.push('XP per KAS must be positive');
@@ -260,4 +225,3 @@ export function validateInputs(inputs: Partial<CalculatorInputs>): {
     errors,
   };
 }
-

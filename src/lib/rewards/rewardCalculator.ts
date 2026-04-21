@@ -1,7 +1,7 @@
 /**
  * Reward Calculation System
- * Calculates GRID (GRT) and XP rewards based on action type, base action value, and user tier.
- * This is separate from cost calculation - rewards are calculated independently. GRT-only.
+ * Calculates GRID and XP rewards based on action type, base action value, and user tier.
+ * This is separate from cost calculation - rewards are calculated independently.
  */
 
 import { DApp } from '@/lib/dapps';
@@ -31,7 +31,7 @@ export interface RewardCalculatorInputs {
 }
 
 /**
- * Calculate reward amounts based on action type, base action value, and user tier (GRT-only).
+ * Calculate reward amounts based on action type, base action value, and user tier.
  */
 export function calculateRewardAmount(
   inputs: RewardCalculatorInputs
@@ -39,7 +39,7 @@ export function calculateRewardAmount(
   const { baseActionValue, multiplier, chainId } = inputs;
 
   const rewards = getDefaultRewardsBreakdown(chainId);
-  const baseGridReward = baseActionValue * rewards.grtPerKas;
+  const baseGridReward = baseActionValue * rewards.gridPerKas;
   const baseXPReward = baseActionValue * rewards.xpPerKas;
   const finalGridReward = baseGridReward * multiplier;
   const finalXPReward = baseXPReward * multiplier;

@@ -1,0 +1,29 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+export type KrexNodeConfig = {
+  apiBaseUrl: string;
+  nodeId: string;
+  hmacSecret: string;
+  heartbeatIntervalSec: number;
+  nodeName?: string;
+  role?: 'light' | 'mirror' | 'super';
+  region?: string;
+  url?: string;
+  version: string;
+  requestsServedTotal?: number;
+  pinnedCids?: string[];
+};
+
+export function loadConfig(path = 'config.json'): KrexNodeConfig {
+  const full = resolve(process.cwd(), path);
+  const raw = readFileSync(full, 'utf8');
+  const c = JSON.parse(raw) as KrexNodeConfig;
+  if (!c.apiBaseUrl?.trim()) throw new Error('apiBaseUrl required');
+  if (!c.nodeId?.trim()) throw new Error('nodeId required');
+  if (!c.hmacSecret?.trim()) throw new Error('hmacSecret required');
+  c.heartbeatIntervalSec = Math.max(45, Math.min(180, Number(c.heartbeatIntervalSec) || 60));
+  if (c.role && !['light', 'mirror', 'super'].includes(c.role)) throw new Error('role must be light|mirror|super');
+  c.version = c.version || '1.0.0';
+  return c;
+}

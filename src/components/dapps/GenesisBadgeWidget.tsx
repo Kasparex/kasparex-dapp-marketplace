@@ -100,12 +100,12 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
   const tierConfig = KREX_TIERS[tier];
   const multiplier = tierConfig?.multiplier ?? 1;
   const baseCost = 10;
-  const gridReward = Math.round(baseCost * rewardsBreakdown.grtPerKas * multiplier);
+  const gridReward = Math.round(baseCost * rewardsBreakdown.gridPerKas * multiplier);
   const xpReward = Math.round(baseCost * rewardsBreakdown.xpPerKas * multiplier);
   // On-chain uses only tKREX on this network; show base amounts when L2 balance is 0
   const tierConfigOnChain = KREX_TIERS[tierForChain];
   const multiplierOnChain = tierConfigOnChain?.multiplier ?? 1;
-  const gridRewardOnChain = Math.round(baseCost * rewardsBreakdown.grtPerKas * multiplierOnChain);
+  const gridRewardOnChain = Math.round(baseCost * rewardsBreakdown.gridPerKas * multiplierOnChain);
   const xpRewardOnChain = Math.round(baseCost * rewardsBreakdown.xpPerKas * multiplierOnChain);
   const onChainIsBaseOnly = multiplier > 1 && multiplierOnChain === 1 && krexL2Balance === 0;
 

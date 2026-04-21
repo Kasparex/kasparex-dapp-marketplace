@@ -112,7 +112,7 @@ export const hubProjects: HubProject[] = [
     id: 'kasparex-rewards',
     name: 'Kasparex Rewards',
     category: 'Ecosystem',
-    description: 'The global and local rewards system that powers incentives across all dApps and projects. Earn as you explore.',
+    description: 'GRID rewards, XP, and KREX-powered multipliers across the Kasparex marketplace and games. Earn as you explore.',
     route: '/rewards-and-points',
     status: 'available',
   },

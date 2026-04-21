@@ -11,6 +11,7 @@ const CARD_CLASS =
 const NODE_TYPE_LABELS: Record<string, string> = {
   light: 'Light Node',
   mirror: 'Mirror Node',
+  super: 'Super Node',
 };
 
 function statusDisplay(status: NodeInfo['status']): { label: string; className: string } {

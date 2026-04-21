@@ -48,7 +48,7 @@ export function ActiveNodesTable(props: { nodes: KrexNode[] }) {
             <tbody>
               {nodes.map((n) => (
                 <tr
-                  key={n.url}
+                  key={n.node_id || n.url}
                   className="border-b border-zinc-100 dark:border-zinc-800/70"
                 >
                   <td className="py-2.5 pr-4">

@@ -27,7 +27,7 @@ export function GRIDHoldingsBox() {
   const gridBalanceFormatted = gridBalanceWei != null ? formatLargeNumber(Number(gridBalanceWei) / 1e18) : '0';
 
   // Real supply metrics from contract only (no mock fallback)
-  const grtMetrics = useMemo(() => {
+  const gridMetrics = useMemo(() => {
     if (!totalSupply || !maxSupply || Number(maxSupply) === 0) {
       return null;
     }
@@ -74,19 +74,19 @@ export function GRIDHoldingsBox() {
               Max Supply
             </span>
             <span className="text-xs text-zinc-500 dark:text-zinc-400">
-              {grtMetrics ? `${grtMetrics.progress.toFixed(2)}% minted` : (isLoading ? '...' : '-')}
+              {gridMetrics ? `${gridMetrics.progress.toFixed(2)}% minted` : (isLoading ? '...' : '-')}
             </span>
           </div>
 
           <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2 mb-2">
             <div
               className="bg-[#02abb8] h-2 rounded-full transition-all"
-              style={{ width: `${grtMetrics ? Math.min(100, grtMetrics.progress) : 0}%` }}
+              style={{ width: `${gridMetrics ? Math.min(100, gridMetrics.progress) : 0}%` }}
             />
           </div>
 
           <div className="text-xs text-zinc-500 dark:text-zinc-400">
-            {grtMetrics ? `${formatLargeNumber(grtMetrics.minted)} / ${formatLargeNumber(grtMetrics.maxSupply)}` : (isLoading && gridTokenAddress ? '...' : '-')}
+            {gridMetrics ? `${formatLargeNumber(gridMetrics.minted)} / ${formatLargeNumber(gridMetrics.maxSupply)}` : (isLoading && gridTokenAddress ? '...' : '-')}
           </div>
         </div>
 

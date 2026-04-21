@@ -18,6 +18,8 @@ import { handlePaymentsRequest } from './kasparex-api/payments';
 import { handleProcessRewards, processPendingRewards } from './kasparex-api/reward-processor';
 import { handleArchiveRewards, handleManualArchive } from './kasparex-api/archive';
 import { handleUsageRequest } from './kasparex-api/usage';
+import { processNodeRewardSettlement } from './kasparex-api/node-rewards-settle';
+
 export interface Env {
   // KV Namespace for caching
   KASPAREX_CACHE: KVNamespace;
@@ -45,33 +47,36 @@ export interface Env {
   ARCHIVE_AUTH_TOKEN?: string; // For manual archive endpoint
   IGRA_RPC_URL?: string; // Igra testnet RPC URL for event indexing
   USAGE_WORKER_SECRET?: string; // Shared secret for internal usage/lock endpoints
+  /** HMAC secret for Krex Node challenge / enrollment JWTs (bind wallet + enroll). */
+  NODE_ENROLLMENT_SECRET?: string;
+  /** If "true", nodes with a KV HMAC secret must send valid X-Krex-* signatures on ping/register. */
+  KREX_NODE_REQUIRE_HMAC?: string;
+}
+
+async function runCron(cron: string, env: Env, event?: ScheduledEvent): Promise<void> {
+  // Process rewards every 15 minutes
+  if (cron === '*/15 * * * *' || cron === '0,15,30,45 * * * *') {
+    console.log('[Cron] Processing pending rewards...');
+    await processPendingRewards(env, 50);
+    const epoch = new Date().toISOString().split('T')[0]!;
+    console.log('[Cron] Krex node GRID settlement for', epoch);
+    await processNodeRewardSettlement(env, epoch, 2000);
+    return;
+  }
+
+  // Archive rewards daily at 2 AM UTC
+  if (cron === '0 2 * * *') {
+    console.log('[Cron] Archiving old rewards...');
+    if (event) {
+      await handleArchiveRewards(event, env);
+    } else {
+      await handleArchiveRewards({ scheduledTime: Date.now(), cron } as ScheduledEvent, env);
+    }
+  }
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    // Handle scheduled events (cron triggers)
-    if (request.headers.get('cf-scheduled') === 'true') {
-      const event = {
-        scheduledTime: Date.now(),
-        cron: request.headers.get('cf-cron') || 'unknown',
-      } as ScheduledEvent;
-      
-      const cron = event.cron;
-      
-      // Process rewards every 15 minutes
-      if (cron === '*/15 * * * *' || cron === '0,15,30,45 * * * *') {
-        console.log('[Cron] Processing pending rewards...');
-        await processPendingRewards(env, 50);
-      }
-      
-      // Archive rewards daily at 2 AM UTC
-      if (cron === '0 2 * * *') {
-        console.log('[Cron] Archiving old rewards...');
-        await handleArchiveRewards(event, env);
-      }
-      
-      return new Response('OK');
-    }
     const url = new URL(request.url);
     const pathname = url.pathname;
 
@@ -100,7 +105,11 @@ export default {
         return handleRewardRequest(request, env);
       }
 
-      if (pathname.startsWith('/kasparex/stats') || pathname.startsWith('/kasparex/dapps/availability')) {
+      if (
+        pathname.startsWith('/kasparex/stats') ||
+        pathname.startsWith('/kasparex/network/') ||
+        pathname.startsWith('/kasparex/dapps/availability')
+      ) {
         return handlePublicRequest(request, env);
       }
 
@@ -162,6 +171,19 @@ export default {
         }
       );
     }
+  },
+
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    const cron = event.cron || 'unknown';
+    ctx.waitUntil(
+      (async () => {
+        try {
+          await runCron(cron, env, event);
+        } catch (e) {
+          console.error('[Cron] scheduled handler error', { cron, error: e });
+        }
+      })()
+    );
   },
 };
 
