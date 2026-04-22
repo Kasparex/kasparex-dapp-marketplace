@@ -130,12 +130,12 @@ export const gamesRegistry: UnifiedGame[] = [
   {
     ...baseGame({
       id: 'token-strategy',
-      name: 'Token Strategy',
+      name: 'Token Strategy: Kasparex Defense',
       slug: 'token-strategy',
       description:
-        'Build your token empire in this strategic resource management game. Plan your moves carefully!',
+        "A lightweight strategy run inside Krex’s network defense. Choose responses, stack security, and outplay Null Gang interference.",
       instructions:
-        'Manage resources, build infrastructure, and expand your token network. Each decision affects your final score.',
+        'Pay entry to start. Pick mission actions to improve Security/Power/Stealth. Boosters (KREX + NFT deck + optional KREX booster) increase your final score.',
       gameType: 'strategy',
       difficulty: 'hard',
       entryCostKAS: 0.5,
@@ -144,6 +144,7 @@ export const gamesRegistry: UnifiedGame[] = [
       version: '1.0.0',
       rewardConfig: { gridReward: 5, xpReward: 25 },
       createdAt: '2025-01-17T10:00:00.000Z',
+      featuredImage: 'https://static.wixstatic.com/media/de4185_d624b5a44cf34912bce7e3525fd63aaf~mv2.jpg',
     }),
     route: { kind: 'custom', href: '/games/token-strategy' },
     capabilities: ['wallet_l1', 'payments_l1_kas', 'leaderboard_unified'],
@@ -169,6 +170,7 @@ export const gamesRegistry: UnifiedGame[] = [
       version: '1.0.0',
       rewardConfig: { gridReward: 0, xpReward: 0 },
       createdAt: '2025-01-18T10:00:00.000Z',
+      featuredImage: 'https://static.wixstatic.com/media/de4185_efae4724bb814ecd8b995da523a42c36~mv2.jpg',
     }),
     route: { kind: 'custom', href: '/games/kaspa-quiz' },
     capabilities: ['wallet_l1', 'payments_l1_kas', 'leaderboard_unified', 'nft_deck'],
@@ -180,7 +182,7 @@ export const gamesRegistry: UnifiedGame[] = [
   {
     ...baseGame({
       id: 'precision-click',
-      name: 'Precision Click',
+      name: 'Precision Click: ARIA Lock',
       slug: 'precision-click',
       description:
         'Test your reflexes and precision in this skill-based clicking game. Accuracy is key!',
@@ -194,6 +196,7 @@ export const gamesRegistry: UnifiedGame[] = [
       version: '1.0.0',
       rewardConfig: { gridReward: 3, xpReward: 20 },
       createdAt: '2025-01-19T10:00:00.000Z',
+      featuredImage: 'https://static.wixstatic.com/media/de4185_efae4724bb814ecd8b995da523a42c36~mv2.jpg',
     }),
     route: { kind: 'custom', href: '/games/precision-click' },
     capabilities: ['wallet_l1', 'payments_l1_kas', 'leaderboard_unified'],
