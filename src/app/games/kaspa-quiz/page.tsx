@@ -210,10 +210,9 @@ function QuizGame() {
     Boolean(nftStatus?.hasRarestNFT) ||
     Boolean(nftStatus?.partnerCollections && Object.values(nftStatus.partnerCollections).some(Boolean));
 
-  const boosterMult =
-    (tier === 'legendary' ? 1.25 : tier === 'premium' ? 1.15 : tier === 'gold' ? 1.1 : 1) *
-    (hasAnyNFT ? 1.1 : 1) *
-    krexBoosterMult;
+  const tierMult =
+    tier === 'Tier4' ? 1.25 : tier === 'Tier3' ? 1.15 : tier === 'Tier2' ? 1.1 : 1;
+  const boosterMult = tierMult * (hasAnyNFT ? 1.1 : 1) * krexBoosterMult;
 
   if (!game) return <div className="p-8 text-zinc-600 dark:text-zinc-400">Game not found</div>;
 

@@ -36,10 +36,9 @@ function PrecisionClickGame() {
     Boolean(nftStatus?.hasRarestNFT) ||
     Boolean(nftStatus?.partnerCollections && Object.values(nftStatus.partnerCollections).some(Boolean));
 
-  const booster =
-    (tier === 'legendary' ? 1.25 : tier === 'premium' ? 1.15 : tier === 'gold' ? 1.1 : 1) *
-    (hasAnyNFT ? 1.05 : 1) *
-    krexBoosterMult;
+  const tierMult =
+    tier === 'Tier4' ? 1.25 : tier === 'Tier3' ? 1.15 : tier === 'Tier2' ? 1.1 : 1;
+  const booster = tierMult * (hasAnyNFT ? 1.05 : 1) * krexBoosterMult;
 
   const arenaRef = useRef<HTMLDivElement | null>(null);
   const [running, setRunning] = useState(false);
