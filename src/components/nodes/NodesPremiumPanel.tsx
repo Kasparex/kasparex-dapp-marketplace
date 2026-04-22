@@ -7,9 +7,7 @@ import { payKaspaL1 } from '@/lib/games/sdk';
 import { getNodesPremiumTreasuryL1Address } from '@/lib/nodes/nodesPremiumTreasury';
 import { NodeFirstDiagnosticsPanel } from './NodeFirstDiagnosticsPanel';
 import { SectionHeader } from './SectionHeader';
-
-const CARD_CLASS =
-  'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 p-6';
+import { NODES_DASH_CARD } from './nodesTabLayout';
 
 const PREMIUM_KAS = 10;
 const STORAGE_KEY = 'kasparex:nodes-premium-unlock:v1';
@@ -92,8 +90,8 @@ export function NodesPremiumPanel() {
   };
 
   return (
-    <div className="space-y-6">
-      <section className={CARD_CLASS}>
+    <div className="space-y-6 w-full min-w-0">
+      <section className={`${NODES_DASH_CARD} space-y-4`}>
         <SectionHeader
           title="Premium analytics"
           hint="Unlocks advanced operator views: node-first diagnostics and live stats comparison. One-time 10 KAS unlock per wallet (stored in this browser)."

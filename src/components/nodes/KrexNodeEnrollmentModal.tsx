@@ -37,7 +37,7 @@ const MODAL_CLASS =
 
 /** Inline panel on `/nodes?tab=enroll` (no portal / dimmer). */
 const EMBEDDED_MODAL_CLASS =
-  'relative bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden w-full max-w-3xl mx-auto max-h-[78vh] flex flex-col shadow-sm';
+  'relative bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden w-full min-w-0 max-h-[78vh] flex flex-col shadow-sm';
 
 function normalizeTxId(raw: unknown): string {
   if (!raw) return '';

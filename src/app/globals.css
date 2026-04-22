@@ -706,13 +706,20 @@
 }
 
 .k-nodes-map .leaflet-control-attribution a {
-  color: rgb(1 122 132);
-  font-weight: 600;
+  color: inherit;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  opacity: 0.88;
+}
+
+.k-nodes-map .leaflet-control-attribution a:hover {
+  opacity: 1;
 }
 
 .dark .k-nodes-map .leaflet-control-attribution a,
 .kaspa .k-nodes-map .leaflet-control-attribution a {
-  color: rgb(6 182 212);
+  color: inherit;
 }
 
 .k-nodes-map .leaflet-popup-content-wrapper {

@@ -15,6 +15,7 @@ import { KrexNodeEnrollmentModal } from './KrexNodeEnrollmentModal';
 import { KrexNodeSetupGuide } from './KrexNodeSetupGuide';
 import { KrexNodeDocsGuide } from './KrexNodeDocsGuide';
 import { NodesPremiumPanel } from './NodesPremiumPanel';
+import { NODES_DASH_CARD, NODES_TAB_STACK } from './nodesTabLayout';
 import { useKrexNodeNetwork } from '@/hooks/useKrexNodeNetwork';
 import { useKrexOperatorDashboard } from '@/hooks/useKrexOperatorDashboard';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -173,7 +174,7 @@ export function NodesDashboardContent() {
     setActiveTab(t);
     const params = new URLSearchParams(searchParams?.toString() || '');
     params.set('tab', t);
-    router.replace(`/nodes?${params.toString()}`);
+    router.replace(`/nodes?${params.toString()}`, { scroll: false });
   };
 
   return (
@@ -206,6 +207,7 @@ export function NodesDashboardContent() {
               <div className="flex flex-wrap gap-4">
                 <Link
                   href="/nodes?tab=setup"
+                  scroll={false}
                   className="inline-flex items-center gap-2 px-6 py-3 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 rounded-xl font-bold text-sm tracking-wide hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border border-zinc-200 dark:border-zinc-700"
                 >
                   <span>Run a KREX Node</span>
@@ -250,12 +252,16 @@ export function NodesDashboardContent() {
           </div>
         </>
       ) : activeTab === 'setup' ? (
-        <KrexNodeSetupGuide />
+        <div className={NODES_TAB_STACK}>
+          <KrexNodeSetupGuide />
+        </div>
       ) : activeTab === 'docs' ? (
-        <KrexNodeDocsGuide />
+        <div className={NODES_TAB_STACK}>
+          <KrexNodeDocsGuide />
+        </div>
       ) : activeTab === 'enroll' ? (
-        <div className="space-y-6 max-w-4xl">
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6">
+        <div className={NODES_TAB_STACK}>
+          <div className={NODES_DASH_CARD}>
             <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Register &amp; enroll</h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
               Connect your Kaspa wallet and complete the Worker flow: signed challenge, optional on-chain verification, then
@@ -282,7 +288,9 @@ export function NodesDashboardContent() {
           />
         </div>
       ) : (
-        <NodesPremiumPanel />
+        <div className={NODES_TAB_STACK}>
+          <NodesPremiumPanel />
+        </div>
       )}
 
     </div>

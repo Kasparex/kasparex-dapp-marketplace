@@ -7,8 +7,7 @@ import { SectionHeader } from './SectionHeader';
 import dynamic from 'next/dynamic';
 import type { OsmRegionMarker } from './NodesOsmMap';
 
-const CARD_CLASS =
-  'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 p-6';
+import { NODES_DASH_CARD } from './nodesTabLayout';
 
 const NodesOsmMap = dynamic(() => import('./NodesOsmMap').then((m) => m.NodesOsmMap), {
   ssr: false,
@@ -54,7 +53,7 @@ export function NodesMap(props: { nodes: KrexNode[] }) {
   const markers: OsmRegionMarker[] = rows.map((r) => ({
     id: r.geoKey,
     label: r.label,
-    position: [r.lat, r.lng],
+    position: { lat: r.lat, lng: r.lng },
     total: r.total,
     mirror: r.mirror,
     light: r.light,
@@ -63,7 +62,7 @@ export function NodesMap(props: { nodes: KrexNode[] }) {
 
   return (
     <section id="map" className="mb-6">
-      <div className={CARD_CLASS}>
+      <div className={NODES_DASH_CARD}>
         <SectionHeader
           title="Node map"
           hint="Map data © OpenStreetMap contributors, style © CARTO. Pins use country centroids when we can infer a country from `region`, otherwise a continent center — not exact GPS."

@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
-import type { LatLngExpression } from 'leaflet';
 
 /** OSM tiles still require attribution; this only removes Leaflet’s default “Leaflet” prefix/link. */
 function MapAttributionChrome() {
@@ -16,7 +15,8 @@ function MapAttributionChrome() {
 export type OsmRegionMarker = {
   id: string;
   label: string;
-  position: LatLngExpression;
+  /** Explicit WGS84 — avoids tuple [lat,lng] ambiguity with some Leaflet typings. */
+  position: { lat: number; lng: number };
   total: number;
   mirror: number;
   light: number;
