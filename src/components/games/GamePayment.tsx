@@ -5,13 +5,11 @@ import { Game } from '@/lib/games/games';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
 import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sdk';
+import { getEntrySku, type UnifiedGame } from '@/lib/games/registry';
 
 interface GamePaymentProps {
   game: Game;
 }
-
-// Treasury address for game entry fees (this should be configurable)
-const GAME_TREASURY_ADDRESS = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '';
 
 export function GamePayment({ game }: GamePaymentProps) {
   const { state, connect } = useKaspaWallet();
@@ -20,6 +18,14 @@ export function GamePayment({ game }: GamePaymentProps) {
   const [success, setSuccess] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [diamondsMinted, setDiamondsMinted] = useState<number | null>(null);
+
+  const entrySku = getEntrySku(game as UnifiedGame);
+  const entryCurrency = entrySku?.currency ?? 'KAS';
+  const entryAmount = typeof entrySku?.amount === 'number' ? entrySku.amount : game.entryCostKAS;
+  const kasTreasuryAddress =
+    entrySku?.currency === 'KAS'
+      ? (entrySku.kasTreasuryAddress || process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '')
+      : (process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '');
 
   const handlePlay = async () => {
     if (!state.isConnected || !state.provider) {
@@ -42,7 +48,12 @@ export function GamePayment({ game }: GamePaymentProps) {
       return;
     }
 
-    if (!GAME_TREASURY_ADDRESS || !isValidKaspaAddress(GAME_TREASURY_ADDRESS)) {
+    if (entryCurrency !== 'KAS') {
+      setError(`This game entry requires ${entryCurrency}. This payment method is not wired yet.`);
+      return;
+    }
+
+    if (!kasTreasuryAddress || !isValidKaspaAddress(kasTreasuryAddress)) {
       setError('Game treasury address not configured');
       return;
     }
@@ -57,10 +68,10 @@ export function GamePayment({ game }: GamePaymentProps) {
       const pay = await payKaspaL1({
         provider: state.provider,
         fromKaspaAddress: state.address,
-        toKaspaAddress: GAME_TREASURY_ADDRESS,
-        amountKas: game.entryCostKAS,
+        toKaspaAddress: kasTreasuryAddress,
+        amountKas: entryAmount,
         gameId: game.id,
-        skuId: `${game.id}:entry`,
+        skuId: entrySku?.id ?? `${game.id}:entry`,
         purchaseType: 'entry',
       });
       if (!pay.ok) throw new Error(pay.error);
@@ -74,7 +85,7 @@ export function GamePayment({ game }: GamePaymentProps) {
           userAddress: state.address,
           dappId: game.id,
           actionType: 'game_entry',
-          actionValue: game.entryCostKAS,
+          actionValue: entryAmount,
           txHash: pay.txHash,
           network: 'L1',
         });
@@ -88,10 +99,10 @@ export function GamePayment({ game }: GamePaymentProps) {
         const vr = await verifyKaspaL1Payment({
           txHash: pay.txHash,
           payerKaspaAddress: state.address,
-          toKaspaAddress: GAME_TREASURY_ADDRESS,
-          minAmountKas: game.entryCostKAS,
+          toKaspaAddress: kasTreasuryAddress,
+          minAmountKas: entryAmount,
           gameId: game.id,
-          skuId: `${game.id}:entry`,
+          skuId: entrySku?.id ?? `${game.id}:entry`,
           purchaseType: 'entry',
           sessionId: pay.sessionId,
         });
@@ -169,9 +180,9 @@ export function GamePayment({ game }: GamePaymentProps) {
             <span className="text-sm text-zinc-600 dark:text-zinc-400">Entry Cost:</span>
             <div className="flex items-baseline gap-1">
               <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                {game.entryCostKAS}
+                {entryAmount}
               </span>
-              <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">KAS</span>
+              <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">{entryCurrency}</span>
             </div>
           </div>
           {game.rewardConfig && (
@@ -234,7 +245,7 @@ export function GamePayment({ game }: GamePaymentProps) {
           ) : success ? (
             'Payment Complete!'
           ) : (
-            `Pay ${game.entryCostKAS} KAS to Play`
+            `Pay ${entryAmount} ${entryCurrency} to Play`
           )}
         </button>
       </div>

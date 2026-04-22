@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { placeholderGames, getGameBySlug } from '@/lib/games/games';
+import { getGameBySlugFromRegistry, getSlugRoutedGames } from '@/lib/games/registry';
 import { GameContent } from './GameContent';
 
 interface PageProps {
@@ -12,14 +12,12 @@ interface PageProps {
 
 // Generate static params for all game slugs
 export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
-  return placeholderGames.map((game) => ({
-    slug: game.slug,
-  }));
+  return getSlugRoutedGames().map((game) => ({ slug: game.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
-  const game = getGameBySlug(placeholderGames, slug);
+  const game = getGameBySlugFromRegistry(slug);
 
   if (!game) {
     return {
@@ -35,9 +33,10 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function GamePage({ params }: PageProps) {
   const { slug } = await params;
-  const game = getGameBySlug(placeholderGames, slug);
+  const game = getGameBySlugFromRegistry(slug);
 
-  if (!game) {
+  // Only slug-routed games belong here. Custom games use their own pages.
+  if (!game || game.route.kind !== 'slug') {
     notFound();
   }
 

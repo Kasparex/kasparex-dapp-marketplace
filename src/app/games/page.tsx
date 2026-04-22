@@ -6,12 +6,13 @@ import { Footer } from '@/components/Footer';
 import { GamesSidebar } from '@/components/games/GamesSidebar';
 import { GameSortFilters, type GameViewMode } from '@/components/games/GameSortFilters';
 import { GameGrid } from '@/components/games/GameGrid';
-import { placeholderGames, GameType, GameDifficulty, GameStatus } from '@/lib/games/games';
+import { GameType, GameDifficulty, GameStatus } from '@/lib/games/games';
 import { filterGames, getGameTypeCounts, getDifficultyCounts, getStatusCounts, GameFilterState } from '@/lib/games/filtering';
 import { sortGames, GameSortOption } from '@/lib/games/sorting';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useLikes } from '@/hooks/useLikes';
 import { FilterBar } from '@/components/FilterBar';
+import { listGames } from '@/lib/games/registry';
 
 function GamesContent() {
   const [selectedGameTypes, setSelectedGameTypes] = useState<GameType[]>([]);
@@ -24,6 +25,7 @@ function GamesContent() {
   const [displayedCount, setDisplayedCount] = useState(50);
   const { favoritesSet, toggleFavorite, isFavorite } = useFavorites();
   const { likes } = useLikes();
+  const games = useMemo(() => listGames(), []);
 
   // Auto-switch from favorites view if no favorites remain
   useEffect(() => {
@@ -39,8 +41,8 @@ function GamesContent() {
       status: selectedStatuses,
       costRange,
     };
-    return getGameTypeCounts(placeholderGames, filters, searchQuery);
-  }, [selectedDifficulties, selectedStatuses, costRange, searchQuery]);
+    return getGameTypeCounts(games, filters, searchQuery);
+  }, [games, selectedDifficulties, selectedStatuses, costRange, searchQuery]);
 
   const difficultyCounts = useMemo(() => {
     const filters: Omit<GameFilterState, 'difficulty'> = {
@@ -48,8 +50,8 @@ function GamesContent() {
       status: selectedStatuses,
       costRange,
     };
-    return getDifficultyCounts(placeholderGames, filters, searchQuery);
-  }, [selectedGameTypes, selectedStatuses, costRange, searchQuery]);
+    return getDifficultyCounts(games, filters, searchQuery);
+  }, [games, selectedGameTypes, selectedStatuses, costRange, searchQuery]);
 
   const statusCounts = useMemo(() => {
     const filters: Omit<GameFilterState, 'status'> = {
@@ -57,8 +59,8 @@ function GamesContent() {
       difficulty: selectedDifficulties,
       costRange,
     };
-    return getStatusCounts(placeholderGames, filters, searchQuery);
-  }, [selectedGameTypes, selectedDifficulties, costRange, searchQuery]);
+    return getStatusCounts(games, filters, searchQuery);
+  }, [games, selectedGameTypes, selectedDifficulties, costRange, searchQuery]);
 
   // Filter and sort games
   const filteredGames = useMemo(() => {
@@ -68,7 +70,7 @@ function GamesContent() {
       status: selectedStatuses,
       costRange,
     };
-    let filtered = filterGames(placeholderGames, filters, searchQuery);
+    let filtered = filterGames(games, filters, searchQuery);
 
     // If sorting by favorites, filter to only show favorites
     if (sortBy === 'favorites') {
@@ -76,7 +78,7 @@ function GamesContent() {
     }
 
     return sortGames(filtered, sortBy, favoritesSet, likes);
-  }, [selectedGameTypes, selectedDifficulties, selectedStatuses, costRange, searchQuery, sortBy, favoritesSet, likes]);
+  }, [games, selectedGameTypes, selectedDifficulties, selectedStatuses, costRange, searchQuery, sortBy, favoritesSet, likes]);
 
   // Reset displayed count when filters change
   useEffect(() => {

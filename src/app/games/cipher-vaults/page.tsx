@@ -5,9 +5,10 @@ import dynamic from 'next/dynamic';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { placeholderGames, getGameBySlug } from '@/lib/games/games';
+import { getGameBySlugFromRegistry } from '@/lib/games/registry';
 import Link from 'next/link';
 import { CipherVaultsDashboard } from '@/components/game/cipher-vaults/CipherVaultsDashboard';
+import { GameModulesBar } from '@/components/games/modules/GameModulesBar';
 
 const KaspaL1WalletButton = dynamic(
   () => import('@/components/KaspaL1WalletButton').then((mod) => ({ default: mod.KaspaL1WalletButton })),
@@ -18,7 +19,7 @@ const LORE_STORY = `Krex left Cipher Vaults across Kaspaland — sealed chambers
 
 function CipherVaultsContent() {
   const { state } = useKaspaWallet();
-  const game = getGameBySlug(placeholderGames, 'cipher-vaults');
+  const game = getGameBySlugFromRegistry('cipher-vaults');
 
   if (!game) return <div className="p-8 text-zinc-600 dark:text-zinc-400">Game not found</div>;
 
@@ -65,7 +66,12 @@ function CipherVaultsContent() {
                 </div>
               </div>
             ) : (
-              <CipherVaultsDashboard featuredImage={featuredImage} loreStory={LORE_STORY} gameDescription={game.description} />
+              <div className="space-y-6">
+                {/* Standard cross-game modules (Your rewards / Unified deck + Risk choice) */}
+                <GameModulesBar />
+
+                <CipherVaultsDashboard featuredImage={featuredImage} loreStory={LORE_STORY} gameDescription={game.description} />
+              </div>
             )}
           </div>
         </div>
