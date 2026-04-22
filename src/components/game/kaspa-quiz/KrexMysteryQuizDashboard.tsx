@@ -23,6 +23,7 @@ const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection
 const TABS = [
   { id: 'overview', label: 'Overview' },
   { id: 'play', label: 'Play' },
+  { id: 'rewards', label: 'Rewards' },
   { id: 'boosters', label: 'Boosters' },
   { id: 'comments', label: 'Comments' },
 ] as const;
@@ -251,6 +252,10 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
           </div>
         )}
 
+        {tab === 'rewards' && (
+          <RewardsPreview showLink={true} />
+        )}
+
         {tab === 'comments' && (
           <div className="space-y-4">
             <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
@@ -335,7 +340,7 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
                   <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">Case closed. Final score: {score}.</p>
                   <button
                     type="button"
-                    className="mt-4 w-full rounded-xl bg-emerald-500 py-3 font-semibold text-white transition-colors hover:bg-emerald-600"
+                    className="k-cta-primary mt-4 h-12 w-full text-sm"
                     onClick={() => {
                       setLevelIndex(0);
                       setQuestionIndex(0);
@@ -368,9 +373,6 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
                 {props.gameDescription}
               </p>
             ) : null}
-
-            {/* Rewards (simplified) under description */}
-            <RewardsPreview variant="inline" showLink={false} />
           </div>
         </div>
 

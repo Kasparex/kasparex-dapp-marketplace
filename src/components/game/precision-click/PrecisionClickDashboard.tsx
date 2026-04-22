@@ -22,6 +22,7 @@ const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection
 const TABS = [
   { id: 'overview', label: 'Overview' },
   { id: 'play', label: 'Play' },
+  { id: 'rewards', label: 'Rewards' },
   { id: 'boosters', label: 'Boosters' },
   { id: 'comments', label: 'Comments' },
 ] as const;
@@ -181,6 +182,10 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; gameDes
           </div>
         )}
 
+        {tab === 'rewards' && (
+          <RewardsPreview showLink={true} />
+        )}
+
         {tab === 'comments' && (
           <div className="space-y-4">
             <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
@@ -266,7 +271,6 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; gameDes
                 {props.gameDescription}
               </p>
             ) : null}
-            <RewardsPreview variant="inline" showLink={false} />
           </div>
         </div>
 
