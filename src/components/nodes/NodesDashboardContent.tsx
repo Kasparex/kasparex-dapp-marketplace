@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { NodeOverview } from './NodeOverview';
@@ -10,10 +10,11 @@ import { TechnicalRequirements } from './TechnicalRequirements';
 import { IncentivesAndEarnings } from './IncentivesAndEarnings';
 import { NodeTypesInfoCards } from './NodeTypesInfoCards';
 import { ActiveNodesTable } from './ActiveNodesTable';
-import { NodeFirstDiagnosticsPanel } from './NodeFirstDiagnosticsPanel';
 import { NodesMap } from './NodesMap';
 import { KrexNodeEnrollmentModal } from './KrexNodeEnrollmentModal';
-import { KrexNodeRunGuideContent } from './KrexNodeRunGuideContent';
+import { KrexNodeSetupGuide } from './KrexNodeSetupGuide';
+import { KrexNodeDocsGuide } from './KrexNodeDocsGuide';
+import { NodesPremiumPanel } from './NodesPremiumPanel';
 import { useKrexNodeNetwork } from '@/hooks/useKrexNodeNetwork';
 import { useKrexOperatorDashboard } from '@/hooks/useKrexOperatorDashboard';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -90,48 +91,28 @@ const technicalRequirements = [
   { label: 'OS', value: 'Linux, macOS, Windows, Raspberry Pi' },
 ] as const;
 
-type TabId = 'dashboard' | 'setup';
+const NODES_TABS = [
+  { id: 'dashboard', label: 'Dashboard' },
+  { id: 'setup', label: 'Setup' },
+  { id: 'docs', label: 'Docs' },
+  { id: 'enroll', label: 'Enroll' },
+  { id: 'premium', label: 'Premium' },
+] as const;
+
+type TabId = (typeof NODES_TABS)[number]['id'];
+
+const TAB_IDS = new Set<string>(NODES_TABS.map((t) => t.id));
 
 function NodesTabStrip({ activeTab, onTab }: { activeTab: TabId; onTab: (t: TabId) => void }) {
-  const [overflowOpen, setOverflowOpen] = useState(false);
-  const [isOverflowing, setIsOverflowing] = useState(false);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-
-  const tabs: Array<{ id: TabId; label: string }> = [
-    { id: 'dashboard', label: 'Dashboard' },
-    { id: 'setup', label: 'Setup / Docs' },
-  ];
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const update = () => setIsOverflowing(el.scrollWidth > el.clientWidth + 8);
-    update();
-    const ro = new ResizeObserver(() => update());
-    ro.observe(el);
-    window.addEventListener('resize', update);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener('resize', update);
-    };
-  }, []);
-
-  const visibleCount = isOverflowing ? 1 : tabs.length;
-  const visibleTabs = tabs.slice(0, visibleCount);
-  const overflowTabs = tabs.slice(visibleCount);
-
   return (
     <div className="mb-6">
-      <div ref={containerRef} className="k-control-group w-full overflow-x-auto">
-        {visibleTabs.map((t) => (
+      <div className="k-control-group w-full overflow-x-auto flex flex-nowrap min-w-0">
+        {NODES_TABS.map((t) => (
           <button
             key={t.id}
             type="button"
-            onClick={() => {
-              setOverflowOpen(false);
-              onTab(t.id);
-            }}
-            className={`h-10 px-4 text-sm font-medium whitespace-nowrap transition-colors ${
+            onClick={() => onTab(t.id)}
+            className={`h-10 shrink-0 px-4 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === t.id
                 ? 'bg-[#02abb8]/10 text-[#017a84] dark:text-[#8ff1f8]'
                 : 'text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800'
@@ -140,52 +121,6 @@ function NodesTabStrip({ activeTab, onTab }: { activeTab: TabId; onTab: (t: TabI
             {t.label}
           </button>
         ))}
-
-        {overflowTabs.length > 0 ? (
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setOverflowOpen((v) => !v)}
-              aria-haspopup="menu"
-              aria-expanded={overflowOpen}
-              className={`h-10 px-4 text-sm font-medium whitespace-nowrap transition-colors ${
-                overflowTabs.some((t) => t.id === activeTab)
-                  ? 'bg-[#02abb8]/10 text-[#017a84] dark:text-[#8ff1f8]'
-                  : 'text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-              }`}
-            >
-              <span className="sr-only">More tabs</span>
-              <span aria-hidden className="text-lg leading-none">
-                ⋯
-              </span>
-            </button>
-            {overflowOpen ? (
-              <div
-                role="menu"
-                className="absolute right-0 mt-2 min-w-44 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl p-1 z-50"
-              >
-                {overflowTabs.map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    role="menuitem"
-                    onClick={() => {
-                      setOverflowOpen(false);
-                      onTab(t.id);
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                      activeTab === t.id
-                        ? 'bg-[#02abb8]/10 text-[#017a84] dark:text-[#8ff1f8]'
-                        : 'text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-                    }`}
-                  >
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
       </div>
     </div>
   );
@@ -198,7 +133,6 @@ export function NodesDashboardContent() {
   const { state: kaspa } = useKaspaWallet();
   const { data: activeNodes = [] } = useKrexNodeNetwork();
   const { data: operator } = useKrexOperatorDashboard(kaspa.isConnected ? kaspa.address : null);
-  const [enrollOpen, setEnrollOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
 
   const myNode = operator?.myNodes?.[0] ?? null;
@@ -230,8 +164,8 @@ export function NodesDashboardContent() {
   }, []);
 
   useEffect(() => {
-    const tab = (searchParams?.get('tab') || '').toLowerCase();
-    if (tab === 'setup') setActiveTab('setup');
+    const tab = (searchParams?.get('tab') || 'dashboard').toLowerCase();
+    if (TAB_IDS.has(tab)) setActiveTab(tab as TabId);
     else setActiveTab('dashboard');
   }, [searchParams]);
 
@@ -267,7 +201,7 @@ export function NodesDashboardContent() {
                 </span>
               </h1>
               <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed mb-8">
-                Manage your KREX node: connect and register, monitor status, and track incentives. The network table and diagnostics are live.
+                Manage your KREX node: connect and register, monitor status, and track incentives. Advanced diagnostics live under the Premium tab.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
@@ -281,7 +215,7 @@ export function NodesDashboardContent() {
                 </Link>
                 <button
                   type="button"
-                  onClick={() => setEnrollOpen(true)}
+                  onClick={() => goTab('enroll')}
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                 >
                   {myNode ? 'Edit node details' : 'Enroll (get node secret)'}
@@ -298,22 +232,16 @@ export function NodesDashboardContent() {
 
       <NodesTabStrip activeTab={activeTab} onTab={goTab} />
 
-      {activeTab === 'setup' ? (
-        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 sm:p-6">
-          <KrexNodeRunGuideContent />
-        </div>
-      ) : (
+      {activeTab === 'dashboard' ? (
         <>
           <NodeTypesInfoCards />
           <NodesMap nodes={activeNodes} />
           <ActiveNodesTable nodes={activeNodes} />
-          <NodeFirstDiagnosticsPanel />
 
-          {/* Two-column layout */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-6">
               <NodeOverview nodeInfo={nodeInfo} metrics={metrics} />
-              <ConnectAndRegister nodeInfo={nodeInfo} onEnrollClick={() => setEnrollOpen(true)} />
+              <ConnectAndRegister nodeInfo={nodeInfo} onEnrollClick={() => goTab('enroll')} />
             </div>
             <div className="space-y-6">
               <StatusAndParameters nodeInfo={nodeInfo} metrics={metrics} />
@@ -321,24 +249,42 @@ export function NodesDashboardContent() {
             </div>
           </div>
         </>
+      ) : activeTab === 'setup' ? (
+        <KrexNodeSetupGuide />
+      ) : activeTab === 'docs' ? (
+        <KrexNodeDocsGuide />
+      ) : activeTab === 'enroll' ? (
+        <div className="space-y-6 max-w-4xl">
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6">
+            <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Register &amp; enroll</h2>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              Connect your Kaspa wallet and complete the Worker flow: signed challenge, optional on-chain verification, then
+              node details. Your <code className="font-mono text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">node_secret</code>{' '}
+              is shown only after a successful enroll.
+            </p>
+          </div>
+          <KrexNodeEnrollmentModal
+            isOpen
+            embedded
+            onClose={() => goTab('dashboard')}
+            existingNode={
+              myNode
+                ? {
+                    node_id: myNode.node_id,
+                    node_name: myNode.node_name,
+                    role: (myNode.role as any) || 'light',
+                    url: myNode.url,
+                    region: myNode.region,
+                    version: (myNode as any).version || '1.0.0',
+                  }
+                : null
+            }
+          />
+        </div>
+      ) : (
+        <NodesPremiumPanel />
       )}
 
-      <KrexNodeEnrollmentModal
-        isOpen={enrollOpen}
-        onClose={() => setEnrollOpen(false)}
-        existingNode={
-          myNode
-            ? {
-                node_id: myNode.node_id,
-                node_name: myNode.node_name,
-                role: (myNode.role as any) || 'light',
-                url: myNode.url,
-                region: myNode.region,
-                version: (myNode as any).version || '1.0.0',
-              }
-            : null
-        }
-      />
     </div>
   );
 }

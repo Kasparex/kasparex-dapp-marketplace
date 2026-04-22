@@ -30,7 +30,7 @@ export function ConnectAndRegister({ nodeInfo, onEnrollClick }: ConnectAndRegist
             Enroll (get node secret)
           </button>
           <Link
-            href="/api/krex-node"
+            href="/nodes?tab=setup"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-cyan-600 hover:bg-cyan-700 text-white transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

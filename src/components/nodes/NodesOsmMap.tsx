@@ -31,8 +31,16 @@ function radiusForCount(n: number): number {
   return 12;
 }
 
-export function NodesOsmMap(props: { markers: OsmRegionMarker[] }) {
+const CARTO_ATTRIBUTION =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+
+export function NodesOsmMap(props: { markers: OsmRegionMarker[]; mapTheme: 'light' | 'dark' }) {
   const markers = props.markers ?? [];
+  const mapTheme = props.mapTheme ?? 'dark';
+  const tileUrl =
+    mapTheme === 'light'
+      ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'
+      : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png';
 
   return (
     <div className="k-nodes-map relative w-full h-[340px] sm:h-[380px]">
@@ -47,10 +55,7 @@ export function NodesOsmMap(props: { markers: OsmRegionMarker[] }) {
         worldCopyJump
       >
         <MapAttributionChrome />
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        <TileLayer key={mapTheme} attribution={CARTO_ATTRIBUTION} url={tileUrl} subdomains="abcd" />
 
         {markers
           .filter((m) => m.total > 0)

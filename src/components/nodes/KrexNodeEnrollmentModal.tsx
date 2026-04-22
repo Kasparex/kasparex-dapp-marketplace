@@ -35,6 +35,10 @@ const OVERLAY_CLASS = 'fixed inset-0 z-[99999] flex items-center justify-center 
 const MODAL_CLASS =
   'relative bg-white dark:bg-zinc-900 rounded-xl shadow-xl max-w-2xl w-full border border-zinc-200 dark:border-zinc-800 overflow-hidden max-h-[90vh] flex flex-col';
 
+/** Inline panel on `/nodes?tab=enroll` (no portal / dimmer). */
+const EMBEDDED_MODAL_CLASS =
+  'relative bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden w-full max-w-3xl mx-auto max-h-[78vh] flex flex-col shadow-sm';
+
 function normalizeTxId(raw: unknown): string {
   if (!raw) return '';
   if (typeof raw === 'string') {
@@ -99,6 +103,8 @@ export function KrexNodeEnrollmentModal(props: {
   isOpen: boolean;
   onClose: () => void;
   existingNode?: ExistingNode | null;
+  /** When true, render as a normal in-page panel (e.g. Enroll tab) instead of a modal portal. */
+  embedded?: boolean;
 }) {
   const { state: kaspa, connect } = useKaspaWallet();
   const isClient = typeof window !== 'undefined';
@@ -499,10 +505,11 @@ export function KrexNodeEnrollmentModal(props: {
           : 'Enroll node'
         : 'Bind wallet & verify';
 
-  return createPortal(
-    <div className={OVERLAY_CLASS} onClick={close}>
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
-      <div className={MODAL_CLASS} onClick={(e) => e.stopPropagation()}>
+  const enrollmentPanel = (
+      <div
+        className={props.embedded ? EMBEDDED_MODAL_CLASS : MODAL_CLASS}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="px-5 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
           <div>
             <div className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{title}</div>
@@ -819,6 +826,16 @@ export function KrexNodeEnrollmentModal(props: {
           )}
         </div>
       </div>
+  );
+
+  if (props.embedded) {
+    return enrollmentPanel;
+  }
+
+  return createPortal(
+    <div className={OVERLAY_CLASS} onClick={close}>
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
+      {enrollmentPanel}
     </div>,
     document.body
   );

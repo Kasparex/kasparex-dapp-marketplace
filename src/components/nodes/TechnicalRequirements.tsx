@@ -32,7 +32,7 @@ export function TechnicalRequirements({ requirements }: TechnicalRequirementsPro
           ))}
         </ul>
         <Link
-          href="/api/krex-node"
+          href="/nodes?tab=docs"
           className="text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:underline uppercase tracking-widest transition-colors"
         >
           Full setup guide →

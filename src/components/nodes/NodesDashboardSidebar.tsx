@@ -7,7 +7,7 @@ import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 
 const QUICK_LINKS = [
-  { href: '/api/krex-node', label: 'Run a KREX Node', icon: 'run' },
+  { href: '/nodes?tab=setup', label: 'Run a KREX Node', icon: 'run' },
   { href: '/api', label: 'API overview', icon: 'api' },
   { href: '/knowledge-base', label: 'Knowledge base', icon: 'book' },
   { href: 'https://github.com/Kasparex/kasparex-krex-node', label: 'GitHub repo', icon: 'external', external: true },
@@ -94,7 +94,7 @@ export function NodesDashboardSidebar() {
         <div className="space-y-6">
           <div className="mb-2">
             <div className="space-y-2">
-              <Link href="/api/krex-node" className="k-control-btn w-full">
+              <Link href="/nodes?tab=setup" className="k-control-btn w-full">
                 Run a KREX Node
               </Link>
             </div>

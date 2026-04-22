@@ -429,7 +429,7 @@ export default function KasparexAPIPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
               <Link
-                href="/api/krex-node"
+                href="/nodes?tab=setup"
                 className="px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl font-bold text-sm transition-colors"
               >
                 Run a KREX Node

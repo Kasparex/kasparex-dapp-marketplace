@@ -640,11 +640,6 @@
   background: rgb(9 9 11);
 }
 
-.dark .k-nodes-map .leaflet-tile-pane,
-.kaspa .k-nodes-map .leaflet-tile-pane {
-  filter: brightness(0.72) contrast(1.08) saturate(0.88);
-}
-
 .k-nodes-map .leaflet-control-zoom {
   border: none;
   box-shadow: 0 4px 14px -6px rgba(0, 0, 0, 0.2);

@@ -334,7 +334,7 @@ export function NODEStatusBox() {
               {/* Documentation Link */}
               <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
               <Link
-                href="/api/krex-node"
+                href="/nodes?tab=setup"
                 className="text-xs text-[#02abb8] hover:underline"
               >
                 View full KREX Node documentation →
