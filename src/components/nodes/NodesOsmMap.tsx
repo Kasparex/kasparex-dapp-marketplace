@@ -64,7 +64,7 @@ export function NodesOsmMap(props: { markers: OsmRegionMarker[]; mapTheme: 'ligh
             return (
               <CircleMarker
                 key={m.id}
-                center={m.position}
+                center={[m.position.lat, m.position.lng]}
                 radius={r}
                 pathOptions={{
                   color: '#02abb8',

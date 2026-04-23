@@ -1,7 +1,13 @@
 /**
- * Coarse geography for the /nodes map: prefer country centroids when we can infer
- * a country from `region`; otherwise fall back to continent centers.
- * Centroids are approximate (administrative / geographic center style), not node GPS.
+ * Geography for the /nodes map — 100% static, no geocoding APIs or usage-based costs.
+ *
+ * Resolution order:
+ * 1. Explicit WGS84 in `region`, e.g. `52.2297,21.0122` (comma-separated lat,lng).
+ * 2. Common cloud / AZ-style slugs (bundled coordinates near the advertised region).
+ * 3. ISO 3166-1 alpha-2 or known country name → representative point (capital; good map fit).
+ * 4. Continent name / slug.
+ *
+ * Operators who want an exact pin can set `region` to `lat,lng` from any GPS or map click.
  */
 
 export type NodeMapGeo = {
@@ -12,74 +18,104 @@ export type NodeMapGeo = {
   lng: number;
 };
 
-/**
- * ISO 3166-1 alpha-2 → geographic midpoint of each country (WGS84), for map pins only.
- * Values are tuned to sit visually near the interior of the country on small-scale Web Mercator maps.
- */
-const COUNTRY_CENTROID: Record<string, { lat: number; lng: number; label: string }> = {
-  AD: { lat: 42.55, lng: 1.6, label: 'Andorra' },
-  AE: { lat: 23.42, lng: 53.85, label: 'United Arab Emirates' },
-  AR: { lat: -34.0, lng: -64.0, label: 'Argentina' },
-  AT: { lat: 47.59, lng: 14.12, label: 'Austria' },
-  AU: { lat: -25.27, lng: 133.78, label: 'Australia' },
-  BE: { lat: 50.64, lng: 4.64, label: 'Belgium' },
-  BR: { lat: -14.24, lng: -51.93, label: 'Brazil' },
-  CA: { lat: 56.13, lng: -106.35, label: 'Canada' },
-  CH: { lat: 46.82, lng: 8.23, label: 'Switzerland' },
-  CL: { lat: -35.68, lng: -71.54, label: 'Chile' },
-  CN: { lat: 35.86, lng: 104.2, label: 'China' },
-  CO: { lat: 4.57, lng: -74.3, label: 'Colombia' },
-  CZ: { lat: 49.75, lng: 15.47, label: 'Czechia' },
-  DE: { lat: 51.17, lng: 10.45, label: 'Germany' },
-  DK: { lat: 56.26, lng: 9.5, label: 'Denmark' },
-  EE: { lat: 58.6, lng: 25.01, label: 'Estonia' },
-  EG: { lat: 26.82, lng: 30.8, label: 'Egypt' },
-  ES: { lat: 40.24, lng: -3.7, label: 'Spain' },
-  FI: { lat: 64.5, lng: 26.0, label: 'Finland' },
-  FR: { lat: 46.6, lng: 2.45, label: 'France' },
-  GB: { lat: 53.84, lng: -2.45, label: 'United Kingdom' },
-  GR: { lat: 39.07, lng: 21.82, label: 'Greece' },
-  HK: { lat: 22.32, lng: 114.17, label: 'Hong Kong' },
-  HR: { lat: 45.1, lng: 15.2, label: 'Croatia' },
-  HU: { lat: 47.16, lng: 19.5, label: 'Hungary' },
-  ID: { lat: -0.79, lng: 113.92, label: 'Indonesia' },
-  IE: { lat: 53.41, lng: -8.24, label: 'Ireland' },
-  IL: { lat: 31.05, lng: 34.85, label: 'Israel' },
-  IN: { lat: 20.59, lng: 78.96, label: 'India' },
-  IS: { lat: 64.96, lng: -19.02, label: 'Iceland' },
-  IT: { lat: 42.83, lng: 12.57, label: 'Italy' },
-  JP: { lat: 36.2, lng: 138.25, label: 'Japan' },
-  KE: { lat: -0.02, lng: 37.91, label: 'Kenya' },
-  KR: { lat: 35.91, lng: 127.77, label: 'South Korea' },
-  LT: { lat: 55.17, lng: 23.88, label: 'Lithuania' },
-  LU: { lat: 49.82, lng: 6.13, label: 'Luxembourg' },
-  LV: { lat: 56.88, lng: 24.6, label: 'Latvia' },
-  MX: { lat: 23.63, lng: -102.55, label: 'Mexico' },
-  MY: { lat: 4.21, lng: 101.98, label: 'Malaysia' },
-  NG: { lat: 9.08, lng: 8.68, label: 'Nigeria' },
-  NL: { lat: 52.13, lng: 5.29, label: 'Netherlands' },
-  NO: { lat: 64.5, lng: 12.5, label: 'Norway' },
-  NZ: { lat: -40.9, lng: 174.89, label: 'New Zealand' },
-  PH: { lat: 12.88, lng: 121.77, label: 'Philippines' },
-  /** ~Geographic midpoint of Poland (Łódź / central belt), not border cities. */
-  PL: { lat: 52.13, lng: 19.48, label: 'Poland' },
-  PT: { lat: 39.4, lng: -8.22, label: 'Portugal' },
-  RO: { lat: 45.94, lng: 24.97, label: 'Romania' },
-  RS: { lat: 44.02, lng: 21.01, label: 'Serbia' },
-  RU: { lat: 61.52, lng: 105.32, label: 'Russia' },
-  SA: { lat: 23.89, lng: 45.08, label: 'Saudi Arabia' },
-  SE: { lat: 62.0, lng: 15.0, label: 'Sweden' },
-  SG: { lat: 1.35, lng: 103.82, label: 'Singapore' },
-  SI: { lat: 46.15, lng: 14.99, label: 'Slovenia' },
-  SK: { lat: 48.67, lng: 19.7, label: 'Slovakia' },
-  TH: { lat: 15.87, lng: 100.99, label: 'Thailand' },
-  TR: { lat: 38.96, lng: 35.24, label: 'Türkiye' },
-  TW: { lat: 23.7, lng: 120.96, label: 'Taiwan' },
-  UA: { lat: 48.38, lng: 31.17, label: 'Ukraine' },
-  US: { lat: 39.83, lng: -98.58, label: 'United States' },
-  VN: { lat: 14.06, lng: 108.28, label: 'Vietnam' },
-  ZA: { lat: -30.56, lng: 22.94, label: 'South Africa' },
-  BG: { lat: 42.73, lng: 25.49, label: 'Bulgaria' },
+/** Longer / more specific patterns first. */
+const CLOUD_REGION_GEO: { re: RegExp; lat: number; lng: number; label: string }[] = [
+  { re: /\beu-central-2\b/i, lat: 47.3769, lng: 8.5417, label: 'EU Central 2 (Zurich area)' },
+  { re: /\beu-central-1\b|^eu-central$/i, lat: 50.1109, lng: 8.6821, label: 'EU Central 1 (Frankfurt area)' },
+  { re: /\beu-west-1\b/i, lat: 53.3498, lng: -6.2603, label: 'EU West 1 (Dublin area)' },
+  { re: /\beu-west-2\b/i, lat: 51.5074, lng: -0.1278, label: 'EU West 2 (London area)' },
+  { re: /\beu-west-3\b/i, lat: 48.8566, lng: 2.3522, label: 'EU West 3 (Paris area)' },
+  { re: /\beu-north-1\b/i, lat: 59.3293, lng: 18.0686, label: 'EU North 1 (Stockholm area)' },
+  { re: /\beu-south-1\b/i, lat: 45.4642, lng: 9.19, label: 'EU South 1 (Milan area)' },
+  { re: /\beu-south-2\b/i, lat: 37.3891, lng: -5.9845, label: 'EU South 2 (Spain south)' },
+  { re: /\beu-west\b|\beurope-west\b/i, lat: 51.5074, lng: -0.1278, label: 'EU West' },
+  { re: /\beu-central\b|\beurope-central\b|\bfrankfurt\b/i, lat: 50.1109, lng: 8.6821, label: 'EU Central' },
+  { re: /\beu-north\b|\bstockholm\b/i, lat: 59.3293, lng: 18.0686, label: 'EU North' },
+  { re: /\beu-south\b/i, lat: 45.4642, lng: 9.19, label: 'EU South' },
+  { re: /\beu-west-?\d\b/i, lat: 48.8566, lng: 2.3522, label: 'EU' },
+  { re: /\bus-gov-east-1\b|\bus-east-1\b|\buse1\b/i, lat: 38.9072, lng: -77.0369, label: 'US East (N. Virginia area)' },
+  { re: /\bus-east-2\b|\buse2\b/i, lat: 39.9612, lng: -82.9988, label: 'US East (Ohio area)' },
+  { re: /\bus-west-1\b|\busw1\b/i, lat: 37.7749, lng: -122.4194, label: 'US West (N. California area)' },
+  { re: /\bus-west-2\b|\busw2\b|\boregon\b/i, lat: 45.5152, lng: -122.6784, label: 'US West (Oregon area)' },
+  { re: /\bca-central-1\b|\bcanada-central\b/i, lat: 45.5017, lng: -73.5673, label: 'Canada Central (Montreal area)' },
+  { re: /\bap-southeast-1\b|\bsingapore\b/i, lat: 1.3521, lng: 103.8198, label: 'AP Southeast 1 (Singapore)' },
+  { re: /\bap-southeast-2\b|\bsydney\b/i, lat: -33.8688, lng: 151.2093, label: 'AP Southeast 2 (Sydney area)' },
+  { re: /\bap-northeast-1\b|\btokyo\b/i, lat: 35.6762, lng: 139.6503, label: 'AP Northeast 1 (Tokyo area)' },
+  { re: /\bap-northeast-2\b|\bseoul\b/i, lat: 37.5665, lng: 126.978, label: 'AP Northeast 2 (Seoul area)' },
+  { re: /\bap-south-1\b|\bmumbai\b/i, lat: 19.076, lng: 72.8777, label: 'AP South 1 (Mumbai area)' },
+  { re: /\bap-east-1\b|\bhongkong\b|\bhong kong\b/i, lat: 22.3193, lng: 114.1694, label: 'AP East (Hong Kong area)' },
+  { re: /\bsa-east-1\b|\bsa1\b|\bsão paulo\b|\bsao paulo\b/i, lat: -23.5505, lng: -46.6333, label: 'SA East 1 (São Paulo area)' },
+  { re: /^us-|^na-/i, lat: 39.8283, lng: -98.5795, label: 'US (generic region code)' },
+  { re: /^ap-/i, lat: 1.3521, lng: 103.8198, label: 'Asia-Pacific (generic)' },
+  { re: /^sa-/i, lat: -23.5505, lng: -46.6333, label: 'South America (generic)' },
+  { re: /^af-/i, lat: -26.2041, lng: 28.0473, label: 'Africa (generic)' },
+  { re: /^me-/i, lat: 25.2048, lng: 55.2708, label: 'Middle East (generic)' },
+];
+
+/** ISO2 → capital-class coordinates (WGS84) for map pins; no network calls. */
+const COUNTRY_POINT: Record<string, { lat: number; lng: number; label: string }> = {
+  AD: { lat: 42.5063, lng: 1.5218, label: 'Andorra' },
+  AE: { lat: 24.4539, lng: 54.3773, label: 'United Arab Emirates' },
+  AR: { lat: -34.6037, lng: -58.3816, label: 'Argentina' },
+  AT: { lat: 48.2082, lng: 16.3738, label: 'Austria' },
+  AU: { lat: -35.2809, lng: 149.13, label: 'Australia' },
+  BE: { lat: 50.8503, lng: 4.3517, label: 'Belgium' },
+  BR: { lat: -15.7939, lng: -47.8828, label: 'Brazil' },
+  CA: { lat: 45.4215, lng: -75.6972, label: 'Canada' },
+  CH: { lat: 46.948, lng: 7.4474, label: 'Switzerland' },
+  CL: { lat: -33.4489, lng: -70.6693, label: 'Chile' },
+  CN: { lat: 39.9042, lng: 116.4074, label: 'China' },
+  CO: { lat: 4.711, lng: -74.0721, label: 'Colombia' },
+  CZ: { lat: 50.0755, lng: 14.4378, label: 'Czechia' },
+  DE: { lat: 52.52, lng: 13.405, label: 'Germany' },
+  DK: { lat: 55.6761, lng: 12.5683, label: 'Denmark' },
+  EE: { lat: 59.437, lng: 24.7536, label: 'Estonia' },
+  EG: { lat: 30.0444, lng: 31.2357, label: 'Egypt' },
+  ES: { lat: 40.4168, lng: -3.7038, label: 'Spain' },
+  FI: { lat: 60.1699, lng: 24.9384, label: 'Finland' },
+  FR: { lat: 48.8566, lng: 2.3522, label: 'France' },
+  GB: { lat: 51.5074, lng: -0.1278, label: 'United Kingdom' },
+  GR: { lat: 37.9838, lng: 23.7275, label: 'Greece' },
+  HK: { lat: 22.3193, lng: 114.1694, label: 'Hong Kong' },
+  HR: { lat: 45.815, lng: 15.9819, label: 'Croatia' },
+  HU: { lat: 47.4979, lng: 19.0402, label: 'Hungary' },
+  ID: { lat: -6.2088, lng: 106.8456, label: 'Indonesia' },
+  IE: { lat: 53.3498, lng: -6.2603, label: 'Ireland' },
+  IL: { lat: 31.7683, lng: 35.2137, label: 'Israel' },
+  IN: { lat: 28.6139, lng: 77.209, label: 'India' },
+  IS: { lat: 64.1466, lng: -21.9426, label: 'Iceland' },
+  IT: { lat: 41.9028, lng: 12.4964, label: 'Italy' },
+  JP: { lat: 35.6762, lng: 139.6503, label: 'Japan' },
+  KE: { lat: -1.2921, lng: 36.8219, label: 'Kenya' },
+  KR: { lat: 37.5665, lng: 126.978, label: 'South Korea' },
+  LT: { lat: 54.6872, lng: 25.2797, label: 'Lithuania' },
+  LU: { lat: 49.6116, lng: 6.1319, label: 'Luxembourg' },
+  LV: { lat: 56.9496, lng: 24.1052, label: 'Latvia' },
+  MX: { lat: 19.4326, lng: -99.1332, label: 'Mexico' },
+  MY: { lat: 3.139, lng: 101.6869, label: 'Malaysia' },
+  NG: { lat: 9.0765, lng: 7.3986, label: 'Nigeria' },
+  NL: { lat: 52.3676, lng: 4.9041, label: 'Netherlands' },
+  NO: { lat: 59.9139, lng: 10.7522, label: 'Norway' },
+  NZ: { lat: -41.2865, lng: 174.7762, label: 'New Zealand' },
+  PH: { lat: 14.5995, lng: 120.9842, label: 'Philippines' },
+  PL: { lat: 52.2297, lng: 21.0122, label: 'Poland' },
+  PT: { lat: 38.7223, lng: -9.1393, label: 'Portugal' },
+  RO: { lat: 44.4268, lng: 26.1025, label: 'Romania' },
+  RS: { lat: 44.7866, lng: 20.4489, label: 'Serbia' },
+  RU: { lat: 55.7558, lng: 37.6173, label: 'Russia' },
+  SA: { lat: 24.7136, lng: 46.6753, label: 'Saudi Arabia' },
+  SE: { lat: 59.3293, lng: 18.0686, label: 'Sweden' },
+  SG: { lat: 1.3521, lng: 103.8198, label: 'Singapore' },
+  SI: { lat: 46.0569, lng: 14.5058, label: 'Slovenia' },
+  SK: { lat: 48.1486, lng: 17.1077, label: 'Slovakia' },
+  TH: { lat: 13.7563, lng: 100.5018, label: 'Thailand' },
+  TR: { lat: 41.0082, lng: 28.9784, label: 'Türkiye' },
+  TW: { lat: 25.033, lng: 121.5654, label: 'Taiwan' },
+  UA: { lat: 50.4501, lng: 30.5234, label: 'Ukraine' },
+  US: { lat: 38.9072, lng: -77.0369, label: 'United States' },
+  VN: { lat: 21.0285, lng: 105.8542, label: 'Vietnam' },
+  ZA: { lat: -25.7479, lng: 28.2293, label: 'South Africa' },
+  BG: { lat: 42.6977, lng: 23.3219, label: 'Bulgaria' },
 };
 
 const CONTINENT: Record<string, { lat: number; lng: number; label: string }> = {
@@ -91,7 +127,6 @@ const CONTINENT: Record<string, { lat: number; lng: number; label: string }> = {
   oceania: { lat: -25, lng: 135, label: 'Oceania' },
 };
 
-/** Map free-text / cloud region hints → ISO2 when obvious. */
 const REGION_ALIAS_TO_ISO2: Array<{ re: RegExp; iso2: string }> = [
   { re: /\b(us|usa|united states|america)\b/i, iso2: 'US' },
   { re: /\b(canada|ca)\b/i, iso2: 'CA' },
@@ -126,9 +161,6 @@ const REGION_ALIAS_TO_ISO2: Array<{ re: RegExp; iso2: string }> = [
   { re: /\b(singapore|sg)\b/i, iso2: 'SG' },
   { re: /\b(brazil|br)\b/i, iso2: 'BR' },
   { re: /\b(argentina|ar)\b/i, iso2: 'AR' },
-  { re: /\b(eu-central|euwest|europe-west|europe-central|frankfurt|paris|london|ireland|stockholm)\b/i, iso2: 'DE' },
-  { re: /\b(us-east|us-west|virginia|ohio|oregon|california|n\.?virginia)\b/i, iso2: 'US' },
-  { re: /\b(ap-southeast|ap-northeast|tokyo|sydney|mumbai|singapore)\b/i, iso2: 'SG' },
 ];
 
 function continentSlug(r: string): string | null {
@@ -143,20 +175,42 @@ function continentSlug(r: string): string | null {
   return null;
 }
 
+function parseExplicitLatLng(raw: string): NodeMapGeo | null {
+  const t = raw.trim();
+  const m = t.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
+  if (!m) return null;
+  const lat = Number(m[1]);
+  const lng = Number(m[2]);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+  const key = `gps:${lat.toFixed(4)},${lng.toFixed(4)}`;
+  return { key, label: 'Custom (lat,lng)', lat, lng };
+}
+
+function tryCloudRegion(raw: string): NodeMapGeo | null {
+  const s = raw.trim();
+  if (!s) return null;
+  for (const row of CLOUD_REGION_GEO) {
+    if (row.re.test(s)) {
+      const slug = s.toLowerCase().replace(/\s+/g, '-').slice(0, 48);
+      return {
+        key: `cloud:${slug}`,
+        label: row.label,
+        lat: row.lat,
+        lng: row.lng,
+      };
+    }
+  }
+  return null;
+}
+
 function tryIso2(raw: string): string | null {
   const t = raw.trim().toUpperCase();
-  if (t.length === 2 && COUNTRY_CENTROID[t]) return t;
+  if (t.length === 2 && COUNTRY_POINT[t]) return t;
   const lower = raw.trim().toLowerCase();
   for (const { re, iso2 } of REGION_ALIAS_TO_ISO2) {
     if (re.test(lower)) return iso2;
   }
-  // eu-central-1 style
-  if (/^eu-|^europe-/i.test(raw)) return 'DE';
-  if (/^us-|^na-/i.test(raw)) return 'US';
-  if (/^ap-/i.test(raw)) return 'SG';
-  if (/^sa-/i.test(raw)) return 'BR';
-  if (/^af-/i.test(raw)) return 'ZA';
-  if (/^me-/i.test(raw)) return 'AE';
   return null;
 }
 
@@ -167,9 +221,15 @@ export function resolveNodeMapGeo(region: string | null | undefined): NodeMapGeo
     return { key: 'continent:europe', label: `${c.label} (unknown region)`, lat: c.lat, lng: c.lng };
   }
 
+  const explicit = parseExplicitLatLng(raw);
+  if (explicit) return explicit;
+
+  const cloud = tryCloudRegion(raw);
+  if (cloud) return cloud;
+
   const iso = tryIso2(raw);
-  if (iso && COUNTRY_CENTROID[iso]) {
-    const c = COUNTRY_CENTROID[iso];
+  if (iso && COUNTRY_POINT[iso]) {
+    const c = COUNTRY_POINT[iso];
     return { key: `country:${iso}`, label: c.label, lat: c.lat, lng: c.lng };
   }
 
@@ -179,7 +239,6 @@ export function resolveNodeMapGeo(region: string | null | undefined): NodeMapGeo
     return { key: `continent:${cont}`, label: c.label, lat: c.lat, lng: c.lng };
   }
 
-  // Unknown string: single letter codes etc.
   const c = CONTINENT.europe;
   return {
     key: `unknown:${raw.toLowerCase().slice(0, 32)}`,

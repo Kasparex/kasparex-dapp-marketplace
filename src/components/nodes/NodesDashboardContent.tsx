@@ -170,12 +170,33 @@ export function NodesDashboardContent() {
     else setActiveTab('dashboard');
   }, [searchParams]);
 
-  const goTab = (t: TabId) => {
+  type EnrollIntent = 'register' | 'manage';
+
+  const goTab = (t: TabId, opts?: { enrollIntent?: EnrollIntent }) => {
     setActiveTab(t);
     const params = new URLSearchParams(searchParams?.toString() || '');
     params.set('tab', t);
+    if (t === 'enroll') {
+      if (opts?.enrollIntent === 'manage') params.set('intent', 'manage');
+      else params.delete('intent');
+    } else {
+      params.delete('intent');
+    }
     router.replace(`/nodes?${params.toString()}`, { scroll: false });
   };
+
+  const enrollManage = searchParams?.get('intent') === 'manage';
+  const manageExistingNode =
+    enrollManage && myNode
+      ? {
+          node_id: myNode.node_id,
+          node_name: myNode.node_name,
+          role: (myNode.role as 'light' | 'mirror' | 'super') || 'light',
+          url: myNode.url,
+          region: myNode.region,
+          version: (myNode as { version?: string }).version || '1.0.0',
+        }
+      : null;
 
   return (
     <div className="space-y-10">
@@ -217,7 +238,7 @@ export function NodesDashboardContent() {
                 </Link>
                 <button
                   type="button"
-                  onClick={() => goTab('enroll')}
+                  onClick={() => goTab('enroll', myNode ? { enrollIntent: 'manage' } : { enrollIntent: 'register' })}
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                 >
                   {myNode ? 'Edit node details' : 'Enroll (get node secret)'}
@@ -243,7 +264,7 @@ export function NodesDashboardContent() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-6">
               <NodeOverview nodeInfo={nodeInfo} metrics={metrics} />
-              <ConnectAndRegister nodeInfo={nodeInfo} onEnrollClick={() => goTab('enroll')} />
+              <ConnectAndRegister nodeInfo={nodeInfo} onEnrollClick={() => goTab('enroll', { enrollIntent: 'register' })} />
             </div>
             <div className="space-y-6">
               <StatusAndParameters nodeInfo={nodeInfo} metrics={metrics} />
@@ -264,27 +285,26 @@ export function NodesDashboardContent() {
           <div className={NODES_DASH_CARD}>
             <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Register &amp; enroll</h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              Connect your Kaspa wallet and complete the Worker flow: signed challenge, optional on-chain verification, then
-              node details. Your <code className="font-mono text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">node_secret</code>{' '}
-              is shown only after a successful enroll.
+              Connect your Kaspa wallet and complete the Worker flow: signed challenge, on-chain 1 KAS verification (new
+              enrollments), then node details. Your{' '}
+              <code className="font-mono text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">node_secret</code> is shown only
+              after a successful enroll.
+              {myNode ? (
+                <>
+                  {' '}
+                  You already have a node: use <span className="font-semibold text-zinc-800 dark:text-zinc-200">Edit node details</span>{' '}
+                  on the Dashboard hero to update it without the 1 KAS step, or append{' '}
+                  <code className="font-mono text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">?intent=manage</code> to this page
+                  URL.
+                </>
+              ) : null}
             </p>
           </div>
           <KrexNodeEnrollmentModal
             isOpen
             embedded
             onClose={() => goTab('dashboard')}
-            existingNode={
-              myNode
-                ? {
-                    node_id: myNode.node_id,
-                    node_name: myNode.node_name,
-                    role: (myNode.role as any) || 'light',
-                    url: myNode.url,
-                    region: myNode.region,
-                    version: (myNode as any).version || '1.0.0',
-                  }
-                : null
-            }
+            existingNode={manageExistingNode}
           />
         </div>
       ) : (

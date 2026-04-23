@@ -65,7 +65,7 @@ export function NodesMap(props: { nodes: KrexNode[] }) {
       <div className={NODES_DASH_CARD}>
         <SectionHeader
           title="Node map"
-          hint="Map data © OpenStreetMap contributors, style © CARTO. Pins use country centroids when we can infer a country from `region`, otherwise a continent center — not exact GPS."
+          hint="Map data © OpenStreetMap contributors, style © CARTO. Pins are static (no geocoding): optional lat,lng in `region`, else cloud-region or country points — zero API usage."
           right={<span>{nodes.length} active</span>}
         />
 
@@ -74,8 +74,9 @@ export function NodesMap(props: { nodes: KrexNode[] }) {
         </div>
 
         <div className="mt-3 text-xs text-zinc-500 dark:text-zinc-500">
-          Tip: set <code className="font-mono">region</code> to an ISO country code (e.g. <code className="font-mono">PL</code>), a
-          country name, or a cloud-style hint like <code className="font-mono">eu-central-1</code> for a more accurate pin.
+          Tip: for an exact pin set <code className="font-mono">region</code> to <code className="font-mono">lat,lng</code> (WGS84,
+          e.g. <code className="font-mono">52.2297,21.0122</code>). Otherwise use ISO2, a country name, or a cloud slug like{' '}
+          <code className="font-mono">eu-central-1</code> — all resolved offline in the app.
         </div>
       </div>
     </section>
