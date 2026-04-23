@@ -51,8 +51,10 @@ export function useWalletDeck() {
       });
       return r.data;
     },
-    staleTime: 10_000,
-    refetchInterval: 20_000,
+    staleTime: Infinity,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 

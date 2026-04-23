@@ -34,10 +34,10 @@ type TabId = (typeof TABS)[number]['id'];
 
 type Target = { id: string; x: number; y: number; r: number; ttlMs: number; createdAt: number };
 
-export function PrecisionClickDashboard(props: { featuredImage?: string; gameDescription?: string; gameName?: string; game: any }) {
+export function PrecisionClickDashboard(props: { featuredImage?: string; loreStory?: string; gameDescription?: string; gameName?: string; game: any }) {
   const { tier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
-  const { multiplier: krexBoosterMult } = useKrexBoosters('precision-click');
+  const { multiplier: krexBoosterMult, isActive: krexBoostActive, until: krexBoostUntil, txHash: krexBoostTx } = useKrexBoosters('precision-click');
   const { data: deck, isLoading: deckLoading } = useWalletDeck();
 
   const hasAnyNFT =
@@ -216,6 +216,13 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; gameDes
                 .
               </p>
             </div>
+
+            {props.loreStory ? (
+              <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
+                <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Story</h3>
+                <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{props.loreStory}</p>
+              </div>
+            ) : null}
           </div>
         )}
 
@@ -330,6 +337,21 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; gameDes
                 {t}
               </span>
             ))}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
+          <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Purchased</p>
+          <div className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+            {krexBoostActive && krexBoostUntil ? (
+              <div className="space-y-1">
+                <p className="font-semibold text-zinc-900 dark:text-zinc-100">KREX booster active</p>
+                <p className="text-xs">Ends at {new Date(krexBoostUntil).toLocaleString()}</p>
+                {krexBoostTx ? <p className="text-xs font-mono text-zinc-500 dark:text-zinc-500">{krexBoostTx.slice(0, 10)}…{krexBoostTx.slice(-8)}</p> : null}
+              </div>
+            ) : (
+              <p className="text-xs">No active purchases yet.</p>
+            )}
           </div>
         </div>
 

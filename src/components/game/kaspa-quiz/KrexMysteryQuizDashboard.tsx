@@ -176,7 +176,7 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
   const { state: walletState } = useKaspaWallet();
   const { tier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
-  const { multiplier: krexBoosterMult } = useKrexBoosters('kaspa-quiz');
+  const { multiplier: krexBoosterMult, isActive: krexBoostActive, until: krexBoostUntil, txHash: krexBoostTx } = useKrexBoosters('kaspa-quiz');
   const { data: deck, isLoading: deckLoading } = useWalletDeck();
 
   const levels = useMemo(() => buildLevels(), []);
@@ -280,6 +280,13 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
                 <p>Every level is a clue — and every clue points to another system.</p>
               </div>
             </div>
+
+            {props.loreStory ? (
+              <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
+                <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Story</h3>
+                <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{props.loreStory}</p>
+              </div>
+            ) : null}
 
             <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
               <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">References</h3>
@@ -441,6 +448,21 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
                 {t}
               </span>
             ))}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
+          <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Purchased</p>
+          <div className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+            {krexBoostActive && krexBoostUntil ? (
+              <div className="space-y-1">
+                <p className="font-semibold text-zinc-900 dark:text-zinc-100">KREX booster active</p>
+                <p className="text-xs">Ends at {new Date(krexBoostUntil).toLocaleString()}</p>
+                {krexBoostTx ? <p className="text-xs font-mono text-zinc-500 dark:text-zinc-500">{krexBoostTx.slice(0, 10)}…{krexBoostTx.slice(-8)}</p> : null}
+              </div>
+            ) : (
+              <p className="text-xs">No active purchases yet.</p>
+            )}
           </div>
         </div>
 

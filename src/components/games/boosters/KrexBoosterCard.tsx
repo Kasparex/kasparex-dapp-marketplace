@@ -107,7 +107,7 @@ export function KrexBoosterCard(props: { gameId: string; title?: string }) {
   };
 
   return (
-    <div className="kx-listing-card w-full overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 transition-colors dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
@@ -149,14 +149,14 @@ export function KrexBoosterCard(props: { gameId: string; title?: string }) {
         </div>
       ) : null}
 
-      <div className="mt-4 grid grid-cols-1 gap-2">
+      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
         {options.map((opt) => (
           <button
             key={opt.id}
             type="button"
             disabled={isBuying || !canPay}
             onClick={() => void handleBuy(opt)}
-            className="text-left px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="text-left px-4 py-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <div className="flex items-center justify-between gap-4">
               <div>

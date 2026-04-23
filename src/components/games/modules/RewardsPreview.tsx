@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useWalletDeck } from '@/hooks/useWalletDeck';
 
 export function RewardsPreview(props: { showLink?: boolean; className?: string }) {
-  const { data, isLoading } = useWalletDeck();
+  const { data, isLoading, isFetching, refetch } = useWalletDeck();
 
   const pendingGrid = data?.rewards?.pendingGrid ?? 0;
   const diamonds = data?.diamonds?.balance ?? 0;
@@ -17,11 +17,21 @@ export function RewardsPreview(props: { showLink?: boolean; className?: string }
           <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Your rewards</div>
           <div className="text-xs text-zinc-500 dark:text-zinc-500">Unified deck</div>
         </div>
-        {showLink ? (
-          <Link href="/tiers" className="text-xs font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
-            Open deck
-          </Link>
-        ) : null}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            className="text-xs font-semibold text-emerald-600 hover:underline disabled:opacity-60 dark:text-emerald-400"
+            disabled={isFetching}
+          >
+            {isFetching ? 'Refreshing…' : 'Refresh'}
+          </button>
+          {showLink ? (
+            <Link href="/tiers" className="text-xs font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
+              Open deck
+            </Link>
+          ) : null}
+        </div>
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-6">
