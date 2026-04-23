@@ -143,6 +143,12 @@ export function GamesSidebar({
 
   return (
     <UnifiedSidebar storageKeyPrefix="games" header={header}>
+        <div className="p-4 pt-3">
+          <Link href="/games/connections" className="w-full k-control-btn justify-center">
+            Map
+          </Link>
+        </div>
+
         {showCategories && (
           <>
             <SidebarCategories
@@ -204,12 +210,6 @@ export function GamesSidebar({
             <button type="button" onClick={onResetFilters} className="w-full mt-4 k-control-btn">
               Reset Filters
             </button>
-
-            <div className="mt-3">
-              <Link href="/games/connections" className="k-cta-primary w-full justify-center">
-                Game connections map
-              </Link>
-            </div>
           </>
         )}
     </UnifiedSidebar>

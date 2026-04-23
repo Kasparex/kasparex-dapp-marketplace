@@ -5,8 +5,19 @@ import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { listGames } from '@/lib/games/registry';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { useWalletDeck } from '@/hooks/useWalletDeck';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useNFTStatus } from '@/hooks/useNFTStatus';
+import { StatusDot } from '@/components/ui/StatusDot';
+import { TooltipProvider } from '@/components/ui/Tooltip';
 
 function ConnectionsContent() {
+  const { state: walletState } = useKaspaWallet();
+  const { data, isLoading } = useWalletDeck();
+  const { tier } = useKREXBalance();
+  const { nftStatus } = useNFTStatus();
+
   const games = useMemo(() => listGames(), []);
 
   const rows = useMemo(() => {
@@ -14,6 +25,8 @@ function ConnectionsContent() {
       from: string;
       to: { label: string; href: string };
       requirement?: string;
+      actionKey?: string;
+      actionHint?: string;
       punch: string;
       entry: string;
       rewards: string;
@@ -33,6 +46,8 @@ function ConnectionsContent() {
           from: g.name,
           to: { label, href },
           requirement: c.requirement,
+          actionKey: c.actionKey,
+          actionHint: c.actionHint,
           punch: c.punch,
           entry,
           rewards,
@@ -41,6 +56,41 @@ function ConnectionsContent() {
     }
     return r;
   }, [games]);
+
+  const diamonds = data?.diamonds?.balance ?? 0;
+  const hasAnyNFT =
+    Boolean(nftStatus?.hasKREXPRIME) ||
+    Boolean(nftStatus?.hasPIXELKREX) ||
+    Boolean(nftStatus?.hasDiamondKREXPRIME) ||
+    Boolean(nftStatus?.hasDiamondPIXELKREX) ||
+    Boolean(nftStatus?.hasRarestNFT) ||
+    Boolean(nftStatus?.partnerCollections && Object.values(nftStatus.partnerCollections).some(Boolean));
+
+  function actionDotForRow(row: { actionKey?: string; actionHint?: string; requirement?: string }) {
+    if (!walletState.isConnected) {
+      return { tone: 'bad' as const, tip: 'Connect your wallet to track requirements.' };
+    }
+    const key = row.actionKey ?? 'none';
+    if (key === 'diamonds_100') {
+      if (isLoading) return { tone: 'info' as const, tip: 'Checking your diamonds…' };
+      return diamonds >= 100
+        ? { tone: 'ok' as const, tip: 'Ready: you have enough diamonds to refine.' }
+        : { tone: 'warn' as const, tip: row.actionHint ?? 'Mine more diamonds, then refine.' };
+    }
+    if (key === 'krex_or_nft') {
+      const ready = (tier && tier !== 'Tier0') || hasAnyNFT;
+      return ready
+        ? { tone: 'ok' as const, tip: 'Ready: you have tier/deck boosts available.' }
+        : { tone: 'warn' as const, tip: row.actionHint ?? 'Hold KREX or equip an NFT for boosts.' };
+    }
+    if (key === 'read_chronicles') {
+      return { tone: 'info' as const, tip: row.actionHint ?? 'Open Chapters / Characters for context.' };
+    }
+    if (key === 'wallet') {
+      return { tone: 'ok' as const, tip: 'Wallet connected.' };
+    }
+    return { tone: 'info' as const, tip: row.actionHint ?? row.requirement ?? 'No required action.' };
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 overflow-hidden relative">
@@ -80,6 +130,7 @@ function ConnectionsContent() {
                   <tr>
                     <th className="p-4 font-semibold text-zinc-700 dark:text-zinc-300">From</th>
                     <th className="p-4 font-semibold text-zinc-700 dark:text-zinc-300">To</th>
+                    <th className="p-4 font-semibold text-zinc-700 dark:text-zinc-300">Status</th>
                     <th className="p-4 font-semibold text-zinc-700 dark:text-zinc-300">Requirement</th>
                     <th className="p-4 font-semibold text-zinc-700 dark:text-zinc-300">Why / next step</th>
                     <th className="p-4 font-semibold text-zinc-700 dark:text-zinc-300">Play info</th>
@@ -89,12 +140,15 @@ function ConnectionsContent() {
                 <tbody>
                   {rows.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-zinc-500 dark:text-zinc-400">
+                      <td colSpan={7} className="p-8 text-center text-zinc-500 dark:text-zinc-400">
                         No connections defined yet.
                       </td>
                     </tr>
                   ) : (
                     rows.map((row, idx) => (
+                      (() => {
+                        const dot = actionDotForRow(row);
+                        return (
                       <tr key={`${row.from}-${row.to.href}-${idx}`} className="border-b border-zinc-100 dark:border-zinc-800">
                         <td className="p-4 font-semibold text-zinc-900 dark:text-zinc-100">{row.from}</td>
                         <td className="p-4">
@@ -102,11 +156,16 @@ function ConnectionsContent() {
                             {row.to.label}
                           </Link>
                         </td>
+                        <td className="p-4">
+                          <StatusDot tone={dot.tone} tooltip={dot.tip} />
+                        </td>
                         <td className="p-4 text-zinc-600 dark:text-zinc-400">{row.requirement ?? '—'}</td>
                         <td className="p-4 text-zinc-700 dark:text-zinc-300">{row.punch}</td>
                         <td className="p-4 text-zinc-600 dark:text-zinc-400">{row.entry}</td>
                         <td className="p-4 text-zinc-600 dark:text-zinc-400">{row.rewards}</td>
                       </tr>
+                        );
+                      })()
                     ))
                   )}
                 </tbody>
@@ -130,7 +189,9 @@ export default function GameConnectionsPage() {
         </div>
       }
     >
-      <ConnectionsContent />
+      <TooltipProvider>
+        <ConnectionsContent />
+      </TooltipProvider>
     </Suspense>
   );
 }

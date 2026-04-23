@@ -107,7 +107,7 @@ export function KrexBoosterCard(props: { gameId: string; title?: string }) {
   };
 
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6">
+    <div className="kx-listing-card w-full overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 transition-colors dark:border-zinc-800 dark:bg-zinc-900">
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
@@ -135,7 +135,7 @@ export function KrexBoosterCard(props: { gameId: string; title?: string }) {
             <button
               type="button"
               onClick={clear}
-              className="px-3 py-2 text-xs font-semibold bg-white/60 dark:bg-zinc-900/60 hover:bg-white dark:hover:bg-zinc-800 border border-emerald-500/25 rounded-lg transition-colors"
+              className="k-control-btn h-9 px-3 text-xs"
             >
               Clear
             </button>

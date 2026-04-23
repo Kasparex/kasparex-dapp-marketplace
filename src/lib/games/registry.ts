@@ -42,6 +42,8 @@ export type UnifiedGame = Game & {
     title: string;
     punch: string;
     requirement?: string;
+    actionKey?: 'wallet' | 'diamonds_100' | 'krex_or_nft' | 'tickets' | 'read_chronicles' | 'none';
+    actionHint?: string;
   }>;
 };
 
@@ -111,6 +113,8 @@ export const gamesRegistry: UnifiedGame[] = [
         title: 'Refinement → Cipher Tickets',
         punch: 'Mine diamonds, refine points, then redeem tickets to enter Cipher Vaults without paying KAS.',
         requirement: 'Refine at least 100 diamonds to earn refinement points.',
+        actionKey: 'diamonds_100',
+        actionHint: 'Mine more diamonds, then refine (100+).',
       },
     ],
   },
@@ -153,6 +157,8 @@ export const gamesRegistry: UnifiedGame[] = [
         title: 'Need tickets?',
         punch: 'To farm Cipher Tickets cheaply, mine and refine in Diamond Veins first.',
         requirement: 'Redeem Diamond Veins refinement points into tickets.',
+        actionKey: 'diamonds_100',
+        actionHint: 'Mine diamonds and refine to generate redeemable points.',
       },
     ],
   },
@@ -189,6 +195,8 @@ export const gamesRegistry: UnifiedGame[] = [
         title: 'Gear up with the deck',
         punch: 'Your KREX tier + NFT deck boosts your final score. Build your deck power in Diamond Veins.',
         requirement: 'Hold KREX and/or equip NFTs for better multipliers.',
+        actionKey: 'krex_or_nft',
+        actionHint: 'Hold KREX or equip any supported NFT to boost multipliers.',
       },
     ],
   },
@@ -225,11 +233,15 @@ export const gamesRegistry: UnifiedGame[] = [
         title: 'Read the source',
         punch: 'Want perfect clears? Skim the Chronicles chapters and character dossiers.',
         requirement: 'Explore chapters and characters in Chronicles.',
+        actionKey: 'read_chronicles',
+        actionHint: 'Open Chapters / Characters for lore context.',
       },
       {
         toSlug: 'cipher-vaults',
         title: 'Solve the real locks',
         punch: 'Quiz trained your mind. Cipher Vaults tests it for real—decode the grid and record checkpoints.',
+        actionKey: 'none',
+        actionHint: 'Start a Cipher Vault run and submit a clear.',
       },
     ],
   },
@@ -265,6 +277,8 @@ export const gamesRegistry: UnifiedGame[] = [
         toSlug: 'cipher-vaults',
         title: 'ARIA fragments → Vaults',
         punch: 'Precision Lock trains the fragment timing. Then go clear Cipher Vaults for real checkpoints.',
+        actionKey: 'none',
+        actionHint: 'Start a Cipher Vault run and record checkpoints.',
       },
     ],
   },
