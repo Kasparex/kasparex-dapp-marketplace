@@ -6,6 +6,7 @@ import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
 import { useKrexBoosters } from '@/hooks/useKrexBoosters';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 
 const DEFAULT_PRIORITY_FEE_KAS = 0.001;
 const KREX_DECIMALS = 8;
@@ -149,28 +150,53 @@ export function KrexBoosterCard(props: { gameId: string; title?: string }) {
         </div>
       ) : null}
 
-      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
+      <div className="mt-5 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {options.map((opt) => (
-          <button
-            key={opt.id}
-            type="button"
-            disabled={isBuying || !canPay}
-            onClick={() => void handleBuy(opt)}
-            className="text-left px-4 py-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{opt.label}</div>
-                <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                  ×{opt.mult.toFixed(2)} for {Math.round(opt.durationMs / 60000)} min
+          <KxListingCard key={opt.id} accent="games" className="relative flex min-h-0 flex-col">
+            <KxListingCardMedia aspectClass="aspect-[3/2]">
+              <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <svg className="h-12 w-12 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div className="pointer-events-none absolute left-4 top-4 z-20 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                <span className="inline-flex items-center rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-800 dark:text-emerald-200">
+                  KRC-20
+                </span>
+              </div>
+            </KxListingCardMedia>
+
+            <KxListingCardBody className="relative z-10 flex min-h-0 flex-1 flex-col">
+              <div className="mb-2 flex items-start justify-between gap-3">
+                <h3 className="flex-1 truncate text-[15px] font-semibold text-zinc-900 dark:text-zinc-100" title={opt.label}>
+                  {opt.label}
+                </h3>
+              </div>
+
+              <div className="mb-4 min-h-0 flex-grow">
+                <p className="line-clamp-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                  ×{opt.mult.toFixed(2)} multiplier for {Math.round(opt.durationMs / 60000)} minutes.
+                </p>
+              </div>
+
+              <div className="mt-auto border-t border-zinc-100 pt-4 dark:border-zinc-800">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-sm font-black tabular-nums text-zinc-900 dark:text-zinc-100">
+                    {opt.priceKrex} KREX
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void handleBuy(opt)}
+                    disabled={isBuying || !canPay}
+                    className="k-cta-primary disabled:opacity-50"
+                  >
+                    Buy
+                  </button>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-xs text-zinc-500 dark:text-zinc-400">Price</div>
-                <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{opt.priceKrex} KREX</div>
-              </div>
-            </div>
-          </button>
+            </KxListingCardBody>
+          </KxListingCard>
         ))}
       </div>
 
