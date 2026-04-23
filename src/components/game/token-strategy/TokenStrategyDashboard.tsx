@@ -92,6 +92,10 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; gameDesc
 
   const mission = missions[missionIndex]!;
 
+  const connections = (props.game?.connections ?? []) as Array<{ toSlug?: string; toHref?: string; title: string; punch: string; requirement?: string }>;
+  const categories = (props.game?.categories ?? []) as string[];
+  const tags = (props.game?.tags ?? []) as string[];
+
   return (
     <div className="grid h-full grid-cols-1 gap-8 lg:grid-cols-12">
       <div className="flex flex-col space-y-6 lg:col-span-8">
@@ -130,12 +134,34 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; gameDesc
         </div>
 
         {tab === 'overview' && (
-          <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-            <h3 className="mb-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">How it works</h3>
-            <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-              Choose mission actions to build Security, Power, and Stealth. Your final score is a lightweight summary, boosted by your KREX tier, NFT deck, and optional KREX booster.
+          <article className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Kasparex Defense: Briefing</h3>
+            <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+              Null Gang doesn’t kick the door in — it taps the edges until something blinks. Your job is to decide what moves first: <strong>Security</strong>, <strong>Power</strong>, or <strong>Stealth</strong>.
             </p>
-          </div>
+
+            <h4 className="mt-6 text-sm font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">How to play</h4>
+            <ul className="mt-2 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+              <li>Pay entry once, then pick actions across missions.</li>
+              <li>Your stats stack and convert into a final score.</li>
+              <li>
+                Boosters are optional — driven by your KREX tier, NFT deck, and the optional KREX booster.
+              </li>
+            </ul>
+
+            <h4 className="mt-6 text-sm font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Lore hooks</h4>
+            <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+              Vector’s patches are fast. Tessa’s routes are quiet. Krex wants proof. If you want the wider world, open{' '}
+              <Link href="/chronicles/characters" className="font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
+                Characters
+              </Link>{' '}
+              and{' '}
+              <Link href="/chronicles/chapters" className="font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
+                Chapters
+              </Link>
+              .
+            </p>
+          </article>
         )}
 
         {tab === 'boosters' && (
@@ -229,6 +255,42 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; gameDesc
                 {props.gameDescription}
               </p>
             ) : null}
+            <div className="mt-4 space-y-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Metadata</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {categories.map((c) => (
+                    <span key={c} className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-semibold text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
+                      {c}
+                    </span>
+                  ))}
+                  {tags.map((t) => (
+                    <span key={t} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-800 dark:text-emerald-200">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {connections.length > 0 ? (
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Interconnections</p>
+                  <div className="mt-2 space-y-2">
+                    {connections.map((c) => (
+                      <Link
+                        key={c.title}
+                        href={c.toHref ?? (c.toSlug ? `/games/${c.toSlug}` : '/games')}
+                        className="block rounded-2xl border border-zinc-200 bg-white p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-800/50"
+                      >
+                        <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{c.title}</p>
+                        <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">{c.punch}</p>
+                        {c.requirement ? <p className="mt-2 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">Requirement: {c.requirement}</p> : null}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
 

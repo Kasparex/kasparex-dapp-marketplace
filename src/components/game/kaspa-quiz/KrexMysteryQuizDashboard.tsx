@@ -10,6 +10,7 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useKrexBoosters } from '@/hooks/useKrexBoosters';
 import { RewardsPreview } from '@/components/games/modules/RewardsPreview';
+import { getGameBySlugFromRegistry } from '@/lib/games/registry';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -198,6 +199,10 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
   const level = levels[levelIndex]!;
   const q = level.questions[questionIndex]!;
 
+  const connections = (props.game?.connections ?? []) as Array<{ toSlug?: string; toHref?: string; title: string; punch: string; requirement?: string }>;
+  const categories = (props.game?.categories ?? []) as string[];
+  const tags = (props.game?.tags ?? []) as string[];
+
   return (
     <div className="grid h-full grid-cols-1 gap-8 lg:grid-cols-12">
       <div className="flex flex-col space-y-6 lg:col-span-8">
@@ -237,12 +242,39 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
 
         {tab === 'overview' && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <h3 className="mb-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">How it works</h3>
-              <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                Start the case, clear 10 levels, and unlock deeper lore themes. Each level has 5 questions. Your score uses a simple multiplier from your KREX tier, NFT deck, and optional KREX booster.
+            <article className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
+              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Krex’s Chronicles: Case File</h3>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                You’re not here to guess — you’re here to <strong>verify</strong>. Ten chapters. Five questions per chapter. Each correct answer tightens the signal, exposes the breach, and pushes you deeper into the Chronicle.
               </p>
-            </div>
+
+              <h4 className="mt-6 text-sm font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">How to play</h4>
+              <ul className="mt-2 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                <li>Pay entry once, then clear levels 1 → 10.</li>
+                <li>Score is simple: correct answers only (boosters multiply it).</li>
+                <li>
+                  Want lore context? Browse{' '}
+                  <Link href="/chronicles/chapters" className="font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
+                    Chapters
+                  </Link>{' '}
+                  and{' '}
+                  <Link href="/chronicles/characters" className="font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
+                    Characters
+                  </Link>
+                  .
+                </li>
+              </ul>
+
+              <h4 className="mt-6 text-sm font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Lore</h4>
+              <div className="mt-2 space-y-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                <p>
+                  Krex’s visor flashes a single line: <em>“If it can’t be verified, it can’t be trusted.”</em> Null Gang noise floods the perimeter. ARIA’s fragments pulse in the background. Vector patches the edges. Tessa watches the quiet routes.
+                </p>
+                <p>
+                  Every level is a clue — and every clue is a path to another system. Don’t just win the quiz. Use it to decide what you’ll do next.
+                </p>
+              </div>
+            </article>
           </div>
         )}
 
@@ -373,6 +405,46 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
                 {props.gameDescription}
               </p>
             ) : null}
+
+            <div className="mt-4 space-y-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Metadata</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {categories.map((c) => (
+                    <span key={c} className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-semibold text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
+                      {c}
+                    </span>
+                  ))}
+                  {tags.map((t) => (
+                    <span key={t} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-800 dark:text-emerald-200">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {connections.length > 0 ? (
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Interconnections</p>
+                  <div className="mt-2 space-y-2">
+                    {connections.map((c) => {
+                      const target = c.toHref ?? (c.toSlug ? `/games/${c.toSlug}` : undefined);
+                      return (
+                        <Link
+                          key={c.title}
+                          href={target ?? '/games'}
+                          className="block rounded-2xl border border-zinc-200 bg-white p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-800/50"
+                        >
+                          <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{c.title}</p>
+                          <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">{c.punch}</p>
+                          {c.requirement ? <p className="mt-2 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">Requirement: {c.requirement}</p> : null}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
 

@@ -204,6 +204,12 @@ export function GamesSidebar({
             <button type="button" onClick={onResetFilters} className="w-full mt-4 k-control-btn">
               Reset Filters
             </button>
+
+            <div className="mt-3">
+              <Link href="/games/connections" className="k-cta-primary w-full justify-center">
+                Game connections map
+              </Link>
+            </div>
           </>
         )}
     </UnifiedSidebar>

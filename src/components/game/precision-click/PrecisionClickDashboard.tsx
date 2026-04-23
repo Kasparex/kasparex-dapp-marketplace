@@ -68,6 +68,10 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; gameDes
   );
   const [lore, setLore] = useState(loreLines[0]!);
 
+  const connections = (props.game?.connections ?? []) as Array<{ toSlug?: string; toHref?: string; title: string; punch: string; requirement?: string }>;
+  const categories = (props.game?.categories ?? []) as string[];
+  const tags = (props.game?.tags ?? []) as string[];
+
   function spawnTarget() {
     const el = arenaRef.current;
     if (!el) return;
@@ -168,12 +172,32 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; gameDes
         </div>
 
         {tab === 'overview' && (
-          <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-            <h3 className="mb-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">How it works</h3>
-            <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-              Start a 30s run. Hit targets before they fade. Smaller targets are worth more. Your final score uses a simple multiplier from KREX tier, NFT deck, and optional KREX booster.
+          <article className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">ARIA Lock: Training Note</h3>
+            <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+              ARIA’s fragments don’t wait. The window is small, the noise is loud, and hesitation is a miss. Train the timing until your clicks feel inevitable.
             </p>
-          </div>
+
+            <h4 className="mt-6 text-sm font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">How to play</h4>
+            <ul className="mt-2 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+              <li>Start a 30s run.</li>
+              <li>Hit targets before they fade. Smaller = more points.</li>
+              <li>Boosters multiply the final score (KREX tier + deck + optional booster).</li>
+            </ul>
+
+            <h4 className="mt-6 text-sm font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Lore hooks</h4>
+            <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+              Want to see why ARIA matters? Browse{' '}
+              <Link href="/chronicles/chapters" className="font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
+                Chronicles chapters
+              </Link>{' '}
+              or search the{' '}
+              <Link href="/chronicles/characters" className="font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
+                character dossiers
+              </Link>
+              .
+            </p>
+          </article>
         )}
 
         {tab === 'boosters' && (
@@ -271,6 +295,42 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; gameDes
                 {props.gameDescription}
               </p>
             ) : null}
+            <div className="mt-4 space-y-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Metadata</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {categories.map((c) => (
+                    <span key={c} className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-semibold text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
+                      {c}
+                    </span>
+                  ))}
+                  {tags.map((t) => (
+                    <span key={t} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-800 dark:text-emerald-200">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {connections.length > 0 ? (
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Interconnections</p>
+                  <div className="mt-2 space-y-2">
+                    {connections.map((c) => (
+                      <Link
+                        key={c.title}
+                        href={c.toHref ?? (c.toSlug ? `/games/${c.toSlug}` : '/games')}
+                        className="block rounded-2xl border border-zinc-200 bg-white p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-800/50"
+                      >
+                        <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{c.title}</p>
+                        <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">{c.punch}</p>
+                        {c.requirement ? <p className="mt-2 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">Requirement: {c.requirement}</p> : null}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
 

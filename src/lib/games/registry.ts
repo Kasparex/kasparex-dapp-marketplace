@@ -34,6 +34,15 @@ export type UnifiedGame = Game & {
   route: GameRoute;
   capabilities: GameCapability[];
   skus?: GameSKU[];
+  categories?: string[];
+  tags?: string[];
+  connections?: Array<{
+    toSlug?: string;
+    toHref?: string;
+    title: string;
+    punch: string;
+    requirement?: string;
+  }>;
 };
 
 function baseGame(input: {
@@ -94,6 +103,16 @@ export const gamesRegistry: UnifiedGame[] = [
     }),
     route: { kind: 'custom', href: '/games/diamond-veins' },
     capabilities: ['wallet_l1', 'currency_diamonds', 'nft_deck', 'leaderboard_unified'],
+    categories: ['Economy', 'Mining', 'Lore'],
+    tags: ['Diamonds', 'NFT slots', 'Refinement points', 'KREX boosts'],
+    connections: [
+      {
+        toSlug: 'cipher-vaults',
+        title: 'Refinement → Cipher Tickets',
+        punch: 'Mine diamonds, refine points, then redeem tickets to enter Cipher Vaults without paying KAS.',
+        requirement: 'Refine at least 100 diamonds to earn refinement points.',
+      },
+    ],
   },
   {
     ...baseGame({
@@ -126,6 +145,16 @@ export const gamesRegistry: UnifiedGame[] = [
         kasTreasuryAddress: process.env.NEXT_PUBLIC_CIPHER_VAULTS_TREASURY_ADDRESS || DEFAULT_GAMES_TREASURY,
       },
     ],
+    categories: ['Puzzles', 'Vaults', 'Lore'],
+    tags: ['Cipher grid', 'Tickets', 'Checkpoints'],
+    connections: [
+      {
+        toSlug: 'diamond-veins',
+        title: 'Need tickets?',
+        punch: 'To farm Cipher Tickets cheaply, mine and refine in Diamond Veins first.',
+        requirement: 'Redeem Diamond Veins refinement points into tickets.',
+      },
+    ],
   },
   {
     ...baseGame({
@@ -151,6 +180,16 @@ export const gamesRegistry: UnifiedGame[] = [
     skus: [
       { id: 'token-strategy:entry', type: 'entry', title: 'Mission Entry', currency: 'KAS', amount: 0.5, kasTreasuryAddress: DEFAULT_GAMES_TREASURY },
       { id: 'token-strategy:boost:krex', type: 'boost', title: 'KREX Booster', currency: 'KREX', amount: 25 },
+    ],
+    categories: ['Strategy', 'Defense', 'Lore'],
+    tags: ['Security', 'Stealth', 'Null Gang'],
+    connections: [
+      {
+        toSlug: 'diamond-veins',
+        title: 'Gear up with the deck',
+        punch: 'Your KREX tier + NFT deck boosts your final score. Build your deck power in Diamond Veins.',
+        requirement: 'Hold KREX and/or equip NFTs for better multipliers.',
+      },
     ],
   },
   {
@@ -178,6 +217,21 @@ export const gamesRegistry: UnifiedGame[] = [
       { id: 'kaspa-quiz:entry', type: 'entry', title: 'Case Entry', currency: 'KAS', amount: 0.2, kasTreasuryAddress: DEFAULT_GAMES_TREASURY },
       { id: 'kaspa-quiz:boost:krex', type: 'boost', title: 'KREX Booster', currency: 'KREX', amount: 25 },
     ],
+    categories: ['Trivia', 'Chronicles', 'Lore'],
+    tags: ['Chapters', 'Characters', 'Mystery'],
+    connections: [
+      {
+        toHref: '/chronicles/chapters',
+        title: 'Read the source',
+        punch: 'Want perfect clears? Skim the Chronicles chapters and character dossiers.',
+        requirement: 'Explore chapters and characters in Chronicles.',
+      },
+      {
+        toSlug: 'cipher-vaults',
+        title: 'Solve the real locks',
+        punch: 'Quiz trained your mind. Cipher Vaults tests it for real—decode the grid and record checkpoints.',
+      },
+    ],
   },
   {
     ...baseGame({
@@ -203,6 +257,15 @@ export const gamesRegistry: UnifiedGame[] = [
     skus: [
       { id: 'precision-click:entry', type: 'entry', title: 'Training Entry', currency: 'KAS', amount: 0.3, kasTreasuryAddress: DEFAULT_GAMES_TREASURY },
       { id: 'precision-click:boost:krex', type: 'boost', title: 'KREX Booster', currency: 'KREX', amount: 25 },
+    ],
+    categories: ['Skill', 'Training', 'Lore'],
+    tags: ['ARIA', 'Fragments', 'Reflex'],
+    connections: [
+      {
+        toSlug: 'cipher-vaults',
+        title: 'ARIA fragments → Vaults',
+        punch: 'Precision Lock trains the fragment timing. Then go clear Cipher Vaults for real checkpoints.',
+      },
     ],
   },
 ];
