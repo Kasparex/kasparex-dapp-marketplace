@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777069490-a80912f",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Minecore: overview article, power tab, plant power/battery UI, rewards ledger, grid API stub (by Kasparex)",
+      "date": "2026-04-25T00:18:34+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1775247963-799ab44",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix(nft): coerce NFT status booleans for compact cards (Vercel tsc) (by Kasparex)",
