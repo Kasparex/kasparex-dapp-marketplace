@@ -182,7 +182,7 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
             <span className="rounded-full border border-zinc-300 bg-zinc-200 px-2 py-0.5 text-sm font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
               {tier}
             </span>
-            <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">Multiplier</span>
+            <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">Hub boost</span>
             <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">×{booster.toFixed(2)}</span>
           </div>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -328,7 +328,7 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
               id: 'grid',
               label: 'GRID (pending)',
               value: pendingGrid.toLocaleString(),
-              hint: 'Unified deck rewards',
+              hint: 'Pending GRID rewards tracked in your unified deck. Click to open Rewards.',
               accent: 'grid',
               onClick: () => setTab('rewards'),
             },
@@ -336,15 +336,15 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
               id: 'tier',
               label: 'KREX Tier',
               value: tier,
-              hint: 'Tier perks',
+              hint: 'Your KREX tier affects perks and hub boosts. Click to open Boosters.',
               accent: 'krex',
               onClick: () => setTab('boosters'),
             },
             {
               id: 'mult',
-              label: 'Multiplier',
+              label: 'Hub boost',
               value: `×${booster.toFixed(2)}`,
-              hint: 'Tier + deck + booster',
+              hint: 'Your hub-wide boost factor (tier + deck + optional booster). Click to open Boosters.',
               accent: 'games',
               onClick: () => setTab('boosters'),
             },

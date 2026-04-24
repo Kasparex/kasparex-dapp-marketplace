@@ -51,16 +51,18 @@ function splitLoreIntoBlocks(raw: string): Array<{ type: 'heading' | 'p'; text: 
   // Otherwise, try to promote ALL-CAPS markers into headings.
   // Example patterns seen in Diamond Veins: "THE DISCOVERY", "KREX DIAMONDS", "YOUR ROLE", "THE DEPTHS"
   const parts: Array<{ type: 'heading' | 'p'; text: string }> = [];
-  const re = /\s([A-Z][A-Z0-9’'\- ]{6,})\s/g;
+  // Allow markers at start-of-string or after newline/space (previous version missed markers at the beginning).
+  const re = /(^|[\s\n])([A-Z][A-Z0-9’'\- ]{6,})(?=\s)/gm;
   let lastIndex = 0;
   let m: RegExpExecArray | null;
   while ((m = re.exec(t))) {
-    const marker = (m[1] ?? '').trim();
-    const start = m.index;
-    const before = t.slice(lastIndex, start).trim();
+    const prefix = m[1] ?? '';
+    const marker = (m[2] ?? '').trim();
+    const markerStart = m.index + prefix.length;
+    const before = t.slice(lastIndex, markerStart).trim();
     if (before) parts.push({ type: 'p', text: before });
     parts.push({ type: 'heading', text: toTitleCase(marker) });
-    lastIndex = re.lastIndex;
+    lastIndex = markerStart + marker.length;
   }
   const rest = t.slice(lastIndex).trim();
   if (rest) parts.push({ type: 'p', text: rest });
@@ -93,18 +95,34 @@ export function GameOverviewSections(props: {
 }) {
   const flow = props.flow ?? [];
   const loreBlocks = props.loreStory ? splitLoreIntoBlocks(props.loreStory) : [];
+  const introParas: string[] = [];
+  const restBlocks: Array<{ type: 'heading' | 'p'; text: string }> = [];
+  let seenHeading = false;
+  for (const b of loreBlocks) {
+    if (b.type === 'heading') seenHeading = true;
+    if (!seenHeading && b.type === 'p' && introParas.length < 2) introParas.push(b.text);
+    else restBlocks.push(b);
+  }
   return (
     <div className="space-y-6">
       <GamePanelCard title={props.gameName} hint={props.description?.trim() ? props.description : undefined}>
         {props.featuredImage ? (
-          <div className="mb-5 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950/40">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={props.featuredImage} alt={props.gameName} className="aspect-video w-full object-cover" />
+          <div className="mb-6 grid gap-5 md:grid-cols-2">
+            <div className="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950/40">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={props.featuredImage} alt={props.gameName} className="aspect-video w-full object-cover" />
+            </div>
+            <div className="flex items-center">
+              <div className="prose prose-zinc max-w-none dark:prose-invert prose-p:leading-relaxed prose-p:my-3">
+                {introParas.length > 0 ? introParas.map((p, idx) => <p key={idx}>{p}</p>) : <p>{props.description?.trim() ? props.description : '—'}</p>}
+              </div>
+            </div>
           </div>
         ) : null}
+
         {loreBlocks.length > 0 ? (
           <article className="prose prose-zinc max-w-none dark:prose-invert prose-p:leading-relaxed prose-p:my-4 prose-headings:tracking-tight">
-            {loreBlocks.map((b, idx) =>
+            {(props.featuredImage ? restBlocks : loreBlocks).map((b, idx) =>
               b.type === 'heading' ? (
                 <h3 key={`${b.type}-${idx}`} className="mt-8 mb-2 text-base font-black tracking-tight">
                   {b.text}
