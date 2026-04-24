@@ -9,7 +9,8 @@ export type GameDeckResource = {
   label: string;
   value: string;
   subValue?: string;
-  hint?: string;
+  description?: string;
+  tooltip?: string;
   icon?: ReactNode;
   accent?: 'games' | 'kas' | 'krex' | 'grid' | 'diamonds';
   onClick?: () => void;
@@ -63,43 +64,32 @@ export function GameDeckPanel(props: {
           const Row = clickable ? 'button' : 'div';
           return (
             <li key={r.id} className="border-b border-zinc-100 dark:border-zinc-800 last:border-0">
-              <Row
-                type={clickable ? 'button' : undefined}
-                onClick={r.onClick}
-                className={[
-                  'w-full flex items-center justify-between gap-3 py-2.5 px-2 text-left transition-colors',
-                  clickable ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg' : '',
-                ].join(' ')}
-              >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-                    {r.icon ? <span className="inline-flex h-4 w-4 items-center justify-center text-zinc-500 dark:text-zinc-400">{r.icon}</span> : null}
-                    <span className="truncate font-medium">{r.label}</span>
-                    {r.hint ? (
-                      <Tooltip content={r.hint}>
-                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-200/60 hover:text-emerald-700 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-emerald-300">
-                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                        </span>
-                      </Tooltip>
+              <Tooltip content={r.tooltip ?? ''} disabled={!r.tooltip}>
+                <Row
+                  type={clickable ? 'button' : undefined}
+                  onClick={r.onClick}
+                  className={[
+                    'w-full flex items-center justify-between gap-3 py-2.5 px-3 text-left transition-colors',
+                    clickable ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg' : '',
+                  ].join(' ')}
+                >
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                      {r.icon ? <span className="inline-flex h-4 w-4 items-center justify-center text-zinc-500 dark:text-zinc-400">{r.icon}</span> : null}
+                      <span className="truncate font-medium">{r.label}</span>
+                    </div>
+                    {r.description ? <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-500">{r.description}</div> : null}
+                  </div>
+                  <div className="text-right">
+                    <div className={`text-base font-black tabular-nums ${accentValueClass(r.accent)}`}>{r.value}</div>
+                    {r.subValue ? (
+                      <div className={`mt-0.5 text-[11px] font-semibold ${r.accent ? accentValueClass(r.accent) : 'text-zinc-500 dark:text-zinc-500'}`}>
+                        {r.subValue}
+                      </div>
                     ) : null}
                   </div>
-                </div>
-                <div className="text-right">
-                  <div className={`text-base font-black tabular-nums ${accentValueClass(r.accent)}`}>{r.value}</div>
-                  {r.subValue ? (
-                    <div className={`mt-0.5 text-[11px] font-semibold ${r.accent ? accentValueClass(r.accent) : 'text-zinc-500 dark:text-zinc-500'}`}>
-                      {r.subValue}
-                    </div>
-                  ) : null}
-                </div>
-              </Row>
+                </Row>
+              </Tooltip>
             </li>
           );
         })}
