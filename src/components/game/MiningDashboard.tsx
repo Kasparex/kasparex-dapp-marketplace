@@ -22,7 +22,7 @@ const TABS = [
   { id: 'mining', label: 'Mining' },
   { id: 'power', label: 'Power' },
   { id: 'workers', label: 'Workers' },
-  { id: 'upgrades', label: 'Upgrades' },
+  { id: 'upgrades', label: 'Shop' },
   { id: 'rewards', label: 'Rewards' },
   { id: 'comments', label: 'Comments' },
 ] as const;
@@ -369,7 +369,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                   ))}
                 </div>
               ) : (
-                <p className="text-xs">No active purchases yet. Open the Upgrades tab to buy a boost.</p>
+                <p className="text-xs">No active purchases yet. Open the Shop tab to buy a boost.</p>
               )}
             </div>
           </div>
@@ -437,7 +437,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                 <div>
                   <p className="font-semibold text-zinc-800 dark:text-zinc-300">Tabs overview</p>
                   <p className="mt-1">
-                    Use <strong>Mining</strong> for refine and runs, <strong>Power</strong> for MW and drills, <strong>Workers</strong> for NFT slots and auto-restart, <strong>Upgrades</strong> for Garage, and <strong>Rewards</strong> for GRID checkpoint history.
+                    Use <strong>Mining</strong> for refine and runs, <strong>Power</strong> for MW and drills, <strong>Workers</strong> for NFT slots and auto-restart, <strong>Shop</strong> to buy items, and <strong>Rewards</strong> for GRID checkpoint history.
                   </p>
                 </div>
                 <div>

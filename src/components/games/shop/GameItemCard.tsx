@@ -64,6 +64,8 @@ export function GameItemCard(props: {
   const originalTotal = originalUnit != null ? originalUnit * quantity : undefined;
   const hasDiscount = originalTotal != null && originalTotal > total + 1e-9;
 
+  const priceText = `${total.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${selected?.currency ?? currency}`;
+
   function setQty(next: number) {
     const clamped = Math.max(qtyMin, Math.min(qtyMax, next));
     if (qtyCfg?.onChange) qtyCfg.onChange(clamped);
@@ -128,36 +130,37 @@ export function GameItemCard(props: {
             </div>
           ) : null}
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-xs font-semibold text-zinc-500 dark:text-zinc-500">Price</div>
-              <div className="flex items-baseline gap-2">
-                {hasDiscount ? (
-                  <div className="text-xs font-semibold text-zinc-400 line-through dark:text-zinc-500">
-                    {originalTotal?.toLocaleString(undefined, { maximumFractionDigits: 6 })} {selected?.currency}
-                  </div>
-                ) : null}
-                <div className="text-sm font-black tabular-nums text-zinc-900 dark:text-zinc-100">
-                  {total.toLocaleString(undefined, { maximumFractionDigits: 6 })} {selected?.currency}
-                </div>
-              </div>
-              {hasDiscount ? <div className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">Discount applied</div> : null}
+              {hasDiscount ? (
+                <div className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">Discount applied</div>
+              ) : (
+                <div className="text-[11px] text-zinc-500 dark:text-zinc-500">&nbsp;</div>
+              )}
             </div>
 
-            <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end">
+            <div className="flex items-center gap-2">
               {options.length > 1 ? (
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
-                  className="k-filter-select h-9 min-w-[120px] -mt-0.5"
+                  className="k-filter-select k-price-select h-10 min-w-[170px]"
                 >
-                  {options.map((o) => (
-                    <option key={o.currency} value={o.currency} disabled={o.disabled}>
-                      {o.label ?? o.currency}
-                    </option>
-                  ))}
+                  {options.map((o) => {
+                    const t = (o.unitPrice ?? 0) * quantity;
+                    const txt = `${t.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${o.currency}`;
+                    return (
+                      <option key={o.currency} value={o.currency} disabled={o.disabled}>
+                        {txt}
+                      </option>
+                    );
+                  })}
                 </select>
-              ) : null}
+              ) : (
+                <div className="k-control-btn h-10 px-4 font-black tabular-nums">
+                  {priceText}
+                </div>
+              )}
 
               <button
                 type="button"

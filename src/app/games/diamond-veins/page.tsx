@@ -8,7 +8,6 @@ import { MiningDashboard } from '@/components/game/MiningDashboard';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getGameBySlugFromRegistry } from '@/lib/games/registry';
 import Link from 'next/link';
-import { GameModulesBar } from '@/components/games/modules/GameModulesBar';
 
 const KaspaL1WalletButton = dynamic(
   () => import('@/components/KaspaL1WalletButton').then((mod) => ({ default: mod.KaspaL1WalletButton })),
@@ -85,9 +84,6 @@ function DiamondVeinsContent() {
               </div>
             ) : (
               <div className="space-y-6">
-                {/* Standard cross-game modules (Your rewards / Unified deck + Risk choice) */}
-                <GameModulesBar />
-
                 <MiningDashboard featuredImage={featuredImage} loreStory={LORE_STORY} gameDescription={game.description} game={game} gameName={game.name} />
               </div>
             )}

@@ -8,7 +8,6 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getGameBySlugFromRegistry } from '@/lib/games/registry';
 import Link from 'next/link';
 import { CipherVaultsDashboard } from '@/components/game/cipher-vaults/CipherVaultsDashboard';
-import { GameModulesBar } from '@/components/games/modules/GameModulesBar';
 
 const KaspaL1WalletButton = dynamic(
   () => import('@/components/KaspaL1WalletButton').then((mod) => ({ default: mod.KaspaL1WalletButton })),
@@ -67,9 +66,6 @@ function CipherVaultsContent() {
               </div>
             ) : (
               <div className="space-y-6">
-                {/* Standard cross-game modules (Your rewards / Unified deck + Risk choice) */}
-                <GameModulesBar />
-
                 <CipherVaultsDashboard featuredImage={featuredImage} loreStory={LORE_STORY} gameDescription={game.description} />
               </div>
             )}

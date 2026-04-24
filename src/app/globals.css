@@ -541,6 +541,12 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
 }
 
+/* Price+currency unified select for Game Shop cards */
+.k-price-select {
+  @apply font-black tabular-nums;
+  min-width: 170px;
+}
+
 /* Single capsule: one wrapper only, no double borders. Parent must have overflow: visible; no transform. */
 .k-search-container {
   @apply relative flex items-center;

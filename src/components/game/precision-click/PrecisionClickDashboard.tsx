@@ -12,6 +12,7 @@ import { RewardsPreview } from '@/components/games/modules/RewardsPreview';
 import { useWalletDeck } from '@/hooks/useWalletDeck';
 import { StatusDot } from '@/components/ui/StatusDot';
 import { TooltipProvider } from '@/components/ui/Tooltip';
+import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -308,6 +309,35 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
       </div>
 
       <div className="flex flex-col space-y-6 lg:col-span-4">
+        <GameDeckPanel
+          resources={[
+            {
+              id: 'grid',
+              label: 'GRID (pending)',
+              value: pendingGrid.toLocaleString(),
+              hint: 'Unified deck rewards',
+              accent: 'grid',
+              onClick: () => setTab('rewards'),
+            },
+            {
+              id: 'tier',
+              label: 'KREX Tier',
+              value: tier,
+              hint: 'Tier perks',
+              accent: 'krex',
+              onClick: () => setTab('boosters'),
+            },
+            {
+              id: 'mult',
+              label: 'Multiplier',
+              value: `×${booster.toFixed(2)}`,
+              hint: 'Tier + deck + booster',
+              accent: 'games',
+              onClick: () => setTab('boosters'),
+            },
+          ]}
+        />
+
         <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/50">
           {props.featuredImage ? (
             <div className="relative aspect-video w-full bg-zinc-200 dark:bg-zinc-800">

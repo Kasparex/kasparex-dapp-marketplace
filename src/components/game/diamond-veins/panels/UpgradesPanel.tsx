@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
@@ -35,6 +36,7 @@ export function UpgradesPanel({
 }) {
   const kasValid = typeof kasBalance === 'number' && !Number.isNaN(kasBalance);
   const kasBalanceNum = kasValid ? kasBalance : 0;
+  const [sortBy, setSortBy] = useState<'recommended' | 'kas_low' | 'kas_high'>('recommended');
 
   return (
     <div className="space-y-6">
@@ -50,9 +52,9 @@ export function UpgradesPanel({
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Garage Shop</h2>
+        <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Shop</h2>
         <span className="rounded-full border border-zinc-300 bg-zinc-200 px-3 py-1 text-xs font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
-          Upgrades
+          Items
         </span>
       </div>
 
@@ -62,8 +64,24 @@ export function UpgradesPanel({
         </div>
       )}
 
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
+        <div className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">Sort</div>
+        <select value={sortBy} onChange={(e) => setSortBy((e.target.value as any) ?? 'recommended')} className="k-filter-select h-10 min-w-[220px]">
+          <option value="recommended">Recommended</option>
+          <option value="kas_low">Price: low → high (KAS)</option>
+          <option value="kas_high">Price: high → low (KAS)</option>
+        </select>
+      </div>
+
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {GARAGE_ITEMS.map((item) => {
+        {[...GARAGE_ITEMS]
+          .sort((a, b) => {
+            if (sortBy === 'recommended') return 0;
+            const da = a.priceKAS;
+            const db = b.priceKAS;
+            return sortBy === 'kas_low' ? da - db : db - da;
+          })
+          .map((item) => {
           const priceAfterDiscount = getPriceAfterDiscount(item.price);
           const canAffordKREX = canPayWithL1 && krexL1Balance >= priceAfterDiscount;
           const canAffordKAS = canPayWithL1 && !kasBalanceLoading && kasBalanceNum >= item.priceKAS * 0.999;
@@ -74,7 +92,7 @@ export function UpgradesPanel({
               key={item.id}
               icon={<span className="text-3xl">{item.icon}</span>}
               title={item.name}
-              category="Garage"
+              category="Shop"
               description={
                 <span>
                   {item.desc}{' '}
