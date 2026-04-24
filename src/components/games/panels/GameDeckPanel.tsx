@@ -67,8 +67,8 @@ export function GameDeckPanel(props: {
                 type={clickable ? 'button' : undefined}
                 onClick={r.onClick}
                 className={[
-                  'w-full flex items-center justify-between gap-3 py-2.5 text-left transition-colors',
-                  clickable ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg px-2 -mx-2' : '',
+                  'w-full flex items-center justify-between gap-3 py-2.5 px-2 text-left transition-colors',
+                  clickable ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg' : '',
                 ].join(' ')}
               >
                 <div className="min-w-0">
@@ -90,7 +90,6 @@ export function GameDeckPanel(props: {
                       </Tooltip>
                     ) : null}
                   </div>
-                  {r.hint ? <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-500">{r.hint}</div> : null}
                 </div>
                 <div className="text-right">
                   <div className={`text-base font-black tabular-nums ${accentValueClass(r.accent)}`}>{r.value}</div>

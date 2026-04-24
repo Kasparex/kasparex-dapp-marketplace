@@ -114,7 +114,11 @@ export function GameOverviewSections(props: {
             </div>
             <div className="flex items-center">
               <div className="prose prose-zinc max-w-none dark:prose-invert prose-p:leading-relaxed prose-p:my-3">
-                {introParas.length > 0 ? introParas.map((p, idx) => <p key={idx}>{p}</p>) : <p>{props.description?.trim() ? props.description : '—'}</p>}
+                {introParas.length > 0 ? (
+                  introParas.map((p, idx) => <p key={idx}>{p}</p>)
+                ) : (
+                  <p>{props.description?.trim() ? props.description : 'Not available.'}</p>
+                )}
               </div>
             </div>
           </div>
@@ -133,7 +137,7 @@ export function GameOverviewSections(props: {
             )}
           </article>
         ) : (
-          <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{props.description?.trim() ? props.description : '—'}</p>
+          <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{props.description?.trim() ? props.description : 'Not available.'}</p>
         )}
       </GamePanelCard>
 
@@ -145,7 +149,7 @@ export function GameOverviewSections(props: {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">—</p>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">Not available.</p>
         )}
       </GamePanelCard>
 

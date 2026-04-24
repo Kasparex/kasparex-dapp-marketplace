@@ -116,7 +116,7 @@ export function KrexBoosterCard(props: { gameId: string; title?: string }) {
         </div>
         <div className="text-right">
           <div className="text-xs text-zinc-500 dark:text-zinc-400">Active</div>
-          <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{isActive ? `×${multiplier.toFixed(2)}` : '—'}</div>
+          <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{isActive ? `×${multiplier.toFixed(2)}` : 'Not active'}</div>
         </div>
       </div>
 
