@@ -5,6 +5,8 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { createInitialMinecoreState, hydrateMinecoreState, applyMinecoreEvent, deriveState, type MinecoreState, type PlantSlotState } from '@/lib/game/minecore';
 import { MINECORE_STORAGE_PREFIX } from '@/lib/game/minecore/config';
 import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sdk';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
 
 const RECONNECT_GRACE_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_TREASURY = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '';
@@ -36,6 +38,7 @@ function savePersistedMinecore(key: string, state: MinecoreState) {
 
 export function useMinecore() {
   const { state: walletState } = useKaspaWallet();
+  const { tier: krexTier } = useKREXBalance();
 
   const key = useMemo(() => storageKey(walletState.address ?? null), [walletState.address]);
 
@@ -132,24 +135,33 @@ export function useMinecore() {
     [walletState.isConnected, walletState.provider, walletState.address]
   );
 
+  const getKasPriceAfterDiscount = useCallback(
+    (unitPriceKas: number) => {
+      const discountPct = KREX_TIER_SHOP_DISCOUNT_PCT[krexTier as any] ?? 0;
+      const discounted = unitPriceKas * (1 - discountPct / 100);
+      return Math.max(0, Math.round(discounted * 10_000) / 10_000);
+    },
+    [krexTier]
+  );
+
   const unlockSlot = useCallback(
     async (slotIndex: number, amountKas: number) => {
-      const paid = await payKasBestEffort({ amountKas, skuId: 'minecore:slot:unlock', purchaseType: 'slot' });
+      const paid = await payKasBestEffort({ amountKas: getKasPriceAfterDiscount(amountKas), skuId: 'minecore:slot:unlock', purchaseType: 'slot' });
       if (!paid.ok) return false;
       dispatch({ type: 'UnlockSlot', slotIndex, at: Date.now() });
       return true;
     },
-    [dispatch, payKasBestEffort]
+    [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
   );
 
   const addSlot = useCallback(
     async (amountKas: number) => {
-      const paid = await payKasBestEffort({ amountKas, skuId: 'minecore:slot:expand', purchaseType: 'slot' });
+      const paid = await payKasBestEffort({ amountKas: getKasPriceAfterDiscount(amountKas), skuId: 'minecore:slot:expand', purchaseType: 'slot' });
       if (!paid.ok) return false;
       dispatch({ type: 'AddSlot', at: Date.now() });
       return true;
     },
-    [dispatch, payKasBestEffort]
+    [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
   );
 
   const installMachine = useCallback((slotIndex: number, id: PlantSlotState['setup']['machineId']) => {
@@ -186,17 +198,27 @@ export function useMinecore() {
 
   const topUpPowerWithKAS = useCallback(
     async (slotIndex: number, opts: { added: number; amountKas: number }) => {
-      const paid = await payKasBestEffort({ amountKas: opts.amountKas, skuId: 'minecore:power:topup', purchaseType: 'other' });
+      const paid = await payKasBestEffort({ amountKas: getKasPriceAfterDiscount(opts.amountKas), skuId: 'minecore:power:topup', purchaseType: 'other' });
       if (!paid.ok) return false;
       dispatch({ type: 'TopUpPower', slotIndex, at: Date.now(), added: opts.added });
       return true;
     },
-    [dispatch, payKasBestEffort]
+    [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
   );
 
   const repair = useCallback((slotIndex: number) => {
     dispatch({ type: 'Repair', slotIndex, at: Date.now() });
   }, [dispatch]);
+
+  const repairWithKAS = useCallback(
+    async (slotIndex: number, amountKas: number) => {
+      const paid = await payKasBestEffort({ amountKas: getKasPriceAfterDiscount(amountKas), skuId: 'minecore:repair', purchaseType: 'other' });
+      if (!paid.ok) return false;
+      dispatch({ type: 'Repair', slotIndex, at: Date.now() });
+      return true;
+    },
+    [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
+  );
 
   const refine = useCallback((amount: number) => {
     dispatch({ type: 'Refine', at: Date.now(), amount });
@@ -224,12 +246,16 @@ export function useMinecore() {
 
   const purchaseIngredientWithKAS = useCallback(
     async (ingredient: any, opts: { amount: number; amountKas: number }) => {
-      const paid = await payKasBestEffort({ amountKas: opts.amountKas, skuId: `minecore:ingredient:${ingredient}`, purchaseType: 'other' });
+      const paid = await payKasBestEffort({
+        amountKas: getKasPriceAfterDiscount(opts.amountKas),
+        skuId: `minecore:ingredient:${ingredient}`,
+        purchaseType: 'other',
+      });
       if (!paid.ok) return false;
       dispatch({ type: 'AddIngredients', at: Date.now(), ingredient, amount: opts.amount });
       return true;
     },
-    [dispatch, payKasBestEffort]
+    [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
   );
 
   return {
@@ -254,6 +280,7 @@ export function useMinecore() {
       topUpPower,
       topUpPowerWithKAS,
       repair,
+      repairWithKAS,
       refine,
       redeemGrid,
       craftRecipe,
@@ -262,6 +289,7 @@ export function useMinecore() {
       setAutomation,
       purchaseIngredientWithKAS,
     },
+    getKasPriceAfterDiscount,
   };
 }
 

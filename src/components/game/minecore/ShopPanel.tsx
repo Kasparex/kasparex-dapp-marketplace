@@ -8,6 +8,7 @@ import type { MinecoreIngredient } from '@/lib/game/minecore';
 export function ShopPanel(props: {
   onBuy: (args: { itemId: string; currency: GameItemCurrency; quantity: number }) => void | Promise<void>;
   onBuyIngredient: (args: { ingredient: MinecoreIngredient; currency: GameItemCurrency; quantity: number }) => void | Promise<void>;
+  getKasPriceAfterDiscount: (unitPriceKas: number) => number;
 }) {
   return (
     <GamePanelCard title="Shop" hint="Ingredients and utilities. Quantity calculates total price.">
@@ -17,8 +18,8 @@ export function ShopPanel(props: {
           category="Ingredient"
           description="Basic crystal substrate used in fabrication."
           priceOptions={[
-            { currency: 'KAS', unitPrice: 0.01 },
-            { currency: 'KREX', unitPrice: 0.5, disabled: true },
+            { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(0.5), originalUnitPrice: 0.5 },
+            { currency: 'KREX', unitPrice: 0.5 },
           ]}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
@@ -29,8 +30,8 @@ export function ShopPanel(props: {
           category="Ingredient"
           description="Structural plates for rigs and modules."
           priceOptions={[
-            { currency: 'KAS', unitPrice: 0.03 },
-            { currency: 'KREX', unitPrice: 1.2, disabled: true },
+            { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(2), originalUnitPrice: 2 },
+            { currency: 'KREX', unitPrice: 1.2 },
           ]}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
@@ -41,8 +42,9 @@ export function ShopPanel(props: {
           category="Ingredient"
           description="Control mesh for machine interfaces."
           priceOptions={[
-            { currency: 'KAS', unitPrice: 0.025 },
-            { currency: 'GRID', unitPrice: 0.4, disabled: true },
+            { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(1.5), originalUnitPrice: 1.5 },
+            { currency: 'KREX', unitPrice: 1.0 },
+            { currency: 'GRID', unitPrice: 0.4 },
           ]}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
@@ -53,8 +55,9 @@ export function ShopPanel(props: {
           category="Ingredient"
           description="Compact energy units used in power systems."
           priceOptions={[
-            { currency: 'KAS', unitPrice: 0.02 },
-            { currency: 'GRID', unitPrice: 0.3, disabled: true },
+            { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(3), originalUnitPrice: 3 },
+            { currency: 'KREX', unitPrice: 2.5 },
+            { currency: 'GRID', unitPrice: 0.3 },
           ]}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
@@ -66,7 +69,7 @@ export function ShopPanel(props: {
           category="Boost"
           description="Increase the next cycle output for one plant. V1 mock boost."
           effects={[{ label: 'Output', value: '+100%' }]}
-          priceOptions={[{ currency: 'KAS', unitPrice: 1 }]}
+          priceOptions={[{ currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(5), originalUnitPrice: 5 }]}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuy({ itemId: 'kas-overclock', currency, quantity })}
         />
@@ -85,7 +88,7 @@ export function ShopPanel(props: {
           category="Utility"
           description="Add 1 power to a selected plant. V1 mock utility."
           effects={[{ label: 'Power', value: '+1' }]}
-          priceOptions={[{ currency: 'KAS', unitPrice: 0.2 }]}
+          priceOptions={[{ currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(1), originalUnitPrice: 1 }]}
           quantitySelector={{ min: 1, max: 10 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuy({ itemId: 'power-topup', currency, quantity })}
@@ -95,7 +98,7 @@ export function ShopPanel(props: {
           category="Repair"
           description="Repair a plant marked as Needs repair. V1 mock utility."
           effects={[{ label: 'Repair', value: 'Clear' }]}
-          priceOptions={[{ currency: 'KAS', unitPrice: 0.5 }]}
+          priceOptions={[{ currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(2), originalUnitPrice: 2 }]}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuy({ itemId: 'repair', currency, quantity })}
         />

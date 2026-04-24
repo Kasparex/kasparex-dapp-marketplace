@@ -133,7 +133,7 @@ export const gamesRegistry: UnifiedGame[] = [
       status: 'beta',
       developer: 'Kasparex',
       version: '0.1.0',
-      featuredImage: 'https://static.wixstatic.com/media/de4185_d624b5a44cf34912bce7e3525fd63aaf~mv2.jpg',
+      featuredImage: 'https://static.wixstatic.com/media/de4185_9ad0e3518282411d8120cff70533a7e1~mv2.jpg',
       rewardConfig: { gridReward: 0, xpReward: 0 },
       createdAt: new Date().toISOString(),
     }),

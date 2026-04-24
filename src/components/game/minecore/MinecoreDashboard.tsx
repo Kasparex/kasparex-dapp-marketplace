@@ -38,7 +38,7 @@ export function MinecoreDashboard(_props: {
   game?: any;
   gameName?: string;
 }) {
-  const { state, actions, lastPaymentError } = useMinecore();
+  const { state, actions, lastPaymentError, getKasPriceAfterDiscount } = useMinecore();
   const [tab, setTab] = useState<TabId>('overview');
 
   const pendingGrid = 0;
@@ -106,7 +106,10 @@ export function MinecoreDashboard(_props: {
                 <DiamondIcon className="h-4 w-4 text-sky-400" />
                 Diamonds
               </span>
-              <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{Math.floor(state.diamondsBalance).toLocaleString()}</span>
+              <span className="inline-flex items-center gap-2 font-bold tabular-nums text-amber-600 dark:text-amber-400">
+                <DiamondIcon className="h-4 w-4 text-sky-400" />
+                {Math.floor(state.diamondsBalance).toLocaleString()}
+              </span>
               <span className="text-sm text-zinc-500 dark:text-zinc-400">
                 Refinement {Math.floor(state.refinementPointsTotal).toLocaleString()} pts
               </span>
@@ -176,8 +179,8 @@ export function MinecoreDashboard(_props: {
                     onUnlock={() => void actions.unlockSlot(slot.index, slot.unlockCostKas)}
                     onStart={() => actions.startMining(slot.index)}
                     onExtract={() => actions.extract(slot.index)}
-                    onTopUp={() => actions.topUpPower(slot.index, 1)}
-                    onRepair={() => actions.repair(slot.index)}
+                    onTopUpWithKAS={({ amountKas, added }) => actions.topUpPowerWithKAS(slot.index, { added, amountKas })}
+                    onRepairWithKAS={({ amountKas }) => actions.repairWithKAS(slot.index, amountKas)}
                     onQuickSetup={() => {
                       actions.installMachine(slot.index, 'pulse-drill');
                       actions.installBattery(slot.index, 'energy-cell');
@@ -227,22 +230,30 @@ export function MinecoreDashboard(_props: {
 
           {tab === 'shop' && (
             <ShopPanel
+              getKasPriceAfterDiscount={getKasPriceAfterDiscount}
               onBuyIngredient={async ({ ingredient, currency, quantity }) => {
                 if (currency === 'KAS') {
-                  const unitPrice = ingredient === 'alloyPlates' ? 0.03 : ingredient === 'circuitMesh' ? 0.025 : ingredient === 'energyCells' ? 0.02 : 0.01;
-                  await actions.purchaseIngredientWithKAS(ingredient, { amount: quantity, amountKas: unitPrice * quantity });
+                  const unit =
+                    ingredient === 'energyCells'
+                      ? 3
+                      : ingredient === 'alloyPlates'
+                        ? 2
+                        : ingredient === 'circuitMesh'
+                          ? 1.5
+                          : 0.5;
+                  await actions.purchaseIngredientWithKAS(ingredient, { amount: quantity, amountKas: unit * quantity });
                 }
               }}
               onBuy={async ({ itemId, currency, quantity }) => {
                 if (itemId === 'power-topup' && currency === 'KAS') {
-                  await actions.topUpPowerWithKAS(0, { added: quantity, amountKas: 0.2 * quantity });
+                  await actions.topUpPowerWithKAS(0, { added: quantity, amountKas: 1 * quantity });
                 }
                 if (itemId === 'kas-overclock' && currency === 'KAS') {
                   // V1: treat as boost selection to keep state simple.
                   actions.setBoost(0, 'kas-overclock');
                 }
                 if (itemId === 'repair' && currency === 'KAS') {
-                  actions.repair(0);
+                  await actions.repairWithKAS(0, 2);
                 }
               }}
             />

@@ -55,7 +55,7 @@ export function FabricationPanel(props: { state: MinecoreState; onCraft: (recipe
               const have = Math.floor(props.state.ingredients[k as keyof typeof props.state.ingredients] ?? 0);
               const ok = have >= need;
               const name = INGREDIENT_LABELS[k as keyof typeof INGREDIENT_LABELS] ?? k;
-              return { label: name, value: `${have.toLocaleString()} / ${need.toLocaleString()} ${ok ? 'ready' : 'needed'}` };
+              return { label: name, value: `${have.toLocaleString()} / ${need.toLocaleString()}`, muted: !ok };
             });
 
             return (
@@ -65,9 +65,10 @@ export function FabricationPanel(props: { state: MinecoreState; onCraft: (recipe
                 category="Machine"
                 description="Build instantly from ingredients. Install the machine into a plant slot after crafting."
                 effects={[...effects, ...reqLines]}
-                priceOptions={[{ currency: 'ING', unitPrice: 0, label: 'Ingredients' }]}
                 buyLabel={canAfford(r.requires as any) ? 'Build' : 'Missing'}
                 buyDisabled={!canAfford(r.requires as any)}
+                hidePricing={true}
+                priceOptions={[{ currency: 'KAS', unitPrice: 0, label: 'Build' }]}
                 onBuy={() => props.onCraft(r.id)}
               />
             );
