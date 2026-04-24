@@ -50,7 +50,7 @@ export function GameDeckPanel(props: {
               <img
                 src={props.featured.image}
                 alt="Featured"
-                className="h-36 w-full object-cover transition-transform group-hover:scale-[1.02]"
+                className="aspect-video w-full object-cover transition-transform group-hover:scale-[1.02]"
               />
             </button>
           </Tooltip>
@@ -75,6 +75,20 @@ export function GameDeckPanel(props: {
                   <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
                     {r.icon ? <span className="inline-flex h-4 w-4 items-center justify-center text-zinc-500 dark:text-zinc-400">{r.icon}</span> : null}
                     <span className="truncate font-medium">{r.label}</span>
+                    {r.hint ? (
+                      <Tooltip content={r.hint}>
+                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-200/60 hover:text-emerald-700 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-emerald-300">
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                        </span>
+                      </Tooltip>
+                    ) : null}
                   </div>
                   {r.hint ? <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-500">{r.hint}</div> : null}
                 </div>
