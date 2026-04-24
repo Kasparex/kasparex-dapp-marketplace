@@ -84,8 +84,8 @@ export function PlantSlotCard(props: {
   return (
     <GameItemCard
       icon={<DiamondIcon className="h-5 w-5 text-sky-400" title="Diamonds" />}
-      title={`Plant slot ${s.index + 1}`}
-      category="Plant"
+      title={`Power Plant ${s.index + 1}`}
+      category="Power Plant"
       description={
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">

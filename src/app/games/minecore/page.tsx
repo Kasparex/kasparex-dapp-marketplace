@@ -18,254 +18,117 @@ const MinecoreDashboard = dynamic(
   { ssr: false, loading: () => <div className="rounded-2xl border border-zinc-200 bg-white p-6 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-400">Loading Minecore…</div> }
 );
 
-const LORE_STORY = `# MINECORE
-## The Diamond Engine Beneath Kaspaland
+const LORE_STORY = `MINCORE - The Diamond Mining Complex of Kaspaland.
 
----
+Introduction
 
-## INTRODUCTION
+Minecore is the central diamond mining system located deep beneath Kaspaland. It is a structured underground network of sectors and energy veins where Diamonds are formed from condensed BlockDAG energy and can be extracted, refined, and used across the Kasparex ecosystem.
 
-Beneath the neon skyline of Kaspaland, far below the streets, towers, and data flows, lies a system that should not exist.
+The system was not built from scratch. It was discovered during early Kasparex development, when Krex detected abnormal energy patterns beneath the city while working on top of the Kaspa BlockDAG. Further analysis revealed a hidden underground structure that behaved like a fully operational extraction system, already embedded within the deeper layers of the network.
 
-Not a mine.
-Not a factory.
-Not something that was ever built.
+Players enter Minecore as operators, building and managing mining plants to extract Diamonds and expand deeper into the system.
 
-It is called Minecore.
+The environment
 
----
+Minecore consists of layered underground zones connected by energy veins. These veins carry compressed network energy that naturally crystallizes into Diamonds.
 
-## THE DISCOVERY
+The structure does not follow standard geological rules. Some sectors appear stable and predictable, while others behave dynamically, shifting output, stability, or response depending on how they are used. Deeper layers introduce higher yield but also instability, unusual reactions, and unknown behaviors.
 
-Krex did not set out to find it.
+ARIA has mapped only the upper layers. Beyond that, the system becomes increasingly difficult to interpret.
 
-While building Kasparex on top of the Kaspa BlockDAG, he began detecting irregular signals deep below the city. Not transactions. Not network noise. Something else.
+Diamond formation
 
-Structured.
-Repeating.
-Alive.
+Diamonds are not ordinary minerals. They are formed when BlockDAG energy flows compress and stabilize into physical form within the underground veins.
 
-Vector traced the anomaly to a series of underground layers that did not match any known geological or artificial structure. ARIA could not fully map it. Parts of it simply refused to resolve.
+Each Diamond contains condensed fragments of network activity, making it both a resource and a unit of stored energy. This is what allows Diamonds to be refined and converted into usable output across the ecosystem.
 
-What they found was not infrastructure.
+Extraction is possible, but the process requires precise control. Without proper systems in place, the energy within the veins becomes unstable.
 
-It was a system.
+Mining plants
 
----
+Mining plants are the core operational units inside Minecore. They act as controlled interfaces between the operator and the underground system.
 
-## THE DIAMONDS
+Each plant is assembled from multiple components that define its behavior. Machines determine extraction capability and base output. Power systems supply the energy required for operation. Worker slots allow NFT operators to increase efficiency. Modules enhance stability, output, or introduce special effects. Boost layers provide additional multipliers powered by KREX or supported by KAS. Ingredients are required to craft and maintain all of these elements.
 
-At the core of Minecore are Diamonds.
+Vector was responsible for designing the first machines capable of safely interacting with the veins. His ongoing work in the Garage continues to expand the range of tools and upgrades available to operators.
 
-They are not ordinary crystals. They are formed from compressed BlockDAG energy, where flows of data, time, and computation converge and condense into physical form.
+A plant becomes active only when all required components are installed and powered. Once activated, it begins extracting Diamonds directly from the underlying vein.
 
-Each Diamond is:
-- a fragment of network energy
-- a unit of compressed computation
-- a stable piece of something that should remain abstract
+Operation flow
 
-They pulse.
-They react.
-They behave differently depending on how they are handled.
+Minecore operates on a continuous production cycle. Operators gather materials, craft components, build and configure mining plants, run mining cycles, extract Diamonds, refine them into usable output, convert that output into GRID, and reinvest into stronger infrastructure.
 
-And they can be extracted.
+This loop defines progression. Each cycle increases efficiency, unlocks new possibilities, and enables access to deeper layers of the system.
 
----
+Timers and production
 
-## THE SYSTEM
+Each mining plant runs on timed extraction cycles. During an active cycle, a progress bar tracks completion and a timer displays the remaining duration. Output is calculated based on the configuration of the plant and the conditions of the sector.
 
-Minecore is not controlled. It is interfaced.
+When the cycle completes, Diamonds become available for extraction. The plant can then be restarted, upgraded, or reconfigured for improved performance.
 
-Krex did not build it. He unlocked access to it.
+Higher-tier operations produce more output but often require longer cycles and more precise setups.
 
-Vector designed the first machines capable of operating within its environment. ARIA established partial control over its outer layers, stabilizing enough of the system to allow safe interaction.
+Materials and crafting
 
-But the deeper layers remain unknown.
+Minecore includes a fabrication layer where raw materials are transformed into usable components. Materials such as Crystal Dust, Alloy Plates, Circuit Mesh, Energy Cells, and Core Shards are used to construct machines, modules, and power systems.
 
-Unmapped.
-Unpredictable.
+These materials are obtained through mining, processing, and exploration of different sectors. More advanced components unlock stronger machines and allow operators to access deeper and more complex zones.
 
----
+Power and fuel
 
-## YOUR ROLE
+All mining operations require energy to function. KAS acts as the primary fuel, while crafted energy components support efficiency and stability.
 
-You are an operator inside Minecore.
+ARIA manages power distribution across accessible sectors, but not all zones can be fully stabilized. Some areas require advanced configurations to maintain continuous operation.
 
-You do not simply mine. You build.
+Without sufficient power, mining cannot begin. Unstable power setups can reduce output or interrupt extraction cycles.
 
-You create mining plants using:
-- extraction machines
-- power systems fueled by KAS
-- NFT workers that enhance performance
-- modules that stabilize or boost output
-- KREX-powered upgrades and multipliers
+Boosts and multipliers
 
-Once a plant is fully assembled and powered, it activates and begins extracting Diamonds.
+KREX introduces a boost layer that enhances mining performance. It can be used to increase output, reduce cycle time, improve efficiency, and unlock advanced configurations.
 
-This is not passive.
+When combined with workers and modules, these boosts create strong multiplier effects that significantly impact production.
 
-Every system requires setup, maintenance, and optimization.
+Refining and output
 
----
+Extracted Diamonds can be refined into higher-value output. Refinement allows operators to convert raw production into structured rewards, which can then be redeemed for GRID.
 
-## THE CORE LOOP
+This process connects Minecore directly to the broader reward system of the Kasparex ecosystem and enables cross-game functionality.
 
-Minecore runs on a continuous operational cycle:
+External interference
 
-Craft → Build → Mine → Extract Diamonds → Refine → Redeem for GRID → Repeat and expand
+Minecore is not isolated. Certain sectors show signs of external interference linked to the Null Gang. These areas behave differently, producing unstable outputs and corrupted materials.
 
-You gather materials.
-You fabricate components.
-You build plants.
-You extract Diamonds.
-You refine them into usable output.
-You convert that output into GRID.
+While these zones can offer higher rewards, they introduce additional risk. Machines may degrade faster, and extracted resources may require additional processing.
 
-Then you go deeper.
+Some operators intentionally enter these zones to maximize returns.
 
----
+The deeper layer
 
-## THE DEEPER LAYERS
+Beyond mapped sectors, Minecore exhibits patterns that cannot be fully explained. Operators have reported unexpected efficiency spikes, hidden sector access, and system responses that are not triggered by any visible condition.
 
-Not all sectors of Minecore behave the same.
+These behaviors have been informally described as part of a deeper underlying logic within Minecore, sometimes referred to as the Silent Protocol.
 
-Surface layers are stable and predictable.
+It is not documented, but it influences the system.
 
-Deeper layers introduce:
-- higher output but faster machine degradation
-- unstable power behavior
-- altered material properties
-- rare and hidden extraction zones
+Expansion
 
-Some sectors respond differently depending on how you build your plant.
+Minecore is designed as a scalable system. Operators expand by unlocking new sectors, building additional plants, upgrading infrastructure, and optimizing configurations.
 
-Some require specific configurations to unlock their full potential.
+As operations grow, the system reveals new behaviors, new materials, and new challenges. Each expansion pushes deeper into layers that are less stable but more valuable.
 
----
+System integration
 
-## MACHINES AND INFRASTRUCTURE
+Diamonds mined in Minecore are used across other Kasparex Games. They function as a universal in-game currency for unlocking content, accessing systems, and participating in different game modules.
 
-Mining inside Minecore depends on your setup.
+Minecore serves as the production layer that powers the entire ecosystem.
 
-Machines define your output:
-- Pulse Drills
-- Crystal Extractors
-- Deep Vein Rigs
-- Quantum Fracturers
+Summary
 
-Power systems sustain operations:
-- Energy Cells
-- Battery Packs
-- Capacitors
+Minecore is a system of building, managing, and optimizing mining operations within a discovered underground network powered by BlockDAG energy.
 
-Modules enhance performance:
-- Cooling Systems
-- Stability Modules
-- ARIA Sensors
-- Experimental components
+Operators construct their infrastructure, run timed production cycles, and scale their systems to reach deeper and more powerful layers. As efficiency increases, so does output and access to advanced parts of the system.
 
-Workers amplify efficiency and control.
-
-Every decision affects production.
-
----
-
-## ARIA AND VECTOR
-
-ARIA monitors Minecore and stabilizes accessible sectors. It manages power flow, enforces system limits, and keeps operations functional.
-
-Vector operates beyond those limits.
-
-Inside Vector’s Garage, new machines, modules, and upgrades are developed. Some improve efficiency. Others push the system into unstable territory.
-
-Not all of them are safe.
-
----
-
-## THE NULL THREAT
-
-Minecore is not uncontested.
-
-The Null Gang has infiltrated parts of the system.
-
-They do not extract Diamonds. They corrupt them.
-
-Corrupted zones introduce:
-- unstable outputs
-- damaged machines
-- altered resources
-
-These areas offer higher rewards but come with higher risk.
-
-Operators must decide whether to remain stable or push into corrupted sectors.
-
----
-
-## THE SILENT PROTOCOL
-
-There is something deeper inside Minecore.
-
-Hidden behaviors that no one programmed.
-
-No interface explains them.
-No system acknowledges them.
-
-Yet they exist.
-
-Operators have triggered:
-- unexpected boosts
-- hidden access points
-- unexplained efficiency spikes
-
-These effects are not random.
-
-They follow patterns.
-
-This phenomenon is known as the Silent Protocol.
-
----
-
-## EXPANSION
-
-Minecore is only partially understood.
-
-Each operator expands the system by:
-- building new plants
-- activating new sectors
-- discovering new materials
-- triggering new system behaviors
-
-The more it is used, the more it reveals.
-
-Or adapts.
-
----
-
-## FINAL NOTE
-
-Minecore is not just a mining system.
-
-Diamonds are not just resources.
-
-They are keys.
-
-Every plant you build, every Diamond you extract, and every system you activate pushes deeper into something far larger than mining.
-
-Something that was never meant to be fully accessed.
-
----
-
-## ENTER MINECORE
-
-Build your plants.
-Power your systems.
-Deploy your operators.
-
-Extract. Refine. Expand.
-
-Minecore is active.
-
-Now it is yours to operate.`;
+The deeper the operation goes, the more valuable the rewards become, and the more complex the system reveals itself to be.`;
 
 function MinecoreContent() {
   const { state } = useKaspaWallet();

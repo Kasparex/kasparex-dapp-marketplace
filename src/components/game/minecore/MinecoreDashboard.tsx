@@ -179,8 +179,8 @@ export function MinecoreDashboard(_props: {
                     onUnlock={() => void actions.unlockSlot(slot.index, slot.unlockCostKas)}
                     onStart={() => actions.startMining(slot.index)}
                     onExtract={() => actions.extract(slot.index)}
-                    onTopUpWithKAS={({ amountKas, added }) => actions.topUpPowerWithKAS(slot.index, { added, amountKas })}
-                    onRepairWithKAS={({ amountKas }) => actions.repairWithKAS(slot.index, amountKas)}
+                    onTopUpWithKAS={async ({ amountKas, added }) => { void (await actions.topUpPowerWithKAS(slot.index, { added, amountKas })); }}
+                    onRepairWithKAS={async ({ amountKas }) => { void (await actions.repairWithKAS(slot.index, amountKas)); }}
                     onQuickSetup={() => {
                       actions.installMachine(slot.index, 'pulse-drill');
                       actions.installBattery(slot.index, 'energy-cell');
@@ -195,7 +195,7 @@ export function MinecoreDashboard(_props: {
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Expansion</div>
-                      <div className="mt-1 text-lg font-bold text-zinc-900 dark:text-zinc-100">Add plant slot</div>
+                      <div className="mt-1 text-lg font-bold text-zinc-900 dark:text-zinc-100">Add Power Plant</div>
                       <div className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                         Cost {state.nextSlotCostKas.toLocaleString()} KAS
                       </div>
