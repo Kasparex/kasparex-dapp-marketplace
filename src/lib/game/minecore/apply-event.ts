@@ -7,7 +7,14 @@ import {
   MINECORE_RECIPES,
 } from './config';
 import { computePlantDurationMs, computePlantExpectedDiamonds, computePlantReady, deriveSlotStatus } from './compute';
-import type { MinecoreEvent, MinecoreState, PlantSlotState } from './types';
+import type {
+  MinecoreBatteryId,
+  MinecoreEvent,
+  MinecoreMachineId,
+  MinecoreModuleId,
+  MinecoreState,
+  PlantSlotState,
+} from './types';
 
 function cloneSlot(slot: PlantSlotState): PlantSlotState {
   return {
@@ -64,15 +71,15 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       }
 
       if (recipe.kind === 'machine') {
-        const id = recipe.outputId as any;
+        const id = recipe.outputId as MinecoreMachineId;
         s.owned.machines[id] = (s.owned.machines[id] ?? 0) + 1;
       }
       if (recipe.kind === 'battery') {
-        const id = recipe.outputId as any;
+        const id = recipe.outputId as MinecoreBatteryId;
         s.owned.batteries[id] = (s.owned.batteries[id] ?? 0) + 1;
       }
       if (recipe.kind === 'module') {
-        const id = recipe.outputId as any;
+        const id = recipe.outputId as MinecoreModuleId;
         s.owned.modules[id] = (s.owned.modules[id] ?? 0) + 1;
       }
 
