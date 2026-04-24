@@ -1,0 +1,69 @@
+import type { MinecoreState, PlantSlotState } from './types';
+import { createInitialMinecoreState } from './initial-state';
+import { deriveState } from './compute';
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return !!v && typeof v === 'object';
+}
+
+function hydrateSlot(input: unknown, index: number): PlantSlotState {
+  const base = createInitialMinecoreState().plantSlots[index] ?? createInitialMinecoreState().plantSlots[0]!;
+  if (!isRecord(input)) return { ...base, index };
+
+  const setup = isRecord(input.setup) ? input.setup : {};
+  const cycle = isRecord(input.cycle) ? input.cycle : null;
+
+  return {
+    ...base,
+    id: typeof input.id === 'string' ? input.id : base.id,
+    index,
+    unlocked: typeof input.unlocked === 'boolean' ? input.unlocked : base.unlocked,
+    unlockCostKas: typeof input.unlockCostKas === 'number' ? input.unlockCostKas : base.unlockCostKas,
+    status: typeof input.status === 'string' ? (input.status as any) : base.status,
+    setup: {
+      machineId: typeof setup.machineId === 'string' ? (setup.machineId as any) : null,
+      batteryId: typeof setup.batteryId === 'string' ? (setup.batteryId as any) : null,
+      workerId: typeof setup.workerId === 'string' ? (setup.workerId as any) : null,
+      moduleIds: Array.isArray(setup.moduleIds) ? (setup.moduleIds.filter((x) => typeof x === 'string') as any) : [],
+      boostId: typeof setup.boostId === 'string' ? (setup.boostId as any) : 'none',
+    },
+    cycle:
+      cycle && typeof cycle.startAtMs === 'number' && typeof cycle.endAtMs === 'number'
+        ? {
+            startAtMs: cycle.startAtMs,
+            endAtMs: cycle.endAtMs,
+            durationMs: typeof cycle.durationMs === 'number' ? cycle.durationMs : Math.max(0, cycle.endAtMs - cycle.startAtMs),
+            expectedDiamonds: typeof cycle.expectedDiamonds === 'number' ? cycle.expectedDiamonds : 0,
+          }
+        : null,
+    powerRemaining: typeof input.powerRemaining === 'number' ? input.powerRemaining : base.powerRemaining,
+    needsRepair: typeof input.needsRepair === 'boolean' ? input.needsRepair : base.needsRepair,
+  };
+}
+
+export function hydrateMinecoreState(input: unknown): MinecoreState {
+  const base = createInitialMinecoreState();
+  if (!isRecord(input)) return base;
+
+  const plantSlotsRaw = Array.isArray(input.plantSlots) ? input.plantSlots : [];
+  const plantSlots = plantSlotsRaw.length
+    ? plantSlotsRaw.map((s, i) => hydrateSlot(s, i))
+    : base.plantSlots;
+
+  const out: MinecoreState = {
+    ...base,
+    version: typeof input.version === 'number' ? input.version : base.version,
+    diamondsBalance: typeof input.diamondsBalance === 'number' ? input.diamondsBalance : base.diamondsBalance,
+    refinementPointsTotal: typeof input.refinementPointsTotal === 'number' ? input.refinementPointsTotal : base.refinementPointsTotal,
+    gridRedeemableTotal: typeof input.gridRedeemableTotal === 'number' ? input.gridRedeemableTotal : base.gridRedeemableTotal,
+    ingredients: isRecord(input.ingredients) ? ({ ...base.ingredients, ...(input.ingredients as any) } as any) : base.ingredients,
+    owned: isRecord(input.owned) ? ({ ...base.owned, ...(input.owned as any) } as any) : base.owned,
+    plantSlots,
+    nextSlotCostKas: typeof input.nextSlotCostKas === 'number' ? input.nextSlotCostKas : base.nextSlotCostKas,
+    lastConnectedAt: typeof input.lastConnectedAt === 'number' ? input.lastConnectedAt : base.lastConnectedAt,
+    lastConnectedAddress: typeof input.lastConnectedAddress === 'string' ? input.lastConnectedAddress : base.lastConnectedAddress,
+  };
+
+  return deriveState(out, Date.now());
+}
+

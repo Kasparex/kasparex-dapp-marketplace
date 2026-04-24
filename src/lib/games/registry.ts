@@ -120,6 +120,57 @@ export const gamesRegistry: UnifiedGame[] = [
   },
   {
     ...baseGame({
+      id: 'minecore',
+      name: 'Minecore',
+      slug: 'minecore',
+      description:
+        'Operate a diamond mining complex beneath Kaspaland. Craft parts, build mining plants, run timed extraction cycles, refine diamonds, and redeem output into GRID as the ecosystem expands.',
+      instructions:
+        'Connect your Kaspa wallet. Unlock a plant slot with KAS, install machine and power, assign workers and modules, then start a mining cycle. Extract diamonds when complete and refine output for ecosystem rewards.',
+      gameType: 'strategy',
+      difficulty: 'easy',
+      entryCostKAS: 0,
+      status: 'beta',
+      developer: 'Kasparex',
+      version: '0.1.0',
+      featuredImage: 'https://static.wixstatic.com/media/de4185_d624b5a44cf34912bce7e3525fd63aaf~mv2.jpg',
+      rewardConfig: { gridReward: 0, xpReward: 0 },
+      createdAt: new Date().toISOString(),
+    }),
+    route: { kind: 'custom', href: '/games/minecore' },
+    capabilities: ['wallet_l1', 'payments_l1_kas', 'currency_diamonds', 'leaderboard_unified'],
+    skus: [
+      {
+        id: 'minecore:slot:unlock',
+        type: 'slot',
+        title: 'Plant Slot Unlock',
+        currency: 'KAS',
+        amount: 1,
+        kasTreasuryAddress: DEFAULT_GAMES_TREASURY,
+      },
+      {
+        id: 'minecore:slot:expand',
+        type: 'slot',
+        title: 'Plant Slot Expansion',
+        currency: 'KAS',
+        amount: 50,
+        kasTreasuryAddress: DEFAULT_GAMES_TREASURY,
+      },
+    ],
+    categories: ['Economy', 'Mining', 'Crafting'],
+    tags: ['Plant slots', 'Timers', 'Refine', 'GRID'],
+    connections: [
+      {
+        toSlug: 'cipher-vaults',
+        title: 'Diamonds → Vault access',
+        punch: 'Mine diamonds in Minecore, then spend them later across Kasparex Games unlocks and entries.',
+        actionKey: 'none',
+        actionHint: 'Open Minecore and start a plant cycle.',
+      },
+    ],
+  },
+  {
+    ...baseGame({
       id: 'cipher-vaults',
       name: "Krex’s Cipher Vaults",
       slug: 'cipher-vaults',
