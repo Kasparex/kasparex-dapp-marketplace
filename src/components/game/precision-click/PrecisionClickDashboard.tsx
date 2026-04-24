@@ -18,6 +18,7 @@ import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
+import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { IconBoosters, IconComments, IconOverview, IconPlay, IconRewards } from '@/components/games/icons/TabIcons';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
@@ -196,46 +197,39 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
 
         {tab === 'overview' && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Training note</h3>
-              <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+            <GamePanelCard title="Training note" hint="Timing and intent.">
+              <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                 ARIA’s fragments don’t wait. The window is small, the noise is loud, and hesitation is a miss. Train the timing until your clicks feel inevitable.
               </p>
-            </div>
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">How to play</h3>
-              <ul className="mt-2 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+            </GamePanelCard>
+
+            <GamePanelCard title="How to play" hint="Quick rules.">
+              <ul className="list-disc pl-5 text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
                 <li>Start a 30s run.</li>
                 <li>Hit targets before they fade. Smaller = more points.</li>
                 <li>Boosters multiply the final score (tier + deck + optional booster).</li>
               </ul>
-            </div>
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">References</h3>
-              <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+            </GamePanelCard>
+
+            <GamePanelCard title="References" hint="Worldbuilding links.">
+              <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                 Browse{' '}
-                <Link href="/chronicles/chapters" className="font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
+                <Link href="/chronicles/chapters" className="font-semibold text-emerald-700 hover:underline dark:text-emerald-300">
                   Chronicles chapters
                 </Link>{' '}
                 and{' '}
-                <Link href="/chronicles/characters" className="font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
+                <Link href="/chronicles/characters" className="font-semibold text-emerald-700 hover:underline dark:text-emerald-300">
                   character dossiers
                 </Link>
                 .
               </p>
-            </div>
-
-            {props.loreStory ? (
-              <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-                <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Story</h3>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{props.loreStory}</p>
-              </div>
-            ) : null}
+            </GamePanelCard>
 
             <GameOverviewSections
               gameName={props.gameName ?? 'Precision Click'}
               description={props.gameDescription}
               loreStory={props.loreStory}
+              featuredImage={props.featuredImage || undefined}
               flow={[
                 'Pay entry once to unlock the training run.',
                 'Play 30-second sessions and aim for a high score.',

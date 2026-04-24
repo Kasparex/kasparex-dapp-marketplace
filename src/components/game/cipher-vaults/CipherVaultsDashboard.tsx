@@ -16,6 +16,7 @@ import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
+import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { IconComments, IconOverview, IconRedeem, IconRewards, IconVaults } from '@/components/games/icons/TabIcons';
 
 const TABS = [
@@ -161,30 +162,30 @@ export function CipherVaultsDashboard({
 
         {tab === 'overview' && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">How it works</h3>
+            <GamePanelCard title="How it works" hint="Run → solve → checkpoint.">
               <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
                 Krex left encrypted vaults across Kaspaland. Start a run (pay with KAS or a Cipher Ticket). Solve the Cipher Grid within the move limit to record a checkpoint for future GRID distribution.
               </p>
-            </div>
-            <div className="rounded-2xl border border-zinc-200 bg-zinc-100 p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mb-2">Diamond Veins bridge</h3>
+            </GamePanelCard>
+
+            <GamePanelCard title="Diamond Veins bridge" hint="Convert refinement points into tickets.">
               <p className="text-sm text-zinc-600 dark:text-zinc-400">
                 Redeem Diamond Veins <strong>refinement points</strong> into Cipher Tickets: <strong>{CIPHER_TICKET_REDEEM_RATE_POINTS} pts</strong> = <strong>1 ticket</strong>.
               </p>
               <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
                 Need points? Start mining in{' '}
-                <Link href="/games/diamond-veins" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
+                <Link href="/games/diamond-veins" className="font-semibold text-emerald-700 underline dark:text-emerald-300">
                   Diamond Veins
                 </Link>
                 .
               </p>
-            </div>
+            </GamePanelCard>
 
             <GameOverviewSections
               gameName={gameName ?? "Krex’s Cipher Vaults"}
               description={gameDescription}
               loreStory={loreStory}
+              featuredImage={featuredImage || undefined}
               flow={[
                 'Start a vault run (KAS or a Cipher Ticket).',
                 'Solve the Cipher Grid within the move limit to clear a vault.',

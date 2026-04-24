@@ -20,6 +20,7 @@ import { GameInteractionsPanel } from '@/components/games/panels/GameInteraction
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { IconBoosters, IconComments, IconOverview, IconPlay, IconRewards } from '@/components/games/icons/TabIcons';
+import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -158,46 +159,40 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
 
         {tab === 'overview' && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Briefing</h3>
-              <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                Null Gang doesn’t kick the door in — it taps the edges until something blinks. Your job is to decide what moves first: <strong>Security</strong>, <strong>Power</strong>, or <strong>Stealth</strong>.
+            <GamePanelCard title="Briefing" hint="Decide what moves first.">
+              <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                Null Gang doesn’t kick the door in — it taps the edges until something blinks. Your job is to decide what moves first:{' '}
+                <strong>Security</strong>, <strong>Power</strong>, or <strong>Stealth</strong>.
               </p>
-            </div>
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">How to play</h3>
-              <ul className="mt-2 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+            </GamePanelCard>
+
+            <GamePanelCard title="How to play" hint="Quick rules.">
+              <ul className="list-disc pl-5 text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
                 <li>Pay entry once, then pick actions across missions.</li>
                 <li>Your stats stack and convert into a final score.</li>
                 <li>Boosters are optional (KREX tier + NFT deck + optional KREX booster).</li>
               </ul>
-            </div>
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">References</h3>
-              <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+            </GamePanelCard>
+
+            <GamePanelCard title="References" hint="Worldbuilding links.">
+              <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                 Open{' '}
-                <Link href="/chronicles/characters" className="font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
+                <Link href="/chronicles/characters" className="font-semibold text-emerald-700 hover:underline dark:text-emerald-300">
                   Characters
                 </Link>{' '}
                 and{' '}
-                <Link href="/chronicles/chapters" className="font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
+                <Link href="/chronicles/chapters" className="font-semibold text-emerald-700 hover:underline dark:text-emerald-300">
                   Chapters
                 </Link>{' '}
                 for dossiers and story context.
               </p>
-            </div>
-
-            {props.loreStory ? (
-              <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-                <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Story</h3>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{props.loreStory}</p>
-              </div>
-            ) : null}
+            </GamePanelCard>
 
             <GameOverviewSections
               gameName={props.gameName ?? 'Token Strategy'}
               description={props.gameDescription}
               loreStory={props.loreStory}
+              featuredImage={props.featuredImage || undefined}
               flow={[
                 'Pay entry once to start the mission chain.',
                 'Pick choices to shape Security/Power/Stealth stats.',

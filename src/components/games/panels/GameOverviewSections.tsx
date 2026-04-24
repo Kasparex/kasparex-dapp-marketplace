@@ -89,12 +89,19 @@ export function GameOverviewSections(props: {
   description?: string;
   loreStory?: string;
   flow?: string[];
+  featuredImage?: string;
 }) {
   const flow = props.flow ?? [];
   const loreBlocks = props.loreStory ? splitLoreIntoBlocks(props.loreStory) : [];
   return (
     <div className="space-y-6">
       <GamePanelCard title={props.gameName} hint={props.description?.trim() ? props.description : undefined}>
+        {props.featuredImage ? (
+          <div className="mb-5 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950/40">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={props.featuredImage} alt={props.gameName} className="aspect-video w-full object-cover" />
+          </div>
+        ) : null}
         {loreBlocks.length > 0 ? (
           <article className="prose prose-zinc max-w-none dark:prose-invert prose-p:leading-relaxed prose-p:my-4 prose-headings:tracking-tight">
             {loreBlocks.map((b, idx) =>

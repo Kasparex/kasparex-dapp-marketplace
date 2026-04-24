@@ -197,6 +197,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                 gameName={gameName ?? 'Diamond Veins'}
                 description={gameDescription}
                 loreStory={loreStory}
+                featuredImage={featuredImage || undefined}
                 flow={[
                   'Mine diamonds continuously (workers, power, boosts).',
                   'Refine when you reach the minimum threshold to mint refinement points.',

@@ -20,6 +20,7 @@ import { GameInteractionsPanel } from '@/components/games/panels/GameInteraction
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { IconBoosters, IconComments, IconOverview, IconPlay, IconRewards } from '@/components/games/icons/TabIcons';
+import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -264,57 +265,47 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
 
         {tab === 'overview' && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Case file</h3>
-              <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+            <GamePanelCard title="Case file" hint="Verify, don’t guess.">
+              <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                 You’re not here to guess — you’re here to <strong>verify</strong>. Ten chapters. Five questions per chapter. Each correct answer tightens the signal and pushes you deeper into Krex’s Chronicle.
               </p>
-            </div>
+            </GamePanelCard>
 
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">How to play</h3>
-              <ul className="mt-2 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+            <GamePanelCard title="How to play" hint="Quick rules.">
+              <ul className="list-disc pl-5 text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
                 <li>Pay entry once, then clear levels 1 → 10.</li>
                 <li>Correct answers score points. Boosters multiply your total.</li>
               </ul>
-            </div>
+            </GamePanelCard>
 
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Lore</h3>
-              <div className="mt-2 space-y-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+            <GamePanelCard title="Lore" hint="A short brief before the case.">
+              <div className="space-y-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                 <p>
                   Krex’s visor flashes a single line: <em>“If it can’t be verified, it can’t be trusted.”</em> Null Gang noise floods the perimeter. ARIA’s fragments pulse. Vector patches the edges. Tessa watches the quiet routes.
                 </p>
                 <p>Every level is a clue — and every clue points to another system.</p>
               </div>
-            </div>
+            </GamePanelCard>
 
-            {props.loreStory ? (
-              <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-                <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Story</h3>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{props.loreStory}</p>
-              </div>
-            ) : null}
-
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">References</h3>
-              <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+            <GamePanelCard title="References" hint="Worldbuilding links.">
+              <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                 Browse{' '}
-                <Link href="/chronicles/chapters" className="font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
+                <Link href="/chronicles/chapters" className="font-semibold text-emerald-700 hover:underline dark:text-emerald-300">
                   Chapters
                 </Link>{' '}
                 and{' '}
-                <Link href="/chronicles/characters" className="font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
+                <Link href="/chronicles/characters" className="font-semibold text-emerald-700 hover:underline dark:text-emerald-300">
                   Characters
                 </Link>{' '}
                 to connect clues to the world.
               </p>
-            </div>
+            </GamePanelCard>
 
             <GameOverviewSections
               gameName={props.gameName ?? 'Mystery Quiz'}
               description={props.gameDescription}
               loreStory={props.loreStory}
+              featuredImage={props.featuredImage || undefined}
               flow={[
                 'Pay entry once to begin the case run.',
                 'Answer questions across levels to build score.',
