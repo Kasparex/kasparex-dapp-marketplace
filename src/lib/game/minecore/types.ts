@@ -70,6 +70,11 @@ export type PlantSlotState = {
   needsRepair: boolean;
 };
 
+export type MinecoreAutomationState = {
+  autoRestart: boolean;
+  foremanActive: boolean;
+};
+
 export type MinecoreState = {
   version: number;
   diamondsBalance: number;
@@ -79,6 +84,8 @@ export type MinecoreState = {
   owned: OwnedItems;
   plantSlots: PlantSlotState[];
   nextSlotCostKas: number;
+  nftSlots: import('@/lib/game/engine').MiningSlot[];
+  automation: MinecoreAutomationState;
   lastConnectedAt: number | null;
   lastConnectedAddress: string | null;
 };
@@ -88,6 +95,10 @@ export type MinecoreEvent =
   | { type: 'UnlockSlot'; slotIndex: number; at: number }
   | { type: 'AddSlot'; at: number }
   | { type: 'CraftRecipe'; at: number; recipeId: string }
+  | { type: 'AddIngredients'; at: number; ingredient: MinecoreIngredient; amount: number }
+  | { type: 'DeployNFT'; at: number; slotIndex: number; nftId: number; collection: string }
+  | { type: 'RemoveNFT'; at: number; slotIndex: number }
+  | { type: 'SetAutomation'; at: number; patch: Partial<MinecoreAutomationState> }
   | {
       type: 'InstallPart';
       slotIndex: number;

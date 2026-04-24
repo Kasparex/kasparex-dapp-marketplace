@@ -6,6 +6,7 @@ import {
   MINECORE_STARTER_OWNED,
 } from './config';
 import type { MinecoreState, PlantSlotState } from './types';
+import type { MiningSlot } from '@/lib/game/engine';
 
 function createEmptySlot(index: number): PlantSlotState {
   return {
@@ -28,6 +29,12 @@ function createEmptySlot(index: number): PlantSlotState {
 }
 
 export function createInitialMinecoreState(): MinecoreState {
+  const nftSlots: MiningSlot[] = [
+    { type: 'worker', nftId: null, collection: null },
+    { type: 'operator', nftId: null, collection: null },
+    { type: 'foreman', nftId: null, collection: null },
+    { type: 'engineer', nftId: null, collection: null },
+  ];
   return {
     version: 1,
     diamondsBalance: 0,
@@ -42,6 +49,8 @@ export function createInitialMinecoreState(): MinecoreState {
     },
     plantSlots: Array.from({ length: MINECORE_DEFAULT_PLANT_SLOTS }, (_, i) => createEmptySlot(i)),
     nextSlotCostKas: MINECORE_DEFAULT_NEXT_SLOT_COST_KAS,
+    nftSlots,
+    automation: { autoRestart: false, foremanActive: false },
     lastConnectedAt: null,
     lastConnectedAddress: null,
   };

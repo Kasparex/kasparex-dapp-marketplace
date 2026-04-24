@@ -210,6 +210,28 @@ export function useMinecore() {
     dispatch({ type: 'CraftRecipe', at: Date.now(), recipeId });
   }, [dispatch]);
 
+  const deployNFT = useCallback((slotIndex: number, nftId: number, collection: string) => {
+    dispatch({ type: 'DeployNFT', at: Date.now(), slotIndex, nftId, collection });
+  }, [dispatch]);
+
+  const removeNFT = useCallback((slotIndex: number) => {
+    dispatch({ type: 'RemoveNFT', at: Date.now(), slotIndex });
+  }, [dispatch]);
+
+  const setAutomation = useCallback((patch: { autoRestart?: boolean }) => {
+    dispatch({ type: 'SetAutomation', at: Date.now(), patch });
+  }, [dispatch]);
+
+  const purchaseIngredientWithKAS = useCallback(
+    async (ingredient: any, opts: { amount: number; amountKas: number }) => {
+      const paid = await payKasBestEffort({ amountKas: opts.amountKas, skuId: `minecore:ingredient:${ingredient}`, purchaseType: 'other' });
+      if (!paid.ok) return false;
+      dispatch({ type: 'AddIngredients', at: Date.now(), ingredient, amount: opts.amount });
+      return true;
+    },
+    [dispatch, payKasBestEffort]
+  );
+
   return {
     state: derived,
     miningAllowed,
@@ -235,6 +257,10 @@ export function useMinecore() {
       refine,
       redeemGrid,
       craftRecipe,
+      deployNFT,
+      removeNFT,
+      setAutomation,
+      purchaseIngredientWithKAS,
     },
   };
 }

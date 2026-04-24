@@ -45,6 +45,8 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       modules: { ...state.owned.modules },
     },
     plantSlots: state.plantSlots.map(cloneSlot),
+    nftSlots: state.nftSlots ? state.nftSlots.map((x) => ({ ...x })) : [],
+    automation: state.automation ? { ...state.automation } : { autoRestart: false, foremanActive: false },
   };
 
   const now = 'at' in ev ? ev.at : Date.now();
@@ -54,6 +56,32 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       s.lastConnectedAt = ev.at;
       s.lastConnectedAddress = ev.address;
       return rederive(s, ev.at);
+    }
+    case 'AddIngredients': {
+      const amt = Math.max(0, Math.floor(ev.amount));
+      if (amt <= 0) return rederive(s, now);
+      s.ingredients[ev.ingredient] = Math.max(0, (s.ingredients[ev.ingredient] ?? 0) + amt);
+      return rederive(s, now);
+    }
+    case 'DeployNFT': {
+      const slot = s.nftSlots?.[ev.slotIndex];
+      if (!slot) return rederive(s, now);
+      slot.nftId = ev.nftId;
+      slot.collection = ev.collection;
+      s.automation.foremanActive = Boolean(s.nftSlots?.some((x) => x.type === 'foreman' && x.nftId != null));
+      return rederive(s, now);
+    }
+    case 'RemoveNFT': {
+      const slot = s.nftSlots?.[ev.slotIndex];
+      if (!slot) return rederive(s, now);
+      slot.nftId = null;
+      slot.collection = null;
+      s.automation.foremanActive = Boolean(s.nftSlots?.some((x) => x.type === 'foreman' && x.nftId != null));
+      return rederive(s, now);
+    }
+    case 'SetAutomation': {
+      s.automation = { ...s.automation, ...ev.patch };
+      return rederive(s, now);
     }
     case 'CraftRecipe': {
       const recipe = MINECORE_RECIPES.find((r) => r.id === ev.recipeId);

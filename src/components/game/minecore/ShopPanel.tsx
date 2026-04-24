@@ -3,13 +3,64 @@
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
+import type { MinecoreIngredient } from '@/lib/game/minecore';
 
 export function ShopPanel(props: {
   onBuy: (args: { itemId: string; currency: GameItemCurrency; quantity: number }) => void | Promise<void>;
+  onBuyIngredient: (args: { ingredient: MinecoreIngredient; currency: GameItemCurrency; quantity: number }) => void | Promise<void>;
 }) {
   return (
-    <GamePanelCard title="Shop" hint="V1 items. Payments will expand over time.">
+    <GamePanelCard title="Shop" hint="Ingredients and utilities. Quantity calculates total price.">
       <div className="grid gap-4 sm:grid-cols-2">
+        <GameItemCard
+          title="Crystal Dust"
+          category="Ingredient"
+          description="Basic crystal substrate used in fabrication."
+          priceOptions={[
+            { currency: 'KAS', unitPrice: 0.01 },
+            { currency: 'KREX', unitPrice: 0.5, disabled: true },
+          ]}
+          quantitySelector={{ min: 1, max: 999 }}
+          buyLabel="Buy"
+          onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'crystalDust', currency, quantity })}
+        />
+        <GameItemCard
+          title="Alloy Plates"
+          category="Ingredient"
+          description="Structural plates for rigs and modules."
+          priceOptions={[
+            { currency: 'KAS', unitPrice: 0.03 },
+            { currency: 'KREX', unitPrice: 1.2, disabled: true },
+          ]}
+          quantitySelector={{ min: 1, max: 999 }}
+          buyLabel="Buy"
+          onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'alloyPlates', currency, quantity })}
+        />
+        <GameItemCard
+          title="Circuit Mesh"
+          category="Ingredient"
+          description="Control mesh for machine interfaces."
+          priceOptions={[
+            { currency: 'KAS', unitPrice: 0.025 },
+            { currency: 'GRID', unitPrice: 0.4, disabled: true },
+          ]}
+          quantitySelector={{ min: 1, max: 999 }}
+          buyLabel="Buy"
+          onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'circuitMesh', currency, quantity })}
+        />
+        <GameItemCard
+          title="Energy Cells"
+          category="Ingredient"
+          description="Compact energy units used in power systems."
+          priceOptions={[
+            { currency: 'KAS', unitPrice: 0.02 },
+            { currency: 'GRID', unitPrice: 0.3, disabled: true },
+          ]}
+          quantitySelector={{ min: 1, max: 999 }}
+          buyLabel="Buy"
+          onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'energyCells', currency, quantity })}
+        />
+
         <GameItemCard
           title="KAS Overclock"
           category="Boost"

@@ -15,14 +15,18 @@ import { GameOverviewSections } from '@/components/games/panels/GameOverviewSect
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
+import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconSignal } from '@/components/games/icons/TabIcons';
+import { WorkersPanel } from '@/components/game/minecore/WorkersPanel';
+import { MINECORE_BATTERIES } from '@/lib/game/minecore/config';
 
 const TABS = [
-  { id: 'overview', label: 'Overview' },
+  { id: 'overview', label: 'Overview', icon: <IconOverview /> },
   { id: 'mining', label: 'Mining', icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" /> },
-  { id: 'inventory', label: 'Inventory' },
-  { id: 'shop', label: 'Shop' },
-  { id: 'fabrication', label: 'Fabrication' },
-  { id: 'rewards', label: 'Rewards' },
+  { id: 'workers', label: 'Workers', icon: <IconWorkers /> },
+  { id: 'inventory', label: 'Inventory', icon: <IconSignal /> },
+  { id: 'shop', label: 'Shop', icon: <IconShop /> },
+  { id: 'fabrication', label: 'Build', icon: <IconBoosters /> },
+  { id: 'rewards', label: 'Rewards', icon: <IconRewards /> },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
@@ -76,6 +80,22 @@ export function MinecoreDashboard(_props: {
   const categories = (_props.game?.categories ?? []) as string[];
   const tags = (_props.game?.tags ?? []) as string[];
 
+  const miningStats = useMemo(() => {
+    const now = Date.now();
+    const active = state.plantSlots.filter((p) => p.cycle && now < p.cycle.endAtMs);
+    const flow = active.reduce((acc, p) => acc + (p.cycle ? p.cycle.expectedDiamonds / Math.max(1, p.cycle.durationMs) : 0), 0);
+
+    const cap = state.plantSlots.reduce((acc, p) => {
+      if (!p.unlocked || !p.setup.batteryId) return acc;
+      const b = MINECORE_BATTERIES[p.setup.batteryId];
+      return acc + (b?.powerCapacity ?? 0);
+    }, 0);
+    const used = active.length;
+    const efficiency = used <= cap || used === 0 ? 1 : cap / used;
+
+    return { flowPerSecond: flow, powerUsed: used, powerCap: cap, powerEfficiency: efficiency };
+  }, [state.plantSlots]);
+
   return (
     <TooltipProvider>
       <div className="grid h-full grid-cols-1 gap-8 lg:grid-cols-12">
@@ -123,6 +143,30 @@ export function MinecoreDashboard(_props: {
                   {lastPaymentError}
                 </div>
               ) : null}
+
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Flow rate</div>
+                  <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{miningStats.flowPerSecond.toFixed(3)} D/s</p>
+                </div>
+                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Power</div>
+                  <p className="mt-1 text-2xl font-bold tabular-nums text-zinc-900 dark:text-zinc-100">
+                    {miningStats.powerUsed.toFixed(0)} / {miningStats.powerCap.toFixed(0)}
+                  </p>
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Efficiency {(miningStats.powerEfficiency * 100).toFixed(0)}%</p>
+                </div>
+                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Automation</div>
+                  <p className="mt-1 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+                    {state.automation.autoRestart ? 'Auto-restart on' : 'Auto-restart off'}
+                  </p>
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    Foreman active {state.automation.foremanActive ? 'Yes' : 'No'}
+                  </p>
+                </div>
+              </div>
+
               <div className="grid gap-4 sm:grid-cols-2">
                 {state.plantSlots.map((slot) => (
                   <PlantSlotCard
@@ -168,10 +212,27 @@ export function MinecoreDashboard(_props: {
             </div>
           )}
 
+          {tab === 'workers' && (
+            <WorkersPanel
+              slots={state.nftSlots}
+              autoRestart={state.automation.autoRestart}
+              foremanActive={state.automation.foremanActive}
+              onToggleAutoRestart={(enabled) => actions.setAutomation({ autoRestart: enabled })}
+              onDeploy={actions.deployNFT}
+              onRemove={(slotIndex) => actions.removeNFT(slotIndex)}
+            />
+          )}
+
           {tab === 'inventory' && <InventoryPanel state={state} />}
 
           {tab === 'shop' && (
             <ShopPanel
+              onBuyIngredient={async ({ ingredient, currency, quantity }) => {
+                if (currency === 'KAS') {
+                  const unitPrice = ingredient === 'alloyPlates' ? 0.03 : ingredient === 'circuitMesh' ? 0.025 : ingredient === 'energyCells' ? 0.02 : 0.01;
+                  await actions.purchaseIngredientWithKAS(ingredient, { amount: quantity, amountKas: unitPrice * quantity });
+                }
+              }}
               onBuy={async ({ itemId, currency, quantity }) => {
                 if (itemId === 'power-topup' && currency === 'KAS') {
                   await actions.topUpPowerWithKAS(0, { added: quantity, amountKas: 0.2 * quantity });

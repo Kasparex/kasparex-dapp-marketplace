@@ -60,6 +60,21 @@ export function hydrateMinecoreState(input: unknown): MinecoreState {
     owned: isRecord(input.owned) ? ({ ...base.owned, ...(input.owned as any) } as any) : base.owned,
     plantSlots,
     nextSlotCostKas: typeof input.nextSlotCostKas === 'number' ? input.nextSlotCostKas : base.nextSlotCostKas,
+    nftSlots: Array.isArray(input.nftSlots)
+      ? (input.nftSlots
+          .filter((x) => isRecord(x))
+          .map((x) => ({
+            type: typeof x.type === 'string' ? (x.type as any) : 'worker',
+            nftId: typeof x.nftId === 'number' ? x.nftId : null,
+            collection: typeof x.collection === 'string' ? x.collection : null,
+          })) as any)
+      : base.nftSlots,
+    automation: isRecord(input.automation)
+      ? {
+          autoRestart: typeof input.automation.autoRestart === 'boolean' ? input.automation.autoRestart : base.automation.autoRestart,
+          foremanActive: typeof input.automation.foremanActive === 'boolean' ? input.automation.foremanActive : base.automation.foremanActive,
+        }
+      : base.automation,
     lastConnectedAt: typeof input.lastConnectedAt === 'number' ? input.lastConnectedAt : base.lastConnectedAt,
     lastConnectedAddress: typeof input.lastConnectedAddress === 'string' ? input.lastConnectedAddress : base.lastConnectedAddress,
   };
