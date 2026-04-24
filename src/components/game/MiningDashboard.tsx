@@ -21,15 +21,17 @@ import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GameFeaturedPanel } from '@/components/games/panels/GameFeaturedPanel';
+import { GameTabs } from '@/components/games/layout/GameTabs';
+import { IconComments, IconOverview, IconPower, IconRewards, IconShop, IconWorkers } from '@/components/games/icons/TabIcons';
 
 const TABS = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'mining', label: 'Mining' },
-  { id: 'power', label: 'Power' },
-  { id: 'workers', label: 'Workers' },
-  { id: 'upgrades', label: 'Shop' },
-  { id: 'rewards', label: 'Rewards' },
-  { id: 'comments', label: 'Comments' },
+  { id: 'overview', label: 'Overview', icon: <IconOverview /> },
+  { id: 'mining', label: 'Mining', icon: <DiamondIcon className="h-4 w-4 text-sky-400" /> },
+  { id: 'power', label: 'Power', icon: <IconPower /> },
+  { id: 'workers', label: 'Workers', icon: <IconWorkers /> },
+  { id: 'upgrades', label: 'Shop', icon: <IconShop /> },
+  { id: 'rewards', label: 'Rewards', icon: <IconRewards /> },
+  { id: 'comments', label: 'Comments', icon: <IconComments /> },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
@@ -154,61 +156,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-2 dark:border-zinc-800">
-            {TABS.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setTab(t.id)}
-                className={`rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
-                  tab === t.id
-                    ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300'
-                    : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/60'
-                }`}
-              >
-                <span className="inline-flex items-center gap-2">
-                  {t.id === 'overview' ? (
-                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M4 6h16M4 12h10M4 18h16" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                  ) : null}
-                  {t.id === 'mining' ? <DiamondIcon className="h-4 w-4 text-sky-400" /> : null}
-                  {t.id === 'power' ? (
-                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" strokeWidth="2" strokeLinejoin="round" />
-                    </svg>
-                  ) : null}
-                  {t.id === 'workers' ? (
-                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M16 11c1.66 0 3-1.57 3-3.5S17.66 4 16 4s-3 1.57-3 3.5S14.34 11 16 11z" strokeWidth="2" />
-                      <path d="M8 11c1.66 0 3-1.57 3-3.5S9.66 4 8 4 5 5.57 5 7.5 6.34 11 8 11z" strokeWidth="2" />
-                      <path d="M2 20c0-3 3-5 6-5" strokeWidth="2" strokeLinecap="round" />
-                      <path d="M22 20c0-3-3-5-6-5" strokeWidth="2" strokeLinecap="round" />
-                      <path d="M8 15h8" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                  ) : null}
-                  {t.id === 'upgrades' ? (
-                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M7 7h14l-1 8H8L7 7z" strokeWidth="2" strokeLinejoin="round" />
-                      <path d="M7 7L6 3H2" strokeWidth="2" strokeLinecap="round" />
-                      <path d="M9 21a1 1 0 100-2 1 1 0 000 2zM19 21a1 1 0 100-2 1 1 0 000 2z" strokeWidth="2" />
-                    </svg>
-                  ) : null}
-                  {t.id === 'rewards' ? (
-                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M12 2l3 7h7l-5.5 4 2 7-6.5-4.5L5.5 20l2-7L2 9h7l3-7z" strokeWidth="2" strokeLinejoin="round" />
-                    </svg>
-                  ) : null}
-                  {t.id === 'comments' ? (
-                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M21 15a4 4 0 01-4 4H8l-5 3V7a4 4 0 014-4h10a4 4 0 014 4v8z" strokeWidth="2" strokeLinejoin="round" />
-                    </svg>
-                  ) : null}
-                  <span>{t.label}</span>
-                </span>
-              </button>
-            ))}
-          </div>
+          <GameTabs tabs={TABS} value={tab} onChange={setTab} />
 
           {activeBoosts.length > 0 && (
             <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">

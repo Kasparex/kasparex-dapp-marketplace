@@ -19,6 +19,7 @@ import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GameFeaturedPanel } from '@/components/games/panels/GameFeaturedPanel';
+import { IconBoosters, IconComments, IconOverview, IconPlay, IconRewards } from '@/components/games/icons/TabIcons';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -114,11 +115,11 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
 
   const tabs = useMemo(
     () => [
-      { id: 'overview' as const, label: 'Overview', icon: <span>≡</span> },
-      { id: 'play' as const, label: 'Play', icon: <span>▶</span> },
-      { id: 'rewards' as const, label: 'Rewards', icon: <span>★</span>, rightAdornment: <StatusDot tone={rewardsTone as any} tooltip={rewardsTip} /> },
-      { id: 'boosters' as const, label: 'Boosters', icon: <span>⚡</span>, rightAdornment: <StatusDot tone={boostersTone as any} tooltip={boostersTip} /> },
-      { id: 'comments' as const, label: 'Comments', icon: <span>💬</span> },
+      { id: 'overview' as const, label: 'Overview', icon: <IconOverview /> },
+      { id: 'play' as const, label: 'Play', icon: <IconPlay /> },
+      { id: 'rewards' as const, label: 'Rewards', icon: <IconRewards />, rightAdornment: <StatusDot tone={rewardsTone as any} tooltip={rewardsTip} /> },
+      { id: 'boosters' as const, label: 'Boosters', icon: <IconBoosters />, rightAdornment: <StatusDot tone={boostersTone as any} tooltip={boostersTip} /> },
+      { id: 'comments' as const, label: 'Comments', icon: <IconComments /> },
     ],
     [boostersTip, boostersTone, rewardsTip, rewardsTone]
   );

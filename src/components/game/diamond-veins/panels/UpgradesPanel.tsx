@@ -4,11 +4,12 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
+import { IconBoosters, IconBot, IconSignal } from '@/components/games/icons/TabIcons';
 
 const GARAGE_ITEMS = [
-  { id: 'nitrogen-overclock', name: "Vector's Overclock", price: 100, priceKAS: 0.5, desc: '+25% Yield (1h)', icon: '⚡', type: 'yield' as const, mult: 0.25 },
-  { id: 'crystal-resonance', name: 'Crystal Resonance', price: 500, priceKAS: 2, desc: '+50% Rare Drops', icon: '📡', type: 'luck' as const, mult: 0.5 },
-  { id: 'ai-auto-refiner', name: 'ARIA Auto-Refiner', price: 2500, priceKAS: 10, desc: 'Auto-claim every 4h', icon: '🤖', type: 'efficiency' as const, mult: 0.1 },
+  { id: 'nitrogen-overclock', name: "Vector's Overclock", price: 100, priceKAS: 0.5, desc: '+25% Yield (1h)', icon: <IconBoosters />, type: 'yield' as const, mult: 0.25 },
+  { id: 'crystal-resonance', name: 'Crystal Resonance', price: 500, priceKAS: 2, desc: '+50% Rare Drops', icon: <IconSignal />, type: 'luck' as const, mult: 0.5 },
+  { id: 'ai-auto-refiner', name: 'ARIA Auto-Refiner', price: 2500, priceKAS: 10, desc: 'Auto-claim every 4h', icon: <IconBot />, type: 'efficiency' as const, mult: 0.1 },
 ];
 
 export function UpgradesPanel({
@@ -90,7 +91,7 @@ export function UpgradesPanel({
           return (
             <GameItemCard
               key={item.id}
-              icon={<span className="text-3xl">{item.icon}</span>}
+              icon={<span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-zinc-200 bg-white text-emerald-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-emerald-300">{item.icon}</span>}
               title={item.name}
               category="Shop"
               description={

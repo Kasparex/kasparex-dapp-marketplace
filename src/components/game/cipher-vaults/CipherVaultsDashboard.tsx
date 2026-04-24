@@ -17,6 +17,7 @@ import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GameFeaturedPanel } from '@/components/games/panels/GameFeaturedPanel';
+import { IconComments, IconOverview, IconRedeem, IconRewards, IconVaults } from '@/components/games/icons/TabIcons';
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
@@ -139,11 +140,11 @@ export function CipherVaultsDashboard({
 
         <GameTabs
           tabs={[
-            { id: 'overview', label: 'Overview', icon: <span>≡</span> },
-            { id: 'vaults', label: 'Vaults', icon: <span>🔒</span> },
-            { id: 'redeem', label: 'Redeem', icon: <DiamondIcon className="h-4 w-4 text-sky-400" /> },
-            { id: 'rewards', label: 'Rewards', icon: <span>★</span> },
-            { id: 'comments', label: 'Comments', icon: <span>💬</span> },
+            { id: 'overview', label: 'Overview', icon: <IconOverview /> },
+            { id: 'vaults', label: 'Vaults', icon: <IconVaults /> },
+            { id: 'redeem', label: 'Redeem', icon: <IconRedeem /> },
+            { id: 'rewards', label: 'Rewards', icon: <IconRewards /> },
+            { id: 'comments', label: 'Comments', icon: <IconComments /> },
           ]}
           value={tab}
           onChange={setTab}
