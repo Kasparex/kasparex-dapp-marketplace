@@ -544,8 +544,6 @@ export function CipherVaultsDashboard({
           footer={<span>Values update live as you earn tickets and clear vaults.</span>}
           featured={{
             image: featuredImage || undefined,
-            title: gameName ?? "Krex’s Cipher Vaults",
-            description: gameDescription || undefined,
             onOpenOverview: openOverview,
             tooltip: 'Click to open game overview',
           }}

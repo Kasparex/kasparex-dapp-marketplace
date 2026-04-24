@@ -337,8 +337,6 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
             }
             featured={{
               image: featuredImage || undefined,
-              title: gameName ?? 'Diamond Veins',
-              description: gameDescription || undefined,
               onOpenOverview: openOverview,
               tooltip: 'Click to open game overview',
             }}

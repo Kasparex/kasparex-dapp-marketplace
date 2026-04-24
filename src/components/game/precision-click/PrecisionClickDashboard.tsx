@@ -357,8 +357,6 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
           ]}
           featured={{
             image: props.featuredImage || undefined,
-            title: props.gameName ?? 'Precision Click',
-            description: props.gameDescription || undefined,
             onOpenOverview: openOverview,
             tooltip: 'Click to open game overview',
           }}

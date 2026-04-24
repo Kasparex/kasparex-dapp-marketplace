@@ -468,8 +468,6 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
           ]}
           featured={{
             image: props.featuredImage || undefined,
-            title: props.gameName ?? 'Mystery Quiz',
-            description: props.gameDescription || undefined,
             onOpenOverview: openOverview,
             tooltip: 'Click to open game overview',
           }}
