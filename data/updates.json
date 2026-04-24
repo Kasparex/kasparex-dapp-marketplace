@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777074455-6de30f0",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Minecore: games shell, deck KAS/KREX, mining sections, plant UI, redeem tab (by Kasparex)",
+      "date": "2026-04-25T01:47:00+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777069490-a80912f",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Minecore: overview article, power tab, plant power/battery UI, rewards ledger, grid API stub (by Kasparex)",
