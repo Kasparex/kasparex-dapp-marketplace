@@ -5,6 +5,7 @@ import type { YieldStats } from '@/lib/game/engine';
 import type { TyconGameState } from '@/lib/game/engine';
 import { DIAMOND_COMMODITY_KEYS, type DiamondCommodity } from '@/lib/game/engine';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
+import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 const DIAMOND_LABELS: Record<DiamondCommodity, string> = {
   chronoShard: 'Chrono Shard (CSD)',
   auroraCore: 'Aurora Core (ACD)',
@@ -35,6 +36,15 @@ export function MiningPanel({
   miningRunOptions: readonly { label: string; durationMs: number; mult: number }[];
   onStartMiningRun: (i: number) => void;
 }) {
+  const veinIconClass: Record<DiamondCommodity, string> = {
+    chronoShard: 'text-sky-400',
+    auroraCore: 'text-violet-400',
+    cipherPrism: 'text-emerald-400',
+    eonCore: 'text-amber-400',
+    eclipticFlame: 'text-rose-400',
+    rubble: 'text-zinc-400',
+  };
+
   return (
     <div className="space-y-8">
       <div className="relative overflow-hidden rounded-3xl border border-zinc-200 bg-zinc-100 p-8 dark:border-zinc-800 dark:bg-zinc-900/60">
@@ -48,7 +58,10 @@ export function MiningPanel({
                   {Math.floor(diamonds).toLocaleString()}
                 </h2>
               </GameTooltip>
-              <span className="font-medium text-zinc-500 dark:text-zinc-400">DIAMONDS</span>
+              <span className="inline-flex items-center gap-2 font-medium text-zinc-500 dark:text-zinc-400">
+                <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />
+                DIAMONDS
+              </span>
             </div>
             <p className="max-w-md text-base text-zinc-600 dark:text-zinc-400">
               Refine at <strong>{refineMinDiamonds}+</strong> for refinement points and GRID checkpoint entries.
@@ -77,7 +90,10 @@ export function MiningPanel({
         <div className="grid gap-2 sm:grid-cols-2">
           {DIAMOND_COMMODITY_KEYS.map((k) => (
             <div key={k} className="flex justify-between rounded-lg border border-zinc-100 px-3 py-2 text-sm dark:border-zinc-800">
-              <span className="text-zinc-600 dark:text-zinc-400">{DIAMOND_LABELS[k]}</span>
+              <span className="inline-flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
+                <DiamondIcon className={`h-4 w-4 ${veinIconClass[k]}`} />
+                {DIAMOND_LABELS[k]}
+              </span>
               <span className="font-mono font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
                 {tycon.diamondInventory[k].toFixed(1)}
               </span>

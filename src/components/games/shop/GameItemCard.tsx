@@ -115,36 +115,38 @@ export function GameItemCard(props: {
         </div>
 
         <div className="mt-auto border-t border-zinc-100 pt-4 dark:border-zinc-800 space-y-3">
-          {qtyCfg ? (
+          <div className={`flex items-center justify-between gap-3 ${qtyCfg ? '' : 'opacity-60'}`}>
             <div className="flex items-center justify-between gap-3">
               <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-500">Quantity</span>
               <div className="flex items-center gap-2">
-                <button type="button" className="k-control-icon-btn h-9 w-9" onClick={() => setQty(quantity - 1)} disabled={quantity <= qtyMin}>
+                <button
+                  type="button"
+                  className="k-control-icon-btn h-9 w-9"
+                  onClick={() => setQty(quantity - 1)}
+                  disabled={!qtyCfg || quantity <= qtyMin}
+                >
                   −
                 </button>
                 <div className="min-w-[3.5rem] text-center text-sm font-black tabular-nums text-zinc-900 dark:text-zinc-100">{quantity}</div>
-                <button type="button" className="k-control-icon-btn h-9 w-9" onClick={() => setQty(quantity + 1)} disabled={quantity >= qtyMax}>
+                <button
+                  type="button"
+                  className="k-control-icon-btn h-9 w-9"
+                  onClick={() => setQty(quantity + 1)}
+                  disabled={!qtyCfg || quantity >= qtyMax}
+                >
                   +
                 </button>
               </div>
             </div>
-          ) : null}
+          </div>
 
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              {hasDiscount ? (
-                <div className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">Discount applied</div>
-              ) : (
-                <div className="text-[11px] text-zinc-500 dark:text-zinc-500">&nbsp;</div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               {options.length > 1 ? (
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
-                  className="k-filter-select k-price-select h-10 min-w-[170px]"
+                  className="k-filter-select k-price-select h-10 w-full sm:w-auto sm:flex-1 sm:min-w-[170px]"
                 >
                   {options.map((o) => {
                     const t = (o.unitPrice ?? 0) * quantity;
@@ -157,7 +159,7 @@ export function GameItemCard(props: {
                   })}
                 </select>
               ) : (
-                <div className="k-control-btn h-10 px-4 font-black tabular-nums">
+                <div className="k-control-btn h-10 w-full px-4 font-black tabular-nums sm:w-auto sm:flex-1">
                   {priceText}
                 </div>
               )}
@@ -166,11 +168,12 @@ export function GameItemCard(props: {
                 type="button"
                 onClick={() => void props.onBuy({ currency: selected?.currency ?? currency, quantity })}
                 disabled={props.buyDisabled || Boolean(selected?.disabled)}
-                className="k-cta-games h-10 px-4 disabled:opacity-50 disabled:grayscale"
+                className="k-cta-games h-10 w-full px-4 disabled:opacity-50 disabled:grayscale sm:w-auto sm:shrink-0"
               >
                 {props.buyLabel ?? 'Buy'}
               </button>
             </div>
+            {hasDiscount ? <div className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">Discount applied</div> : null}
           </div>
         </div>
       </KxListingCardBody>

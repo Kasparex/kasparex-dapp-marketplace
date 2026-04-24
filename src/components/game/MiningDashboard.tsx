@@ -16,6 +16,7 @@ import { RewardsPanel } from '@/components/game/diamond-veins/panels/RewardsPane
 import type { BonusType } from '@/lib/game/diamond-bonuses';
 import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
 import { useWalletDeck } from '@/hooks/useWalletDeck';
+import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
@@ -135,8 +136,11 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                 {canPayWithL1 && kasBalanceLoading ? '0' : kasBalanceNum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}{' '}
                 KAS
               </span>
-              <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">Refinement</span>
-              <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{refinementPointsTotal.toLocaleString()}</span>
+              <span className="inline-flex items-center gap-2 font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">
+                <DiamondIcon className="h-4 w-4 text-sky-400" />
+                Diamonds
+              </span>
+              <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{Math.floor(diamonds).toLocaleString()}</span>
               <span className="rounded-full border border-zinc-300 bg-zinc-200 px-2 py-0.5 text-sm font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
                 {krexTier}
               </span>
@@ -158,7 +162,46 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                     : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/60'
                 }`}
               >
-                {t.label}
+                <span className="inline-flex items-center gap-2">
+                  {t.id === 'overview' ? (
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M4 6h16M4 12h10M4 18h16" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                  ) : null}
+                  {t.id === 'mining' ? <DiamondIcon className="h-4 w-4 text-sky-400" /> : null}
+                  {t.id === 'power' ? (
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" strokeWidth="2" strokeLinejoin="round" />
+                    </svg>
+                  ) : null}
+                  {t.id === 'workers' ? (
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M16 11c1.66 0 3-1.57 3-3.5S17.66 4 16 4s-3 1.57-3 3.5S14.34 11 16 11z" strokeWidth="2" />
+                      <path d="M8 11c1.66 0 3-1.57 3-3.5S9.66 4 8 4 5 5.57 5 7.5 6.34 11 8 11z" strokeWidth="2" />
+                      <path d="M2 20c0-3 3-5 6-5" strokeWidth="2" strokeLinecap="round" />
+                      <path d="M22 20c0-3-3-5-6-5" strokeWidth="2" strokeLinecap="round" />
+                      <path d="M8 15h8" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                  ) : null}
+                  {t.id === 'upgrades' ? (
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M7 7h14l-1 8H8L7 7z" strokeWidth="2" strokeLinejoin="round" />
+                      <path d="M7 7L6 3H2" strokeWidth="2" strokeLinecap="round" />
+                      <path d="M9 21a1 1 0 100-2 1 1 0 000 2zM19 21a1 1 0 100-2 1 1 0 000 2z" strokeWidth="2" />
+                    </svg>
+                  ) : null}
+                  {t.id === 'rewards' ? (
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M12 2l3 7h7l-5.5 4 2 7-6.5-4.5L5.5 20l2-7L2 9h7l3-7z" strokeWidth="2" strokeLinejoin="round" />
+                    </svg>
+                  ) : null}
+                  {t.id === 'comments' ? (
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M21 15a4 4 0 01-4 4H8l-5 3V7a4 4 0 014-4h10a4 4 0 014 4v8z" strokeWidth="2" strokeLinejoin="round" />
+                    </svg>
+                  ) : null}
+                  <span>{t.label}</span>
+                </span>
               </button>
             ))}
           </div>
@@ -285,6 +328,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                 value: Math.floor(diamonds).toLocaleString(),
                 hint: 'Click to open Mining',
                 accent: 'diamonds',
+                icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
                 onClick: () => setTab('mining'),
               },
               {

@@ -11,6 +11,7 @@ import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
 import dynamic from 'next/dynamic';
 import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
 import { useWalletDeck } from '@/hooks/useWalletDeck';
+import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
@@ -134,7 +135,31 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
                   : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/60'
               }`}
             >
-              {t.label}
+              <span className="inline-flex items-center gap-2">
+                {t.id === 'overview' ? (
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M4 6h16M4 12h10M4 18h16" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                ) : null}
+                {t.id === 'vaults' ? (
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M7 10V7a5 5 0 0110 0v3" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M6 10h12v11H6V10z" strokeWidth="2" strokeLinejoin="round" />
+                  </svg>
+                ) : null}
+                {t.id === 'redeem' ? <DiamondIcon className="h-4 w-4 text-sky-400" /> : null}
+                {t.id === 'rewards' ? (
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M12 2l3 7h7l-5.5 4 2 7-6.5-4.5L5.5 20l2-7L2 9h7l3-7z" strokeWidth="2" strokeLinejoin="round" />
+                  </svg>
+                ) : null}
+                {t.id === 'comments' ? (
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M21 15a4 4 0 01-4 4H8l-5 3V7a4 4 0 014-4h10a4 4 0 014 4v8z" strokeWidth="2" strokeLinejoin="round" />
+                  </svg>
+                ) : null}
+                <span>{t.label}</span>
+              </span>
             </button>
           ))}
         </div>
