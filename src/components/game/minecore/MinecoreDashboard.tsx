@@ -9,9 +9,18 @@ import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import { useMinecore } from '@/hooks/useMinecore';
 import { PlantSlotCard } from '@/components/game/minecore/PlantSlotCard';
 import { FabricationPanel } from '@/components/game/minecore/FabricationPanel';
+import { InventoryPanel } from '@/components/game/minecore/InventoryPanel';
+import { ShopPanel } from '@/components/game/minecore/ShopPanel';
+import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
+import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
+import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
+import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 
 const TABS = [
+  { id: 'overview', label: 'Overview' },
   { id: 'mining', label: 'Mining', icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" /> },
+  { id: 'inventory', label: 'Inventory' },
+  { id: 'shop', label: 'Shop' },
   { id: 'fabrication', label: 'Fabrication' },
   { id: 'rewards', label: 'Rewards' },
 ] as const;
@@ -26,7 +35,7 @@ export function MinecoreDashboard(_props: {
   gameName?: string;
 }) {
   const { state, actions, lastPaymentError } = useMinecore();
-  const [tab, setTab] = useState<TabId>('mining');
+  const [tab, setTab] = useState<TabId>('overview');
 
   const pendingGrid = 0;
   const resources = useMemo(
@@ -63,6 +72,10 @@ export function MinecoreDashboard(_props: {
     [state.diamondsBalance, state.refinementPointsTotal, state.gridRedeemableTotal]
   );
 
+  const connections = (_props.game?.connections ?? []) as Array<{ toSlug?: string; toHref?: string; title: string; punch: string; requirement?: string }>;
+  const categories = (_props.game?.categories ?? []) as string[];
+  const tags = (_props.game?.tags ?? []) as string[];
+
   return (
     <TooltipProvider>
       <div className="grid h-full grid-cols-1 gap-8 lg:grid-cols-12">
@@ -84,6 +97,24 @@ export function MinecoreDashboard(_props: {
           </div>
 
           <GameTabs tabs={TABS} value={tab} onChange={setTab} />
+
+          {tab === 'overview' && (
+            <div className="space-y-6">
+              <GameOverviewSections
+                gameName={_props.gameName ?? 'Minecore'}
+                description={_props.gameDescription}
+                loreStory={_props.loreStory}
+                featuredImage={_props.featuredImage}
+                flow={[
+                  'Craft parts and modules from ingredients.',
+                  'Unlock a plant slot with KAS and install machine, power, workers, and modules.',
+                  'Start a mining cycle, then extract diamonds when complete.',
+                  'Refine diamonds into points, then redeem output into GRID (V1 rules).',
+                  'Expand slots and upgrade parts to grow your mining complex.',
+                ]}
+              />
+            </div>
+          )}
 
           {tab === 'mining' && (
             <div className="space-y-6">
@@ -137,6 +168,25 @@ export function MinecoreDashboard(_props: {
             </div>
           )}
 
+          {tab === 'inventory' && <InventoryPanel state={state} />}
+
+          {tab === 'shop' && (
+            <ShopPanel
+              onBuy={async ({ itemId, currency, quantity }) => {
+                if (itemId === 'power-topup' && currency === 'KAS') {
+                  await actions.topUpPowerWithKAS(0, { added: quantity, amountKas: 0.2 * quantity });
+                }
+                if (itemId === 'kas-overclock' && currency === 'KAS') {
+                  // V1: treat as boost selection to keep state simple.
+                  actions.setBoost(0, 'kas-overclock');
+                }
+                if (itemId === 'repair' && currency === 'KAS') {
+                  actions.repair(0);
+                }
+              }}
+            />
+          )}
+
           {tab === 'fabrication' && <FabricationPanel state={state} onCraft={actions.craftRecipe} />}
 
           {tab === 'rewards' && (
@@ -169,6 +219,16 @@ export function MinecoreDashboard(_props: {
             footer={<span>Minecore is the central loop. Timers persist across reloads.</span>}
             featured={_props.featuredImage ? { image: _props.featuredImage, tooltip: 'Minecore' } : undefined}
           />
+
+          <GameInteractionsPanel interactions={connections} />
+
+          <GamePurchasesPanel>
+            <div className="text-xs text-zinc-600 dark:text-zinc-400">
+              Slot unlocks and expansions are paid with KAS. Boost items are V1 stubs and will expand with KREX and GRID utility.
+            </div>
+          </GamePurchasesPanel>
+
+          <GameMetadataPanel categories={categories} tags={tags} />
         </div>
       </div>
     </TooltipProvider>

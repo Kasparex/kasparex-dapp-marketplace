@@ -141,7 +141,7 @@ export function PlantSlotCard(props: {
         {!s.unlocked ? (
           <Tooltip content="Unlock is paid with KAS (wired through the global payments SDK).">
             <button type="button" onClick={props.onUnlock} className="k-cta-games h-11 px-6 text-sm">
-              Unlock
+              Unlock {s.unlockCostKas.toLocaleString()} KAS
             </button>
           </Tooltip>
         ) : null}
